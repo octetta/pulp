@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
   synth_config.playback.channels = AUDIO_CHANNELS;
   synth_config.sampleRate = MAIN_SAMPLE_RATE;
   synth_config.dataCallback = synth_callback;
-  //synth_config.periodSizeInFrames = requested_synth_frames_per_callback;
+  synth_config.periodSizeInFrames = requested_synth_frames_per_callback;
   //synth_config.periodSizeInMilliseconds = 0;
   //synth_config.periods = 3;
   //synth_config.noClip = MA_TRUE;

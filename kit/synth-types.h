@@ -5,7 +5,7 @@
 #define VOICE_MAX (64)
 #define AUDIO_CHANNELS (2)
 #define AMY_FACTOR (0.025f)
-#define SYNTH_FRAMES_PER_CALLBACK (1024)
+#define SYNTH_FRAMES_PER_CALLBACK (128)
 
 #define NEG_60_DB (-60.0f)
 #define NEG_60_DB_AS_LINEAR (0.001)

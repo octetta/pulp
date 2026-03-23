@@ -1,0 +1,120 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "miniwav.h"
+
+int mw_put(char *name, int16_t *capture, int frames) {
+    wav_t wave = {
+        .RIFFChunkID = {'R', 'I', 'F', 'F'},
+        .RIFFChunkSize = frames + 36,
+        .Format = {'W', 'A', 'V', 'E'},
+        .FormatSubchunkID = {'f', 'm', 't', ' '},
+        .FormatSubchunkSize = 16,
+        .AudioFormat = 1,
+        .Channels = 1,
+        .SamplesRate = 44100,
+        .ByteRate = 44100,
+        .BlockAlign = 2,
+        .BitsPerSample = 16,
+        .DataSubchunkID = {'d', 'a', 't', 'a'},
+        .DataSubchunkSize = frames,
+    };
+    FILE *out = NULL;
+    out = fopen(name, "wb+");
+    if (out) {
+        fwrite(&wave, 1, sizeof(wave), out);
+        fwrite(capture, 1, frames * sizeof(int16_t), out);
+        fclose(out);
+    } else {
+        perror("! fopen");
+        return -1;
+    }
+    return frames;
+}
+
+int mw_frames(char *name) {
+    FILE *in = fopen(name, "rb");
+
+    if (in) {
+        wav_t wav;
+        int frames = -1;
+        int n = fread(&wav, sizeof(wav_t), 1, in);
+        if (n > 0) {
+            while (1) {
+                if (strncmp(wav.RIFFChunkID, "RIFF", 4) != 0) break;
+                if (strncmp(wav.Format, "WAVE", 4) != 0) break;
+                if (strncmp(wav.FormatSubchunkID, "fmt ", 4) != 0) break;
+                if (wav.Channels > 2) break;
+                if (wav.SamplesRate != 44100) break;
+                if (wav.BitsPerSample != 16) break;
+                if (strncmp(wav.DataSubchunkID, "data", 4) != 0) break;
+                frames = wav.DataSubchunkSize / wav.Channels / (wav.BitsPerSample / 8);
+                break;
+            }
+        }
+        fclose(in);
+        return frames;
+    }
+    return -1;    
+}
+
+float *mw_free(float *f) {
+    if (f) free(f);
+    return NULL;
+}
+
+#include "miniaudio.h"
+
+float _mw_safe[] = {0,0};
+
+float *mw_get_str(char *filename, int *frames_out, wav_t *w, int ch, char *out, int len) {
+  ma_result result;
+  ma_decoder decoder;
+  ma_decoder_config decoderConfig;
+
+  // We want interleaved float32 output
+  decoderConfig = ma_decoder_config_init(ma_format_f32, 0, 0);
+
+  result = ma_decoder_init_file(filename, &decoderConfig, &decoder);
+  if (result != MA_SUCCESS) {
+    snprintf(out, len, "Could not load file: %s\n", filename);
+    *frames_out = 0;
+    return NULL;
+  }
+  float* pSamples = NULL;
+  ma_uint64 frameCount = 0;
+  result = ma_decode_file(filename, &decoderConfig, &frameCount, (void**)&pSamples);
+  if (result == MA_SUCCESS) {
+    // pSamples is now your interleaved float32 array
+    // frameCount * channels = total number of floats
+    snprintf(out, len, "Loaded %llu frames / %d channels / %d sample rate\n",
+      frameCount,
+      decoder.outputChannels,
+      decoder.outputSampleRate);
+  } else {
+    *frames_out = 0;
+    return NULL;
+  }
+  int j = 0;
+  if (ch > decoder.outputChannels) ch = decoder.outputChannels;
+  for (int i = 0; i < frameCount * decoder.outputChannels; i+= decoder.outputChannels) {
+    if (ch == -1) {
+      float a = 0;
+      for (int k = 0; k < ch; k++) a += pSamples[i+k];
+      a /= (float)ch;
+    } else {
+      pSamples[j] = pSamples[i + ch];
+    }
+    j++;
+  }
+  w->SamplesRate = decoder.outputSampleRate;
+  w->Channels = decoder.outputChannels;
+  *frames_out = frameCount;
+  return pSamples;
+}
+
+float *mw_get(char *filename, int *frames_out, wav_t *w, int ch) {
+  return mw_get_str(filename, frames_out, w, ch, NULL, 0);
+}

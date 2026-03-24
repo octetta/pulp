@@ -159,64 +159,18 @@ void synth_alloc_voices(int voice_max) {
 
     /* optional features */
 
-#ifdef SYNTH_FEATURE_QUANTIZE
-    VALLOC(quantize,         int);
-#endif
 
-#ifdef SYNTH_FEATURE_PHASE_DISTORTION
-    VALLOC(cz_mode,          int);
-    VALLOC(cz_distortion,    float);
-    VALLOC(cz_mod_osc,       int);
-    VALLOC(cz_mod_depth,     float);
-#endif
 
-#ifdef SYNTH_FEATURE_FILTER
-    VALLOC(filter_freq,      float);
-    VALLOC(filter_res,       float);
-    VALLOC(filter_mode,      int);
-    VALLOC(filter,           mmf_t);
-    VALLOC(filter_envelope,       envelope_t);
-    VALLOC(use_filter_envelope,   int);
-    VALLOC(filter_env_depth,      float);
-    VALLOC(filter_update_counter, int);
-#endif
 
-#ifdef SYNTH_FEATURE_AMP_ENVELOPE
     VALLOC(amp_envelope,      envelope_t);
     VALLOC(amp_envelope_mode, int);
     VALLOC(use_amp_envelope,  int);
-#endif
 
-#ifdef SYNTH_FEATURE_GLISSANDO
-    VALLOC(glissando_enable,  int);
-    VALLOC(glissando_speed,   float);
-    VALLOC(glissando_target,  float);
-#endif
 
-#ifdef SYNTH_FEATURE_SMOOTHER
-    VALLOC(smoother_enable,    int);
-    VALLOC(smoother_gain,      float);
-    VALLOC(smoother_smoothing, float);
-#endif
 
-#ifdef SYNTH_FEATURE_SAMPLE_HOLD
-    VALLOC(sample_hold,        float);
-    VALLOC(sample_hold_count,  int);
-    VALLOC(sample_hold_max,    int);
-#endif
 
-#ifdef SYNTH_FEATURE_MODULATION
-    VALLOC(freq_mod_osc,    int);
-    VALLOC(freq_mod_depth,  float);
-    VALLOC(freq_mod_adder,  float);
-    VALLOC(freq_mod_mode,   int);
-    VALLOC(pan_mod_osc,     int);
-    VALLOC(pan_mod_depth,   float);
-    VALLOC(pan_mod_adder,   float);
-    VALLOC(amp_mod_osc,     int);
-    VALLOC(amp_mod_depth,   float);
-    VALLOC(amp_mod_adder,   float);
-#endif
+
+
 }
 
 void synth_free_voices(void) {
@@ -240,37 +194,8 @@ void synth_free_voices(void) {
     VFREE(interpolate);      VFREE(phase_reset);
     VFREE(mark_go);          VFREE(mark_a);          VFREE(mark_b);
 
-#ifdef SYNTH_FEATURE_QUANTIZE
-    VFREE(quantize);
-#endif
-#ifdef SYNTH_FEATURE_PHASE_DISTORTION
-    VFREE(cz_mode);          VFREE(cz_distortion);
-    VFREE(cz_mod_osc);       VFREE(cz_mod_depth);
-#endif
-#ifdef SYNTH_FEATURE_FILTER
-    VFREE(filter_freq);      VFREE(filter_res);
-    VFREE(filter_mode);      VFREE(filter);
-    VFREE(filter_envelope);
-    VFREE(use_filter_envelope);
-    VFREE(filter_env_depth);
-    VFREE(filter_update_counter);
-#endif
-#ifdef SYNTH_FEATURE_AMP_ENVELOPE
+
     VFREE(amp_envelope);     VFREE(amp_envelope_mode); VFREE(use_amp_envelope);
-#endif
-#ifdef SYNTH_FEATURE_GLISSANDO
-    VFREE(glissando_enable); VFREE(glissando_speed); VFREE(glissando_target);
-#endif
-#ifdef SYNTH_FEATURE_SMOOTHER
-    VFREE(smoother_enable);  VFREE(smoother_gain);   VFREE(smoother_smoothing);
-#endif
-#ifdef SYNTH_FEATURE_SAMPLE_HOLD
-    VFREE(sample_hold);      VFREE(sample_hold_count); VFREE(sample_hold_max);
-#endif
-#ifdef SYNTH_FEATURE_MODULATION
-    VFREE(freq_mod_osc);     VFREE(freq_mod_depth); VFREE(freq_mod_adder); VFREE(freq_mod_mode);
-    VFREE(pan_mod_osc);      VFREE(pan_mod_depth);  VFREE(pan_mod_adder);
-    VFREE(amp_mod_osc);      VFREE(amp_mod_depth);  VFREE(amp_mod_adder);
 #endif
 }
 

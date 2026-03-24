@@ -1,9 +1,21 @@
 CC = zig cc
-all: mini-skred
+all: kit mini-skred
 
+FEAT = PD=0
+
+KIT = ./kit $(FEAT)
+
+kit: kit.c
+	$(CC) kit.c -o kit
+
+synth.c: synth.kit
+	$(KIT) < synth.kit > synth.c
 
 synth.o: synth.c synth.h synth-types.h
 	$(CC) $(COPTS) -c $< -o $@
+
+skode.c: skode.kit
+	$(KIT) < skode.kit > skode.c
 
 skode.o: skode.c skode.h ands.h synth.c ands.o
 	$(CC) $(COPTS) -DMINI -Wno-multichar -c $< -o $@
@@ -26,5 +38,14 @@ skqueue.o: skqueue.c
 util.o: util.c
 	$(CC) $(COPTS) -c $< -o $@
 
-mini-skred : synth.o skqueue.o seq.o util.o skode.o synth-alloc.o miniwav.o miniaudio.o mini-skred.c
-	$(CC) synth.o util.o ands.o skqueue.o seq.o skode.o synth-alloc.o miniwav.o miniaudio.o mini-skred.c -o mini-skred -lm -lpthread
+mini-skred.c: mini-skred.kit
+	$(KIT) < mini-skred.kit > mini-skred.c
+
+mini-skred.o: mini-skred.c
+
+mini-skred : synth.o skqueue.o seq.o util.o skode.o synth-alloc.o miniwav.o miniaudio.o mini-skred.o
+	$(CC) synth.o util.o ands.o skqueue.o seq.o skode.o synth-alloc.o miniwav.o miniaudio.o mini-skred.o -o mini-skred -lm -lpthread
+
+clean:
+	touch *.kit
+	rm *.o

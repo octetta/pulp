@@ -119,7 +119,7 @@ void save_wav(skode_t *ctx, char *filename, float *samples, long num_samples, in
   if (record_safe == NULL) {
     ctx->puts(ctx, "OUCH"); return;
   } // nowhere to keep state
-
+  
   int num_channels = 0;  // 32 pairs = 64 channels
 
   for (int i = 0; i < max; i++) {
@@ -143,13 +143,13 @@ void save_wav(skode_t *ctx, char *filename, float *samples, long num_samples, in
   int byte_rate = sample_rate * num_channels * bits_per_sample / 8;
   int block_align = num_channels * bits_per_sample / 8;
   int data_size = num_samples * block_align;
-
+    
   // WAV header
   fwrite("RIFF", 1, 4, f);
   uint32_t chunk_size = 36 + data_size;
   fwrite(&chunk_size, 4, 1, f);
   fwrite("WAVE", 1, 4, f);
-
+    
   // fmt subchunk
   fwrite("fmt ", 1, 4, f);
   uint32_t subchunk1_size = 16;
@@ -189,7 +189,7 @@ void save_wav(skode_t *ctx, char *filename, float *samples, long num_samples, in
   } else {
     scale = 1.0f / fbig;
   }
-
+ 
   // Convert scaled float samples to 16-bit PCM
 
   for (int i = 0; i < num_samples * synth_config.voice_max * AUDIO_CHANNELS; i++) {
@@ -291,8 +291,39 @@ void system_show(skode_t *ctx) {
     ctx = &wprime;
     skode_init(ctx);
   }
+  @if(UDP)
+  ctx->printf(ctx, "# udp_port %d\n", udp_info());
+  @endif
 }
 
+@if(MAXI)
+int show_stats_cb(int n, uint64_t timestamp, uint64_t id, int tag, const event_t *e, void *user) {
+  uint64_t now = SAMPLE_COUNT_GET();
+  uint64_t then = timestamp - now;
+  double ms = (double)then / (double)MAIN_SAMPLE_RATE * 1000.0;
+  skode_t *ctx = user;
+  ctx->printf(ctx, "# (%d,%ld,%d) %ld +%g ms %d {%s}\n",
+    n,
+    id,
+    tag,
+    timestamp,
+    ms,
+    e->voice,
+    e->what
+  );
+  return 0;
+}
+
+void show_stats(skode_t *ctx) {
+  ctx->printf(ctx, "# rec_state : %d rec_ptr %ld\n", rec_state, rec_ptr);
+  ctx->printf(ctx, "# synth frames per callback %d : %gms\n",
+    synth_frames_per_callback, (float)synth_frames_per_callback / (float)MAIN_SAMPLE_RATE * 1000.0f);
+  ctx->printf(ctx, "# seq frames per callback %d : %gms\n",
+    seq_frames_per_callback, (float)seq_frames_per_callback / (float)MAIN_SAMPLE_RATE * 1000.0f);
+  ctx->printf(ctx, "# queue_size %d\n", seq_queued());
+  seq_foreach(show_stats_cb, ctx);
+}
+@endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -518,11 +549,34 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
 
 // this is a mess i need to clean up
 
+@if(MAXI)
+#include "scope-shared.h"
+extern int scope_enable;
+extern scope_buffer_t *scope;
+
+void pattern_show(skode_t *ctx, int pattern_pointer) {
+  int first = 1;
+  for (int s = 0; s < SEQ_STEPS_MAX; s++) {
+    char *line = seq_pattern[pattern_pointer][s];
+    if (strlen(line) == 0) break;
+    if (first) {
+      ctx->printf(ctx, "; y%d %%%d # step %d\n",
+        pattern_pointer, seq_modulo[pattern_pointer], ctx->step);
+      first = 0;
+    }
+    ctx->printf(ctx, "; {%s} x%d", line, s);
+    if (seq_pattern_mute[pattern_pointer][s]) ctx->printf(ctx, " @%d", pattern_pointer);
+    ctx->puts(ctx, "");
+  }
+}
+
+void tempo_set(float m);
+@endif
 
 void downsample_block_average_min_max(
     const float *source, int source_len, float *dest, int dest_len,
     float *min, float *max) {
-
+    
     if (source_len <= 0 || dest_len <= 0) return;
 
     // CASE 1: STRETCH (source is smaller than display)
@@ -531,7 +585,7 @@ void downsample_block_average_min_max(
         for (int i = 0; i < dest_len; i++) {
             int src_idx = (int)(i * step);
             float val = source[src_idx];
-
+            
             dest[i] = val;
             if (min) min[i] = val;
             if (max) max[i] = val;
@@ -545,7 +599,7 @@ void downsample_block_average_min_max(
     for (int i = 0; i < dest_len; i++) {
         int start_idx = (int)(i * block_size);
         int end_idx = (int)((i + 1) * block_size);
-
+        
         // Ensure we don't go out of bounds
         if (end_idx > source_len) end_idx = source_len;
         if (start_idx >= source_len) start_idx = source_len - 1;
@@ -599,6 +653,12 @@ int wavetable_show(skode_t *ctx, int n) {
     }
     ctx->printf(ctx, " '%s'", sw.name[n]);
     ctx->puts(ctx, "");
+    @if(MAXI)
+    if (scope_enable) {
+      downsample_block_average_min_max(table, size, scope->wave_data, SCOPE_WAVE_WIDTH, scope->wave_min, scope->wave_max);
+      scope->wave_len = SCOPE_WAVE_WIDTH;
+    }
+    @endif
   } else {
     ctx->printf(ctx, "# w%d nil\n", n);
   }
@@ -675,6 +735,24 @@ int skode_function(ands_t *s, int info) {
       if (argc == 0) { wave_dir(voice, -1); } else { wave_dir(voice, x); } break;
     case ATOM4('B---'): // wave-loop bool
       if (argc == 0) { wave_loop(voice, -1); } else { wave_loop(voice, x); } break;
+    @if(PD)
+    case ATOM4('c---'): // phase-distortion algo distortion
+      if (argc == 0) {
+        cz_set(voice, 0, .5);
+      } else if (argc == 1) {
+        cz_set(voice, x, .5);
+      } else {
+        cz_set(voice, x, arg[1]);
+      }
+      break;
+    case ATOM4('C---'): // PD-mod voice depth
+      if (argc < 2) {
+        cmod_set(voice, -1, 0);
+      } else if (argc > 1) {
+        cmod_set(voice, x, arg[1]);
+      }
+      break;
+    @endif
     case ATOM4('D---'): // data-size
       // need to use the data array in skode here, not ctx->data
       break;
@@ -795,12 +873,17 @@ int skode_function(ands_t *s, int info) {
         if (b >= 0) envelope_velocity(b, x);
         if (c >= 0) envelope_velocity(c, x);
         if (d >= 0) envelope_velocity(d, x);
-
+       
       }
       break;
     case ATOM4('m---'): // mute-audio bool
       if (argc) { wave_mute(voice, x); }
       break;
+    @if(MAXI)
+    case ATOM4('M---'): // tempo bpm
+      if (argc) { tempo_set(arg[0]); }
+      break;
+    @endif
     case ATOM4('n---'): // midi-freq note-number
       if (argc) {
         float note = arg[0];
@@ -840,6 +923,45 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('Q---'):
       if (argc) { mmf_set_res(voice, arg[0]); }
       break;
+    @if(MAXI)
+    case ATOM4('r---'): // record-mode bool
+      if (argc) { if (rec_state == 0) sv.record[voice] = x; }
+      break;
+    case ATOM4('R!--'):  // remove-events tag
+      if (argc) {
+        int tag = x;
+        seq_kill_by_tag(tag);
+      }
+      break;
+    case ATOM4('R!!-'):
+      seq_kill_all();
+      break;
+    case ATOM4('R\\--'): // repeat-string-tempo count delay [tag]
+      if (argc > 1) {
+        uint64_t qt = SAMPLE_COUNT_GET();
+        double t = (tempo_time_per_step * 4.0f);
+        double fdt = t * arg[1] * (float)MAIN_SAMPLE_RATE;
+        uint64_t dt = (uint64_t)fdt;
+        int tag = 0;
+        if (argc > 2) tag = (int)arg[2];
+        for (int i=0; i<x; i++) {
+          queue_item(qt, ands_string(ctx->parse), ctx->voice, tag);
+          qt += dt;
+        }
+      } break;
+    case ATOM4('R---'): // repeat-string count delay [tag]
+      if (argc > 1) {
+        uint64_t qt = SAMPLE_COUNT_GET();
+        double fdt = arg[1] * (float)MAIN_SAMPLE_RATE;
+        uint64_t dt = (uint64_t)fdt;
+        int tag = 0;
+        if (argc > 2) tag = (int)arg[2];
+        for (int i=0; i<x; i++) {
+          queue_item(qt, ands_string(ctx->parse), ctx->voice, tag);
+          qt += dt;
+        }
+      } break;
+    @endif
     case ATOM4('s---'): // volume-smooth bool
       if (argc) {
         if (arg[0] <= 0) {
@@ -892,11 +1014,17 @@ int skode_function(ands_t *s, int info) {
           n = (int)arg[2];
           sv.one_shot[voice] = n;
         }
+        @if(MAXI)
+        if (scope_enable) sprintf(scope->wave_text, "w%d", x);
+        @endif
       }
       break;
     case ATOM4('W---'): // wave-show which-wave
       if (argc) {
         wavetable_show(ctx,x);
+        @if(MAXI)
+        if (scope_enable) sprintf(scope->wave_text, "w%d", x);
+        @endif
       } else if (argc == 0) {
         int c = 0;
         for (int i=0; i<WAVE_TABLE_MAX; i++) {
@@ -905,8 +1033,53 @@ int skode_function(ands_t *s, int info) {
             c++;
           }
         }
+        @if(MAXI)
+        if (scope_enable) sprintf(scope->wave_text, "%d waves loaded", c);
+        @endif
       }
       break;
+    @if(MAXI)
+    case ATOM4('>x--'): // goto-step #
+      seq_step_goto(ctx->pattern, x);
+      break;
+    case ATOM4('x---'): // set-step-string step
+      if (argc) {
+        if (arg[0] == NAN || x < 0) {
+          ctx->step++;
+          x = ctx->step;
+        } else {
+          ctx->step = x;
+        }
+        if (x >= 0 && x < SEQ_STEPS_MAX) {
+          seq_step_set(ctx->pattern, ctx->step, ands_string(ctx->parse));
+        }
+      }
+      break;
+    case ATOM4('y---'): // select-pattern which
+      if (argc) {
+        ctx->pattern = x;
+        scope_pattern_pointer = x;
+      }
+      break;
+    case ATOM4('Y---'): // clear-pattern which
+      if (argc && x >= 0 && x < PATTERNS_MAX) {
+        pattern_reset(x);
+      }
+      break;
+    case ATOM4('z---'): // one-pattern-play-mode bool
+      if (argc) {
+        seq_state_set(ctx->pattern, x);
+      } else pattern_show(ctx, ctx->pattern);
+      break;
+    case ATOM4('Z---'): // all-pattern-play-mode bool
+      if (argc) {
+        seq_state_all(x);
+      } else {
+        ctx->printf(ctx, "; M%g\n", tempo_bpm * 4.0f);
+        for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p);
+      }
+      break;
+    @endif
     case ATOM4('?---'): // show-voice
       voice_show(ctx, voice, ' ', ctx->verbose); break;
     case ATOM4('\\---'): // verbose-show-voice
@@ -1017,6 +1190,11 @@ int skode_function(ands_t *s, int info) {
                   ctx->printf(ctx, "# {%s} e>%d\n", EXTRA_PTR(i), i);
               }
               break;
+            @if(MAXI)
+            case 1: show_threads(ctx); break;
+            case 4: show_stats(ctx); break;
+            case 6: ctx->printf(ctx, "%s", seq_stats()); break;
+            @endif
           }
         }
       }
@@ -1039,6 +1217,60 @@ int skode_function(ands_t *s, int info) {
         if (argc) wave_load(ctx, file_num, wave_slot, ch, 1);
       }
       break;
+    @if(MAXI)
+    case ATOM4('<---'): // record duration
+      if (arg) {
+        rec_state = 0;
+        float max_sec = arg[0];
+        float max_samples;
+        if (max_sec > 0.0f) {
+          if (max_sec > rec_sec) {
+            max_sec = rec_sec;
+          }
+          max_samples = max_sec * (float)(MAIN_SAMPLE_RATE * AUDIO_CHANNELS * synth_config.voice_max);
+          rec_max = max_samples;
+        }
+        rec_ptr = 0;
+        rec_state = 1;
+      }
+      break;
+    case ATOM4('*---'): // write-recorded
+      {
+        #include <sys/time.h>
+        #include <unistd.h>
+        if (rec_ptr) {
+          rec_state = 0;
+          pid_t pid = getpid();
+          struct timeval tv;
+          gettimeofday(&tv, NULL);
+          long long ms = (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+          char name[1024];
+#ifdef _WIN32
+          sprintf(name, "skred-%lld-%lld.wav", pid, ms);
+#else
+          sprintf(name, "skred-%d-%lld.wav", pid, ms);
+#endif
+          ctx->printf(ctx, "# file %s (%ld frames)\n", name, rec_ptr);
+          save_wav(ctx, name, recording, rec_ptr/synth_config.voice_max/AUDIO_CHANNELS, sv.record, synth_config.voice_max);
+        }
+      }
+      break;
+    case ATOM4('>---'): // copy-voice dest-voice
+      if (arg) voice_copy(voice, x);
+      break;
+    case ATOM4('/---'): // default-wave voice
+      wave_default(voice);
+      break;
+    case ATOM4('%---'): // pattern-modulus num
+      if (arg) seq_modulo_set(ctx->pattern, x);
+      break;
+    case ATOM4('x!--'): // step-mute step
+      if (arg) seq_mute_set(ctx->pattern, x, 0);
+      break;
+    case ATOM4('x@--'): // step-unmute step
+      if (arg) seq_mute_set(ctx->pattern, x, 1);
+      break;
+    @endif
     case ATOM4('=---'):  // variable-set slot value
       if (argc>1) ands_set_local(ctx->parse, x, arg[1]);
       else if (argc == 1) {
@@ -1067,6 +1299,31 @@ int skode_function(ands_t *s, int info) {
 }
 
 int skode_defer(ands_t *s, int info) {
+  @if(MAXI)
+  skode_t *ctx = (skode_t*)ands_user(s);
+  char mode = ands_defer_mode(s);
+  double t = ands_defer_num(s);
+  if (ctx->defer_sample_time == 0) {
+    ctx->defer_sample_time = SAMPLE_COUNT_GET();
+  }
+  uint64_t dst = ctx->defer_sample_time;
+  if (mode == '+') t *= (tempo_time_per_step * 4.0f);
+  t += ctx->defer_last;
+  uint64_t qt = (uint64_t)(t * (float)MAIN_SAMPLE_RATE) + dst;
+  if (ctx->trace) {
+#ifdef _WIN32
+    ctx->printf(ctx, "# SKODE_DEFER %c %g(%lld/%lld) '%s' (%g)\n",
+#else
+    ctx->printf(ctx, "# SKODE_DEFER %c %g(%ld/%ld) '%s' (%g)\n",
+#endif
+      mode,
+      t, qt, dst,
+      ands_defer_string(s),
+      ctx->defer_last);
+  }
+  queue_item(qt, ands_defer_string(s), ctx->voice, -1);
+  ctx->defer_last += ands_defer_num(s);
+  @endif
   return 0;
 }
 

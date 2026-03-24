@@ -120,20 +120,19 @@ void osc_set_freq(int v, float f) {
 static inline float fast_pow(float a, float b) {
     // Clamp input to avoid undefined behavior
     if (a <= 0.0f) return 0.0f;
-    
+
     union { float f; int i; } u = { a };
     u.i = (int)(b * (u.i - 1065353216) + 1065353216);
     return u.f;
 }
 
-@if(PD)
 float cz_phasor(int n, float p, float d, int table_size) {
     const float table_size_f = (float)table_size;
     float phase = p / table_size_f;
-    
+
     // Clamp d to safe range [0, 1)
     d = (d < 0.0f) ? 0.0f : (d > 0.999f ? 0.999f : d);
-    
+
     switch (n) {
         case 1: { // saw -> pulse
             const float inv_d = 0.5f / d;
@@ -191,35 +190,34 @@ float cz_phasor(int n, float p, float d, int table_size) {
         default:
             return p;
     }
-    
+
     return phase * table_size_f;
 }
-@endif
 
 float osc_next(int voice, float phase_inc) {
     if (sv.finished[voice]) return 0.0f;
-    
+
     const int table_size = sv.table_size[voice];
     const bool one_shot = sv.one_shot[voice];
     const bool loop_enabled = sv.loop_enabled[voice];
-    
+
     if (sv.direction[voice]) phase_inc = -phase_inc;
-    
+
     float phase = sv.phase[voice] + phase_inc;
-    
+
     if (!isfinite(phase)) {
         sv.phase[voice] = 0.0f;
         sv.finished[voice] = one_shot;
         return 0.0f;
     }
-    
+
     // Get loop boundaries (precomputed if available)
     const float loop_start = loop_enabled && sv.loop_valid[voice] 
         ? sv.loop_start_f[voice] : 0.0f;
     const float loop_end = loop_enabled && sv.loop_valid[voice]
         ? sv.loop_end_f[voice] : (float)table_size;
     const float loop_length = loop_end - loop_start;
-    
+
     // Wrap phase
     if (phase >= loop_end) {
         if (one_shot && !loop_enabled) {
@@ -236,14 +234,13 @@ float osc_next(int voice, float phase_inc) {
             phase = loop_end - fmodf(loop_start - phase, loop_length);
         }
     }
-    
+
     sv.phase[voice] = phase;
-    
+
     // Get sample
 
     float final_phase;
 
-    @if(PD) 
     if (sv.cz_mode[voice] && sv.cz_mod_osc[voice] >= 0) {
       int dv = sv.cz_mod_osc[voice];
       float dm = (dv >= 0) ? sv.sample[dv] * sv.cz_mod_depth[voice] : 1.0f;
@@ -251,27 +248,24 @@ float osc_next(int voice, float phase_inc) {
     } else {
       final_phase = phase;
     }
-    @else
-    final_phase = phase;
-    @endif
-    
+
     int idx = (int)final_phase;
-    
+
     if (idx >= table_size) idx = table_size - 1;
     if (idx < 0) idx = 0;
-    
+
     // Check if interpolation is enabled for this voice
     if (sv.interpolate[voice]) {
         // Linear interpolation
         float frac = final_phase - (float)idx;
-        
+
         int next_idx = idx + 1;
         //if (next_idx >= table_size) next_idx = 0;  // Wrap for seamless loops
         if (next_idx >= table_size) next_idx = sv.one_shot[voice] ? table_size - 1 : 0;
-        
+
         float sample1 = sv.table[voice][idx];
         float sample2 = sv.table[voice][next_idx];
-        
+
         return sample1 + frac * (sample2 - sample1);
     } else {
         // No interpolation - just return the sample
@@ -329,7 +323,7 @@ void osc_set_wave_table_index(int voice, int wave) {
 
 void osc_trigger(int voice) {
     sv.finished[voice] = 0;
-    
+
     if (sv.one_shot[voice]) {
         if (sv.direction[voice]) {
             sv.phase[voice] = (float)(sv.table_size[voice] - 1);
@@ -369,7 +363,7 @@ float mmf_process(int n, float input) {
                   sv.filter[n].a1 * sv.filter[n].y1 -
                   sv.filter[n].a2 * sv.filter[n].y2;
 #endif /* SYNTH_FEATURE_FILTER */
-    
+
     // Update delay lines
 #ifdef SYNTH_FEATURE_FILTER
     sv.filter[n].x2 = sv.filter[n].x1;
@@ -377,7 +371,7 @@ float mmf_process(int n, float input) {
     sv.filter[n].y2 = sv.filter[n].y1;
     sv.filter[n].y1 = output;
 #endif /* SYNTH_FEATURE_FILTER */
-    
+
     return output;
 }
 
@@ -646,7 +640,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         mod = sv.sample[m] * sv.amp_mod_depth[n] + sv.amp_mod_adder[n];
       }
 #endif /* SYNTH_FEATURE_MODULATION */
-      
+
       float final = amp * env * mod;
 
 #if 0 // def SYNTH_FEATURE_SMOOTHER
@@ -655,7 +649,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         final = sv.smoother_gain[n];
       }
 #endif /* SYNTH_FEATURE_SMOOTHER */
-      
+
       sv.sample[n] *= final;
 
       if (sv.disconnect[n] == 0) {
@@ -714,7 +708,6 @@ int envelope_is_flat(int v) {
   return 0;
 }
 
-@if(PD)
 int cz_set(int v, int n, float f) {
   sv.cz_mode[v] = n;
   sv.cz_distortion[v] = f;
@@ -726,7 +719,6 @@ int cmod_set(int voice, int o, float f) {
   sv.cz_mod_depth[voice] = f;
   return 0;
 }
-@endif
 
 #include <stdio.h>
 
@@ -822,7 +814,6 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             sv.filter_env_depth[v]);
 
     /* --- phase distortion (suppress if mode 0) --- */
-    @if(PD)
     if (verbose || sv.cz_mode[v])
         APPEND(" c%d,%g", sv.cz_mode[v], sv.cz_distortion[v]);
 
@@ -833,7 +824,6 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     /* --- sample and hold (suppress if off) --- */
     if (verbose || sv.sample_hold_max[v])
         APPEND(" h%d", sv.sample_hold_max[v]);
-    @endif
 
     /* --- bit quantise (suppress if off) --- */
     if (verbose || sv.quantize[v])
@@ -1147,10 +1137,8 @@ int voice_copy(int v, int n) {
 #ifdef SYNTH_FEATURE_AMP_ENVELOPE
   envelope_set(n, sv.amp_envelope[v].a, sv.amp_envelope[v].d, sv.amp_envelope[v].s, sv.amp_envelope[v].r);
 #endif /* SYNTH_FEATURE_AMP_ENVELOPE */
-  @if(PD)
   cz_set(n, sv.cz_mode[v], sv.cz_distortion[v]);
   cmod_set(n, sv.cz_mod_osc[v], sv.cz_mod_depth[v]);
-  @endif
 #ifdef SYNTH_FEATURE_FILTER
   sv.filter_mode[n] = sv.filter_mode[v];
   mmf_init(n, sv.filter_freq[v], sv.filter_res[v]);

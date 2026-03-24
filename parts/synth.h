@@ -28,24 +28,8 @@ extern float volume_smoother_smoothing;
 extern float volume_threshold;
 extern float volume_smoother_higher_smoothing;
 
-      #ifdef SYNTH_FEATURE_QUANTIZE
-      int wave_quant(int voice, int n);
-      float quantize_bits_int(float v, int bits);
-      #endif
 
-      #ifdef SYNTH_FEATURE_FILTER
-      void mmf_init(int, float, float);
-      void mmf_set_params(int, float, float);
-      int  mmf_set_freq(int, float);
-      int  mmf_set_res(int, float);
-      float mmf_process(int n, float input);
-      #endif
 
-      #ifdef SYNTH_FEATURE_PHASE_DISTORTION
-      float cz_phasor(int n, float p, float d, int table_size);
-      int   cz_set(int v, int n, float f);
-      int   cmod_set(int voice, int o, float f);
-      #endif
 
       #ifdef SYNTH_FEATURE_AMP_ENVELOPE
       void  envelope_init(int v, float a, float d, float s, float r);
@@ -55,7 +39,6 @@ extern float volume_smoother_higher_smoothing;
       int   envelope_is_flat(int v);
       int   envelope_velocity(int voice, float f);
       int   envelope_set(int voice, float a, float d, float s, float r);
-      #endif
 
 void audio_rng_init(uint64_t *rng, uint64_t seed);
 uint64_t audio_rng_next(uint64_t *rng);
@@ -77,15 +60,13 @@ int wave_set(int voice, int wave);
 int wave_mute(int voice, int state);
 int wave_dir(int voice, int state);
 int freq_midi(int voice, float note);
-int amp_mod_set(int voice, int o, float f, float a);
-int wave_reset(int voice, int n);
-int freq_mod_set(int voice, int o, float f, float a);
-int pan_mod_set(int voice, int o, float f, float a);
 
-//char *voice_format(int v, char *out, int verbose);
+
+int wave_reset(int voice, int n);
+
+
+
 char *voice_format(int v, char *out, size_t out_size, int verbose);
-//void voice_show(int v, char c, int verbose);
-//int voice_show_all(int voice, int verbose);
 int voice_trigger(int voice);
 int wave_default(int voice);
 int wave_loop(int voice, int state);

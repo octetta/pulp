@@ -41,7 +41,7 @@ synth.c: synth.kit
 synth.o: synth.c synth.h synth-types.h
 	$(CC) $(COPTS) -c $< -o $@
 
-skode.kit: skode.h.kit
+synth.kit: synth.h.kit
 
 skode.c: skode.kit
 	$(KIT) < skode.kit > skode.c

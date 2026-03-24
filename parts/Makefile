@@ -58,6 +58,9 @@ ands.o: ands.c ands.h
 miniwav.o: miniwav.c miniwav.h
 	$(CC) $(COPTS) -c $< -o $@
 
+synth-alloc.c: synth-alloc.kit
+	$(KIT) < synth-alloc.kit > synth-alloc.c
+
 synth-alloc.o: synth-alloc.c
 	$(CC) $(COPTS) -c $< -o $@
 

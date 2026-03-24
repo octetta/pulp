@@ -31,7 +31,6 @@ extern float volume_smoother_higher_smoothing;
 
 
 
-      #ifdef SYNTH_FEATURE_AMP_ENVELOPE
       void  envelope_init(int v, float a, float d, float s, float r);
       void  amp_envelope_trigger(int v, float f);
       void  amp_envelope_release(int v);

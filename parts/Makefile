@@ -32,11 +32,16 @@ KIT = ./kit $(FEAT)
 kit: kit.c
 	$(CC) kit.c -o kit
 
+synth.h: synth.h.kit
+	$(KIT) < synth.h.kit > synth.h
+
 synth.c: synth.kit
 	$(KIT) < synth.kit > synth.c
 
 synth.o: synth.c synth.h synth-types.h
 	$(CC) $(COPTS) -c $< -o $@
+
+skode.kit: skode.h.kit
 
 skode.c: skode.kit
 	$(KIT) < skode.kit > skode.c

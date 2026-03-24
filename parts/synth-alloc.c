@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "synth-features.h"
 #include "synth-config.h"
 #include "synth-state.h"
 

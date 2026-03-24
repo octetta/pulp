@@ -5,7 +5,6 @@
 
 #include "synth-types.h"
 
-#include "synth-features.h"
 #include "synth-config.h"
 #include "synth-state.h"
 #include "synth-alloc.h"

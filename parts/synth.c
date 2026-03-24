@@ -279,7 +279,6 @@ float quantize_bits_int(float v, int bits) {
   return (float)iv * (1.0f / (float)levels);
 }
 
-@if(FILT)
 // Process a single sample through the filter - VERY FAST
 // Only multiplication and addition, no transcendental functions
 float mmf_process(int n, float input) {
@@ -298,7 +297,6 @@ float mmf_process(int n, float input) {
 
     return output;
 }
-@endif
 
 // Initialize the envelope
 
@@ -531,7 +529,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       }
 #endif /* SYNTH_FEATURE_QUANTIZE */
 
-#if 0 // def SYNTH_FEATURE_FILTER
       // apply multi-mode filter
       if (sv.filter_mode[n]) {
         if (sv.filter_update_counter[n] <= 0) {
@@ -548,7 +545,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         sv.filter_update_counter[n]--;
         sv.sample[n] = mmf_process(n, sv.sample[n]);
       }
-#endif
 
       // apply amp to sample
       float amp = sv.amp[n];
@@ -714,11 +710,9 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || (sv.pan_mod_osc[v] >= 0 && sv.pan_mod_depth[v] != 0.0f))
         APPEND(" P%d,%g,%g", sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
 
-    /* --- filter (suppress if disabled) --- */
     if (verbose || sv.filter_mode[v])
         APPEND(" J%d K%g Q%g", sv.filter_mode[v], sv.filter_freq[v], sv.filter_res[v]);
 
-    /* --- filter envelope (suppress if disabled) --- */
     if (verbose || sv.use_filter_envelope[v])
         APPEND(" ft %g %g %g %g fd %g",
             sv.filter_envelope[v].a,
@@ -901,19 +895,15 @@ int envelope_set(int voice, float a, float d, float s, float r) {
 void mmf_set_params(int n, float f, float resonance) {
     // Only recalculate if parameters changed
     if (
-#ifdef SYNTH_FEATURE_FILTER
       f == sv.filter[n].last_freq &&
       resonance == sv.filter[n].last_resonance &&
       sv.filter_mode[n] == sv.filter[n].last_mode) {
-#endif /* SYNTH_FEATURE_FILTER */
         return;  // No work needed!
     }
 
-#ifdef SYNTH_FEATURE_FILTER
     sv.filter[n].last_freq = f;
     sv.filter[n].last_resonance = resonance;
     sv.filter[n].last_mode = sv.filter_mode[n];
-#endif /* SYNTH_FEATURE_FILTER */
 
     // Calculate filter coefficients (expensive operations only done here)
     float omega = 2.0f * (float)M_PI * f / (float)MAIN_SAMPLE_RATE;
@@ -923,9 +913,7 @@ void mmf_set_params(int n, float f, float resonance) {
 
     float a0, b0, b1, b2, a1, a2;
 
-#ifdef SYNTH_FEATURE_FILTER
     switch (sv.filter_mode[n]) {
-#endif /* SYNTH_FEATURE_FILTER */
       case 0:
         return;
       default:
@@ -975,18 +963,11 @@ void mmf_set_params(int n, float f, float resonance) {
     }
 
     // Normalize coefficients
-#ifdef SYNTH_FEATURE_FILTER
     sv.filter[n].b0 = b0 / a0;
     sv.filter[n].b1 = b1 / a0;
     sv.filter[n].b2 = b2 / a0;
     sv.filter[n].a1 = a1 / a0;
     sv.filter[n].a2 = a2 / a0;
-#endif /* SYNTH_FEATURE_FILTER */
-
-#ifdef SYNTH_FEATURE_FILTER
-    //sv.filter_freq[n] = f;
-    //sv.filter_res[n] = resonance;
-#endif /* SYNTH_FEATURE_FILTER */
 }
 
 
@@ -996,27 +977,20 @@ void mmf_set_params(int n, float f, float resonance) {
 // sample_rate: audio sample rate in Hz
 void mmf_init(int n, float f, float resonance) {
     // Clear delay lines
-#ifdef SYNTH_FEATURE_FILTER
     sv.filter[n].x1 = sv.filter[n].x2 = 0.0f;
     sv.filter[n].y1 = sv.filter[n].y2 = 0.0f;
-#endif /* SYNTH_FEATURE_FILTER */
 
     // Store parameters
-#ifdef SYNTH_FEATURE_FILTER
     sv.filter[n].last_freq = -1.0f;  // Force coefficient calculation
     sv.filter[n].last_resonance = -1.0f;
     sv.filter[n].last_mode = -1;
-#endif /* SYNTH_FEATURE_FILTER */
 
-#ifdef SYNTH_FEATURE_FILTER
     sv.filter_freq[n] = f;
     sv.filter_res[n] = resonance;
-#endif /* SYNTH_FEATURE_FILTER */
 
     // Calculate initial coefficients
     mmf_set_params(n, f, resonance);
 }
-
 
 int voice_copy(int v, int n) {
   wave_set(n, sv.wave_table_index[v]);
@@ -1041,10 +1015,8 @@ int voice_copy(int v, int n) {
 #ifdef SYNTH_FEATURE_AMP_ENVELOPE
   envelope_set(n, sv.amp_envelope[v].a, sv.amp_envelope[v].d, sv.amp_envelope[v].s, sv.amp_envelope[v].r);
 #endif /* SYNTH_FEATURE_AMP_ENVELOPE */
-#ifdef SYNTH_FEATURE_FILTER
   sv.filter_mode[n] = sv.filter_mode[v];
   mmf_init(n, sv.filter_freq[v], sv.filter_res[v]);
-#endif /* SYNTH_FEATURE_FILTER */
   // TODO stuff is missing from here...
   return 0;
 }
@@ -1148,14 +1120,12 @@ void voice_reset(int i) {
   sv.link_velo_d[i] = -1;
   sv.link_trig[i] = -1;
   osc_set_wave_table_index(i, WAVE_TABLE_SINE);
-#ifdef SYNTH_FEATURE_FILTER
   sv.filter_mode[i] = 0;
+  sv.filter_update_counter[i] = FILTER_UC;
+  mmf_init(i, 8000.0f, 0.707f);
   sv.use_filter_envelope[i]   = 0;
   sv.filter_env_depth[i]      = 0.0f;
-  sv.filter_update_counter[i] = FILTER_UC;
   envelope_init_e(&sv.filter_envelope[i], 0.0f, 0.0f, 1.0f, 0.0f);
-#endif /* SYNTH_FEATURE_FILTER */
-  mmf_init(i, 8000.0f, 0.707f);
   //
 #ifdef SYNTH_FEATURE_SMOOTHER
   sv.smoother_enable[i] = 1;
@@ -1204,24 +1174,18 @@ int envelope_velocity(int voice, float f) {
 }
 
 int mmf_set_freq(int n, float f) {
-#ifdef SYNTH_FEATURE_FILTER
   sv.filter_freq[n] = f;
   mmf_set_params(n, f, sv.filter_res[n]);
-#endif /* SYNTH_FEATURE_FILTER */
   return 0;
 }
 
 int mmf_set_res(int n, float res) {
-#ifdef SYNTH_FEATURE_FILTER
   if (res > 0) {
     sv.filter_res[n] = res;
     mmf_set_params(n, sv.filter_freq[n], res);
   }
-#endif /* SYNTH_FEATURE_FILTER */
   return 0;
 }
-
-#define SIZE_SINE (4096)
 
 void normalize_preserve_zero(float *data, int length) {
   if (length == 0) return;
@@ -1246,6 +1210,8 @@ void normalize_preserve_zero(float *data, int length) {
     data[i] *= scale_factor;
   }
 }
+
+#define SIZE_SINE (4096)
 
 void wave_table_init(int flag) {
   float *table;

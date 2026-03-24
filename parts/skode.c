@@ -757,14 +757,10 @@ int skode_function(ands_t *s, int info) {
       if (argc) { sv.link_trig[voice] = x; } break;
     case ATOM4('J---'): // filter-mode selector
       if (argc) {
-#ifdef SYNTH_FEATURE_FILTER
         sv.filter_mode[voice] = x;
-#endif /* SYNTH_FEATURE_FILTER */
         mmf_set_params(voice,
-#ifdef SYNTH_FEATURE_FILTER
           sv.filter_freq[voice],
           sv.filter_res[voice]);
-#endif /* SYNTH_FEATURE_FILTER */
       }
       break;
     case ATOM4('K---'): // filter-cutoff freq
@@ -773,11 +769,6 @@ int skode_function(ands_t *s, int info) {
 #ifdef SYNTH_FEATURE_AMP_ENVELOPE
       if (argc) { sv.amp_envelope_mode[voice] = x; } break;
 #endif /* SYNTH_FEATURE_AMP_ENVELOPE */
-    case ATOM4('udp-'): // show-udp
-      if (argc) {
-        ctx->printf(ctx, "# udp [%d] %d/%d\n", ctx->which, ctx->ip, ctx->port);
-      }
-      break;
     case ATOM4('log-'): // log-enable bool
       if (argc) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }

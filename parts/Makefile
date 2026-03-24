@@ -1,8 +1,17 @@
-CC = zig cc
+CC = gcc
+
 all: kit mini-skred
 
-FEAT = PD=0
+reset:
+	touch *.kit
 
+FEAT = \
+  PD=0 \
+  FILT=1 \
+  FADSR=1 \
+  #
+
+# KIT = ./kit --include features.kit
 KIT = ./kit $(FEAT)
 
 kit: kit.c

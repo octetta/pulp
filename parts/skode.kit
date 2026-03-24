@@ -759,6 +759,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('f---'): // freq hz
       if (argc) freq_set(voice, arg[0]);
       break;
+    @if(FILT && FADSR)
     case ATOM4('ft--'): // filter-adsr A D S R
       if (argc == 4) {
         float a = arg[0];
@@ -784,6 +785,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('FF--'): // FM mode
       if (argc) sv.freq_mod_mode[voice] = x;
       break;
+    @endif
     case ATOM4('g---'): // glissando speed
       if (argc) {
         if (arg[0] <= 0) {
@@ -833,29 +835,29 @@ int skode_function(ands_t *s, int info) {
       if (argc) {} break; // TODO en/dis-able send timestamp wire to the event logger
     case ATOM4('L---'): // link-trigger voice
       if (argc) { sv.link_trig[voice] = x; } break;
+    @if(FILT)
     case ATOM4('J---'): // filter-mode selector
       if (argc) {
-#ifdef SYNTH_FEATURE_FILTER
         sv.filter_mode[voice] = x;
-#endif /* SYNTH_FEATURE_FILTER */
         mmf_set_params(voice,
-#ifdef SYNTH_FEATURE_FILTER
           sv.filter_freq[voice],
           sv.filter_res[voice]);
-#endif /* SYNTH_FEATURE_FILTER */
       }
       break;
     case ATOM4('K---'): // filter-cutoff freq
       if (argc) { mmf_set_freq(voice, arg[0]); } break;
+    @endif
     case ATOM4('k---'): // adsr-mode bool
 #ifdef SYNTH_FEATURE_AMP_ENVELOPE
       if (argc) { sv.amp_envelope_mode[voice] = x; } break;
 #endif /* SYNTH_FEATURE_AMP_ENVELOPE */
+    @if(UDP)
     case ATOM4('udp-'): // show-udp
       if (argc) {
         ctx->printf(ctx, "# udp [%d] %d/%d\n", ctx->which, ctx->ip, ctx->port);
       }
       break;
+    @endif
     case ATOM4('log-'): // log-enable bool
       if (argc) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }
@@ -879,7 +881,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('m---'): // mute-audio bool
       if (argc) { wave_mute(voice, x); }
       break;
-    @if(MAXI)
+    @if(SEQ)
     case ATOM4('M---'): // tempo bpm
       if (argc) { tempo_set(arg[0]); }
       break;
@@ -920,9 +922,11 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('q---'):  // bit-crush bit-depth
       if (argc) { wave_quant(voice, x); }
       break;
+    @if(FILT)
     case ATOM4('Q---'):
       if (argc) { mmf_set_res(voice, arg[0]); }
       break;
+    @endif
     @if(MAXI)
     case ATOM4('r---'): // record-mode bool
       if (argc) { if (rec_state == 0) sv.record[voice] = x; }

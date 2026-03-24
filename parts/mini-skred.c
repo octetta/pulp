@@ -26,8 +26,15 @@ void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint
 
 float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
 
+static char _features_[65536] = {0};
+#define CAT(x) {strcat(_features_, #x);strcat(_features_," ");}
+char *features(void) {
+CAT(ADSR)
+return _features_;
+}
+
 int main(int argc, char *argv[]) {
-  printf("# * PANMOD\n");
+  printf("# %s\n", features());
   int vc = 4;
   int req = requested_synth_frames_per_callback;
   for (int i=1; i<argc; i++) {

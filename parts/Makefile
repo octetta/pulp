@@ -5,13 +5,25 @@ all: kit mini-skred
 reset:
 	touch *.kit
 
-FEAT = \
-  AM=0 \
-  FM=0 \
-  PD=0 \
-  FILT=0 \
-  FADSR=0 \
-  PANMOD=1 \
+FEAT =       \
+  ADSR=1     \
+  #
+
+xFEAT =      \
+  ADSR=1     \
+  AM=1       \
+  BENCH=1    \
+  CRUSH=1    \
+  FADSR=1    \
+  FILT=1     \
+  FM=1       \
+  GLISS=1    \
+  PANMOD=1   \
+  PD=1       \
+  SAH=1      \
+  SEQ=1      \
+  SMOOTHER=1 \
+  UDP=0      \
   #
 
 # KIT = ./kit --include features.kit

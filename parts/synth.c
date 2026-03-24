@@ -431,9 +431,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     first = 0;
   }
 
-#if 0
-  BEN_MARK_A(bench, benchp, num_frames, bencho);
-#endif
 
   int skred_ptr = 0;
   SAMPLE_COUNT_ADD(num_frames); // should this be outside the loop? and add num_frames??
@@ -444,12 +441,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     float f = 0.0f;
     float whiteish = audio_rng_float(&synth_random);
     for (int n = 0; n < nvoices; n++) {
-#if 0
-      if (sv.mark_go[n]) {
-        clock_gettime(VOICE_CLOCK, &sv.mark_b[n]);
-        sv.mark_go[n] = 0;
-      }
-#endif
       if (sv.finished[n]) {
         //sv.sample[n] = 0.0f; // remove to try the below
         // hold last value to modulator consumers see statle output after one-shot ends
@@ -479,19 +470,11 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       float env = 1.0f;
       float mod = 1.0f;
 
-#if 1 // def SYNTH_FEATURE_AMP_ENVELOPE
       if (sv.use_amp_envelope[n]) env = amp_envelope_step(n) * sv.amp_envelope[n].velocity;
-#endif /* SYNTH_FEATURE_AMP_ENVELOPE */
 
 
       float final = amp * env * mod;
 
-#if 0 // def SYNTH_FEATURE_SMOOTHER
-      if (sv.smoother_enable[n]) {
-        sv.smoother_gain[n] += sv.smoother_smoothing[n] * (final - sv.smoother_gain[n]);
-        final = sv.smoother_gain[n];
-      }
-#endif /* SYNTH_FEATURE_SMOOTHER */
 
       sv.sample[n] *= final;
 
@@ -499,12 +482,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         float left  = sv.sample[n];
         float right = sv.sample[n];
         // accumulate samples
-        if (sv.pan_mod_osc[n] >= 0) {
-          // handle pan modulation
-          float q = sv.sample[sv.pan_mod_osc[n]] * sv.pan_mod_depth[n] + sv.pan_mod_adder[n];
-          sv.pan_left[n]  = (1.0f - q) / 2.0f;
-          sv.pan_right[n] = (1.0f + q) / 2.0f;
-        }
         left  *= sv.pan_left[n];
         right *= sv.pan_right[n];
         sample_left  += left;
@@ -525,18 +502,13 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     buffer[i * num_channels + 0] = sample_left;
     buffer[i * num_channels + 1] = sample_right;
   }
-#if 0
-  BEN_MARK_B(bench, benchp, bencho);
-#endif
 }
 
 int envelope_is_flat(int v) {
-#ifdef SYNTH_FEATURE_AMP_ENVELOPE
   if (sv.amp_envelope[v].a == 0.0f &&
     sv.amp_envelope[v].d == 0.0f &&
     sv.amp_envelope[v].s == 1.0f &&
     sv.amp_envelope[v].r == 0.0f) return 1;
-#endif /* SYNTH_FEATURE_AMP_ENVELOPE */
   return 0;
 }
 
@@ -640,7 +612,6 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" s%g", sv.smoother_smoothing[v]);
 
 
-    /* --- amplitude envelope (suppress if flat) --- */
     if (verbose || !envelope_is_flat(v))
         APPEND(" t%g,%g,%g,%g k%d",
             sv.amp_envelope[v].a,
@@ -690,12 +661,6 @@ int pan_set(int voice, float f) {
   return 0;
 }
 
-int wave_quant(int voice, int n) {
-#ifdef SYNTH_FEATURE_QUANTIZE
-  sv.quantize[voice] = n;
-#endif /* SYNTH_FEATURE_QUANTIZE */
-  return 0;
-}
 
 int freq_set(int voice, float f) {
   if (f >= 0 && f < (double)MAIN_SAMPLE_RATE) {
@@ -725,14 +690,6 @@ int wave_dir(int voice, int state) {
   return 0;
 }
 
-int pan_mod_set(int voice, int o, float f, float a) {
-#ifdef SYNTH_FEATURE_MODULATION
-  sv.pan_mod_osc[voice] = o;
-  sv.pan_mod_depth[voice] = f;
-  sv.pan_mod_adder[voice] = a;
-#endif /* SYNTH_FEATURE_MODULATION */
-  return 0;
-}
 
 int wave_set(int voice, int wave) {
   if (wave >= 0 && wave < WAVE_TABLE_MAX) {
@@ -770,7 +727,6 @@ int voice_copy(int v, int n) {
   envelope_set(n, sv.amp_envelope[v].a, sv.amp_envelope[v].d, sv.amp_envelope[v].s, sv.amp_envelope[v].r);
   //
   pan_set(n, sv.pan[v]);
-  pan_mod_set(n, sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
   //
   // TODO stuff is missing from here...
   //
@@ -859,11 +815,6 @@ void voice_reset(int i) {
   sv.pan_mod_depth[i] = 0.0f;
   sv.pan_mod_adder[i] = 0.0f;
   //
-#ifdef SYNTH_FEATURE_SMOOTHER
-  sv.smoother_enable[i] = 1;
-  sv.smoother_gain[i] = 0.0f;
-  sv.smoother_smoothing[i] = SMOOTH_DEFAULT;
-#endif /* SYNTH_FEATURE_SMOOTHER */
   //
 
   sv.record[i] = 0;

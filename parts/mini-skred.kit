@@ -26,25 +26,59 @@ void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint
 
 float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
 
+static char _features_[65536] = {0};
+#define CAT(x) {strcat(_features_, #x);strcat(_features_," ");}
+char *features(void) {
+@if(ADSR)
+CAT(ADSR)
+@endif
+@if(AM)
+CAT(AM)
+@endif
+@if(BENCH)
+CAT(BENCH)
+@endif
+@if(CRUSH)
+CAT(CRUSH)
+@endif
+@if(FADSR)
+CAT(FADSR)
+@endif
+@if(FILT)
+CAT(FILT)
+@endif
+@if(FM)
+CAT(FM)
+@endif
+@if(GLISS)
+CAT(GLISS)
+@endif
+@if(MAXI)
+CAT(MAXI)
+@endif
+@if(PANMOD)
+CAT(PANMOD)
+@endif
+@if(PD)
+CAT(PD)
+@endif
+@if(SAH)
+CAT(SAH)
+@endif
+@if(SEQ)
+CAT(SEQ)
+@endif
+@if(SMOOTHER)
+CAT(SMOOTHER)
+@endif
+@if(UDP)
+CAT(UDP)
+@endif
+return _features_;
+}
+
 int main(int argc, char *argv[]) {
-  @if(AM)
-  printf("# * AM\n");
-  @endif
-  @if(PD)
-  printf("# * PD\n");
-  @endif
-  @if(FILT)
-  printf("# * FILT\n");
-  @endif
-  @if(FM)
-  printf("# * FM\n");
-  @endif
-  @if(PANMOD)
-  printf("# * PANMOD\n");
-  @endif
-  @if(FADSR)
-  printf("# * FADSR\n");
-  @endif
+  printf("# %s\n", features());
   int vc = 4;
   int req = requested_synth_frames_per_callback;
   for (int i=1; i<argc; i++) {

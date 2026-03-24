@@ -283,7 +283,6 @@ void skode_show(skode_t *ctx) {
   }
 }
 
-//#include "udp.h"
 
 void system_show(skode_t *ctx) {
   skode_t wprime;
@@ -672,20 +671,6 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('f---'): // freq hz
       if (argc) freq_set(voice, arg[0]);
       break;
-    case ATOM4('g---'): // glissando speed
-      if (argc) {
-        if (arg[0] <= 0) {
-#ifdef SYNTH_FEATURE_GLISSANDO
-          sv.glissando_enable[voice] = 0;
-#endif /* SYNTH_FEATURE_GLISSANDO */
-        } else {
-#ifdef SYNTH_FEATURE_GLISSANDO
-          sv.glissando_enable[voice] = 1;
-          sv.glissando_speed[voice] = arg[0];
-#endif /* SYNTH_FEATURE_GLISSANDO */
-        }
-      }
-      break;
     case ATOM4('G---'): // link-midi voice [voice]
       if (argc) {
         sv.link_midi_a[voice] = x;
@@ -694,10 +679,6 @@ int skode_function(ands_t *s, int info) {
         if (argc > 3) sv.link_midi_d[voice] = (int)arg[3];
       }
       break;
-    case ATOM4('h---'): // sample-hold phase-count
-#ifdef SYNTH_FEATURE_SAMPLE_HOLD
-      if (argc) { sv.sample_hold_max[voice] = x; } break;
-#endif /* SYNTH_FEATURE_SAMPLE_HOLD */
     case ATOM4('H---'): // link-velo voice [voice [voice [voice]]]
       if (argc) {
         sv.link_velo_a[voice] = x;
@@ -722,9 +703,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('L---'): // link-trigger voice
       if (argc) { sv.link_trig[voice] = x; } break;
     case ATOM4('k---'): // adsr-mode bool
-#ifdef SYNTH_FEATURE_AMP_ENVELOPE
       if (argc) { sv.amp_envelope_mode[voice] = x; } break;
-#endif /* SYNTH_FEATURE_AMP_ENVELOPE */
     case ATOM4('log-'): // log-enable bool
       if (argc) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }
@@ -772,32 +751,6 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('p---'): // pan value
       if (argc) pan_set(voice, arg[0]);
       break;
-    case ATOM4('P---'): // pan-mod voice depth
-      if (argc < 2) {
-        pan_mod_set(voice, -1, 0, 0);
-      } else if (argc > 1) {
-        float a = 0;
-        if (argc > 2) a = arg[2];
-        pan_mod_set(voice, x, arg[1], a);
-      }
-      break;
-    case ATOM4('q---'):  // bit-crush bit-depth
-      if (argc) { wave_quant(voice, x); }
-      break;
-    case ATOM4('s---'): // volume-smooth bool
-      if (argc) {
-        if (arg[0] <= 0) {
-#ifdef SYNTH_FEATURE_SMOOTHER
-          sv.smoother_enable[voice] = 0;
-#endif /* SYNTH_FEATURE_SMOOTHER */
-        } else {
-#ifdef SYNTH_FEATURE_SMOOTHER
-          sv.smoother_enable[voice] = 1;
-          sv.smoother_smoothing[voice] = arg[0];
-#endif /* SYNTH_FEATURE_SMOOTHER */
-        }
-      }
-      break;
     case ATOM4('S---'): // voice-reset voice
       if (argc) wave_reset(voice, x);
       break;
@@ -806,16 +759,11 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('T---'): // trigger
       {
-#if 1
         envelope_velocity(voice, 1);
         if (sv.link_velo_a[voice] >= 0) envelope_velocity(sv.link_velo_a[voice], 1);
         if (sv.link_velo_b[voice] >= 0) envelope_velocity(sv.link_velo_b[voice], 1);
         if (sv.link_velo_c[voice] >= 0) envelope_velocity(sv.link_velo_c[voice], 1);
         if (sv.link_velo_d[voice] >= 0) envelope_velocity(sv.link_velo_d[voice], 1);
-#else
-        voice_trigger(voice);
-        if (sv.link_trig[voice] > 0) voice_trigger(sv.link_trig[voice]);
-#endif
       }
       break;
     case ATOM4('v---'): // voice-select voice

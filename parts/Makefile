@@ -6,9 +6,12 @@ reset:
 	touch *.kit
 
 FEAT = \
+  AM=0 \
+  FM=0 \
   PD=0 \
-  FILT=1 \
-  FADSR=1 \
+  FILT=0 \
+  FADSR=0 \
+  PANMOD=1 \
   #
 
 # KIT = ./kit --include features.kit

@@ -570,7 +570,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         // reuse the one white noise source for each sample
         f = whiteish;
       } else {
-#if 0 //def SYNTH_FEATURE_MODULATION
+        @if(FM)
         if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
           int mod = sv.freq_mod_osc[n];
           float g = sv.sample[mod] * sv.freq_mod_depth[n] + sv.freq_mod_adder[n];
@@ -584,11 +584,11 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         } else {
           f = osc_next(n, sv.phase_inc[n]);
         }
-#else
+        @else
         f = osc_next(n, sv.phase_inc[n]);
-#endif
+        @endif
       }
-#if 0 // def SYNTH_FEATURE_SAMPLE_HOLD
+      @if(SAH)
       if (sv.sample_hold_max[n]) {
         if (sv.sample_hold_count[n] == 0) {
           sv.sample_hold[n] = f;
@@ -601,16 +601,16 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       } else {
         sv.sample[n] = f;
       }
-#else
+      @else
       sv.sample[n] = f;
-#endif /* SYNTH_FEATURE_SAMPLE_HOLD */
+      @endif
 
-#if 0 // def SYNTH_FEATURE_QUANTIZE
+      @if(CRUSH)
       // apply quantizer
       if (sv.quantize[n]) {
         sv.sample[n] = quantize_bits_int(sv.sample[n], sv.quantize[n]);
       }
-#endif /* SYNTH_FEATURE_QUANTIZE */
+      @endif
 
       @if(FILT)
       // apply multi-mode filter
@@ -640,12 +640,12 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       if (sv.use_amp_envelope[n]) env = amp_envelope_step(n) * sv.amp_envelope[n].velocity;
 #endif /* SYNTH_FEATURE_AMP_ENVELOPE */
 
-#if 0 // def SYNTH_FEATURE_MODULATION
+      @if(AM)
       if (sv.amp_mod_osc[n] >= 0) {
         int m = sv.amp_mod_osc[n];
         mod = sv.sample[m] * sv.amp_mod_depth[n] + sv.amp_mod_adder[n];
       }
-#endif /* SYNTH_FEATURE_MODULATION */
+      @endif
       
       float final = amp * env * mod;
 
@@ -659,33 +659,24 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       sv.sample[n] *= final;
 
       if (sv.disconnect[n] == 0) {
+        float left  = sv.sample[n];
+        float right = sv.sample[n];
         // accumulate samples
-#if 0 // def SYNTH_FEATURE_MODULATION
+        @if(PANMOD)
         if (sv.pan_mod_osc[n] >= 0) {
           // handle pan modulation
           float q = sv.sample[sv.pan_mod_osc[n]] * sv.pan_mod_depth[n] + sv.pan_mod_adder[n];
           sv.pan_left[n]  = (1.0f - q) / 2.0f;
           sv.pan_right[n] = (1.0f + q) / 2.0f;
         }
-        float left  = sv.sample[n] * sv.pan_left[n];
-        float right = sv.sample[n] * sv.pan_right[n];
+        @endif
+        left  *= sv.pan_left[n];
+        right *= sv.pan_right[n];
         sample_left  += left;
         sample_right += right;
-        one_skred_frame[skred_ptr++] = left;
-        one_skred_frame[skred_ptr++] = right;
-      } else {
         one_skred_frame[skred_ptr++] = 0.0f;
         one_skred_frame[skred_ptr++] = 0.0f;
       }
-#else
-        float left  = sv.sample[n];
-        float right = sv.sample[n];
-        sample_left  += left;
-        sample_right += right;
-        one_skred_frame[skred_ptr++] = left;
-        one_skred_frame[skred_ptr++] = right;
-      }
-#endif /* SYNTH_FEATURE_MODULATION */
     }
 
     // Adjust to main volume: smooth it otherwise is sounds crummy with realtime changes
@@ -830,26 +821,28 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
 
     if (verbose || (sv.cz_mod_osc[v] >= 0 && sv.cz_mod_depth[v] != 0.0f))
         APPEND(" C%d,%g", sv.cz_mod_osc[v], sv.cz_mod_depth[v]);
-
-    /* --- sample and hold (suppress if off) --- */
-    if (verbose || sv.sample_hold_max[v])
-        APPEND(" h%d", sv.sample_hold_max[v]);
     @endif
 
-    /* --- bit quantise (suppress if off) --- */
-    if (verbose || sv.quantize[v])
-        APPEND(" q%d", sv.quantize[v]);
+    @if(SAH)
+    if (verbose || sv.sample_hold_max[v]) APPEND(" h%d", sv.sample_hold_max[v]);
+    @endif
 
-    /* --- amplitude modulation (suppress if unset or depth zero) --- */
+    @if(CRUSH)
+    if (verbose || sv.quantize[v]) APPEND(" q%d", sv.quantize[v]);
+    @endif
+
+    @if(AM)
     if (verbose || (sv.amp_mod_osc[v] >= 0 && sv.amp_mod_depth[v] != 0.0f))
         APPEND(" A%d,%g,%g", sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
+    @endif
 
-    /* --- frequency modulation — print FF1 prefix if in shift mode --- */
+    @if(FM)
     if (verbose || (sv.freq_mod_osc[v] >= 0 && sv.freq_mod_depth[v] != 0.0f)) {
         if (sv.freq_mod_mode[v] == 1)
             APPEND(" FF1");
         APPEND(" F%d,%g,%g", sv.freq_mod_osc[v], sv.freq_mod_depth[v], sv.freq_mod_adder[v]);
     }
+    @endif
 
     /* --- mix / record flags (suppress if default) --- */
     if (verbose || sv.disconnect[v])
@@ -861,9 +854,9 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || (sv.smoother_enable[v] && sv.smoother_smoothing[v] != SMOOTH_DEFAULT))
         APPEND(" s%g", sv.smoother_smoothing[v]);
 
-    /* --- glissando (suppress if disabled) --- */
-    if (verbose || sv.glissando_enable[v])
-        APPEND(" g%g", sv.glissando_speed[v]);
+    @if(GLISS)
+    if (verbose || sv.glissando_enable[v]) APPEND(" g%g", sv.glissando_speed[v]);
+    @endif
 
     /* --- amplitude envelope (suppress if flat) --- */
     if (verbose || !envelope_is_flat(v))
@@ -974,24 +967,24 @@ int wave_set(int voice, int wave) {
   return 0;
 }
 
+@if(AM)
 int amp_mod_set(int voice, int o, float f, float a) {
-#ifdef SYNTH_FEATURE_MODULATION
   sv.amp_mod_osc[voice] = o;
   sv.amp_mod_depth[voice] = f;
   sv.amp_mod_adder[voice] = a;
-#endif /* SYNTH_FEATURE_MODULATION */
   return 0;
 }
+@endif
 
+@if(FM)
 int freq_mod_set(int voice, int o, float f, float a) {
-#ifdef SYNTH_FEATURE_MODULATION
   sv.freq_mod_osc[voice] = o;
   sv.freq_mod_depth[voice] = f;
   sv.freq_mod_adder[voice] = a;
-#endif /* SYNTH_FEATURE_MODULATION */
   sv.freq_scale[voice] = (float)sv.table_size[voice] / (float)sv.table_size[o];
   return 0;
 }
+@endif
 
 int wave_loop(int voice, int state) {
   if (state < 0) {
@@ -1115,25 +1108,28 @@ int voice_copy(int v, int n) {
   wave_set(n, sv.wave_table_index[v]);
   amp_set(n, sv.user_amp[v]);
   freq_set(n, sv.freq[v]);
-  pan_set(n, sv.pan[v]);
-#ifdef SYNTH_FEATURE_MODULATION
-  amp_mod_set(n, sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
-  freq_mod_set(n, sv.freq_mod_osc[v], sv.freq_mod_depth[v], sv.freq_mod_adder[v]);
-  pan_mod_set(n, sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
-#endif /* SYNTH_FEATURE_MODULATION */
   wave_loop(n, sv.loop_enabled[v]);
   wave_dir(n, sv.direction[v]);
-#ifdef SYNTH_FEATURE_QUANTIZE
+  envelope_set(n, sv.amp_envelope[v].a, sv.amp_envelope[v].d, sv.amp_envelope[v].s, sv.amp_envelope[v].r);
+  //
+  pan_set(n, sv.pan[v]);
+  @if(AM)
+  amp_mod_set(n, sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
+  @endif
+  @if(FM)
+  freq_mod_set(n, sv.freq_mod_osc[v], sv.freq_mod_depth[v], sv.freq_mod_adder[v]);
+  @endif
+  @if(PANMOD)
+  pan_mod_set(n, sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
+  @endif
+  @if(CRUSH)
   wave_quant(n, sv.quantize[v]);
-#endif /* SYNTH_FEATURE_QUANTIZE */
-#ifdef SYNTH_FEATURE_SAMPLE_HOLD
+  @endif
+  @if(SAH)
   sv.sample_hold_max[n] = sv.sample_hold_max[v];
   sv.sample_hold_count[n] = sv.sample_hold_count[v];
   sv.sample_hold[n] = sv.sample_hold[v];
-#endif /* SYNTH_FEATURE_SAMPLE_HOLD */
-#ifdef SYNTH_FEATURE_AMP_ENVELOPE
-  envelope_set(n, sv.amp_envelope[v].a, sv.amp_envelope[v].d, sv.amp_envelope[v].s, sv.amp_envelope[v].r);
-#endif /* SYNTH_FEATURE_AMP_ENVELOPE */
+  @endif
   @if(PD)
   cz_set(n, sv.cz_mode[v], sv.cz_distortion[v]);
   cmod_set(n, sv.cz_mod_osc[v], sv.cz_mod_depth[v]);
@@ -1142,7 +1138,9 @@ int voice_copy(int v, int n) {
   sv.filter_mode[n] = sv.filter_mode[v];
   mmf_init(n, sv.filter_freq[v], sv.filter_res[v]);
   @endif
+  //
   // TODO stuff is missing from here...
+  //
   return 0;
 }
 
@@ -1198,38 +1196,12 @@ void voice_reset(int i) {
   sv.sample[i] = 0;
   sv.amp[i] = NEG_60_DB_AS_LINEAR;
   sv.user_amp[i] = NEG_60_DB;
-  sv.pan[i] = 0;
-  sv.pan_left[i] = 0.5f;
-  sv.pan_right[i] = 0.5f;
-  // pan smoothing?
-#ifdef SYNTH_FEATURE_AMP_ENVELOPE
   sv.use_amp_envelope[i] = 1;
-#endif /* SYNTH_FEATURE_AMP_ENVELOPE */
-#ifdef SYNTH_FEATURE_MODULATION
-  sv.amp_mod_osc[i] = -1;
-  sv.amp_mod_depth[i] = 0.0f;
-  sv.amp_mod_adder[i] = 0.0f;
-  sv.freq_mod_osc[i] = -1;
-  sv.freq_mod_depth[i] = 0.0f;
-  sv.freq_mod_adder[i] = 0.0f;
-  sv.freq_mod_mode[i] = 0;
-#endif /* SYNTH_FEATURE_MODULATION */
-  sv.freq_scale[i] = 1.0f;
-#ifdef SYNTH_FEATURE_MODULATION
-  sv.pan_mod_osc[i] = -1;
-  sv.pan_mod_depth[i] = 0.0f;
-  sv.pan_mod_adder[i] = 0.0f;
-#endif /* SYNTH_FEATURE_MODULATION */
   sv.disconnect[i] = 0;
-#ifdef SYNTH_FEATURE_QUANTIZE
-  sv.quantize[i] = 0;
-#endif /* SYNTH_FEATURE_QUANTIZE */
   sv.direction[i] = 0;
-  envelope_init(i, 0.0f, 0.0f, 1.0f, 0.0f);
-#ifdef SYNTH_FEATURE_AMP_ENVELOPE
   sv.amp_envelope_mode[i] = 0; // exp
   sv.amp_envelope[i].is_active = 0;
-#endif /* SYNTH_FEATURE_AMP_ENVELOPE */
+  envelope_init(i, 0.0f, 0.0f, 1.0f, 0.0f);
   sv.freq[i] = 440.0f;
   sv.midi_note[i] = 69.0f;
   sv.last_midi_note[i] = 69.0f;
@@ -1245,6 +1217,29 @@ void voice_reset(int i) {
   sv.link_velo_d[i] = -1;
   sv.link_trig[i] = -1;
   osc_set_wave_table_index(i, WAVE_TABLE_SINE);
+  //
+  sv.pan[i] = 0;
+  sv.pan_left[i] = 0.5f;
+  sv.pan_right[i] = 0.5f;
+  // pan smoothing?
+  @if(AM)
+  sv.amp_mod_osc[i] = -1;
+  sv.amp_mod_depth[i] = 0.0f;
+  sv.amp_mod_adder[i] = 0.0f;
+  @endif
+  @if(FM)
+  sv.freq_mod_osc[i] = -1;
+  sv.freq_mod_depth[i] = 0.0f;
+  sv.freq_mod_adder[i] = 0.0f;
+  sv.freq_mod_mode[i] = 0;
+  sv.freq_scale[i] = 1.0f;
+  @endif
+  sv.pan_mod_osc[i] = -1;
+  sv.pan_mod_depth[i] = 0.0f;
+  sv.pan_mod_adder[i] = 0.0f;
+  @if(CRUSH)
+  sv.quantize[i] = 0;
+  @endif
   @if(FILT)
   sv.filter_mode[i] = 0;
   sv.filter_update_counter[i] = FILTER_UC;
@@ -1262,11 +1257,11 @@ void voice_reset(int i) {
   sv.smoother_smoothing[i] = SMOOTH_DEFAULT;
 #endif /* SYNTH_FEATURE_SMOOTHER */
   //
-#ifdef SYNTH_FEATURE_GLISSANDO
+  @if(GLISS)
   sv.glissando_enable[i] = 0;
   sv.glissando_speed[i] = 0.0f;
   sv.glissando_target[i] = sv.freq[i];
-#endif /* SYNTH_FEATURE_GLISSANDO */
+  @endif
 
   sv.record[i] = 0;
 }

@@ -27,11 +27,20 @@ void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint
 float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
 
 int main(int argc, char *argv[]) {
+  @if(AM)
+  printf("# * AM\n");
+  @endif
   @if(PD)
   printf("# * PD\n");
   @endif
   @if(FILT)
   printf("# * FILT\n");
+  @endif
+  @if(FM)
+  printf("# * FM\n");
+  @endif
+  @if(PANMOD)
+  printf("# * PANMOD\n");
   @endif
   @if(FADSR)
   printf("# * FADSR\n");

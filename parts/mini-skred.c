@@ -27,8 +27,7 @@ void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint
 float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
 
 int main(int argc, char *argv[]) {
-  printf("# * FILT\n");
-  printf("# * FADSR\n");
+  printf("# * PANMOD\n");
   int vc = 4;
   int req = requested_synth_frames_per_callback;
   for (int i=1; i<argc; i++) {

@@ -662,15 +662,6 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('a---'): // amp loudness
       if (argc) amp_set(voice, arg[0]);
       break;
-    case ATOM4('A---'): // AM voice depth
-      if (argc < 2) {
-        amp_mod_set(voice, -1, 0, 0);
-      } else if (argc > 1) {
-        float a = 0;
-        if (argc > 2) a = arg[2];
-        amp_mod_set(voice, x, arg[1], a);
-      }
-      break;
     case ATOM4('b---'): // wave-direction bool
       if (argc == 0) { wave_dir(voice, -1); } else { wave_dir(voice, x); } break;
     case ATOM4('B---'): // wave-loop bool
@@ -680,31 +671,6 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('f---'): // freq hz
       if (argc) freq_set(voice, arg[0]);
-      break;
-    case ATOM4('ft--'): // filter-adsr A D S R
-      if (argc == 4) {
-        float a = arg[0];
-        float d = arg[1];
-        float s = arg[2];
-        float r = arg[3];
-        envelope_init_e(&sv.filter_envelope[voice], a, d, s, r);
-        sv.use_filter_envelope[voice] = !(a==0 && d==0 && s==1 && r==0);
-      }
-      break;
-    case ATOM4('fd--'): // filter-adsr depth
-      if (argc) sv.filter_env_depth[voice] = arg[0];
-      break;
-    case ATOM4('F---'): // FM voice depth
-      if (argc <= 1) {
-        freq_mod_set(voice, -1, 0, 0);
-      } else if (argc > 1) {
-        float a = 0;
-        if (argc > 2) a = arg[2];
-        freq_mod_set(voice, x, arg[1], a);
-      }
-      break;
-    case ATOM4('FF--'): // FM mode
-      if (argc) sv.freq_mod_mode[voice] = x;
       break;
     case ATOM4('g---'): // glissando speed
       if (argc) {
@@ -755,16 +721,6 @@ int skode_function(ands_t *s, int info) {
       if (argc) {} break; // TODO en/dis-able send timestamp wire to the event logger
     case ATOM4('L---'): // link-trigger voice
       if (argc) { sv.link_trig[voice] = x; } break;
-    case ATOM4('J---'): // filter-mode selector
-      if (argc) {
-        sv.filter_mode[voice] = x;
-        mmf_set_params(voice,
-          sv.filter_freq[voice],
-          sv.filter_res[voice]);
-      }
-      break;
-    case ATOM4('K---'): // filter-cutoff freq
-      if (argc) { mmf_set_freq(voice, arg[0]); } break;
     case ATOM4('k---'): // adsr-mode bool
 #ifdef SYNTH_FEATURE_AMP_ENVELOPE
       if (argc) { sv.amp_envelope_mode[voice] = x; } break;
@@ -827,9 +783,6 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('q---'):  // bit-crush bit-depth
       if (argc) { wave_quant(voice, x); }
-      break;
-    case ATOM4('Q---'):
-      if (argc) { mmf_set_res(voice, arg[0]); }
       break;
     case ATOM4('s---'): // volume-smooth bool
       if (argc) {

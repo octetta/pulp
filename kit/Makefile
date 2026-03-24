@@ -1,4 +1,6 @@
+CC = zig cc
 all: mini-skred
+
 
 synth.o: synth.c synth.h synth-types.h
 	$(CC) $(COPTS) -c $< -o $@

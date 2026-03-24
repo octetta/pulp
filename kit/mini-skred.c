@@ -28,16 +28,23 @@ float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
 
 int main(int argc, char *argv[]) {
   int vc = 4;
+  int req = requested_synth_frames_per_callback;
   for (int i=1; i<argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
         case 'v':
           vc = atoi(&argv[i][2]);
           break;
+        case 'r':
+          req = atoi(&argv[i][2]);
+          break;
       }
     }
   }
   if (vc < 1) vc = 1;
+  if (req < 128) req = 128;
+  requested_synth_frames_per_callback = req;
+  printf("# requested synth frames/callback %d\n", req);
   synth_init(vc);
   wave_table_init(0);
   voice_init();

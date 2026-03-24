@@ -675,10 +675,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
 #else
         float left  = sv.sample[n];
         float right = sv.sample[n];
-#if 1 // ENABLE PANNING
-        left  *= sv.pan_left[n];
-        right *= sv.pan_right[n];
-#endif
         sample_left  += left;
         sample_right += right;
         one_skred_frame[skred_ptr++] = left;

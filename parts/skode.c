@@ -570,6 +570,14 @@ int skode_function(ands_t *s, int info) {
         if (argc > 3) sv.link_midi_d[voice] = (int)arg[3];
       }
       break;
+    case ATOM4('H---'): // link-velo voice [voice [voice [voice]]]
+      if (argc) {
+        sv.link_velo_a[voice] = x;
+        if (argc > 1) sv.link_velo_b[voice] = (int)arg[1];
+        if (argc > 2) sv.link_velo_c[voice] = (int)arg[2];
+        if (argc > 3) sv.link_velo_d[voice] = (int)arg[3];
+      }
+      break;
     // TODO re-allocate the data/array buffer with the arg
     case ATOM4('/D--'): // resize-data count
       if (argc) {
@@ -583,9 +591,26 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('I---'): // log-event bool
       if (argc) {} break; // TODO en/dis-able send timestamp wire to the event logger
+    case ATOM4('L---'): // link-trigger voice
+      if (argc) { sv.link_trig[voice] = x; } break;
     case ATOM4('log-'): // log-enable bool
       if (argc) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }
+      }
+      break;
+    case ATOM4('l---'): // velocity amount
+      if (argc) {
+        int a = sv.link_velo_a[voice];
+        int b = sv.link_velo_b[voice];
+        int c = sv.link_velo_c[voice];
+        int d = sv.link_velo_d[voice];
+        double x = arg[0];
+        envelope_velocity(voice, x);
+        if (a >= 0) envelope_velocity(a, x);
+        if (b >= 0) envelope_velocity(b, x);
+        if (c >= 0) envelope_velocity(c, x);
+        if (d >= 0) envelope_velocity(d, x);
+
       }
       break;
     case ATOM4('m---'): // mute-audio bool
@@ -617,6 +642,15 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('S---'): // voice-reset voice
       if (argc) wave_reset(voice, x);
+      break;
+    case ATOM4('T---'): // trigger
+      {
+        envelope_velocity(voice, 1);
+        if (sv.link_velo_a[voice] >= 0) envelope_velocity(sv.link_velo_a[voice], 1);
+        if (sv.link_velo_b[voice] >= 0) envelope_velocity(sv.link_velo_b[voice], 1);
+        if (sv.link_velo_c[voice] >= 0) envelope_velocity(sv.link_velo_c[voice], 1);
+        if (sv.link_velo_d[voice] >= 0) envelope_velocity(sv.link_velo_d[voice], 1);
+      }
       break;
     case ATOM4('v---'): // voice-select voice
       if (argc) voice_set(x, &ctx->voice);

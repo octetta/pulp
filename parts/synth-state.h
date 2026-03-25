@@ -77,6 +77,11 @@ typedef struct {
     float  * restrict link_midi_b;
     float  * restrict link_midi_c;
     float  * restrict link_midi_d;
+    float  * restrict link_velo_a;
+    float  * restrict link_velo_b;
+    float  * restrict link_velo_c;
+    float  * restrict link_velo_d;
+    float  * restrict link_trig;
 
     /* --- config flags --- */
     int    * restrict wave_table_index;

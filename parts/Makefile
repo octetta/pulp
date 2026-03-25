@@ -1,4 +1,4 @@
-CC = gcc -g
+CC = gcc
 COPTS = -g
 
 all: kit mini-skred
@@ -46,6 +46,8 @@ synth.o: synth.c synth.h synth-types.h
 
 synth.kit: synth.h.kit
 
+skode.kit: synth.kit
+
 skode.c: skode.kit
 	$(KIT) < skode.kit > skode.c
 
@@ -64,7 +66,7 @@ miniwav.o: miniwav.c miniwav.h
 synth-state.h: synth-state.h.kit
 	$(KIT) < synth-state.h.kit > synth-state.h
 
-synth-alloc.c: synth-alloc.kit synth-state.h
+synth-alloc.c: synth-alloc.kit synth-state.h.kit
 	$(KIT) < synth-alloc.kit > synth-alloc.c
 
 synth-alloc.o: synth-alloc.c
@@ -75,6 +77,9 @@ skqueue.o: skqueue.c
 
 util.o: util.c
 	$(CC) $(COPTS) -c $< -o $@
+
+features:
+	#
 
 mini-skred.c: mini-skred.kit
 	$(KIT) < mini-skred.kit > mini-skred.c

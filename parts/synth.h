@@ -30,6 +30,7 @@ extern float volume_smoother_higher_smoothing;
 
 
 
+      int   envelope_velocity(int voice, float f);
 
 void audio_rng_init(uint64_t *rng, uint64_t seed);
 uint64_t audio_rng_next(uint64_t *rng);

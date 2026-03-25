@@ -52,9 +52,9 @@ extern float volume_smoother_higher_smoothing;
       void  amp_envelope_release(int v);
       float amp_envelope_step(int v);
       int   envelope_is_flat(int v);
-      int   envelope_velocity(int voice, float f);
       int   envelope_set(int voice, float a, float d, float s, float r);
 @endif
+      int   envelope_velocity(int voice, float f);
 
 void audio_rng_init(uint64_t *rng, uint64_t seed);
 uint64_t audio_rng_next(uint64_t *rng);

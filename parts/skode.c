@@ -95,117 +95,8 @@ float voice_pop(voice_stack_t *s) {
 
 #include <stdio.h>
 #include <stdint.h>
-
-// TODO, use the sv.record[] array to determine
-// which how many channels and voices to write to the
-// wave file (update the header too)
-
-// TODO at a minimum make cue notes for the voice number
-// and left/right designation to the wave file
-
-// MAYBE store the voice parameters in a cue note?
-// MAYBE store patterns in a cue note?
-// MAYBE store tempo in cue note?
-// MAYBE have a user note for each oscillator that's
-//       stored in a queue note
-// MAYBE have a user note for pattern that's stored in a queue note
-
 #include <math.h>
 
-void save_wav(skode_t *ctx, char *filename, float *samples, long num_samples, int *record, int max) {
-  int *record_safe;
-
-  record_safe = (int *)malloc(sizeof(int)*max);
-  if (record_safe == NULL) {
-    ctx->puts(ctx, "OUCH"); return;
-  } // nowhere to keep state
-
-  int num_channels = 0;  // 32 pairs = 64 channels
-
-  for (int i = 0; i < max; i++) {
-    record_safe[i] = record[i];
-    if (record[i]) num_channels += 2;
-  }
-
-  if (num_channels == 0) {
-    free(record_safe);
-    return;
-  } // nothing to record
-
-  FILE *f = fopen(filename, "wb");
-  if (!f) {
-    ctx->puts(ctx, "# can't open file\n");
-    return;
-  }
-
-  int sample_rate = 44100;
-  int bits_per_sample = 16;
-  int byte_rate = sample_rate * num_channels * bits_per_sample / 8;
-  int block_align = num_channels * bits_per_sample / 8;
-  int data_size = num_samples * block_align;
-
-  // WAV header
-  fwrite("RIFF", 1, 4, f);
-  uint32_t chunk_size = 36 + data_size;
-  fwrite(&chunk_size, 4, 1, f);
-  fwrite("WAVE", 1, 4, f);
-
-  // fmt subchunk
-  fwrite("fmt ", 1, 4, f);
-  uint32_t subchunk1_size = 16;
-  fwrite(&subchunk1_size, 4, 1, f);
-  uint16_t audio_format = 1;  // PCM
-  fwrite(&audio_format, 2, 1, f);
-  uint16_t channels = num_channels;
-  fwrite(&channels, 2, 1, f);
-  fwrite(&sample_rate, 4, 1, f);
-  fwrite(&byte_rate, 4, 1, f);
-  uint16_t align = block_align;
-  fwrite(&align, 2, 1, f);
-  uint16_t bps = bits_per_sample;
-  fwrite(&bps, 2, 1, f);
-
-  // data subchunk
-  fwrite("data", 1, 4, f);
-  fwrite(&data_size, 4, 1, f);
-
-  // since skred plays loose and wild with sample ranges,
-  // get the min/max of all the samples in the recorded range
-
-  float fbig = 0.0;
-  float fsmall = 0.0;
-  for (int i = 0; i < num_samples * synth_config.voice_max * AUDIO_CHANNELS; i++) {
-    float g = samples[i];
-    if (g > fbig) fbig = g;
-    if (g < fsmall) fsmall = g;
-  }
-
-  // use the min/max to make a scale factor that keeps 0
-  // in the same relative place
-
-  float scale;
-  if (fabsf(fsmall) > fabsf(fbig)) {
-    scale = -1.0f / fsmall;
-  } else {
-    scale = 1.0f / fbig;
-  }
-
-  // Convert scaled float samples to 16-bit PCM
-
-  for (int i = 0; i < num_samples * synth_config.voice_max * AUDIO_CHANNELS; i++) {
-    int ri = (i % (synth_config.voice_max * AUDIO_CHANNELS)) >> 1;
-    if (record_safe[ri] == 0) continue; // skip things that aren't recorded
-    float g = samples[i];
-    g *= scale;
-    if (g > 1.0f) g = 1.0f;
-    if (g < -1.0f) g = -1.0f;
-    int16_t sample = (int16_t)(g * 32767.0f);
-    fwrite(&sample, 2, 1, f);
-  }
-
-  fclose(f);
-  free(record_safe);
-}
 
 void voice_show(skode_t *ctx, int v, char c, int verbose) {
   char s[1024];
@@ -901,6 +792,12 @@ int skode_function(ands_t *s, int info) {
         }
         if (argc) wave_load(ctx, file_num, wave_slot, ch, 1);
       }
+      break;
+    case ATOM4('>---'): // copy-voice dest-voice
+      if (arg) voice_copy(voice, x);
+      break;
+    case ATOM4('/---'): // default-wave voice
+      wave_default(voice);
       break;
     case ATOM4('=---'):  // variable-set slot value
       if (argc>1) ands_set_local(ctx->parse, x, arg[1]);

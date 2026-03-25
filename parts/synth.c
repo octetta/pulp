@@ -787,7 +787,6 @@ void voice_reset(int i) {
   // pan smoothing?
   //
   //
-
   sv.record[i] = 0;
 }
 

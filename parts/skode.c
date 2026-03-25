@@ -689,7 +689,7 @@ int skode_function(ands_t *s, int info) {
       voice_show(ctx, voice, ' ', ctx->verbose); break;
     case ATOM4('\\---'): // verbose-show-voice
       voice_show(ctx, voice, ' ', 1); break;
-    case ATOM4('??--'): // show-active-voices
+    case ATOM4('?\?--'): // show-active-voices
       voice_show_all(ctx, voice, ctx->verbose); break;
     case ATOM4('?s--'): // show-skode-string
       {
@@ -837,6 +837,7 @@ int skode_function(ands_t *s, int info) {
       if (argc && x >= 200 && x <=999) wave_table_dynamic_expand(x);
       break;
     default:
+      ctx->printf(ctx, "# unknown atom\n");
       if (ctx->trace) {
         ctx->printf(ctx, "# SKODE_UNKNOWN_FUNCTION %d [%x] :: %d", info, atom, argc);
         ctx->printf(ctx, " v%d", ctx->voice);
@@ -847,9 +848,6 @@ int skode_function(ands_t *s, int info) {
   return 0;
 }
 
-int skode_defer(ands_t *s, int info) {
-  return 0;
-}
 
 int skode_chunk_end(ands_t *s, int info) {
   skode_t *ctx = (skode_t*)ands_user(s);
@@ -868,7 +866,6 @@ int skode_callback(ands_t *s, int info) {
   skode_t *ctx = (skode_t*)ands_user(s);
   switch (info) {
     case FUNCTION: return skode_function(s, info);
-    case DEFER: return skode_defer(s, info);
     case CHUNK_END: return skode_chunk_end(s, info);
     case PUSH: { voice_push(&ctx->stack, ctx->voice); ctx->printf(ctx, "pushed v%d\n", ctx->voice); } break;
     case POP: { ctx->voice = voice_pop(&ctx->stack); } break;

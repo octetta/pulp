@@ -29,10 +29,14 @@ float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
 static char _features_[65536] = {0};
 #define CAT(x) {strcat(_features_, #x);strcat(_features_," ");}
 char *features(void) {
+CAT(UDP)
 return _features_;
 }
 
+#include "udp.h"
+
 int main(int argc, char *argv[]) {
+  int udp_port = UDP_PORT;
   printf("# %s\n", features());
   int vc = 4;
   int req = requested_synth_frames_per_callback;
@@ -44,6 +48,9 @@ int main(int argc, char *argv[]) {
           break;
         case 'r':
           req = atoi(&argv[i][2]);
+          break;
+        case 'p':
+          udp_port = (int)strtol(&(argv[i][2]), NULL, 0);
           break;
       }
     }
@@ -71,6 +78,13 @@ int main(int argc, char *argv[]) {
   ma_device synth_device;
   ma_device_init(NULL, &synth_config, &synth_device);
   ma_device_start(&synth_device);
+
+  printf("# udp_port = %d\n", udp_port);
+  if (udp_port > 0) {
+    int r = udp_start(udp_port);
+    if (r != udp_port) udp_port = 0;
+  }
+  printf("# udp_port = %d\n", udp_port);
 
   skode_t w = SKODE_EMPTY();
   w.trace = 0;

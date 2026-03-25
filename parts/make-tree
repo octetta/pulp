@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Default to 'Makefile' if no argument is provided
+MAKEFILE=${1:-Makefile}
+
+awk '
+# Match lines with a colon that do not start with a tab, space, #, or .
+/^[^ \t#\.][^:]*:/ {
+    # Split the line at the colon
+    split($0, parts, ":")
+    target = parts[1]
+    # Remove surrounding whitespace from the target
+    gsub(/^[ \t]+|[ \t]+$/, "", target)
+    
+    # Store the dependencies
+    deps_str = parts[2]
+    deps[target] = deps_str
+    targets[target] = 1
+}
+
+# Recursive function to print the tree
+function print_tree(node, indent,    i, d_arr, n) {
+    print indent "└── " node
+    n = split(deps[node], d_arr, " ")
+    for (i = 1; i <= n; i++) {
+        if (d_arr[i] != "") {
+            print_tree(d_arr[i], indent "    ")
+        }
+    }
+}
+
+END {
+    # Find and print targets that are not dependencies of any other target (roots)
+    for (t in targets) {
+        is_subdep = 0
+        for (parent in deps) {
+            if (match(" " deps[parent] " ", " " t " ")) {
+                is_subdep = 1
+                break
+            }
+        }
+        if (!is_subdep) {
+            print_tree(t, "")
+        }
+    }
+}
+' "$MAKEFILE"

@@ -6,7 +6,9 @@ all: kit mini-skred
 reset:
 	touch *.kit
 
-FEAT = #
+FEAT = \
+  UDP=1 \
+  #
 
 yFEAT =      \
   ADSR=1     \
@@ -32,6 +34,8 @@ xFEAT =      \
 # KIT = ./kit --include features.kit
 KIT = ./kit $(FEAT)
 
+OUT = build
+
 kit: kit.c
 	$(CC) kit.c -o kit
 
@@ -44,7 +48,7 @@ synth.c: synth.kit
 synth.o: synth.c synth.h synth-types.h
 	$(CC) $(COPTS) -c $< -o $@
 
-synth.kit: synth.h.kit
+synth.kit: synth.h.kit synth-types.h
 
 skode.kit: synth.kit
 
@@ -81,13 +85,32 @@ util.o: util.c
 features:
 	#
 
+udp.o: udp.c udp.h
+	$(CC) -c udp.c -o udp.o
+
+mini-skred.kit: synth.kit
+
 mini-skred.c: mini-skred.kit
 	$(KIT) < mini-skred.kit > mini-skred.c
 
 mini-skred.o: mini-skred.c
 
-mini-skred : synth.o skqueue.o seq.o util.o skode.o synth-alloc.o miniwav.o miniaudio.o mini-skred.o
-	$(CC) synth.o util.o ands.o skqueue.o seq.o skode.o synth-alloc.o miniwav.o miniaudio.o mini-skred.o -o mini-skred -lm -lpthread
+OBJ = \
+  synth.o \
+  skqueue.o \
+  seq.o \
+  util.o \
+  skode.o \
+  ands.o \
+  synth-alloc.o \
+  miniwav.o \
+  miniaudio.o \
+  mini-skred.o \
+  udp.o \
+  #
+
+mini-skred : $(OBJ)
+	$(CC) $(OBJ) -o mini-skred -lm -lpthread
 
 clean:
 	touch *.kit

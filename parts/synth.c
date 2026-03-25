@@ -469,7 +469,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       float env = 1.0f;
       float mod = 1.0f;
 
-      if (sv.use_amp_envelope[n]) env = amp_envelope_step(n) * sv.amp_envelope[n].velocity;
 
 
       float final = amp * env * mod;
@@ -503,13 +502,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
   }
 }
 
-int envelope_is_flat(int v) {
-  if (sv.amp_envelope[v].a == 0.0f &&
-    sv.amp_envelope[v].d == 0.0f &&
-    sv.amp_envelope[v].s == 1.0f &&
-    sv.amp_envelope[v].r == 0.0f) return 1;
-  return 0;
-}
 
 
 #include <stdio.h>
@@ -588,9 +580,6 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || sv.pan[v] != 0.0f)
         APPEND(" p%g", sv.pan[v]);
 
-    /* --- pan modulation (suppress if unset or depth zero) --- */
-    if (verbose || (sv.pan_mod_osc[v] >= 0 && sv.pan_mod_depth[v] != 0.0f))
-        APPEND(" P%d,%g,%g", sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
 
 
 
@@ -606,18 +595,8 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || sv.record[v])
         APPEND(" r%d", sv.record[v]);
 
-    /* --- smoother (suppress if default) --- */
-    if (verbose || (sv.smoother_enable[v] && sv.smoother_smoothing[v] != SMOOTH_DEFAULT))
-        APPEND(" s%g", sv.smoother_smoothing[v]);
 
 
-    if (verbose || !envelope_is_flat(v))
-        APPEND(" t%g,%g,%g,%g k%d",
-            sv.amp_envelope[v].a,
-            sv.amp_envelope[v].d,
-            sv.amp_envelope[v].s,
-            sv.amp_envelope[v].r,
-            sv.amp_envelope_mode[v]);
 
     /* ----------------------------------------------------------------
      * Verbose-only: internal engine state after a # comment marker.
@@ -784,12 +763,8 @@ void voice_reset(int i) {
   sv.sample[i] = 0;
   sv.amp[i] = NEG_60_DB_AS_LINEAR;
   sv.user_amp[i] = NEG_60_DB;
-  sv.use_amp_envelope[i] = 1;
   sv.disconnect[i] = 0;
   sv.direction[i] = 0;
-  sv.amp_envelope_mode[i] = 0; // exp
-  sv.amp_envelope[i].is_active = 0;
-  envelope_init(i, 0.0f, 0.0f, 1.0f, 0.0f);
   sv.freq[i] = 440.0f;
   sv.midi_note[i] = 69.0f;
   sv.last_midi_note[i] = 69.0f;
@@ -810,9 +785,6 @@ void voice_reset(int i) {
   sv.pan_left[i] = 0.5f;
   sv.pan_right[i] = 0.5f;
   // pan smoothing?
-  sv.pan_mod_osc[i] = -1;
-  sv.pan_mod_depth[i] = 0.0f;
-  sv.pan_mod_adder[i] = 0.0f;
   //
   //
 
@@ -835,13 +807,10 @@ int wave_reset(int voice, int n) {
 int envelope_velocity(int voice, float f) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
     if (f == 0) {
-        amp_envelope_release(voice);
     } else {
-        sv.use_amp_envelope[voice] = 1;
         if (sv.one_shot[voice]) {
             osc_trigger(voice);
         }
-        amp_envelope_trigger(voice, f);
     }
     return 0;
 }

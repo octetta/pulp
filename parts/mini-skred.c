@@ -29,7 +29,6 @@ float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
 static char _features_[65536] = {0};
 #define CAT(x) {strcat(_features_, #x);strcat(_features_," ");}
 char *features(void) {
-CAT(ADSR)
 return _features_;
 }
 

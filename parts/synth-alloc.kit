@@ -212,7 +212,7 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(freq_mod_mode,   int);
     @endif
     
-    @if(FM)
+    @if(PANMOD)
     VALLOC(pan_mod_osc,     int);
     VALLOC(pan_mod_depth,   float);
     VALLOC(pan_mod_adder,   float);
@@ -277,10 +277,10 @@ void synth_free_voices(void) {
     @if(FM)
     VFREE(freq_mod_osc);     VFREE(freq_mod_depth); VFREE(freq_mod_adder); VFREE(freq_mod_mode);
     @endif
-    @if(AM)
+    @if(PANMOD)
     VFREE(pan_mod_osc);      VFREE(pan_mod_depth);  VFREE(pan_mod_adder);
     @endif
-    @if(PANMOD)
+    @if(AM)
     VFREE(amp_mod_osc);      VFREE(amp_mod_depth);  VFREE(amp_mod_adder);
     @endif
 }

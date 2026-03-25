@@ -1,11 +1,14 @@
-CC = gcc
+CC = gcc -g
+COPTS = -g
 
 all: kit mini-skred
 
 reset:
 	touch *.kit
 
-FEAT =       \
+FEAT = #
+
+yFEAT =      \
   ADSR=1     \
   #
 

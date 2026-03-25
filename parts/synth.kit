@@ -794,9 +794,10 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || sv.pan[v] != 0.0f)
         APPEND(" p%g", sv.pan[v]);
 
-    /* --- pan modulation (suppress if unset or depth zero) --- */
+    @if(PANMOD)
     if (verbose || (sv.pan_mod_osc[v] >= 0 && sv.pan_mod_depth[v] != 0.0f))
         APPEND(" P%d,%g,%g", sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
+    @endif
 
     @if(FILT)
     if (verbose || sv.filter_mode[v])
@@ -849,9 +850,10 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || sv.record[v])
         APPEND(" r%d", sv.record[v]);
 
-    /* --- smoother (suppress if default) --- */
+    @if(SMOOTHER)
     if (verbose || (sv.smoother_enable[v] && sv.smoother_smoothing[v] != SMOOTH_DEFAULT))
         APPEND(" s%g", sv.smoother_smoothing[v]);
+    @endif
 
     @if(GLISS)
     if (verbose || sv.glissando_enable[v]) APPEND(" g%g", sv.glissando_speed[v]);
@@ -1196,12 +1198,16 @@ void voice_reset(int i) {
   sv.sample[i] = 0;
   sv.amp[i] = NEG_60_DB_AS_LINEAR;
   sv.user_amp[i] = NEG_60_DB;
+  @if(ADSR)
   sv.use_amp_envelope[i] = 1;
+  @endif
   sv.disconnect[i] = 0;
   sv.direction[i] = 0;
+  @if(ADSR)
   sv.amp_envelope_mode[i] = 0; // exp
   sv.amp_envelope[i].is_active = 0;
   envelope_init(i, 0.0f, 0.0f, 1.0f, 0.0f);
+  @endif
   sv.freq[i] = 440.0f;
   sv.midi_note[i] = 69.0f;
   sv.last_midi_note[i] = 69.0f;
@@ -1234,9 +1240,11 @@ void voice_reset(int i) {
   sv.freq_mod_mode[i] = 0;
   sv.freq_scale[i] = 1.0f;
   @endif
+  @if(PANMOD)
   sv.pan_mod_osc[i] = -1;
   sv.pan_mod_depth[i] = 0.0f;
   sv.pan_mod_adder[i] = 0.0f;
+  @endif
   @if(CRUSH)
   sv.quantize[i] = 0;
   @endif
@@ -1262,7 +1270,6 @@ void voice_reset(int i) {
   sv.glissando_speed[i] = 0.0f;
   sv.glissando_target[i] = sv.freq[i];
   @endif
-
   sv.record[i] = 0;
 }
 
@@ -1282,17 +1289,23 @@ int wave_reset(int voice, int n) {
 int envelope_velocity(int voice, float f) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
     if (f == 0) {
+        @if(ASDR)
         amp_envelope_release(voice);
+        @endif
         @if(FADSR)
         if (sv.use_filter_envelope[voice])
             envelope_release_e(&sv.filter_envelope[voice]);
         @endif
     } else {
+        @if(ASDR)
         sv.use_amp_envelope[voice] = 1;
+        @endif
         if (sv.one_shot[voice]) {
             osc_trigger(voice);
         }
+        @if(ASDR)
         amp_envelope_trigger(voice, f);
+        @endif
         @if(FADSR)
         if (sv.use_filter_envelope[voice])
             envelope_trigger_e(&sv.filter_envelope[voice], f);

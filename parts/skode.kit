@@ -867,6 +867,7 @@ int skode_function(ands_t *s, int info) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }
       }
       break;
+    @if(ADSR)
     case ATOM4('l---'): // velocity amount
       if (argc) {
         int a = sv.link_velo_a[voice];
@@ -882,6 +883,7 @@ int skode_function(ands_t *s, int info) {
        
       }
       break;
+    @endif
     case ATOM4('m---'): // mute-audio bool
       if (argc) { wave_mute(voice, x); }
       break;

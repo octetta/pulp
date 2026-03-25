@@ -162,9 +162,6 @@ void synth_alloc_voices(int voice_max) {
 
 
 
-    VALLOC(amp_envelope,      envelope_t);
-    VALLOC(amp_envelope_mode, int);
-    VALLOC(use_amp_envelope,  int);
 
 
 
@@ -195,8 +192,6 @@ void synth_free_voices(void) {
     VFREE(mark_go);          VFREE(mark_a);          VFREE(mark_b);
 
 
-    VFREE(amp_envelope);     VFREE(amp_envelope_mode); VFREE(use_amp_envelope);
-#endif
 }
 
 /* ------------------------------------------------------------------ */

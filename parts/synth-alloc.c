@@ -139,25 +139,13 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(link_midi_b,      float);
     VALLOC(link_midi_c,      float);
     VALLOC(link_midi_d,      float);
-    VALLOC(link_velo_a,      float);
-    VALLOC(link_velo_b,      float);
-    VALLOC(link_velo_c,      float);
-    VALLOC(link_velo_d,      float);
-    VALLOC(link_trig,        float);
 
     /* config flags */
     VALLOC(wave_table_index, int);
     VALLOC(disconnect,       int);
-    VALLOC(record,           int);
     VALLOC(interpolate,      int);
     VALLOC(phase_reset,      int);
 
-    /* timing marks */
-    VALLOC(mark_go,          int);
-    VALLOC(mark_a,           struct timespec);
-    VALLOC(mark_b,           struct timespec);
-
-    /* optional features */
 
 
 
@@ -182,14 +170,8 @@ void synth_free_voices(void) {
     VFREE(freq);             VFREE(note);            VFREE(midi_note);
     VFREE(last_midi_note);   VFREE(midi_transpose);  VFREE(midi_cents);
     VFREE(offset_hz);        VFREE(freq_scale);
-    VFREE(link_midi_a);      VFREE(link_midi_b);
-    VFREE(link_midi_c);      VFREE(link_midi_d);
-    VFREE(link_velo_a);      VFREE(link_velo_b);
-    VFREE(link_velo_c);      VFREE(link_velo_d);
-    VFREE(link_trig);
-    VFREE(wave_table_index); VFREE(disconnect);      VFREE(record);
+    VFREE(wave_table_index); VFREE(disconnect);
     VFREE(interpolate);      VFREE(phase_reset);
-    VFREE(mark_go);          VFREE(mark_a);          VFREE(mark_b);
 
 
 }

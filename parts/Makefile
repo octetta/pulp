@@ -61,7 +61,10 @@ ands.o: ands.c ands.h
 miniwav.o: miniwav.c miniwav.h
 	$(CC) $(COPTS) -c $< -o $@
 
-synth-alloc.c: synth-alloc.kit
+synth-state.h: synth-state.h.kit
+	$(KIT) < synth-state.h.kit > synth-state.h
+
+synth-alloc.c: synth-alloc.kit synth-state.h
 	$(KIT) < synth-alloc.kit > synth-alloc.c
 
 synth-alloc.o: synth-alloc.c
@@ -83,4 +86,4 @@ mini-skred : synth.o skqueue.o seq.o util.o skode.o synth-alloc.o miniwav.o mini
 
 clean:
 	touch *.kit
-	rm *.o
+	rm -f *.o

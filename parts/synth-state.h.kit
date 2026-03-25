@@ -77,21 +77,91 @@ typedef struct {
     float  * restrict link_midi_b;
     float  * restrict link_midi_c;
     float  * restrict link_midi_d;
+    @if(ADSR)
+    float  * restrict link_velo_a;
+    float  * restrict link_velo_b;
+    float  * restrict link_velo_c;
+    float  * restrict link_velo_d;
+    float  * restrict link_trig;
+    @endif
 
     /* --- config flags --- */
     int    * restrict wave_table_index;
     int    * restrict disconnect;
+    @if(RECORD)
+    int    * restrict record;
+    @endif
     int    * restrict interpolate;
     int    * restrict phase_reset;
 
+    @if(BENCH)
+    int             * restrict mark_go;
+    struct timespec * restrict mark_a;
+    struct timespec * restrict mark_b;
+    @endif
 
+    @if(CRUSH)
+    int    * restrict quantize;
+    @endif
 
+    @if(PD)
+    int    * restrict cz_mode;
+    float  * restrict cz_distortion;
+    int    * restrict cz_mod_osc;
+    float  * restrict cz_mod_depth;
+    @endif
 
+    @if(FILT)
+    float  * restrict filter_freq;
+    float  * restrict filter_res;
+    int    * restrict filter_mode;
+    mmf_t  * restrict filter;
+    envelope_t * restrict filter_envelope;
+    int        * restrict use_filter_envelope;
+    float      * restrict filter_env_depth;
+    int        * restrict filter_update_counter;
+    @endif
 
+    @if(ADSR)
+    envelope_t * restrict amp_envelope;
+    int        * restrict amp_envelope_mode;
+    int        * restrict use_amp_envelope;
+    @endif
 
+    @if(GLISS)
+    int    * restrict glissando_enable;
+    float  * restrict glissando_speed;
+    float  * restrict glissando_target;
+    @endif
 
+    @if(SMOOTHER)
+    int    * restrict smoother_enable;
+    float  * restrict smoother_gain;
+    float  * restrict smoother_smoothing;
+    @endif
 
+    @if(SAH)
+    float  * restrict sample_hold;
+    int    * restrict sample_hold_count;
+    int    * restrict sample_hold_max;
+    @endif
 
+    @if(FM)
+    int    * restrict freq_mod_osc;
+    float  * restrict freq_mod_depth;
+    float  * restrict freq_mod_adder;
+    int    * restrict freq_mod_mode;
+    @endif
+    @if(PANMOD)
+    int    * restrict pan_mod_osc;
+    float  * restrict pan_mod_depth;
+    float  * restrict pan_mod_adder;
+    @endif
+    @if(AM)
+    int    * restrict amp_mod_osc;
+    float  * restrict amp_mod_depth;
+    float  * restrict amp_mod_adder;
+    @endif
 
 } synth_voices_t;
 

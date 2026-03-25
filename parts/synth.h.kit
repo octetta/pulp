@@ -1,7 +1,6 @@
 #ifndef _SYNTH_H_
 #define _SYNTH_H_
 
-#include "synth-features.h"
 #include "synth-config.h"
 #include "synth-state.h"
 

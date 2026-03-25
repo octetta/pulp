@@ -279,95 +279,6 @@ float quantize_bits_int(float v, int bits) {
 }
 
 
-// Initialize the envelope
-
-void envelope_init_e(envelope_t *e, float a, float d, float s, float r) {
-    e->a = a;
-    e->d = d;
-    e->s = s;
-    e->r = r;
-    e->attack_time          = a * MAIN_SAMPLE_RATE;
-    e->decay_time           = d * MAIN_SAMPLE_RATE;
-    e->sustain_level        = fmaxf(0, fminf(1.0f, s));
-    e->release_time         = r * MAIN_SAMPLE_RATE;
-    e->sample_start         = 0;
-    e->sample_release       = 0;
-    e->is_active            = 0;
-    e->velocity             = 1.0f;
-    e->amplitude_at_release = 0.0f;
-    e->amplitude_at_trigger = 0.0f;
-    e->current_amplitude    = 0.0f;
-}
-
-void envelope_init(int v, float a, float d, float s, float r) {
-    envelope_init_e(&sv.amp_envelope[v], a, d, s, r);
-}
-
-void envelope_trigger_e(envelope_t *e, float f) {
-    if (e->is_active)
-        e->amplitude_at_trigger = e->current_amplitude;
-    else
-        e->amplitude_at_trigger = 0.0f;
-    e->sample_start   = SAMPLE_COUNT_GET();
-    e->sample_release = 0;
-    e->velocity       = f;
-    e->is_active      = 1;
-}
-
-void amp_envelope_trigger(int v, float f) {
-    envelope_trigger_e(&sv.amp_envelope[v], f);
-}
-
-void envelope_release_e(envelope_t *e) {
-    if (e->is_active && e->sample_release == 0) {
-        e->sample_release       = SAMPLE_COUNT_GET();
-        e->amplitude_at_release = e->current_amplitude;
-    }
-}
-
-void amp_envelope_release(int v) {
-    envelope_release_e(&sv.amp_envelope[v]);
-}
-
-float envelope_step_e(envelope_t *e) {
-    if (!e->is_active) return 0.0f;
-
-    float out = 0.0f;
-    float samples_since_start = (float)(SAMPLE_COUNT_GET() - e->sample_start);
-
-    if (samples_since_start < e->attack_time) {
-        float attack_progress = samples_since_start / e->attack_time;
-        float start_val = e->amplitude_at_trigger;
-        float curved_progress = attack_progress * attack_progress;
-        out = start_val + (curved_progress * (1.0f - start_val));
-    }
-    else if (samples_since_start < (e->attack_time + e->decay_time)) {
-        float samples_in_decay = samples_since_start - e->attack_time;
-        float decay_progress = samples_in_decay / e->decay_time;
-        out = 1.0f - decay_progress * (1.0f - e->sustain_level);
-    }
-    else {
-        if (e->sample_release == 0) {
-            out = e->sustain_level;
-        } else {
-            float samples_since_release = (float)(SAMPLE_COUNT_GET() - e->sample_release);
-            if (samples_since_release < e->release_time) {
-                float release_progress = samples_since_release / e->release_time;
-                out = e->amplitude_at_release * (1.0f - release_progress);
-            } else {
-                e->is_active = 0;
-                out = 0.0f;
-            }
-        }
-    }
-
-    e->current_amplitude = out;
-    return out * e->velocity;
-}
-
-float amp_envelope_step(int v) {
-    return envelope_step_e(&sv.amp_envelope[v]);
-}
 
 #include "util.h"
 
@@ -403,14 +314,7 @@ char *synth_stats(void) {
 
 #endif
 
-void synth_voice_bench(int voice) {
-  sv.mark_b[voice].tv_sec = 0;
-  sv.mark_b[voice].tv_nsec = 0;
-  clock_gettime(VOICE_CLOCK, &sv.mark_a[voice]);
-  sv.mark_go[voice] = 1;
-}
 
-void mmf_set_params(int n, float f, float resonance);
 
 
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user) {
@@ -554,19 +458,6 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             (int)sv.link_midi_a[v], (int)sv.link_midi_b[v],
             (int)sv.link_midi_c[v], (int)sv.link_midi_d[v]);
 
-    /* --- velocity trigger chain (suppress if all unset) --- */
-    if (verbose
-        || (int)sv.link_velo_a[v] >= 0
-        || (int)sv.link_velo_b[v] >= 0
-        || (int)sv.link_velo_c[v] >= 0
-        || (int)sv.link_velo_d[v] >= 0)
-        APPEND(" H%d,%d,%d,%d",
-            (int)sv.link_velo_a[v], (int)sv.link_velo_b[v],
-            (int)sv.link_velo_c[v], (int)sv.link_velo_d[v]);
-
-    /* --- trigger link (suppress if unset) --- */
-    if (verbose || (int)sv.link_trig[v] >= 0)
-        APPEND(" L%d", (int)sv.link_trig[v]);
 
     /* --- playback direction (suppress b0 default) --- */
     if (verbose || sv.direction[v])
@@ -592,8 +483,6 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     /* --- mix / record flags (suppress if default) --- */
     if (verbose || sv.disconnect[v])
         APPEND(" m%d", sv.disconnect[v]);
-    if (verbose || sv.record[v])
-        APPEND(" r%d", sv.record[v]);
 
 
 
@@ -610,10 +499,6 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" phase:%g phase_inc:%g", sv.phase[v], sv.phase_inc[v]);
         APPEND(" sample:%g", sv.sample[v]);
         APPEND(" finished:%d one_shot:%d", sv.finished[v], sv.one_shot[v]);
-        APPEND(" smoother_gain:%g", sv.smoother_gain[v]);
-        APPEND(" amp_env_active:%d", sv.amp_envelope[v].is_active);
-        APPEND(" latency:%.2fms",
-            (double)ts_diff_ns(&sv.mark_a[v], &sv.mark_b[v]) / 1000000.0);
     }
 
 #undef APPEND
@@ -690,10 +575,6 @@ int wave_loop(int voice, int state) {
 }
 
 
-int envelope_set(int voice, float a, float d, float s, float r) {
-  envelope_init(voice, a, d, s, r);
-  return 0;
-}
 
 
 int voice_copy(int v, int n) {
@@ -702,7 +583,6 @@ int voice_copy(int v, int n) {
   freq_set(n, sv.freq[v]);
   wave_loop(n, sv.loop_enabled[v]);
   wave_dir(n, sv.direction[v]);
-  envelope_set(n, sv.amp_envelope[v].a, sv.amp_envelope[v].d, sv.amp_envelope[v].s, sv.amp_envelope[v].r);
   //
   pan_set(n, sv.pan[v]);
   //
@@ -774,11 +654,6 @@ void voice_reset(int i) {
   sv.link_midi_b[i] = -1;
   sv.link_midi_c[i] = -1;
   sv.link_midi_d[i] = -1;
-  sv.link_velo_a[i] = -1;
-  sv.link_velo_b[i] = -1;
-  sv.link_velo_c[i] = -1;
-  sv.link_velo_d[i] = -1;
-  sv.link_trig[i] = -1;
   osc_set_wave_table_index(i, WAVE_TABLE_SINE);
   //
   sv.pan[i] = 0;
@@ -787,7 +662,6 @@ void voice_reset(int i) {
   // pan smoothing?
   //
   //
-  sv.record[i] = 0;
 }
 
 void voice_init(void) {

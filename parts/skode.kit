@@ -817,6 +817,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('h---'): // sample-hold phase-count
       if (argc) { sv.sample_hold_max[voice] = x; } break;
     @endif
+    @if(ADSR)
     case ATOM4('H---'): // link-velo voice [voice [voice [voice]]]
       if (argc) {
         sv.link_velo_a[voice] = x;
@@ -825,6 +826,7 @@ int skode_function(ands_t *s, int info) {
         if (argc > 3) sv.link_velo_d[voice] = (int)arg[3];
       }
       break;
+    @endif
     // TODO re-allocate the data/array buffer with the arg
     case ATOM4('/D--'): // resize-data count
       if (argc) {
@@ -838,8 +840,10 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('I---'): // log-event bool
       if (argc) {} break; // TODO en/dis-able send timestamp wire to the event logger
+    @if(ADSR)
     case ATOM4('L---'): // link-trigger voice
       if (argc) { sv.link_trig[voice] = x; } break;
+    @endif
     @if(FILT)
     case ATOM4('J---'): // filter-mode selector
       if (argc) {
@@ -1109,9 +1113,11 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('g>l-'):
       if (argc) ands_global_to_local(ctx->parse, x);
       break;
+    @if(BENCH)
     case ATOM4('/m_-'): // benchmark voice
       synth_voice_bench(voice);
       break;
+    @endif
     case ATOM4('/q--'): // quit
       ctx->quit = -1;
       return 0;

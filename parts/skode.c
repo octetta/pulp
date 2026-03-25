@@ -570,14 +570,6 @@ int skode_function(ands_t *s, int info) {
         if (argc > 3) sv.link_midi_d[voice] = (int)arg[3];
       }
       break;
-    case ATOM4('H---'): // link-velo voice [voice [voice [voice]]]
-      if (argc) {
-        sv.link_velo_a[voice] = x;
-        if (argc > 1) sv.link_velo_b[voice] = (int)arg[1];
-        if (argc > 2) sv.link_velo_c[voice] = (int)arg[2];
-        if (argc > 3) sv.link_velo_d[voice] = (int)arg[3];
-      }
-      break;
     // TODO re-allocate the data/array buffer with the arg
     case ATOM4('/D--'): // resize-data count
       if (argc) {
@@ -591,8 +583,6 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('I---'): // log-event bool
       if (argc) {} break; // TODO en/dis-able send timestamp wire to the event logger
-    case ATOM4('L---'): // link-trigger voice
-      if (argc) { sv.link_trig[voice] = x; } break;
     case ATOM4('log-'): // log-enable bool
       if (argc) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }
@@ -677,9 +667,6 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('g>l-'):
       if (argc) ands_global_to_local(ctx->parse, x);
-      break;
-    case ATOM4('/m_-'): // benchmark voice
-      synth_voice_bench(voice);
       break;
     case ATOM4('/q--'): // quit
       ctx->quit = -1;

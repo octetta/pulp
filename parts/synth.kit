@@ -378,8 +378,9 @@ float mmf_process(int n, float input) {
 }
 @endif
 
-// Initialize the envelope
+@if(ADSR)
 
+// Initialize the envelope
 void envelope_init_e(envelope_t *e, float a, float d, float s, float r) {
     e->a = a;
     e->d = d;
@@ -467,6 +468,7 @@ float envelope_step_e(envelope_t *e) {
 float amp_envelope_step(int v) {
     return envelope_step_e(&sv.amp_envelope[v]);
 }
+@endif
 
 #include "util.h"
 
@@ -502,16 +504,19 @@ char *synth_stats(void) {
 
 #endif
 
+@if(BENCH)
 void synth_voice_bench(int voice) {
   sv.mark_b[voice].tv_sec = 0;
   sv.mark_b[voice].tv_nsec = 0;
   clock_gettime(VOICE_CLOCK, &sv.mark_a[voice]);
   sv.mark_go[voice] = 1;
 }
+@endif
 
-void mmf_set_params(int n, float f, float resonance);
 
 @if(FILT)
+
+void mmf_set_params(int n, float f, float resonance);
 #define FILTER_UC (16)
 @endif
 
@@ -768,7 +773,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             (int)sv.link_midi_a[v], (int)sv.link_midi_b[v],
             (int)sv.link_midi_c[v], (int)sv.link_midi_d[v]);
 
-    /* --- velocity trigger chain (suppress if all unset) --- */
+    @if(ADSR)
     if (verbose
         || (int)sv.link_velo_a[v] >= 0
         || (int)sv.link_velo_b[v] >= 0
@@ -781,6 +786,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     /* --- trigger link (suppress if unset) --- */
     if (verbose || (int)sv.link_trig[v] >= 0)
         APPEND(" L%d", (int)sv.link_trig[v]);
+    @endif
 
     /* --- playback direction (suppress b0 default) --- */
     if (verbose || sv.direction[v])
@@ -847,8 +853,10 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     /* --- mix / record flags (suppress if default) --- */
     if (verbose || sv.disconnect[v])
         APPEND(" m%d", sv.disconnect[v]);
+    @if(RECORD)
     if (verbose || sv.record[v])
         APPEND(" r%d", sv.record[v]);
+    @endif
 
     @if(SMOOTHER)
     if (verbose || (sv.smoother_enable[v] && sv.smoother_smoothing[v] != SMOOTH_DEFAULT))
@@ -881,16 +889,22 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" phase:%g phase_inc:%g", sv.phase[v], sv.phase_inc[v]);
         APPEND(" sample:%g", sv.sample[v]);
         APPEND(" finished:%d one_shot:%d", sv.finished[v], sv.one_shot[v]);
+        @if(SMOOTHER)
         APPEND(" smoother_gain:%g", sv.smoother_gain[v]);
+        @endif
         @if(FILT)
         APPEND(" filter_update_counter:%d", sv.filter_update_counter[v]);
         @endif
         @if(FADSR)
         APPEND(" filter_env_active:%d", sv.filter_envelope[v].is_active);
         @endif
+        @if(ADSR)
         APPEND(" amp_env_active:%d", sv.amp_envelope[v].is_active);
+        @endif
+        @if(BENCH)
         APPEND(" latency:%.2fms",
             (double)ts_diff_ns(&sv.mark_a[v], &sv.mark_b[v]) / 1000000.0);
+        @endif
     }
 
 #undef APPEND
@@ -998,10 +1012,12 @@ int wave_loop(int voice, int state) {
 }
 
 
+@if(ADSR)
 int envelope_set(int voice, float a, float d, float s, float r) {
   envelope_init(voice, a, d, s, r);
   return 0;
 }
+@endif
 
 @if(FILT)
 // Set parameters - only recalculates coefficients if values changed
@@ -1112,7 +1128,9 @@ int voice_copy(int v, int n) {
   freq_set(n, sv.freq[v]);
   wave_loop(n, sv.loop_enabled[v]);
   wave_dir(n, sv.direction[v]);
+  @if(ADSR)
   envelope_set(n, sv.amp_envelope[v].a, sv.amp_envelope[v].d, sv.amp_envelope[v].s, sv.amp_envelope[v].r);
+  @endif
   //
   pan_set(n, sv.pan[v]);
   @if(AM)
@@ -1217,11 +1235,13 @@ void voice_reset(int i) {
   sv.link_midi_b[i] = -1;
   sv.link_midi_c[i] = -1;
   sv.link_midi_d[i] = -1;
+  @if(ADSR)
   sv.link_velo_a[i] = -1;
   sv.link_velo_b[i] = -1;
   sv.link_velo_c[i] = -1;
   sv.link_velo_d[i] = -1;
   sv.link_trig[i] = -1;
+  @endif
   osc_set_wave_table_index(i, WAVE_TABLE_SINE);
   //
   sv.pan[i] = 0;
@@ -1270,7 +1290,9 @@ void voice_reset(int i) {
   sv.glissando_speed[i] = 0.0f;
   sv.glissando_target[i] = sv.freq[i];
   @endif
+  @if(RECORD)
   sv.record[i] = 0;
+  @endif
 }
 
 void voice_init(void) {

@@ -93,3 +93,12 @@ if(MATH_LIB)
     # Link to the tool (only if kit.c needs it)
     target_link_libraries(kit_tool PRIVATE ${MATH_LIB})
 endif()
+
+add_custom_target(check_opts
+  COMMAND ${CMAKE_COMMAND} -E echo "! KIT FEATURES"
+  COMMAND ${CMAKE_COMMAND} -E echo "! KIT_OPTS (Raw): ${KIT_OPTS}"
+  COMMAND ${CMAKE_COMMAND} -E echo "! KIT_OPTS_LIST:  ${KIT_OPTS_LIST}"
+  VERBATIM
+)
+
+add_dependencies(mini-skred check_opts)

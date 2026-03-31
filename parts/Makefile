@@ -43,18 +43,18 @@ kit: kit.c
 synth.h: synth.h.kit
 	$(KIT) < synth.h.kit > synth.h
 
-synth.c: synth.kit synth-alloc.c synth-alloc.h synth-state.h
-	$(KIT) < synth.kit > synth.c
+synth.c: synth.c.kit synth-alloc.c synth-alloc.h synth-state.h
+	$(KIT) < synth.c.kit > synth.c
 
 synth.o: synth.c synth.h synth-types.h
 	$(CC) -c $< -o $@
 
-synth.kit: synth.h.kit synth-types.h
+synth.c.kit: synth.h.kit synth-types.h
 
-skode.kit: synth.kit
+skode.c.kit: synth.c.kit
 
-skode.c: skode.kit
-	$(KIT) < skode.kit > skode.c
+skode.c: skode.c.kit
+	$(KIT) < skode.c.kit > skode.c
 
 skode.o: skode.c skode.h ands.h synth.c ands.o
 	$(CC) -Wno-multichar -c $< -o $@
@@ -71,8 +71,8 @@ miniwav.o: miniwav.c miniwav.h
 synth-state.h: synth-state.h.kit
 	$(KIT) < synth-state.h.kit > synth-state.h
 
-synth-alloc.c: synth-alloc.kit synth-state.h.kit
-	$(KIT) < synth-alloc.kit > synth-alloc.c
+synth-alloc.c: synth-alloc.c.kit synth-state.h.kit
+	$(KIT) < synth-alloc.c.kit > synth-alloc.c
 
 synth-alloc.o: synth-alloc.c
 	$(CC) -c $< -o $@
@@ -89,10 +89,10 @@ features:
 udp.o: udp.c udp.h
 	$(CC) -c udp.c -o udp.o
 
-mini-skred.kit: synth.kit
+mini-skred.c.kit: synth.c.kit
 
-mini-skred.c: mini-skred.kit
-	$(KIT) < mini-skred.kit > mini-skred.c
+mini-skred.c: mini-skred.c.kit
+	$(KIT) < mini-skred.c.kit > mini-skred.c
 
 mini-skred.o: mini-skred.c
 

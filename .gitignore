@@ -1,3 +1,4 @@
+build/*
 parts/kit
 tmp
 tmp/*

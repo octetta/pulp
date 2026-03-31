@@ -1,0 +1,1 @@
+/usr/bin/cc "CMakeFiles/mini-skred.dir/mini-skred.c.o" -o mini-skred 

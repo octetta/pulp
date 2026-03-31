@@ -1,0 +1,3 @@
+/home/stewartj/book/pulp/parts/build/CMakeFiles/mini-skred.dir
+/home/stewartj/book/pulp/parts/build/CMakeFiles/edit_cache.dir
+/home/stewartj/book/pulp/parts/build/CMakeFiles/rebuild_cache.dir

@@ -332,7 +332,9 @@ void process_line(char *line, FILE *in, const char *fname, int *lnum) {
     if (!strncmp(s, "@if", 3)) {
         char *o = strchr(s, '('), *c = strrchr(s, ')');
         if (!o || !c) kit_error(fname, *lnum, "Malformed @if condition");
-        *c = 0; expr_p = o + 1; int cond = parse_expr(); int em = current_emit();
+        *c = 0; expr_p = o + 1;
+        int cond = parse_expr();
+        int em = current_emit();
         if (sp >= MAX_STACK) kit_error(fname, *lnum, "Stack overflow");
         stack[sp++] = (Frame){em, cond, em && cond};
         return;
@@ -351,7 +353,9 @@ void process_line(char *line, FILE *in, const char *fname, int *lnum) {
         Frame *f = &stack[sp-1]; f->this_emit = (!f->branch_taken && f->parent_emit); f->branch_taken = 1;
         return;
     }
-    if (!strncmp(s, "@endif", 6)) { if (sp > 0) sp--; else kit_error(fname, *lnum, "@endif without @if"); return; }
+    if (!strncmp(s, "@endif", 6)) {
+      if (sp > 0) sp--; else kit_error(fname, *lnum, "@endif without @if"); return;
+    }
     if (!strncmp(s, "@macro", 6)) { handle_macro_def(s, in, fname, lnum); return; }
     if (!strncmp(s, "@for", 4)) { handle_for(line, in, fname, lnum); return; }
 
@@ -360,7 +364,9 @@ void process_line(char *line, FILE *in, const char *fname, int *lnum) {
             handle_macro_call(&macros[i], s, fname, *lnum); return;
         }
     }
-    if (current_emit()) substitute_and_print(line);
+    if (current_emit()) {
+      substitute_and_print(line);
+    }
 }
 
 int main(int argc, char **argv) {

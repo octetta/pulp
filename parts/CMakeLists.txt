@@ -3,17 +3,17 @@ project(mini-skred)
 
 # 1. Build the tool
 set(KIT_OPTS "" CACHE STRING "Extra flags for the kit tool")
+separate_arguments(KIT_OPTS_LIST NATIVE_COMMAND "${KIT_OPTS}")
 add_executable(kit_tool kit.c)
 
-
-# 1. Define the absolute paths for the generator
+# 1.1 Define the absolute paths for the generator
 set(SYNTH_STATE_KIT "${CMAKE_CURRENT_SOURCE_DIR}/synth-state.h.kit")
 set(SYNTH_STATE_H   "${CMAKE_CURRENT_BINARY_DIR}/synth-state.h")
 
-# 2. The Command: This is the ONLY place that runs the kit_tool for this header
+# 1.2 The Command: This is the ONLY place that runs the kit_tool for this header
 add_custom_command(
     OUTPUT "${SYNTH_STATE_H}"
-    COMMAND $<TARGET_FILE:kit_tool> ${KIT_OPTS} < "${SYNTH_STATE_KIT}" > "${SYNTH_STATE_H}"
+    COMMAND $<TARGET_FILE:kit_tool> ${KIT_OPTS_LIST} < "${SYNTH_STATE_KIT}" > "${SYNTH_STATE_H}"
     DEPENDS "${SYNTH_STATE_KIT}" kit_tool
     COMMENT "Generating global header: synth-state.h"
     VERBATIM
@@ -41,13 +41,14 @@ set(KIT_MODULES
 set(GEN_SOURCES "")
 
 foreach(MOD ${KIT_MODULES})
-    message(STATUS "DEBUG: Module ${MOD} using KIT_OPTS: ${KIT_OPTS}")
+    # message(STATUS "DEBUG: Module ${MOD} using KIT_OPTS: ${KIT_OPTS}")
     # Logic for .c.kit
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit")
+        message(STATUS "DEBUG: Module (C) ${MOD} using KIT_OPTS: ${KIT_OPTS}")
         set(OUT_C "${CMAKE_CURRENT_BINARY_DIR}/${MOD}.c")
         add_custom_command(
             OUTPUT "${OUT_C}"
-            COMMAND ${CMAKE_COMMAND} -E env $<TARGET_FILE:kit_tool> ${KIT_OPTS} < "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" > "${OUT_C}"
+            COMMAND ${CMAKE_COMMAND} -E env $<TARGET_FILE:kit_tool> ${KIT_OPTS_LIST} < "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" > "${OUT_C}"
             DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" kit_tool "${SYNTH_STATE_H}"
             VERBATIM
         )
@@ -59,13 +60,15 @@ foreach(MOD ${KIT_MODULES})
 
     # Logic for .h.kit
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit")
+        message(STATUS "DEBUG: Module (H) ${MOD} using KIT_OPTS: ${KIT_OPTS}")
         set(OUT_H "${CMAKE_CURRENT_BINARY_DIR}/${MOD}.h")
         add_custom_command(
             OUTPUT "${OUT_H}"
-            COMMAND ${CMAKE_COMMAND} -E env $<TARGET_FILE:kit_tool> ${KIT_OPTS} < "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit" > "${OUT_H}"
+            COMMAND ${CMAKE_COMMAND} -E env $<TARGET_FILE:kit_tool> ${KIT_OPTS_LIST} < "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit" > "${OUT_H}"
             DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit" kit_tool "${SYNTH_STATE_H}"
             VERBATIM
         )
+        list(APPEND GEN_SOURCES "${OUT_H}")
     endif()
 endforeach()
 

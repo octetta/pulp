@@ -1311,7 +1311,7 @@ int wave_reset(int voice, int n) {
 int envelope_velocity(int voice, float f) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
     if (f == 0) {
-        @if(ASDR)
+        @if(ADSR)
         amp_envelope_release(voice);
         @endif
         @if(FADSR)
@@ -1319,13 +1319,13 @@ int envelope_velocity(int voice, float f) {
             envelope_release_e(&sv.filter_envelope[voice]);
         @endif
     } else {
-        @if(ASDR)
+        @if(ADSR)
         sv.use_amp_envelope[voice] = 1;
         @endif
         if (sv.one_shot[voice]) {
             osc_trigger(voice);
         }
-        @if(ASDR)
+        @if(ADSR)
         amp_envelope_trigger(voice, f);
         @endif
         @if(FADSR)

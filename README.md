@@ -17,11 +17,31 @@ mkdir build
 cd build
 ```
 
+## features
 
-## use the native compiler
+ADSR
+AM
+BENCH
+CRUSH
+FILT
+FADSR
+FM
+GLISS
+PANMOD
+PD
+SAH
+SEQ
+SMOOTHER
+
+UDP
+RECORD
+BENCH
+MAXI
+
+## use the native compiler (enabling features)
 
 ```
-cmake ..
+cmake -DKIT_OPTS="ADSR=1 PD=1 FILT=1 FADSR=1" ..
 make
 ./mini-skred
 ```

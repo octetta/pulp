@@ -22,7 +22,6 @@ cd build
 ```
 ADSR
 AM
-BENCH
 CRUSH
 FILT
 FADSR

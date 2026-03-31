@@ -2,7 +2,22 @@ cmake_minimum_required(VERSION 3.10)
 project(mini-skred)
 
 # 1. Build the tool
+set(KIT_OPTS "" CACHE STRING "Extra flags for the kit tool")
 add_executable(kit_tool kit.c)
+
+
+# 1. Define the absolute paths for the generator
+set(SYNTH_STATE_KIT "${CMAKE_CURRENT_SOURCE_DIR}/synth-state.h.kit")
+set(SYNTH_STATE_H   "${CMAKE_CURRENT_BINARY_DIR}/synth-state.h")
+
+# 2. The Command: This is the ONLY place that runs the kit_tool for this header
+add_custom_command(
+    OUTPUT "${SYNTH_STATE_H}"
+    COMMAND $<TARGET_FILE:kit_tool> ${KIT_OPTS} < "${SYNTH_STATE_KIT}" > "${SYNTH_STATE_H}"
+    DEPENDS "${SYNTH_STATE_KIT}" kit_tool
+    COMMENT "Generating global header: synth-state.h"
+    VERBATIM
+)
 
 # 2. Hand-written (plain) source files
 set(PLAIN_SOURCES
@@ -26,13 +41,14 @@ set(KIT_MODULES
 set(GEN_SOURCES "")
 
 foreach(MOD ${KIT_MODULES})
+    message(STATUS "DEBUG: Module ${MOD} using KIT_OPTS: ${KIT_OPTS}")
     # Logic for .c.kit
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit")
         set(OUT_C "${CMAKE_CURRENT_BINARY_DIR}/${MOD}.c")
         add_custom_command(
             OUTPUT "${OUT_C}"
-            COMMAND ${CMAKE_COMMAND} -E env $<TARGET_FILE:kit_tool> < "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" > "${OUT_C}"
-            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" kit_tool
+            COMMAND ${CMAKE_COMMAND} -E env $<TARGET_FILE:kit_tool> ${KIT_OPTS} < "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" > "${OUT_C}"
+            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" kit_tool "${SYNTH_STATE_H}"
             VERBATIM
         )
         if(MOD STREQUAL "skode")
@@ -46,21 +62,23 @@ foreach(MOD ${KIT_MODULES})
         set(OUT_H "${CMAKE_CURRENT_BINARY_DIR}/${MOD}.h")
         add_custom_command(
             OUTPUT "${OUT_H}"
-            COMMAND ${CMAKE_COMMAND} -E env $<TARGET_FILE:kit_tool> < "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit" > "${OUT_H}"
-            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit" kit_tool
+            COMMAND ${CMAKE_COMMAND} -E env $<TARGET_FILE:kit_tool> ${KIT_OPTS} < "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit" > "${OUT_H}"
+            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit" kit_tool "${SYNTH_STATE_H}"
             VERBATIM
         )
     endif()
 endforeach()
 
 # 4. Final App: Combine Plain and Generated sources
-add_executable(mini-skred ${PLAIN_SOURCES} ${GEN_SOURCES})
+add_executable(mini-skred
+  ${PLAIN_SOURCES}
+  ${GEN_SOURCES}
+  "${SYNTH_STATE_H}"
+)
 
 # 5. Include Directories
-# Look in the source folder for plain .h files
-target_include_directories(mini-skred PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-# Look in the build folder for generated .h files
 target_include_directories(mini-skred PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories(mini-skred PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # 6. Find the library portably
 find_library(MATH_LIB m)

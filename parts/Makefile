@@ -16,4 +16,4 @@ pi: native
 	cmake --build build_pi
 
 clean:
-	rm -rf build_native build_pi
+	rm -rf build_native build_pi build

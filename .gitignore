@@ -1,5 +1,5 @@
 build/*
-parts/kit
+parts/build/*
 tmp
 tmp/*
 *.o

@@ -19,6 +19,7 @@ cd build
 
 ## features
 
+```
 ADSR
 AM
 BENCH
@@ -37,6 +38,7 @@ UDP
 RECORD
 BENCH
 MAXI
+```
 
 ## use the native compiler (enabling features)
 

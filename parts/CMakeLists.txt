@@ -35,6 +35,9 @@ foreach(MOD ${KIT_MODULES})
             DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" kit_tool
             VERBATIM
         )
+        if(MOD STREQUAL "skode")
+          set_source_files_properties("${OUT_C}" PROPERTIES COMPILE_FLAGS "-Wno-multichar")
+        endif()
         list(APPEND GEN_SOURCES "${OUT_C}")
     endif()
 

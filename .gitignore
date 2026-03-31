@@ -1,5 +1,7 @@
 build/*
 parts/build/*
+parts/build_native/*
+parts/build_pi/*
 tmp
 tmp/*
 *.o

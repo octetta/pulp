@@ -1,0 +1,118 @@
+CC = gcc
+COPTS = -Wall -Wextra -O3
+CFLAGS = -Wall -Wextra -O3
+
+all: kit mini-skred
+
+reset:
+	touch *.kit
+
+FEAT = \
+  UDP=1 \
+  #
+
+yFEAT =      \
+  ADSR=1     \
+  #
+
+xFEAT =      \
+  ADSR=1     \
+  AM=1       \
+  BENCH=1    \
+  CRUSH=1    \
+  FADSR=1    \
+  FILT=1     \
+  FM=1       \
+  GLISS=1    \
+  PANMOD=1   \
+  PD=1       \
+  SAH=1      \
+  SEQ=1      \
+  SMOOTHER=1 \
+  UDP=0      \
+  #
+
+# KIT = ./kit --include features.kit
+KIT = ./kit $(FEAT)
+
+OUT = build
+
+kit: kit.c
+	$(CC) kit.c -o kit
+
+synth.h: synth.h.kit
+	$(KIT) < synth.h.kit > synth.h
+
+synth.c: synth.c.kit synth-alloc.c synth-alloc.h synth-state.h
+	$(KIT) < synth.c.kit > synth.c
+
+synth.o: synth.c synth.h synth-types.h
+	$(CC) -c $< -o $@
+
+synth.c.kit: synth.h.kit synth-types.h
+
+skode.c.kit: synth.c.kit
+
+skode.c: skode.c.kit
+	$(KIT) < skode.c.kit > skode.c
+
+skode.o: skode.c skode.h ands.h synth.c ands.o
+	$(CC) -Wno-multichar -c $< -o $@
+
+seq.o: seq.c seq.h
+	$(CC) -c $< -o $@
+
+ands.o: ands.c ands.h
+	$(CC) -c $< -o $@
+
+miniwav.o: miniwav.c miniwav.h
+	$(CC) -c $< -o $@
+
+synth-state.h: synth-state.h.kit
+	$(KIT) < synth-state.h.kit > synth-state.h
+
+synth-alloc.c: synth-alloc.c.kit synth-state.h.kit
+	$(KIT) < synth-alloc.c.kit > synth-alloc.c
+
+synth-alloc.o: synth-alloc.c
+	$(CC) -c $< -o $@
+
+skqueue.o: skqueue.c
+	$(CC) -c $< -o $@
+
+util.o: util.c
+	$(CC) -c $< -o $@
+
+features:
+	#
+
+udp.o: udp.c udp.h
+	$(CC) -c udp.c -o udp.o
+
+mini-skred.c.kit: synth.c.kit
+
+mini-skred.c: mini-skred.c.kit
+	$(KIT) < mini-skred.c.kit > mini-skred.c
+
+mini-skred.o: mini-skred.c
+
+OBJ = \
+  synth.o \
+  skqueue.o \
+  seq.o \
+  util.o \
+  skode.o \
+  ands.o \
+  synth-alloc.o \
+  miniwav.o \
+  miniaudio.o \
+  mini-skred.o \
+  udp.o \
+  #
+
+mini-skred : $(OBJ)
+	$(CC) $(OBJ) -o mini-skred -lm -lpthread
+
+clean:
+	touch *.kit
+	rm -f *.o

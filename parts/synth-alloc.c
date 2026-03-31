@@ -135,14 +135,14 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(midi_cents,       float);
     VALLOC(offset_hz,        float);
     VALLOC(freq_scale,       float);
-    VALLOC(link_midi_a,      float);
-    VALLOC(link_midi_b,      float);
-    VALLOC(link_midi_c,      float);
-    VALLOC(link_midi_d,      float);
-    VALLOC(link_velo_a,      float);
-    VALLOC(link_velo_b,      float);
-    VALLOC(link_velo_c,      float);
-    VALLOC(link_velo_d,      float);
+    VALLOC(link_midi_0,      float);
+    VALLOC(link_midi_1,      float);
+    VALLOC(link_midi_2,      float);
+    VALLOC(link_midi_3,      float);
+    VALLOC(link_velo_0,      float);
+    VALLOC(link_velo_1,      float);
+    VALLOC(link_velo_2,      float);
+    VALLOC(link_velo_3,      float);
     VALLOC(link_trig,        float);
 
     /* config flags */
@@ -175,10 +175,14 @@ void synth_free_voices(void) {
     VFREE(freq);             VFREE(note);            VFREE(midi_note);
     VFREE(last_midi_note);   VFREE(midi_transpose);  VFREE(midi_cents);
     VFREE(offset_hz);        VFREE(freq_scale);
-    VFREE(link_midi_a);      VFREE(link_midi_b);
-    VFREE(link_midi_c);      VFREE(link_midi_d);
-    VFREE(link_velo_a);      VFREE(link_velo_b);
-    VFREE(link_velo_c);      VFREE(link_velo_d);
+    VFREE(link_midi_0);
+    VFREE(link_midi_1);
+    VFREE(link_midi_2);
+    VFREE(link_midi_3);
+    VFREE(link_velo_0);
+    VFREE(link_velo_1);
+    VFREE(link_velo_2);
+    VFREE(link_velo_3);
     VFREE(link_trig);
     VFREE(wave_table_index); VFREE(disconnect);
     VFREE(interpolate);      VFREE(phase_reset);

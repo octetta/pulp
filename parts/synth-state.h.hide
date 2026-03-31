@@ -73,14 +73,14 @@ typedef struct {
     float  * restrict midi_cents;
     float  * restrict offset_hz;
     float  * restrict freq_scale;
-    float  * restrict link_midi_0;
-    float  * restrict link_midi_1;
-    float  * restrict link_midi_2;
-    float  * restrict link_midi_3;
-    float  * restrict link_velo_0;
-    float  * restrict link_velo_1;
-    float  * restrict link_velo_2;
-    float  * restrict link_velo_3;
+    float  * restrict link_midi_a;
+    float  * restrict link_midi_b;
+    float  * restrict link_midi_c;
+    float  * restrict link_midi_d;
+    float  * restrict link_velo_a;
+    float  * restrict link_velo_b;
+    float  * restrict link_velo_c;
+    float  * restrict link_velo_d;
     float  * restrict link_trig;
 
     /* --- config flags --- */

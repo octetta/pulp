@@ -1,5 +1,6 @@
 CC = gcc
-COPTS = -g
+COPTS = -Wall -Wextra -O3
+CFLAGS = -Wall -Wextra -O3
 
 all: kit mini-skred
 
@@ -42,11 +43,11 @@ kit: kit.c
 synth.h: synth.h.kit
 	$(KIT) < synth.h.kit > synth.h
 
-synth.c: synth.kit
+synth.c: synth.kit synth-alloc.c synth-alloc.h synth-state.h
 	$(KIT) < synth.kit > synth.c
 
 synth.o: synth.c synth.h synth-types.h
-	$(CC) $(COPTS) -c $< -o $@
+	$(CC) -c $< -o $@
 
 synth.kit: synth.h.kit synth-types.h
 
@@ -56,16 +57,16 @@ skode.c: skode.kit
 	$(KIT) < skode.kit > skode.c
 
 skode.o: skode.c skode.h ands.h synth.c ands.o
-	$(CC) $(COPTS) -DMINI -Wno-multichar -c $< -o $@
+	$(CC) -Wno-multichar -c $< -o $@
 
 seq.o: seq.c seq.h
-	$(CC) $(COPTS) -DMINI -c $< -o $@
+	$(CC) -c $< -o $@
 
 ands.o: ands.c ands.h
-	$(CC) $(COPTS) -c $< -o $@
+	$(CC) -c $< -o $@
 
 miniwav.o: miniwav.c miniwav.h
-	$(CC) $(COPTS) -c $< -o $@
+	$(CC) -c $< -o $@
 
 synth-state.h: synth-state.h.kit
 	$(KIT) < synth-state.h.kit > synth-state.h
@@ -74,13 +75,13 @@ synth-alloc.c: synth-alloc.kit synth-state.h.kit
 	$(KIT) < synth-alloc.kit > synth-alloc.c
 
 synth-alloc.o: synth-alloc.c
-	$(CC) $(COPTS) -c $< -o $@
+	$(CC) -c $< -o $@
 
 skqueue.o: skqueue.c
-	$(CC) $(COPTS) -c $< -o $@
+	$(CC) -c $< -o $@
 
 util.o: util.c
-	$(CC) $(COPTS) -c $< -o $@
+	$(CC) -c $< -o $@
 
 features:
 	#

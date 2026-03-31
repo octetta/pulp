@@ -31,10 +31,10 @@ void synth_init(int vc) {
   SAMPLE_COUNT_PUT(0);
 
   synth_config_set_voices(vc);
-  printf("vc = %d\n", vc);
+  printf("# vc = %d\n", vc);
 
-  printf("synth_config.voice_max = %d\n", synth_config.voice_max);
-  printf("synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
+  printf("# synth_config.voice_max = %d\n", synth_config.voice_max);
+  printf("# synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
 
   /* If nobody called synth_config_set_voices() before us, fill in defaults.
    * voice_max == 0 means aligned_alloc(64, 0) which is UB / NULL on most
@@ -47,8 +47,8 @@ void synth_init(int vc) {
   synth_config.voice_max = vc;
   synth_alloc_waves(synth_config.wave_table_max);
 
-  printf("synth_config.voice_max = %d\n", synth_config.voice_max);
-  printf("synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
+  printf("# synth_config.voice_max = %d\n", synth_config.voice_max);
+  printf("# synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
 
   volume_set(VOLUME_DEFAULT);
 }
@@ -327,7 +327,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
   static uint64_t synth_random;
   static int first = 1;
   if (first) {
-    printf("nvoices = %d\n", nvoices);
+    printf("# nvoices = %d\n", nvoices);
     synth_frames_per_callback = num_frames;
     audio_rng_init(&synth_random, 1);
     one_skred_frame = (float *)user;
@@ -450,13 +450,13 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
 
     /* --- midi note forward (suppress if all unset) --- */
     if (verbose
-        || (int)sv.link_midi_a[v] >= 0
-        || (int)sv.link_midi_b[v] >= 0
-        || (int)sv.link_midi_c[v] >= 0
-        || (int)sv.link_midi_d[v] >= 0)
+        || (int)sv.link_midi_0[v] >= 0
+        || (int)sv.link_midi_1[v] >= 0
+        || (int)sv.link_midi_2[v] >= 0
+        || (int)sv.link_midi_3[v] >= 0)
         APPEND(" G%d,%d,%d,%d",
-            (int)sv.link_midi_a[v], (int)sv.link_midi_b[v],
-            (int)sv.link_midi_c[v], (int)sv.link_midi_d[v]);
+            (int)sv.link_midi_0[v], (int)sv.link_midi_1[v],
+            (int)sv.link_midi_2[v], (int)sv.link_midi_3[v]);
 
 
     /* --- playback direction (suppress b0 default) --- */
@@ -650,10 +650,10 @@ void voice_reset(int i) {
   sv.last_midi_note[i] = 69.0f;
   sv.midi_transpose[i] = 0;
   sv.midi_cents[i] = 0;
-  sv.link_midi_a[i] = -1;
-  sv.link_midi_b[i] = -1;
-  sv.link_midi_c[i] = -1;
-  sv.link_midi_d[i] = -1;
+  sv.link_midi_0[i] = -1;
+  sv.link_midi_1[i] = -1;
+  sv.link_midi_2[i] = -1;
+  sv.link_midi_3[i] = -1;
   osc_set_wave_table_index(i, WAVE_TABLE_SINE);
   //
   sv.pan[i] = 0;

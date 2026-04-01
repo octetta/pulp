@@ -2,6 +2,7 @@ build/*
 parts/build/*
 parts/build_native/*
 parts/build_pi/*
+parts/build_maxed/*
 tmp
 tmp/*
 *.o

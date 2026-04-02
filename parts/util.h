@@ -36,4 +36,28 @@ int64_t ts_diff_ns(const struct timespec *a, const struct timespec *b);
 
 #define BENCH_CLOCK CLOCK_MONOTONIC
 
+
+/* Platform-specific headers and definitions */
+#if defined(_WIN32)
+    #include <windows.h>
+    #define PATH_SEP '\\'
+    #define MAX_PATH_LEN MAX_PATH
+#elif defined(__APPLE__)
+    #include <mach-o/dyld.h>
+    #include <limits.h>
+    #define PATH_SEP '/'
+    #define MAX_PATH_LEN PATH_MAX
+#elif defined(__linux__)
+    #include <unistd.h>
+    #include <limits.h>
+    #define PATH_SEP '/'
+    #define MAX_PATH_LEN PATH_MAX
+#else
+    #error "Platform not supported"
+#endif
+
+int get_executable_path(char* buffer, size_t size);
+void get_directory(const char* full_path, char* dir_out);
+int join_path(char* buffer, size_t size, const char* base, const char* subpath);
+
 #endif

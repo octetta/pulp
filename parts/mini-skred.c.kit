@@ -81,7 +81,20 @@ return _features_;
 #include "udp.h"
 @endif
 
+char exe_path[MAX_PATH_LEN];
+char root_dir[MAX_PATH_LEN];
+char config_path[MAX_PATH_LEN];
+char asset_path[MAX_PATH_LEN];
+
 int main(int argc, char *argv[]) {
+  if (get_executable_path(exe_path, sizeof(exe_path)) != 0) {
+    fprintf(stderr, "Error: Could not determine executable path.\n");
+    return 1;
+  }
+  get_directory(exe_path, root_dir);
+  printf("# EXE {%s}\n", exe_path);
+  printf("# ROOT {%s}\n", root_dir);
+
   @if(UDP)
   int udp_port = UDP_PORT;
   @endif

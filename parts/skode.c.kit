@@ -11,6 +11,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include <unistd.h>
+#include <dirent.h>
+
 int skode_puts(skode_t *ctx, const char *s) {
   if (!ctx || ctx->log_enable == 0) return 0;
   if (ctx->log_len + strlen(s) >= SKODE_LOG_MAX) return 0;
@@ -1300,6 +1303,23 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('/wex'): // wave-expand wave
       if (argc && x >= 200 && x <=999) wave_table_dynamic_expand(x);
+      break;
+    case ATOM4('/cd-'): // change directory
+      ctx->printf(ctx, "# {%s} /cd\n", ands_string(ctx->parse));
+      if (strlen(ands_string(ctx->parse))) {
+        chdir(ands_string(ctx->parse));
+      }
+      break;
+    case ATOM4('/ls-'): // list directory
+      {
+      struct dirent *entry;
+      DIR *dp = opendir(".");
+        if (dp) {
+          while ((entry = readdir(dp))) {
+            ctx->printf(ctx, "# {%s}\n", entry->d_name);
+          }
+        }
+      }
       break;
     default:
       ctx->printf(ctx, "# unknown atom\n");

@@ -36,7 +36,6 @@ SMOOTHER
 UDP
 RECORD
 BENCH
-MAXI
 ```
 
 ## use the native compiler (enabling features)

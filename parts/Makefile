@@ -6,7 +6,7 @@ all: native # pi
 maxed:
 	rm -rf build_maxed
 	mkdir -p build_maxed
-	cd build_maxed && cmake -DKIT_OPTS="ADSR=1 AM=1 CRUSH=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 RECORD=1 UDP=1 BENCH=1 MAXI=1" .. && make
+	cd build_maxed && cmake -DKIT_OPTS="ADSR=1 AM=1 CRUSH=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1" .. && make
 
 native:
 	cmake -B build_native -S .

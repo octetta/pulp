@@ -302,7 +302,7 @@ void system_show(skode_t *ctx) {
   @endif
 }
 
-@if(MAXI)
+@if(BENCH)
 int show_stats_cb(int n, uint64_t timestamp, uint64_t id, int tag, const event_t *e, void *user) {
   uint64_t now = SAMPLE_COUNT_GET();
   uint64_t then = timestamp - now;
@@ -321,7 +321,9 @@ int show_stats_cb(int n, uint64_t timestamp, uint64_t id, int tag, const event_t
 }
 
 void show_stats(skode_t *ctx) {
+@if(RECORD)
   ctx->printf(ctx, "# rec_state : %d rec_ptr %ld\n", rec_state, rec_ptr);
+@endif
   ctx->printf(ctx, "# synth frames per callback %d : %gms\n",
     synth_frames_per_callback, (float)synth_frames_per_callback / (float)MAIN_SAMPLE_RATE * 1000.0f);
   ctx->printf(ctx, "# seq frames per callback %d : %gms\n",
@@ -555,11 +557,13 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
 
 // this is a mess i need to clean up
 
-@if(MAXI)
+@if(SCOPE)
 #include "scope-shared.h"
 extern int scope_enable;
 extern scope_buffer_t *scope;
+@endif
 
+@if(SEQ)
 void pattern_show(skode_t *ctx, int pattern_pointer) {
   int first = 1;
   for (int s = 0; s < SEQ_STEPS_MAX; s++) {
@@ -659,7 +663,7 @@ int wavetable_show(skode_t *ctx, int n) {
     }
     ctx->printf(ctx, " '%s'", sw.name[n]);
     ctx->puts(ctx, "");
-    @if(MAXI)
+    @if(SCOPE)
     if (scope_enable) {
       downsample_block_average_min_max(table, size, scope->wave_data, SCOPE_WAVE_WIDTH, scope->wave_min, scope->wave_max);
       scope->wave_len = SCOPE_WAVE_WIDTH;
@@ -939,10 +943,12 @@ int skode_function(ands_t *s, int info) {
       if (argc) { mmf_set_res(voice, arg[0]); }
       break;
     @endif
-    @if(MAXI)
+    @if(RECORD)
     case ATOM4('r---'): // record-mode bool
       if (argc) { if (rec_state == 0) sv.record[voice] = x; }
       break;
+    @endif
+    @if(SEQ)
     case ATOM4('R!--'):  // remove-events tag
       if (argc) {
         int tag = x;
@@ -1025,7 +1031,7 @@ int skode_function(ands_t *s, int info) {
           n = (int)arg[2];
           sv.one_shot[voice] = n;
         }
-        @if(MAXI)
+        @if(SCOPE)
         if (scope_enable) sprintf(scope->wave_text, "w%d", x);
         @endif
       }
@@ -1033,7 +1039,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('W---'): // wave-show which-wave
       if (argc) {
         wavetable_show(ctx,x);
-        @if(MAXI)
+        @if(SCOPE)
         if (scope_enable) sprintf(scope->wave_text, "w%d", x);
         @endif
       } else if (argc == 0) {
@@ -1044,12 +1050,12 @@ int skode_function(ands_t *s, int info) {
             c++;
           }
         }
-        @if(MAXI)
+        @if(SCOPE)
         if (scope_enable) sprintf(scope->wave_text, "%d waves loaded", c);
         @endif
       }
       break;
-    @if(MAXI)
+    @if(RECORD)
     case ATOM4('>x--'): // goto-step #
       seq_step_goto(ctx->pattern, x);
       break;
@@ -1203,7 +1209,7 @@ int skode_function(ands_t *s, int info) {
                   ctx->printf(ctx, "# {%s} e>%d\n", EXTRA_PTR(i), i);
               }
               break;
-            @if(MAXI)
+            @if(BENCH)
             case 1: show_threads(ctx); break;
             case 4: show_stats(ctx); break;
             case 6: ctx->printf(ctx, "%s", seq_stats()); break;

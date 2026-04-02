@@ -27,6 +27,7 @@ set(PLAIN_SOURCES
     miniwav.c
     skqueue.c
     seq.c
+    udp.c
     # Add any other .c files you wrote by hand here
 )
 

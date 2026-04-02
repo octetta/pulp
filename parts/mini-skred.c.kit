@@ -129,6 +129,8 @@ int main(int argc, char *argv[]) {
   ma_device_init(NULL, &synth_config, &synth_device);
   ma_device_start(&synth_device);
 
+  sleep(1);
+
   @if(UDP)
   printf("# udp_port = %d\n", udp_port);
   if (udp_port > 0) {
@@ -147,7 +149,7 @@ int main(int argc, char *argv[]) {
   char line[1024];
   while (main_running) {
     line[0] = '\0';
-#if 1
+#if 0
     int r = uedit("# ", line, sizeof(line)-1);
     if (r == 0) continue;
     if (r < 0) {

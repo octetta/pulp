@@ -7,13 +7,18 @@
 #include "synth.h"
 #include "skode.h"
 #include "uedit.h"
+@if(SEQ)
+#include "seq.h"
+@endif
 
 #define ONE_FRAME_MAX (64 * 1024)
 
+@if(SEQ)
 void queue_cb(int voice, char *arg) {
   static skode_t w = SKODE_EMPTY();
   skode_consume(arg, &w);
 }
+@endif
 
 void pattern_cb(int voice, char *arg) {
   static skode_t w = SKODE_EMPTY();
@@ -22,6 +27,9 @@ void pattern_cb(int voice, char *arg) {
 
 void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
   synth((float *)output, (float *)input, (int)frame_count, (int)pDevice->playback.channels, pDevice->pUserData);
+  @if(SEQ)
+  seq((int)frame_count, queue_cb, pattern_cb);
+  @endif
 }
 
 float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
@@ -126,7 +134,10 @@ int main(int argc, char *argv[]) {
   synth_init(vc);
   wave_table_init(0);
   voice_init();
-  //tempo_set(120.0);
+  @if(SEQ)
+  tempo_set(120.0);
+  seq_init();
+  @endif
 
   // miniaudio's synth device setup
   ma_device_config synth_config = ma_device_config_init(ma_device_type_playback);

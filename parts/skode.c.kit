@@ -1100,7 +1100,7 @@ int skode_function(ands_t *s, int info) {
         @endif
       }
       break;
-    @if(RECORD)
+    @if(SEQ)
     case ATOM4('>x--'): // goto-step #
       seq_step_goto(ctx->pattern, x);
       break;
@@ -1271,6 +1271,12 @@ int skode_function(ands_t *s, int info) {
         char *file_name = ands_string(ctx->parse);
         int wave_slot = EXT_SAMPLE_000;
         int ch = -1;
+        if (argc >= 1) {
+          wave_slot = (int)arg[0];
+          if (argc > 1) {
+            ch = (int)arg[1];
+          }
+        }
         ctx->printf(ctx, "# {%s} /ws %d %d\n", ands_string(ctx->parse), wave_slot, ch);
         wave_load_string(ctx, file_name, wave_slot, ch, 1);
       }

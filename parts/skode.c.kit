@@ -502,6 +502,51 @@ int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offse
   return 0;
 }
 
+int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int normalize) {
+  if (ctx == NULL) return 100; // fix todo
+  if (wave_index < EXT_SAMPLE_000 || wave_index >= EXT_SAMPLE_999) return -1;
+  if (sw.readonly[wave_index] == 1) {
+    ctx->printf(ctx, "# cannot write to w%d r/o\n", wave_index);
+    return -1;
+  }
+  if (sw.refcount[wave_index] > 0) {
+    ctx->printf(ctx, "# cannot write to w%d ref > 0\n", wave_index);
+    return -1;
+  } else {
+    wave_free_one(wave_index);
+  }
+  FILE *in = fopen(name, "r");
+  if (in) fclose(in);
+  else {
+    ctx->printf(ctx, "# cannot open %s\n", name);
+    return -1;
+  }
+  wav_t wav;
+  int len;
+  char out[4096];
+  float *table = mw_get_str(name, &len, &wav, ch, out, sizeof(out));
+  if (table == NULL) {
+    ctx->printf(ctx, "# can not read %s\n", name);
+    return -1;
+  } else {
+    strncpy(sw.name[wave_index], name, WAVE_NAME_MAX);
+    sw.is_heap[wave_index] = 1;
+    sw.data[wave_index] = table;
+    sw.size[wave_index] = len;
+    sw.rate[wave_index] = (float)wav.SamplesRate;
+    sw.one_shot[wave_index] = 1;
+    sw.loop_enabled[wave_index] = 0;
+    sw.loop_start[wave_index] = 1;
+    sw.loop_end[wave_index] = len;
+    sw.midi_note[wave_index] = 69;
+    sw.offset_hz[wave_index] = (float)len / (float)wav.SamplesRate * 440.0f;
+    ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
+      len, name, wave_index, wav.Channels, wav.SamplesRate);
+    normalize_preserve_zero(table, len);
+  }
+  return 0;
+}
+
 int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize) {
   if (ctx == NULL) return 100; // fix todo
   if (wave_index < EXT_SAMPLE_000 || wave_index >= EXT_SAMPLE_999) return -1;
@@ -1220,6 +1265,16 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('/l--'): // skode-load num
       if (argc) { skode_load(ctx, voice, x); } break;
+    case ATOM4('/ws-'): // wave-load-string wave channel
+      ctx->printf(ctx, "# {%s} /ws\n", ands_string(ctx->parse));
+      if (strlen(ands_string(ctx->parse))) {
+        char *file_name = ands_string(ctx->parse);
+        int wave_slot = EXT_SAMPLE_000;
+        int ch = -1;
+        ctx->printf(ctx, "# {%s} /ws %d %d\n", ands_string(ctx->parse), wave_slot, ch);
+        wave_load_string(ctx, file_name, wave_slot, ch, 1);
+      }
+      break;
     case ATOM4('/w--'): // wave-load num wave channel
       {
         int file_num = 0;

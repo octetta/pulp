@@ -172,6 +172,11 @@ int main(int argc, char *argv[]) {
   int main_running = 1;
 
   char line[1024];
+  if (!useue) {
+    // Force line buffering: buffers are flushed at every '\n'
+    setvbuf(stdin,  NULL, _IOLBF, 0);
+    setvbuf(stdout, NULL, _IOLBF, 0);
+  }
   while (main_running) {
     line[0] = '\0';
     if (useue) {

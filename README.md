@@ -24,22 +24,21 @@ cd build
 ## features
 
 ```
-ADSR
-AM
-CRUSH
-FILT
-FADSR
-FM
-GLISS
-PANMOD
-PD
-SAH
-SEQ
-SMOOTHER
+ADSR   # amplitude envelope
+AM     # amplitude modulation 
+CRUSH  # reduce bit depth 
+FILT   # multimode analog-ish filter
+FADSR  # filter envelope
+FM     # frequency modulation 
+PANMOD # stereo panning modulation
+PD     # phase distortion 
+SAH    # sample rate distortion 
+SEQ    # pattern sequencing 
+SMOOTHER # volume change smoother 
 
-UDP
-RECORD
-BENCH
+UDP    # receive skode on UDP
+RECORD # multi track wav recording 
+BENCH  # random benchmark measures
 ```
 
 ## use the native compiler (enabling features)
@@ -55,7 +54,7 @@ make
 ```
 cmake -DCMAKE_C_COMPILER="zig;cc" ..
 make
-./mini-skrec
+./mini-skred
 ```
 
 ## cross compile with `zig cc` (x86_64)
@@ -63,7 +62,7 @@ make
 ```
 cmake -DCMAKE_C_COMPILER="zig;cc;-target;x86_64-linux-musl" ..
 make
-./mini-skrec
+./mini-skred
 ```
 
 ## cross compile with `zig cc` (arm 32-bit)
@@ -73,6 +72,6 @@ make
 ```
 cmake -DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf" ..
 make
-./mini-skrec
+./mini-skred
 ```
 

@@ -1,6 +1,6 @@
 <img src="IMG_3240.jpeg" width="100">
 
-# PULP
+# `PULP`
 
 > Programmable Universal Logic Pieces
 

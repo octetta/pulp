@@ -2,7 +2,11 @@
 
 # PULP
 
-> produce-ultimate-limited-program
+> Programmable Universal Logic Pieces
+
+or
+
+> Piles of Unreadable Logic Patches
 
 Nobody likes the pulp...
 

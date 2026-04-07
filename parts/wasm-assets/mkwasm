@@ -4,5 +4,6 @@ emcc -I. -I.. \
     api.c synth.c skode.c synth-alloc.c \
     -o skred_api.js \
     -s EXPORTED_FUNCTIONS='["_skred_start", "_skred_command", "_skred_stop", "_skred_features" ]' \
-    -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' \
+    -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap", "FS"]' \
+    -s FORCE_FILESYSTEM=1 -s \
     -O3

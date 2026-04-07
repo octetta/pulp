@@ -157,7 +157,8 @@ Type <span class="system">'help'</span> for engine features.
         </div>
 
         <div class="status-bar">
-            <span>wasm-skred 0.0.1</span>
+            <span id="engine-left">wasm-skred 0.0.1</span>
+            <span id="engine-center">n/a</span>
             <span id="engine-status">AUDIO OFF</span>
         </div>
         
@@ -173,6 +174,7 @@ var nvoices = 16;
 function usage() {
   printToTerminal("QUICK REF", 'info');
   printToTerminal("boot (voice-count) (callback-frame-count)");
+  printToTerminal("load # select a wav file");
   printToTerminal(`v(0..${nvoices}) # select voice`);
   printToTerminal("w(0..4) # select waveform");
   printToTerminal("a(-60..10) # set amplitide (dB)");
@@ -199,6 +201,8 @@ const logo = `
     const output = document.getElementById('output');
     const cmdInput = document.getElementById('cmdInput');
     const statusSpan = document.getElementById('engine-status');
+    const leftSpan = document.getElementById('left');
+    const centerSpan = document.getElementById('engine-center');
 
     // History Buffer Logic
     let commandHistory = [];
@@ -278,7 +282,7 @@ const logo = `
                 try {
                     // Using your verified test-wasm parameters 
                     const result = Module._skred_start(bufsize, nvoices, 0); 
-                    printToTerminal(`skred_start() -> ${result}`, 'system');
+                    printToTerminal(`skred_start() = ${result}`, 'system');
                     statusSpan.innerText = `AUDIO ON ${nvoices} ${bufsize}`;
                     statusSpan.style.color = "#15ff00";
                     running = 1;
@@ -294,8 +298,8 @@ const logo = `
                 statusSpan.style.color = "#aaa";
                 break;
             case 'help': usage(); break;
-            case 'boop':
-              printToTerminal(logo, 'variable');
+            case 'load':
+              addWavViaDialog();
               break;
             case 'clear':
                 output.innerHTML = '';
@@ -334,6 +338,61 @@ histDown.addEventListener('touchstart', (e) => {
 
     document.addEventListener('click', () => cmdInput.focus());
 </script>
+
+<!-- -->
+
+<script>
+// Persistent state for the file counter
+let waveFileCounter = 300;
+const MIN_WAV = 300;
+const MAX_WAV = 999;
+
+/**
+ * Opens a file dialog and writes selected .wav files 
+ * to the Emscripten VFS with automatic indexing.
+ */
+async function addWavViaDialog() {
+    // Create a hidden input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.wav';
+    input.multiple = false;
+
+    input.onchange = async (e) => {
+        const files = e.target.files;
+        
+        for (const file of files) {
+            console.log(file);
+            try {
+                const buffer = await file.arrayBuffer();
+                const data = new Uint8Array(buffer);
+                
+                const fileName = `${waveFileCounter}.wav`;
+                
+                // Write to the Emscripten virtual filesystem
+                Module.FS.writeFile(fileName, data);
+                
+                console.log(`Successfully mapped ${file.name} ${fileName}`);
+                centerSpan.innerText = `{${file.name}} /ws ${waveFileCounter}`;
+                var cmd = `/w${waveFileCounter},${waveFileCounter}`;
+                Module.ccall('skred_command', null, ['string'], [cmd]);
+
+                // Handle the 300-999 wraparound logic
+                waveFileCounter++;
+                if (waveFileCounter > MAX_WAV) {
+                    waveFileCounter = MIN_WAV;
+                }
+            } catch (err) {
+                console.error(`Failed to write ${file.name}:`, err);
+            }
+        }
+    };
+
+    // Trigger the dialog
+    input.click();
+}
+</script>
+<!-- -->
 
 </body>
 </html>

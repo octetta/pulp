@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skred WASM Test</title>
+</head>
+<body>
+    <h1>Skred Engine (WASM)</h1>
+    
+    <button id="startBtn">1. Start Engine</button>
+    <hr>
+    
+    <input type="text" id="cmdInput" placeholder="Enter command (e.g. f 440)">
+    <button id="sendBtn">2. Send Command</button>
+    
+    <hr>
+    <button id="stopBtn">Stop Engine</button>
+
+    <script src="skred_api.js"></script>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const cmdInput = document.getElementById('cmdInput');
+
+        // Note: Emscripten adds a '_' prefix to C functions automatically
+        
+        startBtn.onclick = () => {
+            // Start the engine
+            const result = Module._skred_start(128, 16, 0);
+            console.log("Engine Start Result:", result);
+            startBtn.disabled = true;
+        };
+
+        sendBtn.onclick = () => {
+            const cmd = cmdInput.value;
+            // Use ccall to handle the string conversion safely
+            Module.ccall('skred_command', null, ['string'], [cmd]);
+            console.log("Sent command:", cmd);
+            cmdInput.value = ''; // clear input
+        };
+
+        stopBtn.onclick = () => {
+            Module._skred_stop();
+            console.log("Engine Stopped");
+            startBtn.disabled = false;
+        };
+    </script>
+</body>
+</html>

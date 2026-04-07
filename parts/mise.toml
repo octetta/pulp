@@ -1,4 +1,5 @@
 [tools]
 cmake = "latest"
+emsdk = "latest"
 rg = "latest"
 zig = "0.13"

@@ -52,6 +52,9 @@ int64_t ts_diff_ns(const struct timespec *a, const struct timespec *b);
     #include <limits.h>
     #define PATH_SEP '/'
     #define MAX_PATH_LEN PATH_MAX
+#elif defined(__EMSCRIPTEN__)
+    #define PATH_SEP '/'
+    #define MAX_PATH_LEN PATH_MAX
 #else
     #error "Platform not supported"
 #endif

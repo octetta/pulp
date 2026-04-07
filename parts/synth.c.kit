@@ -25,16 +25,18 @@ atomic_uint64_t synth_sample_count;
 #define VOLUME_DEFAULT (-20.0f)
 #define DB_TO_LINEAR(v) powf(10.f, (v) / 20.0f)
 
+static int verbose = 0;
+
 int volume_set(float v);
 
 void synth_init(int vc) {
   SAMPLE_COUNT_PUT(0);
 
   synth_config_set_voices(vc);
-  printf("# vc = %d\n", vc);
+  if (verbose) printf("# vc = %d\n", vc);
 
-  printf("# synth_config.voice_max = %d\n", synth_config.voice_max);
-  printf("# synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
+  if (verbose) printf("# synth_config.voice_max = %d\n", synth_config.voice_max);
+  if (verbose) printf("# synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
 
   /* If nobody called synth_config_set_voices() before us, fill in defaults.
    * voice_max == 0 means aligned_alloc(64, 0) which is UB / NULL on most
@@ -47,8 +49,8 @@ void synth_init(int vc) {
   synth_config.voice_max = vc;
   synth_alloc_waves(synth_config.wave_table_max);
 
-  printf("# synth_config.voice_max = %d\n", synth_config.voice_max);
-  printf("# synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
+  if (verbose) printf("# synth_config.voice_max = %d\n", synth_config.voice_max);
+  if (verbose) printf("# synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
 
   volume_set(VOLUME_DEFAULT);
 }
@@ -530,7 +532,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
   static uint64_t synth_random;
   static int first = 1;
   if (first) {
-    printf("# nvoices = %d\n", nvoices);
     synth_frames_per_callback = num_frames;
     audio_rng_init(&synth_random, 1);
     one_skred_frame = (float *)user;

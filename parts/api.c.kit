@@ -1,0 +1,154 @@
+#include "api.h"
+#include "synth-state.h"
+
+// Include your other internal headers here 
+// (e.g., miniaudio.h, udp.h, seq.h, etc.)
+
+#include "util.h"
+#include "miniaudio.h"
+#include "synth-types.h"
+#include "synth.h"
+#include "skode.h"
+@if(SEQ)
+#include "seq.h"
+@endif
+@if(UDP)
+#include "udp.h"
+@endif
+
+#define ONE_FRAME_MAX (64 * 1024)
+
+@if(SEQ)
+static void queue_cb(int voice, char *arg) {
+  static skode_t w = SKODE_EMPTY();
+  skode_consume(arg, &w);
+}
+@endif
+
+static void pattern_cb(int voice, char *arg) {
+  static skode_t w = SKODE_EMPTY();
+  skode_consume(arg, &w);
+}
+
+static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
+  synth((float *)output, (float *)input, (int)frame_count, (int)pDevice->playback.channels, pDevice->pUserData);
+  @if(SEQ)
+  seq((int)frame_count, queue_cb, pattern_cb);
+  @endif
+}
+
+static float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
+
+static skode_t w = SKODE_EMPTY();
+
+static ma_device synth_device;
+
+static int udp_port = 60440;
+
+int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
+    // 1. Initialize synth state
+  int req = req_audio_frames;
+  int vc = voices;
+  requested_synth_frames_per_callback = req;
+  synth_init(vc);
+  wave_table_init(0);
+  voice_init();
+  @if(SEQ)
+  tempo_set(120.0);
+  seq_init();
+  @endif
+
+    // 2. Start UDP listening thread
+  @if(UDP)
+  if (udp_port > 0) {
+    int r = udp_start(udp_port);
+    if (r != udp_port) udp_port = 0;
+  }
+  @endif
+
+    // 3. Initialize and start miniaudio device
+  // miniaudio's synth device setup
+  ma_device_config synth_config = ma_device_config_init(ma_device_type_playback);
+  synth_config.playback.format = ma_format_f32;
+  synth_config.playback.channels = AUDIO_CHANNELS;
+  synth_config.sampleRate = MAIN_SAMPLE_RATE;
+  synth_config.dataCallback = synth_callback;
+  synth_config.periodSizeInFrames = requested_synth_frames_per_callback;
+  //synth_config.periodSizeInMilliseconds = 0;
+  //synth_config.periods = 3;
+  //synth_config.noClip = MA_TRUE;
+  synth_config.pUserData = &one_skred_frame;
+  ma_device_init(NULL, &synth_config, &synth_device);
+  ma_device_start(&synth_device);
+    
+    return 0; // Return 0 on success, or an error code
+}
+
+int skred_command(char* line) {
+    // Inject a command directly into the skqueue or seq parser
+    // This allows local control without hitting the UDP layer
+    int n = skode_consume(line, &w);
+    // if (w->log_len) printf("%s", w->log);
+    // if (n < 0) break; // request to stop or error
+    // if (n > 0) printf("# ERR:%d\n", n);
+    return n;
+}
+
+void skred_stop(void) {
+    // 1. Stop miniaudio device
+    // 2. Shut down UDP thread
+    // 3. Free allocations
+  // turn down volume smoothly to avoid clicks
+  volume_set(-90);
+  ma_device_uninit(&synth_device);
+  wave_free();
+  synth_free();
+}
+
+static char _features_[65536] = {0};
+#define CAT(x) {strcat(_features_, #x);strcat(_features_," ");}
+char *skred_features(void) {
+@if(ADSR)
+CAT(ADSR)
+@endif
+@if(AM)
+CAT(AM)
+@endif
+@if(BENCH)
+CAT(BENCH)
+@endif
+@if(CRUSH)
+CAT(CRUSH)
+@endif
+@if(FADSR)
+CAT(FADSR)
+@endif
+@if(FILT)
+CAT(FILT)
+@endif
+@if(FM)
+CAT(FM)
+@endif
+@if(GLISS)
+CAT(GLISS)
+@endif
+@if(PANMOD)
+CAT(PANMOD)
+@endif
+@if(PD)
+CAT(PD)
+@endif
+@if(SAH)
+CAT(SAH)
+@endif
+@if(SEQ)
+CAT(SEQ)
+@endif
+@if(SMOOTHER)
+CAT(SMOOTHER)
+@endif
+@if(UDP)
+CAT(UDP)
+@endif
+return _features_;
+}

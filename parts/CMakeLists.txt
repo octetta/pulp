@@ -19,8 +19,8 @@ add_custom_command(
     VERBATIM
 )
 
-# 2. Hand-written (plain) source files
-set(PLAIN_SOURCES
+# 2. Hand-written (plain) source files for the API library
+set(API_PLAIN_SOURCES
     ands.c
     miniaudio.c
     util.c
@@ -28,21 +28,19 @@ set(PLAIN_SOURCES
     skqueue.c
     seq.c
     udp.c
-    # Add any other .c files you wrote by hand here
 )
 
-# 3. List your .kit modules
-set(KIT_MODULES 
-    mini-skred
+# 3. List your .kit modules intended ONLY for the library
+set(API_KIT_MODULES 
+    api
     synth
     skode
     synth-alloc
 )
 
-set(GEN_SOURCES "")
+set(API_GEN_SOURCES "")
 
-foreach(MOD ${KIT_MODULES})
-    # message(STATUS "DEBUG: Module ${MOD} using KIT_OPTS: ${KIT_OPTS}")
+foreach(MOD ${API_KIT_MODULES})
     # Logic for .c.kit
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit")
         message(STATUS "DEBUG: Module (C) ${MOD} using KIT_OPTS: ${KIT_OPTS}")
@@ -56,7 +54,7 @@ foreach(MOD ${KIT_MODULES})
         if(MOD STREQUAL "skode")
           set_source_files_properties("${OUT_C}" PROPERTIES COMPILE_FLAGS "-Wno-multichar")
         endif()
-        list(APPEND GEN_SOURCES "${OUT_C}")
+        list(APPEND API_GEN_SOURCES "${OUT_C}")
     endif()
 
     # Logic for .h.kit
@@ -69,27 +67,47 @@ foreach(MOD ${KIT_MODULES})
             DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit" kit_tool "${SYNTH_STATE_H}"
             VERBATIM
         )
-        list(APPEND GEN_SOURCES "${OUT_H}")
+        list(APPEND API_GEN_SOURCES "${OUT_H}")
     endif()
 endforeach()
 
-# 4. Final App: Combine Plain and Generated sources
-add_executable(mini-skred
-  ${PLAIN_SOURCES}
-  ${GEN_SOURCES}
+# 4. Generate the API Static Library
+add_library(api STATIC
+  ${API_PLAIN_SOURCES}
+  ${API_GEN_SOURCES}
   "${SYNTH_STATE_H}"
 )
 
-# 5. Include Directories
-target_include_directories(mini-skred PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-target_include_directories(mini-skred PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+# 5. Include Directories for the library
+target_include_directories(api PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories(api PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# 6. Find the library portably
+# 6. Setup the main mini-skred executable module
+set(EXE_MOD "mini-skred")
+set(EXE_GEN_SOURCES "")
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${EXE_MOD}.c.kit")
+    message(STATUS "DEBUG: Executable Module (C) ${EXE_MOD} using KIT_OPTS: ${KIT_OPTS}")
+    set(OUT_C "${CMAKE_CURRENT_BINARY_DIR}/${EXE_MOD}.c")
+    add_custom_command(
+        OUTPUT "${OUT_C}"
+        COMMAND ${CMAKE_COMMAND} -E env $<TARGET_FILE:kit_tool> ${KIT_OPTS_LIST} < "${CMAKE_CURRENT_SOURCE_DIR}/${EXE_MOD}.c.kit" > "${OUT_C}"
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${EXE_MOD}.c.kit" kit_tool "${SYNTH_STATE_H}"
+        VERBATIM
+    )
+    list(APPEND EXE_GEN_SOURCES "${OUT_C}")
+endif()
+
+# Final App: Build executable and link to the library
+add_executable(mini-skred ${EXE_GEN_SOURCES})
+target_link_libraries(mini-skred PRIVATE api)
+
+# 7. Find the library portably
 find_library(MATH_LIB m)
 
 if(MATH_LIB)
-    # Link to the main app (covers all modules)
-    target_link_libraries(mini-skred PRIVATE ${MATH_LIB})
+    # Link to the API library (PUBLIC so mini-skred inherits the math dependency)
+    target_link_libraries(api PUBLIC ${MATH_LIB})
     
     # Link to the tool (only if kit.c needs it)
     target_link_libraries(kit_tool PRIVATE ${MATH_LIB})
@@ -102,4 +120,5 @@ add_custom_target(check_opts
   VERBATIM
 )
 
-add_dependencies(mini-skred check_opts)
+# Hook the check_opts to the library so it always runs
+add_dependencies(api check_opts)

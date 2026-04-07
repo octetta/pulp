@@ -1,212 +1,72 @@
+#include "api.h"
 #include <stdio.h>
-#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 
-#include "util.h"
-#include "miniaudio.h"
-#include "synth-types.h"
-#include "synth.h"
-#include "skode.h"
 #include "uedit.h"
-@if(SEQ)
-#include "seq.h"
-@endif
 
-#define ONE_FRAME_MAX (64 * 1024)
-
-@if(SEQ)
-void queue_cb(int voice, char *arg) {
-  static skode_t w = SKODE_EMPTY();
-  skode_consume(arg, &w);
-}
-@endif
-
-void pattern_cb(int voice, char *arg) {
-  static skode_t w = SKODE_EMPTY();
-  skode_consume(arg, &w);
+void usage(void) {
+  printf("skred\n");
+  printf("-v <voice-count> (1 to 64)\n");
+  printf("-r <requested-frame-size> (128 to ?)\n");
+  printf("-n = do not use editor (for use as a subprocess)\n");
+  printf("-p <udp-port> (0 means no udp)\n");
+  exit(1);
 }
 
-void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
-  synth((float *)output, (float *)input, (int)frame_count, (int)pDevice->playback.channels, pDevice->pUserData);
-  @if(SEQ)
-  seq((int)frame_count, queue_cb, pattern_cb);
-  @endif
-}
-
-float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
-
-static char _features_[65536] = {0};
-#define CAT(x) {strcat(_features_, #x);strcat(_features_," ");}
-char *features(void) {
-@if(ADSR)
-CAT(ADSR)
-@endif
-@if(AM)
-CAT(AM)
-@endif
-@if(BENCH)
-CAT(BENCH)
-@endif
-@if(CRUSH)
-CAT(CRUSH)
-@endif
-@if(FADSR)
-CAT(FADSR)
-@endif
-@if(FILT)
-CAT(FILT)
-@endif
-@if(FM)
-CAT(FM)
-@endif
-@if(GLISS)
-CAT(GLISS)
-@endif
-@if(PANMOD)
-CAT(PANMOD)
-@endif
-@if(PD)
-CAT(PD)
-@endif
-@if(SAH)
-CAT(SAH)
-@endif
-@if(SEQ)
-CAT(SEQ)
-@endif
-@if(SMOOTHER)
-CAT(SMOOTHER)
-@endif
-@if(UDP)
-CAT(UDP)
-@endif
-return _features_;
-}
-
-@if(UDP)
-#include "udp.h"
-@endif
-
-char exe_path[MAX_PATH_LEN];
-char root_dir[MAX_PATH_LEN];
-char config_path[MAX_PATH_LEN];
-char asset_path[MAX_PATH_LEN];
-
-int main(int argc, char *argv[]) {
-  if (get_executable_path(exe_path, sizeof(exe_path)) != 0) {
-    fprintf(stderr, "Error: Could not determine executable path.\n");
-    return 1;
-  }
-  get_directory(exe_path, root_dir);
-  printf("# EXE {%s}\n", exe_path);
-  printf("# ROOT {%s}\n", root_dir);
-
-  @if(UDP)
-  int udp_port = UDP_PORT;
-  @endif
-  printf("# FEATURES { %s}\n", features());
-  int vc = 4;
-  int req = requested_synth_frames_per_callback;
+int main(int argc, char **argv) {
   int useue = 1;
+  unsigned int vc = 8;
+  unsigned int req = 128;
+  int udp_port = 60440;
+  
   for (int i=1; i<argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
-        case 'n':
-          useue = 0;
+        case 'n': useue = 0; break;
+        case 'v': vc = atoi(&argv[i][2]); break;
+        case 'r': req = atoi(&argv[i][2]); break;
+        case 'p': udp_port = (int)strtol(&(argv[i][2]), NULL, 0); break;
+        default:
+          usage();
           break;
-        case 'v':
-          vc = atoi(&argv[i][2]);
-          break;
-        case 'r':
-          req = atoi(&argv[i][2]);
-          break;
-        @if(UDP)
-        case 'p':
-          udp_port = (int)strtol(&(argv[i][2]), NULL, 0);
-          break;
-        @endif
       }
     }
   }
-  if (vc < 1) vc = 1;
-  if (req < 128) req = 128;
-  requested_synth_frames_per_callback = req;
-  printf("# requested synth frames/callback %d\n", req);
-  synth_init(vc);
-  wave_table_init(0);
-  voice_init();
-  @if(SEQ)
-  tempo_set(120.0);
-  seq_init();
-  @endif
 
-  // miniaudio's synth device setup
-  ma_device_config synth_config = ma_device_config_init(ma_device_type_playback);
-  synth_config.playback.format = ma_format_f32;
-  synth_config.playback.channels = AUDIO_CHANNELS;
-  synth_config.sampleRate = MAIN_SAMPLE_RATE;
-  synth_config.dataCallback = synth_callback;
-  synth_config.periodSizeInFrames = requested_synth_frames_per_callback;
-  //synth_config.periodSizeInMilliseconds = 0;
-  //synth_config.periods = 3;
-  //synth_config.noClip = MA_TRUE;
-  synth_config.pUserData = &one_skred_frame;
-  ma_device synth_device;
-  ma_device_init(NULL, &synth_config, &synth_device);
-  ma_device_start(&synth_device);
-
-  sleep(1);
-
-  @if(UDP)
-  printf("# udp_port = %d\n", udp_port);
-  if (udp_port > 0) {
-    int r = udp_start(udp_port);
-    if (r != udp_port) udp_port = 0;
-  }
-  printf("# udp_port = %d\n", udp_port);
-  @endif
-
-  skode_t w = SKODE_EMPTY();
-  w.trace = 0;
-  w.log_enable = 1;
-
-  int main_running = 1;
-
-  char line[1024];
   if (!useue) {
     // Force line buffering: buffers are flushed at every '\n'
     setvbuf(stdin,  NULL, _IOLBF, 0);
     setvbuf(stdout, NULL, _IOLBF, 0);
   }
-  while (main_running) {
-    line[0] = '\0';
+
+  printf("# %s\n", skred_features());
+  printf("# frames/callback %d\n", req);
+  printf("# voices %d\n", vc);
+
+  if (skred_start(req, vc, udp_port) != 0) {
+    return 1;
+  }
+
+  while (1) {
+    char line[1024];
+    char *out = NULL;
     if (useue) {
       int r = uedit("# ", line, sizeof(line)-1);
       if (r == 0) continue;
-      if (r < 0) {
-        main_running = 0;
-        break;
-      }
+      if (r < 0) break;
+      out = line;
     } else {
-      char *out = fgets(line, sizeof(line)-1, stdin);
-      if (out == NULL) {
-        main_running = 0;
-        break;
-      }
+      out = fgets(line, sizeof(line)-1, stdin);
+      if (out == NULL) break;
+      if (strlen(line) == 0) continue;
     }
-    if (strlen(line) == 0) continue;
-
-    int n = skode_consume(line, &w);
-    if (w.log_len) printf("%s", w.log);
-    if (n < 0) break; // request to stop or error
-    if (n > 0) printf("# ERR:%d\n", n);
+    int r = skred_command(out);
+    if (r == 0) continue;
+    if (r < 0) break;
+    printf("r = %d\n", r);
   }
 
-  // turn down volume smoothly to avoid clicks
-  volume_set(-90);
-  sleep(1);
-  ma_device_uninit(&synth_device);
-  wave_free();
-  synth_free();
-
+  skred_stop();
   return 0;
 }

@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Skred Shell</title>
+    <title>wasm-skred shell</title>
 
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
     --atari-blue: #0042ff;
-    --atari-dark: #002db3;
     --atari-gold: #ffd700;
     --atari-light: #90b0ff;
+    --atari-rust: #A03000;   /* Use for Errors */
+    --atari-grass: #50B000;  /* Use for successful WASM Boots */
 }
 
 body {
@@ -94,6 +95,9 @@ body {
 }
 
 .system { color: var(--atari-gold); }
+.error { color: var(--atari-rust); }
+.info { color: var(--atari-grass); }
+
 .dim { color: #ffffff; }
 
 
@@ -132,7 +136,7 @@ body {
     <div id="terminal-container">
         <div id="output">
           <div class="terminal-spacer"></div>
-Welcome to the Skred Terminal.
+Welcome to the skred shell
 Type <span class="system">'boot'</span> to initialize audio engine.
 Type <span class="system">'help'</span> for engine features.
         </div>
@@ -143,7 +147,7 @@ Type <span class="system">'help'</span> for engine features.
         </div>
 
         <div class="input-line">
-            <span class="prompt">skred></span>
+            <span class="prompt">#&nbsp;</span>
             <input type="text" id="cmdInput"
               autofocus
               spellcheck="false"
@@ -153,8 +157,8 @@ Type <span class="system">'help'</span> for engine features.
         </div>
 
         <div class="status-bar">
-            <span>SKRED_ENGINE_v1.0.0-UC</span>
-            <span id="engine-status">OFFLINE</span>
+            <span>wasm-skred 0.0.1</span>
+            <span id="engine-status">offline</span>
         </div>
         
     </div>
@@ -162,6 +166,13 @@ Type <span class="system">'help'</span> for engine features.
     <script src="skred_api.js"></script>
 
 <script>
+const logo = `
+     _                 _ 
+ ___| | ___ __ ___  __| |
+/ __| |/ / '__/ _ \\/ _  |
+\\__ \\   <| | |  __/ (_| |
+|___/_|\\_\\_|  \\___|\\__,_|
+`;
     const output = document.getElementById('output');
     const cmdInput = document.getElementById('cmdInput');
     const statusSpan = document.getElementById('engine-status');
@@ -189,7 +200,7 @@ Type <span class="system">'help'</span> for engine features.
             }
             historyIndex = -1; // Reset index for new entries
 
-            printToTerminal(`skred> ${rawCmd}`, 'dim');
+            printToTerminal(`> ${rawCmd}`, 'dim');
             processCommand(rawCmd);
             cmdInput.value = '';
         } 
@@ -220,35 +231,47 @@ Type <span class="system">'help'</span> for engine features.
         }
     });
 
+    var running = 0;
+
     function processCommand(cmd) {
         const action = cmd.split(' ')[0].toLowerCase();
 
         switch(action) {
             case 'boot':
+                if (running == 1) {
+                    printToTerminal(`Error: already running. Reload to reset.`, 'error');
+                    return;
+                }
                 try {
                     // Using your verified test-wasm parameters 
-                    const result = Module._skred_start(1024, 16, 0); 
-                    printToTerminal(`System: Engine initialized (Result: ${result})`, 'system');
+                    const result = Module._skred_start(1024, 8, 0); 
+                    printToTerminal(`MA-WASM = ${result}`, 'system');
                     statusSpan.innerText = "ONLINE";
                     statusSpan.style.color = "#15ff00";
+                    running = 1;
                 } catch(e) {
-                    printToTerminal(`Error: Could not boot. Ensure WASM is loaded.`, 'system');
+                    printToTerminal(`Error: Could not boot. Ensure WASM is loaded.`, 'error');
                 }
                 break;
 
             case 'stop':
                 Module._skred_stop();
                 printToTerminal("System: Engine stopped.", "system");
-                statusSpan.innerText = "OFFLINE";
+                statusSpan.innerText = "offline";
                 statusSpan.style.color = "#aaa";
                 break;
-
+            case 'help':
+              printToTerminal("TO-DO", 'info');
+              break;
+            case 'boop':
+              printToTerminal(logo, 'variable');
+              break;
             case 'clear':
                 output.innerHTML = '';
                 break;
 
             default:
-                if (statusSpan.innerText === "OFFLINE") {
+                if (statusSpan.innerText === "offline") {
                     printToTerminal("Error: Engine must be 'boot'ed first.");
                 } else {
                     // Native call with correct punctuation to avoid SyntaxError 

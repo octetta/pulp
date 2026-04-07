@@ -34,6 +34,7 @@ int get_executable_path(char* buffer, size_t size) {
     }
     return -1;
 #endif
+    return -1;
 }
 
 /**

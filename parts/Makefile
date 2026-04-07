@@ -14,7 +14,7 @@ wasm:
 	cp wasm-assets/mkwasm build_wasm
 	cp wasm-assets/test-wasm.html build_wasm
 	cp wasm-assets/serve-wasm.sh build_wasm
-	cd build_wasm && ./mkwasm && ./serve_wasm.sh
+	cd build_wasm && ./mkwasm && ./serve-wasm.sh
 
 native:
 	cmake -B build_native -S .

@@ -60,7 +60,7 @@ body {
 
 #output, #cmdInput, .prompt, .status-bar {
     font-family: 'Press Start 2P', cursive;
-    font-size: 12px; 
+    font-size: 14px; 
     color: var(--atari-light);
 }
 
@@ -158,7 +158,7 @@ Type <span class="system">'help'</span> for engine features.
 
         <div class="status-bar">
             <span>wasm-skred 0.0.1</span>
-            <span id="engine-status">offline</span>
+            <span id="engine-status">AUDIO OFF</span>
         </div>
         
     </div>
@@ -166,6 +166,29 @@ Type <span class="system">'help'</span> for engine features.
     <script src="skred_api.js"></script>
 
 <script>
+
+var bufsize = 1024;
+var nvoices = 16;
+
+function usage() {
+  printToTerminal("QUICK REF", 'info');
+  printToTerminal("boot (voice-count) (callback-frame-count)");
+  printToTerminal(`v(0..${nvoices}) # select voice`);
+  printToTerminal("w(0..4) # select waveform");
+  printToTerminal("a(-60..10) # set amplitide (dB)");
+  printToTerminal("f(0..1760) # set frequency (Hz)");
+  printToTerminal("n(0..127) # set frequency by MIDI note");
+  printToTerminal("t A D S R # set amp envelope (A,D,R in secs)");
+  printToTerminal("l(0..4) # trigger ADSR with velocity");
+  printToTerminal("p(-1..1) # pan in stereo");
+  printToTerminal("modulators A,F,P,C", 'system');
+  printToTerminal("(mod) (voice) (depth)");
+  printToTerminal("A = amplitude modulation");
+  printToTerminal("F = frequency modulation");
+  printToTerminal("P = panning modulation");
+  printToTerminal("C = phase modulation");
+}
+
 const logo = `
      _                 _ 
  ___| | ___ __ ___  __| |
@@ -235,6 +258,7 @@ const logo = `
 
     function processCommand(cmd) {
         const action = cmd.split(' ')[0].toLowerCase();
+        var arg = cmd.split(' ');
 
         switch(action) {
             case 'boot':
@@ -242,11 +266,20 @@ const logo = `
                     printToTerminal(`Error: already running. Reload to reset.`, 'error');
                     return;
                 }
+                printToTerminal(logo, 'info');
+                if (arg.length > 1) {
+                  var n = Number(arg[1]);
+                  if (n > 0 || n < 32) nvoices = n;
+                  if (arg.length > 2) {
+                    n = Number(arg[2]);
+                    if (n > 128) bufsize = n;
+                  }
+                }
                 try {
                     // Using your verified test-wasm parameters 
-                    const result = Module._skred_start(1024, 8, 0); 
-                    printToTerminal(`MA-WASM = ${result}`, 'system');
-                    statusSpan.innerText = "ONLINE";
+                    const result = Module._skred_start(bufsize, nvoices, 0); 
+                    printToTerminal(`skred_start() -> ${result}`, 'system');
+                    statusSpan.innerText = `AUDIO ON ${nvoices} ${bufsize}`;
                     statusSpan.style.color = "#15ff00";
                     running = 1;
                 } catch(e) {
@@ -257,12 +290,10 @@ const logo = `
             case 'stop':
                 Module._skred_stop();
                 printToTerminal("System: Engine stopped.", "system");
-                statusSpan.innerText = "offline";
+                statusSpan.innerText = "AUDIO OFF";
                 statusSpan.style.color = "#aaa";
                 break;
-            case 'help':
-              printToTerminal("TO-DO", 'info');
-              break;
+            case 'help': usage(); break;
             case 'boop':
               printToTerminal(logo, 'variable');
               break;
@@ -271,7 +302,7 @@ const logo = `
                 break;
 
             default:
-                if (statusSpan.innerText === "offline") {
+                if (statusSpan.innerText === "AUDIO OFF") {
                     printToTerminal("Error: Engine must be 'boot'ed first.");
                 } else {
                     // Native call with correct punctuation to avoid SyntaxError 

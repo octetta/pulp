@@ -157,7 +157,7 @@ Type <span class="system">'help'</span> for engine features.
         </div>
 
         <div class="status-bar">
-            <span id="engine-left">wasm-skred 0.0.1</span>
+            <span id="engine-left">wasm-skred 0.0.4</span>
             <span id="engine-center">n/a</span>
             <span id="engine-status">AUDIO OFF</span>
         </div>
@@ -227,7 +227,7 @@ const logo = `
             }
             historyIndex = -1; // Reset index for new entries
 
-            printToTerminal(`> ${rawCmd}`, 'dim');
+            printToTerminal(`${rawCmd}`, 'dim');
             processCommand(rawCmd);
             cmdInput.value = '';
         } 
@@ -285,6 +285,8 @@ const logo = `
                     printToTerminal(`skred_start() = ${result}`, 'system');
                     statusSpan.innerText = `AUDIO ON ${nvoices} ${bufsize}`;
                     statusSpan.style.color = "#15ff00";
+                    const ptr = Module._skred_features();
+                    printToTerminal(`${Module.UTF8ToString(ptr)}`);
                     running = 1;
                 } catch(e) {
                     printToTerminal(`Error: Could not boot. Ensure WASM is loaded.`, 'error');
@@ -311,6 +313,11 @@ const logo = `
                 } else {
                     // Native call with correct punctuation to avoid SyntaxError 
                     Module.ccall('skred_command', null, ['string'], [cmd]);
+                    const ptr = Module._skred_log();
+                    const log = Module.UTF8ToString(ptr);
+                    if (log != "") {
+                      printToTerminal(`${log}`, 'info');
+                    }
                 }
                 break;
         }

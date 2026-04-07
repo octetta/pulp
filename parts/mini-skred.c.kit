@@ -40,13 +40,15 @@ int main(int argc, char **argv) {
     setvbuf(stdout, NULL, _IOLBF, 0);
   }
 
-  printf("# %s\n", skred_features());
+  printf("# ( %s)\n", skred_features());
   printf("# frames/callback %d\n", req);
   printf("# voices %d\n", vc);
 
   if (skred_start(req, vc, udp_port) != 0) {
     return 1;
   }
+
+  skred_logger(1);
 
   while (1) {
     char line[1024];
@@ -62,6 +64,8 @@ int main(int argc, char **argv) {
       if (strlen(line) == 0) continue;
     }
     int r = skred_command(out);
+    char *log = skred_log();
+    if (strlen(log)) printf("%s", log);
     if (r == 0) continue;
     if (r < 0) break;
     printf("r = %d\n", r);

@@ -17,6 +17,11 @@ void skred_stop(void);
 // list of included features
 char *skred_features(void);
 
+// did skode have anything to say?
+char *skred_log(void);
+
+// enable / disable logging
+void skred_logger(int f);
 
 #ifdef __cplusplus
 }

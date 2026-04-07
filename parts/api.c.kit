@@ -152,3 +152,11 @@ CAT(UDP)
 @endif
 return _features_;
 }
+
+char *skred_log(void) {
+  return w.log;
+}
+
+void skred_logger(int f) {
+  w.log_enable = f;
+}

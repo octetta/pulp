@@ -216,7 +216,7 @@ void voice_show(skode_t *ctx, int v, char c, int verbose) {
   char e[8] = "";
   if (c != ' ') sprintf(e, " # *");
   voice_format(v, s, sizeof(s), verbose);
-  if (strlen(s)) ctx->printf(ctx, "; %s%s\n", s, e);
+  if (strlen(s)) ctx->printf(ctx, "%s%s\n", s, e);
 }
 
 int voice_show_all(skode_t *ctx, int voice, int verbose) {
@@ -615,11 +615,11 @@ void pattern_show(skode_t *ctx, int pattern_pointer) {
     char *line = seq_pattern[pattern_pointer][s];
     if (strlen(line) == 0) break;
     if (first) {
-      ctx->printf(ctx, "; y%d %%%d # step %d\n",
+      ctx->printf(ctx, "y%d %%%d # step %d\n",
         pattern_pointer, seq_modulo[pattern_pointer], ctx->step);
       first = 0;
     }
-    ctx->printf(ctx, "; {%s} x%d", line, s);
+    ctx->printf(ctx, "{%s} x%d", line, s);
     if (seq_pattern_mute[pattern_pointer][s]) ctx->printf(ctx, " @%d", pattern_pointer);
     ctx->puts(ctx, "");
   }
@@ -1137,7 +1137,7 @@ int skode_function(ands_t *s, int info) {
       if (argc) {
         seq_state_all(x);
       } else {
-        ctx->printf(ctx, "; M%g\n", tempo_bpm * 4.0f);
+        ctx->printf(ctx, "M%g\n", tempo_bpm * 4.0f);
         for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p);
       }
       break;

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skred Shell</title>
+
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+    background-color: #000000; 
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    /* Removed padding to let the blue fill the screen */
+    overflow: hidden; 
+}
+
+#terminal-container {
+    background-color: #0042ff; /* Atari Cobalt Blue */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Border removed as requested */
+}
+
+#output {
+    flex-grow: 1;
+    overflow-y: auto; /* Only this part scrolls */
+    padding: 20px;
+    white-space: pre-wrap;
+    line-height: 20px;
+}
+
+.input-line {
+    display: flex;
+    padding: 20px;
+    background: #002db3; /* Slightly darker blue for the input area */
+    border-top: 2px solid #001a66;
+    flex-shrink: 0; /* Prevents the input line from squishing */
+}
+
+#output, #cmdInput, .prompt, .status-bar {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px; 
+    color: #90b0ff; 
+}
+
+#cmdInput {
+    background: transparent;
+    border: none;
+    outline: none;
+    flex-grow: 1;
+    color: #ffffff; 
+}
+
+.status-bar {
+    padding: 10px 20px;
+    background: #002db3;
+    color: #ffd700;
+    border-bottom: 2px solid #001a66;
+    display: flex;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.system { color: #ffd700; }
+.dim { color: #ffffff; }
+
+/* Custom Scrollbar for that minimalist look */
+#output::-webkit-scrollbar { width: 8px; }
+#output::-webkit-scrollbar-track { background: #002db3; }
+#output::-webkit-scrollbar-thumb { background: #90b0ff; }
+    </style>
+
+</head>
+<body>
+
+    <div id="terminal-container">
+        <div class="status-bar">
+            <span>SKRED_ENGINE_v1.0.0-UC</span>
+            <span id="engine-status">OFFLINE</span>
+        </div>
+        
+        <div id="output">
+Welcome to the Skred Terminal.
+Type <span class="system">'boot'</span> to initialize audio engine.
+Type <span class="system">'help'</span> for engine features.
+        </div>
+
+        <div class="input-line">
+            <span class="prompt">skred></span>
+            <input type="text" id="cmdInput" autofocus spellcheck="false" autocomplete="off">
+        </div>
+    </div>
+
+    <script src="skred_api.js"></script>
+
+<script>
+    const output = document.getElementById('output');
+    const cmdInput = document.getElementById('cmdInput');
+    const statusSpan = document.getElementById('engine-status');
+
+    // History Buffer Logic
+    let commandHistory = [];
+    let historyIndex = -1;
+
+    function printToTerminal(text, className = '') {
+        const line = document.createElement('div');
+        if (className) line.className = className;
+        line.textContent = text;
+        output.appendChild(line);
+        output.scrollTop = output.scrollHeight;
+    }
+
+    cmdInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const rawCmd = cmdInput.value.trim();
+            if (!rawCmd) return;
+
+            // Add to history if it's different from the last command
+            if (commandHistory[commandHistory.length - 1] !== rawCmd) {
+                commandHistory.push(rawCmd);
+            }
+            historyIndex = -1; // Reset index for new entries
+
+            printToTerminal(`skred> ${rawCmd}`, 'dim');
+            processCommand(rawCmd);
+            cmdInput.value = '';
+        } 
+        else if (e.key === 'ArrowUp') {
+            // Move back in time
+            if (commandHistory.length > 0) {
+                if (historyIndex === -1) historyIndex = commandHistory.length - 1;
+                else if (historyIndex > 0) historyIndex--;
+                
+                cmdInput.value = commandHistory[historyIndex];
+                // Move cursor to end of input
+                setTimeout(() => cmdInput.setSelectionRange(cmdInput.value.length, cmdInput.value.length), 0);
+            }
+            e.preventDefault();
+        } 
+        else if (e.key === 'ArrowDown') {
+            // Move forward in time
+            if (historyIndex !== -1) {
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    cmdInput.value = commandHistory[historyIndex];
+                } else {
+                    historyIndex = -1;
+                    cmdInput.value = '';
+                }
+            }
+            e.preventDefault();
+        }
+    });
+
+    function processCommand(cmd) {
+        const action = cmd.split(' ')[0].toLowerCase();
+
+        switch(action) {
+            case 'boot':
+                try {
+                    // Using your verified test-wasm parameters 
+                    const result = Module._skred_start(128, 16, 0); 
+                    printToTerminal(`System: Engine initialized (Result: ${result})`, 'system');
+                    statusSpan.innerText = "ONLINE";
+                    statusSpan.style.color = "#15ff00";
+                } catch(e) {
+                    printToTerminal(`Error: Could not boot. Ensure WASM is loaded.`, 'system');
+                }
+                break;
+
+            case 'stop':
+                Module._skred_stop();
+                printToTerminal("System: Engine stopped.", "system");
+                statusSpan.innerText = "OFFLINE";
+                statusSpan.style.color = "#aaa";
+                break;
+
+            case 'clear':
+                output.innerHTML = '';
+                break;
+
+            default:
+                if (statusSpan.innerText === "OFFLINE") {
+                    printToTerminal("Error: Engine must be 'boot'ed first.");
+                } else {
+                    // Native call with correct punctuation to avoid SyntaxError 
+                    Module.ccall('skred_command', null, ['string'], [cmd]);
+                }
+                break;
+        }
+    }
+
+    document.addEventListener('click', () => cmdInput.focus());
+</script>
+
+</body>
+</html>

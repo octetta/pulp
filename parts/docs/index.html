@@ -60,7 +60,7 @@ body {
 
 #output, #cmdInput, .prompt, .status-bar {
     font-family: 'Press Start 2P', cursive;
-    font-size: 14px; 
+    font-size: 16px; 
     color: var(--atari-light);
 }
 
@@ -157,7 +157,7 @@ Type <span class="system">'help'</span> for engine features.
         </div>
 
         <div class="status-bar">
-            <span id="engine-left">wasm-skred 0.0.4</span>
+            <span id="engine-left">wasm-skred 0.0.5</span>
             <span id="engine-center">n/a</span>
             <span id="engine-status">AUDIO OFF</span>
         </div>
@@ -362,7 +362,7 @@ async function addWavViaDialog() {
     // Create a hidden input element
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.wav';
+    input.accept = '.mp3,.wav';
     input.multiple = false;
 
     input.onchange = async (e) => {

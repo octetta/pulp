@@ -850,9 +850,10 @@ int skode_function(ands_t *s, int info) {
       if (argc) {
         if (arg[0] <= 0) {
           sv.glissando_enable[voice] = 0;
+          sv.glissando_time[voice] = 0.0;
         } else {
           sv.glissando_enable[voice] = 1;
-          sv.glissando_speed[voice] = arg[0];
+          sv.glissando_time[voice] = arg[0];
         }
       }
       break;
@@ -943,15 +944,17 @@ int skode_function(ands_t *s, int info) {
       if (argc) { tempo_set(arg[0]); }
       break;
     @endif
-    case ATOM4('n---'): // midi-freq note-number
+    case ATOM4('n---'): // midi-freq note-number (cents)
       if (argc) {
         float note = arg[0];
+        float cents = 0.0;
+        if (argc > 1) cents = arg[1];
         if (isnan(note)) note = sv.last_midi_note[voice];
-        freq_midi(voice, note);
-        if (sv.link_midi_0[voice] >= 0) freq_midi(sv.link_midi_0[voice], note);
-        if (sv.link_midi_1[voice] >= 0) freq_midi(sv.link_midi_1[voice], note);
-        if (sv.link_midi_2[voice] >= 0) freq_midi(sv.link_midi_2[voice], note);
-        if (sv.link_midi_3[voice] >= 0) freq_midi(sv.link_midi_3[voice], note);
+        freq_midi(voice, note, cents);
+        if (sv.link_midi_0[voice] >= 0) freq_midi(sv.link_midi_0[voice], note, cents);
+        if (sv.link_midi_1[voice] >= 0) freq_midi(sv.link_midi_1[voice], note, cents);
+        if (sv.link_midi_2[voice] >= 0) freq_midi(sv.link_midi_2[voice], note, cents);
+        if (sv.link_midi_3[voice] >= 0) freq_midi(sv.link_midi_3[voice], note, cents);
       }
       break;
     case ATOM4('N---'): // detune-midi key cents

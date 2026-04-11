@@ -58,6 +58,12 @@ body {
     padding-bottom: calc(20px + env(safe-area-inset-bottom));
 }
 
+.extra-line {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px; 
+    color: var(--atari-light);
+}
+
 #output, #cmdInput, .prompt, .status-bar {
     font-family: 'Press Start 2P', cursive;
     font-size: 16px; 
@@ -156,8 +162,12 @@ Type <span class="system">'help'</span> for engine features.
               autocapitalize="off">
         </div>
 
+        <div class="extra-line">
+            <span id="extra"></span>
+        </div>
+
         <div class="status-bar">
-            <span id="engine-left">wasm-skred 0.0.5</span>
+            <span id="engine-left">wasm-skred 0.0.6</span>
             <span id="engine-center">n/a</span>
             <span id="engine-status">AUDIO OFF</span>
         </div>

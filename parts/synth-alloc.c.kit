@@ -192,6 +192,7 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(glissando_enable,  int);
     VALLOC(glissando_speed,   float);
     VALLOC(glissando_target,  float);
+    VALLOC(glissando_time,    float);
     @endif
 
     @if(SMOOTHER)
@@ -276,7 +277,7 @@ void synth_free_voices(void) {
     VFREE(amp_envelope);     VFREE(amp_envelope_mode); VFREE(use_amp_envelope);
     @endif
     @if(GLISS)
-    VFREE(glissando_enable); VFREE(glissando_speed); VFREE(glissando_target);
+    VFREE(glissando_enable); VFREE(glissando_speed); VFREE(glissando_target); VFREE(glissando_time);
     @endif
     @if(SMOOTHER)
     VFREE(smoother_enable);  VFREE(smoother_gain);   VFREE(smoother_smoothing);

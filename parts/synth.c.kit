@@ -570,6 +570,23 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         one_skred_frame[skred_ptr++] = 0.0f;
         continue;
       }
+      @if(GLISS)
+      if (sv.glissando_enable[n]) {
+        // If multiplier is effectively 1, we are already there
+        if (sv.glissando_speed[n] == 1.0f) {
+          sv.glissando_enable[n] = 0;
+        } else {
+          sv.phase_inc[n] *= sv.glissando_speed[n];
+          
+          // Check if we crossed the target (works for both gliding up and down)
+          if ((sv.glissando_speed[n] > 1.0f && sv.phase_inc[n] >= sv.glissando_target[n]) ||
+              (sv.glissando_speed[n] < 1.0f && sv.phase_inc[n] <= sv.glissando_target[n])) {
+            sv.phase_inc[n] = sv.glissando_target[n];
+            sv.glissando_enable[n] = 0;
+          }
+        }
+      }
+      @endif
       if (sv.wave_table_index[n] == WAVE_TABLE_NOISE_ALT) {
         // bypass lots of stuff if this voice uses random source...
         // reuse the one white noise source for each sample
@@ -638,6 +655,14 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
 
       // apply amp to sample
       float amp = sv.amp[n];
+#if 1
+      @if(SMOOTHER)
+      if (sv.smoother_enable[n]) {
+        sv.smoother_gain[n] += sv.smoother_smoothing[n] * (amp - sv.smoother_gain[n]);
+        amp = sv.smoother_gain[n];
+      }
+     @endif
+#endif
       float env = 1.0f;
       float mod = 1.0f;
 
@@ -653,14 +678,14 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       @endif
       
       float final = amp * env * mod;
-
+#if 0
       @if(SMOOTHER)
       if (sv.smoother_enable[n]) {
         sv.smoother_gain[n] += sv.smoother_smoothing[n] * (final - sv.smoother_gain[n]);
         final = sv.smoother_gain[n];
       }
       @endif
-      
+#endif      
       sv.sample[n] *= final;
 
       if (sv.disconnect[n] == 0) {
@@ -736,6 +761,13 @@ static int voice_invalid(int voice) {
 
 #define SYNTH_INVALID_VOICE (100)
 
+static void freq_to_note_cents(float freq, float *note, float *cents) {
+  double n_float = 12.0 * log2(freq / 440.0) + 69.0;
+  int n_int = (int)round(n_float);
+  *note = n_int;
+  *cents = 100.0 * (n_float - n_int);
+}
+
 char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (out == NULL) return "(NULL)";
     if (out_size == 0) return out;
@@ -754,11 +786,23 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
 } while (0)
 
     /* --- always: voice number, waveform, frequency, amplitude --- */
-    APPEND("v%d w%d f%g a%g", v, sv.wave_table_index[v], sv.freq[v], sv.user_amp[v]);
+    float note, cents;
+    freq_to_note_cents(sv.freq[v], &note, &cents);
+    if (note < 0.0001) note = 0;
+    if (cents < 0.0001) cents = 0;
+    APPEND("v%d w%d f%g n%g,%g a%g",
+      v,
+      sv.wave_table_index[v],
+      sv.freq[v],
+      note,
+      cents,
+      sv.user_amp[v]);
 
     /* --- last midi note (suppress if never set) --- */
+    #if 0
     if (verbose || sv.last_midi_note[v] > 0)
         APPEND(" n%g", sv.last_midi_note[v]);
+    #endif
 
     /* --- note detune (suppress if both zero) --- */
     if (verbose || sv.midi_transpose[v] != 0.0f || sv.midi_cents[v] != 0.0f)
@@ -865,7 +909,9 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     @endif
 
     @if(GLISS)
-    if (verbose || sv.glissando_enable[v]) APPEND(" g%g", sv.glissando_speed[v]);
+    // Show the time (e.g., g0.05), not the multiplier (e.g., g1.00014)
+    if (verbose || sv.glissando_time[v] > 0.0f) 
+        APPEND(" g%g", sv.glissando_time[v]);
     @endif
 
     @if(ADSR)
@@ -939,14 +985,34 @@ int wave_quant(int voice, int n) {
 @endif
 
 int freq_set(int voice, float f) {
-  if (f >= 0 && f < (double)MAIN_SAMPLE_RATE) {
-    sv.freq[voice] = f;
-    osc_set_freq(voice, f);
-    return 0;
-  }
-  return 101; // <--- LAZY needs ERR_FREQUENCY_OUT_OF_RANGE;
-}
+  if (f < 0 || f >= (double)MAIN_SAMPLE_RATE) return 101;
 
+  float target_inc = osc_get_phase_inc(voice, f);
+
+  @if(GLISS)
+  float glide_time = sv.glissando_time[voice]; 
+
+  // Safety: Only glide if time is set and current pitch is above a 'floor' (e.g., 20Hz)
+  // This prevents the 'ratio explosion' when starting from zero.
+  if (glide_time > 0.0f && sv.phase_inc[voice] > 0.001f) {
+    sv.glissando_target[voice] = target_inc;
+    float frames = glide_time * MAIN_SAMPLE_RATE;
+    
+    // The multiplier 'm' that reaches target in N frames: start * m^N = target
+    sv.glissando_speed[voice] = powf(target_inc / sv.phase_inc[voice], 1.0f / frames);
+    sv.glissando_enable[voice] = 1;
+  } else {
+    // Snap immediately if no glide time or starting from silence
+    sv.phase_inc[voice] = target_inc;
+    sv.glissando_enable[voice] = 0;
+  }
+  @else
+  sv.phase_inc[voice] = target_inc;
+  @endif
+
+  sv.freq[voice] = f;
+  return 0;
+}
 
 int wave_mute(int voice, int state) {
   if (state < 0) {
@@ -1198,11 +1264,11 @@ int wave_default(int voice) {
   return 0;
 }
 
-int freq_midi(int voice, float note) {
+int freq_midi(int voice, float note, float cents) {
   if (note >= 0.0 && note <= 127.0) {
     sv.last_midi_note[voice] = note;
     if (sv.midi_transpose[voice]) note += sv.midi_transpose[voice];
-    float g = midi2hz(note, sv.midi_cents[voice]);
+    float g = midi2hz(note, sv.midi_cents[voice] + cents);
     return freq_set(voice, g);
   }
   return 100; // <-- LAZY  ERR_INVALID_MIDI_NOTE;
@@ -1282,14 +1348,19 @@ void voice_reset(int i) {
   //
   @if(SMOOTHER)
   sv.smoother_enable[i] = 1;
+#if 0
   sv.smoother_gain[i] = 0.0f;
+#else
+  sv.smoother_gain[i] = sv.amp[i];
+#endif
   sv.smoother_smoothing[i] = SMOOTH_DEFAULT;
   @endif(SMOOTHER)
   //
   @if(GLISS)
+  sv.phase_inc[i] = 1e-9; // ??here??
   sv.glissando_enable[i] = 0;
-  sv.glissando_speed[i] = 0.0f;
-  sv.glissando_target[i] = sv.freq[i];
+  sv.glissando_speed[i] = 1.0f;
+  sv.glissando_target[i] = 0.0f; // sv.freq[i]; // maybe 0.0f???
   @endif
   @if(RECORD)
   sv.record[i] = 0;

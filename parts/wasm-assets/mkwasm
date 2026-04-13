@@ -1,6 +1,6 @@
 #!/bin/bash
 emcc -I. -I.. \
-    ../ands.c ../miniaudio.c ../util.c ../miniwav.c ../skqueue.c ../seq.c \
+    ../ands.c ../miniaudio.c ../util.c ../miniwav.c ../skqueue.c seq.c \
     api.c synth.c skode.c synth-alloc.c \
     -o skred_api.js \
     -s EXPORTED_FUNCTIONS='["_skred_start", "_skred_command", "_skred_stop", "_skred_features", "_skred_log", "_skred_logger" ]' \

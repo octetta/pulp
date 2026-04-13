@@ -28,12 +28,16 @@ static int64_t seq_offset[PATTERNS_MAX];
 // Master clock tick — ever-incrementing, never reset unless seq_rewind() is called.
 // All pattern positions are derived from this value so stop/start is always phase-coherent.
 static uint64_t master_tick = 0;
+static uint64_t seq_sample_origin = 0;
+static uint64_t seq_tick_origin = 0;
 
 float tempo_time_per_step = 60.0f;
 float tempo_bpm = 120.0f / 4.0f;
 float tempo_base = 0.0f;
 
 void tempo_set(float m) {
+  seq_sample_origin = SAMPLE_COUNT_GET();
+  seq_tick_origin = master_tick;
   tempo_base = m;
   tempo_bpm = m / 4.0;
   float bps = m / 60.f;
@@ -42,6 +46,8 @@ void tempo_set(float m) {
 }
 
 void seq_rewind(void) {
+  seq_sample_origin = SAMPLE_COUNT_GET();
+  seq_tick_origin = 0;
   master_tick = 0;
 }
 
@@ -86,6 +92,7 @@ static int pattern_length_compute(int p) {
 static queue_t seq_q;
 
 void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), void (*pattern_fn)(int voice, char *arg)) {
+  (void)frame_count;
   @if(BENCH)
   BEN_MARK_A(bench, benchp, frame_count, bencho);
   @endif
@@ -105,19 +112,14 @@ void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), 
     }
   }
 
-  // Advance the master clock one tick when enough time has elapsed.
-  static double clock_sec = 0.0;
-  float frame_time_sec = (float)frame_count / (float)MAIN_SAMPLE_RATE;
-  clock_sec += frame_time_sec;
-
-  int advance = 0;
-  if (clock_sec >= tempo_time_per_step) {
-    advance = 1;
-    clock_sec -= tempo_time_per_step;
-    master_tick++;
-  }
-
-  if (advance) {
+  // Advance the master clock from the absolute sample timeline rather than
+  // callback cadence so larger buffers do not smear beat timing.
+  double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
+  if (samples_per_step > 0.0 && now > seq_sample_origin) {
+    uint64_t target_tick = seq_tick_origin +
+      (uint64_t)(((double)(now - 1 - seq_sample_origin)) / samples_per_step);
+    while (master_tick < target_tick) {
+      master_tick++;
     for (int p = 0; p < PATTERNS_MAX; p++) {
       if (seq_state[p] != SEQ_RUNNING) continue;
 
@@ -136,6 +138,7 @@ void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), 
       if (seq_pattern_mute[p][step] == 0) {
         pattern_fn(0, seq_pattern[p][step]);
       }
+    }
     }
   }
 
@@ -159,6 +162,8 @@ void pattern_reset(int p) {
 
 void seq_init(void) {
   queue_init(&seq_q, QUEUE_SIZE);
+  seq_sample_origin = SAMPLE_COUNT_GET();
+  seq_tick_origin = 0;
   master_tick = 0;
   for (int p = 0; p < PATTERNS_MAX; p++) {
     pattern_reset(p);

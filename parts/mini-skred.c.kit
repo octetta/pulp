@@ -7,10 +7,11 @@
 
 void usage(void) {
   printf("skred\n");
-  printf("-v <voice-count> (1 to 64)\n");
-  printf("-r <requested-frame-size> (128 to ?)\n");
+  printf("-v<voice-count> (1 to 64)\n");
+  printf("-r<requested-frame-size> (128 to ?)\n");
   printf("-n = do not use editor (for use as a subprocess)\n");
-  printf("-p <udp-port> (0 means no udp)\n");
+  printf("-p<udp-port> (0 means no udp)\n");
+  printf("-l\n");
   exit(1);
 }
 
@@ -19,6 +20,7 @@ int main(int argc, char **argv) {
   unsigned int vc = 8;
   unsigned int req = 128;
   int udp_port = 60440;
+  int output = -1;
   
   for (int i=1; i<argc; i++) {
     if (argv[i][0] == '-') {
@@ -27,6 +29,14 @@ int main(int argc, char **argv) {
         case 'v': vc = atoi(&argv[i][2]); break;
         case 'r': req = atoi(&argv[i][2]); break;
         case 'p': udp_port = (int)strtol(&(argv[i][2]), NULL, 0); break;
+        case 'l': {
+          skred_enumerate_devices(0);
+          exit(1);
+        } break;
+        case 'o': {
+          skred_enumerate_devices(0);
+          output = atoi(&argv[i][2]);
+        } break;
         default:
           usage();
           break;
@@ -43,6 +53,8 @@ int main(int argc, char **argv) {
   printf("# ( %s)\n", skred_features());
   printf("# frames/callback %d\n", req);
   printf("# voices %d\n", vc);
+
+  skred_set_audio_device(output, -1);
 
   if (skred_start(req, vc, udp_port) != 0) {
     return 1;

@@ -41,11 +41,59 @@ static float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
 
 static skode_t w = SKODE_EMPTY();
 
+// Audio context and device state
+static ma_context synth_context;
+static int context_initialized = 0;
+static ma_device synth_device;
+
+// Selected device indices (-1 implies default device)
+static int skred_playback_device_idx = -1;
+static int skred_capture_device_idx = -1;
+
 static ma_device synth_device;
 
 static int udp_port = 60440;
 
-int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
+// Internal helper to ensure context is ready before enumeration or start
+static void ensure_context_initialized(void) {
+    if (!context_initialized) {
+        if (ma_context_init(NULL, 0, NULL, &synth_context) == MA_SUCCESS) {
+            context_initialized = 1;
+        }
+    }
+}
+
+// Enumerates devices and returns the count. Prints the [index] and name for user selection.
+int skred_enumerate_devices(int isCapture) {
+    ensure_context_initialized();
+
+    ma_device_info* pPlaybackInfos;
+    ma_uint32 playbackCount;
+    ma_device_info* pCaptureInfos;
+    ma_uint32 captureCount;
+
+    if (ma_context_get_devices(&synth_context, &pPlaybackInfos, &playbackCount, &pCaptureInfos, &captureCount) != MA_SUCCESS) {
+        return -1;
+    }
+
+    ma_uint32 count = isCapture ? captureCount : playbackCount;
+    ma_device_info* infos = isCapture ? pCaptureInfos : pPlaybackInfos;
+
+    printf("\nAvailable %s Devices:\n", isCapture ? "Input" : "Output");
+    for (ma_uint32 i = 0; i < count; ++i) {
+        printf("[%d] %s\n", i, infos[i].name);
+    }
+    
+    return (int)count;
+}
+
+// Call this before skred_start to select specific hardware
+void skred_set_audio_device(int playback_idx, int capture_idx) {
+    skred_playback_device_idx = playback_idx;
+    skred_capture_device_idx = capture_idx;
+}
+
+int x_skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
     // 1. Initialize synth state
   int req = req_audio_frames;
   int vc = voices;
@@ -84,6 +132,66 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
     return 0; // Return 0 on success, or an error code
 }
 
+int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
+    // 1. Initialize synth state
+  int req = req_audio_frames;
+  int vc = voices;
+  requested_synth_frames_per_callback = req;
+  synth_init(vc);
+  wave_table_init(0);
+  voice_init();
+  @if(SEQ)
+  tempo_set(120.0);
+  seq_init();
+  @endif
+
+    // 2. Start UDP listening thread
+  @if(UDP)
+  if (udp_port > 0) {
+    int r = udp_start(udp_port);
+    if (r != udp_port) udp_port = 0;
+  }
+  @endif
+
+    // 3. Initialize and start miniaudio device
+  ensure_context_initialized();
+
+  // Retrieve device list again to map the user's selected indices to internal IDs
+  ma_device_info* pPlaybackInfos;
+  ma_uint32 playbackCount;
+  ma_device_info* pCaptureInfos;
+  ma_uint32 captureCount;
+  ma_context_get_devices(&synth_context, &pPlaybackInfos, &playbackCount, &pCaptureInfos, &captureCount);
+
+  // Switch to duplex to support both input and output
+  ma_device_config synth_config = ma_device_config_init(ma_device_type_duplex);
+
+  if (skred_playback_device_idx >= 0 && skred_playback_device_idx < (int)playbackCount) {
+      synth_config.playback.pDeviceID = &pPlaybackInfos[skred_playback_device_idx].id;
+  }
+  if (skred_capture_device_idx >= 0 && skred_capture_device_idx < (int)captureCount) {
+      synth_config.capture.pDeviceID = &pCaptureInfos[skred_capture_device_idx].id;
+  }
+
+  synth_config.playback.format = ma_format_f32;
+  synth_config.playback.channels = AUDIO_CHANNELS;
+  synth_config.capture.format = ma_format_f32;
+  synth_config.capture.channels = AUDIO_CHANNELS;
+  synth_config.sampleRate = MAIN_SAMPLE_RATE;
+  synth_config.dataCallback = synth_callback;
+  synth_config.periodSizeInFrames = requested_synth_frames_per_callback;
+  //synth_config.periodSizeInMilliseconds = 0;
+  //synth_config.periods = 3;
+  //synth_config.noClip = MA_TRUE;
+  synth_config.pUserData = &one_skred_frame;
+  
+  // Initialize with synth_context rather than NULL
+  ma_device_init(&synth_context, &synth_config, &synth_device);
+  ma_device_start(&synth_device);
+    
+  return 0; // Return 0 on success, or an error code
+}
+
 int skred_command(char* line) {
     // Inject a command directly into the skqueue or seq parser
     // This allows local control without hitting the UDP layer
@@ -101,6 +209,10 @@ void skred_stop(void) {
   // turn down volume smoothly to avoid clicks
   volume_set(-90);
   ma_device_uninit(&synth_device);
+  if (context_initialized) {
+    ma_context_uninit(&synth_context);
+    context_initialized = 0;
+  }
   wave_free();
   synth_free();
 }

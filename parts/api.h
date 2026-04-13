@@ -23,6 +23,10 @@ char *skred_log(void);
 // enable / disable logging
 void skred_logger(int f);
 
+// clumsy enumeration
+int skred_enumerate_devices(int isCapture);
+void skred_set_audio_device(int playback_idx, int capture_idx);
+
 #ifdef __cplusplus
 }
 #endif

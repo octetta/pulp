@@ -11,17 +11,15 @@ or
 Nobody likes the pulp...
 
 
-# Reminders
+# Build
 
-## go to the parts directory for building
+Most development happens from the `parts` directory:
 
-```
+```sh
 cd parts
-mkdir build
-cd build
 ```
 
-## features
+## Features
 
 ```
 ADSR   # amplitude envelope
@@ -41,44 +39,50 @@ RECORD # multi track wav recording
 BENCH  # random benchmark measures
 ```
 
-## use the native compiler (enabling features)
+## Native Build
 
-```
-cmake -DKIT_OPTS="ADSR=1 PD=1 FILT=1 FADSR=1" ..
-make
-./mini-skred
-```
-
-## run a smoke test
-
-From the `parts` directory:
-
-```
-make test
+```sh
+make native
+./build_native/mini-skred
 ```
 
-## forces `zig cc`
+To enable features manually with CMake:
 
-```
-cmake -DCMAKE_C_COMPILER="zig;cc" ..
-make
-./mini-skred
-```
-
-## cross compile with `zig cc` (x86_64)
-
-```
-cmake -DCMAKE_C_COMPILER="zig;cc;-target;x86_64-linux-musl" ..
-make
-./mini-skred
+```sh
+cmake -B build_native -S . -DKIT_OPTS="ADSR=1 PD=1 FILT=1 FADSR=1"
+cmake --build build_native
+./build_native/mini-skred
 ```
 
-## cross compile with `zig cc` (arm 32-bit)
+## Validation
 
-> this doesn't work yet because the kit/kit_tool needs to be native
-
+```sh
+make test   # smoke test
+make warn   # -Wall -Wextra -Wpedantic -Werror
 ```
-cmake -DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf" ..
-make
-./mini-skred
+
+## WASM Build
+
+```sh
+make wasm
+```
+
+## Cross Compile
+
+ARM 32-bit Linux:
+
+```sh
+make pi
+```
+
+This reuses the native `kit_tool` for code generation and writes Zig cache data under `/tmp`.
+
+If you want to invoke Zig directly with CMake, the equivalent compiler flag looks like:
+
+```sh
+cmake -B build_pi -S . \
+  -DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf" \
+  -DUSE_EXTERNAL_KIT=ON \
+  -DKIT_TOOL_PATH="$PWD/build_native/kit_tool"
+cmake --build build_pi
 ```

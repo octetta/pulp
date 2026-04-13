@@ -86,6 +86,7 @@ typedef struct {
 #define UDP_PORT_MAX (127)
 
 static void *udp_main(void *arg) {
+  (void)arg;
   if (udp_port <= 0) {
     return NULL;
   }

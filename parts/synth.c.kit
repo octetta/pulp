@@ -531,13 +531,11 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
   const int nframes = num_frames;
   (void)nframes; /* available for future vectorised frame loop */
 #endif
-  static float *one_skred_frame;
   static uint64_t synth_random;
   static int first = 1;
   if (first) {
     synth_frames_per_callback = num_frames;
     audio_rng_init(&synth_random, 1);
-    one_skred_frame = (float *)user;
     first = 0;
   }
 
@@ -563,14 +561,10 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       if (sv.finished[n]) {
         //sv.sample[n] = 0.0f; // remove to try the below
         // hold last value to modulator consumers see statle output after one-shot ends
-        one_skred_frame[skred_ptr++] = 0.0f;
-        one_skred_frame[skred_ptr++] = 0.0f;
         continue;
       }  
       if (sv.amp[n] < NEG_60_DB_AS_LINEAR) {
         sv.sample[n] = 0.0f;
-        one_skred_frame[skred_ptr++] = 0.0f;
-        one_skred_frame[skred_ptr++] = 0.0f;
         continue;
       }
       @if(GLISS)
@@ -707,8 +701,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         right *= sv.pan_right[n];
         sample_left  += left;
         sample_right += right;
-        one_skred_frame[skred_ptr++] = 0.0f;
-        one_skred_frame[skred_ptr++] = 0.0f;
       }
     }
 

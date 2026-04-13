@@ -9,14 +9,16 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
-//#define close closesocket
 typedef int socklen_t;
+#define CLOSE_SOCKET closesocket
 #else
 #include <arpa/inet.h>
 #define SOCKET int
 #define INVALID_SOCKET (-1)
 #define SOCKET_ERROR (-1)
 #include <sys/select.h>
+#include <unistd.h>
+#define CLOSE_SOCKET close
 #endif
 
 
@@ -41,6 +43,7 @@ static int get_connection_index(struct sockaddr_in *addr, int array_size) {
 
 static int udp_port = 0;
 static int udp_running = 1;
+static SOCKET udp_socket = INVALID_SOCKET;
 
 static pthread_t udp_thread_handle;
 static pthread_attr_t udp_attr;
@@ -91,6 +94,7 @@ static void *udp_main(void *arg) {
     puts("# udp thread cannot run");
     return NULL;
   }
+  udp_socket = sock;
   //util_set_thread_name("udp");
   struct sockaddr_in client;
 #ifdef _WIN32
@@ -114,7 +118,7 @@ static void *udp_main(void *arg) {
     timeout.tv_usec = 0;
     int ready = select(sock+1, &readfds, NULL, NULL, &timeout);
     if (ready > 0 && FD_ISSET(sock, &readfds)) {
-      ssize_t n = recvfrom(sock, line, sizeof(line), 0, (struct sockaddr *)&client, &client_len);
+      ssize_t n = recvfrom(sock, line, sizeof(line) - 1, 0, (struct sockaddr *)&client, &client_len);
       if (n > 0) {
         line[n] = '\0';
         // printf("# from %d\n", ntohs(client.sin_port)); // port
@@ -141,9 +145,14 @@ static void *udp_main(void *arg) {
     } else if (ready == 0) {
       // timeout
     } else {
+      if (!udp_running) break;
       perror("# select");
     }
   }
+  if (sock != INVALID_SOCKET && udp_socket == sock) {
+    CLOSE_SOCKET(sock);
+  }
+  udp_socket = INVALID_SOCKET;
   for (int i = 0; i < UDP_PORT_MAX; i++) {
     // need to free alloc-ed stuff here
   }
@@ -163,6 +172,10 @@ int udp_start(int port) {
 
 void udp_stop(void) {
   udp_running = 0;
+  if (udp_socket != INVALID_SOCKET) {
+    CLOSE_SOCKET(udp_socket);
+    udp_socket = INVALID_SOCKET;
+  }
 #ifdef _WIN32
   WSACleanup();
 #endif
@@ -202,4 +215,3 @@ int udp_send(int fd, void *c, int len) {
     return 0;
 }
 #endif
-

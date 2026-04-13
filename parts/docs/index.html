@@ -8,6 +8,7 @@
 
 :root {
     --atari-blue: #0042ff;
+    --atari-dark: #001a66;
     --atari-gold: #ffd700;
     --atari-light: #90b0ff;
     --atari-rust: #A03000;   /* Use for Errors */
@@ -40,11 +41,11 @@ body {
     line-height: 1.5;
     /* Smooth scrolling for touch */
     -webkit-overflow-scrolling: touch; 
+}
 
-  .terminal-spacer {
+.terminal-spacer {
     height: 70%;
     width: 100%;
-  }
 }
 
 .input-line {
@@ -211,7 +212,7 @@ const logo = `
     const output = document.getElementById('output');
     const cmdInput = document.getElementById('cmdInput');
     const statusSpan = document.getElementById('engine-status');
-    const leftSpan = document.getElementById('left');
+    const leftSpan = document.getElementById('engine-left');
     const centerSpan = document.getElementById('engine-center');
 
     // History Buffer Logic

@@ -162,6 +162,8 @@ int queue_item(uint64_t when, char *what, int voice, int tag) {
 }
 
 void seq_modulo_set(int pattern, int m) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return;
+  if (m < 1) m = 1;
   seq_modulo[pattern] = m;
 }
 
@@ -170,15 +172,18 @@ void seq_mute_set(int pattern, int step, int m) {
 }
 
 void seq_step_set(int pattern, int step, char *scratch) {
-  if (strlen(scratch) == 0) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return;
+  if (step < 0 || step >= SEQ_STEPS_MAX) return;
+  if (scratch == NULL || scratch[0] == '\0') {
     seq_pattern[pattern][step][0] = '\0';
   } else {
-    strcpy(seq_pattern[pattern][step], scratch);
+    snprintf(seq_pattern[pattern][step], STEP_MAX, "%s", scratch);
   }
   seq_pattern_length[pattern] = pattern_length_compute(pattern);
 }
 
 void seq_pattern_length_set(int pattern, int len) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return;
   if (len < 0) len = 0;
   if (len > SEQ_STEPS_MAX) len = SEQ_STEPS_MAX;
   seq_pattern_length[pattern] = len;
@@ -187,6 +192,7 @@ void seq_pattern_length_set(int pattern, int len) {
 // Jump to a specific step on the next tick. Adjusts seq_offset so that
 // (ticks_so_far + 1 - offset) % len == step.
 void seq_step_goto(int pattern, int step) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return;
   int len = seq_pattern_length[pattern];
   if (len == 0) return;
   if (step < 0 || step >= len) return;
@@ -195,6 +201,7 @@ void seq_step_goto(int pattern, int step) {
 }
 
 void seq_state_set(int p, int state) {
+  if (p < 0 || p >= PATTERNS_MAX) return;
   switch (state) {
     case 0: // stop
       seq_state[p] = SEQ_STOPPED;

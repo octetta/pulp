@@ -41,7 +41,6 @@ set(API_PLAIN_SOURCES
     util.c
     miniwav.c
     skqueue.c
-    seq.c
     udp.c
 )
 
@@ -51,6 +50,7 @@ set(API_KIT_MODULES
     synth
     skode
     synth-alloc
+    seq
 )
 
 set(API_GEN_SOURCES "")

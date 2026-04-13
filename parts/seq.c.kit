@@ -49,6 +49,7 @@ uint64_t seq_master_tick(void) {
   return master_tick;
 }
 
+@if(BENCH)
 #include "util.h"
 
 static sben_t bench[BENLEN] = {};
@@ -69,6 +70,11 @@ char *seq_stats(void) {
   }
   return _stats;
 }
+@else
+char *seq_stats(void) {
+  return "";
+}
+@endif
 
 static int pattern_length_compute(int p) {
   for (int s = SEQ_STEPS_MAX - 1; s >= 0; s--) {
@@ -80,7 +86,9 @@ static int pattern_length_compute(int p) {
 static queue_t seq_q;
 
 void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), void (*pattern_fn)(int voice, char *arg)) {
+  @if(BENCH)
   BEN_MARK_A(bench, benchp, frame_count, bencho);
+  @endif
 
   // Run expired (ready) queued events.
   item_t item;
@@ -131,7 +139,9 @@ void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), 
     }
   }
 
+  @if(BENCH)
   BEN_MARK_B(bench, benchp, bencho);
+  @endif
 }
 
 void pattern_reset(int p) {

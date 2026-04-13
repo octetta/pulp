@@ -264,7 +264,7 @@ static void action_chunk_end(ands_t *s) {
 // STATE MACHINE
 // ============================================================================
 
-int ands_consume(ands_t *s, char *line, int (*fn)(ands_t *s, int info)) {
+int ands_consume(ands_t *s, char *line) {
     char *ptr = line;
     char *end = ptr + strlen(ptr);
 

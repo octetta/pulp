@@ -79,7 +79,9 @@ float *mw_get_str(char *filename, int *frames_out, wav_t *w, int ch, char *out, 
 
   result = ma_decoder_init_file(filename, &decoderConfig, &decoder);
   if (result != MA_SUCCESS) {
-    snprintf(out, len, "Could not load file: %s\n", filename);
+    if (out != NULL && len > 0) {
+      snprintf(out, len, "Could not load file: %s\n", filename);
+    }
     *frames_out = 0;
     return NULL;
   }
@@ -89,21 +91,23 @@ float *mw_get_str(char *filename, int *frames_out, wav_t *w, int ch, char *out, 
   if (result == MA_SUCCESS) {
     // pSamples is now your interleaved float32 array
     // frameCount * channels = total number of floats
-    snprintf(out, len, "Loaded %llu frames / %d channels / %d sample rate\n",
-      frameCount,
-      decoder.outputChannels,
-      decoder.outputSampleRate);
+    if (out != NULL && len > 0) {
+      snprintf(out, len, "Loaded %llu frames / %d channels / %d sample rate\n",
+        frameCount,
+        decoder.outputChannels,
+        decoder.outputSampleRate);
+    }
   } else {
     *frames_out = 0;
     return NULL;
   }
-  int j = 0;
-  if (ch > decoder.outputChannels) ch = decoder.outputChannels;
-  for (int i = 0; i < frameCount * decoder.outputChannels; i+= decoder.outputChannels) {
+  ma_uint64 j = 0;
+  if (ch >= (int)decoder.outputChannels) ch = (int)decoder.outputChannels - 1;
+  for (ma_uint64 i = 0; i < frameCount * decoder.outputChannels; i += decoder.outputChannels) {
     if (ch == -1) {
       float a = 0;
-      for (int k = 0; k < ch; k++) a += pSamples[i+k];
-      a /= (float)ch;
+      for (ma_uint32 k = 0; k < decoder.outputChannels; k++) a += pSamples[i + k];
+      pSamples[j] = a / (float)decoder.outputChannels;
     } else {
       pSamples[j] = pSamples[i + ch];
     }
@@ -111,7 +115,7 @@ float *mw_get_str(char *filename, int *frames_out, wav_t *w, int ch, char *out, 
   }
   w->SamplesRate = decoder.outputSampleRate;
   w->Channels = decoder.outputChannels;
-  *frames_out = frameCount;
+  *frames_out = (int)frameCount;
   return pSamples;
 }
 

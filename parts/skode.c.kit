@@ -42,8 +42,8 @@ int skode_printf(skode_t *ctx, const char *fmt, ...) {
   return 0;
 }
 
-int null_puts(const char *s) { return 0; }
-int null_printf(const char *fmt, ...) { return 0; }
+int null_puts(const char *s) { (void)s; return 0; }
+int null_printf(const char *fmt, ...) { (void)fmt; return 0; }
 
 #define MPSC_QUEUE_IMPLEMENTATION
 #include "mpsc_queue.h"
@@ -415,6 +415,7 @@ void show_threads(skode_t *ctx) {
 }
 
 int skode_load(skode_t *ctx, int voice, int n) {
+  (void)voice;
   skode_t wprime;
   if (ctx == NULL) {
     ctx = &wprime;
@@ -503,6 +504,7 @@ int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offse
 }
 
 int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int normalize) {
+  (void)normalize;
   if (ctx == NULL) return 100; // fix todo
   if (wave_index < EXT_SAMPLE_000 || wave_index >= EXT_SAMPLE_999) return -1;
   if (sw.readonly[wave_index] == 1) {
@@ -548,6 +550,7 @@ int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int norma
 }
 
 int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize) {
+  (void)normalize;
   if (ctx == NULL) return 100; // fix todo
   if (wave_index < EXT_SAMPLE_000 || wave_index >= EXT_SAMPLE_999) return -1;
   if (sw.readonly[wave_index] == 1) {
@@ -692,7 +695,6 @@ void scope_wave_update(const float *table, int size) {
 
 int wavetable_show(skode_t *ctx, int n) {
   if (n >= 0 && n < WAVE_TABLE_MAX && sw.data[n] && sw.size[n]) {
-    float *table = sw.data[n];
     int readonly = sw.readonly[n];
     int refcount = sw.refcount[n];
     int size = sw.size[n];
@@ -1442,6 +1444,7 @@ int skode_chunk_end(ands_t *s, int info) {
 }
 
 int skode_unknown(skode_t *ctx, ands_t *s, int info) {
+  (void)s;
   ctx->printf(ctx, "# SKODE_UNKNOWN %d\n", info);
   return 0;
 }
@@ -1480,7 +1483,7 @@ int skode_consume(char *line, skode_t *ctx) {
 
   int r = 0;
 
-  ands_consume(ctx->parse, line, skode_callback);
+  ands_consume(ctx->parse, line);
   return ctx->quit;
   return r;
 }

@@ -20,15 +20,16 @@
 
 @if(SEQ)
 static void queue_cb(int voice, char *arg) {
+  (void)voice;
+  static skode_t w = SKODE_EMPTY();
+  skode_consume(arg, &w);
+}
+static void pattern_cb(int voice, char *arg) {
+  (void)voice;
   static skode_t w = SKODE_EMPTY();
   skode_consume(arg, &w);
 }
 @endif
-
-static void pattern_cb(int voice, char *arg) {
-  static skode_t w = SKODE_EMPTY();
-  skode_consume(arg, &w);
-}
 
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
   synth((float *)output, (float *)input, (int)frame_count, (int)pDevice->playback.channels, pDevice->pUserData);
@@ -50,9 +51,9 @@ static ma_device synth_device;
 static int skred_playback_device_idx = -1;
 static int skred_capture_device_idx = -1;
 
-static ma_device synth_device;
-
+@if(UDP)
 static int udp_port = 60440;
+@endif
 
 // Internal helper to ensure context is ready before enumeration or start
 static void ensure_context_initialized(void) {
@@ -94,6 +95,9 @@ void skred_set_audio_device(int playback_idx, int capture_idx) {
 }
 
 int x_skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
+  @if(!UDP)
+  (void)port;
+  @endif
     // 1. Initialize synth state
   int req = req_audio_frames;
   int vc = voices;
@@ -108,6 +112,7 @@ int x_skred_start(unsigned int req_audio_frames, unsigned int voices, int port) 
 
     // 2. Start UDP listening thread
   @if(UDP)
+  udp_port = port;
   if (udp_port > 0) {
     int r = udp_start(udp_port);
     if (r != udp_port) udp_port = 0;
@@ -133,6 +138,9 @@ int x_skred_start(unsigned int req_audio_frames, unsigned int voices, int port) 
 }
 
 int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
+  @if(!UDP)
+  (void)port;
+  @endif
     // 1. Initialize synth state
   int req = req_audio_frames;
   int vc = voices;
@@ -147,6 +155,7 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
 
     // 2. Start UDP listening thread
   @if(UDP)
+  udp_port = port;
   if (udp_port > 0) {
     int r = udp_start(udp_port);
     if (r != udp_port) udp_port = 0;

@@ -475,8 +475,10 @@ float amp_envelope_step(int v) {
 #include "util.h"
 
 static sben_t bench[BENLEN] = {};
+@if(BENCH)
 static int benchp = 0;
 static int64_t bencho = 0;
+@endif
 static char _stats[65536] = "";
 
 char *synth_stats(void) {
@@ -523,6 +525,7 @@ void mmf_set_params(int n, float f, float resonance);
 @endif
 
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user) {
+  (void)input;
   const int nvoices = synth_voice_count();
 #if 0
   const int nframes = num_frames;
@@ -1375,8 +1378,9 @@ void voice_init(void) {
 
 
 int wave_reset(int voice, int n) {
-  if (voice_invalid(n)) voice_init();
-  else voice_reset(n);
+  (void)n;
+  if (voice_invalid(voice)) voice_init();
+  else voice_reset(voice);
   return 0;
 }
 
@@ -1451,7 +1455,7 @@ void normalize_preserve_zero(float *data, int length) {
 #define SIZE_SINE (4096)
 
 void wave_table_init(int flag) {
-  float *table;
+  (void)flag;
 
   for (int i = 0 ; i < WAVE_TABLE_MAX; i++) {
     sw.data[i] = NULL;
@@ -1522,4 +1526,3 @@ void wave_free_one(int i) {
 void wave_free(void) {
   for (int i = 0; i < WAVE_TABLE_MAX; i++) wave_free_one(i);
 }
-

@@ -31,7 +31,7 @@ typedef uint32_t atom_t;
 
 ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user);
 void ands_free(ands_t *s);
-int ands_consume(ands_t *s, char *line, int (*fn)(ands_t *s, int info));
+int ands_consume(ands_t *s, char *line);
 uint32_t ands_atom_num(ands_t *s);
 char *ands_atom_string(ands_t *s);
 int ands_arg_len(ands_t *s);
@@ -71,4 +71,3 @@ char *ands_string_from_external(ands_t *s, char *src, int len);
 #define ATOM4(c) (c)
 
 #endif
-

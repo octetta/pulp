@@ -1,5 +1,5 @@
 # A simple "Top-Level" Makefile to manage the CMake complexity
-.PHONY: all clean native pi test
+.PHONY: all clean native pi test warn
 
 all: native # pi
 
@@ -24,6 +24,11 @@ native:
 
 test: native
 	ctest --test-dir build_native --output-on-failure
+
+warn:
+	cmake -B build_warn -S . -DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror'
+	cmake --build build_warn
+	ctest --test-dir build_warn --output-on-failure
 
 pi: native
 	cmake -B build_pi -S . \

@@ -22,7 +22,7 @@ typedef struct {
   int voice;
 } event_t;
 
-void seq(int frame_count, void (*queue_fn)(int voice, char *arg), void (*pattern_fn)(int voice, char *arg));
+void seq(int frame_count, uint64_t now, void (*queue_fn)(int voice, char *arg), void (*pattern_fn)(int voice, char *arg));
 void seq_init(void);
 void seq_rewind(void);
 uint64_t seq_master_tick(void);

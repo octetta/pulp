@@ -34,7 +34,7 @@ static void pattern_cb(int voice, char *arg) {
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
   synth((float *)output, (float *)input, (int)frame_count, (int)pDevice->playback.channels, pDevice->pUserData);
   @if(SEQ)
-  seq((int)frame_count, queue_cb, pattern_cb);
+  seq((int)frame_count, SAMPLE_COUNT_GET(), queue_cb, pattern_cb);
   @endif
 }
 

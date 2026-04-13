@@ -431,11 +431,11 @@ void amp_envelope_release(int v) {
     envelope_release_e(&sv.amp_envelope[v]);
 }
 
-float envelope_step_e(envelope_t *e) {
+float envelope_step_e(envelope_t *e, uint64_t current_sample) {
     if (!e->is_active) return 0.0f;
 
     float out = 0.0f;
-    float samples_since_start = (float)(SAMPLE_COUNT_GET() - e->sample_start);
+    float samples_since_start = (float)(current_sample - e->sample_start);
 
     if (samples_since_start < e->attack_time) {
         float attack_progress = samples_since_start / e->attack_time;
@@ -452,7 +452,7 @@ float envelope_step_e(envelope_t *e) {
         if (e->sample_release == 0) {
             out = e->sustain_level;
         } else {
-            float samples_since_release = (float)(SAMPLE_COUNT_GET() - e->sample_release);
+            float samples_since_release = (float)(current_sample - e->sample_release);
             if (samples_since_release < e->release_time) {
                 float release_progress = samples_since_release / e->release_time;
                 out = e->amplitude_at_release * (1.0f - release_progress);
@@ -467,8 +467,8 @@ float envelope_step_e(envelope_t *e) {
     return out * e->velocity;
 }
 
-float amp_envelope_step(int v) {
-    return envelope_step_e(&sv.amp_envelope[v]);
+float amp_envelope_step(int v, uint64_t current_sample) {
+    return envelope_step_e(&sv.amp_envelope[v], current_sample);
 }
 @endif
 
@@ -526,6 +526,7 @@ void mmf_set_params(int n, float f, float resonance);
 
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user) {
   (void)input;
+  (void)user;
   const int nvoices = synth_voice_count();
 #if 0
   const int nframes = num_frames;
@@ -543,10 +544,15 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
   BEN_MARK_A(bench, benchp, num_frames, bencho);
   @endif
 
-  int skred_ptr = 0;
-  SAMPLE_COUNT_ADD(num_frames); // should this be outside the loop? and add num_frames??
+  @if(ADSR || FILT)
+  uint64_t callback_sample = SAMPLE_COUNT_ADD(num_frames);
+  @else
+  SAMPLE_COUNT_ADD(num_frames);
+  @endif
   for (int i = 0; i < num_frames; i++) {
-    //SAMPLE_COUNT_ADD(1); // should this be outside the loop? and add num_frames??
+    @if(ADSR || FILT)
+    uint64_t current_sample = callback_sample + (uint64_t)i;
+    @endif
     float sample_left = 0.0f;
     float sample_right = 0.0f;
     float f = 0.0f;
@@ -637,7 +643,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         if (sv.filter_update_counter[n] <= 0) {
           float cutoff = sv.filter_freq[n];
           if (sv.use_filter_envelope[n]) {
-            float env = envelope_step_e(&sv.filter_envelope[n]);
+            float env = envelope_step_e(&sv.filter_envelope[n], current_sample);
             env = fmaxf(0.0f, fminf(1.0f, env));
             cutoff = cutoff + (env * sv.filter_env_depth[n]);
           }
@@ -664,7 +670,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       float mod = 1.0f;
 
       @if(ADSR)
-      if (sv.use_amp_envelope[n]) env = amp_envelope_step(n) * sv.amp_envelope[n].velocity;
+      if (sv.use_amp_envelope[n]) env = amp_envelope_step(n, current_sample);
       @endif
 
       @if(AM)

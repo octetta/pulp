@@ -79,12 +79,11 @@ static int pattern_length_compute(int p) {
 
 static queue_t seq_q;
 
-void seq(int frame_count, void (*event_fn)(int voice, char *arg), void (*pattern_fn)(int voice, char *arg)) {
+void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), void (*pattern_fn)(int voice, char *arg)) {
   BEN_MARK_A(bench, benchp, frame_count, bencho);
 
   // Run expired (ready) queued events.
   item_t item;
-  uint64_t now = SAMPLE_COUNT_GET();
   static uint64_t last_ts = 0;
   while (1) {
     if (queue_get_filtered(&seq_q, now, &item)) {

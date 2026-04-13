@@ -38,6 +38,9 @@ int inc_path_count = 0;
 int minify = 0;
 int trace = 0;
 
+static FILE *kit_in = NULL;
+static const char *kit_in_name = "stdin";
+
 /* --- Error Reporting --- */
 void kit_error(const char *file, int line, const char *msg) {
     fprintf(stderr, "%s:%d: error: %s\n", file, line, msg);
@@ -242,6 +245,8 @@ void handle_macro_def(char *line, FILE *in, const char *fname, int *lnum) {
 }
 
 void handle_macro_call(Macro *m, char *line, const char *fname, int lnum) {
+    (void)fname;
+    (void)lnum;
     char *open = strchr(line, '('), *close = strrchr(line, ')');
     if (!open || !close) return;
     char args[8][128]; int arg_count = 0;
@@ -370,6 +375,9 @@ void process_line(char *line, FILE *in, const char *fname, int *lnum) {
 }
 
 int main(int argc, char **argv) {
+    const char *input_path = NULL;
+    const char *output_path = NULL;
+
     for (int i = 1; i < argc; i++) {
         if (!strncmp(argv[i], "-I", 2)) {
             if (inc_path_count < MAX_INC_PATHS) inc_paths[inc_path_count++] = argv[i] + 2;
@@ -377,6 +385,18 @@ int main(int argc, char **argv) {
             minify = 1;
         } else if (!strcmp(argv[i], "--trace")) {
             trace = 1;
+        } else if (!strcmp(argv[i], "--input")) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "missing argument for --input\n");
+                return 1;
+            }
+            input_path = argv[++i];
+        } else if (!strcmp(argv[i], "--output")) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "missing argument for --output\n");
+                return 1;
+            }
+            output_path = argv[++i];
         } else {
             char *eq = strchr(argv[i], '=');
             if (eq) {
@@ -386,11 +406,33 @@ int main(int argc, char **argv) {
             }
         }
     }
-    char line[4096]; int lnum = 0;
-    while (fgets(line, sizeof(line), stdin)) {
-        lnum++;
-        process_line(line, stdin, "stdin", &lnum);
+
+    if (input_path) {
+        kit_in = fopen(input_path, "r");
+        if (!kit_in) {
+            perror(input_path);
+            return 1;
+        }
+        kit_in_name = input_path;
+    } else {
+        kit_in = stdin;
+        kit_in_name = "stdin";
     }
-    if (sp != 0) kit_error("stdin", lnum, "Unterminated @if block (missing @endif)");
+
+    if (output_path) {
+        if (freopen(output_path, "w", stdout) == NULL) {
+            perror(output_path);
+            if (kit_in != stdin) fclose(kit_in);
+            return 1;
+        }
+    }
+
+    char line[4096]; int lnum = 0;
+    while (fgets(line, sizeof(line), kit_in)) {
+        lnum++;
+        process_line(line, kit_in, kit_in_name, &lnum);
+    }
+    if (sp != 0) kit_error(kit_in_name, lnum, "Unterminated @if block (missing @endif)");
+    if (kit_in != stdin) fclose(kit_in);
     return 0;
 }

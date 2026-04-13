@@ -1,5 +1,5 @@
 # A simple "Top-Level" Makefile to manage the CMake complexity
-.PHONY: all clean native pi
+.PHONY: all clean native pi test
 
 all: native # pi
 
@@ -21,6 +21,9 @@ native:
 	cmake -B build_native -S .
 	cmake --build build_native --target kit_tool
 	cmake --build build_native
+
+test: native
+	ctest --test-dir build_native --output-on-failure
 
 pi: native
 	cmake -B build_pi -S . \

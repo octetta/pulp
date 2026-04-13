@@ -49,6 +49,14 @@ make
 ./mini-skred
 ```
 
+## run a smoke test
+
+From the `parts` directory:
+
+```
+make test
+```
+
 ## forces `zig cc`
 
 ```
@@ -74,4 +82,3 @@ cmake -DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf" ..
 make
 ./mini-skred
 ```
-

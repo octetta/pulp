@@ -1,3 +1,8 @@
+wav/*
+sk/*
+parts/wav/*
+sk/*
+parts/sk/*
 build/*
 parts/build/*
 parts/build_native/*

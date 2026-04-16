@@ -136,7 +136,10 @@ void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), 
       seq_counter[p]++;
 
       if (seq_pattern_mute[p][step] == 0) {
-        pattern_fn(0, seq_pattern[p][step]);
+        if (seq_pattern[p][step][0] == '-') {
+          seq_state[p] = SEQ_STOPPED;
+          seq_pointer[p] = 0;
+        } else pattern_fn(0, seq_pattern[p][step]);
       }
     }
     }

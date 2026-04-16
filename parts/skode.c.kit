@@ -618,8 +618,11 @@ void pattern_show(skode_t *ctx, int pattern_pointer) {
     char *line = seq_pattern[pattern_pointer][s];
     if (strlen(line) == 0) break;
     if (first) {
-      ctx->printf(ctx, "y%d %%%d # step %d\n",
-        pattern_pointer, seq_modulo[pattern_pointer], ctx->step);
+      ctx->printf(ctx, "y%d %%%d # %d/x%d\n",
+        pattern_pointer,
+        seq_modulo[pattern_pointer],
+        seq_state[pattern_pointer],
+        seq_pointer[pattern_pointer]);
       first = 0;
     }
     ctx->printf(ctx, "{%s} x%d", line, s);

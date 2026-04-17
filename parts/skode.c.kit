@@ -618,15 +618,15 @@ void pattern_show(skode_t *ctx, int pattern_pointer) {
     char *line = seq_pattern[pattern_pointer][s];
     if (strlen(line) == 0) break;
     if (first) {
-      ctx->printf(ctx, "y%d %%%d # %d/x%d\n",
+      ctx->printf(ctx, "y%d %%%d # state:%d ptr:%d, len:%d\n",
         pattern_pointer,
         seq_modulo[pattern_pointer],
         seq_state[pattern_pointer],
-        seq_pointer[pattern_pointer]);
+        seq_pointer[pattern_pointer],
+        seq_pattern_length[pattern_pointer]);
       first = 0;
     }
     ctx->printf(ctx, "{%s} x%d", line, s);
-    if (seq_pattern_mute[pattern_pointer][s]) ctx->printf(ctx, " @%d", pattern_pointer);
     ctx->puts(ctx, "");
   }
 }
@@ -1109,8 +1109,12 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @if(SEQ)
+    case ATOM4('xg--'): // goto-step #
     case ATOM4('>x--'): // goto-step #
       seq_step_goto(ctx->pattern, x);
+      break;
+    case ATOM4('xa--'): // append step
+      seq_step_append(ctx->pattern, ands_string(ctx->parse));
       break;
     case ATOM4('x---'): // set-step-string step
       if (argc) {
@@ -1355,12 +1359,6 @@ int skode_function(ands_t *s, int info) {
     @if(SEQ)
     case ATOM4('%---'): // pattern-modulus num
       if (arg) seq_modulo_set(ctx->pattern, x);
-      break;
-    case ATOM4('x!--'): // step-mute step
-      if (arg) seq_mute_set(ctx->pattern, x, 0);
-      break;
-    case ATOM4('x@--'): // step-unmute step
-      if (arg) seq_mute_set(ctx->pattern, x, 1);
       break;
     @endif
     case ATOM4('=---'):  // variable-set slot value

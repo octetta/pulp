@@ -11,12 +11,10 @@ int requested_seq_frames_per_callback = SEQ_FRAMES_PER_CALLBACK;
 int seq_frames_per_callback = 0;
 
 char seq_pattern[PATTERNS_MAX][SEQ_STEPS_MAX][STEP_MAX];
-int seq_pattern_mute[PATTERNS_MAX][SEQ_STEPS_MAX];
 int seq_pattern_length[PATTERNS_MAX];
 
 int scope_pattern_pointer = 0;
 int seq_pointer[PATTERNS_MAX];  // read-only derived value, kept for external inspection
-int seq_counter[PATTERNS_MAX];  // kept for external inspection / compat
 int seq_state[PATTERNS_MAX];
 int seq_modulo[PATTERNS_MAX];
 
@@ -120,28 +118,26 @@ void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), 
       (uint64_t)(((double)(now - 1 - seq_sample_origin)) / samples_per_step);
     while (master_tick < target_tick) {
       master_tick++;
-    for (int p = 0; p < PATTERNS_MAX; p++) {
-      if (seq_state[p] != SEQ_RUNNING) continue;
+      for (int p = 0; p < PATTERNS_MAX; p++) {
+        if (seq_state[p] != SEQ_RUNNING) continue;
+        if ((master_tick % (uint64_t)seq_modulo[p]) != 0) continue;
 
-      if ((master_tick % (uint64_t)seq_modulo[p]) != 0) continue;
+        int len = seq_pattern_length[p];
+        if (len == 0) continue;
 
-      int len = seq_pattern_length[p];
-      if (len == 0) continue;
+        int64_t ticks_so_far = (int64_t)(master_tick / (uint64_t)seq_modulo[p]);
+        int64_t raw = ticks_so_far - seq_offset[p];
+        int step = (int)(((raw % (int64_t)len) + (int64_t)len) % (int64_t)len);
 
-      int64_t ticks_so_far = (int64_t)(master_tick / (uint64_t)seq_modulo[p]);
-      int64_t raw = ticks_so_far - seq_offset[p];
-      int step = (int)(((raw % (int64_t)len) + (int64_t)len) % (int64_t)len);
+        seq_pointer[p] = step;
 
-      seq_pointer[p] = step;
-      seq_counter[p]++;
-
-      if (seq_pattern_mute[p][step] == 0) {
         if (seq_pattern[p][step][0] == '-') {
           seq_state[p] = SEQ_STOPPED;
           seq_pointer[p] = 0;
-        } else pattern_fn(0, seq_pattern[p][step]);
+        } else {
+          pattern_fn(0, seq_pattern[p][step]);
+        }
       }
-    }
     }
   }
 
@@ -153,13 +149,11 @@ void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), 
 void pattern_reset(int p) {
   seq_pointer[p] = 0;
   seq_state[p] = SEQ_STOPPED;
-  seq_counter[p] = 0;
   seq_modulo[p] = 4;
   seq_pattern_length[p] = 0;
   seq_offset[p] = 0;
   for (int s = 0; s < SEQ_STEPS_MAX; s++) {
     seq_pattern[p][s][0] = '\0';
-    seq_pattern_mute[p][s] = 0;
   }
 }
 
@@ -184,10 +178,6 @@ void seq_modulo_set(int pattern, int m) {
   seq_modulo[pattern] = m;
 }
 
-void seq_mute_set(int pattern, int step, int m) {
-  seq_pattern_mute[pattern][step] = m;
-}
-
 void seq_step_set(int pattern, int step, char *scratch) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return;
   if (step < 0 || step >= SEQ_STEPS_MAX) return;
@@ -197,6 +187,10 @@ void seq_step_set(int pattern, int step, char *scratch) {
     snprintf(seq_pattern[pattern][step], STEP_MAX, "%s", scratch);
   }
   seq_pattern_length[pattern] = pattern_length_compute(pattern);
+}
+
+void seq_step_append(int pattern, char *scratch) {
+  seq_step_set(pattern, seq_pattern_length[pattern], scratch);
 }
 
 void seq_pattern_length_set(int pattern, int len) {

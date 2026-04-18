@@ -31,7 +31,12 @@ int main(int argc, char **argv) {
         case 'p': udp_port = (int)strtol(&(argv[i][2]), NULL, 0); break;
         case 'l': {
           skred_enumerate_devices(0);
+          skred_enumerate_devices(1);
           exit(1);
+        } break;
+        case 'i': {
+          skred_enumerate_devices(1);
+          output = atoi(&argv[i][2]);
         } break;
         case 'o': {
           skred_enumerate_devices(0);

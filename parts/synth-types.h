@@ -19,6 +19,7 @@ enum {
   WAVE_TABLE_TRI,      // 4
   WAVE_TABLE_NOISE,    // 5
   WAVE_TABLE_NOISE_ALT,// 6
+  WAVE_TABLE_CAPTURE,  // 7
 
   WAVE_TABLE_KRG1 = 10, // was 32
   WAVE_TABLE_KRG2,  //11

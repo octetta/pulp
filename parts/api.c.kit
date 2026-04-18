@@ -38,8 +38,6 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
   @endif
 }
 
-static float one_skred_frame[ONE_FRAME_MAX * AUDIO_CHANNELS * VOICE_MAX];
-
 static skode_t w = SKODE_EMPTY();
 
 // Audio context and device state
@@ -92,49 +90,6 @@ int skred_enumerate_devices(int isCapture) {
 void skred_set_audio_device(int playback_idx, int capture_idx) {
     skred_playback_device_idx = playback_idx;
     skred_capture_device_idx = capture_idx;
-}
-
-int x_skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
-  @if(!UDP)
-  (void)port;
-  @endif
-    // 1. Initialize synth state
-  int req = req_audio_frames;
-  int vc = voices;
-  requested_synth_frames_per_callback = req;
-  synth_init(vc);
-  wave_table_init(0);
-  voice_init();
-  @if(SEQ)
-  tempo_set(120.0);
-  seq_init();
-  @endif
-
-    // 2. Start UDP listening thread
-  @if(UDP)
-  udp_port = port;
-  if (udp_port > 0) {
-    int r = udp_start(udp_port);
-    if (r != udp_port) udp_port = 0;
-  }
-  @endif
-
-    // 3. Initialize and start miniaudio device
-  // miniaudio's synth device setup
-  ma_device_config synth_config = ma_device_config_init(ma_device_type_playback);
-  synth_config.playback.format = ma_format_f32;
-  synth_config.playback.channels = AUDIO_CHANNELS;
-  synth_config.sampleRate = MAIN_SAMPLE_RATE;
-  synth_config.dataCallback = synth_callback;
-  synth_config.periodSizeInFrames = requested_synth_frames_per_callback;
-  //synth_config.periodSizeInMilliseconds = 0;
-  //synth_config.periods = 3;
-  //synth_config.noClip = MA_TRUE;
-  synth_config.pUserData = &one_skred_frame;
-  ma_device_init(NULL, &synth_config, &synth_device);
-  ma_device_start(&synth_device);
-    
-    return 0; // Return 0 on success, or an error code
 }
 
 int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
@@ -192,7 +147,7 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   //synth_config.periodSizeInMilliseconds = 0;
   //synth_config.periods = 3;
   //synth_config.noClip = MA_TRUE;
-  synth_config.pUserData = &one_skred_frame;
+  synth_config.pUserData = NULL;
   
   // Initialize with synth_context rather than NULL
   ma_device_init(&synth_context, &synth_config, &synth_device);

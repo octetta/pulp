@@ -1145,6 +1145,9 @@ int skode_function(ands_t *s, int info) {
         seq_state_set(ctx->pattern, x);
       } else pattern_show(ctx, ctx->pattern);
       break;
+    case ATOM4('z?--'): // one-pattern-play-mode bool
+      pattern_show(ctx, ctx->pattern);
+      break;
     case ATOM4('Z---'): // all-pattern-play-mode bool
       if (argc) {
         seq_state_all(x);
@@ -1153,11 +1156,18 @@ int skode_function(ands_t *s, int info) {
         for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p);
       }
       break;
+    case ATOM4('z?\?-'): // show all patterns
+    case ATOM4('Z?--'): // show all patterns
+      ctx->printf(ctx, "M%g\n", tempo_bpm * 4.0f);
+      for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p);
+      break;
     @endif
+    case ATOM4('v?--'): // show-voice
     case ATOM4('?---'): // show-voice
       voice_show(ctx, voice, ' ', ctx->verbose); break;
     case ATOM4('\\---'): // verbose-show-voice
       voice_show(ctx, voice, ' ', 1); break;
+    case ATOM4('v?\?-'): // show-active-voices
     case ATOM4('?\?--'): // show-active-voices
       voice_show_all(ctx, voice, ctx->verbose); break;
     case ATOM4('?s--'): // show-skode-string

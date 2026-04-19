@@ -1466,6 +1466,8 @@ void normalize_preserve_zero(float *data, int length) {
 
 #define SIZE_SINE (4096)
 
+#include "dwg.h"
+
 void wave_table_init(int flag) {
   (void)flag;
 
@@ -1480,7 +1482,7 @@ void wave_table_init(int flag) {
 
   uint64_t white_noise;
   audio_rng_init(&white_noise, 1);
-  for (int w = WAVE_TABLE_SINE; w <= WAVE_TABLE_CAP_BOTH; w++) {
+  for (int w = WAVE_TABLE_SINE; w <= WAVE_TABLE_KRG16; w++) {
     int size = SIZE_SINE;
     char *name = "?";
     switch (w) {
@@ -1491,9 +1493,25 @@ void wave_table_init(int flag) {
       case WAVE_TABLE_TRI:   name = "triangle"; break;
       case WAVE_TABLE_NOISE: name = "noise"; break;
       case WAVE_TABLE_NOISE_ALT: name = "noise-alt"; break; // not used, here for laziness in experiment
-      case WAVE_TABLE_CAP_LEFT: name = "cap-left"; break; // not used, here for laziness in experiment
+      case WAVE_TABLE_CAP_LEFT:  name = "cap-left"; break; // not used, here for laziness in experiment
       case WAVE_TABLE_CAP_RIGHT: name = "cap-right"; break; // not used, here for laziness in experiment
-      case WAVE_TABLE_CAP_BOTH: name = "cap-both"; break; // not used, here for laziness in experiment
+      case WAVE_TABLE_CAP_BOTH:  name = "cap-both"; break; // not used, here for laziness in experiment
+      case WAVE_TABLE_KRG1:  name = "dwg-strings"; break;
+      case WAVE_TABLE_KRG2:  name = "dwg-clarinet"; break;
+      case WAVE_TABLE_KRG3:  name = "dwg-apiano"; break;
+      case WAVE_TABLE_KRG4:  name = "dwg-epiano"; break;
+      case WAVE_TABLE_KRG5:  name = "dwg-epiano-hard"; break;
+      case WAVE_TABLE_KRG6:  name = "dwg-clavi"; break;
+      case WAVE_TABLE_KRG7:  name = "dwg-organ"; break;
+      case WAVE_TABLE_KRG8:  name = "dwg-brass"; break;
+      case WAVE_TABLE_KRG9:  name = "dwg-sax"; break;
+      case WAVE_TABLE_KRG10: name = "dwg-violin"; break;
+      case WAVE_TABLE_KRG11: name = "dwg-aguitar"; break;
+      case WAVE_TABLE_KRG12: name = "dwg-dguitar"; break;
+      case WAVE_TABLE_KRG13: name = "dwg-ebass"; break;
+      case WAVE_TABLE_KRG14: name = "dwg-dbass"; break;
+      case WAVE_TABLE_KRG15: name = "dwg-bell"; break;
+      case WAVE_TABLE_KRG16: name = "dwg-whistle"; break;
       default: name = "?"; break;
     }
     strncpy(sw.name[w], name, WAVE_NAME_MAX);
@@ -1519,6 +1537,22 @@ void wave_table_init(int flag) {
         case WAVE_TABLE_TRI: f = (phase < 0.5f) ? (4.0f * phase - 1.0f) : (3.0f - 4.0f * phase); break;
         case WAVE_TABLE_NOISE: f = audio_rng_float(&white_noise); break;
         case WAVE_TABLE_NOISE_ALT: f = audio_rng_float(&white_noise); break;
+        case WAVE_TABLE_KRG1:  f = W01[off]; break;
+        case WAVE_TABLE_KRG2:  f = W02[off]; break;
+        case WAVE_TABLE_KRG3:  f = W03[off]; break;
+        case WAVE_TABLE_KRG4:  f = W04[off]; break;
+        case WAVE_TABLE_KRG5:  f = W05[off]; break;
+        case WAVE_TABLE_KRG6:  f = W06[off]; break;
+        case WAVE_TABLE_KRG7:  f = W07[off]; break;
+        case WAVE_TABLE_KRG8:  f = W08[off]; break;
+        case WAVE_TABLE_KRG9:  f = W09[off]; break;
+        case WAVE_TABLE_KRG10: f = W10[off]; break;
+        case WAVE_TABLE_KRG11: f = W11[off]; break;
+        case WAVE_TABLE_KRG12: f = W12[off]; break;
+        case WAVE_TABLE_KRG13: f = W13[off]; break;
+        case WAVE_TABLE_KRG14: f = W14[off]; break;
+        case WAVE_TABLE_KRG15: f = W15[off]; break;
+        case WAVE_TABLE_KRG16: f = W16[off]; break;
         default: f = 0; break;
       }
       sw.data[w][off++] = f;

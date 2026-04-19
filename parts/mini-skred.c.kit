@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
   unsigned int req = 128;
   int udp_port = 60440;
   int output = -1;
+  int input = -1;
   
   for (int i=1; i<argc; i++) {
     if (argv[i][0] == '-') {
@@ -36,7 +37,7 @@ int main(int argc, char **argv) {
         } break;
         case 'i': {
           skred_enumerate_devices(1);
-          output = atoi(&argv[i][2]);
+          input = atoi(&argv[i][2]);
         } break;
         case 'o': {
           skred_enumerate_devices(0);
@@ -59,7 +60,7 @@ int main(int argc, char **argv) {
   printf("# frames/callback %d\n", req);
   printf("# voices %d\n", vc);
 
-  skred_set_audio_device(output, -1);
+  skred_set_audio_device(output, input);
 
   if (skred_start(req, vc, udp_port) != 0) {
     return 1;

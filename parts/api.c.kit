@@ -128,7 +128,9 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   ma_context_get_devices(&synth_context, &pPlaybackInfos, &playbackCount, &pCaptureInfos, &captureCount);
 
   // Switch to duplex to support both input and output
-  ma_device_config synth_config = ma_device_config_init(ma_device_type_duplex);
+  ma_device_type which_type = ma_device_type_playback;
+  if (skred_capture_device_idx >= 0) which_type = ma_device_type_duplex;
+  ma_device_config synth_config = ma_device_config_init(which_type);
 
   if (skred_playback_device_idx >= 0 && skred_playback_device_idx < (int)playbackCount) {
       synth_config.playback.pDeviceID = &pPlaybackInfos[skred_playback_device_idx].id;

@@ -1,0 +1,28 @@
+# w300 size:23135 rate:44100 +hz:230.825 midi:69 r/w ref:1 'wav/0.wav'
+# w301 size:92644 rate:44100 +hz:924.339 midi:69 r/w ref:0 'wav/1.wav'
+# w302 size:11574 rate:44100 +hz:115.478 midi:69 r/w ref:1 'wav/2.wav'
+# ??
+/w0,300
+/w1,301
+/w2,302
+v0 w10 f55 n33,0 a5 G1,-1,-1,-1 p-1 g0.8
+v1 w18 f55.1591 n33,5.00003 a0 N0,5 p1 g0.7
+v2 w300 f622.254 n75,0 a20 P4,1,0
+v3 w302 f440 n69,0 a20
+v4 w0 f0.25 n0,0 a0 m1 # *
+# Z
+M60
+y0 %4 # state:1 ptr:1, len:2
+{v0n33} x0
+{v0n81} x1
+y1 %4 # state:1 ptr:1, len:4
+{v2l1+.75v2l1} x0
+{v2l1+.25v2l1} x1
+{v2l1+.66v2l1} x2
+{v2l1} x3
+y2 %1 # state:1 ptr:0, len:2
+{v3l1} x0
+{v3l1+.125v3l.5} x1
+v0l1
+v1l1
+v4l1

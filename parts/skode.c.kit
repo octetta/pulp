@@ -707,7 +707,7 @@ int wavetable_show(skode_t *ctx, int n) {
       sw.offset_hz[n],
       sw.midi_note[n]);
     if (readonly) {
-      ctx->printf(ctx, " r/o");
+      ctx->printf(ctx, " r/o ref:%d", refcount);
     } else {
       ctx->printf(ctx, " r/w ref:%d", refcount);
     }
@@ -719,8 +719,6 @@ int wavetable_show(skode_t *ctx, int n) {
       scope->wave_len = SCOPE_WAVE_WIDTH;
     }
     @endif
-  } else {
-    ctx->printf(ctx, "# w%d nil\n", n);
   }
   return 0;
 }
@@ -1098,7 +1096,7 @@ int skode_function(ands_t *s, int info) {
       } else if (argc == 0) {
         int c = 0;
         for (int i=0; i<WAVE_TABLE_MAX; i++) {
-          if (sw.data[i] && sw.readonly[i] == 0) {
+          if (1 || sw.data[i] && sw.readonly[i] == 0) {
             wavetable_show(ctx, i);
             c++;
           }

@@ -286,8 +286,8 @@ void osc_set_wave_table_index(int voice, int wave) {
   if (old == wave) return;
   // old == -1 means voice was never assigned a wave table yet (e.g. first
   // call from voice_reset).  Guard before indexing to avoid sw.readonly[-1].
-  if (old >= 0 && sw.readonly[old] == 0) sw.refcount[old]--;
-  if (wave >= 0 && sw.readonly[wave] == 0) sw.refcount[wave]++;
+  if (old >= 0) sw.refcount[old]--;
+  if (wave >= 0) sw.refcount[wave]++;
   if (sw.data[wave] && sw.size[wave] && sw.rate[wave] > 0.0) {
     sv.wave_table_index[voice] = wave;
     int update_freq = 0;
@@ -563,7 +563,8 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     float sample_right = 0.0f;
     float f = 0.0f;
     float whiteish = audio_rng_float(&synth_random);
-    float capture = this_capture[i*2];
+    float cap_left = this_capture[i*2];
+    float cap_right = this_capture[i*2+1];
     for (int n = 0; n < nvoices; n++) {
       @if(BENCH)
       if (sv.mark_go[n]) {
@@ -602,8 +603,11 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         // reuse the one white noise source for each sample
         f = whiteish;
       }
-      else if (sv.wave_table_index[n] == WAVE_TABLE_CAPTURE) {
-        f = capture;
+      else if (sv.wave_table_index[n] == WAVE_TABLE_CAP_LEFT) {
+        f = cap_left;
+      }
+      else if (sv.wave_table_index[n] == WAVE_TABLE_CAP_RIGHT) {
+        f = cap_right;
       } else {
         @if(FM)
         if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
@@ -1476,7 +1480,7 @@ void wave_table_init(int flag) {
 
   uint64_t white_noise;
   audio_rng_init(&white_noise, 1);
-  for (int w = WAVE_TABLE_SINE; w <= WAVE_TABLE_CAPTURE; w++) {
+  for (int w = WAVE_TABLE_SINE; w <= WAVE_TABLE_CAP_BOTH; w++) {
     int size = SIZE_SINE;
     char *name = "?";
     switch (w) {
@@ -1487,7 +1491,9 @@ void wave_table_init(int flag) {
       case WAVE_TABLE_TRI:   name = "triangle"; break;
       case WAVE_TABLE_NOISE: name = "noise"; break;
       case WAVE_TABLE_NOISE_ALT: name = "noise-alt"; break; // not used, here for laziness in experiment
-      case WAVE_TABLE_CAPTURE: name = "capture"; break; // not used, here for laziness in experiment
+      case WAVE_TABLE_CAP_LEFT: name = "cap-left"; break; // not used, here for laziness in experiment
+      case WAVE_TABLE_CAP_RIGHT: name = "cap-right"; break; // not used, here for laziness in experiment
+      case WAVE_TABLE_CAP_BOTH: name = "cap-both"; break; // not used, here for laziness in experiment
       default: name = "?"; break;
     }
     strncpy(sw.name[w], name, WAVE_NAME_MAX);

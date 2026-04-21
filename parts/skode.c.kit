@@ -837,6 +837,8 @@ void skode_sample(int how_many) {
   }
 }
 
+    #include "miniaudio.h"
+
 int skode_function(ands_t *s, int info) {
   uint32_t atom = ands_atom_num(s);
   int argc = ands_arg_len(s);
@@ -1404,7 +1406,19 @@ int skode_function(ands_t *s, int info) {
         if (argc) wave_load(ctx, file_num, wave_slot, ch, 1);
       }
       break;
-    case ATOM4('?r--'): // record duration
+    case ATOM4('>r--'): // record to file
+      if (argc) {
+        char filename[64];
+        sprintf(filename, "out-%d.wav", x);
+        ma_encoder_config config;
+        ma_encoder encoder;
+        config = ma_encoder_config_init(ma_encoding_format_wav, ma_format_f32, 1, 44100);
+        if (ma_encoder_init_file(filename, &config, &encoder) != MA_SUCCESS) {
+        } else {
+          ma_encoder_write_pcm_frames(&encoder, sampling.where, sampling.len, NULL);
+          ma_encoder_uninit(&encoder);
+        }
+      }
       break;
     case ATOM4('<r--'): // record duration
       if (argc) {

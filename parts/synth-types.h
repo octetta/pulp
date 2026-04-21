@@ -117,4 +117,15 @@ typedef struct {
 #define WAVE_NAME_MAX (16+1)
 typedef char wave_name_t[WAVE_NAME_MAX];
 
+typedef struct {
+  int capacity;
+  int busy;
+  int what;
+  int go;
+  int how_many;
+  int ptr;
+  int len;
+  float *where;
+} synth_sample_t;
+
 #endif

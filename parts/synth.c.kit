@@ -527,6 +527,10 @@ void mmf_set_params(int n, float f, float resonance);
 static float empty_capture[65536] = {0};
 static float *this_capture;
 
+synth_sample_t sampling = {0};
+
+static int first = 1;
+
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user) {
   (void)input;
   (void)user;
@@ -561,6 +565,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     @endif
     float sample_left = 0.0f;
     float sample_right = 0.0f;
+    float sample_center = 0.0f;
     float f = 0.0f;
     float whiteish = audio_rng_float(&synth_random);
     float cap_left = this_capture[i*2];
@@ -702,8 +707,11 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         final = sv.smoother_gain[n];
       }
       @endif
-#endif      
+#endif
+
       sv.sample[n] *= final;
+
+      sample_center += sv.sample[n];
 
       if (sv.disconnect[n] == 0) {
         float left  = sv.sample[n];
@@ -721,6 +729,22 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         right *= sv.pan_right[n];
         sample_left  += left;
         sample_right += right;
+      }
+    }
+
+    if (sampling.go) {
+      sampling.busy = 1;
+      sampling.go = 0;
+      sampling.ptr = 0;
+      sampling.len = 0;
+    }
+    if (sampling.busy) {
+      if (sampling.how_many >= 0) {
+        sampling.where[sampling.ptr++] = sample_center;
+        sampling.how_many--;
+      } else {
+        sampling.len = sampling.ptr-1;
+        sampling.busy = 0;
       }
     }
 

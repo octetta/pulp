@@ -447,6 +447,61 @@ int skode_load(skode_t *ctx, int voice, int n) {
   return r;
 }
 
+extern synth_sample_t sampling;
+
+int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset) {
+  ctx->printf(ctx, "# rec_load(ctx, %d, %d, %g)\n",
+    wave_slot, one_shot, offset);
+  if (wave_slot < 0 || wave_slot >= EXT_SAMPLE_999) {
+    ctx->printf(ctx, "# invalid slot %d\n", wave_slot);
+    return -1;
+  }
+  float *data = sampling.where;
+  int data_len = sampling.len;
+  if (data == NULL) {
+    ctx->printf(ctx, "# no data\n");
+    return 100; // fix todo
+  }
+  if (data_len <= 0) {
+    ctx->printf(ctx, "# no data len\n");
+    return 100;
+  }
+  if (sw.readonly[wave_slot] == 1) {
+    ctx->printf(ctx, "# cannot write to w%d r/o\n", wave_slot);
+    return -1;
+  }
+  if (sw.refcount[wave_slot] > 0) {
+    ctx->printf(ctx, "# cannot write to w%d ref > 0\n", wave_slot);
+    return -1;
+  } else {
+    wave_free_one(wave_slot);
+  }
+  float *table = calloc(data_len, sizeof(float));
+  for (int i=0; i<data_len; i++) table[i] = (float)data[i];
+  normalize_preserve_zero(table, data_len);
+  int len = data_len;
+    snprintf(sw.name[wave_slot], WAVE_NAME_MAX, "data[%d]", data_len);
+    sw.is_heap[wave_slot] = 1;
+    sw.data[wave_slot] = table;
+    sw.size[wave_slot] = len;
+    sw.rate[wave_slot] = 44100;
+    sw.one_shot[wave_slot] = (one_shot != 0);
+    sw.loop_enabled[wave_slot] = 0;
+    sw.loop_start[wave_slot] = 1;
+    sw.loop_end[wave_slot] = len;
+    if (offset > 0) {
+      sw.offset_hz[wave_slot] = (float)len / 44100 * 440.0f;
+      sw.midi_note[wave_slot] = 69;
+    } else {
+      sw.offset_hz[wave_slot] = 0.0f;
+      sw.midi_note[wave_slot] = 0;
+    }
+    char *name = "data";
+    int channels = 1;
+    ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d)\n", len, name, wave_slot, channels);
+  return 0;
+}
+
 int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offset) {
   if (ctx == NULL) return 100; // fix todo
   ctx->printf(ctx, "# data_load(ctx, %d, %d, %g, %g)\n", wave_slot, one_shot, rate, offset);
@@ -760,6 +815,27 @@ void wave_table_dynamic_expand(int n) {
 
 #include <sys/time.h>
 #include <unistd.h>
+
+void skode_sample(int how_many) {
+  if (sampling.busy) {
+    return;
+  }
+  if (sampling.capacity < how_many) {
+    if (sampling.where) {
+      free(sampling.where);
+      sampling.where = NULL;
+    }
+    if (sampling.where == NULL) {
+      sampling.capacity = how_many;
+      sampling.where = (float *)calloc(how_many + 4096, sizeof(float));
+    }
+    sampling.how_many = how_many;
+    sampling.go = 1;
+  } else {
+    sampling.how_many = how_many;
+    sampling.go = 1;
+  }
+}
 
 int skode_function(ands_t *s, int info) {
   uint32_t atom = ands_atom_num(s);
@@ -1187,6 +1263,17 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('/q--'): // quit
       ctx->quit = -1;
       return 0;
+    case ATOM4('/r--'): // sample-to-wave slot one_shot offset
+      {
+        int wave_slot = EXT_SAMPLE_000;
+        int one_shot = 1;
+        float offset = 1;
+        if (argc) wave_slot = (int)arg[0];
+        if (argc > 1) one_shot = arg[1];
+        if (argc > 2) offset = arg[3];
+        rec_load(ctx, wave_slot, one_shot, offset);
+      }
+      break;
     case ATOM4('/d--'): // data-to-wave slot rate rate offset
       {
         int wave_slot = EXT_SAMPLE_000;
@@ -1315,6 +1402,15 @@ int skode_function(ands_t *s, int info) {
           wave_slot = EXT_SAMPLE_000;
         }
         if (argc) wave_load(ctx, file_num, wave_slot, ch, 1);
+      }
+      break;
+    case ATOM4('?r--'): // record duration
+      break;
+    case ATOM4('<r--'): // record duration
+      if (argc) {
+        skode_sample(arg[0] * (float)MAIN_SAMPLE_RATE);
+      } else {
+        ctx->printf(ctx, "skode_sample -> %d %d %d\n", sampling.busy, sampling.go, sampling.how_many);
       }
       break;
     @if(RECORD)

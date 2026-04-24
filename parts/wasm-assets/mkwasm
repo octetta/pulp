@@ -3,7 +3,7 @@ emcc -I. -I.. \
     ../ands.c ../miniaudio.c ../util.c ../miniwav.c ../skqueue.c seq.c \
     api.c synth.c skode.c synth-alloc.c \
     -o skred_api.js \
-    -s EXPORTED_FUNCTIONS='["_skred_start", "_skred_command", "_skred_stop", "_skred_features", "_skred_log", "_skred_logger" ]' \
+    -s EXPORTED_FUNCTIONS='["_skred_start", "_skred_command", "_skred_stop", "_skred_features", "_skred_log", "_skred_logger", "_skred_enumerate_devices", "_skred_set_audio_device" ]' \
     -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap", "FS", "UTF8ToString", "stringToUTF8" ]' \
     -s FORCE_FILESYSTEM=1 -s \
     -s ALLOW_MEMORY_GROWTH=1 \

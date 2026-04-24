@@ -170,7 +170,7 @@ Type <span class="system">'help'</span> for engine features.
         </div>
 
         <div class="status-bar">
-            <span id="engine-left">wasm-skred 0.2.0</span>
+            <span id="engine-left">wasm-skred 0.3.0</span>
             <span id="engine-center">log 0</span>
             <span id="engine-status">AUDIO OFF</span>
         </div>
@@ -188,7 +188,7 @@ function usage() {
   printToTerminal("boot (voice-count) (callback-frame-count)");
   printToTerminal("load # select a wav file");
   printToTerminal(`v(0..${nvoices}) # select voice`);
-  printToTerminal("w(0..4)    # select waveform");
+  printToTerminal("w(0..26)   # select waveform");
   printToTerminal("a(-60..10) # set amplitide (dB)");
   printToTerminal("f(0..1760) # set frequency (Hz)");
   printToTerminal("n(0..127)  # set frequency by MIDI note");
@@ -276,6 +276,7 @@ function processCommand(cmd) {
                 }
             }
             try {
+                Module._skred_set_audio_device(0, 0); // hack... force standard in/out devices?!?
                 const result = Module._skred_start(bufsize, nvoices, 0); 
                 printToTerminal(`skred_start() = ${result}`, 'system');
                 statusSpan.innerText = `AUDIO ON ${nvoices} ${bufsize}`;

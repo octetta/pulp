@@ -737,6 +737,8 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       sampling.go = 0;
       sampling.ptr = 0;
       sampling.len = 0;
+      sampling.offset = 0;
+      sampling.trim = 0;
     }
     if (sampling.busy) {
       if (sampling.how_many >= 0) {

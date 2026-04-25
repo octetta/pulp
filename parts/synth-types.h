@@ -126,6 +126,8 @@ typedef struct {
   int ptr;
   int len;
   float *where;
+  int offset;
+  int trim;
 } synth_sample_t;
 
 #endif

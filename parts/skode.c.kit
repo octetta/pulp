@@ -754,65 +754,6 @@ void scope_wave_update(const float *table, int size) {
 
 #include <stdio.h>
 
-/**
- * Prints an audio waveform using Braille patterns.
- * @param data          Pointer to the audio float array.
- * @param n             Input array length.
- * @param width_chars   Desired output width in Braille characters.
- * @param height_chars  Desired output height in Braille characters (4 dots per char).
- */
-void print_audio_braille(skode_t *ctx, float *data, int n, int width_chars, int height_chars) {
-    if (!data || n <= 0 || width_chars <= 0 || height_chars <= 0) return;
-
-    // 1. Find max amplitude for centered vertical scaling
-    float max_abs = 0.01f; // Avoid division by zero
-    for (int i = 0; i < n; i++) {
-        float val = (data[i] < 0) ? -data[i] : data[i];
-        if (val > max_abs) max_abs = val;
-    }
-
-    int total_dots_y = height_chars * 4;
-    int total_dots_x = width_chars * 2;
-
-    // Braille bitmask lookup: [column][y_in_char (0=bottom, 3=top)]
-    // Column 0 dots: 7, 3, 2, 1 | Column 1 dots: 8, 6, 5, 4
-    const int masks[2][4] = {
-        {0x40, 0x04, 0x02, 0x01},
-        {0x80, 0x20, 0x10, 0x08}
-    };
-
-    // 2. Iterate through character rows (Top to Bottom)
-    for (int r = height_chars - 1; r >= 0; r--) {
-        for (int c = 0; c < width_chars; c++) {
-            int pattern = 0;
-
-            // Check the 2 horizontal dots for this character
-            for (int dx = 0; dx < 2; dx++) {
-                int dot_x = c * 2 + dx;
-                
-                // Stretch/Shrink: Map dot_x to data index
-                // Using (n-1) and (total_dots_x-1) for inclusive bounds
-                int data_idx = (int)((long long)dot_x * (n - 1) / (total_dots_x - 1));
-                
-                // Scale value to dot space [0, total_dots_y - 1]
-                // Zero is mapped to the middle of the vertical dot range
-                float normalized = data[data_idx] / max_abs;
-                int dot_y = (int)((normalized + 1.0f) * 0.5f * (total_dots_y - 1));
-
-                // If this specific dot belongs in the current character row
-                if (dot_y / 4 == r) {
-                    pattern |= masks[dx][dot_y % 4];
-                }
-            }
-
-            // 3. Output Braille via UTF-8 (U+2800 + pattern)
-            // Using printf for the 3-byte sequence
-            ctx->printf(ctx, "%c%c%c", 0xE2, 0xA0 | (pattern >> 6), 0x80 | (pattern & 0x3F));
-        }
-        ctx->printf(ctx, "\n");
-    }
-}
-
 #include <stdio.h>
 #include <math.h>
 
@@ -914,6 +855,7 @@ void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_cha
 
     // 1. Draw the Waveform rows
     for (int r = height_chars - 1; r >= 0; r--) {
+        ctx->printf(ctx, ":");
         for (int c = 0; c < width_chars; c++) {
             int pattern = 0;
             for (int dx = 0; dx < 2; dx++) {
@@ -929,7 +871,7 @@ void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_cha
             }
             ctx->printf(ctx, "%c%c%c", 0xE2, 0xA0 | (pattern >> 6), 0x80 | (pattern & 0x3F));
         }
-        ctx->printf(ctx, "\n");
+        ctx->printf(ctx, ":\n");
     }
 
     // 2. Draw the Marker row (Offset and Trim)
@@ -937,18 +879,19 @@ void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_cha
     int dot_offset = (int)((float)offset * (total_dots_x - 1) / (n - 1));
     int dot_trim   = (int)((float)trim   * (total_dots_x - 1) / (n - 1));
 
+    ctx->printf(ctx, "^");
     for (int c = 0; c < width_chars; c++) {
         int pattern = 0;
         for (int dx = 0; dx < 2; dx++) {
             int x = c * 2 + dx;
             // Use Dot 1 (0x01) and Dot 4 (0x08) as markers on the top of the char
-            if (x == dot_offset || x == dot_trim) {
+            if (x >= dot_offset && x <= dot_trim) {
                 pattern |= (dx == 0) ? 0x01 : 0x08;
             }
         }
         ctx->printf(ctx, "%c%c%c", 0xE2, 0xA0 | (pattern >> 6), 0x80 | (pattern & 0x3F));
     }
-    ctx->printf(ctx, "\n");
+    ctx->printf(ctx, "^\n");
 
     free(y_coords);
 }
@@ -1400,12 +1343,14 @@ int skode_function(ands_t *s, int info) {
           wavetable_show(ctx,x);
         } else {
           if (sampling.where) {
-            ctx->printf(ctx,"+%d -%d (%d)\n", sampling.offset, sampling.trim,
-              sampling.len - sampling.offset - sampling.trim);
             if ((sampling.offset > sampling.len) || (sampling.len - sampling.trim <= 0)) {
               ctx->printf(ctx,"NO!\n");
             } else {
               print_audio_braille_labeled(ctx, sampling.where, sampling.len, w, h, sampling.offset, sampling.len - sampling.trim);
+              int len = sampling.len - sampling.offset - sampling.trim;
+              ctx->printf(ctx,"+offset %d -trim %d = len %d (%gms)\n",
+                sampling.offset, sampling.trim, len,
+                (float)len / (float)MAIN_SAMPLE_RATE * 1000.0);
             }
           }
         }

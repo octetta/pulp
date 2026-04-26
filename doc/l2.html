@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skred Engine - Interactive Tutorial</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f4f5;
+            --cell-bg: #ffffff;
+            --code-bg: #18181b;
+            --code-fg: #e4e4e7;
+            --output-bg: #27272a;
+            --output-fg: #a1a1aa;
+            --text-color: #27272a;
+            --border-color: #d4d4d8;
+            --brand-color: #0ea5e9;
+            --brand-hover: #0284c7;
+            --gutter-bg: #f4f4f5;
+            /* Sharper aesthetic */
+            --radius: 2px; 
+        }
+
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0; padding: 0; line-height: 1.5;
+        }
+
+        /* Top Bar - Clean & Square */
+        .top-bar {
+            position: sticky; top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            border-bottom: 2px solid var(--border-color);
+            padding: 8px 20px;
+            display: flex; align-items: center; gap: 15px;
+            z-index: 100;
+        }
+
+        .top-bar h1 { margin: 0; font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-right: auto; }
+
+        button {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #fff; border: 1px solid var(--border-color);
+            padding: 5px 12px; border-radius: var(--radius);
+            font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        button:hover:not(:disabled) { border-color: #71717a; background: #fafafa; }
+        #btn-start { background: var(--text-color); color: white; border-color: var(--text-color); }
+        #btn-start:hover:not(:disabled) { background: #000; }
+
+        .notebook { max-width: 900px; margin: 30px auto; padding: 0 20px; display: flex; flex-direction: column; }
+
+        /* Content Sections */
+        .text-cell { padding: 15px 50px; }
+        .text-cell h1, .text-cell h2 { border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 2em; }
+        .text-cell code { background: #e4e4e7; padding: 1px 4px; border-radius: var(--radius); font-family: monospace; font-size: 0.9em; }
+
+        /* Code & Output Blocks */
+        .code-cell {
+            display: flex; border: 1px solid var(--border-color);
+            border-radius: var(--radius); overflow: hidden; background: var(--code-bg);
+            margin: 10px 0 30px 0;
+        }
+
+        .gutter {
+            width: 50px; background: var(--gutter-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex; justify-content: center; padding-top: 12px;
+        }
+
+        .run-btn {
+            background: transparent; border: none; color: var(--brand-color);
+            cursor: pointer; width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .run-btn:hover { color: var(--brand-hover); }
+        .run-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+        .editor-area { flex-grow: 1; display: flex; flex-direction: column; }
+
+        textarea {
+            width: 100%; min-height: 50px; background: transparent;
+            color: var(--code-fg); border: none; padding: 16px;
+            font-family: 'Fira Code', 'JetBrains Mono', monospace;
+            font-size: 14px; outline: none; resize: vertical;
+        }
+
+        /* Output Area */
+        .output-area {
+            background: var(--output-bg);
+            color: var(--output-fg);
+            font-family: monospace;
+            font-size: 13px;
+            padding: 0 16px;
+            white-space: pre-wrap;
+            border-top: 1px solid #3f3f46;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none; /* Hidden by default */
+        }
+        .output-area.visible { padding: 12px 16px; display: block; }
+
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+        .status-dot.active { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <h1>Skred Documentation</h1>
+        <div class="status-dot" id="status-indicator"></div>
+        <button id="btn-start">Start Engine</button>
+        <button id="btn-stop" disabled>Stop</button>
+        <button id="btn-quiet">Quiet</button>
+    </div>
+
+    <div id="notebook-container" class="notebook"></div>
+
+    <template data-type="markdown">
+# Getting Started
+This is your hands-on laboratory for the Skred engine. 
+
+## Oscillator Basics
+Set the carrier frequency with `f`. If the command is successful and produces an internal state report, you will see it in the output block below the code.
+    </template>
+    <template data-type="code">f 440</template>
+
+    <template data-type="markdown">
+## Inspecting State
+Commands like `debug` or `status` (depending on your build) might return multi-line strings describing the current engine state.
+    </template>
+    <template data-type="code">v 1.0</template>
+
+    <script src="skred_api.js"></script>
+
+    <script>
+        const container = document.getElementById('notebook-container');
+        const templates = document.querySelectorAll('template');
+
+        // 1. Render content
+        templates.forEach(template => {
+            const type = template.getAttribute('data-type');
+            const content = template.innerHTML.trim();
+
+            if (type === 'markdown') {
+                const section = document.createElement('div');
+                section.className = 'text-cell';
+                section.innerHTML = marked.parse(content);
+                container.appendChild(section);
+            } 
+            else if (type === 'code') {
+                const cell = document.createElement('div');
+                cell.className = 'code-cell';
+                cell.innerHTML = `
+                    <div class="gutter">
+                        <button class="run-btn" title="Run (Ctrl+Enter)">
+                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        </button>
+                    </div>
+                    <div class="editor-area">
+                        <textarea spellcheck="false">${content}</textarea>
+                        <div class="output-area"></div>
+                    </div>
+                `;
+                container.appendChild(cell);
+            }
+        });
+
+        // 2. Engine Logic
+        const btnStart = document.getElementById('btn-start');
+        const btnStop = document.getElementById('btn-stop');
+        const btnQuiet = document.getElementById('btn-quiet');
+        const statusDot = document.getElementById('status-indicator');
+        let isRunning = false;
+
+        btnStart.onclick = () => {
+            if (typeof Module !== 'undefined' && Module._skred_start) {
+                Module._skred_start(128, 16, 0);
+                isRunning = true;
+                btnStart.disabled = true;
+                btnStop.disabled = false;
+                statusDot.classList.add('active');
+            }
+        };
+
+        btnStop.onclick = () => {
+            Module._skred_stop();
+            isRunning = false;
+            btnStart.disabled = false;
+            btnStop.disabled = true;
+            statusDot.classList.remove('active');
+        };
+
+        btnQuiet.onclick = () => {
+            if(isRunning) Module.ccall('skred_command', null, ['string'], ['q']);
+        };
+
+        // 3. Command Execution & Output Capture
+        document.addEventListener('click', (e) => {
+            const runBtn = e.target.closest('.run-btn');
+            if (!runBtn) return;
+
+            if (!isRunning) {
+                alert("Engine is offline.");
+                return;
+            }
+
+            const cell = runBtn.closest('.code-cell');
+            const textarea = cell.querySelector('textarea');
+            const outputArea = cell.querySelector('.output-area');
+            const lines = textarea.value.split('\n');
+            
+            let fullOutput = "";
+
+            lines.forEach(line => {
+                const cmd = line.trim();
+                if (cmd) {
+                    // Capture return string from WASM
+                    const result = Module.ccall('skred_command', 'string', ['string'], [cmd]);
+                    if (result && result.trim().length > 0) {
+                        fullOutput += result + "\n";
+                    }
+                }
+            });
+
+            // Display output only if there's content
+            if (fullOutput.trim()) {
+                outputArea.textContent = fullOutput.trim();
+                outputArea.classList.add('visible');
+            } else {
+                outputArea.classList.remove('visible');
+            }
+        });
+
+        // Optional: Run on Ctrl+Enter
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                if (e.target.tagName === 'TEXTAREA') {
+                    const btn = e.target.closest('.code-cell').querySelector('.run-btn');
+                    btn.click();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

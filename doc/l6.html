@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skred Engine Lab</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+  <style>
+    /* This ensures the boxes don't grow larger than 100% width */
+    *, *:before, *:after { box-sizing: border-box; }
+
+    :root {
+      --bg: #ffffff;
+      --fg: #1a1a1a;
+      --border: #000000;
+      --gutter-bg: #f8f8f8;
+      --code-bg: #000000;
+      --code-fg: #f1f1f1;
+      --output-bg: #0a0a0a;
+      --output-fg: #00ff00;
+      --accent: #2563eb;
+      --radius: 2px;
+    }
+
+    body.dark-mode {
+      --bg: #0c0c0c;
+      --fg: #e4e4e7;
+      --border: #27272a;
+      --gutter-bg: #18181b;
+      --code-bg: #000000;
+      --code-fg: #f1f1f1;
+      --output-bg: #000000;
+      --output-fg: #4ade80;
+    }
+
+    body {
+      font-family: "SF Mono", "Fira Code", monospace;
+      background-color: var(--bg);
+      color: var(--fg);
+      margin: 0; padding: 0; line-height: 1.4;
+    }
+
+    .top-bar {
+      position: sticky; top: 0;
+      background: var(--bg);
+      border-bottom: 2px solid var(--border);
+      padding: 8px 20px;
+      display: flex; align-items: center; gap: 12px;
+      z-index: 100;
+    }
+
+    .top-bar h1 { margin: 0; font-size: 0.8rem; font-weight: 900; text-transform: uppercase; margin-right: auto; }
+
+    .nav-btn {
+      background: var(--bg); color: var(--fg);
+      border: 1px solid var(--border);
+      padding: 4px 10px; border-radius: var(--radius);
+      font-size: 0.7rem; font-weight: 700; cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .nav-btn:hover { background: var(--fg); color: var(--bg); }
+    #btn-start { background: var(--border); color: var(--bg); }
+
+    .notebook { max-width: 900px; margin: 20px auto; padding: 0 20px; }
+
+    .text-cell { padding: 15px 0; width: 100%; }
+    .text-cell h2 { font-size: 1.1rem; border-bottom: 2px solid var(--border); padding-bottom: 4px; margin-top: 2em; text-transform: uppercase; }
+    .text-cell p { font-family: system-ui, sans-serif; font-size: 1rem; color: var(--fg); opacity: 0.85; }
+
+    .mermaid-container {
+      margin: 20px 0; padding: 20px;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: var(--radius);
+    }
+    body.dark-mode .mermaid-container { filter: invert(0.92) hue-rotate(180deg); }
+
+    .code-cell {
+      display: flex; width: 100%;
+      border: 2px solid var(--border);
+      border-radius: var(--radius); 
+      overflow: hidden; 
+      background: var(--code-bg);
+      margin: 10px 0 30px 0;
+    }
+
+    .gutter {
+      flex-shrink: 0; width: 45px; background: var(--gutter-bg);
+      border-right: 2px solid var(--border);
+      display: flex; justify-content: center; padding-top: 10px;
+    }
+
+    .run-btn { background: transparent; border: none; color: var(--accent); cursor: pointer; }
+    .run-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+    .editor-area { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    textarea {
+      width: 100%; min-height: 40px; background: transparent;
+      color: var(--code-fg); border: none; padding: 16px;
+      font-family: inherit; font-size: 14px; outline: none; resize: vertical;
+      display: block;
+    }
+
+    .output-area {
+      background: var(--output-bg); color: var(--output-fg);
+      font-family: inherit; font-size: 12px; padding: 0 16px;
+      white-space: pre-wrap; border-top: 1px solid var(--border);
+      display: none;
+    }
+    .output-area.active { padding: 12px 16px; display: block; }
+
+    .status-dot { width: 8px; height: 8px; border: 1px solid var(--border); background: #555; }
+    .status-dot.active { background: #00ff00; }
+  </style>
+</head>
+
+<body>
+
+<div class="top-bar">
+  <h1>Skred Lab</h1>
+  <div id="status-indicator" class="status-dot"></div>
+  <button id="btn-start" class="nav-btn">Start</button>
+  <button id="btn-stop" class="nav-btn" disabled>Stop</button>
+  <button id="btn-quiet" class="nav-btn">Quiet</button>
+  <button id="theme-toggle" class="nav-btn">Theme</button>
+  </div>
+
+<div id="notebook-container" class="notebook"></div>
+
+<!-- BELOW IS THE MARKDOWN CONTENT TO EDIT -->
+
+<template data-type="markdown">
+## Engine Topology
+
+This diagram shows how audio flows through the system.
+</template>
+
+<template data-type="mermaid">
+graph LR
+  UI[Control Panel] --> Engine(Skred Engine)
+  Engine --> Audio[Output Bus]
+  Engine -.->|Log Buffer| UI
+</template>
+
+<template data-type="markdown">
+## First Commands
+Try setting a frequency and checking the status.
+</template>
+
+<template data-type="code">
+v0 a0 f440 l1
+??
+</template>
+
+<!-- PROBABLY don't want to edit the stuff below here, at least for CONTENT -->
+
+<script src="skred_api.js"></script>
+
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+  const container = document.getElementById('notebook-container');
+  const templates = document.querySelectorAll('template');
+
+  // Render Templates
+  templates.forEach(async (template) => {
+    const type = template.dataset.type;
+    const content = template.innerHTML.trim();
+
+    if (type === 'markdown') {
+      const div = document.createElement('div');
+      div.className = 'text-cell';
+      div.innerHTML = marked.parse(content);
+      container.appendChild(div);
+    } 
+    else if (type === 'mermaid') {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mermaid-container';
+      wrapper.innerHTML = `<pre class="mermaid">${content}</pre>`;
+      container.appendChild(wrapper);
+      await mermaid.run();
+    }
+    else if (type === 'code') {
+      const cell = document.createElement('div');
+      cell.className = 'code-cell';
+      cell.innerHTML = `
+        <div class="gutter"><button class="run-btn"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></button></div>
+        <div class="editor-area">
+          <textarea spellcheck="false" rows="${content.split('\n').length}">${content}</textarea>
+          <div class="output-area"></div>
+        </div>
+      `;
+      container.appendChild(cell);
+    }
+  });
+
+  // UI Logic
+  document.getElementById('theme-toggle').onclick = () => document.body.classList.toggle('dark-mode');
+
+  const btnStart = document.getElementById('btn-start');
+  const btnStop = document.getElementById('btn-stop');
+  const statusDot = document.getElementById('status-indicator');
+  let isRunning = false;
+
+  btnStart.onclick = () => {
+    if (typeof Module !== 'undefined' && Module._skred_start) {
+      Module._skred_start(128, 16, 0);
+      isRunning = true;
+      btnStart.disabled = true; btnStop.disabled = false;
+      statusDot.classList.add('active');
+      Module.ccall('skred_command', null, ['string'], ['log 1']);
+    }
+  };
+
+  btnStop.onclick = () => {
+    Module._skred_stop();
+    isRunning = false;
+    btnStart.disabled = false; btnStop.disabled = true;
+    statusDot.classList.remove('active');
+  };
+
+  document.getElementById('btn-quiet').onclick = () => {
+    if(isRunning) Module.ccall('skred_command', null, ['string'], ['S10000']);
+  };
+
+  // Execution logic
+  document.addEventListener('click', (e) => {
+    const runBtn = e.target.closest('.run-btn');
+    if (!runBtn || !isRunning) return;
+
+    const cell = runBtn.closest('.code-cell');
+    const textarea = cell.querySelector('textarea');
+    const outputArea = cell.querySelector('.output-area');
+    const lines = textarea.value.split('\n');
+    let combinedLog = "";
+
+    lines.forEach(line => {
+      const cmd = line.trim();
+      if (cmd) {
+        Module.ccall('skred_command', null, ['string'], [cmd]);
+        const ptr = Module._skred_log();
+        const log = Module.UTF8ToString(ptr);
+        if (log && log.trim()) combinedLog += log + "\n";
+      }
+    });
+
+    if (combinedLog.trim()) {
+      outputArea.textContent = combinedLog.trim();
+      outputArea.classList.add('active');
+    } else {
+      outputArea.classList.remove('active');
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skred Engine - Interactive Tutorial</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --cell-bg: #ffffff;
+            --code-bg: #1e1e1e;
+            --code-fg: #d4d4d4;
+            --text-color: #334155;
+            --border-color: #e2e8f0;
+            --brand-color: #3b82f6;
+            --brand-hover: #2563eb;
+            --gutter-bg: #f1f5f9;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0; padding: 0; line-height: 1.6;
+        }
+
+        .top-bar {
+            position: sticky; top: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex; align-items: center; gap: 12px;
+            z-index: 100;
+        }
+
+        .top-bar h1 { margin: 0; font-size: 1.1rem; margin-right: auto; }
+
+        button {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #fff; border: 1px solid var(--border-color);
+            padding: 6px 12px; border-radius: 6px;
+            font-size: 0.9rem; font-weight: 500; cursor: pointer;
+        }
+
+        #btn-start { background: var(--brand-color); color: white; border-color: var(--brand-color); }
+        #btn-start:disabled { background: #cbd5e1; border-color: #cbd5e1; }
+
+        .notebook { max-width: 850px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 2px; }
+
+        /* Rendered Markdown Styles */
+        .text-cell { padding: 10px 48px; }
+        .text-cell h2 { margin-top: 1.5em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; }
+        .text-cell code { background: #e2e8f0; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+
+        /* Code Cell Styles */
+        .code-cell {
+            display: flex; border: 1px solid var(--border-color);
+            border-radius: 8px; overflow: hidden; background: var(--code-bg);
+            margin-bottom: 20px;
+        }
+
+        .gutter {
+            width: 48px; background: var(--gutter-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex; justify-content: center; padding-top: 12px;
+        }
+
+        .run-btn {
+            background: transparent; border: none; color: var(--brand-color);
+            cursor: pointer; width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .run-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+        textarea {
+            width: 100%; min-height: 60px; background: var(--code-bg);
+            color: var(--code-fg); border: none; padding: 16px;
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 14px; outline: none; resize: vertical;
+        }
+
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; }
+        .status-dot.active { background: #22c55e; }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <h1>Skred Lab</h1>
+        <div class="status-dot" id="status-indicator"></div>
+        <button id="btn-start">Start Engine</button>
+        <button id="btn-stop" disabled>Stop</button>
+        <button id="btn-quiet">Quiet</button>
+    </div>
+
+    <div id="notebook-container" class="notebook"></div>
+
+    <template data-type="markdown">
+# Introduction to Skred
+Welcome to the interactive guide. Skred is an array-oriented sound engine. 
+
+## 1. Setting the Frequency
+The `f` command sets the oscillator frequency. Try changing the value below to `880` for an octave jump.
+    </template>
+
+    <template data-type="code">f 440</template>
+
+    <template data-type="markdown">
+## 2. Amplitude Control
+Use `a` followed by a value between `0` and `1` to control volume.
+    </template>
+
+    <template data-type="code">a 0.2</template>
+
+    <script src="skred_api.js"></script>
+
+    <script>
+        const container = document.getElementById('notebook-container');
+        const templates = document.querySelectorAll('template');
+
+        // 1. Render templates into the notebook
+        templates.forEach(template => {
+            const type = template.getAttribute('data-type');
+            const content = template.innerHTML.trim();
+
+            if (type === 'markdown') {
+                const section = document.createElement('div');
+                section.className = 'text-cell';
+                section.innerHTML = marked.parse(content);
+                container.appendChild(section);
+            } 
+            else if (type === 'code') {
+                const cell = document.createElement('div');
+                cell.className = 'code-cell';
+                cell.innerHTML = `
+                    <div class="gutter">
+                        <button class="run-btn">
+                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        </button>
+                    </div>
+                    <textarea spellcheck="false">${content}</textarea>
+                `;
+                container.appendChild(cell);
+            }
+        });
+
+        // 2. Engine Logic
+        const btnStart = document.getElementById('btn-start');
+        const btnStop = document.getElementById('btn-stop');
+        const btnQuiet = document.getElementById('btn-quiet');
+        const statusDot = document.getElementById('status-indicator');
+        let isRunning = false;
+
+        btnStart.onclick = () => {
+            Module._skred_start(128, 16, 0);
+            isRunning = true;
+            btnStart.disabled = true;
+            btnStop.disabled = false;
+            statusDot.classList.add('active');
+        };
+
+        btnStop.onclick = () => {
+            Module._skred_stop();
+            isRunning = false;
+            btnStart.disabled = false;
+            btnStop.disabled = true;
+            statusDot.classList.remove('active');
+        };
+
+        btnQuiet.onclick = () => {
+            if(isRunning) Module.ccall('skred_command', null, ['string'], ['q']);
+        };
+
+        // 3. Execution Logic
+        document.addEventListener('click', (e) => {
+            const runBtn = e.target.closest('.run-btn');
+            if (!runBtn) return;
+
+            if (!isRunning) {
+                alert("Start the engine first!");
+                return;
+            }
+
+            const code = runBtn.closest('.code-cell').querySelector('textarea').value;
+            code.split('\n').forEach(line => {
+                const cmd = line.trim();
+                if (cmd) Module.ccall('skred_command', null, ['string'], [cmd]);
+            });
+        });
+    </script>
+</body>
+</html>

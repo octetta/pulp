@@ -19,10 +19,11 @@ wasm:
 	cmake -B build_wasm -S . -DKIT_OPTS="$(WASM_KIT_OPTS)"
 	cmake --build build_wasm
 	cp wasm-assets/mkwasm build_wasm/mkwasm
-	cp docs/index.html build_wasm/index.html
+	cp ../doc/index.html build_wasm/index.html
 	cp wasm-assets/test-wasm.html build_wasm/test-wasm.html
 	cp wasm-assets/serve-wasm.sh build_wasm/serve-wasm.sh
 	cd build_wasm && $(EM_ENV) ./mkwasm
+	cp build_wasm/skred_api* ../doc
 	# cd build_wasm && ./serve-wasm.sh
 
 native:

@@ -170,7 +170,7 @@ Type <span class="system">'help'</span> for engine features.
         </div>
 
         <div class="status-bar">
-            <span id="engine-left">wasm-skred 0.4.1</span>
+            <span id="engine-left">wasm-skred 0.5.0</span>
             <span id="engine-center">log 0</span>
             <span id="engine-status">AUDIO OFF</span>
         </div>
@@ -283,6 +283,8 @@ function processCommand(cmd) {
                 statusSpan.style.color = "var(--atari-grass)";
                 const ptr = Module._skred_features();
                 printToTerminal(`${Module.UTF8ToString(ptr)}`);
+                Module.ccall('skred_command', null, ['string'], ["log 1"]);
+                centerSpan.innerText = "log 1";
                 running = 1;
             } catch(e) {
                 printToTerminal(`Error: Could not boot.`, 'error');

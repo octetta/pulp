@@ -122,7 +122,7 @@
 <body>
 
 <div class="top-bar">
-  <h1>Skred Lab</h1>
+  <h1>let's learn skode to make sound with skred</h1>
   <div id="status-indicator" class="status-dot"></div>
   <button id="btn-start" class="nav-btn">Start</button>
   <button id="btn-stop" class="nav-btn" disabled>Stop</button>
@@ -133,6 +133,160 @@
 <div id="notebook-container" class="notebook"></div>
 
 <!-- BELOW IS THE MARKDOWN CONTENT TO EDIT -->
+
+<template data-type="markdown">
+## What is this?
+
+`skred` is a sound engine that work on Linux, macOS, MSWindows, and WASM.
+
+`skode` is the short-hand notation that tells `skred` how to make sounds
+and how to change a sound's character over time.
+
+## Why are you doing it this way?
+
+I've always wanted a simple way to play with sounds of my imagination. I'm highly
+influenced by the analog and digital music synthesizers of the 80's and that will
+show up throughout this document.
+
+Anyway, to achieve this, I wanted something low-ceremony, meaning simple to enter that
+doesn't require much thinking once you remember a few symbols.
+
+I like to think about it this way... how do you think about these things?...
+
+- Element symbols on a periodic table : `Hg` `H2O` `Pb`
+
+- Greek letters in math notations : &#8721;
+
+- Abbreviations like `ls` or `dir` or `catalog` used at a command prompt
+
+- LOL or WTF, right?
+
+These things look weird until they don't, and in my opinion their tersness
+frees up mental space so you think more about what you want to do rather
+than how to spell something or the finger gymnastics to enter it.
+
+Something we'll visit later is it becomes easy to use other tools to send
+things like this when you grow beyond the basics.
+
+*A quick acknowledgement : `skode` is highly influenced by the [AMY](https://github.com/shorepine/amy)
+audio project, but implemented independently, with my own (questionable!?) goals... thanks
+Brian and dAN for the inpiration and openess and kindness.*
+
+I'll talk about the `skred` sound engine in some detail later in this document, but let's
+get you thinking about sound differently by trying a few simple things.
+
+</template>
+
+<template data-type="markdown">
+## Let's make a sound!
+
+First off, press the START button on the top of the page to get `skred` running.
+This may ask your permission to record audio. This allows `skred` to record
+audio (under your control) for use as sound samples. If you stick around we'll
+learn about that later.
+
+*If at any point the sound is unpleasant or unwanted, you can stop it with the
+STOP button, which totally stops `skred` running, or by QUIET, which sends
+a `skode` command to return `skred` to its initial quiet state, essentially
+zero-ing out anything that was resulting in sound output.*
+
+With that out of the way, let's get started by clicking the play button next to
+the `skode` block below:
+</template>
+
+<template data-type="code">
+v0 w0 a0 f440 t 0 1 0 0 l1
+</template>
+
+<template data-type="markdown">
+You can edit the `skode` text within this block and change things and pressing
+the play button again...
+
+- Try changing `f440` to `f880`... you'll hear the same kind of tone one octave higher.
+
+- Try other numbers with `f`... my ears don't easily hear things below `f220` without amplification, but your ears may be better!
+
+- Try changing the number to the right of the `t` from `0` to `.1` ... I promise I'll explain what this is later...
+
+- Now let's use the `f220` and fix it so even I can hear it by changing the `a0` to `a10`...
+
+- Finally, change two things, change `w0` into `w2` and `a10` to `a-5`...
+
+How was that?
+
+Does it make sense?
+
+Is it easy?
+
+Want to learn more?
+
+## What did we enter?
+
+I'll break down the original `skode` block `v0 w0 a0 f440 l1`
+
+### `v0` = voice
+
+`v0` means: select a "voice" we want to change... think of this like one person in
+a chorus of people. This says select or point to voice 0.
+
+`skred` can have many voices depending on how it's setup, but in this learning tool,
+it has 16 active.
+
+### `w0` = waveform
+
+`w0` means: whatever voice we're pointed at, let it use waveform "0"... what is
+waveform "0" you ask?
+
+`w0` is a sine wave. Is looks the letter S lying down on it's side.
+You heard it by playing with it above, and some describe whistling as a kind of sinewave.
+
+`skred` has 26 built-in waveforms (not totally the truth, but I'll explain that
+later).
+
+Here are the top seven for easy listening...
+</template>
+
+<template data-type="markdown">#### `w0` sine</template>
+<template data-type="code"> v0 w0 a0 f440 t0 2 0 0 l1 </template>
+
+<template data-type="markdown">#### `w1` square</template>
+<template data-type="code"> v0 w1 a0 f440 t0 2 0 0 l1 </template>
+
+<template data-type="markdown">#### `w2` sawtooth low to high</template>
+<template data-type="code"> v0 w2 a0 f440 t0 2 0 0 l1 </template>
+
+<template data-type="markdown">#### `w3` sawtooth high to low</template>
+<template data-type="code"> v0 w3 a0 f440 t0 2 0 0 l1 </template>
+
+<template data-type="markdown">#### `w4` triangle</template>
+<template data-type="code"> v0 w4 a0 f440 t0 2 0 0 l1 </template>
+
+<template data-type="markdown">#### `w5` short noise</template>
+<template data-type="code"> v0 w5 a0 f440 t0 2 0 0 l1 </template>
+
+<template data-type="markdown">#### `w6` long noise</template>
+<template data-type="code"> v0 w6 a0 f440 t0 2 0 0 l1 </template>
+
+<template data-type="markdown">
+### `a0` = amplitude
+</template>
+
+<template data-type="markdown">
+### `f440` = frequency
+</template>
+
+<template data-type="markdown">
+### `t0 1 0 0` = time-amplitude-envelope
+</template>
+
+<template data-type="markdown">
+### `l1` = trigger-envelope-with-velocity
+</template>
+
+<template data-type="markdown">
+*Note: this learning page is a single HTML file... you can see how the WASM part
+works if you're curious and don't mind looking at HTML that a C-programmer created.*
+</template>
 
 <template data-type="markdown">
 ## Engine Topology
@@ -153,7 +307,7 @@ Try setting a frequency and checking the status.
 </template>
 
 <template data-type="code">
-v0 a0 f440 l1
+v0 w0 a0 f440 l1
 ??
 </template>
 

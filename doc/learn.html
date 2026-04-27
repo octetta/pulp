@@ -298,7 +298,7 @@ it has a chorus of 16 voices, each awaiting your instructions.
 
 **`v0`** says make *voice 0* the one we are changing some characteristic of.
 
-### `w` means *waveform*
+### w means *waveform*
 
 Waveforms define the character of a voice depending on the sequence of numbers
 being played.
@@ -331,7 +331,7 @@ intensities in a particular ways, you wind up with a square wave and I trust the
 I'll talk the other built-in waveforms later, but for now know that there
 are 26 available when you start `skred`.
 
-### `a` means *amplitude*
+### a means *amplitude*
 
 Perhaps intuitively, amplitude is how loud a voice is. Maybe less intuitive is that
 in `skode` at least, the number used is expressed as decibels, or dB.
@@ -343,7 +343,7 @@ dangerous and fun and edge-ey and artistic, right?).
 
 In `skode` 10dB via **`a10`** is twice as loud as **`a0`**, and **`a-10`** is half as loud as **`a0`**.
 
-### `f` means *frequency*
+### f means *frequency*
 
 Frequency is how we specify the pitch of a sound.
 
@@ -357,13 +357,13 @@ So, **`f440`** means 440 cycles-per-second, which smart music people call "conce
 On an 88-key piano, 440 sits somewhere right of the middle of the keyboard (on the
 right of of middle-C, if you took piano lessons).
 
-While I still think of middle-C a lot due to those old piano lessons, it's frequency
+While I still think of middle-C a lot due to those old piano lessons, its frequency
 is 261.626 Hz, which is a lot harder to type than 440.
 
 There's another way `skode` uses to specify frequency, but you'll have to wait for
 that in a later section.
 
-### `t` means *time based amplitude envelope*
+### t means *time based amplitude envelope*
 
 (WARNING, I'm rambling on here and need to come up with a more articulate way
 of describing this... suggestions are appreciated).
@@ -385,7 +385,7 @@ Those pieces are:
 
 - RELEASE - time in seconds between when the envelope is told to stop going from SUSTAIN to quiet
 
-### `l` (lower-case 'ell') means *start* or *stop* the amplitude envelope
+### l (lower-case 'ell') means *start* or *stop* the amplitude envelope
 
 Non-intuitively, the *ell* means *veLocity*, with that cleared up (?!)...
 
@@ -394,7 +394,7 @@ ampltude envelope, multiplying the number following it by the voice's amplitude 
 emphasis or de-emphasis. This is useful when we connect `skode` up to a MIDI keyboard,
 which is a later topic.
 
-If that envelope has a sustain value, the voice will continue playing until `l0` is
+If the envelope has a SUSTAIN value, the voice will continue playing until `l0` is
 sent, which causes the envelope to use the RELEASE time.
 
 It's easier to play with this to learn it than it is to talk about, so go back to that earlier block
@@ -408,7 +408,7 @@ and mess with it. I'll be here when you get back.
 
 As promised, here's more about the rest of the built in waveforms.
 `skred` has 26 built in (not totally the truth, but I'll explain that later),
-and new waveforms can be added during at runtime.
+and new waveforms can be added during runtime.
 
 Here are some more to try out... clicking the play button will also show a
 texty-graph of the wave below the `skode` block
@@ -416,7 +416,7 @@ texty-graph of the wave below the `skode` block
 </template>
 
 <template data-type="markdown">
-`w1` is a square wave
+**`w1`(( is a square wave
 </template>
 <template data-type="code"> v0 w1 a0 f440 t0 2 0 0 l1 W1</template>
 
@@ -431,17 +431,17 @@ texty-graph of the wave below the `skode` block
 <template data-type="code"> v0 w3 a0 f440 t0 2 0 0 l1 W3</template>
 
 <template data-type="markdown">
-`w4` is a triangle wave
+**`w4`** is a triangle wave
 </template>
 <template data-type="code"> v0 w4 a0 f440 t0 2 0 0 l1 W4</template>
 
 <template data-type="markdown">
-`w5` is a short noise wave
+**`w5`** is a short noise wave
 </template>
 <template data-type="code"> v0 w5 a0 f440 t0 2 0 0 l1 W5</template>
 
 <template data-type="markdown">
-`w6`  is a long noise wave
+**`w6`**  is a long noise wave
 </template>
 <template data-type="code"> v0 w6 a0 f440 t0 2 0 0 l1</template>
 
@@ -453,9 +453,20 @@ works if you're curious and don't mind looking at HTML that a C-programmer creat
 <template data-type="markdown">
 ## Modulators
 
+Just like envelopes change things over time to make things more interesting,
+modulators can do that too, but using waveforms as the force behind that.
+
+Things that can be modulated in `skred` are ampltude, frequency, panning,
+and phase.
+
+Since voices are waveforms, `skred` uses its own voices as modulators.
+
 Examples to contemplate... start each then drag the slider...
 
 ### Amplitude Modulation
+
+Uses `v1` to modulate `v0` amplitude, the slider changes `v1`'s frequency.
+
 </template>
 
 <template data-type="slider"
@@ -469,6 +480,8 @@ v1 w0 a0 f1 m1 l1
 
 <template data-type="markdown">
 ### Frequency Modulation
+
+Uses `v3` to modulate `v1` frequency, the slider changes `v3`'s frequency.
 </template>
 
 <template data-type="slider"
@@ -505,7 +518,7 @@ graph TB
   
   amp --> xout("voice<sub>mod</sub>")
 
-  voice(pre-processed sample) --> filter --> envelope --> amp(amplitude) --> panning
+  voice(processed sample) --> filter --> envelope --> amp(amplitude) --> panning
   
   voicepanmod("voice<sub>w</sub>") --> panmod
   panmod(panning<br>modulation) --> panning

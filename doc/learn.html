@@ -550,6 +550,7 @@ graph TB
   
   voicefm("voice<sub>y</sub>") -.-> fm
   fm(FM) --> freq(frequency)
+  glide --> freq
   freq --> wave
   
   voicepdm("voice<sub>z</sub>") -.-> pdm
@@ -559,14 +560,17 @@ graph TB
   crush(bit<br>crush) --> wave
   sah(sample<br>and hold) --> wave
   
-  amp --> xout("voice<sub>mod</sub>")
+  amp -.-> xout("voice<sub>mod</sub>")
+  smoother --> amp
 
-  voice(processed sample) --> filter --> envelope --> amp(amplitude) --> panning
+  voice(processed<br>sample) --> filter --> envelope --> amp(amplitude) --> panner(pan)
+  fadsr(adsr) --> filter
+  ffm(filter<br>modulation) --> filter
   
-  voicepanmod("voice<sub>w</sub>") --> panmod
-  panmod(panning<br>modulation) --> panning
-  panning --> left
-  panning --> right
+  voicepanmod("voice<sub>w</sub>") -.-> panmod
+  panmod(pan<br>modulation) --> panner
+  panner --> left
+  panner --> right
 </template>
 
 <template data-type="markdown">

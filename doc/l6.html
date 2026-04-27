@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Skred Engine Lab</title>
+  <title>skode learning playground</title>
   
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
@@ -116,6 +116,46 @@
 
     .status-dot { width: 8px; height: 8px; border: 1px solid var(--border); background: #555; }
     .status-dot.active { background: #00ff00; }
+
+    /* Custom Industrial Slider */
+    .skred-slider-container {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    input[type="range"].skred-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+        width: var(--w, 120px);
+    }
+
+    /* The Track */
+    input[type="range"].skred-slider::-webkit-slider-runnable-track {
+        background: var(--border);
+        height: 2px;
+    }
+
+    /* The Thumb (The "handle") */
+    input[type="range"].skred-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 12px;
+        width: 8px;
+        background: var(--bg);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        margin-top: -5px; /* Centers thumb on track */
+    }
+
+    /* Dark mode adjustment for the thumb */
+    body.dark-mode input[type="range"].skred-slider::-webkit-slider-thumb {
+        background: var(--fg);
+    }
+
   </style>
 </head>
 
@@ -128,6 +168,11 @@
   <button id="btn-stop" class="nav-btn" disabled>Stop</button>
   <button id="btn-quiet" class="nav-btn">Quiet</button>
   <button id="theme-toggle" class="nav-btn">Theme</button>
+  <div class="skred-slider-container">
+    <span>VOLUME</span>
+    <input type="range" class="skred-slider" min="-40" max="0" step=".25", value="-20"
+      oninput="handleSlider(this, 'V${val}')">
+  </div>
   </div>
 
 <div id="notebook-container" class="notebook"></div>
@@ -135,63 +180,80 @@
 <!-- BELOW IS THE MARKDOWN CONTENT TO EDIT -->
 
 <template data-type="markdown">
+
+# &#9995; + `skode` + `skred` = &#128153; &#128264;
+
 ## What is this?
 
-`skred` is a sound engine that work on Linux, macOS, MSWindows, and WASM.
+`skred` is a sound engine that works on Linux, macOS, MSWindows, and WASM.
 
-`skode` is the short-hand notation that tells `skred` how to make sounds
+`skode` is a short-hand notation that tells `skred` how to make sounds
 and how to change a sound's character over time.
 
 ## Why are you doing it this way?
 
-I've always wanted a simple way to play with sounds of my imagination. I'm highly
-influenced by the analog and digital music synthesizers of the 80's and that will
-show up throughout this document.
+For years, I've wanted a simple way to play with sounds, both musical, and experimental.
 
-Anyway, to achieve this, I wanted something low-ceremony, meaning simple to enter that
-doesn't require much thinking once you remember a few symbols.
+I'm highly influenced by the PC sound hardware and analog/digital synthesizers of the
+80's and that will show up throughout this document.
 
-I like to think about it this way... how do you think about these things?...
+Anyway, to achieve this, I wanted a notation that is low-ceremony, meaning it's simple
+to type and doesn't require much thinking once you remember a few symbols that do what
+you want.
 
-- Element symbols on a periodic table : `Hg` `H2O` `Pb`
+Rationalizing my position, how do you think about these notations from different
+traditions?
 
-- Greek letters in math notations : &#8721;
+- Chemical element symbols like, Hg, H2O, and, Pb
 
-- Abbreviations like `ls` or `dir` or `catalog` used at a command prompt
+- Math symbols, like &radic;, &sum;, and &int;
 
-- LOL or WTF, right?
+- Abbreviations like `ls` or `cat` or `grep` used at a command prompt
+
+- LOL and WTF...
 
 These things look weird until they don't, and in my opinion their tersness
 frees up mental space so you think more about what you want to do rather
 than how to spell something or the finger gymnastics to enter it.
 
-Something we'll visit later is it becomes easy to use other tools to send
-things like this when you grow beyond the basics.
+From proclivity and laziness, I limit `skode` to ASCII and have simple rules
+to about how characters are used to easily classify things in my parsing code.
 
-*A quick acknowledgement : `skode` is highly influenced by the [AMY](https://github.com/shorepine/amy)
-audio project, but implemented independently, with my own (questionable!?) goals... thanks
-Brian and dAN for the inpiration and openess and kindness.*
+Something we'll visit later is how to concisely to send `skode` from a variety of tools
+and languages, but it's worth mentioning that this HTML page uses this same notation
+internally.
+
+*A quick acknowledgement : `skode` and `skred` are HIGHLY influenced by the
+[AMY](https://github.com/shorepine/amy)
+project, but implemented independently over the past few years, reflecting my own
+(questionable!?) goals... thanks to Brian and dAN for the inpiration and openess and
+kindness.*
 
 I'll talk about the `skred` sound engine in some detail later in this document, but let's
-get you thinking about sound differently by trying a few simple things.
+get you thinking about sound differently by trying a few simple things with `skode`.
 
 </template>
 
 <template data-type="markdown">
+
 ## Let's make a sound!
 
+Okay, enough excuses, you've made it this far.. let's have fun.
+
 First off, press the START button on the top of the page to get `skred` running.
-This may ask your permission to record audio. This allows `skred` to record
-audio (under your control) for use as sound samples. If you stick around we'll
-learn about that later.
+
+This may ask your permission to record audio, which allows `skred` to record
+audio (under your control) for use in sound samples. If you stick around long enough,
+we'll learn about that later.
 
 *If at any point the sound is unpleasant or unwanted, you can stop it with the
 STOP button, which totally stops `skred` running, or by QUIET, which sends
 a `skode` command to return `skred` to its initial quiet state, essentially
-zero-ing out anything that was resulting in sound output.*
+zero-ing out anything that was setup in making sound(s).*
 
-With that out of the way, let's get started by clicking the play button next to
+Assuming you see a green square next to the START button, click the play button next to
 the `skode` block below:
+
 </template>
 
 <template data-type="code">
@@ -199,94 +261,210 @@ v0 w0 a0 f440 t 0 1 0 0 l1
 </template>
 
 <template data-type="markdown">
-You can edit the `skode` text within this block and change things and pressing
-the play button again...
+Throughout this page, you can edit the `skode` text within a block, then press the
+play button to hear the change.
 
-- Try changing `f440` to `f880`... you'll hear the same kind of tone one octave higher.
+Try these changes...
+
+- Change `f440` to `f880`... you'll hear the same kind of tone but one octave higher.
 
 - Try other numbers with `f`... my ears don't easily hear things below `f220` without amplification, but your ears may be better!
 
 - Try changing the number to the right of the `t` from `0` to `.1` ... I promise I'll explain what this is later...
 
-- Now let's use the `f220` and fix it so even I can hear it by changing the `a0` to `a10`...
+- Now let's use the `f220` and fix it so even I can hear it by changing the `a0` to `a20`...
 
-- Finally, change two things, change `w0` into `w2` and `a10` to `a-5`...
+- Finally, change two things, `w0` to `w1` and `a20` to `a0`...
 
 How was that?
 
-Does it make sense?
+- Does any of this make sense?
 
-Is it easy?
+- Was it easy?
 
-Want to learn more?
+- Want to learn more?
 
-## What did we enter?
+## Explaining what we entered...
 
-I'll break down the original `skode` block `v0 w0 a0 f440 l1`
+I'll break down the original `skode` block **`v0 w0 a0 f440 l1`**
 
-### `v0` = voice
+### v means *voice*
 
-`v0` means: select a "voice" we want to change... think of this like one person in
-a chorus of people. This says select or point to voice 0.
+Think of this like a single voice among a chorus of people.
 
 `skred` can have many voices depending on how it's setup, but in this learning tool,
-it has 16 active.
+it has a chorus of 16 voices, each awaiting your instructions.
 
-### `w0` = waveform
+**`v0`** says make *voice 0* the one we are changing some characteristic of.
 
-`w0` means: whatever voice we're pointed at, let it use waveform "0"... what is
-waveform "0" you ask?
+### `w` means *waveform*
 
-`w0` is a sine wave. Is looks the letter S lying down on it's side.
-You heard it by playing with it above, and some describe whistling as a kind of sinewave.
+Waveforms define the character of a voice depending on the sequence of numbers
+being played.
 
-`skred` has 26 built-in waveforms (not totally the truth, but I'll explain that
-later).
+**`w0`** says whatever voice we're pointed at, let it use waveform "0"
 
-Here are the top seven for easy listening...
+What is waveform "0" you ask?
+
+**`w0`** is a sine wave. Is looks the letter S lying down on it's side.
+
+You heard it by playing with it above, and some describe a human whistling as
+a source of sine waves. `skred` uses the `sin()` function, instead of a person.
+
+Sine waves are considered to be a pure fundamental sound, "with no flavor", which sounds
+rude, so I say it's beautiful and peaceful.
+
+You may want to use it for the sustaining portion of bells, or organs, if that's your
+goal.
+
+You also heard **`w1`** which is a square wave.
+
+A square wave looks "binary", either all positive or all negative.
+
+Square waves are harsher in character than sine waves, perhaps sounding like a clarinet,
+or other reed-type instruments.
+
+Smart math people say if you add up all the odd frequency sine waves and adjust the
+intensities in a particular ways, you wind up with a square wave and I trust them.
+
+I'll talk the other built-in waveforms later, but for now know that there
+are 26 available when you start `skred`.
+
+### `a` means *amplitude*
+
+Perhaps intuitively, amplitude is how loud a voice is. Maybe less intuitive is that
+in `skode` at least, the number used is expressed as decibels, or dB.
+
+Without explaining things I really only partly understand, 0dB as we used above via **`a0`**,
+means "normal" loudness, such that when there are more than one voice playing, we don't
+over-drive the speaker (it's still possible to over-drive the speaker though, which is
+dangerous and fun and edge-ey and artistic, right?).
+
+In `skode` 10dB via **`a10`** is twice as loud as **`a0`**, and **`a-10`** is half as loud as **`a0`**.
+
+### `f` means *frequency*
+
+Frequency is how we specify the pitch of a sound.
+
+Low numbers are like rumbles, and high numbers are like whistles.
+
+`skode` uses units of Hertz (Hz), which my old math books intuitively called
+"cycles-per-second", no disrespect to Mr. Hertz.
+
+So, **`f440`** means 440 cycles-per-second, which smart music people call "concert A".
+
+On an 88-key piano, 440 sits somewhere right of the middle of the keyboard (on the
+right of of middle-C, if you took piano lessons).
+
+While I still think of middle-C a lot due to those old piano lessons, it's frequency
+is 261.626 Hz, which is a lot harder to type than 440.
+
+There's another way `skode` uses to specify frequency, but you'll have to wait for
+that in a later section.
+
+### `t` means *time based amplitude envelope*
+
+(WARNING, I'm rambling on here and need to come up with a more articulate way
+of describing this... suggestions are appreciated).
+
+The things we've shown before are important and interesting of course, but sound
+and music instruments are even more interesting when they change over time.
+
+The word "envelope" is used, perhaps because it's something that wraps around a
+sound to change it. The kind of envelope used in `skred` is called an ADSR
+envelope, corresponding to the 4 numbers following the **`t`**...
+
+Those pieces are:
+
+- ATTACK - time in seconds when the envelope is started going from quiet to the amplitude specified in the voice
+
+- DECAY - time in seconds from the voice's amplitude (**`a`**) value to the SUSTAIN value
+
+- SUSTAIN - adjustment to the amplitude before the RELEASE... specified as a 1 or a fraction of voice's amplitude
+
+- RELEASE - time in seconds between when the envelope is told to stop going from SUSTAIN to quiet
+
+### `l` (lower-case 'ell') means *start* or *stop* the amplitude envelope
+
+Non-intuitively, the *ell* means *veLocity*, with that cleared up (?!)...
+
+In `skode` if the value following the `l` is greater than 0, it starts the
+ampltude envelope, multiplying the number following it by the voice's amplitude to allow
+emphasis or de-emphasis. This is useful when we connect `skode` up to a MIDI keyboard,
+which is a later topic.
+
+If that envelope has a sustain value, the voice will continue playing until `l0` is
+sent, which causes the envelope to use the RELEASE time.
+
+It's easier to play with this to learn it than it is to talk about, so go back to that earlier block
+and mess with it. I'll be here when you get back.
+
 </template>
-
-<template data-type="markdown">#### `w0` sine</template>
-<template data-type="code"> v0 w0 a0 f440 t0 2 0 0 l1 </template>
-
-<template data-type="markdown">#### `w1` square</template>
-<template data-type="code"> v0 w1 a0 f440 t0 2 0 0 l1 </template>
-
-<template data-type="markdown">#### `w2` sawtooth low to high</template>
-<template data-type="code"> v0 w2 a0 f440 t0 2 0 0 l1 </template>
-
-<template data-type="markdown">#### `w3` sawtooth high to low</template>
-<template data-type="code"> v0 w3 a0 f440 t0 2 0 0 l1 </template>
-
-<template data-type="markdown">#### `w4` triangle</template>
-<template data-type="code"> v0 w4 a0 f440 t0 2 0 0 l1 </template>
-
-<template data-type="markdown">#### `w5` short noise</template>
-<template data-type="code"> v0 w5 a0 f440 t0 2 0 0 l1 </template>
-
-<template data-type="markdown">#### `w6` long noise</template>
-<template data-type="code"> v0 w6 a0 f440 t0 2 0 0 l1 </template>
 
 <template data-type="markdown">
-### `a0` = amplitude
+
+## More about waveforms
+
+As promised, here's more about the rest of the built in waveforms.
+`skred` has 26 built in (not totally the truth, but I'll explain that later),
+and new waveforms can be added during at runtime.
+
+Here are some more to try out... clicking the play button will also show a
+texty-graph of the wave below the `skode` block
+
 </template>
 
 <template data-type="markdown">
-### `f440` = frequency
+`w1` is a square wave
 </template>
+<template data-type="code"> v0 w1 a0 f440 t0 2 0 0 l1 W1</template>
 
 <template data-type="markdown">
-### `t0 1 0 0` = time-amplitude-envelope
+**`w2`** is a sawtooth wave from low to high. It looks like a shark fin going to the left.
 </template>
+<template data-type="code"> v0 w2 a0 f440 t0 2 0 0 l1 W2</template>
 
 <template data-type="markdown">
-### `l1` = trigger-envelope-with-velocity
+**`w3`** is a sawtooth wave from high to low. Using the shark fin imagery, it's going the other direction.
 </template>
+<template data-type="code"> v0 w3 a0 f440 t0 2 0 0 l1 W3</template>
+
+<template data-type="markdown">
+`w4` is a triangle wave
+</template>
+<template data-type="code"> v0 w4 a0 f440 t0 2 0 0 l1 W4</template>
+
+<template data-type="markdown">
+`w5` is a short noise wave
+</template>
+<template data-type="code"> v0 w5 a0 f440 t0 2 0 0 l1 W5</template>
+
+<template data-type="markdown">
+`w6`  is a long noise wave
+</template>
+<template data-type="code"> v0 w6 a0 f440 t0 2 0 0 l1</template>
 
 <template data-type="markdown">
 *Note: this learning page is a single HTML file... you can see how the WASM part
 works if you're curious and don't mind looking at HTML that a C-programmer created.*
 </template>
+
+<template data-type="markdown">
+## Modulators
+</template>
+
+<template data-type="code">
+v0 w0 a0 f440 t0 0 1 0 l1 A1 1
+v1 w0 a0 f1 m1 l1
+</template>
+
+<template data-type="slider"
+  data-min=".001" data-max="440" data-step=".001" data-val="1" data-fmt="v1 f${val}"
+  data-width="600px">AM frequency</template>
+
+<template data-type="slider"
+  data-min=".1" data-max="3" data-step=".1" data-val="1" data-fmt="v0 A1,${val}"
+  data-width="600px">AM depth</template>
 
 <template data-type="markdown">
 ## Engine Topology
@@ -350,6 +528,22 @@ v0 w0 a0 f440 l1
       `;
       container.appendChild(cell);
     }
+    else if (type === 'slider') {
+      const { min, max, step, val, fmt, width } = template.dataset;
+      const div = document.createElement('div');
+      div.className = 'text-cell'; // Reuse text-cell for alignment
+      const styleAttr = width ? `style="--w: ${width};"` : '';
+      div.innerHTML = `
+          <div class="skred-slider-container">
+              <strong>${content}</strong>
+              <input type="range" class="skred-slider" ${styleAttr}
+                     min="${min}" max="${max}" step="${step}" value="${val}" 
+                     oninput="handleSlider(this, '${fmt}')">
+              <span class="slider-val">${val}</span>
+          </div>
+      `;
+      container.appendChild(div);
+    }
   });
 
   // UI Logic
@@ -409,6 +603,28 @@ v0 w0 a0 f440 l1
       outputArea.classList.remove('active');
     }
   });
+
+  /**
+   * Executes a command based on a slider value.
+   * @param {HTMLInputElement} el - The slider element.
+   * @param {string} format - The interpolation string (e.g., "f ${val}")
+   */
+  function handleSlider(el, format) {
+      if (typeof isRunning !== 'undefined' && !isRunning) return;
+      
+      const val = el.value;
+      // Replace ${val} in the format string with the actual value
+      const cmd = format.replace('${val}', val);
+      
+      if (typeof Module !== 'undefined' && Module.ccall) {
+          Module.ccall('skred_command', null, ['string'], [cmd]);
+      }
+      
+      // Update the visual label if it exists
+      const label = el.parentElement.querySelector('.slider-val');
+      if (label) label.textContent = val;
+  }
+
 </script>
 </body>
 </html>

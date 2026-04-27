@@ -185,12 +185,13 @@
 
 ## What is this?
 
-`skred` is a sound engine that works on Linux, macOS, MSWindows, and WASM.
+`skred` is an open-source, MIT-licensed sound engine that works on Linux, macOS,
+MSWindows, and WASM.
 
-`skode` is a short-hand notation that tells `skred` how to make sounds
+`skode` is the short-hand notation that tells `skred` how to make sounds
 and how to change a sound's character over time.
 
-## Why are you doing it this way?
+## Why am I doing it this way?
 
 For years, I've wanted a simple way to play with sounds, both musical, and experimental.
 
@@ -238,7 +239,7 @@ get you thinking about sound differently by trying a few simple things with `sko
 
 ## Let's make a sound!
 
-Okay, enough excuses, you've made it this far.. let's have fun.
+Enough excuses, you've made it this far.. let's have fun.
 
 First off, press the START button on the top of the page to get `skred` running.
 
@@ -451,42 +452,141 @@ works if you're curious and don't mind looking at HTML that a C-programmer creat
 
 <template data-type="markdown">
 ## Modulators
+
+Examples to contemplate... start each then drag the slider...
+
+### Amplitude Modulation
 </template>
 
+<template data-type="slider"
+  data-min=".001" data-max="60" data-step=".001" data-val="1" data-fmt="v1 f${val}"
+  data-width="600px"></template>
+
 <template data-type="code">
-v0 w0 a0 f440 t0 0 1 0 l1 A1 1
+v0 w0 a0 f440 t0 0 1 0 l1 A1 2 0 F-
 v1 w0 a0 f1 m1 l1
 </template>
 
-<template data-type="slider"
-  data-min=".001" data-max="440" data-step=".001" data-val="1" data-fmt="v1 f${val}"
-  data-width="600px">AM frequency</template>
+<template data-type="markdown">
+### Frequency Modulation
+</template>
 
 <template data-type="slider"
-  data-min=".1" data-max="3" data-step=".1" data-val="1" data-fmt="v0 A1,${val}"
-  data-width="600px">AM depth</template>
+  data-min=".001" data-max="55" data-step=".001" data-val="1" data-fmt="v3 f${val}"
+  data-width="600px"></template>
+
+<template data-type="code">
+v2 w0 a0 f440 t0 0 1 0 l1 F3 20 0 A-
+v3 w0 a0 f1 m1 l1
+</template>
 
 <template data-type="markdown">
-## Engine Topology
-
-This diagram shows how audio flows through the system.
+## `skred` voice structure
+This deserves more conversation... overview of a `skred` voice
 </template>
 
 <template data-type="mermaid">
-graph LR
-  UI[Control Panel] --> Engine(Skred Engine)
-  Engine --> Audio[Output Bus]
-  Engine -.->|Log Buffer| UI
+graph TB
+  voiceam("voice<sub>x</sub>") -.-> am
+  am(AM) --> amp
+  
+  wave(wave<br>table) --> voice
+  
+  voicefm("voice<sub>y</sub>") -.-> fm
+  fm(FM) --> freq(frequency)
+  freq --> wave
+  
+  voicepdm("voice<sub>z</sub>") -.-> pdm
+  pdm(phase<br>modulation) --> pd
+  pd(phase<br>distortion) --> wave
+  
+  crush(bit<br>crush) --> wave
+  sah(sample<br>and hold) --> wave
+  
+  amp --> xout("voice<sub>mod</sub>")
+
+  voice(pre-processed sample) --> filter --> envelope --> amp(amplitude) --> panning
+  
+  voicepanmod("voice<sub>w</sub>") --> panmod
+  panmod(panning<br>modulation) --> panning
+  panning --> left
+  panning --> right
 </template>
 
 <template data-type="markdown">
-## First Commands
-Try setting a frequency and checking the status.
+## Half-baked pattern example
+
+I'm getting tired, so while I rest up, here's a lightly annotated example of
+chained voices, filtering, variables, and patterns to contemplate.
+</template>
+
+<template data-type="markdown">### Clear voices, set tempo, set variables</template>
+
+<template data-type="code">
+v0 l0
+v1 l0
+v2 l0
+v3 l0
+M120
+=0 32
+=1 30
+</template>
+
+<template data-type="markdown">### Setup voices</template>
+<template data-type="code">
+v0 w11 a0 G1 H1 t 0 .5 0 0 p-1 g.2
+v1 w10 a0 N0 25 t .1 .4 0 0 p1
+v2 w6 a0 t 0 1 0 0
+v3 w5 a10 t 0 .5 0 0 q2 f440 J1 K500 Q10 P4 1
+v4 m1 a0 w0 f5 l1
+</template>
+
+<template data-type="markdown">### Setup patterns</template>
+<template data-type="code">
+y0
+{v0 n35 l1}x0
+{v0 n$0 l1}x1
+{v0 n40 l1}x2
+{v0 n$1 l1}x3
+y1
+{v2 l1}x0
+{#}x1
+{v3 l1}x2
+{#}x3
+</template>
+
+<template data-type="markdown">### START the patterns </template>
+<template data-type="code">Z1</template>
+
+<template data-type="markdown">### Change $0 - note of second step</template>
+<template data-type="code">
+=0,41
+</template>
+
+<template data-type="markdown">### Change $1 - note of fourth step</template>
+<template data-type="code">
+=1,38
+</template>
+
+<template data-type="markdown">### Change the tempo </template>
+<template data-type="code">
+M160
+</template>
+
+<template data-type="markdown">### STOP the patterns and voices</template>
+<template data-type="code">Z0</template>
+
+<template data-type="markdown">
+## Inspecting things
+See `skred` state and such
 </template>
 
 <template data-type="code">
-v0 w0 a0 f440 l1
 ??
+Z
+/s2
+/s5
+W
 </template>
 
 <!-- PROBABLY don't want to edit the stuff below here, at least for CONTENT -->
@@ -572,7 +672,7 @@ v0 w0 a0 f440 l1
   };
 
   document.getElementById('btn-quiet').onclick = () => {
-    if(isRunning) Module.ccall('skred_command', null, ['string'], ['S10000']);
+    if(isRunning) Module.ccall('skred_command', null, ['string'], ['v0l0 v1l0 v2l0 v3l0 v4l0 Z0']);
   };
 
   // Execution logic

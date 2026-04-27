@@ -181,22 +181,34 @@
 
 <template data-type="markdown">
 
-# &#9995; + `skode` + `skred` = &#128153; &#128264;
+# &#129306; &#9995; + `skode` + `skred` = &#128153; &#128264;
 
 ## What is this?
 
 `skred` is an open-source, MIT-licensed sound engine that works on Linux, macOS,
-MSWindows, and WASM.
+MSWindows, and WASM. I'm in the middle of a refactor so it's living in-between
+two different repos at the moment. You've landed on the latest repo.
 
 `skode` is the short-hand notation that tells `skred` how to make sounds
 and how to change a sound's character over time.
+
+I showed off a little bit of this tooling in a lighting talk at the
+[2026 ElixirConf EU](https://www.elixirconf.eu/)
+in Malaga Spain... watch for Elixir and Nerves and AtomVM stuff related to this in
+the future.
+
+I'll be talking about both these pieces and a bit more at the
+[2026 ADC conference](https://audio.dev/adc-japan-26/)
+in Tokyo. I hope I don't embarrass myself.
 
 ## Why am I doing it this way?
 
 For years, I've wanted a simple way to play with sounds, both musical, and experimental.
 
-I'm highly influenced by the PC sound hardware and analog/digital synthesizers of the
-80's and that will show up throughout this document.
+I'm highly influenced by the PC sound hardware and analog/digital synthesizers I played
+with during 80's and that will show up throughout this document. After you play with
+this learning thing for a while, check out the silly Atari 800 / C64 theme inspired
+REPL for `skred` [here](https://octetta.github.io/pulp/doc).
 
 Anyway, to achieve this, I wanted a notation that is low-ceremony, meaning it's simple
 to type and doesn't require much thinking once you remember a few symbols that do what
@@ -221,14 +233,16 @@ From proclivity and laziness, I limit `skode` to ASCII and have simple rules
 to about how characters are used to easily classify things in my parsing code.
 
 Something we'll visit later is how to concisely to send `skode` from a variety of tools
-and languages, but it's worth mentioning that this HTML page uses this same notation
+and languages, but it's worth mentioning that this HTML page uses the exact same notation
 internally.
 
 *A quick acknowledgement : `skode` and `skred` are HIGHLY influenced by the
 [AMY](https://github.com/shorepine/amy)
 project, but implemented independently over the past few years, reflecting my own
 (questionable!?) goals... thanks to Brian and dAN for the inpiration and openess and
-kindness.*
+kindness. I also might not have done any of this with the
+[miniaudio](https://miniaud.io)
+project. Thanks mackron*
 
 I'll talk about the `skred` sound engine in some detail later in this document, but let's
 get you thinking about sound differently by trying a few simple things with `skode`.
@@ -323,10 +337,11 @@ You also heard **`w1`** which is a square wave.
 A square wave looks "binary", either all positive or all negative.
 
 Square waves are harsher in character than sine waves, perhaps sounding like a clarinet,
-or other reed-type instruments.
+or other reed-type instruments, no offence to reed instrument players, unless you like
+being harsh.
 
 Smart math people say if you add up all the odd frequency sine waves and adjust the
-intensities in a particular ways, you wind up with a square wave and I trust them.
+intensities in a particular way, you wind up with a square wave. I trust them.
 
 I'll talk the other built-in waveforms later, but for now know that there
 are 26 available when you start `skred`.
@@ -361,12 +376,12 @@ While I still think of middle-C a lot due to those old piano lessons, its freque
 is 261.626 Hz, which is a lot harder to type than 440.
 
 There's another way `skode` uses to specify frequency, but you'll have to wait for
-that in a later section.
+that in a later section (hint: MIDI).
 
 ### t means *time based amplitude envelope*
 
-(WARNING, I'm rambling on here and need to come up with a more articulate way
-of describing this... suggestions are appreciated).
+*WARNING, I'm rambling on here and need to come up with a more articulate way
+of describing this... suggestions are appreciated.*
 
 The things we've shown before are important and interesting of course, but sound
 and music instruments are even more interesting when they change over time.
@@ -377,17 +392,17 @@ envelope, corresponding to the 4 numbers following the **`t`**...
 
 Those pieces are:
 
-- ATTACK - time in seconds when the envelope is started going from quiet to the amplitude specified in the voice
+- *ATTACK* - time in seconds when the envelope is started going from quiet to the amplitude specified in the voice
 
-- DECAY - time in seconds from the voice's amplitude (**`a`**) value to the SUSTAIN value
+- *DECAY* - time in seconds from the voice's amplitude (**`a`**) value to the SUSTAIN value
 
-- SUSTAIN - adjustment to the amplitude before the RELEASE... specified as a 1 or a fraction of voice's amplitude
+- *SUSTAIN* - adjustment of the amplitude between DECAY and RELEASE... specified as a 1 or a fraction of voice's amplitude
 
-- RELEASE - time in seconds between when the envelope is told to stop going from SUSTAIN to quiet
+- *RELEASE* - time in seconds between when the envelope is told to stop going from SUSTAIN to quiet
 
 ### l (lower-case 'ell') means *start* or *stop* the amplitude envelope
 
-Non-intuitively, the *ell* means *veLocity*, with that cleared up (?!)...
+Non-intuitively, the *ell* means *veLocity*, so with that cleared up (another thing copied from AMY)...
 
 In `skode` if the value following the `l` is greater than 0, it starts the
 ampltude envelope, multiplying the number following it by the voice's amplitude to allow
@@ -416,7 +431,7 @@ texty-graph of the wave below the `skode` block
 </template>
 
 <template data-type="markdown">
-**`w1`(( is a square wave
+**`w1`** is a square wave
 </template>
 <template data-type="code"> v0 w1 a0 f440 t0 2 0 0 l1 W1</template>
 
@@ -440,12 +455,40 @@ texty-graph of the wave below the `skode` block
 </template>
 <template data-type="code"> v0 w5 a0 f440 t0 2 0 0 l1 W5</template>
 
-<template data-type="markdown">
-**`w6`**  is a long noise wave
-</template>
+<template data-type="markdown"> **`w6`**  is a long noise wave </template>
 <template data-type="code"> v0 w6 a0 f440 t0 2 0 0 l1</template>
 
 <template data-type="markdown">
+**`w7`**  is the left audio input channel, used for sample capture
+
+**`w8`**  is the right audio input channel
+
+**`w9`**  is for future use
+</template>
+
+<template data-type="markdown">
+**`w10`** to **`w25`** are recreations of a retro wave tables using my
+[k-synth](https://octetta.github.io/k-synth) tool.
+</template>
+<template data-type="code"> v0 w10 a0 f440 t0 2 0 0 l1 W10</template>
+<template data-type="code"> v0 w11 a0 f440 t0 2 0 0 l1 W11</template>
+<template data-type="code"> v0 w12 a0 f440 t0 2 0 0 l1 W12</template>
+<template data-type="code"> v0 w13 a0 f440 t0 2 0 0 l1 W13</template>
+<template data-type="code"> v0 w14 a0 f440 t0 2 0 0 l1 W14</template>
+<template data-type="code"> v0 w15 a0 f440 t0 2 0 0 l1 W15</template>
+<template data-type="code"> v0 w16 a0 f440 t0 2 0 0 l1 W16</template>
+<template data-type="code"> v0 w17 a0 f440 t0 2 0 0 l1 W17</template>
+<template data-type="code"> v0 w18 a0 f440 t0 2 0 0 l1 W18</template>
+<template data-type="code"> v0 w19 a0 f440 t0 2 0 0 l1 W19</template>
+<template data-type="code"> v0 w20 a0 f440 t0 2 0 0 l1 W20</template>
+<template data-type="code"> v0 w21 a0 f440 t0 2 0 0 l1 W21</template>
+<template data-type="code"> v0 w22 a0 f440 t0 2 0 0 l1 W22</template>
+<template data-type="code"> v0 w23 a0 f440 t0 2 0 0 l1 W23</template>
+<template data-type="code"> v0 w24 a0 f440 t0 2 0 0 l1 W24</template>
+<template data-type="code"> v0 w25 a0 f440 t0 2 0 0 l1 W25</template>
+
+<template data-type="markdown">
+
 *Note: this learning page is a single HTML file... you can see how the WASM part
 works if you're curious and don't mind looking at HTML that a C-programmer created.*
 </template>
@@ -600,6 +643,12 @@ Z
 /s2
 /s5
 W
+</template>
+
+<template data-type="markdown">
+# &#128406;
+
+More to come later...
 </template>
 
 <!-- PROBABLY don't want to edit the stuff below here, at least for CONTENT -->

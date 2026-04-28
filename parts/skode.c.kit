@@ -1340,17 +1340,24 @@ int skode_function(ands_t *s, int info) {
         int trail0 = -1;
         float zero = 0.0;
         float threshold = 0.0;
-        if (argc) threshold = fabs(arg[0]);
+        float tleft = 0.0;
+        float tright = 0.0;
+        if (argc) {
+          threshold = fabs(arg[0]);
+          tleft = threshold;
+          tright = threshold;
+          if (argc > 1) tright = arg[1];
+        }
         #define INSIDE(v,t,r) (fabs((v)-(t))<=(r))
-        if (INSIDE(sampling.where[0], zero, threshold)) {
+        if (INSIDE(sampling.where[0], zero, tleft)) {
           for (int i=1; i<sampling.len; i++) {
-            if (!INSIDE(sampling.where[i], zero, threshold)) break;
+            if (!INSIDE(sampling.where[i], zero, tleft)) break;
             lead0++;
           }
         }
-        if (INSIDE(sampling.where[sampling.len-1], zero, threshold)) {
+        if (INSIDE(sampling.where[sampling.len-1], zero, tright)) {
           for (int i=sampling.len-2; i>=0; i--) {
-            if (!INSIDE(sampling.where[i], zero, threshold)) break;
+            if (!INSIDE(sampling.where[i], zero, tright)) break;
             trail0++;
           }
         }

@@ -721,6 +721,7 @@ More to come later...
 
   btnStart.onclick = () => {
     if (typeof Module !== 'undefined' && Module._skred_start) {
+      Module._skred_set_audio_device(0, 0); // hack... force standard in/out devices?!?
       Module._skred_start(128, 16, 0);
       isRunning = true;
       btnStart.disabled = true; btnStop.disabled = false;

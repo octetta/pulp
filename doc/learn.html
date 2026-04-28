@@ -737,7 +737,7 @@ More to come later...
   };
 
   document.getElementById('btn-quiet').onclick = () => {
-    if(isRunning) Module.ccall('skred_command', null, ['string'], ['v0l0 v1l0 v2l0 v3l0 v4l0 Z0']);
+    if(isRunning) Module.ccall('skred_command', null, ['string'], ['S100 Z0 Y0 Y1 Y2 Y3 Y4 Y5']);
   };
 
   // Execution logic

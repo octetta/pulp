@@ -1328,11 +1328,35 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('w>--'): // wave-nudge-start
       if (argc == 0) x = 1;
-      sampling.offset += x;
+      if (x > 0) sampling.offset += x;
       break;
     case ATOM4('w<--'): // wave-nudge-len
       if (argc == 0) x = 1;
-      sampling.trim += x;
+      if (x > 0) sampling.trim += x;
+      break;
+    case ATOM4('w<>-'): // wave-auto-trim
+      {
+        int lead0 = -1;
+        int trail0 = -1;
+        float zero = 0.0;
+        float threshold = 0.0;
+        if (argc) threshold = fabs(arg[0]);
+        #define INSIDE(v,t,r) (fabs((v)-(t))<=(r))
+        if (INSIDE(sampling.where[0], zero, threshold)) {
+          for (int i=1; i<sampling.len; i++) {
+            if (!INSIDE(sampling.where[i], zero, threshold)) break;
+            lead0++;
+          }
+        }
+        if (INSIDE(sampling.where[sampling.len-1], zero, threshold)) {
+          for (int i=sampling.len-2; i>=0; i--) {
+            if (!INSIDE(sampling.where[i], zero, threshold)) break;
+            trail0++;
+          }
+        }
+        if (lead0 > 0) sampling.offset = lead0;
+        if (trail0 > 0) sampling.trim = trail0;
+      }
       break;
     case ATOM4('W---'): // wave-show which-wave
       if (argc) {

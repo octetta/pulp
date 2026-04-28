@@ -1272,7 +1272,7 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     case ATOM4('S---'): // voice-reset voice
-      if (argc) wave_reset(voice, x);
+      if (argc) wave_reset(x);
       break;
     @if(ADSR)
     case ATOM4('t---'): // adsr-set attack decay sustain release
@@ -1309,6 +1309,24 @@ int skode_function(ands_t *s, int info) {
         @if(SCOPE)
         if (scope_enable) sprintf(scope->wave_text, "w%d", x);
         @endif
+      }
+      break;
+    case ATOM4('d>r-'): // data-to-rec
+      {
+        double *data = ands_data(ctx->parse);
+        int data_len = ands_data_len(ctx->parse);
+        if (data_len < sampling.capacity) {
+          for (int i=0; i<data_len; i++) sampling.where[i] = (float)data[i];
+          sampling.len = data_len;
+        }
+      }
+      break;
+    case ATOM4('w>r-'): // wave-to-rec
+      if (argc) {
+        if (sw.size[x] < sampling.capacity) {
+          for (int i=0; i<sw.size[x]; i++) sampling.where[i] = sw.data[x][i];
+          sampling.len = sw.size[x];
+        }
       }
       break;
     case ATOM4('w!--'): // wave-lock

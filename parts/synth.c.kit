@@ -1266,6 +1266,13 @@ int voice_copy(int v, int n) {
   sv.filter_mode[n] = sv.filter_mode[v];
   mmf_init(n, sv.filter_freq[v], sv.filter_res[v]);
   @endif
+  @if(GLISS)
+  sv.phase_inc[n] = sv.phase_inc[v];
+  sv.glissando_enable[n] = sv.glissando_enable[v];
+  sv.glissando_speed[n] = sv.glissando_speed[v];
+  sv.glissando_target[n] = sv.glissando_target[v];
+  sv.glissando_time[n] = sv.glissando_time[v];
+  @endif
   //
   // TODO stuff is missing from here...
   //
@@ -1415,8 +1422,7 @@ void voice_init(void) {
 }
 
 
-int wave_reset(int voice, int n) {
-  (void)n;
+int wave_reset(int voice) {
   if (voice_invalid(voice)) voice_init();
   else voice_reset(voice);
   return 0;

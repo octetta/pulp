@@ -1570,7 +1570,7 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('e?--'): // show-execute-string [num]
-      if (arg) {
+      if (argc) {
         ctx->printf(ctx, "# {%s} e>%d\n", EXTRA_PTR(x), x);
       } else {
         for (int i=0; i<STRING_BUF_IDX_MAX; i++) {
@@ -1662,7 +1662,7 @@ int skode_function(ands_t *s, int info) {
       break;
     @if(RECORD)
     case ATOM4('<---'): // record duration
-      if (arg) {
+      if (argc) {
         rec_state = 0;
         float max_sec = arg[0];
         float max_samples;
@@ -1702,18 +1702,18 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     case ATOM4('>---'): // copy-voice dest-voice
-      if (arg) voice_copy(voice, x);
+      if (argc) voice_copy(voice, x);
       break;
     case ATOM4('/---'): // default-wave voice
       wave_default(voice);
       break;
     @if(SEQ)
     case ATOM4('%---'): // pattern-modulus num
-      if (arg) seq_modulo_set(ctx->pattern, x);
+      if (argc) seq_modulo_set(ctx->pattern, x);
       break;
     @endif
     case ATOM4('=---'):  // variable-set slot value
-      if (argc>1) ands_set_local(ctx->parse, x, arg[1]);
+      if (argc) ands_set_local(ctx->parse, x, arg[1]);
       else if (argc == 1) {
         double f = ands_get_local(ctx->parse, x);
         ctx->printf(ctx, "# $%d %g\n", x, f);
@@ -1721,7 +1721,7 @@ int skode_function(ands_t *s, int info) {
       else {
         for (int i=0; i<10; i++) {
           double f = ands_get_local(ctx->parse, i);
-          ctx->printf(ctx, "# $%d %g\n", i, f);
+          if (f != 0.0) ctx->printf(ctx, "# $%d %g\n", i, f);
         }
       }
       break;

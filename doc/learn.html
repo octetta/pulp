@@ -168,6 +168,8 @@
   <button id="btn-stop" class="nav-btn" disabled>Stop</button>
   <button id="btn-quiet" class="nav-btn">Quiet</button>
   <button id="theme-toggle" class="nav-btn">Theme</button>
+  <button id="btn-repl" class="nav-btn">REPL</button>
+  <button id="btn-ksynth" class="nav-btn">ksynth</button>
   <div class="skred-slider-container">
     <span>VOLUME</span>
     <input type="range" class="skred-slider" min="-40" max="0" step=".25", value="-20"
@@ -299,6 +301,18 @@ How was that?
 
 - Want to learn more?
 
+#### *Teaser*
+</template>
+<template data-type="code">
+v0 a0 n69 t.01 .3 0 0 g.1 N0,0 >1 p-.25 w11 G1 H1 v1 w14 p.25
+v2 m1 a0 f10 l1 v0 A2,.25,1
+{v0 ~0 n69l1 ~.25 n65l2 ~.5 l2 ~.25 l3 ~.25 n60l2 ~.25 n61l2} e>0
+~0 {v0 N-24,0 v1 N-7,5 e!0} R2 2
+~4 {v0 N-7,0 v1 N-16,25 e!0} R2 2
+~8 S100
+</template>
+
+<template data-type="markdown">
 ## Explaining what we entered...
 
 I'll break down the original `skode` block **`v0 w0 a0 f440 l1`**
@@ -640,6 +654,8 @@ See `skred` state and such
 </template>
 
 <template data-type="code">
+e?
+=
 ??
 Z
 /s2
@@ -738,6 +754,14 @@ More to come later...
 
   document.getElementById('btn-quiet').onclick = () => {
     if(isRunning) Module.ccall('skred_command', null, ['string'], ['S100 Z0 Y0 Y1 Y2 Y3 Y4 Y5']);
+  };
+
+  document.getElementById('btn-repl').onclick = () => {
+    window.open('https://octetta.github.io/pulp/doc', "_blank");
+  };
+
+  document.getElementById('btn-ksynth').onclick = () => {
+    window.open('https://octetta.github.io/k-synth', "_blank");
   };
 
   // Execution logic

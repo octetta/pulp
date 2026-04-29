@@ -144,7 +144,7 @@ body {
           <div class="terminal-spacer"></div>
 Welcome to the skred shell
 Type <span class="system">'boot'</span> to initialize audio engine.
-Type <span class="system">'help'</span> for engine features.
+Type <span class="system">'help'</span> for basic things.
         </div>
 
         <div class="input-line">
@@ -170,7 +170,7 @@ Type <span class="system">'help'</span> for engine features.
         </div>
 
         <div class="status-bar">
-            <span id="engine-left">wasm-skred 0.7.0</span>
+            <span id="engine-left">wasm-skred 0.7.1</span>
             <span id="engine-center">log 0</span>
             <span id="engine-status">AUDIO OFF</span>
         </div>
@@ -185,19 +185,19 @@ var running = 0;
 
 function usage() {
   printToTerminal("QUICK REF", 'info');
+  printToTerminal("boot (voice-count) (callback-frame-count)");
   printToTerminal("learn # open skode tutorial");
   printToTerminal("ksynth # open k-synth tool");
-  printToTerminal("boot (voice-count) (callback-frame-count)");
   printToTerminal("load # select a wav file");
   printToTerminal(`v(0..${nvoices}) # select voice`);
-  printToTerminal("w(0..26)   # select waveform");
-  printToTerminal("a(-60..10) # set amplitide (dB)");
-  printToTerminal("f(0..1760) # set frequency (Hz)");
-  printToTerminal("n(0..127)  # set frequency by MIDI note");
-  printToTerminal("t A D S R  # set amp envelope (A,D,R in secs)");
-  printToTerminal("l(0..4)    # trigger ADSR with velocity");
-  printToTerminal("p(-1..1)   # pan in stereo");
-  printToTerminal("{v0l1}e>0  # store {string} to macro-0");
+  printToTerminal("w(0..999)     # select waveform");
+  printToTerminal("a(-90..10)    # set amplitide (dB)");
+  printToTerminal("f(0..12543.9) # set frequency (Hz)");
+  printToTerminal("n(0..127)     # set frequency by MIDI note");
+  printToTerminal("t A D S R     # set amp envelope (A,D,R in secs)");
+  printToTerminal("l(0..5)       # trigger ADSR with velocity");
+  printToTerminal("p(-1..1)      # pan in stereo");
+  printToTerminal("{v0l1}e>0     # store {string} to macro-0");
   printToTerminal("(played when '0' button pressed)");
 }
 

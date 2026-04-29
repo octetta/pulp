@@ -1346,11 +1346,11 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('w>--'): // wave-nudge-start
       if (argc == 0) x = 1;
-      if (x > 0) sampling.offset += x;
+      sampling.offset += x;
       break;
     case ATOM4('w<--'): // wave-nudge-len
       if (argc == 0) x = 1;
-      if (x > 0) sampling.trim += x;
+      sampling.trim += x;
       break;
     case ATOM4('w<>-'): // wave-auto-trim
       {

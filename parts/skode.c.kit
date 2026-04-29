@@ -1653,6 +1653,7 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    case ATOM4('^r--'): // record duration ... markdown/html doesn't like <
     case ATOM4('<r--'): // record duration
       if (argc) {
         skode_sample(arg[0] * (float)MAIN_SAMPLE_RATE);

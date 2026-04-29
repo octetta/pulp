@@ -23,7 +23,8 @@ wasm:
 	cp wasm-assets/test-wasm.html build_wasm/test-wasm.html
 	cp wasm-assets/serve-wasm.sh build_wasm/serve-wasm.sh
 	cd build_wasm && $(EM_ENV) ./mkwasm
-	cp build_wasm/skred_api* ../doc
+	cp build_wasm/skred_api.js ../doc
+	cp build_wasm/skred_api.wasm ../doc
 	cp wasm-assets/serve-wasm.sh ../doc
 
 native:

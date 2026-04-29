@@ -476,17 +476,33 @@ Here are some more to try out...
 <template data-type="code"> v0 w6 a0 f440 t0 2 0 0 l1</template>
 
 <template data-type="markdown">
-**`w7`**  is the left audio input channel, used for sample capture
+**`w7`** and **`w8`** are the left and right audio input channels, used
+for sample capture, and quasi-live effects
+</template>
 
-**`w8`**  is the right audio input channel
-
-**`w9`**  is for future use
+<template data-type="code">
+v14 m1 a20 w7 l1 ^r1 ~1.25 /r999
+~1.5 v14 f440 m0 w999 a20 B1
+~2 v14 f440 l1
+~4.5 v14l0
+~5 v14 f220 l1
+~6.5 v14l0
 </template>
 
 <template data-type="markdown">
-**`w10`** to **`w25`** are recreations of a retro wave tables using my
-[k-synth](https://octetta.github.io/k-synth) tool (look at the patches under dw8000).
+**`w9`**  is for future use, but will probably be left and right summed
 </template>
+
+<template data-type="markdown">
+**`w10`** to **`w25`** are recreations of my favorite 80's synth wave
+tables created using my
+[k-synth](https://octetta.github.io/k-synth)
+tool (look at the patches under dw8000).
+
+Eventually `k-synth` notation will be introduced into `skred` so you can
+make your own periodic waveforms and even entire samples.
+</template>
+
 <template data-type="code"> v0 w10 a0 f440 t0 2 0 0 l1</template>
 <template data-type="code"> v0 w11 a0 f440 t0 2 0 0 l1</template>
 <template data-type="code"> v0 w12 a0 f440 t0 2 0 0 l1</template>

@@ -185,6 +185,8 @@ var running = 0;
 
 function usage() {
   printToTerminal("QUICK REF", 'info');
+  printToTerminal("learn # open skode tutorial");
+  printToTerminal("ksynth # open k-synth tool");
   printToTerminal("boot (voice-count) (callback-frame-count)");
   printToTerminal("load # select a wav file");
   printToTerminal(`v(0..${nvoices}) # select voice`);
@@ -301,6 +303,12 @@ function processCommand(cmd) {
         case 'help': usage(); break;
         case 'load': addWavViaDialog(); break;
         case 'clear': output.innerHTML = ''; break;
+        case 'learn':
+          window.open('https://octetta.github.io/pulp/doc/learn.html', "_blank");
+          break;
+        case 'ksynth':
+          window.open('https://octetta.github.io/k-synth', "_blank");
+          break;
 
         default:
             if (!running) {

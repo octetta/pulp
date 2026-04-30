@@ -407,7 +407,15 @@ and music instruments are even more interesting when they change over time.
 The word "envelope" is used, perhaps because it's something that wraps around a
 sound to change it. The kind of envelope used in `skred` is called an ADSR
 envelope, corresponding to the 4 numbers following the **`t`**...
+</template>
 
+<template data-type="adsr" data-a="0.1" data-d="0.3" data-s="0.6" data-r="1.2"></template>
+<template data-type="adsr" data-a="0" data-d="1" data-s="0" data-r="0"></template>
+<template data-type="adsr" data-a="0" data-d="0" data-s="1" data-r="0"></template>
+<template data-type="adsr" data-a="0" data-d="2" data-s="0" data-r="0"></template>
+<template data-type="adsr" data-a=".01" data-d=".03" data-s="0" data-r="0"></template>
+
+<template data-type="markdown">
 Those pieces are:
 
 - *ATTACK* - time in seconds when the envelope is started going from quiet to the amplitude specified in the voice
@@ -754,6 +762,14 @@ V=54272:POKE V+24,15:POKE V+5,8:POKE V+6,0:POKE V,214:POKE V+1,28:POKE V+4,17
       `;
       container.appendChild(div);
     }
+    else if (type === 'adsr') {
+        const { a, d, s, r, title } = template.dataset;
+        const el = document.createElement('adsr-envelope');
+        el.setAttribute('a', a); el.setAttribute('d', d);
+        el.setAttribute('s', s); el.setAttribute('r', r);
+        if (title) el.setAttribute('title', title);
+        container.appendChild(el);
+    }
   });
 
   // UI Logic
@@ -843,6 +859,48 @@ V=54272:POKE V+24,15:POKE V+5,8:POKE V+6,0:POKE V,214:POKE V+1,28:POKE V+4,17
       const label = el.parentElement.querySelector('.slider-val');
       if (label) label.textContent = val;
   }
+
+class ADSREnvelope extends HTMLElement {
+  connectedCallback() {
+    // 1. Get raw values
+    const a = parseFloat(this.getAttribute('a')) || 0;
+    const d = parseFloat(this.getAttribute('d')) || 0;
+    const s = parseFloat(this.getAttribute('s')) || 0; // 0.0 to 1.0 multiplier
+    const r = parseFloat(this.getAttribute('r')) || 0;
+
+    // 2. Constants for rendering
+    const w = 400, h = 150, pad = 30;
+    const gW = w - (pad * 2), gH = h - (pad * 2);
+    
+    // We add a 1s 'dummy' duration for the Sustain level so the horizontal line is visible
+    const sustainVisualWidth = 1.0; 
+    const totalTime = a + d + sustainVisualWidth + r;
+    const scale = (totalTime > 0) ? (gW / totalTime) : 0;
+
+    // 3. Coordinate Mapping (Cumulative X positions)
+    const x0 = pad;                          const y0 = h - pad;        // Start
+    const x1 = x0 + (a * scale);             const y1 = pad;            // Peak (End of Attack)
+    const x2 = x1 + (d * scale);             const y2 = y0 - (s * gH);  // Sustain Level (End of Decay)
+    const x3 = x2 + (sustainVisualWidth * scale); const y3 = y2;             // Still Sustain Level (End of Hold)
+    const x4 = x3 + (r * scale);             const y4 = y0;             // End (End of Release)
+
+    // Construct the SVG path
+    const pathD = `M ${x0},${y0} L ${x1},${y1} L ${x2},${y2} L ${x3},${y3} L ${x4},${y4}`;
+
+    this.innerHTML = `
+      <div class="adsr-wrapper" style="border: 1px solid var(--border); padding: 15px; margin: 15px 0; background: var(--bg); border-radius: var(--radius);">
+        <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" style="display: block; width: 100%; height: auto;">
+          <!-- Baseline and Peak Lines -->
+          <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="var(--border)" stroke-width="1" opacity="0.2" />
+          
+          <!-- ADSR Envelope Shape -->
+          <path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" />
+        </svg>
+      </div>
+    `;
+  }
+}
+customElements.define('adsr-envelope', ADSREnvelope);
 
 </script>
 </body>

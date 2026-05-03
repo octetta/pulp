@@ -162,7 +162,7 @@
 <body>
 
 <div class="top-bar">
-  <h1>let's learn skode to make sound with skred (0.4.0)</h1>
+  <h1>let's learn skode to make sound with skred (0.4.1)</h1>
   <div id="status-indicator" class="status-dot"></div>
   <button id="btn-start" class="nav-btn">Start</button>
   <button id="btn-stop" class="nav-btn" disabled>Stop</button>
@@ -536,7 +536,7 @@ W999
 Play it...
 </template>
 <template data-type="code">
-v14 w999 g0 n69 m0 a20 l1
+v14 w999 B0 g0 n69 m0 a16 l1
 </template>
 
 <template data-type="markdown">
@@ -544,12 +544,11 @@ This plays the looped recording few times with different playback speeds.
 </template>
 
 <template data-type="code">
-v14 f440 m0 w999 a20 B1 l1
-~2 v14 f440
-~4 v14 f880
-~6 v14 f220
-~10 v14 g5 f880
-~16 v14 w0 l0
+v14 l0 g0 f440 m0 w999 a16 B1 l0 t 0 0 1 2 l1
+~2 v14 f880
+~4 v14 f220
+~6 v14 g5 f880
+~10 v14 w0 l0
 </template>
 
 <template data-type="markdown">

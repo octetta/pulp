@@ -162,7 +162,7 @@
 <body>
 
 <div class="top-bar">
-  <h1>let's learn skode to make sound with skred</h1>
+  <h1>let's learn skode to make sound with skred (0.4.0)</h1>
   <div id="status-indicator" class="status-dot"></div>
   <button id="btn-start" class="nav-btn">Start</button>
   <button id="btn-stop" class="nav-btn" disabled>Stop</button>
@@ -309,12 +309,11 @@ How was that?
 *Don't be overwhelmed by this... I'll eventually explain it all!*
 </template>
 <template data-type="code">
-v0 a0 n69 t.01 .3 0 0 g.1 N0,0 >1 p-.25 w11 G1 H1 v1 w14 p.25
-v2 m1 a0 f10 l1 v0 A2,.25,1
-{v0 ~0 n69l1 ~.25 n65l2 ~.5 l2 ~.25 l3 ~.25 n60l2 ~.25 n61l2} e>0
-~0 {v0 N-24,0 v1 N-7,5 e!0} R2 2
-~4 {v0 N-7,0 v1 N-16,25 e!0} R2 2
-~8 S100
+S100
+v0 a0 n69 t.01 .4 0 0 N0,0 >1 p-.25 w11 G1 H1 v1 w10 g.15 p.25
+{v0 ~0 n69l1 ~.25 n$1l2 ~.5 l2 ~.25 l3 ~.25 n60l2 ~.25 n$0l2} e>0
+~0 { =0,72 =1,65 v0 N-24,0 v1 N-7,5   e!0} R2 2
+~4 { =0,58 =1,57 v0 N-7,0  v1 N5,5 e!0} R2 2
 </template>
 
 <template data-type="markdown">
@@ -408,15 +407,7 @@ and music instruments are even more interesting when they change over time.
 The word "envelope" is used, perhaps because it's something that wraps around a
 sound to change it. The kind of envelope used in `skred` is called an ADSR
 envelope, corresponding to the 4 numbers following the **`t`**...
-</template>
 
-<template data-type="adsr" data-a="0.1" data-d="0.3" data-s="0.6" data-r="1.2"></template>
-<template data-type="adsr" data-a="0" data-d="1" data-s="0" data-r="0"></template>
-<template data-type="adsr" data-a="0" data-d="0" data-s="1" data-r="0"></template>
-<template data-type="adsr" data-a="0" data-d="2" data-s="0" data-r="0"></template>
-<template data-type="adsr" data-a=".01" data-d=".03" data-s="0" data-r="0"></template>
-
-<template data-type="markdown">
 Those pieces are:
 
 - *ATTACK* - time in seconds when the envelope is started going from quiet to the amplitude specified in the voice
@@ -427,21 +418,57 @@ Those pieces are:
 
 - *RELEASE* - time in seconds between when the envelope is told to stop going from SUSTAIN to quiet
 
-### l (lower-case 'ell') means *start* or *stop* the amplitude envelope
+</template>
 
-Non-intuitively, the *ell* means *veLocity*, so with that cleared up (another thing copied from AMY)...
+<template data-type="markdown">
+**A prototypical ADSR envelope.**
 
-In `skode` if the value following the `l` is greater than 0, it starts the
-ampltude envelope, multiplying the number following it by the voice's amplitude to allow
-emphasis or de-emphasis. This is useful when we connect `skode` up to a MIDI keyboard,
+Notice the four distinct parts... upon *start*,
+the first slope up from quiet is the **ATTACK** time portion, then it slopes down for
+the **DECAY**
+time to the **SUSTAIN** level, then upon *stop*, it slopes down for the **RELEASE**
+time to quiet:
+</template>
+<template data-type="adsr" data-a="0.5" data-d="0.5" data-s="0.5" data-r="1.2"></template>
+
+<template data-type="markdown">
+If you leave ATTACK, SUSTAIN, and RELEASE at zero, the envelope starts instantly,
+and plays for DECAY seconds, fading to quiet:
+</template>
+<template data-type="adsr" data-a="0" data-d="0.5" data-s="0" data-r="0"></template>
+
+<template data-type="markdown">
+The default envelope (**`t 0 0 1 0`**) simply starts immediately upon start, has
+SUSTAIN of the full amplitude value, and plays until stopped".
+</template>
+<template data-type="adsr" data-a="0" data-d="0" data-s="1" data-r="0"></template>
+
+<template data-type="markdown">
+#### l (lower-case 'ell') means *start* or *stop* the amplitude envelope
+
+Non-intuitively, the *ell* means *veLocity*.
+
+If the value following the **`l`** is greater than 0, it starts the
+envelope. It uses the number following it with the voice's amplitude to enable
+emphasis or de-emphasis.
+
+This is useful when we connect `skode` up to a MIDI keyboard,
 which is a later topic.
 
-If the envelope has a SUSTAIN value, the voice will continue playing until `l0` is
+If the envelope has a SUSTAIN value, the voice will continue playing until **`l0`** is
 sent, which causes the envelope to use the RELEASE time.
 
-It's easier to play with this to learn it than it is to talk about, so go back to that earlier block
-and mess with it. I'll be here when you get back.
+It's easier to play with this to learn it than it is to talk about, so change the values
+following **`t`** in these blocks to mess with things. The first block sets up the voice
+and ADSR, then starts the envelope. The second block stops the envelope.
+</template>
 
+<template data-type="code">
+S100 v0 w1 a5 f110 w11 t.5 .25 .5 .75 l1
+</template>
+
+<template data-type="code">
+v0 l0
 </template>
 
 <template data-type="markdown">
@@ -472,16 +499,16 @@ Here are some more to try out...
 <template data-type="code"> v0 w3 a0 f440 t0 2 0 0 l1</template>
 
 <template data-type="markdown">
-**`w4`** is a triangle wave
+**`w4`** is a triangle wave, symmetric on the left and right
 </template>
 <template data-type="code"> v0 w4 a0 f440 t0 2 0 0 l1</template>
 
 <template data-type="markdown">
-**`w5`** is a short noise wave
+**`w5`** is a short noise wave, similar to 80's sound chip white noise
 </template>
 <template data-type="code"> v0 w5 a0 f440 t0 2 0 0 l1</template>
 
-<template data-type="markdown"> **`w6`**  is a long noise wave </template>
+<template data-type="markdown"> **`w6`**  is a longer period white noise </template>
 <template data-type="code"> v0 w6 a0 f440 t0 2 0 0 l1</template>
 
 <template data-type="markdown">
@@ -489,13 +516,40 @@ Here are some more to try out...
 for sample capture, and quasi-live effects
 </template>
 
+<template data-type="markdown">
+This block will record 1 second from the microphone and play it back a few times with different playback speeds.
+</template>
+
 <template data-type="code">
-v14 m1 a20 w7 l1 ^r1 ~1.25 /r999
-~1.5 v14 f440 m0 w999 a20 B1
-~2 v14 f440 l1
-~4.5 v14l0
-~5 v14 f220 l1
-~6.5 v14l0
+v14 w0 g0 m1 a20 w7 l1 ^r1
+~1.25 /r999
+</template>
+
+<template data-type="markdown">
+*peek at what was recorded*
+</template>
+<template data-type="code">
+W999
+</template>
+
+<template data-type="markdown">
+Play it...
+</template>
+<template data-type="code">
+v14 w999 g0 n69 m0 a20 l1
+</template>
+
+<template data-type="markdown">
+This plays the looped recording few times with different playback speeds.
+</template>
+
+<template data-type="code">
+v14 f440 m0 w999 a20 B1 l1
+~2 v14 f440
+~4 v14 f880
+~6 v14 f220
+~10 v14 g5 f880
+~16 v14 w0 l0
 </template>
 
 <template data-type="markdown">

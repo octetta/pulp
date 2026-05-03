@@ -631,6 +631,11 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         @else
         f = osc_next(n, sv.phase_inc[n]);
         @endif
+        @if(XM)
+        if (sv.ring_osc[n] >= 0.0) {
+          f *= sv.sample[sv.ring_osc[n]];
+        }
+        @endif
       }
       @if(SAH)
       if (sv.sample_hold_max[n]) {
@@ -858,6 +863,13 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" G%d,%d,%d,%d",
             (int)sv.link_midi_0[v], (int)sv.link_midi_1[v],
             (int)sv.link_midi_2[v], (int)sv.link_midi_3[v]);
+
+    @if(XM)
+    if (verbose
+        || sv.ring_osc[v] >= 0)
+        APPEND(" XM%d,%g",
+          sv.ring_osc[v], sv.ring_amount[v]);
+    @endif
 
     @if(ADSR)
     if (verbose
@@ -1273,6 +1285,10 @@ int voice_copy(int v, int n) {
   sv.glissando_target[n] = sv.glissando_target[v];
   sv.glissando_time[n] = sv.glissando_time[v];
   @endif
+  @if(XM)
+  sv.ring_osc[n] = sv.ring_osc[v];
+  sv.ring_amount[n] = sv.ring_amount[v];
+  @endif
   //
   // TODO stuff is missing from here...
   //
@@ -1412,6 +1428,10 @@ void voice_reset(int i) {
   @endif
   @if(RECORD)
   sv.record[i] = 0;
+  @endif
+  @if(XM)
+  sv.ring_osc[i] = -1;
+  sv.ring_amount[i] = 0.0;
   @endif
 }
 

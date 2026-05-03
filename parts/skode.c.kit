@@ -985,6 +985,106 @@ void skode_sample(int how_many) {
 
 #include "miniaudio.h"
 
+@doc
+## enabled features
+@enddoc
+
+@if(ADSR)
+@doc
+### time-based ampltude envelope (ADSR)
+@enddoc
+@endif
+
+@if(AM)
+@doc
+### amplitude modulation (AM)
+@enddoc
+@endif
+
+@if(PD)
+@doc
+### phase distortion (CZ)
+@enddoc
+@endif
+
+@if(FM)
+@doc
+### frequency modulation
+@enddoc
+@endif
+
+@if(FILT)
+@doc
+### multi-mode resonant filtering
+@enddoc
+@endif
+
+@if(FADSR)
+@doc
+### time-based filter envelope (ADSR)
+@enddoc
+@endif
+
+@if(GLISS)
+@doc
+### frequency sweeping (glide or portamento)
+@enddoc
+@endif
+
+@if(SAH)
+@doc
+### sample-and-hold
+@enddoc
+@endif
+
+@if(PANMOD)
+@doc
+### pan modulation
+@enddoc
+@endif
+
+@if(CRUSH)
+@doc
+### bit-depth reduction (bit-crush)
+@enddoc
+@endif
+
+@if(SMOOTHER)
+@doc
+### amplitude slew-rate (smoother)
+@enddoc
+@endif
+
+@if(RECORD)
+@doc
+### recording
+@enddoc
+@endif
+
+@if(UDP)
+@doc
+### skode UDP server
+@enddoc
+@endif
+
+@if(SEQ)
+@doc
+### patterns and events
+@enddoc
+@endif
+
+@if(SCOPE)
+@doc
+### waveform scope shared memory
+@enddoc
+@endif
+
+@if(BENCH)
+@doc
+### benchmarking tools
+@enddoc
+@endif
+
 int skode_function(ands_t *s, int info) {
   uint32_t atom = ands_atom_num(s);
   int argc = ands_arg_len(s);
@@ -1002,10 +1102,20 @@ int skode_function(ands_t *s, int info) {
   }
   switch (atom) {
     case ATOM4('a---'): // amp loudness
+@doc
+
+`a` set voice loudness (amplitude) in dB
+
+@enddoc
       if (argc) amp_set(voice, arg[0]);
       break;
     @if(AM)
     case ATOM4('A---'): // AM voice depth
+@doc
+
+`A x,y,z` set voice amplitude modulation (AM) using voice `x`, depth 'y', and offset 'z'
+
+@enddoc
       if (argc < 2) {
         amp_mod_set(voice, -1, 0, 0);
       } else if (argc > 1) {
@@ -1016,11 +1126,34 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     case ATOM4('b---'): // wave-direction bool
+@doc
+
+`b [0|1]` set voice waveform playback direction 0=forward, 1=backward
+
+@enddoc
       if (argc == 0) { wave_dir(voice, -1); } else { wave_dir(voice, x); } break;
     case ATOM4('B---'): // wave-loop bool
+@doc
+
+`B [0|1]` set voice waveform looping 0=off, 1=on
+
+@enddoc
       if (argc == 0) { wave_loop(voice, -1); } else { wave_loop(voice, x); } break;
     @if(PD)
     case ATOM4('c---'): // phase-distortion algo distortion
+@doc
+
+`c mode, depth` set voice CZ / phase distortion with `mode` (below) and `depth` (0.0 to 1.0)
+  0 = off
+  1 = saw -> pulse
+  2 = folded sine
+  3 = triangle
+  4 = double sine
+  5 = saw -> triangle
+  6 = resonant 1
+  7 = resonant 2
+
+@enddoc
       if (argc == 0) {
         cz_set(voice, 0, .5);
       } else if (argc == 1) {
@@ -1425,6 +1558,15 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('xa--'): // append step
       seq_step_append(ctx->pattern, ands_string(ctx->parse));
       break;
+    @if(XM)
+    case ATOM4('XM--'): // ring modulation osc amount
+      if (argc) {
+        sv.ring_osc[voice] = x;
+        if (argc > 1) sv.ring_amount[voice] = arg[1];
+        else sv.ring_amount[voice] = 0.0;
+      }
+      break;
+    @endif
     case ATOM4('x---'): // set-step-string step
       if (argc) {
         if (arg[0] == NAN || x < 0) {

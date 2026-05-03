@@ -162,6 +162,11 @@ typedef struct {
     float  * restrict amp_mod_adder;
     @endif
 
+    @if(XM)
+    int    * restrict ring_osc;
+    float  * restrict ring_amount;
+    @endif
+
 } synth_voices_t;
 
 /* ------------------------------------------------------------------ */

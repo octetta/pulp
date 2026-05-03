@@ -225,6 +225,11 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(amp_mod_depth,   float);
     VALLOC(amp_mod_adder,   float);
     @endif
+
+    @if(XM)
+    VALLOC(ring_osc,        int);
+    VALLOC(ring_amount,     float);
+    @endif
 }
 
 void synth_free_voices(void) {
@@ -293,6 +298,9 @@ void synth_free_voices(void) {
     @endif
     @if(AM)
     VFREE(amp_mod_osc);      VFREE(amp_mod_depth);  VFREE(amp_mod_adder);
+    @endif
+    @if(XM)
+    VFREE(ring_osc); VFREE(ring_amount);
     @endif
 }
 

@@ -33,14 +33,15 @@ double *kse_get_result(int writer, size_t *len) {
 
 static void handle_line(ks_ctx *ctx, int writer, char *line, size_t len) {
   if (r[writer]) {
-    r[writer] = NULL;
+    printf("# free r[%d]\n", writer);
     k_free(ctx, r[writer]);
+    r[writer] = NULL;
   }
   r[writer] = ks_eval(ctx, line, len);
   if (ctx->last_status != KS_OK) {
     ks_status status = ctx->last_status;
     char *err = (char *)ks_strerror(status);
-    //printf("# %d : %s\n", status, err);
+    printf("# r[%d] status %d error %s\n", writer, status, err);
   }
   ctx->gas_used = 0;
 }
@@ -48,12 +49,12 @@ static void handle_line(ks_ctx *ctx, int writer, char *line, size_t len) {
 static void *kse_main(void *arg) {
   (void)arg;
   // limits       mem          gas
-  ctx = ks_create(1*1024*1024, 100000);
+  ctx = ks_create(1*1024*1024, 10000000);
   while (kse_running) {
     int len;
     int writer;
     char *cmd = ks_recv(&len, &writer);
-    //printf("recv[%d]: {%.*s}\n", writer, len, cmd);
+    printf("recv[%d]: {%.*s}\n", writer, len, cmd);
     handle_line(ctx, writer, cmd, len);
   }
   for (int i=0; i<KS_WRITERS; i++) if (r[i]) k_free(ctx, r[i]);

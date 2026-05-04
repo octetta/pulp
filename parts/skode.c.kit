@@ -249,17 +249,12 @@ int skode_hash(skode_t *ctx) {
   return addr % SKODE_CTX_MAX;
 }
 
-void skode_show(skode_t *ctx) {
-  if (ctx != NULL) {
-    ctx->printf(ctx, "# voice %d\n", ctx->voice);
-    ctx->printf(ctx, "# pattern %d\n", ctx->pattern);
-    ctx->printf(ctx, "# scratch %s\n", ands_string(ctx->parse));
-    ctx->printf(ctx, "( ");
+#define DOT_NUM (3)
+
+void skode_double_dump(skode_t *ctx, double *data, int data_len) {
     int flag = 1;
     int show_dots = 0;
-    double *data = ands_data(ctx->parse);
-    int data_len = ands_data_len(ctx->parse);
-#define DOT_NUM (3)
+    ctx->printf(ctx, "( ");
     for (int i = 0; i < data_len; i++) {
       if (i < DOT_NUM) {
         show_dots = 0;
@@ -276,6 +271,16 @@ void skode_show(skode_t *ctx) {
       }
     }
     ctx->printf(ctx, ") # %d elements\n", data_len);
+}
+
+void skode_show(skode_t *ctx) {
+  if (ctx != NULL) {
+    ctx->printf(ctx, "# v%d\n", ctx->voice);
+    ctx->printf(ctx, "# y%d\n", ctx->pattern);
+    ctx->printf(ctx, "# scratch {%s}\n", ands_string(ctx->parse));
+    double *data = ands_data(ctx->parse);
+    int data_len = ands_data_len(ctx->parse);
+    skode_double_dump(ctx, data, data_len);
   }
   for (int i = 0; i < SKODE_CTX_MAX; i++) {
     if (skode_ctx[i]) {
@@ -966,10 +971,7 @@ void wave_table_dynamic_expand(int n) {
 #include <sys/time.h>
 #include <unistd.h>
 
-void skode_sample(int how_many) {
-  if (sampling.busy) {
-    return;
-  }
+void skode_sample_alloc(int how_many) {
   if (sampling.capacity < how_many) {
     if (sampling.where) {
       free(sampling.where);
@@ -981,11 +983,15 @@ void skode_sample(int how_many) {
       for (int i=0; i<how_many; i++) sampling.where[i] = 0.0;
     }
     sampling.how_many = how_many;
-    sampling.go = 1;
-  } else {
-    sampling.how_many = how_many;
-    sampling.go = 1;
   }
+}
+
+void skode_sample_go(int how_many) {
+  if (sampling.busy) {
+    return;
+  }
+  skode_sample_alloc(how_many);
+  sampling.go = 1;
 }
 
 #include "miniaudio.h"
@@ -1277,11 +1283,23 @@ int skode_function(ands_t *s, int info) {
     @endif
     @if(KSYNTH)
     case ATOM4('ks--'): // run ksynth code in string buffer
+    case ATOM4('k!--'): // run ksynth code in string buffer
       {
-        char *cmd = ands_string(ctx->parse);
         int len = 0;
+        char *cmd = ands_string(ctx->parse);
         if (cmd) len = strlen(cmd);
+        if (ctx->trace) {
+          ctx->printf(ctx, "cmd:{%s} len:%d\n", cmd, len);
+        }
         if (len) ks_send(0, cmd, len);
+      }
+      break;
+    case ATOM4('k?--'): // k show last results
+      {
+        size_t len;
+        int writer = 0;
+        double *f = kse_get_result(writer, &len);
+        if (len && f) skode_double_dump(ctx, f, len);
       }
       break;
     case ATOM4('k>d-'): // k results to d?
@@ -1485,9 +1503,12 @@ int skode_function(ands_t *s, int info) {
       {
         double *data = ands_data(ctx->parse);
         int data_len = ands_data_len(ctx->parse);
-        if (data_len < sampling.capacity) {
+        skode_sample_alloc(data_len);
+        if (data_len <= sampling.capacity) {
           for (int i=0; i<data_len; i++) sampling.where[i] = (float)data[i];
           sampling.len = data_len;
+        } else {
+          ctx->printf(ctx, "NO!\n");
         }
       }
       break;
@@ -1564,6 +1585,12 @@ int skode_function(ands_t *s, int info) {
           if (sampling.where) {
             if ((sampling.offset > sampling.len) || (sampling.len - sampling.trim <= 0)) {
               ctx->printf(ctx,"NO!\n");
+              ctx->printf(ctx, "offset:%d\n", sampling.offset);
+              ctx->printf(ctx, "trim:%d\n", sampling.trim);
+              ctx->printf(ctx, "len:%d\n", sampling.len);
+              ctx->printf(ctx, "where:%p\n", sampling.where);
+              ctx->printf(ctx, "busy:%d\n", sampling.busy);
+              ctx->printf(ctx, "go:%d\n", sampling.go);
             } else {
               print_audio_braille_labeled(ctx, sampling.where, sampling.len, w, h, sampling.offset, sampling.len - sampling.trim);
               int len = sampling.len - sampling.offset - sampling.trim;
@@ -1835,7 +1862,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('^r--'): // record duration ... markdown/html doesn't like <
     case ATOM4('<r--'): // record duration
       if (argc) {
-        skode_sample(arg[0] * (float)MAIN_SAMPLE_RATE);
+        skode_sample_go(arg[0] * (float)MAIN_SAMPLE_RATE);
       } else {
         ctx->printf(ctx, "skode_sample -> %d %d %d\n", sampling.busy, sampling.go, sampling.how_many);
       }

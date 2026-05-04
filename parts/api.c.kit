@@ -15,6 +15,9 @@
 @if(UDP)
 #include "udp.h"
 @endif
+@if(KSYNTH)
+#include "kse.h"
+@endif
 
 #define ONE_FRAME_MAX (64 * 1024)
 
@@ -117,6 +120,10 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   }
   @endif
 
+  @if(KSYNTH)
+  kse_start();
+  @endif
+
     // 3. Initialize and start miniaudio device
   ensure_context_initialized();
 
@@ -169,9 +176,12 @@ int skred_command(char* line) {
 }
 
 void skred_stop(void) {
-    // 1. Stop miniaudio device
-    // 2. Shut down UDP thread
-    // 3. Free allocations
+  @if(UDP)
+  udp_stop();
+  @endif
+  @if(KSYNTH)
+  kse_stop();
+  @endif
   // turn down volume smoothly to avoid clicks
   volume_set(-90);
   ma_device_uninit(&synth_device);
@@ -227,6 +237,9 @@ CAT(SMOOTHER)
 @endif
 @if(UDP)
 CAT(UDP)
+@endif
+@if(KSYNTH)
+CAT(KSYNTH)
 @endif
 return _features_;
 }

@@ -62,6 +62,7 @@ void ands_use_global(ands_t *s);
 void ands_local_to_global(ands_t *s, int n);
 void ands_global_to_local(ands_t *s, int n);
 void ands_data_resize(ands_t *s, int len);
+void ands_data_len_set(ands_t *s, int n);
 int ands_data_cap(ands_t *s);
 double ands_get_local(ands_t *s, int n);
 

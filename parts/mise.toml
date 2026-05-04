@@ -2,4 +2,5 @@
 cmake = "latest"
 emsdk = "latest"
 rg = "latest"
+rust = "latest"
 zig = "0.13"

@@ -502,6 +502,7 @@ char *ands_defer_string(ands_t *s) { return buffer_str(&s->defer); }
 char ands_defer_mode(ands_t *s) { return s->defer_mode; }
 char *ands_atom_string(ands_t *s) { return atom_string(s->atom_num); }
 double *ands_data(ands_t *s) { return s->data; }
+void ands_data_len_set(ands_t *s, int n) { if (n <= s->data_cap) s->data_len = n; }
 int ands_data_len(ands_t *s) { return s->data_len; }
 void ands_data_resize(ands_t *s, int len) {
   if (s->data) {

@@ -9,4 +9,5 @@ emcc -I. -I.. \
     -s ALLOW_MEMORY_GROWTH=1 \
     -s MAXIMUM_MEMORY=4GB \
     -s INITIAL_MEMORY=64MB \
-    -O3
+    -s MALLOC='emmalloc' \
+    -Oz

@@ -42,6 +42,9 @@ set(API_PLAIN_SOURCES
     miniwav.c
     skqueue.c
     udp.c
+    ksynth.c
+    ks_chan.c
+    kse.c
 )
 
 # 3. List your .kit modules intended ONLY for the library

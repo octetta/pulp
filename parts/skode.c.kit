@@ -14,6 +14,11 @@
 #include <unistd.h>
 #include <dirent.h>
 
+@if(KSYNTH)
+#include "ks_chan.h"
+#include "kse.h"
+@endif
+
 int skode_puts(skode_t *ctx, const char *s) {
   if (!ctx || ctx->log_enable == 0) return 0;
   if (ctx->log_len + strlen(s) >= SKODE_LOG_MAX) return 0;
@@ -1171,7 +1176,11 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     case ATOM4('D---'): // data-size
-      // need to use the data array in skode here, not ctx->data
+      if (argc) {
+        if (x > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, x);
+      } else {
+        ctx->printf(ctx, "# D[%d]\n", ands_data_cap(ctx->parse));
+      }
       break;
     case ATOM4('f---'): // freq hz
       if (argc) freq_set(voice, arg[0]);
@@ -1263,7 +1272,35 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('K---'): // filter-cutoff freq
-      if (argc) { mmf_set_freq(voice, arg[0]); } break;
+      if (argc) { mmf_set_freq(voice, arg[0]); }
+      break;
+    @endif
+    @if(KSYNTH)
+    case ATOM4('ks--'): // run ksynth code in string buffer
+      {
+        char *cmd = ands_string(ctx->parse);
+        int len = 0;
+        if (cmd) len = strlen(cmd);
+        if (len) ks_send(0, cmd, len);
+      }
+      break;
+    case ATOM4('k>d-'): // k results to d?
+      {
+        size_t len;
+        int writer = 0;
+        double *f = kse_get_result(writer, &len);
+        if (f && len) {
+          int dlen = ands_data_cap(ctx->parse);
+          if (len > dlen) {
+            ctx->printf(ctx, "# resize %d -> %d\n", dlen, len);
+            ands_data_resize(ctx->parse, len);
+          }
+          double *g = ands_data(ctx->parse);
+          for (int i=0; i<len; i++) g[i] = f[i];
+          ands_data_len_set(ctx->parse, len);
+        }
+      }
+      break;
     @endif
     @if(ADSR)
     case ATOM4('k---'): // adsr-mode bool

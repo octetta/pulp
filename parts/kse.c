@@ -47,12 +47,14 @@ static void handle_line(ks_ctx *ctx, int writer, char *line, size_t len) {
 }
 
 static void *kse_main(void *arg) {
+  //printf("kse_main\n");
   (void)arg;
   // limits       mem          gas
   ctx = ks_create(16*1024*1024, 10000000);
   while (kse_running) {
     int len;
     int writer;
+    //printf("about to recv...\n");
     char *cmd = ks_recv(&len, &writer);
     //printf("recv[%d]: {%.*s}\n", writer, len, cmd);
     handle_line(ctx, writer, cmd, len);
@@ -64,6 +66,7 @@ static void *kse_main(void *arg) {
 }
 
 int kse_start(void) {
+  //printf("ks_start\n");
   ks_bus_init();
   kse_running = 1;
   pthread_attr_init(&kse_attr);

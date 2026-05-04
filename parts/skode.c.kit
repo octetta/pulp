@@ -424,6 +424,29 @@ void show_threads(skode_t *ctx) {
 #endif
 }
 
+void ksynth_loader(skode_t *ctx, FILE *in, int writer) {
+  int r = 0;
+  if (in) {
+    char line[1024];
+    while (fgets(line, sizeof(line), in) != NULL) {
+      size_t len = strlen(line);
+      if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
+      ctx->printf(ctx, "  %s\n", line);
+      ks_send(writer, line, len);
+    }
+    fclose(in);
+  } else {
+    puts("NNNNOOOO");
+  }
+}
+
+int ksynth_load_name(skode_t *ctx, int writer, char *file) {
+  FILE *in = fopen(file, "r");
+  int r = 0;
+  ksynth_loader(ctx, in, writer);
+  return r;
+}
+
 int ksynth_load(skode_t *ctx, int writer, int n) {
   char file[1024];
   sprintf(file, "%d.ks", n);
@@ -433,16 +456,7 @@ int ksynth_load(skode_t *ctx, int writer, int n) {
     in = fopen(file, "r");
   }
   int r = 0;
-  if (in) {
-    char line[1024];
-    while (fgets(line, sizeof(line), in) != NULL) {
-      size_t len = strlen(line);
-      if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
-      ctx->printf(ctx, "  %s\n", line);
-      ks_send(0, line, len);
-    }
-    fclose(in);
-  }
+  ksynth_loader(ctx, in, writer);
   return r;
 }
 
@@ -1304,8 +1318,17 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     @if(KSYNTH)
+    #define TMP_WRITER 0
+    case ATOM4('/ks-'): // ksynth-load num
+      {
+        char *file = ands_string(ctx->parse);
+        if (strlen(file)) {
+          ksynth_load_name(ctx, TMP_WRITER, file);
+        }
+      }
+      break;
     case ATOM4('/k--'): // ksynth-load num
-      if (argc) { ksynth_load(ctx, 0, x); }
+      if (argc) { ksynth_load(ctx, TMP_WRITER, x); }
       break;
     case ATOM4('ks--'): // run ksynth code in string buffer
     case ATOM4('k!--'): // run ksynth code in string buffer

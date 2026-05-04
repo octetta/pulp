@@ -424,6 +424,28 @@ void show_threads(skode_t *ctx) {
 #endif
 }
 
+int ksynth_load(skode_t *ctx, int writer, int n) {
+  char file[1024];
+  sprintf(file, "%d.ks", n);
+  FILE *in = fopen(file, "r");
+  if (in == NULL) {
+    sprintf(file, "sk/%d.ks", n);
+    in = fopen(file, "r");
+  }
+  int r = 0;
+  if (in) {
+    char line[1024];
+    while (fgets(line, sizeof(line), in) != NULL) {
+      size_t len = strlen(line);
+      if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
+      ctx->printf(ctx, "  %s\n", line);
+      ks_send(0, line, len);
+    }
+    fclose(in);
+  }
+  return r;
+}
+
 int skode_load(skode_t *ctx, int voice, int n) {
   (void)voice;
   skode_t wprime;
@@ -1282,6 +1304,9 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     @if(KSYNTH)
+    case ATOM4('/k--'): // ksynth-load num
+      if (argc) { ksynth_load(ctx, 0, x); }
+      break;
     case ATOM4('ks--'): // run ksynth code in string buffer
     case ATOM4('k!--'): // run ksynth code in string buffer
       {
@@ -1715,7 +1740,9 @@ int skode_function(ands_t *s, int info) {
         rec_load(ctx, wave_slot, one_shot, offset);
       }
       break;
-    case ATOM4('/d--'): // data-to-wave slot rate rate offset
+                        //              x/0  1     2        3
+                        //              300  44100 one-shot offset
+    case ATOM4('/d--'): // data-to-wave slot rate  one-shot offset
       {
         int wave_slot = EXT_SAMPLE_000;
         int one_shot = 0;
@@ -1723,7 +1750,7 @@ int skode_function(ands_t *s, int info) {
         float offset = 0.0;
         if (argc) wave_slot = (int)arg[0];
         if (argc > 1) rate = arg[1];
-        if (argc > 2) rate = arg[2];
+        if (argc > 2) one_shot = arg[2];
         if (argc > 3) offset = arg[3];
         data_load(ctx, wave_slot, one_shot, rate, offset);
       }

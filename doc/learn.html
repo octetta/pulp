@@ -519,12 +519,11 @@ for sample capture, and quasi-live effects
 </template>
 
 <template data-type="markdown">
-This block will record 1 second from the microphone and play it back a few times with different playback speeds.
+This block will record 1 second after the beep from the microphone
 </template>
 
 <template data-type="code">
-v14 w0 g0 m1 a20 w7 l1 ^r1
-~1.25 /r999
+v14 f440 w0 g0 m0 a10 l1 ~.25 v14 m1 a20 w7 l1 ^r1 ~1.25 v14 w0 m0 a10 l1 ~.25 v14 l0 /r999
 </template>
 
 <template data-type="markdown">

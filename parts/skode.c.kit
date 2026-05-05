@@ -1018,8 +1018,8 @@ void skode_sample_alloc(int how_many) {
       sampling.where = (float *)calloc(how_many + 4096, sizeof(float));
       for (int i=0; i<how_many; i++) sampling.where[i] = 0.0;
     }
-    sampling.how_many = how_many;
   }
+  sampling.how_many = how_many;
 }
 
 void skode_sample_go(int how_many) {

@@ -424,14 +424,14 @@ void show_threads(skode_t *ctx) {
 #endif
 }
 
-void ksynth_loader(skode_t *ctx, FILE *in, int writer) {
+void ksynth_loader(skode_t *ctx, FILE *in, int writer, int verbose) {
   int r = 0;
   if (in) {
     char line[1024];
     while (fgets(line, sizeof(line), in) != NULL) {
       size_t len = strlen(line);
       if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
-      ctx->printf(ctx, "  %s\n", line);
+      if (verbose) ctx->printf(ctx, "  %s\n", line);
       ks_send(writer, line, len);
     }
     fclose(in);
@@ -440,14 +440,14 @@ void ksynth_loader(skode_t *ctx, FILE *in, int writer) {
   }
 }
 
-int ksynth_load_name(skode_t *ctx, int writer, char *file) {
+int ksynth_load_name(skode_t *ctx, int writer, char *file, int verbose) {
   FILE *in = fopen(file, "r");
   int r = 0;
-  ksynth_loader(ctx, in, writer);
+  ksynth_loader(ctx, in, writer, verbose);
   return r;
 }
 
-int ksynth_load(skode_t *ctx, int writer, int n) {
+int ksynth_load(skode_t *ctx, int writer, int n, int verbose) {
   char file[1024];
   sprintf(file, "%d.ks", n);
   FILE *in = fopen(file, "r");
@@ -456,7 +456,7 @@ int ksynth_load(skode_t *ctx, int writer, int n) {
     in = fopen(file, "r");
   }
   int r = 0;
-  ksynth_loader(ctx, in, writer);
+  ksynth_loader(ctx, in, writer, verbose);
   return r;
 }
 
@@ -1319,16 +1319,22 @@ int skode_function(ands_t *s, int info) {
     @endif
     @if(KSYNTH)
     #define TMP_WRITER 0
-    case ATOM4('/ks-'): // ksynth-load num
+    case ATOM4('/ks-'): // ksynth-load num (verbose)
       {
         char *file = ands_string(ctx->parse);
+        int verbose = 0;
+        if (argc > 1) verbose = (int)arg[1];
         if (strlen(file)) {
-          ksynth_load_name(ctx, TMP_WRITER, file);
+          ksynth_load_name(ctx, TMP_WRITER, file, verbose);
         }
       }
       break;
-    case ATOM4('/k--'): // ksynth-load num
-      if (argc) { ksynth_load(ctx, TMP_WRITER, x); }
+    case ATOM4('/k--'): // ksynth-load num (verbose)
+      if (argc) {
+        int verbose = 0;
+        if (argc > 1) verbose = (int)arg[1];
+        ksynth_load(ctx, TMP_WRITER, x, verbose);
+      }
       break;
     case ATOM4('ks--'): // run ksynth code in string buffer
     case ATOM4('k!--'): // run ksynth code in string buffer

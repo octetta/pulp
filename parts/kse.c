@@ -32,6 +32,22 @@ double *kse_get_result(int writer, size_t *len) {
 }
 
 static void handle_line(ks_ctx *ctx, int writer, char *line, size_t len) {
+  if (strncmp(line, "\\X", 2) == 0) {
+    printf("clearing vars\n");
+    ks_clear_vars(ctx);
+    printf("clearing r[]\n");
+    for (int i=0; i<KS_WRITERS; i++) {
+      if (r[i]) {
+        free(r[i]);
+        r[i] = NULL;
+      }
+    }
+    printf("clearing gas\n");
+    ctx->gas_used = 0;
+    printf("clearing status\n");
+    ctx->last_status = KS_OK; // is this good to do?
+    return;
+  }
   if (r[writer]) {
     //printf("# free r[%d]\n", writer);
     k_free(ctx, r[writer]);
@@ -41,7 +57,8 @@ static void handle_line(ks_ctx *ctx, int writer, char *line, size_t len) {
   if (ctx->last_status != KS_OK) {
     ks_status status = ctx->last_status;
     char *err = (char *)ks_strerror(status);
-    //printf("# r[%d] status %d error %s\n", writer, status, err);
+    printf("# r[%d] status %d error %s\n", writer, status, err);
+    ctx->last_status = KS_OK; // is this good to do?
   }
   ctx->gas_used = 0;
 }

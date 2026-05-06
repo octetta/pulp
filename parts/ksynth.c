@@ -113,6 +113,7 @@ K k_new(ks_ctx *ctx, int n) {
         longjmp(ctx->recover, 1);
     }
     
+    /* Update mem_used only after successful allocation */
     ctx->mem_used += sz;
     x->r = 1; x->n = n; return x;
 }
@@ -685,7 +686,8 @@ K atom(ks_ctx *ctx, char **s) {
             if (ctx->vars[i]) k_free(ctx, ctx->vars[i]);
             if (x) { x->r++; ctx->vars[i] = x; }
         }
-        if (x) x->r++;
+        /* Return x with its existing ref (no additional bump needed —
+           the var slot already took one ref via x->r++ above). */
         return x;
     }
 
@@ -760,6 +762,13 @@ K ks_eval(ks_ctx *ctx, const char *code, size_t len) {
     current_ks_ctx = ctx;
     ctx->last_status = KS_OK;
     
+    /* Snapshot mem_used so we can restore it if we longjmp out mid-eval.
+       Any K objects allocated but not freed (orphaned intermediates on the
+       C stack) will have been malloc'd but their memory is truly lost; at
+       least this keeps the accounting honest so subsequent evals aren't
+       incorrectly blocked by a phantom high-water mark. */
+    size_t mem_checkpoint = ctx->mem_used;
+    
     /* Setup signals */
     void (*old_segv)(int) = signal(SIGSEGV, ks_handle_signal);
     void (*old_fpe)(int)  = signal(SIGFPE,  ks_handle_signal);
@@ -779,7 +788,10 @@ K ks_eval(ks_ctx *ctx, const char *code, size_t len) {
             free(buf);
         }
     } else {
-        /* Recovered from longjmp */
+        /* Recovered from longjmp — reset mem accounting to checkpoint.
+           The vars[] still hold live objects (accounted for before the
+           checkpoint), so we restore to checkpoint not zero. */
+        ctx->mem_used = mem_checkpoint;
         result = NULL;
     }
     

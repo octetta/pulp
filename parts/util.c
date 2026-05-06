@@ -12,7 +12,6 @@ int64_t ts_diff_ns(const struct timespec *a, const struct timespec *b) {
 
 #include "util.h"
 
-
 /**
  * Retrieves the absolute path of the running executable.
  * Returns 0 on success, -1 on failure.

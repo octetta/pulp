@@ -50,6 +50,25 @@ int skode_printf(skode_t *ctx, const char *fmt, ...) {
 int null_puts(const char *s) { (void)s; return 0; }
 int null_printf(const char *fmt, ...) { (void)fmt; return 0; }
 
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <time.h>
+    #include <errno.h>
+#endif
+
+void sk_sleep(int milliseconds) {
+#ifdef _WIN32
+    Sleep(milliseconds);
+#else
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000L;
+    while (nanosleep(&ts, &ts) == -1 && errno == EINTR);
+#endif
+}
+
+
 #define MPSC_QUEUE_IMPLEMENTATION
 #include "mpsc_queue.h"
 static mpsc_queue mq;
@@ -424,6 +443,7 @@ void show_threads(skode_t *ctx) {
 #endif
 }
 
+@if(KSYNTH)
 void ksynth_loader(skode_t *ctx, FILE *in, int writer, int verbose) {
   int r = 0;
   if (in) {
@@ -459,6 +479,7 @@ int ksynth_load(skode_t *ctx, int writer, int n, int verbose) {
   ksynth_loader(ctx, in, writer, verbose);
   return r;
 }
+@endif
 
 int skode_load(skode_t *ctx, int voice, int n) {
   (void)voice;
@@ -1148,6 +1169,9 @@ int skode_function(ands_t *s, int info) {
     ctx->puts(ctx, "");
   }
   switch (atom) {
+    case ATOM4('wait'): // blocking msec wait
+      if (arg) { sk_sleep(x); }
+      break;
     case ATOM4('a---'): // amp loudness
 @doc
 

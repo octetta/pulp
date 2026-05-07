@@ -1,0 +1,307 @@
+# s <- $
+S100 v0 w0 a10 t 0 .25 0 0 l1
+{./sk/998.ks} /ks wait 50 k>d d>r /r 300
+{./sk/waves.ks} /ks wait 50 k>d d>r /r 301
+{./sk/vowels.ks} /ks wait 50 k>d d>r /r 302
+{./sk/percussion.ks} /ks wait 50 k>d d>r /r 303
+{./sk/dw8k-01.ks} /ks wait 50 k>d d>r /r 304
+{./sk/dw8k-02.ks} /ks wait 50 k>d d>r /r 305
+{./sk/dw8k-03.ks} /ks wait 50 k>d d>r /r 306
+{./sk/dw8k-04.ks} /ks wait 50 k>d d>r /r 307
+{./sk/dw8k-05.ks} /ks wait 50 k>d d>r /r 308
+{./sk/dw8k-06.ks} /ks wait 50 k>d d>r /r 309
+{./sk/dw8k-07.ks} /ks wait 50 k>d d>r /r 310
+{./sk/dw8k-08.ks} /ks wait 50 k>d d>r /r 311
+{./sk/dw8k-09.ks} /ks wait 50 k>d d>r /r 312
+{./sk/dw8k-10.ks} /ks wait 50 k>d d>r /r 313
+{./sk/dw8k-11.ks} /ks wait 50 k>d d>r /r 314
+{./sk/dw8k-12.ks} /ks wait 50 k>d d>r /r 315
+{./sk/dw8k-13.ks} /ks wait 50 k>d d>r /r 316
+{./sk/dw8k-14.ks} /ks wait 50 k>d d>r /r 317
+{./sk/dw8k-15.ks} /ks wait 50 k>d d>r /r 318
+{./sk/dw8k-16.ks} /ks wait 50 k>d d>r /r 319
+{./sk/gm-bass-sub.ks} /ks wait 50 k>d d>r /r 320
+{./sk/gm-chh.ks} /ks wait 50 k>d d>r /r 321
+{./sk/gm-clap.ks} /ks wait 50 k>d d>r /r 322
+{./sk/gm-kick.ks} /ks wait 50 k>d d>r /r 323
+{./sk/gm-ohh.ks} /ks wait 50 k>d d>r /r 324
+{./sk/gm-perc-moog.ks} /ks wait 50 k>d d>r /r 325
+{./sk/gm-snare-chase.ks} /ks wait 50 k>d d>r /r 326
+{./sk/gm-snare.ks} /ks wait 50 k>d d>r /r 327
+{./sk/gm-bass-chase.ks} /ks wait 50 k>d d>r /r 328
+{./sk/gm-bass-emcc2.ks} /ks wait 50 k>d d>r /r 329
+{./sk/gm-bass-ifl.ks} /ks wait 50 k>d d>r /r 330
+{./sk/gm-lead-chase.ks} /ks wait 50 k>d d>r /r 331
+{./sk/gm-lead-ifl.ks} /ks wait 50 k>d d>r /r 332
+{./sk/gm-lead-moog.ks} /ks wait 50 k>d d>r /r 333
+{./sk/gm-pad-chord.ks} /ks wait 50 k>d d>r /r 334
+{./sk/gm-strings-poly.ks} /ks wait 50 k>d d>r /r 335
+{./sk/gm-strings-solina.ks} /ks wait 50 k>d d>r /r 336
+{./sk/gm-vocoder.ks} /ks wait 50 k>d d>r /r 337
+{./sk/gm-arp-seq.ks} /ks wait 50 k>d d>r /r 338
+{./sk/drums-chh.ks} /ks wait 50 k>d d>r /r 339
+{./sk/drums-clap.ks} /ks wait 50 k>d d>r /r 340
+{./sk/drums-clave.ks} /ks wait 50 k>d d>r /r 341
+{./sk/drums-cowbell.ks} /ks wait 50 k>d d>r /r 342
+{./sk/drums-crash.ks} /ks wait 50 k>d d>r /r 343
+{./sk/drums-cymbal.ks} /ks wait 50 k>d d>r /r 344
+{./sk/drums-hitom.ks} /ks wait 50 k>d d>r /r 345
+{./sk/drums-kick.ks} /ks wait 50 k>d d>r /r 346
+{./sk/drums-lotom.ks} /ks wait 50 k>d d>r /r 347
+{./sk/drums-maracas.ks} /ks wait 50 k>d d>r /r 348
+{./sk/drums-midtom.ks} /ks wait 50 k>d d>r /r 349
+{./sk/drums-ohh.ks} /ks wait 50 k>d d>r /r 350
+{./sk/drums-rim.ks} /ks wait 50 k>d d>r /r 351
+{./sk/drums-snare.ks} /ks wait 50 k>d d>r /r 352
+{./sk/drums-tomhi.ks} /ks wait 50 k>d d>r /r 353
+{./sk/drums-tomlo.ks} /ks wait 50 k>d d>r /r 354
+{./sk/drums-tommid.ks} /ks wait 50 k>d d>r /r 355
+{./sk/drums-trigger.ks} /ks wait 50 k>d d>r /r 356
+{./sk/dm-bell.ks} /ks wait 50 k>d d>r /r 357
+{./sk/dm-chh.ks} /ks wait 50 k>d d>r /r 358
+{./sk/dm-clap.ks} /ks wait 50 k>d d>r /r 359
+{./sk/dm-cymbal.ks} /ks wait 50 k>d d>r /r 360
+{./sk/dm-kick-deep.ks} /ks wait 50 k>d d>r /r 361
+{./sk/dm-kick-stomp.ks} /ks wait 50 k>d d>r /r 362
+{./sk/dm-ohh.ks} /ks wait 50 k>d d>r /r 363
+{./sk/dm-perc-clang.ks} /ks wait 50 k>d d>r /r 364
+{./sk/dm-perc-pipe.ks} /ks wait 50 k>d d>r /r 365
+{./sk/dm-rim.ks} /ks wait 50 k>d d>r /r 366
+{./sk/dm-snap.ks} /ks wait 50 k>d d>r /r 367
+{./sk/dm-snare-crack.ks} /ks wait 50 k>d d>r /r 368
+{./sk/dm-snare-metal.ks} /ks wait 50 k>d d>r /r 369
+{./sk/dm-stomp.ks} /ks wait 50 k>d d>r /r 370
+{./sk/dm-tom-hi.ks} /ks wait 50 k>d d>r /r 371
+{./sk/dm-tom-lo.ks} /ks wait 50 k>d d>r /r 372
+{./sk/is-chh.ks} /ks wait 50 k>d d>r /r 373
+{./sk/is-clap.ks} /ks wait 50 k>d d>r /r 374
+{./sk/is-cowbell.ks} /ks wait 50 k>d d>r /r 375
+{./sk/is-crash.ks} /ks wait 50 k>d d>r /r 376
+{./sk/is-cymbal-crash.ks} /ks wait 50 k>d d>r /r 377
+{./sk/is-kick.ks} /ks wait 50 k>d d>r /r 378
+{./sk/is-ohh.ks} /ks wait 50 k>d d>r /r 379
+{./sk/is-perc-sp12.ks} /ks wait 50 k>d d>r /r 380
+{./sk/is-ride.ks} /ks wait 50 k>d d>r /r 381
+{./sk/is-rim.ks} /ks wait 50 k>d d>r /r 382
+{./sk/is-slam.ks} /ks wait 50 k>d d>r /r 383
+{./sk/is-snare-elec.ks} /ks wait 50 k>d d>r /r 384
+{./sk/is-snare.ks} /ks wait 50 k>d d>r /r 385
+{./sk/is-snare-s900.ks} /ks wait 50 k>d d>r /r 386
+{./sk/is-tom-elec.ks} /ks wait 50 k>d d>r /r 387
+{./sk/is-tom-hi.ks} /ks wait 50 k>d d>r /r 388
+{./sk/is-tom-lo.ks} /ks wait 50 k>d d>r /r 389
+{./sk/is-tom-mid.ks} /ks wait 50 k>d d>r /r 390
+{./sk/is-kick-808.ks} /ks wait 50 k>d d>r /r 391
+{./sk/kw-chh.ks} /ks wait 50 k>d d>r /r 392
+{./sk/kw-clap.ks} /ks wait 50 k>d d>r /r 393
+{./sk/kw-kick-electro.ks} /ks wait 50 k>d d>r /r 394
+{./sk/kw-maracas.ks} /ks wait 50 k>d d>r /r 395
+{./sk/kw-ohh.ks} /ks wait 50 k>d d>r /r 396
+{./sk/kw-trigger.ks} /ks wait 50 k>d d>r /r 397
+{./sk/kw-clave.ks} /ks wait 50 k>d d>r /r 398
+{./sk/kw-cowbell.ks} /ks wait 50 k>d d>r /r 399
+{./sk/kw-cymbal.ks} /ks wait 50 k>d d>r /r 400
+{./sk/kw-kick.ks} /ks wait 50 k>d d>r /r 401
+{./sk/kw-snare-rimshot.ks} /ks wait 50 k>d d>r /r 402
+{./sk/kw-snare.ks} /ks wait 50 k>d d>r /r 403
+{./sk/kw-synsonics.ks} /ks wait 50 k>d d>r /r 404
+{./sk/kw-tom-hi.ks} /ks wait 50 k>d d>r /r 405
+{./sk/kw-tom-lo.ks} /ks wait 50 k>d d>r /r 406
+{./sk/kw-tom-mid.ks} /ks wait 50 k>d d>r /r 407
+{./sk/nin-body.ks} /ks wait 50 k>d d>r /r 408
+{./sk/nin-chh.ks} /ks wait 50 k>d d>r /r 409
+{./sk/nin-clap.ks} /ks wait 50 k>d d>r /r 410
+{./sk/nin-cowbell.ks} /ks wait 50 k>d d>r /r 411
+{./sk/nin-crash.ks} /ks wait 50 k>d d>r /r 412
+{./sk/nin-hitom.ks} /ks wait 50 k>d d>r /r 413
+{./sk/nin-kick2.ks} /ks wait 50 k>d d>r /r 414
+{./sk/nin-kick.ks} /ks wait 50 k>d d>r /r 415
+{./sk/nin-lotom.ks} /ks wait 50 k>d d>r /r 416
+{./sk/nin-ohh.ks} /ks wait 50 k>d d>r /r 417
+{./sk/nin-rimshot.ks} /ks wait 50 k>d d>r /r 418
+{./sk/nin-shaker.ks} /ks wait 50 k>d d>r /r 419
+{./sk/nin-snare-ghost.ks} /ks wait 50 k>d d>r /r 420
+{./sk/nin-snare.ks} /ks wait 50 k>d d>r /r 421
+{./sk/nin-tom.ks} /ks wait 50 k>d d>r /r 422
+{./sk/nap-bass-acid.ks} /ks wait 50 k>d d>r /r 423
+{./sk/nap-bass-grind.ks} /ks wait 50 k>d d>r /r 424
+{./sk/nap-bass-sub-dist.ks} /ks wait 50 k>d d>r /r 425
+{./sk/nap-chh-hiss.ks} /ks wait 50 k>d d>r /r 426
+{./sk/nap-chh-tight.ks} /ks wait 50 k>d d>r /r 427
+{./sk/nap-clap-slap.ks} /ks wait 50 k>d d>r /r 428
+{./sk/nap-fm-alarm.ks} /ks wait 50 k>d d>r /r 429
+{./sk/nap-glitch-stutter.ks} /ks wait 50 k>d d>r /r 430
+{./sk/nap-kick-industrial.ks} /ks wait 50 k>d d>r /r 431
+{./sk/nap-kick-thud.ks} /ks wait 50 k>d d>r /r 432
+{./sk/nap-lead-buzz.ks} /ks wait 50 k>d d>r /r 433
+{./sk/nap-lead-scream.ks} /ks wait 50 k>d d>r /r 434
+{./sk/nap-lead-stab.ks} /ks wait 50 k>d d>r /r 435
+{./sk/nap-noise-sweep.ks} /ks wait 50 k>d d>r /r 436
+{./sk/nap-ohh-scrape.ks} /ks wait 50 k>d d>r /r 437
+{./sk/nap-pad-dread.ks} /ks wait 50 k>d d>r /r 438
+{./sk/nap-pad-gravel.ks} /ks wait 50 k>d d>r /r 439
+{./sk/nap-pad-static.ks} /ks wait 50 k>d d>r /r 440
+{./sk/nap-perc-metal.ks} /ks wait 50 k>d d>r /r 441
+{./sk/nap-perc-slam.ks} /ks wait 50 k>d d>r /r 442
+{./sk/nap-perc-zap.ks} /ks wait 50 k>d d>r /r 443
+{./sk/nap-snare-crack.ks} /ks wait 50 k>d d>r /r 444
+{./sk/nap-snare-rim.ks} /ks wait 50 k>d d>r /r 445
+{./sk/nap-tom-low.ks} /ks wait 50 k>d d>r /r 446
+{./sk/nap-tom-mid.ks} /ks wait 50 k>d d>r /r 447
+{./sk/mod-crush-rez.ks} /ks wait 50 k>d d>r /r 448
+{./sk/bell.ks} /ks wait 50 k>d d>r /r 449
+{./998.ks} /ks wait 50 k>d d>r /r 450
+{./999.ks} /ks wait 50 k>d d>r /r 451
+v0 w300 l1 wait 500
+v0 w301 l1 wait 500
+v0 w302 l1 wait 500
+v0 w303 l1 wait 500
+v0 w304 l1 wait 500
+v0 w305 l1 wait 500
+v0 w306 l1 wait 500
+v0 w307 l1 wait 500
+v0 w308 l1 wait 500
+v0 w309 l1 wait 500
+v0 w310 l1 wait 500
+v0 w311 l1 wait 500
+v0 w312 l1 wait 500
+v0 w313 l1 wait 500
+v0 w314 l1 wait 500
+v0 w315 l1 wait 500
+v0 w316 l1 wait 500
+v0 w317 l1 wait 500
+v0 w318 l1 wait 500
+v0 w319 l1 wait 500
+v0 w320 l1 wait 500
+v0 w321 l1 wait 500
+v0 w322 l1 wait 500
+v0 w323 l1 wait 500
+v0 w324 l1 wait 500
+v0 w325 l1 wait 500
+v0 w326 l1 wait 500
+v0 w327 l1 wait 500
+v0 w328 l1 wait 500
+v0 w329 l1 wait 500
+v0 w330 l1 wait 500
+v0 w331 l1 wait 500
+v0 w332 l1 wait 500
+v0 w333 l1 wait 500
+v0 w334 l1 wait 500
+v0 w335 l1 wait 500
+v0 w336 l1 wait 500
+v0 w337 l1 wait 500
+v0 w338 l1 wait 500
+v0 w339 l1 wait 500
+v0 w340 l1 wait 500
+v0 w341 l1 wait 500
+v0 w342 l1 wait 500
+v0 w343 l1 wait 500
+v0 w344 l1 wait 500
+v0 w345 l1 wait 500
+v0 w346 l1 wait 500
+v0 w347 l1 wait 500
+v0 w348 l1 wait 500
+v0 w349 l1 wait 500
+v0 w350 l1 wait 500
+v0 w351 l1 wait 500
+v0 w352 l1 wait 500
+v0 w353 l1 wait 500
+v0 w354 l1 wait 500
+v0 w355 l1 wait 500
+v0 w356 l1 wait 500
+v0 w357 l1 wait 500
+v0 w358 l1 wait 500
+v0 w359 l1 wait 500
+v0 w360 l1 wait 500
+v0 w361 l1 wait 500
+v0 w362 l1 wait 500
+v0 w363 l1 wait 500
+v0 w364 l1 wait 500
+v0 w365 l1 wait 500
+v0 w366 l1 wait 500
+v0 w367 l1 wait 500
+v0 w368 l1 wait 500
+v0 w369 l1 wait 500
+v0 w370 l1 wait 500
+v0 w371 l1 wait 500
+v0 w372 l1 wait 500
+v0 w373 l1 wait 500
+v0 w374 l1 wait 500
+v0 w375 l1 wait 500
+v0 w376 l1 wait 500
+v0 w377 l1 wait 500
+v0 w378 l1 wait 500
+v0 w379 l1 wait 500
+v0 w380 l1 wait 500
+v0 w381 l1 wait 500
+v0 w382 l1 wait 500
+v0 w383 l1 wait 500
+v0 w384 l1 wait 500
+v0 w385 l1 wait 500
+v0 w386 l1 wait 500
+v0 w387 l1 wait 500
+v0 w388 l1 wait 500
+v0 w389 l1 wait 500
+v0 w390 l1 wait 500
+v0 w391 l1 wait 500
+v0 w392 l1 wait 500
+v0 w393 l1 wait 500
+v0 w394 l1 wait 500
+v0 w395 l1 wait 500
+v0 w396 l1 wait 500
+v0 w397 l1 wait 500
+v0 w398 l1 wait 500
+v0 w399 l1 wait 500
+v0 w400 l1 wait 500
+v0 w401 l1 wait 500
+v0 w402 l1 wait 500
+v0 w403 l1 wait 500
+v0 w404 l1 wait 500
+v0 w405 l1 wait 500
+v0 w406 l1 wait 500
+v0 w407 l1 wait 500
+v0 w408 l1 wait 500
+v0 w409 l1 wait 500
+v0 w410 l1 wait 500
+v0 w411 l1 wait 500
+v0 w412 l1 wait 500
+v0 w413 l1 wait 500
+v0 w414 l1 wait 500
+v0 w415 l1 wait 500
+v0 w416 l1 wait 500
+v0 w417 l1 wait 500
+v0 w418 l1 wait 500
+v0 w419 l1 wait 500
+v0 w420 l1 wait 500
+v0 w421 l1 wait 500
+v0 w422 l1 wait 500
+v0 w423 l1 wait 500
+v0 w424 l1 wait 500
+v0 w425 l1 wait 500
+v0 w426 l1 wait 500
+v0 w427 l1 wait 500
+v0 w428 l1 wait 500
+v0 w429 l1 wait 500
+v0 w430 l1 wait 500
+v0 w431 l1 wait 500
+v0 w432 l1 wait 500
+v0 w433 l1 wait 500
+v0 w434 l1 wait 500
+v0 w435 l1 wait 500
+v0 w436 l1 wait 500
+v0 w437 l1 wait 500
+v0 w438 l1 wait 500
+v0 w439 l1 wait 500
+v0 w440 l1 wait 500
+v0 w441 l1 wait 500
+v0 w442 l1 wait 500
+v0 w443 l1 wait 500
+v0 w444 l1 wait 500
+v0 w445 l1 wait 500
+v0 w446 l1 wait 500
+v0 w447 l1 wait 500
+v0 w448 l1 wait 500
+v0 w449 l1 wait 500
+v0 w450 l1 wait 500
+v0 w451 l1 wait 500
+v0 w0 l1

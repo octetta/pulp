@@ -2,7 +2,7 @@
 
 # `PULP`
 
-> Programmable Universal Logic Pieces
+> Pretty Unweildy Linking Parts
 
 or
 

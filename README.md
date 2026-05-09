@@ -6,7 +6,7 @@
 
 or
 
-> Piled Up Lego Parts
+> Piled Up Lego Pieces
 
 Nobody likes the pulp...
 

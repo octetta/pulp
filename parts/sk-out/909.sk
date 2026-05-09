@@ -43,7 +43,7 @@ y11 %16
 {sk/drums-kick.ks}/ks wait 50 k>d d>r /r401
 {sk/drums-snare.ks}/ks wait 50 k>d d>r /r402
 
-v0 w11 n33 a0 J1 K100 Q10 F1,100 P15,1 t .1 1 0 0
+v0 a10 w11 n33 a0 J1 K100 Q10 F1,100 P15,1 t .1 1 0 0
 v1 w2 f1 a0 m1 l1
 v2 w300 f440 a10 g1
 v3 w400 f220 a5 P14,1

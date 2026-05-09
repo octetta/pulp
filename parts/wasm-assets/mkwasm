@@ -1,12 +1,14 @@
 #!/bin/bash
 
-# add
-#   --embed-file ../wav@/wav \
-# to include wave files
+# put a few goodies in the wasm
+cp ../sk/909.sk ../sk-out     # from skred
+cp ../sk/drums-*.ks ../sk-out # from k-synth
+cp ../wav/24.wav ../wav-out   # thanks BBC
 
 emcc -I. -I.. \
     -pthread \
-    --embed-file ../sk@/sk \
+    --embed-file ../sk-out@/sk \
+    --embed-file ../wav-out@/wav \
     ../ands.c \
     ../miniaudio.c \
     ../util.c \

@@ -2050,13 +2050,14 @@ int skode_function(ands_t *s, int info) {
 int skode_defer(ands_t *s, int info) {
   skode_t *ctx = (skode_t*)ands_user(s);
   char mode = ands_defer_mode(s);
-  double t = ands_defer_num(s);
+  double delay = ands_defer_num(s);
+  if (delay <= 0.0) ctx->defer_last = 0.0;
   if (ctx->defer_sample_time == 0) {
     ctx->defer_sample_time = SAMPLE_COUNT_GET();
   }
   uint64_t dst = ctx->defer_sample_time;
-  if (mode == '+') t *= (tempo_time_per_step * 4.0f);
-  t += ctx->defer_last;
+  if (mode == '+') delay *= (tempo_time_per_step * 4.0f);
+  double t = ctx->defer_last + delay;
   uint64_t qt = (uint64_t)(t * (float)MAIN_SAMPLE_RATE) + dst;
   if (ctx->trace) {
 #ifdef _WIN32
@@ -2070,7 +2071,10 @@ int skode_defer(ands_t *s, int info) {
       ctx->defer_last);
   }
   queue_item(qt, ands_defer_string(s), ctx->voice, -1);
-  ctx->defer_last += ands_defer_num(s);
+  // If this defer is created while seq() is already running a pattern step,
+  // a due-now event such as +0 will not be drained until the next callback.
+  // Revisit if mixed immediate/deferred pattern attacks need tighter alignment.
+  ctx->defer_last = t;
   return 0;
 }
 @endif

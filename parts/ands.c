@@ -387,6 +387,7 @@ int ands_consume(ands_t *s, char *line) {
                     buffer_push(&s->num, *ptr);
                 } else {
                     s->defer_num = ands_strtod(buffer_str(&s->num));
+                    if (s->defer_num < 0.0) s->defer_num = 0.0;
                     buffer_clear(&s->num);
                     s->state = GET_DEFER_STRING;
                     goto reprocess;

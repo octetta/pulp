@@ -25,7 +25,7 @@ typedef struct skode_s {
   int voice;
   voice_stack_t stack;
   uint64_t defer_sample_time;
-  float defer_last;
+  double defer_last;
   int pattern;
   int step;
   int trace;
@@ -91,4 +91,3 @@ void perf_stop(void);
 #endif
 
 #endif
-

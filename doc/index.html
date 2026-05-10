@@ -60,6 +60,35 @@ body {
     box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); 
 }
 
+#slider-bar {
+    display: flex;
+    flex-direction: column;
+    background: var(--bar-bg);
+    border-top: 1px solid rgba(144, 176, 255, 0.3);
+    flex-shrink: 0;
+    height: 176px;
+    align-items: stretch;
+    gap: 0;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+}
+
+#slider-bar.slider-hidden {
+    display: none;
+}
+
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 10px;
+    border-top: 1px solid rgba(144, 176, 255, 0.12);
+}
+
+.slider-row:first-child {
+    border-top: none;
+}
+
 #function-bar button {
     background: transparent;
     border: none;
@@ -73,6 +102,33 @@ body {
     outline: none;
     white-space: nowrap;
 }
+
+#slider-bar input {
+    background: transparent;
+    border: none;
+    border-right: 1px solid rgba(144, 176, 255, 0.2);
+    color: #ffffff;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    outline: none;
+    height: 100%;
+    min-width: 0;
+}
+
+#slider-bar input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+#slider-bar input[type="number"]::-webkit-outer-spin-button,
+#slider-bar input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.slider-cmd { flex: 2; }
+.slider-min, .slider-max, .slider-step { flex: 0 0 78px; text-align: center; }
+.cmd-slider { flex: 3; accent-color: var(--atari-light); }
 
 #function-bar button:active {
     background: var(--atari-light);
@@ -104,8 +160,8 @@ body {
 
 .status-bar {
     padding: 10px 20px;
-    background: var(--atari-dark);
-    color: var(--atari-gold);
+    background: var(--atari-light);
+    color: var(--atari-dark);
     display: flex;
     gap: 10px;
     flex-shrink: 0;
@@ -122,14 +178,42 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--atari-light);
+    color: #0030cc;
 }
-#engine-status { flex: 1; text-align: right; white-space: nowrap; }
+#engine-status {
+    flex: 1;
+    color: #0042ff;
+    text-align: right;
+    white-space: nowrap;
+}
+
+#engine-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+#slider-toggle {
+    background: transparent;
+    border: none;
+    color: #cc0033;
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+}
 
 @media (max-width: 600px) {
     #output, .prompt, #cmdInput { font-size: 12px; }
     .status-bar { font-size: 9px; }
     #function-bar button { font-size: 9px; }
+    .slider-row { gap: 4px; padding: 0 6px; }
+    #slider-bar input { font-size: 8px; }
+    .slider-min, .slider-max, .slider-step { flex-basis: 56px; }
 }
 
 .system { color: var(--atari-gold); }
@@ -171,10 +255,44 @@ Type <span class="system">'help'</span> for basic things.
             <button class="funcNum" data-val="9">9</button>
         </div>
 
+        <div id="slider-bar" class="slider-hidden">
+            <div class="slider-row">
+                <input type="text" class="slider-cmd" value="v0f{}" placeholder="cmd" title="cmd" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" inputmode="text" aria-autocomplete="none" aria-label="slider command 1">
+                <input type="number" class="slider-min" value="55" placeholder="min" title="min" aria-label="slider minimum 1">
+                <input type="number" class="slider-max" value="880" placeholder="max" title="max" aria-label="slider maximum 1">
+                <input type="number" class="slider-step" value=".1" placeholder="step" title="step" aria-label="slider step 1">
+                <input type="range" class="cmd-slider" min="55" max="880" step=".1" value="440" aria-label="command slider 1">
+            </div>
+            <div class="slider-row">
+                <input type="text" class="slider-cmd" value="v1f{}" placeholder="cmd" title="cmd" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" inputmode="text" aria-autocomplete="none" aria-label="slider command 2">
+                <input type="number" class="slider-min" value="55" placeholder="min" title="min" aria-label="slider minimum 2">
+                <input type="number" class="slider-max" value="880" placeholder="max" title="max" aria-label="slider maximum 2">
+                <input type="number" class="slider-step" value=".1" placeholder="step" title="step" aria-label="slider step 2">
+                <input type="range" class="cmd-slider" min="55" max="880" step=".1" value="440" aria-label="command slider 2">
+            </div>
+            <div class="slider-row">
+                <input type="text" class="slider-cmd" value="v2f{}" placeholder="cmd" title="cmd" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" inputmode="text" aria-autocomplete="none" aria-label="slider command 3">
+                <input type="number" class="slider-min" value="55" placeholder="min" title="min" aria-label="slider minimum 3">
+                <input type="number" class="slider-max" value="880" placeholder="max" title="max" aria-label="slider maximum 3">
+                <input type="number" class="slider-step" value=".1" placeholder="step" title="step" aria-label="slider step 3">
+                <input type="range" class="cmd-slider" min="55" max="880" step=".1" value="440" aria-label="command slider 3">
+            </div>
+            <div class="slider-row">
+                <input type="text" class="slider-cmd" value="v3f{}" placeholder="cmd" title="cmd" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" inputmode="text" aria-autocomplete="none" aria-label="slider command 4">
+                <input type="number" class="slider-min" value="55" placeholder="min" title="min" aria-label="slider minimum 4">
+                <input type="number" class="slider-max" value="880" placeholder="max" title="max" aria-label="slider maximum 4">
+                <input type="number" class="slider-step" value=".1" placeholder="step" title="step" aria-label="slider step 4">
+                <input type="range" class="cmd-slider" min="55" max="880" step=".1" value="440" aria-label="command slider 4">
+            </div>
+        </div>
+
         <div class="status-bar">
-            <span id="engine-left">wasm-skred 0.9.16</span>
+            <span id="engine-left">wasm-skred 0.9.17</span>
             <span id="engine-center">log 0</span>
-            <span id="engine-status">AUDIO OFF</span>
+            <span id="engine-right">
+                <span id="engine-status">AUDIO OFF</span>
+                <button id="slider-toggle" title="show sliders" aria-label="show sliders" aria-expanded="false">[+]</button>
+            </span>
         </div>
     </div>
 
@@ -215,16 +333,24 @@ const output = document.getElementById('output');
 const cmdInput = document.getElementById('cmdInput');
 const statusSpan = document.getElementById('engine-status');
 const centerSpan = document.getElementById('engine-center');
+const sliderBar = document.getElementById('slider-bar');
+const sliderToggle = document.getElementById('slider-toggle');
+const sliderRows = Array.from(document.querySelectorAll('.slider-row'));
 
 let commandHistory = [];
 let historyIndex = -1;
 
+function outputNearBottom() {
+    return output.scrollHeight - output.scrollTop - output.clientHeight < 24;
+}
+
 function printToTerminal(text, className = '') {
+    const shouldFollow = outputNearBottom();
     const line = document.createElement('div');
     if (className) line.className = className;
     line.textContent = text;
     output.appendChild(line);
-    output.scrollTop = output.scrollHeight;
+    if (shouldFollow) output.scrollTop = output.scrollHeight;
 }
 
 cmdInput.addEventListener('keydown', (e) => {
@@ -284,7 +410,7 @@ function processCommand(cmd) {
                 const result = Module._skred_start(bufsize, nvoices, 0); 
                 printToTerminal(`skred_start() = ${result}`, 'system');
                 statusSpan.innerText = `AUDIO ON ${nvoices} ${bufsize}`;
-                statusSpan.style.color = "var(--atari-grass)";
+                statusSpan.style.color = "#0042ff";
                 const ptr = Module._skred_features();
                 printToTerminal(`${Module.UTF8ToString(ptr)}`);
                 Module.ccall('skred_command', null, ['string'], ["log 1"]);
@@ -299,7 +425,7 @@ function processCommand(cmd) {
             Module._skred_stop();
             printToTerminal("System: Engine stopped.", "system");
             statusSpan.innerText = "AUDIO OFF";
-            statusSpan.style.color = "#aaa";
+            statusSpan.style.color = "#0042ff";
             running = 0;
             break;
         case 'help': usage(); break;
@@ -326,6 +452,10 @@ function processCommand(cmd) {
 }
 
 function sendSkredCommand(cmd) {
+    if (!running) {
+        printToTerminal("Error: Engine must be 'boot'ed first.");
+        return;
+    }
     Module.ccall('skred_command', null, ['string'], [cmd]);
     const ptr = Module._skred_log();
     const log = Module.UTF8ToString(ptr);
@@ -333,6 +463,81 @@ function sendSkredCommand(cmd) {
         printToTerminal(log, 'info');
     }
 }
+
+function formatSliderValue(value, step) {
+    const n = Number(value);
+    const s = Number(step);
+    if (!Number.isFinite(n)) return "0";
+    if (!Number.isFinite(s) || s <= 0) return `${n}`;
+    const text = `${s}`;
+    const dot = text.indexOf('.');
+    const places = dot >= 0 ? Math.min(8, text.length - dot - 1) : 0;
+    return n.toFixed(places).replace(/\.?0+$/, '');
+}
+
+function sliderParts(row) {
+    return {
+        cmd: row.querySelector('.slider-cmd'),
+        min: row.querySelector('.slider-min'),
+        max: row.querySelector('.slider-max'),
+        step: row.querySelector('.slider-step'),
+        slider: row.querySelector('.cmd-slider')
+    };
+}
+
+function updateCommandSliderRange(row) {
+    const parts = sliderParts(row);
+    let min = Number(parts.min.value);
+    let max = Number(parts.max.value);
+    let step = Number(parts.step.value);
+    if (!Number.isFinite(min)) min = 0;
+    if (!Number.isFinite(max)) max = 1;
+    if (max < min) {
+        const tmp = max;
+        max = min;
+        min = tmp;
+    }
+    if (!Number.isFinite(step) || step <= 0) step = 1;
+    parts.slider.min = min;
+    parts.slider.max = max;
+    parts.slider.step = step;
+    if (Number(parts.slider.value) < min) parts.slider.value = min;
+    if (Number(parts.slider.value) > max) parts.slider.value = max;
+}
+
+function sendSliderCommand(row) {
+    const parts = sliderParts(row);
+    updateCommandSliderRange(row);
+    const value = formatSliderValue(parts.slider.value, parts.slider.step);
+    const template = parts.cmd.value.trim();
+    if (!template) return;
+    const cmd = template.includes('{}') ? template.replaceAll('{}', value) : `${template}${value}`;
+    sendSkredCommand(cmd);
+    centerSpan.innerText = cmd;
+}
+
+sliderRows.forEach(row => {
+    const parts = sliderParts(row);
+    parts.min.addEventListener('change', () => updateCommandSliderRange(row));
+    parts.max.addEventListener('change', () => updateCommandSliderRange(row));
+    parts.step.addEventListener('change', () => updateCommandSliderRange(row));
+    parts.slider.addEventListener('input', () => sendSliderCommand(row));
+});
+
+sliderToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const shouldFollow = outputNearBottom();
+    const hidden = sliderBar.classList.toggle('slider-hidden');
+    sliderToggle.textContent = hidden ? '[+]' : '[-]';
+    sliderToggle.title = hidden ? 'show sliders' : 'hide sliders';
+    sliderToggle.setAttribute('aria-label', sliderToggle.title);
+    sliderToggle.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    if (shouldFollow) {
+        requestAnimationFrame(() => {
+            output.scrollTop = output.scrollHeight;
+        });
+    }
+});
 
 function handleFuncBtn(action) {
     let pos = cmdInput.selectionStart;
@@ -370,7 +575,11 @@ document.querySelectorAll('.funcNum').forEach(btn => {
     });
 });
 
-document.addEventListener('click', () => cmdInput.focus());
+document.addEventListener('click', (e) => {
+    if (e.target.closest('#slider-bar')) return;
+    if (e.target.closest('#output')) return;
+    cmdInput.focus();
+});
 
 let waveFileCounter = 300;
 const MIN_WAV = 300;

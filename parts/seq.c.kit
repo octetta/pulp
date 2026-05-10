@@ -27,15 +27,23 @@ static int64_t seq_offset[PATTERNS_MAX];
 // All pattern positions are derived from this value so stop/start is always phase-coherent.
 static uint64_t master_tick = 0;
 static uint64_t seq_sample_origin = 0;
-static uint64_t seq_tick_origin = 0;
+static double seq_tick_origin = 0.0;
 
 float tempo_time_per_step = 60.0f;
 float tempo_bpm = 120.0f / 4.0f;
 float tempo_base = 0.0f;
 
 void tempo_set(float m) {
-  seq_sample_origin = SAMPLE_COUNT_GET();
-  seq_tick_origin = master_tick;
+  uint64_t now = SAMPLE_COUNT_GET();
+  double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
+  double tick_origin = (double)master_tick;
+  if (samples_per_step > 0.0 && now > seq_sample_origin) {
+    tick_origin = seq_tick_origin +
+      ((double)(now - 1 - seq_sample_origin) / samples_per_step);
+    if (tick_origin < (double)master_tick) tick_origin = (double)master_tick;
+  }
+  seq_sample_origin = now;
+  seq_tick_origin = tick_origin;
   tempo_base = m;
   tempo_bpm = m / 4.0;
   float bps = m / 60.f;
@@ -45,7 +53,7 @@ void tempo_set(float m) {
 
 void seq_rewind(void) {
   seq_sample_origin = SAMPLE_COUNT_GET();
-  seq_tick_origin = 0;
+  seq_tick_origin = 0.0;
   master_tick = 0;
 }
 
@@ -114,8 +122,8 @@ void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), 
   // callback cadence so larger buffers do not smear beat timing.
   double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
   if (samples_per_step > 0.0 && now > seq_sample_origin) {
-    uint64_t target_tick = seq_tick_origin +
-      (uint64_t)(((double)(now - 1 - seq_sample_origin)) / samples_per_step);
+    uint64_t target_tick = (uint64_t)(seq_tick_origin +
+      ((double)(now - 1 - seq_sample_origin) / samples_per_step));
     while (master_tick < target_tick) {
       master_tick++;
       for (int p = 0; p < PATTERNS_MAX; p++) {
@@ -160,7 +168,7 @@ void pattern_reset(int p) {
 void seq_init(void) {
   queue_init(&seq_q, QUEUE_SIZE);
   seq_sample_origin = SAMPLE_COUNT_GET();
-  seq_tick_origin = 0;
+  seq_tick_origin = 0.0;
   master_tick = 0;
   for (int p = 0; p < PATTERNS_MAX; p++) {
     pattern_reset(p);

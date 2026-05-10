@@ -60,6 +60,10 @@ static double ands_strtod(char *s) {
   return d;
 }
 
+static double ands_defer_time_clamp(double d) {
+  return (d < 0.0) ? 0.0 : d;
+}
+
 #define ARG_MAX (8)
 #define ATOM_MAX (4)
 #define ATOM_NIL (0x2d2d2d2d)
@@ -385,9 +389,17 @@ int ands_consume(ands_t *s, char *line) {
             case GET_DEFER_NUMBER:
                 if (IS_NUMBER(*ptr)) {
                     buffer_push(&s->num, *ptr);
+                } else if (IS_VARIABLE(*ptr)) {
+                    ptr++;
+                    if (ptr < end && isdigit(*ptr)) {
+                        s->defer_num = ands_defer_time_clamp(s->global_var[*ptr-'0']);
+                    } else {
+                        s->defer_num = 0.0;
+                    }
+                    buffer_clear(&s->num);
+                    s->state = GET_DEFER_STRING;
                 } else {
-                    s->defer_num = ands_strtod(buffer_str(&s->num));
-                    if (s->defer_num < 0.0) s->defer_num = 0.0;
+                    s->defer_num = ands_defer_time_clamp(ands_strtod(buffer_str(&s->num)));
                     buffer_clear(&s->num);
                     s->state = GET_DEFER_STRING;
                     goto reprocess;

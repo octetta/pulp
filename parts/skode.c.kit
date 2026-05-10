@@ -1499,7 +1499,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('R!!-'):
       seq_kill_all();
       break;
-    case ATOM4('R\\--'): // repeat-string-tempo count delay [tag]
+    case ATOM4('RR--'): // repeat-string-tempo count delay [tag]
       if (argc > 1) {
         uint64_t qt = SAMPLE_COUNT_GET();
         double t = (tempo_time_per_step * 4.0f);

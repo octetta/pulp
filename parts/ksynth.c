@@ -32,7 +32,14 @@ const char* ks_strerror(ks_status status) {
     }
 }
 
-/* --- Signal Handling --- */
+/* --- Sandboxing & Signal Handling ---
+ *
+ * Because ksynth evaluates raw strings in real-time, it relies on hardware
+ * page faults (SIGSEGV) and floating point exceptions (SIGFPE) to catch
+ * runaway operations. `siglongjmp` (not standard `longjmp`) is explicitly
+ * used to ensure the kernel unblocks the caught signal so it can fire
+ * again on future evaluations.
+ */
 
 static void ks_handle_signal(int sig) {
     if (!current_ks_ctx) return;
@@ -61,7 +68,7 @@ static void ks_handle_signal(int sig) {
     (ctx)->gas_used += (n); \
     if ((ctx)->gas_limit > 0 && (ctx)->gas_used > (ctx)->gas_limit) { \
         (ctx)->last_status = KS_ERR_GAS; \
-        longjmp((ctx)->recover, 1); \
+        siglongjmp((ctx)->recover, 1); \
     } \
 } while(0)
 
@@ -80,8 +87,12 @@ ks_ctx* ks_create(size_t mem_limit, long long gas_limit) {
     ks_ctx *ctx = calloc(1, sizeof(ks_ctx));
     if (!ctx) return NULL;
 
-    /* Default arena size if caller passes 0 */
-    if (mem_limit == 0) mem_limit = 4 * 1024 * 1024; /* 4 MB */
+    /* Default arena size if caller passes 0.
+       Sizing rationale: a 2-second stereo output at 44100 is 88200 frames
+       × 2 channels × 8 bytes = ~1.4 MB just for the output buffer, before
+       any intermediate vectors. 8 MB gives comfortable headroom for typical
+       multi-stage patches without being wasteful. */
+    if (mem_limit == 0) mem_limit = 8 * 1024 * 1024;
 
     ctx->arena_base = malloc(mem_limit);
     if (!ctx->arena_base) { free(ctx); return NULL; }
@@ -124,7 +135,7 @@ K k_new(ks_ctx *ctx, int n) {
 
     if (ctx->arena_ptr + sz > ctx->arena_end) {
         ctx->last_status = KS_ERR_OOM;
-        longjmp(ctx->recover, 1);
+        siglongjmp(ctx->recover, 1);
     }
 
     K x = (K)ctx->arena_ptr;
@@ -323,7 +334,16 @@ K scan(ks_ctx *ctx, char op, K b) {
     return x;
 }
 
-/* --- Verbs & Operators --- */
+/* --- Verbs & Operators ---
+ *
+ * mo(char c, K b)       : Monadic verbs (single argument, e.g., 's' sine).
+ * dy(char c, K a, K b)  : Dyadic verbs (two arguments, e.g., 't' wavetable).
+ * scan(char op, K b)    : Adverb operations (e.g., '+\' running sum).
+ *
+ * Execution scales to the max length of the input vectors. If vectors
+ * are unequal, the shorter vector cycles. All loops are bounds-checked
+ * by the GAS_CHECK macro to prevent audio thread lockups.
+ */
 
 K mo(ks_ctx *ctx, char c, K b) {
     if (!b) return NULL;
@@ -439,14 +459,22 @@ K mo(ks_ctx *ctx, char c, K b) {
                 break;
             }
             case 'b': {
+                /* Monadic b: fixed-pitch buzz at 110 Hz (default organ bass).
+                   For pitched use, prefer dyadic form: freq b V */
                 double ff[] = {2.43, 3.01, 3.52, 4.11, 5.23, 6.78};
+                double phase_inc = 110.0 * (2.0 * M_PI / 44100.0);
                 double ss = 0;
                 for (int j = 0; j < 6; j++)
-                    ss += (sin(i * 0.1 * ff[j]) > 0) ? 1.0 : -1.0;
+                    ss += (sin(i * phase_inc * ff[j]) > 0) ? 1.0 : -1.0;
                 x->f[i] = ss / 6.0;
                 break;
             }
-            case 'u': x->f[i] = (i < 10) ? (double)i / 10.0 : 1.0; break;
+            case 'u': {
+                /* Monadic u: fixed 10-sample anti-click ramp.
+                   For a longer ramp, use dyadic form: N u V */
+                x->f[i] = (i < 10) ? (double)i / 10.0 : 1.0;
+                break;
+            }
             case 'n': x->f[i] = 440.0 * pow(2.0, (v - 69.0) / 12.0); break;
             default: x->f[i] = v; break;
         }
@@ -541,6 +569,37 @@ K dy(ks_ctx *ctx, char c, K a, K b) {
         k_free(ctx, a); k_free(ctx, b); return x;
     }
 
+    if (c == 'b') {
+        /* Dyadic b: freq b signal — pitched band-limited buzz at freq Hz.
+           Same 6-oscillator metallic cluster as monadic b, tuned to freq.
+           Output length = b->n (the signal vector). */
+        double freq = (a->n > 0) ? a->f[0] : 110.0;
+        if (freq < 1.0) freq = 1.0;
+        double phase_inc = freq * (2.0 * M_PI / 44100.0);
+        double ff[] = {2.43, 3.01, 3.52, 4.11, 5.23, 6.78};
+        GAS_CHECK(ctx, b->n);
+        x = k_new(ctx, b->n);
+        for (int i = 0; i < b->n; i++) {
+            double ss = 0;
+            for (int j = 0; j < 6; j++)
+                ss += (sin(i * phase_inc * ff[j]) > 0) ? 1.0 : -1.0;
+            x->f[i] = ss / 6.0;
+        }
+        k_free(ctx, a); k_free(ctx, b); return x;
+    }
+
+    if (c == 'u') {
+        /* Dyadic u: N u signal — anti-click ramp over first N samples.
+           Ramps from 0 to 1 over N samples then holds at 1.0.
+           N < 1 is treated as 1; use N=0 to effectively bypass. */
+        int ramp = (a->n > 0 && a->f[0] >= 1.0) ? (int)a->f[0] : 1;
+        GAS_CHECK(ctx, b->n);
+        x = k_new(ctx, b->n);
+        for (int i = 0; i < b->n; i++)
+            x->f[i] = (i < ramp) ? (double)i / (double)ramp : 1.0;
+        k_free(ctx, a); k_free(ctx, b); return x;
+    }
+
     if (c == 'f') {
         GAS_CHECK(ctx, b->n);
         x = k_new(ctx, b->n); double b0 = 0, b1 = 0;
@@ -555,7 +614,9 @@ K dy(ks_ctx *ctx, char c, K a, K b) {
             x->f[i] = b1;
         }
         k_free(ctx, a); k_free(ctx, b); return x;
-    } else if (c == 'g') {
+    }
+
+    if (c == 'g') {
         GAS_CHECK(ctx, b->n);
         x = k_new(ctx, b->n);
         double s0 = 0.0, s1 = 0.0;
@@ -572,7 +633,9 @@ K dy(ks_ctx *ctx, char c, K a, K b) {
             x->f[i] = s1;
         }
         k_free(ctx, a); k_free(ctx, b); return x;
-    } else if (c == 'y') {
+    }
+
+    if (c == 'y') {
         int dd   = (int)a->f[0];
         double g = (a->n > 1) ? a->f[1] : 0.4;
         GAS_CHECK(ctx, b->n);
@@ -582,20 +645,28 @@ K dy(ks_ctx *ctx, char c, K a, K b) {
             x->f[i] = safe_val(b->f[i] + (g * delayed));
         }
         k_free(ctx, a); k_free(ctx, b); return x;
-    } else if (c == '#') {
+    }
+
+    if (c == '#') {
         int n = (int)a->f[0];
+        if (n < 0 || n > 1000000) { ctx->last_status = KS_ERR_INVALID_ARGS; k_free(ctx, a); k_free(ctx, b); siglongjmp(ctx->recover, 1); }
         GAS_CHECK(ctx, n);
         x = k_new(ctx, n);
         if (b->n > 0) for (int i = 0; i < n; i++) x->f[i] = b->f[i % b->n];
         k_free(ctx, a); k_free(ctx, b); return x;
-    } else if (c == ',') {
+    }
+
+    if (c == ',') {
         int n = a->n + b->n;
         GAS_CHECK(ctx, n);
         x = k_new(ctx, n);
         memcpy(x->f, a->f, a->n * sizeof(double));
         memcpy(x->f + a->n, b->f, b->n * sizeof(double));
         k_free(ctx, a); k_free(ctx, b); return x;
-    } else {
+    }
+
+    /* arithmetic: element-wise, length = max of inputs, shorter side cycles */
+    {
         int mn = a->n > b->n ? a->n : b->n;
         GAS_CHECK(ctx, mn);
         x = k_new(ctx, mn);
@@ -619,7 +690,14 @@ K dy(ks_ctx *ctx, char c, K a, K b) {
     }
 }
 
-/* --- Parser --- */
+/* --- Parser & Evaluator ---
+ * * Evaluates right-to-left.
+ * The parser advances a char pointer (`char **s`) in place.
+ * * Call Graph:
+ * e()    -> parses sequences separated by ';'
+ * expr() -> handles dyadic operators (A + B) and function calls (F arg)
+ * atom() -> parses literals, variables (A-Z), monads, and (...) groups
+ */
 
 K atom(ks_ctx *ctx, char **s);
 
@@ -754,8 +832,8 @@ K atom(ks_ctx *ctx, char **s) {
         return x;
     }
 
-    if (c == 'x') return ctx->args[0] ? (ctx->args[0]->r++, ctx->args[0]) : k_new(ctx, 0);
-    if (c == 'y') return ctx->args[1] ? (ctx->args[1]->r++, ctx->args[1]) : k_new(ctx, 0);
+    if (c == 'x') return ctx->args[0] ? ctx->args[0] : k_new(ctx, 0);
+    if (c == 'y') return ctx->args[1] ? ctx->args[1] : k_new(ctx, 0);
 
     int is_scan = 0;
     while (**s == ' ') (*s)++;
@@ -846,11 +924,20 @@ K ks_eval(ks_ctx *ctx, const char *code, size_t len) {
 }
 
 void p(ks_ctx *ctx, K x) {
-    if (!x) return;
-    if (k_is_func(x)) {
-        printf("{%s}\n", k_func_body(x));
-        return;
-    }
-    if (x->n == 1) printf("%.4f\n", x->f[0]);
-    else printf("Array[%d]\n", x->n);
+    (void)ctx;
+    if (!x) { printf("(null)\n"); return; }
+    if (k_is_func(x)) { printf("{%s}\n", k_func_body(x)); return; }
+    if (x->n == 0) { printf("()\n"); return; }
+    if (x->n == 1) { printf("%.6g\n", x->f[0]); return; }
+    /* Print up to 8 elements; indicate truncation if longer */
+    int show = x->n < 8 ? x->n : 8;
+    printf("[");
+    for (int i = 0; i < show; i++) printf("%s%.6g", i ? " " : "", x->f[i]);
+    if (x->n > show) printf(" ... (%d total)", x->n);
+    printf("]\n");
 }
+
+/*
+Copyright (c) 2026 octetta / Joseph Stewart
+MIT license at https://github.com/octetta/k-synth
+*/

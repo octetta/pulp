@@ -1,3 +1,19 @@
+/* =========================================================================
+ * KSYNTH API
+ *
+ * An array-oriented, right-associative DSP language and evaluation engine.
+ * * Architecture:
+ * - K Struct: Represents a vector of doubles. Contains a refcount (r),
+ * length (n), and a flexible array member (f) for the payload. Length
+ * -1 indicates a function object.
+ * * Memory Model:
+ * - Arena (Bump Allocator): Fast, temporary allocations used for all
+ * intermediate vectors during a single `ks_eval` pass. The entire arena
+ * is instantly reset when evaluation finishes. Audio-thread safe (no GC).
+ * - Persistent: Standard `malloc` is used strictly for long-lived user
+ * variables (A-Z) to survive across `ks_eval` calls.
+ * ========================================================================= */
+
 #ifndef KSYNTH_H
 #define KSYNTH_H
 
@@ -104,3 +120,8 @@ int ks_get_length(void);
 const char *ks_get_error(void);
 
 #endif
+
+/*
+Copyright (c) 2026 octetta / Joseph Stewart
+MIT LICENSE AT https://github.com/octetta/k-synth
+*/

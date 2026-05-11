@@ -814,6 +814,16 @@ static void freq_to_note_cents(float freq, float *note, float *cents) {
   *cents = 100.0 * (n_float - n_int);
 }
 
+#define D_TO_S_MAX (5)
+static char _d_to_s[D_TO_S_MAX][16] = {0};
+int d_to_s_idx = 0;
+static char *d_to_s_or_nan(int n) {
+  int r = d_to_s_idx;
+  if (n >= 0) sprintf(_d_to_s[d_to_s_idx++], "%d", n); else strcpy(_d_to_s[d_to_s_idx++], "-");
+  if (d_to_s_idx >= D_TO_S_MAX) d_to_s_idx = 0;
+  return _d_to_s[r];
+}
+
 char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (out == NULL) return "(NULL)";
     if (out_size == 0) return out;
@@ -859,11 +869,13 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         || (int)sv.link_midi_0[v] >= 0
         || (int)sv.link_midi_1[v] >= 0
         || (int)sv.link_midi_2[v] >= 0
-        || (int)sv.link_midi_3[v] >= 0)
-        APPEND(" G%d,%d,%d,%d",
-            (int)sv.link_midi_0[v], (int)sv.link_midi_1[v],
-            (int)sv.link_midi_2[v], (int)sv.link_midi_3[v]);
-
+        || (int)sv.link_midi_3[v] >= 0) {
+          APPEND(" G%s,%s,%s,%s",
+            d_to_s_or_nan(sv.link_midi_0[v]),
+            d_to_s_or_nan(sv.link_midi_1[v]),
+            d_to_s_or_nan(sv.link_midi_2[v]),
+            d_to_s_or_nan(sv.link_midi_3[v]));
+        }
     @if(XM)
     if (verbose
         || sv.ring_osc[v] >= 0)
@@ -876,11 +888,13 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         || (int)sv.link_velo_0[v] >= 0
         || (int)sv.link_velo_1[v] >= 0
         || (int)sv.link_velo_2[v] >= 0
-        || (int)sv.link_velo_3[v] >= 0)
-        APPEND(" H%d,%d,%d,%d",
-            (int)sv.link_velo_0[v], (int)sv.link_velo_1[v],
-            (int)sv.link_velo_2[v], (int)sv.link_velo_3[v]);
-
+        || (int)sv.link_velo_3[v] >= 0) {
+          APPEND(" H%s,%s,%s,%s",
+            d_to_s_or_nan(sv.link_velo_0[v]),
+            d_to_s_or_nan(sv.link_velo_1[v]),
+            d_to_s_or_nan(sv.link_velo_2[v]),
+            d_to_s_or_nan(sv.link_velo_3[v]));
+        }
     /* --- trigger link (suppress if unset) --- */
     if (verbose || (int)sv.link_trig[v] >= 0)
         APPEND(" L%d", (int)sv.link_trig[v]);
@@ -976,6 +990,8 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             sv.amp_envelope[v].r,
             sv.amp_envelope_mode[v]);
     @endif
+
+    if (sv.text[v][0] != '\0') APPEND(" {%s} vt", sv.text[v]);
 
     /* ----------------------------------------------------------------
      * Verbose-only: internal engine state after a # comment marker.
@@ -1433,6 +1449,7 @@ void voice_reset(int i) {
   sv.ring_osc[i] = -1;
   sv.ring_amount[i] = 0.0;
   @endif
+  sv.text[i][0] = '\0';
 }
 
 void voice_init(void) {

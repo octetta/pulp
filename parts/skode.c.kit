@@ -740,12 +740,12 @@ void pattern_show(skode_t *ctx, int pattern_pointer) {
     char *line = seq_pattern[pattern_pointer][s];
     if (strlen(line) == 0) break;
     if (first) {
-      ctx->printf(ctx, "y%d %%%d # state:%d ptr:%d, len:%d\n",
+      ctx->printf(ctx, "y%d %%%d z%d",
         pattern_pointer,
         seq_modulo[pattern_pointer],
-        seq_state[pattern_pointer],
-        seq_pointer[pattern_pointer],
-        seq_pattern_length[pattern_pointer]);
+        seq_state[pattern_pointer]);
+      if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " {%s} yt", seq_text[pattern_pointer]);
+      ctx->printf(ctx, "\n");
       first = 0;
     }
     ctx->printf(ctx, "{%s} x%d", line, s);
@@ -1560,6 +1560,9 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('V---'): // main-volume loudness
       if (argc) volume_set(arg[0]);
       break;
+    case ATOM4('vt--'): // {} voice-text
+      strncpy(sv.text[voice], ands_string(ctx->parse), TEXT_MAX-1);
+      break;
     case ATOM4('w---'): // wave-select which-wave interpolate? one-shot?
       if (argc) {
         wave_set(voice, x);
@@ -1728,6 +1731,9 @@ int skode_function(ands_t *s, int info) {
         ctx->pattern = x;
         scope_pattern_pointer = x;
       }
+      break;
+    case ATOM4('yt--'): // {note} pattern-text
+      strncpy(seq_text[ctx->pattern], ands_string(ctx->parse), TEXT_MAX-1);
       break;
     case ATOM4('Y---'): // clear-pattern which
       if (argc && x >= 0 && x < PATTERNS_MAX) {

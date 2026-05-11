@@ -230,6 +230,8 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(ring_osc,        int);
     VALLOC(ring_amount,     float);
     @endif
+
+    VALLOC(text,            text_t);
 }
 
 void synth_free_voices(void) {
@@ -302,6 +304,8 @@ void synth_free_voices(void) {
     @if(XM)
     VFREE(ring_osc); VFREE(ring_amount);
     @endif
+
+    VFREE(text);
 }
 
 /* ------------------------------------------------------------------ */

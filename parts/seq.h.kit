@@ -48,6 +48,10 @@ extern int seq_state[PATTERNS_MAX];
 extern int seq_pattern_length[PATTERNS_MAX];
 extern char seq_pattern[PATTERNS_MAX][SEQ_STEPS_MAX][STEP_MAX];
 
+#define TEXT_MAX (32+1)
+typedef char text_t[TEXT_MAX];
+extern text_t seq_text[PATTERNS_MAX];
+
 extern float tempo_bpm;
 extern float tempo_time_per_step;
 

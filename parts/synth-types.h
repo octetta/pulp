@@ -116,6 +116,8 @@ typedef struct {
 
 #define WAVE_NAME_MAX (16+1)
 typedef char wave_name_t[WAVE_NAME_MAX];
+#define TEXT_MAX (32+1)
+typedef char text_t[TEXT_MAX];
 
 typedef struct {
   int capacity;

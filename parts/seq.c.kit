@@ -18,6 +18,8 @@ int seq_pointer[PATTERNS_MAX];  // read-only derived value, kept for external in
 int seq_state[PATTERNS_MAX];
 int seq_modulo[PATTERNS_MAX];
 
+text_t seq_text[PATTERNS_MAX];
+
 // Per-pattern offset applied to the master clock when deriving step position:
 //   step = ((master_tick / modulo) - seq_offset[p]) % length
 // Normally zero. seq_step_goto() writes this to force a specific step next tick.
@@ -163,6 +165,7 @@ void pattern_reset(int p) {
   for (int s = 0; s < SEQ_STEPS_MAX; s++) {
     seq_pattern[p][s][0] = '\0';
   }
+  seq_text[p][0] = '\0';
 }
 
 void seq_init(void) {

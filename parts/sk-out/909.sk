@@ -9,7 +9,7 @@
 
 Z0
 
-M100
+M90
 y0 %8 {emergency} yt
 {v2 n69 l1} x0
 {#} xa
@@ -33,13 +33,16 @@ y1 %4 {ohh} yt
 
 y2 %4 {kick} yt
 {+.5 v4 l1 +.25 v4l.5} x0
+{+.25 v4 l1} x1
+{v4 l1 +.25 v4 l1} x2
+{v4l1} x3
 
 y3 %4 {snare} yt
 {#} x0
 {v5 l1} x1
 
 y4 %4 {bass-rhythm} yt
-{v12 n$0 l1} x0
+{+.5 v12 n$0 l.75} x0
 {#} x1
 {v12 n$0 l1 +.5 v12 n$0 l.75} x2
 {#} x3
@@ -84,8 +87,8 @@ v1 w2 f1 a0 m1 l1a           {mod-whale} vt
 v2 w300 f440 a10 g1          {bbc-sfx} vt
 v3 w400 n75 a5 P14,1         {ohh} vt
 v4 w401 f440 a15 p0.75 H10,11 {kick-0} vt
-v10 w0 f55 a15 t 0 0.5 0 0 p0.1  {kick-1} vt
-v11 w11 f10 a8 t 0 0.2 0 0 p-0.1 {kick-2} vt
+v10 w0 f55 a15 t 0.01 0.5 0 0 p0.1  {kick-1} vt
+v11 w11 f10 a8 t 0.01 0.2 0 0 p-0.1 {kick-2} vt
 v5 w402 f440 a20 p-.75 {snare} vt
 v12 w10 f82.4069 a0 G13,-1 H13,-1 J1 K1000 Q10 t0,1,0,0 g.1 {bass-0} vt
 v13 w11 f40.9661 a0 N-12,5 J1 K2000 A8,2 Q1 t0,1,0,0        {bass-1} vt

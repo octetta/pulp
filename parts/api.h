@@ -24,6 +24,9 @@ char *skred_log(void);
 void skred_logger(int f);
 
 // clumsy enumeration
+int skred_devices(int isCapture);
+int skred_device_idx(int isCapture, int idx);
+char *skred_device_str(int isCapture, int idx);
 int skred_enumerate_devices(int isCapture);
 void skred_set_audio_device(int playback_idx, int capture_idx);
 

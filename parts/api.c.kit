@@ -65,6 +65,42 @@ static void ensure_context_initialized(void) {
     }
 }
 
+#define MAXDEV 16
+
+static int n_indev = 0;
+static int n_outdev = 0;
+static int i_indev[MAXDEV];
+static int i_outdev[MAXDEV];
+static char s_indev[MAXDEV][64];
+static char s_outdev[MAXDEV][64];
+
+int skred_devices(int isCapture) {
+  if (isCapture) {
+    return n_indev;
+  } else {
+    return n_outdev;
+  }
+  return -1;
+}
+
+int skred_device_idx(int isCapture, int idx) {
+  if (isCapture) {
+    if (idx < n_indev) return i_indev[idx];
+  } else {
+    if (idx < n_outdev) return i_outdev[idx];
+  }
+  return -1;
+}
+
+char *skred_device_str(int isCapture, int idx) {
+  if (isCapture) {
+    if (idx < n_indev) return s_indev[idx];
+  } else {
+    if (idx < n_outdev) return s_outdev[idx];
+  }
+  return "";
+}
+
 // Enumerates devices and returns the count. Prints the [index] and name for user selection.
 int skred_enumerate_devices(int isCapture) {
     ensure_context_initialized();
@@ -82,8 +118,22 @@ int skred_enumerate_devices(int isCapture) {
     ma_device_info* infos = isCapture ? pCaptureInfos : pPlaybackInfos;
 
     printf("\nAvailable %s Devices:\n", isCapture ? "Input" : "Output");
+    if (isCapture) {
+      n_indev = 0;
+    } else {
+      n_outdev = 0;
+    }
     for (ma_uint32 i = 0; i < count; ++i) {
         printf("[%d] %s\n", i, infos[i].name);
+        if (isCapture) {
+          strncpy(s_indev[n_indev], infos[i].name, 64);
+          i_indev[n_indev] = i;
+          n_indev++;
+        } else {
+          strncpy(s_outdev[n_outdev], infos[i].name, 64);
+          i_outdev[n_outdev] = i;
+          n_outdev++;
+        }
     }
     
     return (int)count;

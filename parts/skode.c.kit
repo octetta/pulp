@@ -734,7 +734,7 @@ extern scope_buffer_t *scope;
 @endif
 
 @if(SEQ)
-void pattern_show(skode_t *ctx, int pattern_pointer) {
+void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
   int first = 1;
   for (int s = 0; s < SEQ_STEPS_MAX; s++) {
     char *line = seq_pattern[pattern_pointer][s];
@@ -747,6 +747,7 @@ void pattern_show(skode_t *ctx, int pattern_pointer) {
       if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " {%s} yt", seq_text[pattern_pointer]);
       ctx->printf(ctx, "\n");
       first = 0;
+      if (verbose == 0) break;
     }
     ctx->printf(ctx, "{%s} x%d", line, s);
     ctx->puts(ctx, "");
@@ -1748,23 +1749,23 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('z---'): // one-pattern-play-mode bool
       if (argc) {
         seq_state_set(ctx->pattern, x);
-      } else pattern_show(ctx, ctx->pattern);
+      } else pattern_show(ctx, ctx->pattern, 1);
       break;
     case ATOM4('z?--'): // one-pattern-play-mode bool
-      pattern_show(ctx, ctx->pattern);
+      pattern_show(ctx, ctx->pattern, 1);
       break;
     case ATOM4('Z---'): // all-pattern-play-mode bool
       if (argc) {
         seq_state_all(x);
       } else {
         ctx->printf(ctx, "M%g\n", tempo_bpm * 4.0f);
-        for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p);
+        for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p, 0);
       }
       break;
     case ATOM4('z?\?-'): // show all patterns
     case ATOM4('Z?--'): // show all patterns
       ctx->printf(ctx, "M%g\n", tempo_bpm * 4.0f);
-      for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p);
+      for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p, 1);
       break;
     @endif
     @if(XM)

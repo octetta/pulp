@@ -51,7 +51,7 @@ int skode_consume(char *line, skode_t *w);
 void show_threads(skode_t *w);
 void system_show(skode_t *w);
 int audio_show(skode_t *w);
-int skode_load(skode_t *w, int voice, int n);
+int skode_load(skode_t *w, int voice, int n, int verbose);
 int wavetable_show(skode_t *w, int n);
 char *skode_err_str(int n);
 

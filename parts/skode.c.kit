@@ -481,7 +481,7 @@ int ksynth_load(skode_t *ctx, int writer, int n, int verbose) {
 }
 @endif
 
-int skode_load(skode_t *ctx, int voice, int n) {
+int skode_load(skode_t *ctx, int voice, int n, int verbose) {
   (void)voice;
   skode_t wprime;
   if (ctx == NULL) {
@@ -502,7 +502,7 @@ int skode_load(skode_t *ctx, int voice, int n) {
     while (fgets(line, sizeof(line), in) != NULL) {
       size_t len = strlen(line);
       if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
-      ctx->printf(ctx, "  %s\n", line);
+      if (verbose) ctx->printf(ctx, "  %s\n", line);
       r = skode_consume(line, &wprime);
       if (r != 0) {
         ctx->printf(ctx, "# error in patch\n");
@@ -1248,6 +1248,13 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "# D[%d]\n", ands_data_cap(ctx->parse));
       }
       break;
+    case ATOM4('?d--'): // show-skode-data (summary)
+      {
+        double *data = ands_data(ctx->parse);
+        int data_len = ands_data_len(ctx->parse);
+        skode_double_dump(ctx, data, data_len);
+      }
+      break;
     case ATOM4('f---'): // freq hz
       if (argc) freq_set(voice, arg[0]);
       break;
@@ -1704,15 +1711,13 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('xa--'): // append step
       seq_step_append(ctx->pattern, ands_string(ctx->parse));
       break;
-    @if(XM)
-    case ATOM4('XM--'): // ring modulation osc amount
-      if (argc) {
-        sv.ring_osc[voice] = x;
-        if (argc > 1) sv.ring_amount[voice] = arg[1];
-        else sv.ring_amount[voice] = 0.0;
+    case ATOM4('<x--'): // (pattern) step-string-to-skode step-number
+      if (arg == 0) {
+      } else {
+        char *s = seq_step_get(ctx->pattern, x);
+        ands_string_from_external(ctx->parse, s, strlen(s));
       }
       break;
-    @endif
     case ATOM4('x---'): // set-step-string step
       if (argc) {
         if (arg[0] == NAN || x < 0) {
@@ -1762,6 +1767,15 @@ int skode_function(ands_t *s, int info) {
       for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p);
       break;
     @endif
+    @if(XM)
+    case ATOM4('XM--'): // ring modulation osc amount
+      if (argc) {
+        sv.ring_osc[voice] = x;
+        if (argc > 1) sv.ring_amount[voice] = arg[1];
+        else sv.ring_amount[voice] = 0.0;
+      }
+      break;
+    @endif
     case ATOM4('v?--'): // show-voice
     case ATOM4('?---'): // show-voice
       voice_show(ctx, voice, ' ', ctx->verbose); break;
@@ -1771,9 +1785,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('?\?--'): // show-active-voices
       voice_show_all(ctx, voice, ctx->verbose); break;
     case ATOM4('?s--'): // show-skode-string
-      {
-        ctx->printf(ctx, "# {%}s\n", ands_string(ctx->parse));
-      }
+      ctx->printf(ctx, "# {%s}\n", ands_string(ctx->parse));
       break;
     case ATOM4('l>g-'):
       if (argc) ands_local_to_global(ctx->parse, x);
@@ -1899,7 +1911,12 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('/l--'): // skode-load num
-      if (argc) { skode_load(ctx, voice, x); } break;
+      if (argc) {
+        int verbose = 0;
+        if (argc > 1) verbose = (int)arg[1];
+        skode_load(ctx, voice, x, verbose);
+      }
+      break;
     case ATOM4('/ws-'): // wave-load-string wave channel
       ctx->printf(ctx, "# {%s} /ws\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
@@ -2028,13 +2045,42 @@ int skode_function(ands_t *s, int info) {
         chdir(ands_string(ctx->parse));
       }
       break;
-    case ATOM4('/ls-'): // list directory
+    case ATOM4('/ls-'): // list directory (match-type)
       {
+      /*
+          types
+          0 = .sk
+          1 = .wav
+          2 = .mp3
+          3 = .ks
+      */
+      int p = -1;
+      if (argc) p = x;
       struct dirent *entry;
       DIR *dp = opendir(".");
         if (dp) {
           while ((entry = readdir(dp))) {
-            ctx->printf(ctx, "# {%s}\n", entry->d_name);
+            char *name = entry->d_name;
+            int f = 0;
+            switch (p) {
+              default:
+              case -1:
+                f = 1;
+                break;
+              case 0:
+                f = (strstr(name, ".sk") != NULL);
+                break;
+              case 1:
+                f = (strstr(name, ".wav") != NULL);
+                break;
+              case 2:
+                f = (strstr(name, ".mp3") != NULL);
+                break;
+              case 3:
+                f = (strstr(name, ".ks") != NULL);
+                break;
+            }
+            if (f) ctx->printf(ctx, "# {%s}\n", name);
           }
           closedir(dp);
         }

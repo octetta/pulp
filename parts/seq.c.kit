@@ -200,6 +200,12 @@ void seq_step_set(int pattern, int step, char *scratch) {
   seq_pattern_length[pattern] = pattern_length_compute(pattern);
 }
 
+char *seq_step_get(int pattern, int step) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return "";
+  if (step < 0 || step >= SEQ_STEPS_MAX) return "";
+  return seq_pattern[pattern][step];
+}
+
 void seq_step_append(int pattern, char *scratch) {
   seq_step_set(pattern, seq_pattern_length[pattern], scratch);
 }

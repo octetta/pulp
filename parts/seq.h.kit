@@ -32,6 +32,7 @@ void tempo_set(float m);
 
 void seq_modulo_set(int pattern, int m);
 void seq_step_set(int pattern, int step, char *scratch);
+char *seq_step_get(int pattern, int step);
 void seq_step_append(int pattern, char *scratch);
 void seq_pattern_length_set(int pattern, int len);
 void seq_step_goto(int pattern, int step);

@@ -671,6 +671,23 @@ int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int norma
   return 0;
 }
 
+int wave_try_open_number(int file_num, char *name, int len) {
+  FILE *in = NULL;
+  snprintf(name, len, "%d.wav", file_num);
+  in = fopen(name, "r");
+  if (in) { fclose(in); return 0; }
+  snprintf(name, len, "%d.mp3", file_num);
+  in = fopen(name, "r");
+  if (in) { fclose(in); return 0; }
+  snprintf(name, len, "wav/%d.wav", file_num);
+  in = fopen(name, "r");
+  if (in) { fclose(in); return 0; }
+  snprintf(name, len, "wav/%d.mp3", file_num);
+  in = fopen(name, "r");
+  if (in) { fclose(in); return 0; }
+  return -1;
+}
+
 int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize) {
   (void)normalize;
   if (ctx == NULL) return 100; // fix todo
@@ -686,17 +703,9 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
     wave_free_one(wave_index);
   }
   char name[1024];
-  sprintf(name, "%d.wav", file_num);
-  FILE *in = fopen(name, "r");
-  if (in) fclose(in);
-  else {
-    sprintf(name, "wav/%d.wav", file_num);
-    in = fopen(name, "r");
-    if (in) fclose(in);
-    else {
-      ctx->printf(ctx, "# cannot open %d.wav or wav/%d.wav\n", file_num, file_num);
-      return -1;
-    }
+  if (wave_try_open_number(file_num, name, sizeof(name)) < 0) {
+    ctx->printf(ctx, "# cannot open %d.wav or wav/%d.wav\n", file_num, file_num);
+    return -1;
   }
   wav_t wav;
   int len;

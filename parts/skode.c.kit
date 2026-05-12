@@ -740,10 +740,11 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
     char *line = seq_pattern[pattern_pointer][s];
     if (strlen(line) == 0) break;
     if (first) {
-      ctx->printf(ctx, "y%d %%%d z%d",
+      ctx->printf(ctx, "y%d %%%d z%d ym%d",
         pattern_pointer,
         seq_modulo[pattern_pointer],
-        seq_state[pattern_pointer]);
+        seq_state[pattern_pointer],
+        seq_mute[pattern_pointer]);
       if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " {%s} yt", seq_text[pattern_pointer]);
       ctx->printf(ctx, "\n");
       first = 0;
@@ -1740,6 +1741,9 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('yt--'): // {note} pattern-text
       strncpy(seq_text[ctx->pattern], ands_string(ctx->parse), TEXT_MAX-1);
+      break;
+    case ATOM4('ym--'): // pattern-mute 0/1
+      if (argc) seq_mute[ctx->pattern] = x;
       break;
     case ATOM4('Y---'): // clear-pattern which
       if (argc && x >= 0 && x < PATTERNS_MAX) {

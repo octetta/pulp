@@ -3,7 +3,7 @@
 
 #define SEQ_FRAMES_PER_CALLBACK (128)
 
-#define PATTERNS_MAX (16)
+#define PATTERNS_MAX (99)
 #define SEQ_STEPS_MAX (256)
 #define STEP_MAX (256)
 
@@ -46,6 +46,7 @@ extern int seq_pointer[PATTERNS_MAX];
 extern int seq_modulo[PATTERNS_MAX];
 extern int seq_counter[PATTERNS_MAX];
 extern int seq_state[PATTERNS_MAX];
+extern int seq_mute[PATTERNS_MAX];
 extern int seq_pattern_length[PATTERNS_MAX];
 extern char seq_pattern[PATTERNS_MAX][SEQ_STEPS_MAX][STEP_MAX];
 

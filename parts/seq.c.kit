@@ -17,6 +17,7 @@ int scope_pattern_pointer = 0;
 int seq_pointer[PATTERNS_MAX];  // read-only derived value, kept for external inspection
 int seq_state[PATTERNS_MAX];
 int seq_modulo[PATTERNS_MAX];
+int seq_mute[PATTERNS_MAX];
 
 text_t seq_text[PATTERNS_MAX];
 
@@ -142,7 +143,7 @@ void do_pattern(uint64_t now, void (*pattern_fn)(int voice, char *arg)) {
           seq_state[p] = SEQ_STOPPED;
           seq_pointer[p] = 0;
         } else {
-          pattern_fn(0, seq_pattern[p][step]);
+          if (seq_mute[p] == 0) pattern_fn(0, seq_pattern[p][step]);
         }
       }
     }
@@ -167,6 +168,7 @@ void pattern_reset(int p) {
   seq_pointer[p] = 0;
   seq_state[p] = SEQ_STOPPED;
   seq_modulo[p] = 4;
+  seq_mute[p] = 0;
   seq_pattern_length[p] = 0;
   seq_offset[p] = 0;
   for (int s = 0; s < SEQ_STEPS_MAX; s++) {

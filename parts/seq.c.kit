@@ -99,12 +99,7 @@ static int pattern_length_compute(int p) {
 
 static queue_t seq_q;
 
-void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), void (*pattern_fn)(int voice, char *arg)) {
-  (void)frame_count;
-  @if(BENCH)
-  BEN_MARK_A(bench, benchp, frame_count, bencho);
-  @endif
-
+void do_event(uint64_t now, void (*event_fn)(int voice, char *arg)) {
   // Run expired (ready) queued events.
   item_t item;
   static uint64_t last_ts = 0;
@@ -119,7 +114,9 @@ void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), 
       break;
     }
   }
+}
 
+void do_pattern(uint64_t now, void (*pattern_fn)(int voice, char *arg)) {
   // Advance the master clock from the absolute sample timeline rather than
   // callback cadence so larger buffers do not smear beat timing.
   double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
@@ -150,6 +147,16 @@ void seq(int frame_count, uint64_t now, void (*event_fn)(int voice, char *arg), 
       }
     }
   }
+
+}
+
+void seq(uint64_t now, void (*event_fn)(int voice, char *arg), void (*pattern_fn)(int voice, char *arg)) {
+  @if(BENCH)
+  BEN_MARK_A(bench, benchp, frame_count, bencho);
+  @endif
+
+  do_event(now, event_fn);
+  do_pattern(now, pattern_fn);
 
   @if(BENCH)
   BEN_MARK_B(bench, benchp, bencho);

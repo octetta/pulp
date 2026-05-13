@@ -22,8 +22,6 @@ enum {
   DEFER,
   GOT_STRING,
   GOT_ARRAY,
-  PUSH,
-  POP,
 };
 
 typedef struct ands_s ands_t;

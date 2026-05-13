@@ -107,19 +107,6 @@ void perf_stop(void) {
 
 #endif
 
-void voice_push(voice_stack_t *s, float n) {
-  s->ptr++;
-  if (s->ptr >= VOICE_STACK_LEN) s->ptr = 0;
-  s->s[s->ptr] = n;
-}
-
-float voice_pop(voice_stack_t *s) {
-  float n = s->s[s->ptr];
-  s->ptr--;
-  if (s->ptr < 0) s->ptr = VOICE_STACK_LEN-1;
-  return n;
-}
-
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
@@ -2167,8 +2154,6 @@ int skode_callback(ands_t *s, int info) {
     case DEFER: return skode_defer(s, info);
     @endif
     case CHUNK_END: return skode_chunk_end(s, info);
-    case PUSH: { voice_push(&ctx->stack, ctx->voice); ctx->printf(ctx, "pushed v%d\n", ctx->voice); } break;
-    case POP: { ctx->voice = voice_pop(&ctx->stack); } break;
     case GOT_STRING: { if (ctx->trace) ctx->printf(ctx, "# -> {%s}\n", ands_string(s)); } break;
     case GOT_ARRAY: { if (ctx->trace) ctx->printf(ctx, "# -> (..%d..)\n", ands_data_len(s)); } break;
     default: return skode_unknown(ctx, s, info);

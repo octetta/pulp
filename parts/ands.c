@@ -11,16 +11,14 @@
  * ANDS GRAMMAR (EBNF-ish)
  * 
  * chunk      = (element)* (';' | EOT)
- * element    = atom | number | string | array | variable | defer | comment | push | pop
+ * element    = atom | number | string | array | variable | defer | comment
  * atom       = [a-zA-Z!@%^&*_=:"'<>?/]+
  * number     = [-]?[0-9]+('.'[0-9]+)?([eE][-+]?[0-9]+)? | '.' | '-' | 'e'
- * string     = '{' [^}]* '}'
+ * string     = '{' [^}]* '}' ... migrating to [,] soon, but either work now
  * array      = '(' (number (',' | ' ')*)* ')'
  * variable   = '$' [0-9]
  * defer      = ('+' | '~') number chunk
  * comment    = '#' [^\n;]* ('\n' | ';')
- * push       = '['
- * pop        = ']'
  * separator  = ' ' | ',' | '\t' | '\n' | '\r'
  * 
  * EXECUTION MODEL:
@@ -40,16 +38,14 @@
 
 #define IS_NUMBER(c) (isdigit(c) || strchr("-.", c))
 #define IS_SEPARATOR(c) (isspace(c) || c == ',')
-#define IS_STRING(c) (c == '{')
-#define IS_STRING_END(c) (c == '}')
+#define IS_STRING(c) (c == '{' || c == '[')
+#define IS_STRING_END(c) (c == '}' || c == ']')
 #define IS_ARRAY(c) (c == '(')
 #define IS_ARRAY_END(c) (c == ')')
 #define IS_VARIABLE(c) (c == '$')
 #define IS_COMMENT(c) (c == '#')
 #define IS_CHUNK_END(c) (c == ';' || c == 0x04) // 0x04 ASCII EOT / end of xmit
 #define IS_DEFER(c) (c == '+' || c == '~')
-#define IS_PUSH(c) (c == '[')
-#define IS_POP(c) (c == ']')
 #define IS_ATOM(c) (isalpha(c) || strchr("!@%^&*_=:\"'<>?/", c))
 #define IS_NUMBER_EX(c) (isxdigit(c) || strchr("-.eExX", c))
 
@@ -298,8 +294,6 @@ int ands_consume(ands_t *s, char *line) {
                     s->state = GET_NUMBER;
                 }
                 else if (IS_SEPARATOR(*ptr)) { /* skip */ }
-                else if (IS_PUSH(*ptr))      { s->fn(s, PUSH); }
-                else if (IS_POP(*ptr))       { s->fn(s, POP); }
                 else if (IS_STRING(*ptr))    {
                   action_finish_atom(s);
                   buffer_clear(&s->string[s->string_idx]);

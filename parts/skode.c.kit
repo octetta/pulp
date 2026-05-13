@@ -2024,6 +2024,83 @@ int skode_function(ands_t *s, int info) {
       if (argc) seq_modulo_set(ctx->pattern, x);
       break;
     @endif
+    case ATOM4('W@--'):  // get a wavetable parameter to a variable
+      if (argc) {
+        int y = (int)arg[1];
+        // [0] x = wave
+        // [1] y = param
+        // [2] z = variable
+        double val = 0.0;
+        switch (y) {
+          default:
+          case 0: // wavetable size
+            val = sw.size[x];
+            break;
+          case 1: // wavetable rate
+            val = sw.rate[x];
+            break;
+          case 2: // wavetable size / rate
+            val = (float)sw.size[x] / sw.rate[x];
+            break;
+        }
+        if (argc > 1) {
+          int z = (int)arg[2];
+          ands_set_local(ctx->parse, z, val);
+        } else {
+          ctx->printf(ctx, "# W@ %d -> %g\n", x, val);
+        }
+      }
+      break;
+      break;
+    case ATOM4('v@--'):  // get a voice parameter to a variable
+      if (argc) {
+        double val = 0.0;
+        switch (x) {
+          case 0: // wavetable index
+            val = sv.wave_table_index[voice];
+            break;
+          case 1: // amplitide
+            val = sv.user_amp[voice];
+            break;
+          case 2: // freq
+            val = sv.freq[voice];
+            break;
+          default:
+            val = 0.0;
+            break;
+        }
+        if (argc > 1) {
+          int y = (int)arg[1];
+          ands_set_local(ctx->parse, y, val);
+        } else {
+          ctx->printf(ctx, "# v@ %d -> %g\n", x, val);
+        }
+      }
+      break;
+    case ATOM4('*=--'):  // variable-times-equal slot value
+      if (argc > 1) {
+        double f = ands_get_local(ctx->parse, x);
+        ands_set_local(ctx->parse, x, f * arg[1]);
+      }
+      break;
+    case ATOM4('/=--'):  // variable-divide-equal slot value
+      if (argc > 1 && arg[0] != 0.0) {
+        double f = ands_get_local(ctx->parse, x);
+        ands_set_local(ctx->parse, x, f / arg[1]);
+      }
+      break;
+    case ATOM4('+=--'):  // variable-plus-equal slot value
+      if (argc > 1) {
+        double f = ands_get_local(ctx->parse, x);
+        ands_set_local(ctx->parse, x, f + arg[1]);
+      }
+      break;
+    case ATOM4('_=--'):  // variable-minus-equal slot value
+      if (argc > 1) {
+        double f = ands_get_local(ctx->parse, x);
+        ands_set_local(ctx->parse, x, f - arg[1]);
+      }
+      break;
     case ATOM4('=---'):  // variable-set slot value
       if (argc) ands_set_local(ctx->parse, x, arg[1]);
       else if (argc == 1) {

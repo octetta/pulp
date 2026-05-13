@@ -2025,32 +2025,31 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     case ATOM4('W@--'):  // get a wavetable parameter to a variable
-      if (argc) {
-        int y = (int)arg[1];
-        // [0] x = wave
-        // [1] y = param
-        // [2] z = variable
+      if (argc > 1) {
+        int wave = x;
+        int param = (int)arg[1];
         double val = 0.0;
-        switch (y) {
-          default:
+        switch (param) {
           case 0: // wavetable size
-            val = sw.size[x];
+            val = sw.size[wave];
             break;
           case 1: // wavetable rate
-            val = sw.rate[x];
+            val = sw.rate[wave];
             break;
           case 2: // wavetable size / rate
-            val = (float)sw.size[x] / sw.rate[x];
+            val = (float)sw.size[wave] / sw.rate[wave];
+            break;
+          default:
+            argc = 0; // hack to do-nothing on unknown parameter
             break;
         }
-        if (argc > 1) {
-          int z = (int)arg[2];
-          ands_set_local(ctx->parse, z, val);
-        } else {
-          ctx->printf(ctx, "# W@ %d -> %g\n", x, val);
+        if (argc > 2) {
+          int variable = (int)arg[2];
+          ands_set_local(ctx->parse, variable, val);
+        } else if (argc) {
+          ctx->printf(ctx, "# W@ %d %d -> %g\n", wave, param, val);
         }
       }
-      break;
       break;
     case ATOM4('v@--'):  // get a voice parameter to a variable
       if (argc) {
@@ -2066,39 +2065,29 @@ int skode_function(ands_t *s, int info) {
             val = sv.freq[voice];
             break;
           default:
-            val = 0.0;
+            argc = 0; // hack to do-nothing on unknown parameter
             break;
         }
         if (argc > 1) {
           int y = (int)arg[1];
           ands_set_local(ctx->parse, y, val);
-        } else {
+        } else if (argc) {
           ctx->printf(ctx, "# v@ %d -> %g\n", x, val);
         }
       }
       break;
-    case ATOM4('*=--'):  // variable-times-equal slot value
-      if (argc > 1) {
-        double f = ands_get_local(ctx->parse, x);
-        ands_set_local(ctx->parse, x, f * arg[1]);
-      }
+    case ATOM4('*=--'):  // variable-times-equal slot val0 val1
+      if (argc > 2) ands_set_local(ctx->parse, x, arg[1] * arg[2]);
       break;
-    case ATOM4('/=--'):  // variable-divide-equal slot value
-      if (argc > 1 && arg[0] != 0.0) {
-        double f = ands_get_local(ctx->parse, x);
-        ands_set_local(ctx->parse, x, f / arg[1]);
-      }
+    case ATOM4('/=--'):  // variable-divide-equal slot val0 val1
+      if (argc > 2 && arg[1] != 0.0) ands_set_local(ctx->parse, x, arg[1] / arg[2]);
       break;
-    case ATOM4('+=--'):  // variable-plus-equal slot value
-      if (argc > 1) {
-        double f = ands_get_local(ctx->parse, x);
-        ands_set_local(ctx->parse, x, f + arg[1]);
-      }
+    case ATOM4('a=--'):  // variable-plus-equal slot val0 val1
+      if (argc > 2) ands_set_local(ctx->parse, x, arg[1] + arg[2]);
       break;
-    case ATOM4('_=--'):  // variable-minus-equal slot value
-      if (argc > 1) {
-        double f = ands_get_local(ctx->parse, x);
-        ands_set_local(ctx->parse, x, f - arg[1]);
+    case ATOM4('s=--'):  // variable-sub-equal slot val0 val1
+      if (argc > 2) {
+        ands_set_local(ctx->parse, x, arg[1] - arg[2]);
       }
       break;
     case ATOM4('=---'):  // variable-set slot value

@@ -565,7 +565,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     @endif
     float sample_left = 0.0f;
     float sample_right = 0.0f;
-    float sample_center = 0.0f;
+    float record_center = 0.0f;
     float f = 0.0f;
     float whiteish = audio_rng_float(&synth_random);
     float cap_left = this_capture[i*2];
@@ -603,6 +603,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         }
       }
       @endif
+      char is_capture = 0;
       if (sv.wave_table_index[n] == WAVE_TABLE_NOISE_ALT) {
         // bypass lots of stuff if this voice uses random source...
         // reuse the one white noise source for each sample
@@ -610,9 +611,11 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       }
       else if (sv.wave_table_index[n] == WAVE_TABLE_CAP_LEFT) {
         f = cap_left;
+        is_capture = 1;
       }
       else if (sv.wave_table_index[n] == WAVE_TABLE_CAP_RIGHT) {
         f = cap_right;
+        is_capture = 1;
       } else {
         @if(FM)
         if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
@@ -716,7 +719,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
 
       sv.sample[n] *= final;
 
-      sample_center += sv.sample[n];
+      if (sv.disconnect[n] == 0 || is_capture) record_center += sv.sample[n];
 
       if (sv.disconnect[n] == 0) {
         float left  = sv.sample[n];
@@ -747,7 +750,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     }
     if (sampling.busy) {
       if (sampling.how_many >= 0) {
-        sampling.where[sampling.ptr++] = sample_center;
+        sampling.where[sampling.ptr++] = record_center;
         sampling.how_many--;
       } else {
         sampling.len = sampling.ptr-1;

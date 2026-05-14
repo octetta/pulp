@@ -164,7 +164,7 @@
 <body>
 
 <div class="top-bar">
-  <h1>learn skode & skred (0.9.35)</h1>
+  <h1>learn skode & skred (0.9.36)</h1>
   <div id="status-indicator" class="status-dot"></div>
   <button id="btn-start" class="nav-btn">Start</button>
   <button id="btn-stop" class="nav-btn" disabled>Stop</button>
@@ -313,9 +313,9 @@ How was that?
 <template data-type="code">
 S100
 v0 a0 n69 t.01 .4 0 0 N0,0 >1 p-.25 w11 G1 H1 v1 w10 g.15 p.25
-{v0 ~0 n69l1 ~.25 n$1l2 ~.5 l2 ~.25 l3 ~.25 n60l2 ~.25 n$0l2} e>0
-~0 { =0,72 =1,65 v0 N-24,0 v1 N-7,5   e!0} R2 2
-~4 { =0,58 =1,57 v0 N-7,0  v1 N5,5 e!0} R2 2
+[v0 ~0 n69l1 ~.25 n$1l2 ~.5 l2 ~.25 l3 ~.25 n60l2 ~.25 n$0l2] e>0
+~0 [ =0,72 =1,65 v0 N-24,0 v1 N-7,5   e!0] R2 2
+~4 [ =0,58 =1,57 v0 N-7,0  v1 N5,5 e!0] R2 2
 </template>
 
 <template data-type="markdown">
@@ -699,15 +699,15 @@ v4 m1 a0 w0 f5 l1
 <template data-type="markdown">### Setup patterns</template>
 <template data-type="code">
 y0
-{v0 n35 l1}x0
-{v0 n$0 l1}x1
-{v0 n40 l1}x2
-{v0 n$1 l1}x3
+[v0 n35 l1]x0
+[v0 n$0 l1]x1
+[v0 n40 l1]x2
+[v0 n$1 l1]x3
 y1
-{v2 l1}x0
-{#}x1
-{v3 l1}x2
-{#}x3
+[v2 l1]x0
+[#]x1
+[v3 l1]x2
+[#]x3
 </template>
 
 <template data-type="markdown">### START the patterns </template>

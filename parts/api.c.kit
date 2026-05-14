@@ -117,14 +117,12 @@ int skred_enumerate_devices(int isCapture) {
     ma_uint32 count = isCapture ? captureCount : playbackCount;
     ma_device_info* infos = isCapture ? pCaptureInfos : pPlaybackInfos;
 
-    printf("\nAvailable %s Devices:\n", isCapture ? "Input" : "Output");
     if (isCapture) {
       n_indev = 0;
     } else {
       n_outdev = 0;
     }
     for (ma_uint32 i = 0; i < count; ++i) {
-        printf("[%d] %s\n", i, infos[i].name);
         if (isCapture) {
           strncpy(s_indev[n_indev], infos[i].name, 64);
           i_indev[n_indev] = i;

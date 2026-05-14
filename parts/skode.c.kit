@@ -276,14 +276,15 @@ void skode_double_dump(skode_t *ctx, double *data, int data_len) {
         ctx->printf(ctx, " ... ");
       }
     }
-    ctx->printf(ctx, ") # %d elements\n", data_len);
+    if (data_len <= 5) ctx->printf(ctx, ")\n");
+    else ctx->printf(ctx, ") # %d elements\n", data_len);
 }
 
 void skode_show(skode_t *ctx) {
   if (ctx != NULL) {
     ctx->printf(ctx, "# v%d\n", ctx->voice);
     ctx->printf(ctx, "# y%d\n", ctx->pattern);
-    ctx->printf(ctx, "# scratch {%s}\n", ands_string(ctx->parse));
+    ctx->printf(ctx, "# scratch [%s]\n", ands_string(ctx->parse));
     double *data = ands_data(ctx->parse);
     int data_len = ands_data_len(ctx->parse);
     skode_double_dump(ctx, data, data_len);
@@ -324,7 +325,7 @@ int show_stats_cb(int n, uint64_t timestamp, uint64_t id, int tag, const event_t
   uint64_t then = timestamp - now;
   double ms = (double)then / (double)MAIN_SAMPLE_RATE * 1000.0;
   skode_t *ctx = user;
-  ctx->printf(ctx, "# (%d,%ld,%d) %ld +%g ms %d {%s}\n",
+  ctx->printf(ctx, "# (%d,%ld,%d) %ld +%g ms %d [%s]\n",
     n,
     id,
     tag,
@@ -741,12 +742,12 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
         seq_modulo[pattern_pointer],
         seq_state[pattern_pointer],
         seq_mute[pattern_pointer]);
-      if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " {%s} yt", seq_text[pattern_pointer]);
+      if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " [%s] yt", seq_text[pattern_pointer]);
       ctx->printf(ctx, "\n");
       first = 0;
       if (verbose == 0) break;
     }
-    ctx->printf(ctx, "{%s} x%d", line, s);
+    ctx->printf(ctx, "[%s] x%d", line, s);
     ctx->puts(ctx, "");
   }
 }
@@ -1391,7 +1392,7 @@ int skode_function(ands_t *s, int info) {
         char *cmd = ands_string(ctx->parse);
         if (cmd) len = strlen(cmd);
         if (ctx->trace) {
-          ctx->printf(ctx, "cmd:{%s} len:%d\n", cmd, len);
+          ctx->printf(ctx, "cmd:[%s] len:%d\n", cmd, len);
         }
         if (len) ks_send(0, cmd, len);
       }
@@ -1805,7 +1806,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('?\?--'): // show-active-voices
       voice_show_all(ctx, voice, ctx->verbose); break;
     case ATOM4('?s--'): // show-skode-string
-      ctx->printf(ctx, "# {%s}\n", ands_string(ctx->parse));
+      ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
       break;
     case ATOM4('l>g-'):
       if (argc) ands_local_to_global(ctx->parse, x);
@@ -1896,11 +1897,11 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('e?--'): // show-execute-string [num]
       if (argc) {
-        ctx->printf(ctx, "# {%s} e>%d\n", EXTRA_PTR(x), x);
+        ctx->printf(ctx, "# [%s] e>%d\n", EXTRA_PTR(x), x);
       } else {
         for (int i=0; i<STRING_BUF_IDX_MAX; i++) {
           if (strlen(EXTRA_PTR(i)))
-            ctx->printf(ctx, "# {%s} e>%d\n", EXTRA_PTR(i), i);
+            ctx->printf(ctx, "# [%s] e>%d\n", EXTRA_PTR(i), i);
         }
       }
       break;
@@ -1918,7 +1919,7 @@ int skode_function(ands_t *s, int info) {
             case 7:
               for (int i=0; i<STRING_BUF_IDX_MAX; i++) {
                 if (strlen(EXTRA_PTR(i)))
-                  ctx->printf(ctx, "# {%s} e>%d\n", EXTRA_PTR(i), i);
+                  ctx->printf(ctx, "# [%s] e>%d\n", EXTRA_PTR(i), i);
               }
               break;
             @if(BENCH)
@@ -1938,7 +1939,7 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('/ws-'): // wave-load-string wave channel
-      ctx->printf(ctx, "# {%s} /ws\n", ands_string(ctx->parse));
+      ctx->printf(ctx, "# [%s] /ws\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
         char *file_name = ands_string(ctx->parse);
         int wave_slot = EXT_SAMPLE_000;
@@ -1949,7 +1950,7 @@ int skode_function(ands_t *s, int info) {
             ch = (int)arg[1];
           }
         }
-        ctx->printf(ctx, "# {%s} /ws %d %d\n", ands_string(ctx->parse), wave_slot, ch);
+        ctx->printf(ctx, "# [%s] /ws %d %d\n", ands_string(ctx->parse), wave_slot, ch);
         wave_load_string(ctx, file_name, wave_slot, ch, 1);
       }
       break;
@@ -2132,7 +2133,7 @@ int skode_function(ands_t *s, int info) {
       if (argc && x >= 200 && x <=999) wave_table_dynamic_expand(x);
       break;
     case ATOM4('/cd-'): // change directory
-      ctx->printf(ctx, "# {%s} /cd\n", ands_string(ctx->parse));
+      ctx->printf(ctx, "# [%s] /cd\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
         chdir(ands_string(ctx->parse));
       }
@@ -2172,7 +2173,7 @@ int skode_function(ands_t *s, int info) {
                 f = (strstr(name, ".ks") != NULL);
                 break;
             }
-            if (f) ctx->printf(ctx, "# {%s}\n", name);
+            if (f) ctx->printf(ctx, "# [%s]\n", name);
           }
           closedir(dp);
         }
@@ -2245,7 +2246,7 @@ int skode_callback(ands_t *s, int info) {
     case DEFER: return skode_defer(s, info);
     @endif
     case CHUNK_END: return skode_chunk_end(s, info);
-    case GOT_STRING: { if (ctx->trace) ctx->printf(ctx, "# -> {%s}\n", ands_string(s)); } break;
+    case GOT_STRING: { if (ctx->trace) ctx->printf(ctx, "# -> [%s]\n", ands_string(s)); } break;
     case GOT_ARRAY: { if (ctx->trace) ctx->printf(ctx, "# -> (..%d..)\n", ands_data_len(s)); } break;
     default: return skode_unknown(ctx, s, info);
   }

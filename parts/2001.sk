@@ -1,17 +1,17 @@
 # s <- $
 S100 v0 w0 a10 t 0 .25 0 0 l1
-{./sk/gm-kick.ks} /ks wait 50 k>d d>r /r 300
-{./sk/drums-kick.ks} /ks wait 50 k>d d>r /r 301
-{./sk/dm-kick-deep.ks} /ks wait 50 k>d d>r /r 302
-{./sk/dm-kick-stomp.ks} /ks wait 50 k>d d>r /r 303
-{./sk/is-kick.ks} /ks wait 50 k>d d>r /r 304
-{./sk/is-kick-808.ks} /ks wait 50 k>d d>r /r 305
-{./sk/kw-kick-electro.ks} /ks wait 50 k>d d>r /r 306
-{./sk/kw-kick.ks} /ks wait 50 k>d d>r /r 307
-{./sk/nin-kick2.ks} /ks wait 50 k>d d>r /r 308
-{./sk/nin-kick.ks} /ks wait 50 k>d d>r /r 309
-{./sk/nap-kick-industrial.ks} /ks wait 50 k>d d>r /r 310
-{./sk/nap-kick-thud.ks} /ks wait 50 k>d d>r /r 311
+[./sk/gm-kick.ks] /ks wait 50 k>d d>r /r 300
+[./sk/drums-kick.ks] /ks wait 50 k>d d>r /r 301
+[./sk/dm-kick-deep.ks] /ks wait 50 k>d d>r /r 302
+[./sk/dm-kick-stomp.ks] /ks wait 50 k>d d>r /r 303
+[./sk/is-kick.ks] /ks wait 50 k>d d>r /r 304
+[./sk/is-kick-808.ks] /ks wait 50 k>d d>r /r 305
+[./sk/kw-kick-electro.ks] /ks wait 50 k>d d>r /r 306
+[./sk/kw-kick.ks] /ks wait 50 k>d d>r /r 307
+[./sk/nin-kick2.ks] /ks wait 50 k>d d>r /r 308
+[./sk/nin-kick.ks] /ks wait 50 k>d d>r /r 309
+[./sk/nap-kick-industrial.ks] /ks wait 50 k>d d>r /r 310
+[./sk/nap-kick-thud.ks] /ks wait 50 k>d d>r /r 311
 v0 w300 l1 wait 500
 v0 w301 l1 wait 500
 v0 w302 l1 wait 500

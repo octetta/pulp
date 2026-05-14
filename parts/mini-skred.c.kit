@@ -6,12 +6,12 @@
 #include "uedit.h"
 
 void usage(void) {
-  printf("skred\n");
+  printf("# skred\n");
   printf("-v<voice-count> (1 to 64)\n");
   printf("-r<requested-frame-size> (128 to ?)\n");
   printf("-n = do not use editor (for use as a subprocess)\n");
   printf("-p<udp-port> (0 means no udp)\n");
-  printf("-l\n");
+  printf("-l show output/input devices\n");
   exit(1);
 }
 
@@ -33,15 +33,21 @@ int main(int argc, char **argv) {
         case 'l': {
           skred_enumerate_devices(0);
           skred_enumerate_devices(1);
+          printf("# Output Devices\n");
+          for (int i=0; i<skred_devices(0); i++) printf("%d %s\n", skred_device_idx(0, i), skred_device_str(0, i));
+          printf("# Input Devices\n");
+          for (int i=0; i<skred_devices(1); i++) printf("%d %s\n", skred_device_idx(1, i), skred_device_str(1, i));
           exit(1);
         } break;
         case 'i': {
           skred_enumerate_devices(1);
           input = atoi(&argv[i][2]);
+          // NEED TO VALIDATE
         } break;
         case 'o': {
           skred_enumerate_devices(0);
           output = atoi(&argv[i][2]);
+          // NEED TO VALIDATE
         } break;
         default:
           usage();

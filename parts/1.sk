@@ -9,24 +9,24 @@ v7 w4 f60 n35,0 a0 # *
 M120
 
 y0 %4
-{v0n45l1} xa
-{v0n33l1} xa
-{y1z1} xa
-{-}xa
+[v0n45l1] xa
+[v0n33l1] xa
+[y1z1] xa
+[-]xa
 
 y1 %4 # step 2
-{#} xa
-{v1l1} xa
-{y2z1} xa
-{-}xa
+[#] xa
+[v1l1] xa
+[y2z1] xa
+[-]xa
 
 y2 %4 # step 2
-{v4l1} xa
-{#} xa
-{v3l1} xa
-{#} xa
-{-}xa
+[v4l1] xa
+[#] xa
+[v3l1] xa
+[#] xa
+[-]xa
 
 y3 %4
-{y0z1}xa
-{-}xa
+[y0z1]xa
+[-]xa

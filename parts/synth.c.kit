@@ -565,7 +565,14 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     @endif
     float sample_left = 0.0f;
     float sample_right = 0.0f;
-    float record_center = 0.0f;
+    
+    float record_mono = 0.0f;
+    
+    float record_a_left = 0.0;
+    float record_a_right = 0.0;
+    float record_b_left = 0.0;
+    float record_b_right = 0.0;
+    
     float f = 0.0f;
     float whiteish = audio_rng_float(&synth_random);
     float cap_left = this_capture[i*2];
@@ -719,7 +726,9 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
 
       sv.sample[n] *= final;
 
-      if (sv.disconnect[n] == 0 || is_capture) record_center += sv.sample[n];
+      if (sv.disconnect[n] == 0 || is_capture) {
+        record_mono += sv.sample[n];
+      }
 
       if (sv.disconnect[n] == 0) {
         float left  = sv.sample[n];
@@ -749,9 +758,9 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       sampling.trim = 0;
     }
     if (sampling.busy) {
-      if (sampling.how_many >= 0) {
-        sampling.where[sampling.ptr++] = record_center;
-        sampling.how_many--;
+      if (sampling.frames >= 0) {
+        sampling.where[sampling.ptr++] = record_mono;
+        sampling.frames--;
       } else {
         sampling.len = sampling.ptr-1;
         sampling.busy = 0;

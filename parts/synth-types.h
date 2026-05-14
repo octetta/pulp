@@ -124,7 +124,30 @@ typedef struct {
   int busy;
   int what;
   int go;
-  int how_many;
+  int frames;
+  int channels;
+  /*
+      IDEA skred has 5 channels
+      arranged in memory
+      +0 = MONO
+      +1 = A-LEFT
+      +2 = A-RIGHT
+      +3 = B-LEFT
+      +4 = B-RIGHT
+      using these destinations per voice
+      0 = NONE
+      when dest 0, this voice is not recorded
+      1 = A(L/R)
+      2 = B(L/R)
+      when dest 1, panning applied then this voice's
+        L gets added to A-L
+        R gets added to A-R
+      when dest 2, panning applied then this voice's
+        L gets added to A-L
+        R gets added to A-R
+      3 = MONO
+      when dest 3, panning is bypassed and this voice gets added to MONO
+  */
   int ptr;
   int len;
   float *where;

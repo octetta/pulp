@@ -1027,26 +1027,26 @@ void wave_table_dynamic_expand(int n) {
 #include <sys/time.h>
 #include <unistd.h>
 
-void skode_sample_alloc(int how_many) {
-  if (sampling.capacity < how_many) {
+void skode_sample_alloc(int frames) {
+  if (sampling.capacity < frames) {
     if (sampling.where) {
       free(sampling.where);
       sampling.where = NULL;
     }
     if (sampling.where == NULL) {
-      sampling.capacity = how_many;
-      sampling.where = (float *)calloc(how_many + 4096, sizeof(float));
-      for (int i=0; i<how_many; i++) sampling.where[i] = 0.0;
+      sampling.capacity = frames;
+      sampling.where = (float *)calloc(frames + 4096, sizeof(float));
+      for (int i=0; i<frames; i++) sampling.where[i] = 0.0;
     }
   }
-  sampling.how_many = how_many;
+  sampling.frames = frames;
 }
 
-void skode_sample_go(int how_many) {
+void skode_sample_go(int frames) {
   if (sampling.busy) {
     return;
   }
-  skode_sample_alloc(how_many);
+  skode_sample_alloc(frames);
   sampling.go = 1;
 }
 
@@ -2012,7 +2012,7 @@ int skode_function(ands_t *s, int info) {
       if (argc) {
         skode_sample_go(arg[0] * (float)MAIN_SAMPLE_RATE);
       } else {
-        ctx->printf(ctx, "skode_sample -> %d %d %d\n", sampling.busy, sampling.go, sampling.how_many);
+        ctx->printf(ctx, "skode_sample -> %d %d %d\n", sampling.busy, sampling.go, sampling.frames);
       }
       break;
     @if(RECORD)

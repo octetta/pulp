@@ -1618,9 +1618,26 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    case ATOM4('w>d-'): // wave-to-data
+      if (argc) {
+        if (sw.size[x] > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, sw.size[x]);
+        double *data = ands_data(ctx->parse);
+        for (int i=0; i<sw.size[x]; i++) data[i] = sw.data[x][i];
+        ands_data_len_set(ctx->parse, sw.size[x]);
+      }
+      break;
     case ATOM4('w>r-'): // wave-to-rec
       if (argc) {
-        if (sw.size[x] < sampling.capacity) {
+        int valid = 0;
+        if (sw.size[x] > sampling.capacity) {
+          if (sampling.busy) {
+            valid = 0;
+          } else {
+            skode_sample_alloc(sw.size[x]);
+            valid = 1;
+          }
+        }
+        if (valid) {
           for (int i=0; i<sw.size[x]; i++) sampling.where[i] = sw.data[x][i];
           sampling.len = sw.size[x];
         }

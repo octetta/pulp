@@ -1003,7 +1003,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             sv.amp_envelope_mode[v]);
     @endif
 
-    if (sv.text[v][0] != '\0') APPEND(" {%s} vt", sv.text[v]);
+    if (sv.text[v][0] != '\0') APPEND(" [%s] vt", sv.text[v]);
 
     /* ----------------------------------------------------------------
      * Verbose-only: internal engine state after a # comment marker.

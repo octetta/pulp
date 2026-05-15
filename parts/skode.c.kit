@@ -157,13 +157,13 @@ void save_wav(skode_t *ctx, char *filename, float *samples, long num_samples, in
   int byte_rate = sample_rate * num_channels * bits_per_sample / 8;
   int block_align = num_channels * bits_per_sample / 8;
   int data_size = num_samples * block_align;
-    
+   
   // WAV header
   fwrite("RIFF", 1, 4, f);
   uint32_t chunk_size = 36 + data_size;
   fwrite(&chunk_size, 4, 1, f);
   fwrite("WAVE", 1, 4, f);
-    
+   
   // fmt subchunk
   fwrite("fmt ", 1, 4, f);
   uint32_t subchunk1_size = 16;
@@ -967,17 +967,15 @@ int wavetable_show(skode_t *ctx, int n) {
     int readonly = sw.readonly[n];
     int refcount = sw.refcount[n];
     int size = sw.size[n];
-    ctx->printf(ctx, "# w%d size:%d", n, size);
-    ctx->printf(ctx, " rate:%g +hz:%g midi:%g",
+    ctx->printf(ctx, "# w%-3d %d samples @", n, size);
+    ctx->printf(ctx, " %gHz (+%gHz) MIDI %g",
       sw.rate[n],
       sw.offset_hz[n],
       sw.midi_note[n]);
-    if (readonly) {
-      ctx->printf(ctx, " r/o ref:%d", refcount);
-    } else {
-      ctx->printf(ctx, " r/w ref:%d", refcount);
-    }
-    ctx->printf(ctx, " '%s'", sw.name[n]);
+    if (readonly) ctx->printf(ctx, " R/O");
+    else ctx->printf(ctx, " R/W");
+    ctx->printf(ctx, " ref#%d", refcount);
+    ctx->printf(ctx, " [%s]", sw.name[n]);
     ctx->puts(ctx, "");
     @if(SCOPE)
     if (scope_enable) {
@@ -1169,6 +1167,71 @@ void normalize_buffer(float* pSamples, ma_uint32 frameCount, ma_uint32 channels)
             pSamples[i] *= scale;
         }
     }
+}
+
+void record_find_trim(int argc, float arg0, float arg1) {
+  int lead0 = -1;
+  int trail0 = -1;
+  float zero = 0.0;
+  float threshold = 0.0;
+  float tleft = 0.0;
+  float tright = 0.0;
+  if (argc) {
+    threshold = fabs(arg0);
+    tleft = threshold;
+    tright = threshold;
+    if (argc > 1) tright = arg1;
+  }
+  #define INSIDE(v,t,r) (fabs((v)-(t))<=(r))
+
+  // 1. Find the first audible sample index
+  int first_audible = -1;
+  for (int i = 0; i < sampling.len; i++) {
+    if (!INSIDE(sampling.where[i], zero, tleft)) {
+      first_audible = i;
+      break;
+    }
+  }
+
+  // Look backward into the silence to find the closest zero-crossing point
+  if (first_audible > 0) {
+    lead0 = first_audible;
+    while (lead0 > 0) {
+      // Check for an exact zero or a sign change between adjacent samples
+      if (sampling.where[lead0] == 0.0 || (sampling.where[lead0] * sampling.where[lead0 - 1] <= 0.0)) {
+        break;
+      }
+      lead0--;
+    }
+  } else if (first_audible == 0) {
+    lead0 = 0; // Starts immediately with audio
+  }
+
+  // 2. Find the last audible sample index
+  int last_audible = -1;
+  for (int i = sampling.len - 1; i >= 0; i--) {
+    if (!INSIDE(sampling.where[i], zero, tright)) {
+      last_audible = i;
+      break;
+    }
+  }
+
+  // Look forward into the trailing silence to find the closest zero-crossing point
+  if (last_audible >= 0 && last_audible < sampling.len - 1) {
+    int end_idx = last_audible;
+    while (end_idx < sampling.len - 1) {
+      // Check for an exact zero or a sign change between adjacent samples
+      if (sampling.where[end_idx] == 0.0 || (sampling.where[end_idx] * sampling.where[end_idx + 1] <= 0.0)) {
+        break;
+      }
+      end_idx++;
+    }
+    // Calculate total trailing samples to remove from the tail end
+    trail0 = sampling.len - 1 - end_idx;
+  }
+
+  if (lead0 > 0) sampling.offset = lead0;
+  if (trail0 > 0) sampling.trim = trail0;
 }
 
 int skode_function(ands_t *s, int info) {
@@ -1451,7 +1514,6 @@ int skode_function(ands_t *s, int info) {
         if (b >= 0) envelope_velocity(b, x);
         if (c >= 0) envelope_velocity(c, x);
         if (d >= 0) envelope_velocity(d, x);
-       
       }
       break;
     case ATOM4('m---'): // mute-audio bool
@@ -1585,8 +1647,13 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('V---'): // main-volume loudness
       if (argc) volume_set(arg[0]);
       break;
-    case ATOM4('vt--'): // {} voice-text
+    case ATOM4('vt--'): // [name] voice-text-set
       strncpy(sv.text[voice], ands_string(ctx->parse), TEXT_MAX-1);
+      break;
+    case ATOM4('wt--'): // [name] wave-text-set wave-number
+      if (argc && x >= 0 && x < WAVE_TABLE_MAX) {
+        strncpy(sw.name[x], ands_string(ctx->parse), WAVE_NAME_MAX-1);
+      }
       break;
     case ATOM4('w---'): // wave-select which-wave interpolate? one-shot?
       if (argc) {
@@ -1613,6 +1680,8 @@ int skode_function(ands_t *s, int info) {
         if (data_len <= sampling.capacity) {
           for (int i=0; i<data_len; i++) sampling.where[i] = (float)data[i];
           sampling.len = data_len;
+          sampling.offset = 0;
+          sampling.trim = 0;
         } else {
           ctx->printf(ctx, "NO!\n");
         }
@@ -1638,6 +1707,8 @@ int skode_function(ands_t *s, int info) {
           }
         }
         if (valid) {
+          sampling.offset = 0;
+          sampling.trim = 0;
           for (int i=0; i<sw.size[x]; i++) sampling.where[i] = sw.data[x][i];
           sampling.len = sw.size[x];
         }
@@ -1668,33 +1739,11 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('w<>-'): // wave-auto-trim
       {
-        int lead0 = -1;
-        int trail0 = -1;
-        float zero = 0.0;
-        float threshold = 0.0;
-        float tleft = 0.0;
-        float tright = 0.0;
-        if (argc) {
-          threshold = fabs(arg[0]);
-          tleft = threshold;
-          tright = threshold;
-          if (argc > 1) tright = arg[1];
-        }
-        #define INSIDE(v,t,r) (fabs((v)-(t))<=(r))
-        if (INSIDE(sampling.where[0], zero, tleft)) {
-          for (int i=1; i<sampling.len; i++) {
-            if (!INSIDE(sampling.where[i], zero, tleft)) break;
-            lead0++;
-          }
-        }
-        if (INSIDE(sampling.where[sampling.len-1], zero, tright)) {
-          for (int i=sampling.len-2; i>=0; i--) {
-            if (!INSIDE(sampling.where[i], zero, tright)) break;
-            trail0++;
-          }
-        }
-        if (lead0 > 0) sampling.offset = lead0;
-        if (trail0 > 0) sampling.trim = trail0;
+        float arg0 = -1;
+        float arg1 = -1;
+        if (argc > 0) arg0 = arg[0];
+        if (argc > 1) arg1 = arg[1];
+        record_find_trim(argc, arg0, arg1);
       }
       break;
     case ATOM4('W---'): // wave-show which-wave

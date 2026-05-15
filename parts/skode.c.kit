@@ -1702,8 +1702,19 @@ int skode_function(ands_t *s, int info) {
         int w = 60;
         int h = 12;
         if (arg[0] >= 0) {
-          print_audio_braille_connected(ctx, sw.data[x], sw.size[x], w, h);
-          wavetable_show(ctx,x);
+          int m = 0;
+          if (argc > 1) {
+            if (isnan(arg[1])) m = WAVE_TABLE_MAX;
+            else m = (int)arg[1];
+          }
+          if (m == 0) {
+            print_audio_braille_connected(ctx, sw.data[x], sw.size[x], w, h);
+            wavetable_show(ctx, x);
+          } else {
+            for (int i=x; i<=m; i++) {
+              wavetable_show(ctx, i);
+            }
+          }
         } else {
           if (sampling.where) {
             if ((sampling.offset > sampling.len) || (sampling.len - sampling.trim <= 0)) {

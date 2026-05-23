@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reveal.js & Emscripten WASM Audio</title>
+    
+    <!-- Reveal.js Core & Themes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/white.min.css" id="theme">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/monokai.min.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Poppins:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        html, body { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; }
+        
+        :root {
+            /* Warm Slate Light Theme Variables */
+            --r-main-font: 'Plus Jakarta Sans', sans-serif;
+            --r-heading-font: 'Poppins', sans-serif;
+            --r-heading-color: #1e293b; /* Deep slate */
+            --r-link-color: #0f766e;    /* Teal */
+            --r-link-color-hover: #0d9488;
+            --primary-accent: #0f766e;
+            --terminal-bg: #f8fafc;     /* Warm white/slate background */
+        }
+
+        /* Enforce custom background & scale font to fit viewport */
+        .reveal { 
+            background-color: var(--terminal-bg); 
+            font-size: 32px; /* Scaled down from 40px to prevent overflow */
+        }
+        
+        /* Typography Polish */
+        .reveal h1, .reveal h2, .reveal h3 { letter-spacing: -0.02em; }
+        .reveal h1 { font-weight: 800; font-size: 2.2em; background: linear-gradient(135deg, #1e293b 0%, var(--primary-accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5em; }
+        .reveal h2 { color: var(--r-heading-color); font-weight: 600; border-left: 6px solid var(--primary-accent); padding-left: 20px; font-size: 1.6em; margin-bottom: 1em; }
+        .reveal p, .reveal li { color: #475569; line-height: 1.6; }
+        
+        /* Premium Buttons */
+        .sound-btn {
+            background: linear-gradient(135deg, var(--primary-accent) 0%, #0d9488 100%);
+            border: none;
+            color: #ffffff;
+            padding: 12px 28px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.85em;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.2);
+            transition: all 0.2s ease;
+            margin: 10px;
+        }
+        .sound-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(15, 118, 110, 0.35); }
+        .sound-btn:active { transform: translateY(1px); }
+        
+        /* Grid Layouts */
+        .grid-cards { display: grid; gap: 20px; width: 100%; margin-top: 30px; }
+        
+        /* Custom Audio Slider */
+        .slider-container { background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-top: 20px; }
+        .audio-slider {
+            -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; background: #e2e8f0; outline: none; margin: 20px 0;
+        }
+        .audio-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--primary-accent); cursor: pointer; transition: transform 0.1s; box-shadow: 0 2px 6px rgba(15, 118, 110, 0.4);
+        }
+        .audio-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        
+        #wasm-telemetry-hud {
+            position: fixed; bottom: 30px; right: 30px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 15px 20px;
+            display: flex; align-items: center; gap: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(10px);
+        }
+        .status-dot {
+            width: 12px; height: 12px; border-radius: 50%; background-color: #ef4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); transition: background-color 0.3s;
+        }
+        .status-dot.active {
+            background-color: #10b981; box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+        }
+        .hud-text { font-family: 'Fira Code', monospace; font-size: 12px; display: flex; flex-direction: column; }
+        .hud-label { font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+        .hud-val { color: #64748b; }
+        .eq-visualizer { display: flex; align-items: flex-end; gap: 4px; height: 24px; width: 40px; }
+        .eq-bar { width: 5px; height: 4px; background: var(--primary-accent); border-radius: 2px; transition: height 0.08s ease; }
+    </style>
+</head>
+<body>
+
+    <div id="wasm-telemetry-hud">
+        <div id="wasm-engine-dot" class="status-dot"></div>
+        <div class="hud-text">
+            <span class="hud-label">skred</span>
+            <span id="wasm-engine-state" class="hud-val">Offline</span>
+        </div>
+        <div class="eq-visualizer">
+            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+        </div>
+    </div>
+
+    <div class="reveal">
+        <div class="slides">
+
+      <!-- Slide 0: Prelude -->
+        <section data-markdown>
+        <textarea data-template>
+        # administrivia
+        <button class="sound-btn" onclick="initializeWasmAndAudio()" style="margin-top: 30px; font-size: 1em;">
+        boot
+        </button>
+
+        *audio needs a user click to begin*
+        </textarea>
+        </section>
+      <!-- Slide 1: Initialization -->
+        <section data-markdown>
+        <textarea data-template>
+                    # BEEPS and PORTS
+                    
+                    **How to annoy everyone in your house while building an audio synthesizer**
+                    
+        </textarea>
+        </section>
+
+            <!-- Slide 2: The Slider / Filter Modulator -->
+            <section>
+                <h2>Real-time Modulation</h2>
+                    
+                <button class="sound-btn" data-api="trigger_synth_event" data-api-val="0">Stop Drone</button>
+                <button class="sound-btn" data-api="trigger_synth_event" data-api-val="1">Start Drone</button>
+
+                <p>Drag the slider below to smoothly modulate the persistent background engine frequency. Notice how the HUD reacts.</p>
+                
+                <div class="slider-container">
+                    <div style="display: flex; justify-content: space-between; font-family: 'Fira Code', monospace; color: #475569; font-size: 18px;">
+                        <span>Drone Frequency</span>
+                        <span id="freq-readout">220 Hz</span>
+                    </div>
+                    <!-- Direct call to update JS state -->
+                    <input type="range" class="audio-slider" min="50" max="800" value="220" oninput="updateDroneFrequency(this.value)">
+                </div>
+
+                <div class="slider-container">
+                    <div style="display: flex; justify-content: space-between; font-family: 'Fira Code', monospace; color: #475569; font-size: 18px;">
+                        <span>Drone Volume</span>
+                        <span id="vol-readout">0 dB</span>
+                    </div>
+                    <input type="range" class="audio-slider" min="-10" max="1" value="0" step=".001" oninput="updateDroneVolume(this.value)">
+                </div>
+
+            </section>
+
+            <!-- Slide 3: The Dynamic Fifth (Hybrid HTML Fragments) -->
+            <section>
+                <h2>The Dynamic Fifth</h2>
+                <p>Press <strong>Spacebar</strong> to step through the sequence. Because we use hybrid HTML list tags, Reveal.js parses the fragments and fires our audio hooks flawlessly.</p>
+                
+                <!-- Using raw HTML lists guarantees data attributes survive Markdown compilation -->
+                <ul style="margin-top: 30px; list-style-type: none; padding-left: 0;">
+                    <li class="fragment" data-audio-ping="440" style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                        <strong style="color:#0f766e;">Root:</strong> A4 (440 Hz)
+                    </li>
+                    <li class="fragment" data-audio-ping="554.37" style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                        <strong style="color:#0f766e;">Major Third:</strong> C#5 (554.37 Hz)
+                    </li>
+                    <li class="fragment" data-audio-ping="659.25" style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                        <strong style="color:#0f766e;">Perfect Fifth:</strong> E5 (659.25 Hz)
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Slide 4: Button Grids & API Dispatcher -->
+            <section data-markdown>
+                <textarea data-template>
+                    ## API Interaction Triggers
+                    
+                    Using the `data-api` attribute, we can holistically route button clicks anywhere in the deck directly to Emscripten API functions.
+
+                    <button class="sound-btn" data-api="trigger_synth_event" data-api-val="0">Stop Drone</button>
+                    <button class="sound-btn" data-api="trigger_synth_event" data-api-val="1">Start Drone</button>
+
+                    <hr style="border: 0; height: 1px; background: #e2e8f0; margin: 30px 0;">
+
+                    <div class="grid-cards" style="grid-template-columns: repeat(3, 1fr);">
+                        <button class="sound-btn" data-api="trigger_note_ping" data-api-val="261.63">C4 Hit</button>
+                        <button class="sound-btn" data-api="trigger_note_ping" data-api-val="329.63">E4 Hit</button>
+                        <button class="sound-btn" data-api="trigger_note_ping" data-api-val="392.00">G4 Hit</button>
+                    </div>
+                </textarea>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/highlight.min.js"></script>
+
+    <!-- 
+    -->
+        UNCOMMENT THIS SCRIPT TAG WHEN USING YOUR REAL EMSCRIPTEN WASM:
+        <script src="skred_api.js"></script>
+
+    <script>
+        let isProduction = true; // Set to true when audio_engine.js is loaded
+        let skred_running = false;
+        //let audioCtx = null;
+        //let droneOsc = null;
+        //let droneGain = null;
+        let animInterval = null;
+
+        // Visualizer Functions
+        function startEqualizer() {
+            if (animInterval) clearInterval(animInterval);
+            const bars = document.querySelectorAll('.eq-bar');
+            animInterval = setInterval(() => {
+                bars.forEach(bar => { bar.style.height = (Math.random() * 20 + 4) + 'px'; });
+            }, 80);
+        }
+
+        function stopEqualizer() {
+            clearInterval(animInterval);
+            document.querySelectorAll('.eq-bar').forEach(bar => bar.style.height = '4px');
+        }
+
+        function flashEqualizer() {
+            const bars = document.querySelectorAll('.eq-bar');
+            bars.forEach(bar => bar.style.height = '24px');
+            setTimeout(() => { stopEqualizer(); }, 150);
+        }
+
+        // Initialize Audio & UI
+        function initializeWasmAndAudio() {
+            if (skred_running) return; // Already running
+            //audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            document.getElementById('wasm-engine-dot').classList.add('active');
+            document.getElementById('wasm-engine-state').textContent = "Online / Drone OFF";
+            
+            // If we had the real WASM Module, we'd init it here:
+            // if (isProduction) Module.ccall('init_audio', null, [], []);
+            if (isProduction) {
+                var outdev = 0;
+                var indev = 0;
+                var bufsize = 256;
+                var nvoices = 32;
+                Module._skred_set_audio_device(outdev, indev);
+                Module._skred_start(bufsize, nvoices, 0);
+                skred_running = true;
+                doSkode('log 1');
+                doSkode('v0 w0 a0 f440');
+                doSkode('v1 w0 a0 t .01 .5 0 0');
+            }
+        }
+
+        function doSkode(cmd) {
+            if (isProduction && typeof Module !== 'undefined') {
+              Module.ccall('skred_command', null, ['string'], [cmd]);
+            }
+        }
+
+        function toggleDrone(state) {
+            if (!skred_running) initializeWasmAndAudio();
+            
+            if (state === 1) {
+                doSkode('v0 l1');
+                startEqualizer();
+                document.getElementById('wasm-engine-state').textContent = "Drone Active";
+            } else if (state === 0) {
+                doSkode('v0 l0');
+                stopEqualizer();
+                document.getElementById('wasm-engine-state').textContent = "Active / Drone OFF";
+            }
+        }
+
+        function updateDroneFrequency(val) {
+            document.getElementById('freq-readout').textContent = Math.round(val) + " Hz";
+            if (isProduction && typeof Module !== 'undefined') {
+                doSkode(`v0f${val}`);
+            } else {
+            }
+        }
+
+        function updateDroneVolume(val) {
+            document.getElementById('vol-readout').textContent = val + " dB";
+            if (isProduction && typeof Module !== 'undefined') {
+                doSkode(`v0a${val}`);
+            } else {
+            }
+        }
+        function triggerPing(freq) {
+            if (!skred_running) initializeWasmAndAudio();
+            flashEqualizer();
+            
+            if (isProduction && typeof Module !== 'undefined') {
+                // Module.ccall('trigger_note_ping', 'void', ['number'], [freq]);
+                //Module.ccall('skred_command', null, ['string'], [`v0 f${freq} l1`]);
+                doSkode(`v1 f${freq} l1`);
+            } else {
+                // Mock Ping
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            }
+        }
+
+        // 1. Holistic Button Dispatcher
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-api]');
+            if (!btn) return;
+            
+            const apiFunc = btn.getAttribute('data-api');
+            const apiVal = parseFloat(btn.getAttribute('data-api-val'));
+
+            // Route to correct function
+            if (apiFunc === 'trigger_synth_event') {
+                toggleDrone(apiVal);
+            } else if (apiFunc === 'trigger_note_ping') {
+                triggerPing(apiVal);
+            }
+        });
+
+        // 2. Reveal.js Initialization
+        Reveal.initialize({
+            plugins: [ RevealMarkdown, RevealHighlight ],
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true
+        });
+
+        // 3. Fragment Hook (For the Dynamic Fifth)
+        Reveal.on('fragmentshown', event => {
+            // Check if the fragment that just appeared has our custom audio attribute
+            const pingFreq = event.fragment.getAttribute('data-audio-ping');
+            if (pingFreq) {
+                triggerPing(parseFloat(pingFreq));
+            }
+        });
+
+    </script>
+</body>
+</html>

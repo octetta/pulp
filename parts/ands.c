@@ -38,8 +38,8 @@
 
 #define IS_NUMBER(c) (isdigit(c) || strchr("-.", c))
 #define IS_SEPARATOR(c) (isspace(c) || c == ',')
-#define IS_STRING(c) (c == '{' || c == '[')
-#define IS_STRING_END(c) (c == '}' || c == ']')
+#define IS_STRING(c) (c == '[')
+#define IS_STRING_END(c) (c == ']')
 #define IS_ARRAY(c) (c == '(')
 #define IS_ARRAY_END(c) (c == ')')
 #define IS_VARIABLE(c) (c == '$')

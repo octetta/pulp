@@ -1071,7 +1071,7 @@ int freq_set(int voice, float f) {
   float target_inc = osc_get_phase_inc(voice, f);
 
   @if(GLISS)
-  float glide_time = sv.glissando_time[voice]; 
+  float glide_time = sv.glissando_time[voice];
 
   // Safety: Only glide if time is set and current pitch is above a 'floor' (e.g., 20Hz)
   // This prevents the 'ratio explosion' when starting from zero.
@@ -1276,8 +1276,18 @@ int voice_copy(int v, int n) {
   freq_set(n, sv.freq[v]);
   wave_loop(n, sv.loop_enabled[v]);
   wave_dir(n, sv.direction[v]);
+  sv.link_midi_0[n] = sv.link_midi_0[v];
+  sv.link_midi_1[n] = sv.link_midi_1[v];
+  sv.link_midi_2[n] = sv.link_midi_2[v];
+  sv.link_midi_3[n] = sv.link_midi_3[v];
+  sv.midi_transpose[n] = sv.midi_transpose[v];
+  sv.midi_cents[n] = sv.midi_cents[v];
   @if(ADSR)
   envelope_set(n, sv.amp_envelope[v].a, sv.amp_envelope[v].d, sv.amp_envelope[v].s, sv.amp_envelope[v].r);
+  sv.link_velo_0[n] = sv.link_velo_0[v];
+  sv.link_velo_1[n] = sv.link_velo_1[v];
+  sv.link_velo_2[n] = sv.link_velo_2[v];
+  sv.link_velo_3[n] = sv.link_velo_3[v];
   @endif
   //
   pan_set(n, sv.pan[v]);
@@ -1312,6 +1322,15 @@ int voice_copy(int v, int n) {
   sv.glissando_speed[n] = sv.glissando_speed[v];
   sv.glissando_target[n] = sv.glissando_target[v];
   sv.glissando_time[n] = sv.glissando_time[v];
+  @endif
+  @if(FADSR)
+  sv.use_filter_envelope[n] = sv.use_filter_envelope[v];
+  sv.filter_env_depth[n] = sv.filter_env_depth[v];
+  float a = sv.filter_envelope[v].a;
+  float d = sv.filter_envelope[v].d;
+  float s = sv.filter_envelope[v].s;
+  float r = sv.filter_envelope[v].r;
+  envelope_init_e(&sv.filter_envelope[n], a, d, s, r);
   @endif
   @if(XM)
   sv.ring_osc[n] = sv.ring_osc[v];

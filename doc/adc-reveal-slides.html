@@ -111,7 +111,7 @@
     <div class="reveal">
         <div class="slides">
 
-      <!-- Slide 0: Prelude -->
+      <!-- Slide -1: Prelude -->
         <section data-markdown>
         <textarea data-template>
         # administrivia
@@ -122,17 +122,18 @@
         *audio needs a user click to begin*
         </textarea>
         </section>
-      <!-- Slide 1: Initialization -->
+      <!-- Slide 0: Initialization -->
         <section data-markdown>
         <textarea data-template>
-                    # BEEPS and PORTS
-                    
-                    **How to annoy everyone in your house while building an audio synthesizer**
-                    
+        # BEEPS and PORTS
+
+        **How to annoy everyone in your house while building an audio synthesizer**
         </textarea>
         </section>
+      
+      <!-- Slide 1: Initialization -->
 
-            <!-- Slide 2: The Slider / Filter Modulator -->
+      <!-- Slide 2: The Slider / Filter Modulator -->
             <section>
                 <h2>Real-time Modulation</h2>
                     
@@ -247,8 +248,6 @@
             document.getElementById('wasm-engine-dot').classList.add('active');
             document.getElementById('wasm-engine-state').textContent = "Online / Drone OFF";
             
-            // If we had the real WASM Module, we'd init it here:
-            // if (isProduction) Module.ccall('init_audio', null, [], []);
             if (isProduction) {
                 var outdev = 0;
                 var indev = 0;
@@ -287,7 +286,6 @@
             document.getElementById('freq-readout').textContent = Math.round(val) + " Hz";
             if (isProduction && typeof Module !== 'undefined') {
                 doSkode(`v0f${val}`);
-            } else {
             }
         }
 
@@ -295,7 +293,6 @@
             document.getElementById('vol-readout').textContent = val + " dB";
             if (isProduction && typeof Module !== 'undefined') {
                 doSkode(`v0a${val}`);
-            } else {
             }
         }
         function triggerPing(freq) {
@@ -303,21 +300,7 @@
             flashEqualizer();
             
             if (isProduction && typeof Module !== 'undefined') {
-                // Module.ccall('trigger_note_ping', 'void', ['number'], [freq]);
-                //Module.ccall('skred_command', null, ['string'], [`v0 f${freq} l1`]);
                 doSkode(`v1 f${freq} l1`);
-            } else {
-                // Mock Ping
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.5);
             }
         }
 

@@ -1435,7 +1435,7 @@ int skode_function(ands_t *s, int info) {
       {
         char *file = ands_string(ctx->parse);
         int verbose = 0;
-        if (argc > 1) verbose = (int)arg[1];
+        if (argc) verbose = (int)arg[0];
         if (strlen(file)) {
           ksynth_load_name(ctx, TMP_WRITER, file, verbose);
         }

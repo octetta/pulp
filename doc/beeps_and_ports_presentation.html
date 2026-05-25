@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BEEPS and PORTS Presentation</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/white.min.css" id="theme">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/monokai.min.css">
+    
+    <style>
+        #wasm-telemetry-hud {
+            position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.9); border: 1px solid #ccc; padding: 10px;
+            font-family: monospace; font-size: 12px; pointer-events: none;
+        }
+        .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; }
+        .active { background: green; }
+        .reveal { font-size: 28px; }
+    </style>
+</head>
+<body>
+
+    <div id="wasm-telemetry-hud">
+        <div id="wasm-engine-dot" class="status-dot"></div> Engine: <span id="wasm-engine-state">Offline</span>
+    </div>
+
+    <div class="reveal">
+        <div class="slides">
+            <!-- SLIDE 1: The Obsession -->
+            <section>
+                <h1>BEEPS and PORTS</h1>
+                <p>Annoy everyone in your house while building an audio synthesizer</p>
+                <button onclick="initializeWasmAndAudio()">Boot Engine</button>
+            </section>
+
+            <!-- SLIDE 2: The Control Plane -->
+            <section><h2>The Control Plane</h2><p>Overview of the two-year journey and the goal of low-ceremony text protocols.</p></section>
+            
+            <!-- SLIDE 3: The Architecture of Isolation -->
+            <section><h2>Architecture of Isolation</h2><p>How the synth engine stays sandboxed from the UI.</p></section>
+            
+            <!-- SLIDE 4: The Core Protocol -->
+            <section><h2>Core Protocol</h2><p>Defining the ASCII shorthand (SKODE) and dispatch methods.</p></section>
+            
+            <!-- SLIDE 5: Mathematical Shortcuts -->
+            <section><h2>k-synth Shortcuts</h2><p>Monadic verbs and right-associative array expressions.</p></section>
+            
+            <!-- SLIDE 6: Advanced Arrays -->
+            <section><h2>Array-Oriented Sound</h2><p>Deep dive into math expressions and custom wavetables.</p></section>
+            
+            <!-- SLIDE 7: The Annoyance Factor -->
+            <section><h2>Annoying the Room</h2><p>The Part Where We Annoy the Room: Drums, Korg Homage, and Fades.</p></section>
+            
+            <!-- SLIDE 8: Live Demo -->
+            <section><h2>Live Demo</h2><p>Switching to Terminal/WebAssembly shell: <code>v0 w0 f220 a0.8</code></p></section>
+            
+            <!-- SLIDE 9: Links & Future -->
+            <section>
+                <h2>Conclusion</h2>
+                <p>GitHub: octetta/pulp | octetta/k-synth</p>
+                <p>Looking for R&D collaborators.</p>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/highlight.min.js"></script>
+    <script src="skred_api.js"></script>
+    
+    <script>
+        let isProduction = true;
+        let skred_running = false;
+
+        function initializeWasmAndAudio() {
+            if (skred_running) return;
+            if (typeof Module !== 'undefined') {
+                Module._skred_set_audio_device(0, 0);
+                Module._skred_start(256, 32, 0);
+                skred_running = true;
+                document.getElementById('wasm-engine-dot').classList.add('active');
+                document.getElementById('wasm-engine-state').textContent = "Online";
+                console.log("Engine booted.");
+            }
+        }
+
+        function doSkode(cmd) {
+            if (isProduction && typeof Module !== 'undefined') {
+                Module.ccall('skred_command', null, ['string'], [cmd]);
+            }
+        }
+
+        Reveal.initialize({
+            plugins: [ RevealMarkdown, RevealHighlight ],
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true
+        });
+    </script>
+</body>
+</html>

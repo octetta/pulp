@@ -96,6 +96,13 @@
       max-width: 820px;
     }
 
+    .mono-note {
+      color: #334155;
+      font-family: "Fira Code", monospace;
+      font-size: 0.62em;
+      line-height: 1.45;
+    }
+
     .big-code {
       display: block;
       width: min(100%, 920px);
@@ -111,6 +118,50 @@
       line-height: 1.5;
       white-space: pre-wrap;
       border-radius: 8px;
+    }
+
+    .notebook-cell {
+      width: min(100%, 940px);
+      box-sizing: border-box;
+      margin-top: 28px;
+      overflow: hidden;
+      border: 2px solid #17202a;
+      border-radius: 4px;
+      background: #101820;
+      box-shadow: 0 14px 38px rgb(15 23 42 / 0.08);
+    }
+
+    .cell-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 2px solid #17202a;
+      background: #ffffff;
+      color: #17202a;
+      font: 700 0.42em "Fira Code", monospace;
+      text-transform: uppercase;
+    }
+
+    .cell-tag {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 20px;
+      border: 2px solid #17202a;
+      border-radius: 2px;
+      color: var(--accent);
+      font-size: 0.54em;
+      line-height: 1;
+    }
+
+    .notebook-cell .big-code {
+      width: 100%;
+      margin: 0;
+      border: none;
+      border-left: none;
+      border-radius: 0;
+      box-shadow: none;
     }
 
     .diagram {
@@ -149,6 +200,199 @@
       grid-template-columns: 0.9fr 1.1fr;
       gap: 42px;
       align-items: center;
+    }
+
+    .media-split {
+      display: grid;
+      grid-template-columns: minmax(0, 0.96fr) minmax(300px, 1.04fr);
+      gap: 44px;
+      align-items: center;
+    }
+
+    .stage-figure {
+      margin: 0;
+      width: 100%;
+    }
+
+    .stage-image {
+      display: block;
+      width: 100%;
+      max-height: 62vh;
+      object-fit: contain;
+      border: 2px solid #17202a;
+      border-radius: 4px;
+      background: #ffffff;
+      box-shadow: 0 16px 42px rgb(15 23 42 / 0.1);
+    }
+
+    .stage-figure figcaption {
+      margin-top: 10px;
+      color: #64748b;
+      font: 0.4em/1.35 "Fira Code", monospace;
+    }
+
+    .logo-image {
+      display: block;
+      width: min(100%, 520px);
+      max-height: 54vh;
+      object-fit: contain;
+      margin: 0 auto;
+      background: transparent;
+    }
+
+    .compact-code-slide h2 {
+      font-size: 1.28em;
+    }
+
+    .compact-code-slide .notebook-cell {
+      margin-top: 18px;
+    }
+
+    .compact-code-slide .big-code {
+      padding: 16px 20px;
+      font-size: 0.58em;
+      line-height: 1.34;
+    }
+
+    .compact-code-slide .stage-actions {
+      margin-top: 16px;
+    }
+
+    .stage-image.compact-portrait {
+      width: min(100%, 340px);
+      max-height: 46vh;
+      margin: 0 auto;
+    }
+
+    .svg-stage {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 28px;
+      padding: 18px;
+      border: 2px solid #17202a;
+      border-radius: 4px;
+      background: #ffffff;
+      box-shadow: 0 14px 38px rgb(15 23 42 / 0.08);
+    }
+
+    .svg-stage svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .symbol-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      width: min(100%, 980px);
+      margin-top: 28px;
+    }
+
+    .symbol-card {
+      min-height: 122px;
+      padding: 18px;
+      border: 2px solid #17202a;
+      border-radius: 4px;
+      background: #ffffff;
+      box-shadow: 0 10px 28px rgb(15 23 42 / 0.06);
+    }
+
+    .symbol-card b {
+      display: block;
+      color: #111827;
+      font: 800 0.84em "Fira Code", monospace;
+      margin-bottom: 0.45em;
+    }
+
+    .symbol-card span {
+      display: block;
+      color: var(--ink-soft);
+      font-size: 0.48em;
+      line-height: 1.3;
+    }
+
+    .symbol-card .courier-symbol {
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      width: min(100%, 1080px);
+      margin-top: 26px;
+    }
+
+    .qr-card {
+      min-width: 0;
+      padding: 14px;
+      border: 2px solid #17202a;
+      border-radius: 4px;
+      background: #ffffff;
+      box-shadow: 0 10px 28px rgb(15 23 42 / 0.06);
+    }
+
+    .qr-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .qr-card b,
+    .qr-card a {
+      display: block;
+      overflow-wrap: anywhere;
+      font-family: "Fira Code", monospace;
+      line-height: 1.25;
+    }
+
+    .qr-card b {
+      margin-top: 12px;
+      color: #111827;
+      font-size: 0.42em;
+      text-transform: uppercase;
+    }
+
+    .qr-card a {
+      margin-top: 5px;
+      color: var(--accent);
+      font-size: 0.34em;
+      text-decoration: none;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      width: min(100%, 1080px);
+      margin-top: 26px;
+    }
+
+    .demo-card {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .demo-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border: 2px solid #17202a;
+      border-radius: 4px;
+      background: #ffffff;
+      box-shadow: 0 10px 28px rgb(15 23 42 / 0.06);
+    }
+
+    .demo-card figcaption {
+      margin-top: 9px;
+      color: #17202a;
+      font: 700 0.4em/1.25 "Fira Code", monospace;
+      text-transform: uppercase;
     }
 
     .quiet-list {
@@ -374,14 +618,38 @@
       opacity: 0.5;
     }
 
+    .reveal .slide-number {
+      right: 18px;
+      bottom: 76px;
+      padding: 4px 7px;
+      border: 1px solid rgb(23 32 42 / 0.12);
+      border-radius: 6px;
+      background: rgb(255 255 255 / 0.62);
+      color: rgb(23 32 42 / 0.44);
+      font: 11px "Fira Code", monospace;
+    }
+
     @media (max-width: 820px) {
       .reveal {
         font-size: 26px;
       }
 
       .diagram,
+      .media-split,
       .split {
         grid-template-columns: 1fr;
+      }
+
+      .symbol-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .qr-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .demo-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .node {
@@ -431,7 +699,7 @@
     <div class="slides">
       <section data-cue="boot">
         <p class="eyebrow">administrivia</p>
-        <h1>Before We Make Noise</h1>
+        <h1>Before we make noise, the browser needs one click.</h1>
         <p class="subtitle">Click boot once. Browsers require a user gesture before audio starts.</p>
         <div class="stage-actions">
           <button class="stage-btn" type="button" data-stage-action="boot">Boot Skred</button>
@@ -439,56 +707,185 @@
           <button class="stage-btn warning" type="button" data-stage-action="panic">Panic</button>
         </div>
         <p class="small-note">Hack point: open DevTools and call <code>skode("v0 w0 f220 a0.3 l1")</code>.</p>
+        <aside class="notes">
+          Start here before the audience arrives if possible. Browser audio needs a user gesture, so booting Skred once gets the WebAssembly runtime and audio callback into a usable state. Panic fully stops Skred; quiet-style commands happen later inside the demo.
+        </aside>
       </section>
 
       <section data-cue="title">
-        <p class="eyebrow">Tokyo ADC 2026</p>
-        <h1>BEEPS and PORTS</h1>
-        <p class="subtitle">How to annoy everyone in your house while building an audio synthesizer.</p>
+        <div class="media-split">
+          <div>
+            <p class="eyebrow">Tokyo ADC 2026</p>
+            <h1>BEEPS and PORTS</h1>
+            <p class="subtitle">How to annoy everyone in your house while building an audio synthesizer.</p>
+          </div>
+          <figure class="stage-figure">
+            <img class="stage-image" src="skred-octopus.png" alt="Skred octopus illustration">
+            <figcaption>Skred: too many arms, exactly enough ports.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section data-cue="soft">
-        <p class="eyebrow">the point</p>
-        <h2>A sound tool small enough to crash, restart, script, abuse, and understand.</h2>
-        <p>This is not a product pitch. It is a tour through a little machine built around terse text, persistent state, isolated execution, and immediate sound.</p>
+        <div class="media-split">
+          <div>
+            <p class="eyebrow">background</p>
+            <h2>I keep coming back to small machines that make sound feel immediate.</h2>
+          </div>
+          <figure class="stage-figure">
+            <img class="stage-image" src="joe-occupant.jpg" alt="Joe Occupant background image">
+            <figcaption>background: Joe Occupant</figcaption>
+          </figure>
+        </div>
+        <aside class="notes">
+          This is the short personal context slide. Use it to explain the path into this project: old sound hardware, simple command interfaces, handmade tools, and the long-running urge to make sound systems that feel direct enough to poke at in real time.
+        </aside>
+      </section>
+
+      <section data-cue="soft">
+        <p class="eyebrow">the itch</p>
+        <h2>I wanted command-line immediacy for sound.</h2>
+        <aside class="notes">
+          For years, I wanted a simple way to play with sound without booting a giant tool or wiring together a whole environment first. This is influenced by old PC sound hardware, 80s analog and digital synthesizers, command prompts, tiny notations, and the pleasant danger of making something immediate enough to surprise me.
+        </aside>
+      </section>
+
+      <section data-cue="tick">
+        <p class="eyebrow">why terse text?</p>
+        <h2>Symbols look weird until they become handles.</h2>
+        <div class="symbol-grid">
+          <div class="symbol-card"><b>Hg</b><span>chemical symbol for mercury</span></div>
+          <div class="symbol-card"><b>&sum;</b><span>summation: add the sequence</span></div>
+          <div class="symbol-card"><b>&#9833;</b><span>quarter note: duration at a glance</span></div>
+          <div class="symbol-card"><b class="courier-symbol">ls</b><span>shell shorthand for listing files</span></div>
+          <div class="symbol-card"><b>v0 w10</b><span>SKODE: voice zero, waveform ten</span></div>
+        </div>
+        <aside class="notes">
+          This is the learn.html argument: terse systems are annoying until they become handles. Music notation, math symbols, chemical symbols, shell commands, LOL, and WTF all look weird at first. Once they are familiar, they free mental space because you stop spelling everything out.
+        </aside>
       </section>
 
       <section data-cue="tick">
         <p class="eyebrow">the stack</p>
-        <h2>SKODE talks to Skred. Skred drives Pulp. Pulp fills the speakers.</h2>
-        <div class="diagram">
-          <div class="node"><b>SKODE</b><span>ASCII shorthand for changing sound without ceremony.</span></div>
-          <div class="node"><b>Skred</b><span>The shell/runtime you can run native or in a browser.</span></div>
-          <div class="node"><b>Pulp</b><span>The C audio engine: voices, buffers, tables, parameters.</span></div>
-          <div class="node"><b>Speakers</b><span>The point where architecture becomes air pressure.</span></div>
+        <h2>Text becomes state. State becomes air pressure.</h2>
+        <div class="svg-stage">
+          <svg viewBox="0 0 1060 300" role="img" aria-label="SKODE to Skred to Pulp to Speakers">
+            <defs>
+              <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#047857"></path>
+              </marker>
+            </defs>
+            <rect x="18" y="48" width="220" height="176" rx="6" fill="#ffffff" stroke="#17202a" stroke-width="4"></rect>
+            <rect x="294" y="48" width="220" height="176" rx="6" fill="#ffffff" stroke="#17202a" stroke-width="4"></rect>
+            <rect x="570" y="48" width="220" height="176" rx="6" fill="#ffffff" stroke="#17202a" stroke-width="4"></rect>
+            <rect x="846" y="48" width="196" height="176" rx="6" fill="#ffffff" stroke="#17202a" stroke-width="4"></rect>
+            <path d="M 246 136 H 282" stroke="#047857" stroke-width="8" marker-end="url(#arrowhead)"></path>
+            <path d="M 522 136 H 558" stroke="#047857" stroke-width="8" marker-end="url(#arrowhead)"></path>
+            <path d="M 798 136 H 834" stroke="#047857" stroke-width="8" marker-end="url(#arrowhead)"></path>
+            <text x="128" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">SKODE</text>
+            <text x="128" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">ASCII control</text>
+            <text x="404" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Skred</text>
+            <text x="404" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">runtime shell</text>
+            <text x="680" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Pulp</text>
+            <text x="680" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">audio engine</text>
+            <text x="944" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Air</text>
+            <text x="944" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">speakers move</text>
+          </svg>
         </div>
+        <aside class="notes">
+          SKODE is the compact ASCII shorthand. Skred is the runtime shell, native or in the browser. Pulp is the C audio engine underneath it: voices, buffers, tables, filters, modulators, samples. The speakers are where all the architecture stops being abstract.
+        </aside>
       </section>
 
       <section data-cue="code">
         <p class="eyebrow">stack block 1</p>
         <h2>SKODE</h2>
         <p class="subtitle">ASCII shorthand for changing sound without ceremony.</p>
-        <code class="big-code">v0 w0 f220 a0.8
+        <div class="notebook-cell">
+          <div class="cell-bar"><span class="cell-tag">TEXT</span><span>stage command shorthand</span></div>
+          <code class="big-code">v0 w0 f220 a0.8
 v1 m1 f6
 v0 F1,40</code>
+        </div>
       </section>
 
       <section data-cue="tick">
-        <p class="eyebrow">stack block 2</p>
-        <h2>Skred</h2>
-        <p class="subtitle">The runtime shell: native process, browser sandbox, and the place where SKODE becomes engine state.</p>
-        <code class="big-code">boot
+        <div class="media-split">
+          <div>
+            <p class="eyebrow">stack block 2</p>
+            <h2>Skred</h2>
+            <p class="subtitle">The shell where terse text becomes engine state.</p>
+            <code class="big-code">boot
 /l909
 Z1</code>
+          </div>
+          <figure class="stage-figure">
+            <img class="logo-image" src="https://raw.githubusercontent.com/octetta/skred/master/docs/skred.svg" alt="Skred logo">
+            <figcaption>github.com/octetta/skred</figcaption>
+          </figure>
+        </div>
+        <aside class="notes">
+          Skred is the runtime playground: native process, browser sandbox, and a shell-like place to load patches, run commands, and restart when I do something adventurous.
+        </aside>
       </section>
 
       <section data-cue="low">
-        <p class="eyebrow">stack block 3</p>
-        <h2>Pulp</h2>
-        <p class="subtitle">The C engine: voices, buffers, wave tables, filters, modulators, and sample output.</p>
-        <code class="big-code">voice parameters
-wave table memory
-audio callback</code>
+        <p class="eyebrow">Pulp voice engine</p>
+        <h2>Pulp runs many voices; each voice is a small signal path with places to interfere.</h2>
+        <div class="svg-stage">
+          <svg viewBox="0 0 1080 470" role="img" aria-label="Simplified Pulp voice engine diagram">
+            <defs>
+              <marker id="voice-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#047857"></path>
+              </marker>
+            </defs>
+            <g fill="#ffffff" stroke="#17202a" stroke-width="4">
+              <rect x="52" y="194" width="145" height="82" rx="6"></rect>
+              <rect x="252" y="194" width="145" height="82" rx="6"></rect>
+              <rect x="452" y="194" width="145" height="82" rx="6"></rect>
+              <rect x="652" y="194" width="145" height="82" rx="6"></rect>
+              <rect x="852" y="194" width="145" height="82" rx="6"></rect>
+              <rect x="252" y="52" width="145" height="64" rx="6"></rect>
+              <rect x="452" y="52" width="145" height="64" rx="6"></rect>
+              <rect x="652" y="52" width="145" height="64" rx="6"></rect>
+              <rect x="452" y="354" width="145" height="64" rx="6"></rect>
+              <rect x="652" y="354" width="145" height="64" rx="6"></rect>
+            </g>
+            <g stroke="#047857" stroke-width="4" fill="none" marker-end="url(#voice-arrow)">
+              <path d="M 200 235 H 240"></path>
+              <path d="M 400 235 H 440"></path>
+              <path d="M 600 235 H 640"></path>
+              <path d="M 800 235 H 840"></path>
+              <path d="M 324 118 V 180"></path>
+              <path d="M 524 118 V 180"></path>
+              <path d="M 724 118 V 180"></path>
+              <path d="M 524 352 V 288"></path>
+              <path d="M 724 352 V 288"></path>
+            </g>
+            <g fill="#111827" font-family="Fira Code, monospace" font-size="24" font-weight="700" text-anchor="middle">
+              <text x="124" y="228">wave</text>
+              <text x="124" y="255">table</text>
+              <text x="324" y="244">freq</text>
+              <text x="524" y="244">filter</text>
+              <text x="724" y="244">envelope</text>
+              <text x="924" y="244">pan/out</text>
+              <text x="324" y="91">FM</text>
+              <text x="524" y="91">filter mod</text>
+              <text x="724" y="91">ADSR</text>
+              <text x="524" y="394">phase</text>
+              <text x="724" y="394">AM</text>
+            </g>
+            <g fill="#586676" font-family="Inter, sans-serif" font-size="18" text-anchor="middle">
+              <text x="324" y="304">pitch chooses table speed</text>
+              <text x="524" y="304">tone is shaped</text>
+              <text x="724" y="304">loudness over time</text>
+              <text x="924" y="304">left / right samples</text>
+            </g>
+          </svg>
+        </div>
+        <aside class="notes">
+          This is the stage-friendly version of one Pulp voice from the voice structure diagram in learn.html. Pulp owns the engine and manages many voices like this. The full version includes more details, but the mental model is enough here: a waveform table is read at a frequency, shaped by filters and envelopes, then panned to output. Other voices can interfere through FM, AM, pan modulation, phase distortion, and filter modulation.
+        </aside>
       </section>
 
       <section data-cue="soft">
@@ -504,42 +901,143 @@ audio callback</code>
       <section data-cue="low">
         <p class="eyebrow">why ports?</p>
         <h2>I do not want the audio thread to become a bureaucracy.</h2>
-        <p>So safety lives at the process boundary. Let the sharp little engine stay sharp, then contain it with pipes, ports, browser sandboxes, and restartable runtimes.</p>
+        <aside class="notes">
+          The safety strategy is architectural. This C code is not defensive, bubble-wrapped enterprise software. If the shell dies from a bad string, the outer system can restart it. Pipes, ports, browser sandboxes, and restartable runtimes keep the blast radius outside the sound engine.
+        </aside>
+      </section>
+
+      <section data-cue="warm">
+        <p class="eyebrow">enough excuses</p>
+        <h2>Let us make a sound, change it, break the mood, and then pretend it was research.</h2>
+        <div class="stage-actions">
+          <button class="stage-btn cueable" type="button" data-skode="v0l0|v0A|v0F|v0 w0 f440 a0 t 0 1 0 0 l1">Make a sound</button>
+          <button class="stage-btn cueable" type="button" data-skode="v0l0|v0A|v0F|v0 w0 f880 a0 t 0 1 0 0 l1">One octave up</button>
+          <button class="stage-btn cueable" type="button" data-skode="v0l0|v0A|v0F|v0 w1 f440 a0 t 0 1 0 0 l1">Make it square</button>
+          <button class="stage-btn secondary cueable" type="button" data-skode="v0 l0">Stop</button>
+        </div>
+        <aside class="notes">
+          This is the learn.html "enough excuses" moment. Start with a plain tone, then change frequency, then waveform. Keep this short: the point is that text can alter sound immediately enough for the audience to feel the control loop.
+        </aside>
       </section>
 
       <section data-cue="code">
         <p class="eyebrow">tiny protocol</p>
         <h2>Stateful execution, stateless-looking text.</h2>
-        <code class="big-code">v0 w0 f220 a0.8
+        <div class="notebook-cell">
+          <div class="cell-bar"><span class="cell-tag">CUE</span><span>skode stays where you leave it</span></div>
+          <code class="big-code">v0 w0 f220 a0.8
 v1 m1 f6
 v0 F1,40</code>
+        </div>
         <div class="stage-actions">
           <button class="stage-btn cueable" type="button" data-skode="v0 w0 f220 a0.25 l1">Run tone</button>
           <button class="stage-btn cueable" type="button" data-skode="v1 m1 f6 a0.2 l1|v0 F1,40">Add wobble</button>
-          <button class="stage-btn secondary cueable" type="button" data-skode="v0l0|v1l0|v0a0|v1a0">Stop</button>
+          <button class="stage-btn secondary cueable" type="button" data-skode="v0F|v1l0|v1a0">Remove wobble</button>
+          <button class="stage-btn secondary cueable" type="button" data-skode="v0l0|v0a0|v1l0|v1a0|v0F">Stop tone</button>
         </div>
       </section>
 
       <section data-cue="tick">
-        <p class="eyebrow">k-synth</p>
-        <h2>Array code is a shortcut from math to timbre.</h2>
-        <p>Instead of hand-writing loops and tables, generate useful sound material from compact array expressions, then feed those tables into the same runtime.</p>
+        <div class="media-split">
+          <div>
+            <p class="eyebrow">k-synth</p>
+            <h2>Array code is a shortcut from math to timbre.</h2>
+          </div>
+          <figure class="stage-figure">
+            <img class="stage-image" src="https://raw.githubusercontent.com/octetta/k-synth/main/ksynth.png" alt="k-synth logo">
+            <figcaption>github.com/octetta/k-synth</figcaption>
+          </figure>
+        </div>
+        <aside class="notes">
+          To populate an audio engine, you need data structures. Writing loops in raw C for lookup tables is tedious. k-synth lets me generate useful sound material from compact array expressions, then feed those tables into the same runtime.
+        </aside>
+      </section>
+
+      <section class="compact-code-slide" data-cue="code">
+        <div class="media-split">
+          <div>
+            <p class="eyebrow">sk/dw8k-01.ks -&gt; W10</p>
+            <h2>The first DW-8000 wave is seven lines of text.</h2>
+            <div class="notebook-cell">
+              <div class="cell-bar"><span class="cell-tag">KS</span><span>DW-8000 Wave 01: strings</span></div>
+              <code class="big-code">/ DW-8000 Wave 01: strings
+/ Perfect 1/h sawtooth. All 32 harmonics.
+P: ~4096
+H: !32
+H: H+1
+A: 1%H
+W: w P $ A</code>
+            </div>
+            <div class="stage-actions">
+              <button class="stage-btn cueable" type="button" data-skode="v0l0|v0A|v0F|v0 w10 n45 a0.35 t .01 .8 .2 .25 l1">Play W10</button>
+              <button class="stage-btn secondary cueable" type="button" data-skode="v0 l0">Stop</button>
+            </div>
+          </div>
+          <figure class="stage-figure">
+            <img class="stage-image compact-portrait" src="korg-joe.jpg" alt="Joe with Korg synthesizer">
+            <figcaption>the Korg obsession, made textual</figcaption>
+          </figure>
+        </div>
+        <aside class="notes">
+          This is the bridge between k-synth and Skred. The source file is parts/sk/dw8k-01.ks in the repo, and that generated table corresponds to W10 in SKODE. It is modeled as a 1/h sawtooth with 32 harmonics, producing the first DW-8000-style string wave.
+        </aside>
       </section>
 
       <section data-cue="warm">
-        <p class="eyebrow">1985 in the room</p>
-        <h2>DW-8000 waves as playable data.</h2>
-        <p class="subtitle">One editable patch, one waveform browser, one generated snare.</p>
+        <p class="eyebrow">808 ghosts in text files</p>
+        <h2>Drum samples can be generated from tiny k-synth patches.</h2>
+        <div class="diagram">
+          <div class="node">
+            <b>sk/drums-kick.ks</b>
+            <span>141-&gt;50Hz pitch sweep<br>300ms envelope<br><code>W: w (E*S)+(Q*C*.1)</code></span>
+          </div>
+          <div class="node">
+            <b>sk/drums-snare.ks</b>
+            <span>170Hz + 183Hz body<br>noise tail and snap<br><code>W: w (S*.7)+(U*.4)+(V*K*.2)</code></span>
+          </div>
+          <div class="node">
+            <b>sk/drums-cowbell.ks</b>
+            <span>735Hz + 850Hz cluster<br>square-ish harmonics<br><code>W: w E*M</code></span>
+          </div>
+        </div>
         <div class="stage-actions">
-          <button class="stage-btn cueable" type="button" data-skode="v0 w10 n45 a0.35 t .01 .8 .2 .25 l1">Play DW patch</button>
-          <button class="stage-btn cueable" type="button" data-skode="[sk/drums-snare.ks]/ks wait 250 k&gt;d d&gt;r /r300" data-log-target="stage-log-panel">Load snare</button>
-          <button class="stage-btn cueable" type="button" data-skode="v10w300a10|v10l1">Play snare</button>
-          <button class="stage-btn secondary cueable" type="button" data-skode="W300" data-log-target="stage-log-panel">Show snare</button>
+          <button class="stage-btn cueable" type="button" data-skode="[sk/drums-kick.ks]/ks wait 250 k&gt;d d&gt;r /r301|[sk/drums-snare.ks]/ks wait 250 k&gt;d d&gt;r /r300|[sk/drums-cowbell.ks]/ks wait 250 k&gt;d d&gt;r /r314" data-log-target="stage-log-panel">Load drums</button>
+          <button class="stage-btn cueable" type="button" data-skode="v10w301a10|v10l1">Play kick</button>
+          <button class="stage-btn cueable" type="button" data-skode="v11w300a10|v11l1">Play snare</button>
+          <button class="stage-btn cueable" type="button" data-skode="v12w314a8|v12l1">Play cowbell</button>
         </div>
-        <div class="scope-picker">
-          <input id="dw-wave-slider" type="range" min="10" max="25" value="10" step="1" data-stage-action="dw-slider">
-          <span id="dw-wave-readout" class="scope-readout">W10</span>
+        <aside class="notes">
+          The DW-8000 wave has its own slide now, so this one moves to k-synth drum generation. These patches are inspired by Roland 808-style drum voices: a swept sine kick, a detuned body plus noise snare, and a two-frequency cowbell cluster. They are text files that become runtime waveforms.
+        </aside>
+      </section>
+
+      <section data-cue="code">
+        <p class="eyebrow">deferred execution</p>
+        <h2>SKODE can schedule its own future.</h2>
+        <div class="notebook-cell">
+          <div class="cell-bar"><span class="cell-tag">TIME</span><span>works from buttons, files, and the REPL</span></div>
+          <code class="big-code">v10l1 +.5 v10l0
+~1 v11l1
+~1.2 v11l0</code>
         </div>
+        <aside class="notes">
+          Deferred execution is not just a pattern feature. It works anywhere SKODE is parsed: from a button, from a file, or directly in the REPL. A command like +.5 waits a tempo-relative amount before running the next command. A command like ~1 schedules by a direct time-style delay.
+        </aside>
+      </section>
+
+      <section data-cue="code">
+        <p class="eyebrow">patterns</p>
+        <h2>Patterns make timed chunks reusable.</h2>
+        <div class="notebook-cell">
+          <div class="cell-bar"><span class="cell-tag">SEQ</span><span>step pattern with timed events</span></div>
+          <code class="big-code">y0 %4
+[v10l1 +.5 v10l0] x0
+[v11l1] x2
+Z1</code>
+        </div>
+        <aside class="notes">
+          Patterns are step sequences. y0 selects pattern 0, %4 makes a four-step loop, bracketed SKODE is stored into a step with x0 or x2, and Z1 starts the pattern clock. Deferred commands inside a step let a single step contain timing, not just a single trigger.
+        </aside>
       </section>
 
       <section data-cue="code">
@@ -553,11 +1051,7 @@ v0 F1,40</code>
 y2 %4 [kick] yt
 [+.5 v4 l1 +.25 v4l.5] x0</code>
         <div class="stage-actions">
-          <button class="stage-btn cueable" type="button" data-skode="/w24,303" data-log-target="stage-log-panel">Load MP3</button>
-          <button class="stage-btn cueable" type="button" data-skode="[sk/drums-snare.ks]/ks wait 250 k&gt;d d&gt;r /r300" data-log-target="stage-log-panel">Load snare</button>
-          <button class="stage-btn cueable" type="button" data-skode="[sk/drums-kick.ks]/ks wait 250 k&gt;d d&gt;r /r301" data-log-target="stage-log-panel">Load kick</button>
-          <button class="stage-btn cueable" type="button" data-skode="[sk/drums-chh.ks]/ks wait 250 k&gt;d d&gt;r /r302" data-log-target="stage-log-panel">Load hihat</button>
-          <button class="stage-btn cueable" type="button" data-skode="/l909">Load actual 909</button>
+          <button class="stage-btn cueable" type="button" data-skode="/l909">Load 909</button>
           <button class="stage-btn cueable" type="button" data-skode="Z1">Start patterns</button>
           <button class="stage-btn secondary cueable" type="button" data-skode="Z0|v2l0|v3l0|v4l0|v5l0|v12l0|v13l0">Stop patterns</button>
         </div>
@@ -565,29 +1059,66 @@ y2 %4 [kick] yt
 
       <section data-cue="demo">
         <p class="eyebrow">live demo</p>
-        <h1>DEMO</h1>
-        <code class="big-code">v0 w0 f220 a0.8
-v1 m1 f6
-v0 F1,40
-v0 w10
-v2 d1
-v0 a0 v2 a0</code>
+        <h2>External programs can talk SKODE to Skred.</h2>
+        <div class="demo-grid">
+          <figure class="demo-card">
+            <img src="demo-1.jpg" alt="Drum pad application talking to Skred">
+            <figcaption>drum pad</figcaption>
+          </figure>
+          <figure class="demo-card">
+            <img src="demo-2.jpg" alt="MIDI to SKODE translator">
+            <figcaption>MIDI -&gt; SKODE</figcaption>
+          </figure>
+          <figure class="demo-card">
+            <img src="demo-3.jpg" alt="Multi-slider GUI controlling Skred">
+            <figcaption>multi-slider GUI</figcaption>
+          </figure>
+          <figure class="demo-card">
+            <img src="demo-4.jpg" alt="Looping application controlling Skred">
+            <figcaption>looper</figcaption>
+          </figure>
+        </div>
+        <aside class="notes">
+          The live demo is not only typing commands into this deck. The useful boundary is that Skred accepts SKODE from outside programs too: a drum pad interface, a MIDI-to-SKODE translator, a multi-slider control GUI, and a looping app can all speak the same terse command surface.
+        </aside>
       </section>
 
       <section data-cue="soft">
         <p class="eyebrow">what exists now?</p>
-        <h2>Macros, patterns, generated drums, and file-backed patches.</h2>
-        <p>The interesting part is not one synth. It is a little protocol surface that can sit between text files, generated tables, samples, runtimes, instruments, and humans.</p>
+        <h2>The interesting part is the protocol surface.</h2>
+        <aside class="notes">
+          What exists now: macros, patterns, generated drums, file-backed patches, and browser/native runtimes. The interesting part is not one synth. It is a small protocol surface that can sit between text files, generated tables, samples, runtimes, instruments, and humans.
+        </aside>
       </section>
 
       <section data-cue="end">
         <p class="eyebrow">links</p>
         <h2>Clone it, crash it, make it louder.</h2>
-        <code class="big-code">github.com/octetta/pulp
-octetta.github.io/pulp/doc/
-github.com/octetta/k-synth
-octetta.github.io/k-synth</code>
-        <p>Looking for R&amp;D collaborations, instrument design conversations, and people who like small weird sound machines.</p>
+        <div class="qr-grid">
+          <div class="qr-card">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;margin=10&amp;data=https%3A%2F%2Fgithub.com%2Foctetta%2Fpulp" alt="QR code for the Pulp GitHub repository">
+            <b>Engine Core</b>
+            <a href="https://github.com/octetta/pulp">github.com/octetta/pulp</a>
+          </div>
+          <div class="qr-card">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;margin=10&amp;data=https%3A%2F%2Foctetta.github.io%2Fpulp%2Fdoc%2F" alt="QR code for the Skred browser shell">
+            <b>Skred Try-It</b>
+            <a href="https://octetta.github.io/pulp/doc/">octetta.github.io/pulp/doc/</a>
+          </div>
+          <div class="qr-card">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;margin=10&amp;data=https%3A%2F%2Fgithub.com%2Foctetta%2Fk-synth" alt="QR code for the k-synth GitHub repository">
+            <b>Array Generator</b>
+            <a href="https://github.com/octetta/k-synth">github.com/octetta/k-synth</a>
+          </div>
+          <div class="qr-card">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;margin=10&amp;data=https%3A%2F%2Foctetta.github.io%2Fk-synth" alt="QR code for the k-synth browser playground">
+            <b>k-synth Try-It</b>
+            <a href="https://octetta.github.io/k-synth">octetta.github.io/k-synth</a>
+          </div>
+        </div>
+        <aside class="notes">
+          I built this because it is the tool I wanted to exist. I am looking for R&D collaborations, instrument design conversations, and people who like small sound machines enough to discuss protocol surfaces over drinks after the session.
+        </aside>
       </section>
     </div>
   </div>
@@ -599,19 +1130,20 @@ octetta.github.io/k-synth</code>
       muted: false,
       booting: false,
       lastCueAt: 0,
+      cueContext: null,
       dwWaveTimer: null,
       replHistory: [],
       replHistoryIndex: 0,
       cues: {
-        boot: "v15 w0 f440 a0.07 l1",
-        title: "v15 w0 f660 a0.10 l1",
-        soft: "v15 w0 f523.25 a0.06 l1",
-        tick: "v15 w0 f880 a0.05 l1",
-        low: "v15 w0 f196 a0.05 l1",
-        code: "v15 w0 f740 a0.06 l1",
-        warm: "v15 w10 f330 a0.08 l1",
-        demo: "v15 w0 f110 a0.10 l1",
-        end: "v15 w0 f660 a0.07 l1|v15 f990 a0.06 l1"
+        boot: [440],
+        title: [660],
+        soft: [523.25],
+        tick: [880],
+        low: [196],
+        code: [740],
+        warm: [330],
+        demo: [110],
+        end: [660, 990]
       },
 
       setState(text, mode) {
@@ -624,6 +1156,14 @@ octetta.github.io/k-synth</code>
       markRuntimeReady() {
         this.runtimeReady = true;
         this.setState("wasm ready", "ready");
+      },
+
+      initCueAudio() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return null;
+        if (!this.cueContext) this.cueContext = new AudioContext();
+        if (this.cueContext.state === "suspended") this.cueContext.resume();
+        return this.cueContext;
       },
 
       boot() {
@@ -641,14 +1181,13 @@ octetta.github.io/k-synth</code>
         this.booting = true;
 
         try {
+          this.initCueAudio();
           Module._skred_set_audio_device(0, 0);
           Module._skred_start(256, 32, 0);
           this.running = true;
           this.booting = false;
           this.setState("skred running", "running");
           this.command("log 1");
-          this.command("v15 w0 a0 t .002 .08 0 0");
-          this.command("v14 w0 a0 t .002 .16 0 0");
           this.command("v0 w0 f220 a0");
           this.command("v1 w0 f6 a0");
           this.playCue("title", true);
@@ -664,7 +1203,7 @@ octetta.github.io/k-synth</code>
       stop() {
         try {
           if (this.running && typeof Module !== "undefined" && Module.ccall) {
-            Module.ccall("skred_command", null, ["string"], ["v0l0 v1l0 v2l0 v14l0 v15l0 v0a0 v1a0 v2a0 v14a0 v15a0"]);
+            Module.ccall("skred_command", null, ["string"], ["S100 Z0"]);
           }
           if (typeof Module !== "undefined" && Module._skred_stop) Module._skred_stop();
         } catch (err) {
@@ -794,7 +1333,22 @@ octetta.github.io/k-synth</code>
         const now = performance.now();
         if (!force && now - this.lastCueAt < 90) return;
         this.lastCueAt = now;
-        this.command(this.cues[name] || this.cues.tick);
+        const ctx = this.initCueAudio();
+        if (!ctx) return;
+        const freqs = this.cues[name] || this.cues.tick;
+        freqs.forEach((freq, index) => {
+          const start = ctx.currentTime + index * 0.07;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, start);
+          gain.gain.setValueAtTime(0.0001, start);
+          gain.gain.exponentialRampToValueAtTime(0.035, start + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.12);
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(start);
+          osc.stop(start + 0.14);
+        });
       },
 
       toggleMute() {
@@ -822,13 +1376,15 @@ octetta.github.io/k-synth</code>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/markdown/markdown.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/notes/notes.min.js"></script>
 
   <script>
     Reveal.initialize({
-      plugins: [RevealMarkdown, RevealHighlight],
+      plugins: [RevealMarkdown, RevealHighlight, RevealNotes],
       hash: true,
       controls: true,
       progress: true,
+      slideNumber: "c/t",
       center: true,
       transition: "slide",
       backgroundTransition: "fade",

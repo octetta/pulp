@@ -240,6 +240,21 @@
       background: transparent;
     }
 
+    .dark-logo-panel {
+      display: grid;
+      place-items: center;
+      min-height: 260px;
+      padding: 28px;
+      border-radius: 4px;
+      background: #101820;
+      box-shadow: 0 16px 42px rgb(15 23 42 / 0.1);
+    }
+
+    .dark-logo-panel .logo-image {
+      width: min(100%, 420px);
+      max-height: 34vh;
+    }
+
     .compact-code-slide h2 {
       font-size: 1.28em;
     }
@@ -280,6 +295,13 @@
       width: 100%;
       height: auto;
       overflow: visible;
+    }
+
+    .svg-stage.bare {
+      padding: 0;
+      border: none;
+      background: transparent;
+      box-shadow: none;
     }
 
     .symbol-grid {
@@ -733,8 +755,8 @@
             <h2>I keep coming back to small machines that make sound feel immediate.</h2>
           </div>
           <figure class="stage-figure">
-            <img class="stage-image" src="joe-occupant.jpg" alt="Joe Occupant background image">
-            <figcaption>background: Joe Occupant</figcaption>
+            <img class="logo-image" src="logo.svg" alt="Octetta logo">
+            <figcaption>octetta.com</figcaption>
           </figure>
         </div>
         <aside class="notes">
@@ -768,10 +790,10 @@
       <section data-cue="tick">
         <p class="eyebrow">the stack</p>
         <h2>Text becomes state. State becomes air pressure.</h2>
-        <div class="svg-stage">
+        <div class="svg-stage bare">
           <svg viewBox="0 0 1060 300" role="img" aria-label="SKODE to Skred to Pulp to Speakers">
             <defs>
-              <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#047857"></path>
               </marker>
             </defs>
@@ -779,9 +801,9 @@
             <rect x="294" y="48" width="220" height="176" rx="6" fill="#ffffff" stroke="#17202a" stroke-width="4"></rect>
             <rect x="570" y="48" width="220" height="176" rx="6" fill="#ffffff" stroke="#17202a" stroke-width="4"></rect>
             <rect x="846" y="48" width="196" height="176" rx="6" fill="#ffffff" stroke="#17202a" stroke-width="4"></rect>
-            <path d="M 246 136 H 282" stroke="#047857" stroke-width="8" marker-end="url(#arrowhead)"></path>
-            <path d="M 522 136 H 558" stroke="#047857" stroke-width="8" marker-end="url(#arrowhead)"></path>
-            <path d="M 798 136 H 834" stroke="#047857" stroke-width="8" marker-end="url(#arrowhead)"></path>
+            <path d="M 246 136 H 282" stroke="#047857" stroke-width="4" marker-end="url(#arrowhead)"></path>
+            <path d="M 522 136 H 558" stroke="#047857" stroke-width="4" marker-end="url(#arrowhead)"></path>
+            <path d="M 798 136 H 834" stroke="#047857" stroke-width="4" marker-end="url(#arrowhead)"></path>
             <text x="128" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">SKODE</text>
             <text x="128" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">ASCII control</text>
             <text x="404" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Skred</text>
@@ -832,7 +854,7 @@ Z1</code>
       <section data-cue="low">
         <p class="eyebrow">Pulp voice engine</p>
         <h2>Pulp runs many voices; each voice is a small signal path with places to interfere.</h2>
-        <div class="svg-stage">
+        <div class="svg-stage bare">
           <svg viewBox="0 0 1080 470" role="img" aria-label="Simplified Pulp voice engine diagram">
             <defs>
               <marker id="voice-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
@@ -848,7 +870,7 @@ Z1</code>
               <rect x="252" y="52" width="145" height="64" rx="6"></rect>
               <rect x="452" y="52" width="145" height="64" rx="6"></rect>
               <rect x="652" y="52" width="145" height="64" rx="6"></rect>
-              <rect x="452" y="354" width="145" height="64" rx="6"></rect>
+              <rect x="52" y="354" width="145" height="64" rx="6"></rect>
               <rect x="652" y="354" width="145" height="64" rx="6"></rect>
             </g>
             <g stroke="#047857" stroke-width="4" fill="none" marker-end="url(#voice-arrow)">
@@ -859,7 +881,7 @@ Z1</code>
               <path d="M 324 118 V 180"></path>
               <path d="M 524 118 V 180"></path>
               <path d="M 724 118 V 180"></path>
-              <path d="M 524 352 V 288"></path>
+              <path d="M 124 352 V 288"></path>
               <path d="M 724 352 V 288"></path>
             </g>
             <g fill="#111827" font-family="Fira Code, monospace" font-size="24" font-weight="700" text-anchor="middle">
@@ -870,9 +892,9 @@ Z1</code>
               <text x="724" y="244">envelope</text>
               <text x="924" y="244">pan/out</text>
               <text x="324" y="91">FM</text>
-              <text x="524" y="91">filter mod</text>
+              <text x="524" y="91">filt mod</text>
               <text x="724" y="91">ADSR</text>
-              <text x="524" y="394">phase</text>
+              <text x="124" y="394">phase</text>
               <text x="724" y="394">AM</text>
             </g>
             <g fill="#586676" font-family="Inter, sans-serif" font-size="18" text-anchor="middle">
@@ -889,20 +911,37 @@ Z1</code>
       </section>
 
       <section data-cue="soft">
-        <p class="eyebrow">stack block 4</p>
-        <h2>Speakers</h2>
-        <p class="subtitle">The point where all this text stops being abstract and becomes air pressure.</p>
-        <div class="stage-actions">
-          <button class="stage-btn cueable" type="button" data-skode="v0 w0 f330 a0.18 l1">Audition</button>
-          <button class="stage-btn secondary cueable" type="button" data-skode="v0l0|v0a0">Stop</button>
+        <div class="media-split">
+          <div>
+            <p class="eyebrow">stack block 4</p>
+            <h2>Speakers</h2>
+            <p class="subtitle">miniaudio is the small cross-platform layer that gets samples to the device.</p>
+            <div class="stage-actions">
+              <button class="stage-btn cueable" type="button" data-skode="v0 w0 f330 a0.18 l1">Audition</button>
+              <button class="stage-btn secondary cueable" type="button" data-skode="v0l0|v0a0">Stop</button>
+            </div>
+          </div>
+          <figure class="stage-figure">
+            <div class="dark-logo-panel">
+              <img class="logo-image" src="https://miniaud.io/img/logo1_large_white.png" alt="miniaudio logo">
+            </div>
+            <figcaption>miniaud.io</figcaption>
+          </figure>
         </div>
       </section>
 
       <section data-cue="low">
-        <p class="eyebrow">why ports?</p>
-        <h2>I do not want the audio thread to become a bureaucracy.</h2>
+        <div class="media-split">
+          <div>
+            <p class="eyebrow">isolation and safety</p>
+            <h2>Ports reduce the blast radius: easy to start, easy to kill, easy to restart.</h2>
+          </div>
+          <figure class="stage-figure">
+            <img class="stage-image" src="blast-radius-containment.png" alt="Contained software process blast radius illustration">
+          </figure>
+        </div>
         <aside class="notes">
-          The safety strategy is architectural. This C code is not defensive, bubble-wrapped enterprise software. If the shell dies from a bad string, the outer system can restart it. Pipes, ports, browser sandboxes, and restartable runtimes keep the blast radius outside the sound engine.
+          The safety strategy is architectural. Keep the audio engine small and sharp, then isolate it behind pipes, network ports, browser sandboxes, and process boundaries. If Skred dies from a bad command, the host can kill it and spin it back up. The point is not that crashes are good; the point is that the blast radius is contained and recovery is cheap.
         </aside>
       </section>
 

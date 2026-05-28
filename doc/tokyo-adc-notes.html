@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BEEPS and PORTS - Speaker Notes</title>
+  <style>
+    :root {
+      --bg: #f7faf8;
+      --ink: #17202a;
+      --soft: #586676;
+      --accent: #047857;
+      --line: #d9e2df;
+      --panel: #ffffff;
+      --warn: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    header,
+    footer {
+      position: sticky;
+      z-index: 2;
+      background: rgb(247 250 248 / 0.96);
+      backdrop-filter: blur(12px);
+    }
+
+    header {
+      top: 0;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    footer {
+      bottom: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 10px 12px 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .deck-label {
+      color: var(--accent);
+      font: 700 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 4px 0 0;
+      font-size: clamp(25px, 5vw, 42px);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .counter {
+      margin-top: 8px;
+      color: var(--soft);
+      font: 700 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    main {
+      display: grid;
+      align-content: start;
+      gap: 16px;
+      padding: 18px 16px 22px;
+    }
+
+    .notes-card {
+      min-height: 42vh;
+      padding: 18px;
+      border: 2px solid var(--ink);
+      border-radius: 6px;
+      background: var(--panel);
+      box-shadow: 0 14px 36px rgb(15 23 42 / 0.08);
+    }
+
+    .notes-card.empty {
+      border-color: var(--line);
+      color: var(--soft);
+      box-shadow: none;
+    }
+
+    .notes-body {
+      margin: 0;
+      font-size: clamp(23px, 5.3vw, 40px);
+      line-height: 1.28;
+      white-space: pre-line;
+    }
+
+    .cue-card {
+      display: grid;
+      gap: 8px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgb(255 255 255 / 0.72);
+    }
+
+    .cue-label {
+      color: var(--warn);
+      font: 800 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .cue-text {
+      margin: 0;
+      color: var(--soft);
+      font-size: clamp(15px, 3.8vw, 22px);
+      line-height: 1.3;
+    }
+
+    button {
+      min-height: 54px;
+      border: 1px solid #0f766e;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #ffffff;
+      font: 800 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button.secondary {
+      border-color: var(--line);
+      background: #ffffff;
+      color: var(--ink);
+    }
+
+    .jump-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .slide-list {
+      max-height: 28vh;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #ffffff;
+    }
+
+    .slide-list button {
+      display: block;
+      width: 100%;
+      min-height: 0;
+      padding: 10px 12px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      background: transparent;
+      color: var(--soft);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .slide-list button.active {
+      background: #e8f5ef;
+      color: var(--ink);
+    }
+
+    @media (orientation: landscape) and (min-width: 820px) {
+      body {
+        grid-template-columns: minmax(280px, 34vw) 1fr;
+        grid-template-rows: auto 1fr;
+      }
+
+      header {
+        grid-column: 1 / 3;
+      }
+
+      main {
+        grid-column: 2;
+        padding-right: 22px;
+      }
+
+      footer {
+        position: static;
+        grid-column: 1;
+        grid-row: 2;
+        align-self: start;
+        grid-template-columns: 1fr 1fr;
+        border-top: 0;
+        border-right: 1px solid var(--line);
+      }
+
+      .slide-list {
+        grid-column: 1 / 3;
+        max-height: calc(100vh - 260px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="deck-label">BEEPS and PORTS - offline speaker notes</div>
+    <h1 id="slide-title"></h1>
+    <div id="slide-counter" class="counter"></div>
+  </header>
+
+  <main>
+    <section id="notes-card" class="notes-card">
+      <p id="notes-body" class="notes-body"></p>
+    </section>
+    <section class="cue-card">
+      <div class="cue-label">stage cue</div>
+      <p id="cue-text" class="cue-text"></p>
+    </section>
+  </main>
+
+  <footer>
+    <button id="prev" class="secondary" type="button">Prev</button>
+    <button id="next" type="button">Next</button>
+    <div class="jump-row" style="grid-column: 1 / 3;">
+      <input id="jump" type="range" min="1" value="1">
+      <span id="jump-readout" class="counter"></span>
+    </div>
+    <nav id="slide-list" class="slide-list" aria-label="Slides" style="grid-column: 1 / 3;"></nav>
+  </footer>
+
+  <script>
+    const slides = [
+      {
+        eyebrow: "administrivia",
+        title: "Before we make noise, the browser needs one click.",
+        cue: "Boot Skred on the laptop before the audience arrives if possible.",
+        notes: "Start here before the audience arrives if possible. Browser audio needs a user gesture, so booting Skred once gets the WebAssembly runtime and audio callback into a usable state. Panic fully stops Skred; quiet-style commands happen later inside the demo."
+      },
+      {
+        eyebrow: "Tokyo ADC 2026",
+        title: "BEEPS and PORTS",
+        cue: "Open with the promise: annoying sound, tiny commands, real engine.",
+        notes: "Title slide. Keep it light: this is about building a sound engine, the small protocols around it, and why immediacy matters."
+      },
+      {
+        eyebrow: "background",
+        title: "Small machines. Immediate sound.",
+        cue: "Personal context.",
+        notes: "This is the short personal context slide. Use it to explain the path into this project: old sound hardware, simple command interfaces, handmade tools, and the long-running urge to make sound systems that feel direct enough to poke at in real time. The older slide title was: I keep coming back to small machines that make sound feel immediate."
+      },
+      {
+        eyebrow: "the itch",
+        title: "I wanted command-line immediacy for sound.",
+        cue: "Why a terse text interface exists at all.",
+        notes: "For years, I wanted a simple way to play with sound without booting a giant tool or wiring together a whole environment first. This is influenced by old PC sound hardware, 80s analog and digital synthesizers, command prompts, tiny notations, and the pleasant danger of making something immediate enough to surprise me."
+      },
+      {
+        eyebrow: "why terse text?",
+        title: "Small symbols become tools.",
+        cue: "Make terse notation feel normal by comparison.",
+        notes: "This is the learn.html argument: terse systems are annoying until they become handles. Music notation, math symbols, chemical symbols, shell commands, LOL, and WTF all look weird at first. Once they are familiar, they free mental space because you stop spelling everything out. On the slide, the captions are intentionally simple: chemistry, math, music, shell, SKODE."
+      },
+      {
+        eyebrow: "the stack",
+        title: "Text -> engine -> speakers",
+        cue: "SKODE -> Skred -> Pulp -> speakers.",
+        notes: "SKODE is the compact ASCII shorthand. Skred is the runtime shell, native or in the browser. Pulp is the C audio engine underneath it: voices, buffers, tables, filters, modulators, samples. The speakers are where all the architecture stops being abstract. The more poetic version is: text becomes state, and state becomes air pressure."
+      },
+      {
+        eyebrow: "stack block 1",
+        title: "SKODE",
+        cue: "Example: v0 w0 f220 a0.8, v1 m1 f6, v0 F1,40.",
+        notes: "ASCII shorthand for changing sound without ceremony. The slide image replaces the literal SKODE block with a more visual idea: a hand waving a conductor's baton becomes controlled motion on the right. The important thing is not memorizing every symbol; it is that the text is short enough to type live and direct enough to change the running engine."
+      },
+      {
+        eyebrow: "stack block 2",
+        title: "Skred",
+        cue: "The shell/runtime layer.",
+        notes: "Skred is the runtime playground: native process, browser sandbox, and a shell-like place to load patches, run commands, and restart when I do something adventurous."
+      },
+      {
+        eyebrow: "Pulp voice engine",
+        title: "One voice is a signal path.",
+        cue: "Use the diagram as the mental model, not a full spec.",
+        notes: "This is the stage-friendly version of one Pulp voice from the voice structure diagram in learn.html. Pulp runs many voices; each voice is a small signal path with places to interfere. The full version includes more details, but the mental model is enough here: a waveform table is read at a frequency, shaped by filters and envelopes, then panned to output. Other voices can interfere through FM, AM, pan modulation, phase distortion, and filter modulation."
+      },
+      {
+        eyebrow: "stack block 4",
+        title: "Speakers",
+        cue: "Audition button available on the laptop.",
+        notes: "miniaudio is the small cross-platform layer that gets samples to the device. This is the point where the engine stops being internal state and becomes samples sent to real hardware."
+      },
+      {
+        eyebrow: "isolation and safety",
+        title: "Small parts are easier to restart.",
+        cue: "Architecture as a safety strategy.",
+        notes: "The safety strategy is architectural. Keep the audio engine small and sharp, then isolate it behind pipes, network ports, browser sandboxes, and process boundaries. Ports reduce the blast radius: easy to start, easy to kill, easy to restart. If Skred dies from a bad command, the host can kill it and spin it back up. The point is not that crashes are good; the point is that the blast radius is contained and recovery is cheap."
+      },
+      {
+        eyebrow: "enough excuses",
+        title: "Make sound. Change sound. Stop sound.",
+        cue: "Run tone, octave, square, stop. Keep it short.",
+        notes: "This is the learn.html \"enough excuses\" moment. Start with a plain tone, then change frequency, then waveform. Keep this short: the point is that text can alter sound immediately enough for the audience to feel the control loop. The joke that used to be on the slide is still yours to say: let us make a sound, change it, break the mood, and then pretend it was research."
+      },
+      {
+        eyebrow: "tiny protocol",
+        title: "Short commands change live state.",
+        cue: "Run tone, add wobble, remove wobble, stop tone.",
+        notes: "A short command changes the current engine state, and the next short command can build on it. That statefulness is what makes tiny command fragments useful live: you do not have to resend a whole patch every time. The compact technical framing is: stateful execution, stateless-looking text."
+      },
+      {
+        eyebrow: "k-synth",
+        title: "Arrays can become sound.",
+        cue: "Move from realtime control to generated audio data.",
+        notes: "To populate an audio engine, you need data structures. Writing loops in raw C for lookup tables is tedious. k-synth lets me generate useful sound material from compact array expressions, then feed those tables into the same runtime. The original phrasing was: array code is a shortcut from math to timbre."
+      },
+      {
+        eyebrow: "sk/dw8k-01.ks -> W10",
+        title: "The first DW-8000 wave is seven lines of text.",
+        cue: "Play W10 if the room can take it.",
+        notes: "This is the bridge between k-synth and Skred. The source file is parts/sk/dw8k-01.ks in the repo, and that generated table corresponds to W10 in SKODE. It is modeled as a 1/h sawtooth with 32 harmonics, producing the first DW-8000-style string wave."
+      },
+      {
+        eyebrow: "808 ghosts in text files",
+        title: "Tiny patches make drum sounds.",
+        cue: "Load drums, then kick, snare, cowbell.",
+        notes: "The DW-8000 wave has its own slide now, so this one moves to k-synth drum generation. Drum samples can be generated from tiny k-synth patches. These patches are inspired by Roland 808-style drum voices: a swept sine kick, a detuned body plus noise snare, and a two-frequency cowbell cluster. They are text files that become runtime waveforms."
+      },
+      {
+        eyebrow: "deferred execution",
+        title: "SKODE can schedule its own future.",
+        cue: "Use the loaded drum voices: kick/snare timing, then cowbell notes.",
+        notes: "Deferred execution is not just a pattern feature. It works anywhere SKODE is parsed: from a button, from a file, or directly in the REPL. The first line uses +.5 to place a snare after the kick. The second line uses repeated ~1 delays to schedule cowbell notes after the just-loaded drum sounds."
+      },
+      {
+        eyebrow: "patterns",
+        title: "Patterns make timed chunks reusable.",
+        cue: "Patterns install reusable timed steps.",
+        notes: "Patterns are step sequences. y0 selects pattern 0, %4 makes a four-step loop, bracketed SKODE is stored into a step with x0 or x2, and Z1 starts the pattern clock. Deferred commands inside a step let a single step contain timing, not just a single trigger."
+      },
+      {
+        eyebrow: "909.sk",
+        title: "One file can build a groove.",
+        cue: "Load 909, start patterns, stop patterns.",
+        notes: "This is the bigger patch-file version: a patch file can load samples, generate drums, define voices, and install patterns. Sample slots, generated drums, named chunks, voice setup, and pattern installation live in one text file. The demo point is that SKODE is not only a REPL trick; it can be saved, loaded, and reused."
+      },
+      {
+        eyebrow: "live demo",
+        title: "External programs can talk SKODE to Skred.",
+        cue: "Mention the external controllers quickly.",
+        notes: "The live demo is not only typing commands into this deck. The useful boundary is that Skred accepts SKODE from outside programs too: a drum pad interface, a MIDI-to-SKODE translator, a multi-slider control GUI, and a looping app can all speak the same terse command surface."
+      },
+      {
+        eyebrow: "what exists now?",
+        title: "The protocol is the instrument.",
+        cue: "Summarize without overselling.",
+        notes: "What exists now: macros, patterns, generated drums, file-backed patches, and browser/native runtimes. The interesting part is not one synth. It is a small protocol surface that can sit between text files, generated tables, samples, runtimes, instruments, and humans. That is why the protocol itself starts to feel like the instrument."
+      },
+      {
+        eyebrow: "links",
+        title: "Clone it, crash it, make it louder.",
+        cue: "Close with collaboration ask.",
+        notes: "I built this because it is the tool I wanted to exist. I am looking for R&D collaborations, instrument design conversations, and people who like small sound machines enough to discuss protocol surfaces over drinks after the session."
+      }
+    ];
+
+    const storageKey = "tokyo-adc-notes-index";
+    const title = document.getElementById("slide-title");
+    const counter = document.getElementById("slide-counter");
+    const card = document.getElementById("notes-card");
+    const body = document.getElementById("notes-body");
+    const cue = document.getElementById("cue-text");
+    const jump = document.getElementById("jump");
+    const readout = document.getElementById("jump-readout");
+    const list = document.getElementById("slide-list");
+    let index = Number(localStorage.getItem(storageKey) || 0);
+
+    jump.max = String(slides.length);
+
+    function clamp(value) {
+      return Math.max(0, Math.min(slides.length - 1, value));
+    }
+
+    function renderSlideButtons() {
+      list.innerHTML = "";
+      slides.forEach((slide, slideIndex) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = `${slideIndex + 1}. ${slide.eyebrow}: ${slide.title}`;
+        button.addEventListener("click", () => show(slideIndex));
+        list.appendChild(button);
+      });
+    }
+
+    function show(nextIndex) {
+      index = clamp(nextIndex);
+      localStorage.setItem(storageKey, String(index));
+
+      const slide = slides[index];
+      title.textContent = slide.title;
+      counter.textContent = `${slide.eyebrow} - slide ${index + 1} of ${slides.length}`;
+      body.textContent = slide.notes || "No notes for this slide.";
+      cue.textContent = slide.cue || "Advance when ready.";
+      card.classList.toggle("empty", !slide.notes);
+      jump.value = String(index + 1);
+      readout.textContent = `${index + 1}/${slides.length}`;
+
+      Array.from(list.children).forEach((button, buttonIndex) => {
+        button.classList.toggle("active", buttonIndex === index);
+      });
+    }
+
+    document.getElementById("prev").addEventListener("click", () => show(index - 1));
+    document.getElementById("next").addEventListener("click", () => show(index + 1));
+    jump.addEventListener("input", event => show(Number(event.target.value) - 1));
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowLeft" || event.key === "PageUp") show(index - 1);
+      if (event.key === "ArrowRight" || event.key === " " || event.key === "PageDown") {
+        event.preventDefault();
+        show(index + 1);
+      }
+      if (event.key === "Home") show(0);
+      if (event.key === "End") show(slides.length - 1);
+    });
+
+    let touchStartX = null;
+    document.addEventListener("touchstart", event => {
+      touchStartX = event.changedTouches[0].clientX;
+    }, { passive: true });
+
+    document.addEventListener("touchend", event => {
+      if (touchStartX === null) return;
+      const delta = event.changedTouches[0].clientX - touchStartX;
+      touchStartX = null;
+      if (Math.abs(delta) < 70) return;
+      show(index + (delta < 0 ? 1 : -1));
+    }, { passive: true });
+
+    renderSlideButtons();
+    show(index);
+  </script>
+</body>
+</html>

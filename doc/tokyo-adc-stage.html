@@ -225,6 +225,12 @@
       box-shadow: 0 16px 42px rgb(15 23 42 / 0.1);
     }
 
+    .stage-image.transparent-art {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
     .stage-figure figcaption {
       margin-top: 10px;
       color: #64748b;
@@ -512,17 +518,49 @@
       display: block;
       width: 100%;
       aspect-ratio: 4 / 3;
-      object-fit: cover;
-      border: 2px solid #17202a;
-      border-radius: 4px;
-      background: #ffffff;
-      box-shadow: 0 10px 28px rgb(15 23 42 / 0.06);
+      object-fit: contain;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
     }
 
     .demo-card figcaption {
       margin-top: 9px;
       color: #17202a;
       font: 700 0.4em/1.25 "Fira Code", monospace;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .friend-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      width: min(100%, 1080px);
+      margin-top: 26px;
+    }
+
+    .friend-card {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .friend-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: contain;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .friend-card figcaption {
+      margin-top: 10px;
+      color: #17202a;
+      font: 700 0.42em/1.25 "Fira Code", monospace;
+      text-align: center;
       text-transform: uppercase;
     }
 
@@ -533,6 +571,38 @@
 
     .quiet-list li {
       margin: 0.35em 0;
+    }
+
+    .ack-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 24px 28px;
+      width: min(100%, 980px);
+      margin-top: 28px;
+      align-items: center;
+    }
+
+    .ack-card {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .ack-card img {
+      display: block;
+      width: 100%;
+      height: clamp(74px, 11vh, 118px);
+      object-fit: contain;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .ack-card figcaption {
+      margin-top: 10px;
+      color: #17202a;
+      font: 700 0.34em/1.25 "Fira Code", monospace;
+      text-align: center;
+      text-transform: uppercase;
     }
 
     .stage-actions {
@@ -852,7 +922,7 @@
             <p class="subtitle">How to annoy everyone in your house while building an audio synthesizer.</p>
           </div>
           <figure class="stage-figure">
-            <img class="stage-image" src="skred-octopus.png" alt="Skred octopus illustration">
+            <img class="stage-image transparent-art" src="skred-octopus-transparent.png" alt="Skred octopus illustration">
             <figcaption>Skred: too many arms, exactly enough ports.</figcaption>
           </figure>
         </div>
@@ -940,7 +1010,7 @@
         <h2>SKODE</h2>
         <p class="subtitle">ASCII shorthand for changing sound without ceremony.</p>
         <figure class="stage-figure">
-          <img class="stage-image skode-conductor" src="skode-conductor-baton.png" alt="Hand waving a conductor baton toward sound waves">
+          <img class="stage-image skode-conductor transparent-art" src="skode-conductor-baton-transparent.png" alt="Hand waving a conductor baton toward sound waves">
         </figure>
         <aside class="notes">
           This image replaces the literal SKODE block with a more visual idea: a hand waving a conductor's baton becomes controlled motion on the right. The point is still the same as the old example commands: short ASCII gestures can reach into the engine quickly enough to feel playable.
@@ -967,7 +1037,7 @@
 
       <section data-cue="low">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-08.png" alt="">
-        <p class="eyebrow">Pulp voice engine</p>
+        <p class="eyebrow">voice engine</p>
         <h2>One voice is a signal path.</h2>
         <div class="svg-stage bare">
           <svg viewBox="0 0 1080 470" role="img" aria-label="Simplified Pulp voice engine diagram">
@@ -1012,12 +1082,6 @@
               <text x="124" y="394">phase</text>
               <text x="724" y="394">AM</text>
             </g>
-            <g fill="#586676" font-family="Inter, sans-serif" font-size="18" text-anchor="middle">
-              <text x="324" y="304">pitch</text>
-              <text x="524" y="304">tone</text>
-              <text x="724" y="304">shape</text>
-              <text x="924" y="304">output</text>
-            </g>
           </svg>
         </div>
         <aside class="notes">
@@ -1032,7 +1096,7 @@
             <p class="eyebrow">stack block 4</p>
             <h2>Speakers</h2>
             <div class="stage-actions">
-              <button class="stage-btn cueable" type="button" data-skode="S0 v0 w0 f330 a5 l1">Audition</button>
+              <button class="stage-btn cueable" type="button" data-skode="S0 v0 w0 f440 a5 l1">Audition</button>
               <button class="stage-btn secondary cueable" type="button" data-skode="S0">Stop</button>
             </div>
           </div>
@@ -1210,10 +1274,10 @@ W: w P $ A</code>
           </div>
         </div>
         <div class="stage-actions">
-          <button class="stage-btn cueable" type="button" data-skode="[sk/drums-kick.ks]/ks wait 250 k&gt;d d&gt;r /r301|[sk/drums-snare.ks]/ks wait 250 k&gt;d d&gt;r /r300|[sk/drums-cowbell.ks]/ks wait 250 k&gt;d d&gt;r /r314" data-log-target="stage-log-panel">Load drums</button>
-          <button class="stage-btn cueable" type="button" data-skode="S10 v10w301a20|v10l1">Play kick</button>
-          <button class="stage-btn cueable" type="button" data-skode="S11 v11w300a10|v11l1">Play snare</button>
-          <button class="stage-btn cueable" type="button" data-skode="S12 v12w314a8|v12l1">Play cowbell</button>
+          <button class="stage-btn cueable" type="button" data-skode="[sk/drums-kick.ks]/ks wait 250 k&gt;d d&gt;r /r301 [kick]wt301|[sk/drums-snare.ks]/ks wait 250 k&gt;d d&gt;r /r300 [snare]wt300|[sk/drums-cowbell.ks]/ks wait 250 k&gt;d d&gt;r /r314 [cowbell]wt314" data-log-target="stage-log-panel">Load drums</button>
+          <button class="stage-btn cueable" type="button" data-skode="S10 v10w301a20[kick]vt|v10l1">Play kick</button>
+          <button class="stage-btn cueable" type="button" data-skode="S11 v11w300a10[snare]vt|v11l1">Play snare</button>
+          <button class="stage-btn cueable" type="button" data-skode="S12 v12w314a8[cowbell]vt|v12l1">Play cowbell</button>
         </div>
         <aside class="notes">
           The DW-8000 wave has its own slide now, so this one moves to k-synth drum generation. Drum samples can be generated from tiny k-synth patches. These patches are inspired by Roland 808-style drum voices: a swept sine kick, a detuned body plus noise snare, and a two-frequency cowbell cluster. They are text files that become runtime waveforms.
@@ -1225,11 +1289,11 @@ W: w P $ A</code>
         <p class="eyebrow">deferred execution</p>
         <h2>SKODE can schedule its own future.</h2>
         <div class="notebook-cell">
-          <code class="big-code">v10l2 +.5 v11l2
-~1 v12n69l1 ~1 v12n70l1 ~1 v12n69l1</code>
+          <code class="big-code">~1 v12l1 ~1 v12l1 ~1 v12l1
+v10l2 +.5 v11l2</code>
         </div>
         <aside class="notes">
-          Deferred execution is not just a pattern feature. It works anywhere SKODE is parsed: from a button, from a file, or directly in the REPL. A command like +.5 waits a tempo-relative amount before running the next command. A command like ~1 schedules by a direct time-style delay.
+          Deferred execution is not just a pattern feature. It works anywhere SKODE is parsed: from a button, from a file, or directly in the REPL. After the drum voices are loaded, the first line schedules three cowbell hits with repeated ~1 delays. The second line triggers the kick, then uses +.5 to place the snare after it.
         </aside>
       </section>
 
@@ -1238,13 +1302,13 @@ W: w P $ A</code>
         <p class="eyebrow">patterns</p>
         <h2>Patterns make timed chunks reusable.</h2>
         <div class="notebook-cell">
-          <code class="big-code">y0 %4
-[v10l1 +.5 v10l0] x0
-[v11l1] x2
+          <code class="big-code">y0
+[v10l2 +.5 v10l1] x0
+[v11l1] x1
 Z1</code>
         </div>
         <aside class="notes">
-          Patterns are step sequences. y0 selects pattern 0, %4 makes a four-step loop, bracketed SKODE is stored into a step with x0 or x2, and Z1 starts the pattern clock. Deferred commands inside a step let a single step contain timing, not just a single trigger.
+          Patterns are step sequences. y0 selects pattern 0, bracketed SKODE is stored into steps with x0 and x1, and Z1 starts the pattern clock. Deferred commands inside a step let a single step contain timing, not just a single trigger.
         </aside>
       </section>
 
@@ -1271,28 +1335,51 @@ y2 %4 [kick] yt
 
       <section class="icon-frame" data-cue="demo">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-12.png" alt="">
-        <p class="eyebrow">live demo</p>
+        <p class="eyebrow">friends</p>
         <h2>External programs &rarr; SKODE.</h2>
         <div class="demo-grid">
           <figure class="demo-card">
-            <img src="demo-1.jpg" alt="Drum pad application talking to Skred">
+            <img src="sk8-pad.png" alt="Drum pad application talking to Skred">
             <figcaption>drum pad</figcaption>
           </figure>
           <figure class="demo-card">
-            <img src="demo-2.jpg" alt="MIDI to SKODE translator">
+            <img src="midi-sk8.png" alt="MIDI to SKODE translator">
             <figcaption>MIDI -&gt; SKODE</figcaption>
           </figure>
           <figure class="demo-card">
-            <img src="demo-3.jpg" alt="Multi-slider GUI controlling Skred">
+            <img src="sk8r.png" alt="Multi-slider GUI controlling Skred">
             <figcaption>multi-slider GUI</figcaption>
           </figure>
           <figure class="demo-card">
-            <img src="demo-4.jpg" alt="Looping application controlling Skred">
+            <img src="rototem.png" alt="Looping application controlling Skred">
             <figcaption>looper</figcaption>
           </figure>
         </div>
         <aside class="notes">
           The live demo is not only typing commands into this deck. The useful boundary is that Skred accepts SKODE from outside programs too: a drum pad interface, a MIDI-to-SKODE translator, a multi-slider control GUI, and a looping app can all speak the same terse command surface.
+        </aside>
+      </section>
+
+      <section class="icon-frame" data-cue="soft">
+        <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-06.png" alt="">
+        <p class="eyebrow">friends</p>
+        <h2>Skred can run in the browser.</h2>
+        <div class="friend-grid">
+          <figure class="friend-card">
+            <img src="wasm-skred.png" alt="WASM build of Skred running in a browser">
+            <figcaption>Skred WASM</figcaption>
+          </figure>
+          <figure class="friend-card">
+            <img src="learn-skred.png" alt="learn-skred page using browser Skred">
+            <figcaption>learn-skred</figcaption>
+          </figure>
+          <figure class="friend-card">
+            <img src="tokyo-adc-wasm.png" alt="This presentation using the Skred WASM module">
+            <figcaption>this deck</figcaption>
+          </figure>
+        </div>
+        <aside class="notes">
+          This is the other friend page: Skred is not only a native shell. The same engine can be compiled with Emscripten into a WASM build and loaded by a browser page. That is what powers the browser Skred page, the learn-skred page, and this presentation's live audio controls. The point is that the same SKODE surface can move between a local runtime, web demos, teaching pages, and slides.
         </aside>
       </section>
 
@@ -1302,6 +1389,45 @@ y2 %4 [kick] yt
         <h2>The protocol is the instrument.</h2>
         <aside class="notes">
           What exists now: macros, patterns, generated drums, file-backed patches, and browser/native runtimes. The interesting part is not one synth. It is a small protocol surface that can sit between text files, generated tables, samples, runtimes, instruments, and humans. That is why the protocol itself starts to feel like the instrument.
+        </aside>
+      </section>
+
+      <section class="icon-frame" data-cue="soft">
+        <img class="slide-icon bottom-right" src="beeps-and-ports-sprites/beeps-and-ports-19-heart.png" alt="">
+        <p class="eyebrow">acknowledgements</p>
+        <h2>Built in a long synth weather system.</h2>
+        <div class="ack-grid">
+          <figure class="ack-card">
+            <img src="ack-adc.png" alt="Audio Developer Conference logo">
+            <figcaption>Audio Developer Conference</figcaption>
+          </figure>
+          <figure class="ack-card">
+            <img src="ack-amy.png" alt="AMY project logo">
+            <figcaption>AMY project</figcaption>
+          </figure>
+          <figure class="ack-card">
+            <img src="ack-casio.png" alt="Casio logo">
+            <figcaption>Casio</figcaption>
+          </figure>
+          <figure class="ack-card">
+            <img src="ack-korg.png" alt="Korg logo">
+            <figcaption>Korg</figcaption>
+          </figure>
+          <figure class="ack-card">
+            <img src="ack-moog.png" alt="Moog logo">
+            <figcaption>Moog</figcaption>
+          </figure>
+          <figure class="ack-card">
+            <img src="ack-roland.png" alt="Roland logo">
+            <figcaption>Roland</figcaption>
+          </figure>
+          <figure class="ack-card">
+            <img src="ack-sequential-circuits.png" alt="Sequential Circuits logo">
+            <figcaption>Sequential Circuits</figcaption>
+          </figure>
+        </div>
+        <aside class="notes">
+          Acknowledge the Audio Developer Conference for making a place for this kind of weird tool-building conversation. The logo grid is alphabetical: Audio Developer Conference, AMY project, Casio, Korg, Moog, Roland, and Sequential Circuits. These projects and synth makers shaped the sounds and interfaces in my head. Skred is its own odd little thing, but it exists inside that lineage.
         </aside>
       </section>
 

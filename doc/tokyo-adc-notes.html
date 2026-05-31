@@ -343,14 +343,14 @@
       {
         eyebrow: "deferred execution",
         title: "SKODE can schedule its own future.",
-        cue: "Use the loaded drum voices: kick/snare timing, then cowbell notes.",
-        notes: "Deferred execution is not just a pattern feature. It works anywhere SKODE is parsed: from a button, from a file, or directly in the REPL. The first line uses +.5 to place a snare after the kick. The second line uses repeated ~1 delays to schedule cowbell notes after the just-loaded drum sounds."
+        cue: "Use the loaded drum voices: cowbell scheduling, then kick/snare timing.",
+        notes: "Deferred execution is not just a pattern feature. It works anywhere SKODE is parsed: from a button, from a file, or directly in the REPL. After the drum voices are loaded, the first line schedules three cowbell hits with repeated ~1 delays. The second line triggers the kick, then uses +.5 to place the snare after it."
       },
       {
         eyebrow: "patterns",
         title: "Patterns make timed chunks reusable.",
         cue: "Patterns install reusable timed steps.",
-        notes: "Patterns are step sequences. y0 selects pattern 0, %4 makes a four-step loop, bracketed SKODE is stored into a step with x0 or x2, and Z1 starts the pattern clock. Deferred commands inside a step let a single step contain timing, not just a single trigger."
+        notes: "Patterns are step sequences. y0 selects pattern 0, bracketed SKODE is stored into steps with x0 and x1, and Z1 starts the pattern clock. Deferred commands inside a step let a single step contain timing, not just a single trigger."
       },
       {
         eyebrow: "909.sk",
@@ -359,16 +359,28 @@
         notes: "This is the bigger patch-file version: a patch file can load samples, generate drums, define voices, and install patterns. Sample slots, generated drums, named chunks, voice setup, and pattern installation live in one text file. The demo point is that SKODE is not only a REPL trick; it can be saved, loaded, and reused."
       },
       {
-        eyebrow: "live demo",
+        eyebrow: "friends",
         title: "External programs can talk SKODE to Skred.",
         cue: "Mention the external controllers quickly.",
         notes: "The live demo is not only typing commands into this deck. The useful boundary is that Skred accepts SKODE from outside programs too: a drum pad interface, a MIDI-to-SKODE translator, a multi-slider control GUI, and a looping app can all speak the same terse command surface."
+      },
+      {
+        eyebrow: "friends",
+        title: "Skred can run in the browser.",
+        cue: "Point from native Skred to WASM Skred, learn-skred, and this deck.",
+        notes: "This is the other friend page: Skred is not only a native shell. The same engine can be compiled with Emscripten into a WASM build and loaded by a browser page. That is what powers the browser Skred page, the learn-skred page, and this presentation's live audio controls. The point is that the same SKODE surface can move between a local runtime, web demos, teaching pages, and slides."
       },
       {
         eyebrow: "what exists now?",
         title: "The protocol is the instrument.",
         cue: "Summarize without overselling.",
         notes: "What exists now: macros, patterns, generated drums, file-backed patches, and browser/native runtimes. The interesting part is not one synth. It is a small protocol surface that can sit between text files, generated tables, samples, runtimes, instruments, and humans. That is why the protocol itself starts to feel like the instrument."
+      },
+      {
+        eyebrow: "acknowledgements",
+        title: "Built in a long synth weather system.",
+        cue: "Acknowledge ADC, AMY, and the synth makers.",
+        notes: "Acknowledge the Audio Developer Conference for making a place for this kind of weird tool-building conversation. The logo grid is alphabetical: Audio Developer Conference, AMY project, Casio, Korg, Moog, Roland, and Sequential Circuits. These projects and synth makers shaped the sounds and interfaces in my head. Skred is its own odd little thing, but it exists inside that lineage."
       },
       {
         eyebrow: "links",

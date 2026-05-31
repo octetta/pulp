@@ -195,6 +195,17 @@
       line-height: 1.35;
     }
 
+    .node .line-count {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #ffffff;
+      color: #17202a;
+      font: 700 0.42em/1 "Fira Code", monospace;
+    }
+
     .split {
       display: grid;
       grid-template-columns: 0.9fr 1.1fr;
@@ -1241,7 +1252,7 @@ A: 1%H
 W: w P $ A</code>
             </div>
             <div class="stage-actions">
-              <button class="stage-btn cueable" type="button" data-skode="S0 v0 w10 n45 a0.35 t .01 .8 .2 .25 l1">Play W10</button>
+              <button class="stage-btn cueable" type="button" data-skode="S0 S1 v0 w10 n45 a0.35 t .01 .8 0 0 >1 v1n57,12 v0l1v1l1">Play W10</button>
               <button class="stage-btn secondary cueable" type="button" data-skode="S0">Stop</button>
             </div>
           </div>
@@ -1263,14 +1274,17 @@ W: w P $ A</code>
           <div class="node">
             <b>sk/drums-kick.ks</b>
             <span>141-&gt;50Hz pitch sweep<br>300ms envelope<br><code>W: w (E*S)+(Q*C*.1)</code></span>
+            <span class="line-count">15 lines</span>
           </div>
           <div class="node">
             <b>sk/drums-snare.ks</b>
             <span>170Hz + 183Hz body<br>noise tail and snap<br><code>W: w (S*.7)+(U*.4)+(V*K*.2)</code></span>
+            <span class="line-count">20 lines</span>
           </div>
           <div class="node">
             <b>sk/drums-cowbell.ks</b>
             <span>735Hz + 850Hz cluster<br>square-ish harmonics<br><code>W: w E*M</code></span>
+            <span class="line-count">17 lines</span>
           </div>
         </div>
         <div class="stage-actions">
@@ -1395,34 +1409,34 @@ y2 %4 [kick] yt
       <section class="icon-frame" data-cue="soft">
         <img class="slide-icon bottom-right" src="beeps-and-ports-sprites/beeps-and-ports-19-heart.png" alt="">
         <p class="eyebrow">acknowledgements</p>
-        <h2>Built in a long synth weather system.</h2>
+        <h2>Thanks for the long and lovely journey...</h2>
         <div class="ack-grid">
           <figure class="ack-card">
-            <img src="ack-adc.png" alt="Audio Developer Conference logo">
+            <img src="adc-logo.png" alt="Audio Developer Conference logo">
             <figcaption>Audio Developer Conference</figcaption>
           </figure>
           <figure class="ack-card">
-            <img src="ack-amy.png" alt="AMY project logo">
+            <img src="amy-logo.jpg" alt="AMY project logo">
             <figcaption>AMY project</figcaption>
           </figure>
           <figure class="ack-card">
-            <img src="ack-casio.png" alt="Casio logo">
+            <img src="casio-logo.png" alt="Casio logo">
             <figcaption>Casio</figcaption>
           </figure>
           <figure class="ack-card">
-            <img src="ack-korg.png" alt="Korg logo">
+            <img src="korg-logo.png" alt="Korg logo">
             <figcaption>Korg</figcaption>
           </figure>
           <figure class="ack-card">
-            <img src="ack-moog.png" alt="Moog logo">
+            <img src="moog-logo.png" alt="Moog logo">
             <figcaption>Moog</figcaption>
           </figure>
           <figure class="ack-card">
-            <img src="ack-roland.png" alt="Roland logo">
+            <img src="roland-logo.png" alt="Roland logo">
             <figcaption>Roland</figcaption>
           </figure>
           <figure class="ack-card">
-            <img src="ack-sequential-circuits.png" alt="Sequential Circuits logo">
+            <img src="sequential-logo.png" alt="Sequential Circuits logo">
             <figcaption>Sequential Circuits</figcaption>
           </figure>
         </div>
@@ -1433,7 +1447,7 @@ y2 %4 [kick] yt
 
       <section class="icon-frame" data-cue="end">
         <p class="eyebrow">links</p>
-        <h2>Clone it, crash it, make it louder.</h2>
+        <h2>FIND ME, clone it, crash it, make it louder.</h2>
         <div class="qr-with-icon">
           <div class="qr-grid single-qr">
             <div class="qr-card">

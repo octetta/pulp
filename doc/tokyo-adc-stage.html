@@ -378,6 +378,66 @@
       margin-top: 18px !important;
     }
 
+    .retro-machine-row {
+      display: flex;
+      align-items: center;
+      gap: clamp(18px, 3vw, 34px);
+      width: min(100%, 820px);
+      margin-top: clamp(26px, 5vh, 52px);
+    }
+
+    .retro-machine-row img {
+      display: block;
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: 240px;
+      max-height: 23vh;
+      object-fit: contain;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .corner-icon-safe .eyebrow,
+    .corner-icon-safe h2 {
+      max-width: calc(100% - clamp(130px, 13vw, 160px));
+    }
+
+    .reveal .slides section.icon-frame.bonus-slide {
+      box-sizing: border-box;
+      justify-content: flex-start;
+      padding-top: clamp(28px, 4vh, 44px);
+    }
+
+    .bonus-slide h2 {
+      font-size: 1.16em;
+    }
+
+    .bonus-slide .bonus-grid {
+      align-items: start;
+      grid-template-columns: minmax(210px, 260px) minmax(0, 1fr);
+      gap: 22px;
+      margin-top: 18px;
+    }
+
+    .bonus-slide .bonus-card {
+      min-height: 0;
+    }
+
+    .bonus-slide .bonus-card img {
+      max-height: 34vh;
+    }
+
+    .bonus-slide .bonus-card.qr {
+      width: min(100%, 230px);
+      padding: 12px;
+    }
+
+    .bonus-slide .bonus-card figcaption {
+      margin-top: 8px;
+      font-size: 0.34em;
+    }
+
     .jp-subline {
       display: block;
       margin-top: 0.22em;
@@ -657,6 +717,98 @@
       font: 700 0.42em/1.25 "Fira Code", monospace;
       text-align: center;
       text-transform: uppercase;
+    }
+
+    .bonus-grid {
+      display: grid;
+      grid-template-columns: minmax(230px, 0.44fr) minmax(360px, 1fr);
+      gap: 26px;
+      align-items: stretch;
+      width: min(100%, 1080px);
+      margin-top: 28px;
+    }
+
+    .bonus-card {
+      display: grid;
+      align-content: center;
+      margin: 0;
+      min-width: 0;
+      min-height: 320px;
+      padding: 16px;
+      border: 2px solid #17202a;
+      border-radius: 4px;
+      background: #ffffff;
+      box-shadow: 0 10px 28px rgb(15 23 42 / 0.06);
+    }
+
+    .bonus-card img {
+      display: block;
+      width: 100%;
+      max-height: 48vh;
+      object-fit: contain;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .bonus-card.qr img {
+      aspect-ratio: 1;
+      image-rendering: pixelated;
+    }
+
+    .bonus-card.qr {
+      justify-self: start;
+      align-self: start;
+      width: min(100%, 270px);
+      min-height: 0;
+      padding: 12px;
+    }
+
+    .bonus-card.app-shot {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .bonus-card figcaption {
+      margin-top: 12px;
+      color: #17202a;
+      font: 700 0.42em/1.25 "Fira Code", monospace;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .bonus-link-card {
+      width: min(100%, 900px);
+      box-sizing: border-box;
+      margin-top: 30px;
+      padding: 28px;
+      border: 2px solid #17202a;
+      border-left: 8px solid var(--accent);
+      border-radius: 4px;
+      background: #ffffff;
+      box-shadow: 0 10px 28px rgb(15 23 42 / 0.06);
+    }
+
+    .bonus-link-card b,
+    .bonus-link-card a {
+      display: block;
+      overflow-wrap: anywhere;
+      font-family: "Fira Code", monospace;
+      line-height: 1.3;
+    }
+
+    .bonus-link-card b {
+      color: #111827;
+      font-size: 0.72em;
+    }
+
+    .bonus-link-card a {
+      margin-top: 16px;
+      color: var(--accent);
+      font-size: 0.54em;
+      text-decoration: none;
     }
 
     .quiet-list {
@@ -959,6 +1111,14 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .bonus-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bonus-card {
+        min-height: 220px;
+      }
+
       .node {
         min-height: auto;
       }
@@ -1010,14 +1170,14 @@
         <h1>Before we make noise, the browser needs one click.</h1>
         <p class="subtitle">Click boot once. Browsers require a user gesture before audio starts.</p>
         <div class="stage-actions">
-          <button class="stage-btn" type="button" data-stage-action="boot">Boot Skred</button>
+          <button class="stage-btn" type="button" data-stage-action="boot">Boot skred</button>
           <button class="stage-btn secondary" type="button" data-stage-action="mute">Toggle transition cues</button>
           <button class="stage-btn secondary" type="button" data-stage-action="toggle-japanese">Hide Japanese</button>
           <button class="stage-btn warning" type="button" data-stage-action="panic">Panic</button>
         </div>
-        <p class="small-note">Hack point: open DevTools and call <code>skode("v0 w0 f220 a0.3 l1")</code>.</p>
+        <p class="small-note">Hack point: open DevTools and call <code>skode("v0 w0 f220 a0 l1")</code>.</p>
         <aside class="notes">
-          Start here before the audience arrives if possible. Browser audio needs a user gesture, so booting Skred once gets the WebAssembly runtime and audio callback into a usable state. Panic fully stops Skred; quiet-style commands happen later inside the demo.
+          Start here before the audience arrives if possible. Browser audio needs a user gesture, so booting skred once gets the WebAssembly runtime and audio callback into a usable state. Panic fully stops skred; quiet-style commands happen later inside the demo.
         </aside>
       </section>
 
@@ -1029,7 +1189,7 @@
             <p class="subtitle">How to annoy everyone in your house while building an audio synthesizer.<span class="jp-subline">家中のみんなにうるさがられつつ、オーディオシンセサイザーを作る方法。</span></p>
           </div>
           <figure class="stage-figure">
-            <img class="stage-image transparent-art" src="skred-octopus-transparent.png" alt="Skred octopus illustration">
+            <img class="stage-image transparent-art" src="skred-octopus-transparent.png" alt="skred octopus illustration">
           </figure>
         </div>
       </section>
@@ -1056,6 +1216,11 @@
         <img class="slide-icon lower-left" src="beeps-and-ports-sprites/beeps-and-ports-10.png" alt="">
         <p class="eyebrow">the itch<span class="jp-inline">きっかけ</span></p>
         <h2>I wanted command-line immediacy for sound.<span class="jp-inline">音にもコマンドラインの即時性がほしかった。</span></h2>
+        <div class="retro-machine-row" aria-label="Retro computers">
+          <img src="trs-80.png" alt="TRS-80 computer">
+          <img src="atari800.png" alt="Atari 800 computer">
+          <img src="c64.png" alt="Commodore 64 computer">
+        </div>
         <aside class="notes">
           For years, I wanted a simple way to play with sound without booting a giant tool or wiring together a whole environment first. This is influenced by old PC sound hardware, 80s analog and digital synthesizers, command prompts, tiny notations, and the pleasant danger of making something immediate enough to surprise me.
         </aside>
@@ -1082,7 +1247,7 @@
         <p class="eyebrow">the stack<span class="jp-inline">構成</span></p>
         <h2>Text -&gt; engine -&gt; speakers<span class="jp-inline">テキスト -&gt; エンジン -&gt; スピーカー</span></h2>
         <div class="svg-stage bare">
-          <svg viewBox="0 0 1060 300" role="img" aria-label="SKODE to Skred to Pulp to Speakers">
+          <svg viewBox="0 0 1060 300" role="img" aria-label="SKODE to skred to PULP to Speakers">
             <defs>
               <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#047857"></path>
@@ -1098,10 +1263,10 @@
             <text x="128" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">SKODE</text>
             <text x="128" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">ASCII control</text>
             <text class="jp-svg" x="128" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">ASCII制御</text>
-            <text x="404" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Skred</text>
-            <text x="404" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">runtime shell</text>
-            <text class="jp-svg" x="404" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">実行シェル</text>
-            <text x="680" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Pulp</text>
+            <text x="404" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">skred</text>
+            <text x="404" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">runtime REPL</text>
+            <text class="jp-svg" x="404" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">実行REPL</text>
+            <text x="680" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">PULP</text>
             <text x="680" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">audio engine</text>
             <text class="jp-svg" x="680" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">オーディオエンジン</text>
             <text x="944" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Air</text>
@@ -1110,7 +1275,7 @@
           </svg>
         </div>
         <aside class="notes">
-          SKODE is the compact ASCII shorthand. Skred is the runtime shell, native or in the browser. Pulp is the C audio engine underneath it: voices, buffers, tables, filters, modulators, samples. The speakers are where all the architecture stops being abstract. The more poetic version is: text becomes state, and state becomes air pressure.
+          This is the four-part stack. SKODE is the terse ASCII command surface, parsed by ANDS. skred is the REPL/runtime where those commands become state changes. PULP is the C audio engine underneath it: voices, buffers, tables, filters, modulators, samples. Air is the final output, where state changes become speaker motion.
         </aside>
       </section>
 
@@ -1118,12 +1283,12 @@
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-06.png" alt="">
         <p class="eyebrow">stack block 1<span class="jp-inline">構成要素 1</span></p>
         <h2>SKODE</h2>
-        <p class="subtitle">ASCII shorthand for changing sound without ceremony.<span class="jp-subline">音を手早く変えるためのASCII略記。</span></p>
+        <p class="subtitle">ASCII shorthand for changing state without much syntax (ANDS parser).<span class="jp-subline">少ない構文で状態を変えるためのASCII略記（ANDSパーサー）。</span></p>
         <figure class="stage-figure">
           <img class="stage-image skode-conductor transparent-art" src="skode-conductor-baton-transparent.png" alt="Hand waving a conductor baton toward sound waves">
         </figure>
         <aside class="notes">
-          This image replaces the literal SKODE block with a more visual idea: a hand waving a conductor's baton becomes controlled motion on the right. The point is still the same as the old example commands: short ASCII gestures can reach into the engine quickly enough to feel playable.
+          SKODE is the text vocabulary, and ANDS is the parser that makes it usable with very little syntax. Emphasize state changes rather than only sound changes: a short ASCII gesture can set a voice, schedule a hit, load a table, or alter a running patch quickly enough to feel playable.
         </aside>
       </section>
 
@@ -1132,25 +1297,25 @@
         <div class="media-split">
           <div>
             <p class="eyebrow">stack block 2<span class="jp-inline">構成要素 2</span></p>
-            <h2>Skred</h2>
-            <p class="subtitle">The shell where terse text becomes engine state.<span class="jp-subline">短いテキストがエンジンの状態になるシェル。</span></p>
+            <h2>skred</h2>
+            <p class="subtitle">The REPL where terse text becomes engine state.<span class="jp-subline">短いテキストがエンジンの状態になるREPL。</span></p>
           </div>
           <figure class="stage-figure">
-            <img class="logo-image" src="https://raw.githubusercontent.com/octetta/skred/master/docs/skred.svg" alt="Skred logo">
+            <img class="logo-image" src="https://raw.githubusercontent.com/octetta/skred/master/docs/skred.svg" alt="skred logo">
             <figcaption>github.com/octetta/skred</figcaption>
           </figure>
         </div>
         <aside class="notes">
-          Skred is the runtime playground: native process, browser sandbox, and a shell-like place to load patches, run commands, and restart when I do something adventurous.
+          skred is the REPL/runtime playground: native process, browser sandbox, and a place to load patches, run commands, inspect behavior, and restart when I do something adventurous.
         </aside>
       </section>
 
       <section data-cue="low">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-08.png" alt="">
-        <p class="eyebrow">voice engine<span class="jp-inline">ボイスエンジン</span></p>
-        <h2>One voice is a signal path.<span class="jp-inline">ひとつのボイスは信号経路。</span></h2>
+        <p class="eyebrow">stack block 3<span class="jp-inline">構成要素 3</span></p>
+        <h2>PULP: one voice is a signal path. Many voices.<span class="jp-inline">PULP: ひとつのボイスは信号経路。たくさんのボイス。</span></h2>
         <div class="svg-stage bare">
-          <svg viewBox="0 0 1080 470" role="img" aria-label="Simplified Pulp voice engine diagram">
+          <svg viewBox="0 0 1080 470" role="img" aria-label="Simplified PULP voice engine diagram">
             <defs>
               <marker id="voice-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#047857"></path>
@@ -1205,7 +1370,7 @@
           </svg>
         </div>
         <aside class="notes">
-          This is the stage-friendly version of one Pulp voice from the voice structure diagram in learn.html. Pulp runs many voices; each voice is a small signal path with places to interfere. The full version includes more details, but the mental model is enough here: a waveform table is read at a frequency, shaped by filters and envelopes, then panned to output. Other voices can interfere through FM, AM, pan modulation, phase distortion, and filter modulation.
+          This is the stage-friendly version of one PULP voice from the voice structure diagram in learn.html. One voice is a small signal path with places to interfere, and PULP runs many voices at once. The full version includes more details, but the mental model is enough here: a waveform table is read at a frequency, shaped by filters and envelopes, then panned to output. Other voices can interfere through FM, AM, pan modulation, phase distortion, and filter modulation.
         </aside>
       </section>
 
@@ -1214,7 +1379,7 @@
         <div class="media-split">
           <div>
             <p class="eyebrow">stack block 4<span class="jp-inline">構成要素 4</span></p>
-            <h2>Speakers<span class="jp-inline">スピーカー</span></h2>
+            <h2>Air (AKA speakers)<span class="jp-inline">空気（つまりスピーカー）</span></h2>
             <div class="stage-actions">
               <button class="stage-btn cueable" type="button" data-skode="S0 v0 w0 f440 a5 l1">Audition</button>
               <button class="stage-btn secondary cueable" type="button" data-skode="S0">Stop</button>
@@ -1225,18 +1390,21 @@
             <figcaption>miniaud.io</figcaption>
           </figure>
         </div>
+        <aside class="notes">
+          This is the deliberately physical end of the stack: not another software box, just air. miniaudio is the practical bridge to the device, and the speakers are where all the careful state changes become pressure waves people can actually hear.
+        </aside>
       </section>
 
       <section class="icon-frame" data-cue="low">
         <img class="slide-icon lower-left" src="beeps-and-ports-sprites/beeps-and-ports-07.png" alt="">
         <div class="media-split">
           <div>
-            <p class="eyebrow">isolation and safety<span class="jp-inline">分離と安全性</span></p>
+            <p class="eyebrow">PORTS: isolation and safety<span class="jp-inline">PORTS: 分離と安全性</span></p>
             <h2>Small parts are easier to restart.<span class="jp-inline">小さな部品は再起動しやすい。</span></h2>
           </div>
           <figure class="stage-figure">
             <div class="svg-stage bare">
-              <svg viewBox="0 0 760 520" role="img" aria-label="Shell to Skred to audio, with Skred isolated for restart">
+              <svg viewBox="0 0 760 520" role="img" aria-label="Shell to skred to audio, with skred isolated for restart">
                 <defs>
                   <marker id="restart-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                     <path d="M 0 0 L 10 5 L 0 10 z" fill="#047857"></path>
@@ -1258,14 +1426,14 @@
 
                 <g fill="#111827" font-family="Fira Code, monospace" font-size="28" font-weight="700" text-anchor="middle">
                   <text x="108" y="173">Shell</text>
-                  <text x="380" y="164">Skred</text>
-                  <text x="652" y="173">Audio</text>
+                  <text x="380" y="164">skred</text>
+                  <text x="652" y="173">audio</text>
                 </g>
 
                 <g fill="#586676" font-family="Inter, sans-serif" font-size="18" text-anchor="middle">
                   <text x="108" y="205">deck + controls</text>
                   <text x="380" y="199">runtime process</text>
-                  <text x="652" y="205">engine + speakers</text>
+                  <text x="652" y="205">speakers</text>
                 </g>
 
                 <g font-family="Fira Code, monospace" text-anchor="middle">
@@ -1289,7 +1457,7 @@
           </figure>
         </div>
         <aside class="notes">
-          The safety strategy is architectural. Keep the audio engine small and sharp, then isolate it behind pipes, network ports, browser sandboxes, and process boundaries. Ports reduce the blast radius: easy to start, easy to kill, easy to restart. If Skred dies from a bad command, the host can kill it and spin it back up. The point is not that crashes are good; the point is that the blast radius is contained and recovery is cheap.
+          PORTS is the safety story: isolate the live runtime behind pipes, network ports, browser sandboxes, and process boundaries. The right-side block is intentionally just audio and speakers; the engine work is inside the isolated runtime. Ports reduce the blast radius: easy to start, easy to kill, easy to restart. If skred dies from a bad command, the host can kill it and spin it back up. The point is not that crashes are good; the point is that the blast radius is contained and recovery is cheap.
         </aside>
       </section>
 
@@ -1313,13 +1481,13 @@
         <p class="eyebrow">tiny protocol<span class="jp-inline">小さなプロトコル</span></p>
         <h2>Short commands change live state.<span class="jp-inline">短いコマンドがライブ状態を変える。</span></h2>
         <div class="notebook-cell">
-          <code class="big-code">v0 w0 f220 a0.8
+          <code class="big-code">v0 w0 f440 a0
 v1 m1 f6
 v0 F1,40</code>
         </div>
         <div class="stage-actions">
-          <button class="stage-btn cueable" type="button" data-skode="S0 v0 w0 f220 a0.25 l1">Run tone</button>
-          <button class="stage-btn cueable" type="button" data-skode="S0 v0 w0 f220 a0.25 l1|S1 v1 m1 f6 a0.2 l1|v0 F1,40">Add wobble</button>
+          <button class="stage-btn cueable" type="button" data-skode="S0 v0 w0 f220 a0 l1">Run tone</button>
+          <button class="stage-btn cueable" type="button" data-skode="S0 v0 w0 f220 a0 l1|S1 v1 m1 f6 a0.2 l1|v0 F1,40">Add wobble</button>
           <button class="stage-btn secondary cueable" type="button" data-skode="v0F|S1">Remove wobble</button>
           <button class="stage-btn secondary cueable" type="button" data-skode="S0|S1">Stop tone</button>
         </div>
@@ -1371,7 +1539,7 @@ W: w P $ A</code>
           </figure>
         </div>
         <aside class="notes">
-          This is the bridge between k-synth and Skred. The source file is parts/sk/dw8k-01.ks in the repo, and that generated table corresponds to W10 in SKODE. It is modeled as a 1/h sawtooth with 32 harmonics, producing the first DW-8000-style string wave.
+          This is the bridge between k-synth and skred. The source file is parts/sk/dw8k-01.ks in the repo, and that generated table corresponds to W10 in SKODE. It is modeled as a 1/h sawtooth with 32 harmonics, producing the first DW-8000-style string wave.
         </aside>
       </section>
 
@@ -1408,15 +1576,19 @@ W: w P $ A</code>
       </section>
 
       <section class="icon-frame" data-cue="code">
-        <img class="slide-icon lower-left" src="beeps-and-ports-sprites/beeps-and-ports-14.png" alt="">
+        <img class="slide-icon bottom-right" src="beeps-and-ports-sprites/beeps-and-ports-14.png" alt="">
         <p class="eyebrow">deferred execution<span class="jp-inline">遅延実行</span></p>
         <h2>SKODE can schedule its own future.<span class="jp-inline">SKODEは先の実行を予約できる。</span></h2>
         <div class="notebook-cell">
           <code class="big-code">~1 v12l1 ~1 v12l1 ~1 v12l1
 v10l2 +.5 v11l2</code>
         </div>
+        <div class="stage-actions">
+          <button class="stage-btn cueable" type="button" data-skode="~1 v12l1 ~1 v12l1 ~1 v12l1">Absolute</button>
+          <button class="stage-btn cueable" type="button" data-skode="v10l2 +.5 v11l2">Clock relative</button>
+        </div>
         <aside class="notes">
-          Deferred execution is not just a pattern feature. It works anywhere SKODE is parsed: from a button, from a file, or directly in the REPL. After the drum voices are loaded, the first line schedules three cowbell hits with repeated ~1 delays. The second line triggers the kick, then uses +.5 to place the snare after it.
+          Deferred execution is not just a pattern feature. It works anywhere SKODE is parsed: from a button, from a file, or directly in the REPL. After the drum voices are loaded on the previous slide, use Absolute to run the first line: three cowbell hits at explicit delays. Then use Clock relative to run the second line: a kick now, with a snare placed relative to it by +.5. These buttons intentionally do not reset the voices.
         </aside>
       </section>
 
@@ -1430,8 +1602,12 @@ v10l2 +.5 v11l2</code>
 [v11l1] x1
 Z1</code>
         </div>
+        <div class="stage-actions">
+          <button class="stage-btn cueable" type="button" data-skode="y0|[v10l2 +.5 v10l1] x0|[v11l1] x1|Z1">Start</button>
+          <button class="stage-btn secondary cueable" type="button" data-skode="Z0">Stop</button>
+        </div>
         <aside class="notes">
-          Patterns are step sequences. y0 selects pattern 0, bracketed SKODE is stored into steps with x0 and x1, and Z1 starts the pattern clock. Deferred commands inside a step let a single step contain timing, not just a single trigger.
+          Patterns are step sequences. y0 selects pattern 0, bracketed SKODE is stored into steps with x0 and x1, and Z1 starts the pattern clock. Use Start to run the whole displayed block, then Stop to send Z0 and halt the pattern clock. Deferred commands inside a step let a single step contain timing, not just a single trigger.
         </aside>
       </section>
 
@@ -1447,12 +1623,12 @@ Z1</code>
 y2 %4 [kick] yt
 [+.5 v4 l1 +.25 v4l.5] x0</code>
         <div class="stage-actions">
-          <button class="stage-btn cueable" type="button" data-skode="S100 Z0|/l909">Load 909</button>
-          <button class="stage-btn cueable" type="button" data-skode="Z1">Start patterns</button>
-          <button class="stage-btn secondary cueable" type="button" data-skode="S100 Z0">Stop patterns</button>
+          <button class="stage-btn cueable" type="button" data-skode="S100 Z0|/l909">Load</button>
+          <button class="stage-btn cueable" type="button" data-skode="Z1">Start</button>
+          <button class="stage-btn secondary cueable" type="button" data-skode="S100 Z0">Stop</button>
         </div>
         <aside class="notes">
-          This is the bigger patch-file version: a patch file can load samples, generate drums, define voices, and install patterns. Sample slots, generated drums, named chunks, voice setup, and pattern installation live in one text file. The demo point is that SKODE is not only a REPL trick; it can be saved, loaded, and reused.
+          This is the bigger patch-file version: a patch file can load samples, generate drums, define voices, and install patterns. Load reads the 909 patch, Start starts the pattern clock, and Stop stops the clock and the patch voice group. The demo point is that SKODE is not only a REPL trick; it can be saved, loaded, and reused.
         </aside>
       </section>
 
@@ -1462,7 +1638,7 @@ y2 %4 [kick] yt
         <h2>External programs &rarr; SKODE.<span class="jp-inline">外部プログラム &rarr; SKODE。</span></h2>
         <div class="demo-grid">
           <figure class="demo-card">
-            <img src="sk8-pad.png" alt="Drum pad application talking to Skred">
+            <img src="sk8-pad.png" alt="Drum pad application talking to skred">
             <figcaption>drum pad<span class="jp-subline">ドラムパッド</span></figcaption>
           </figure>
           <figure class="demo-card">
@@ -1470,39 +1646,39 @@ y2 %4 [kick] yt
             <figcaption>MIDI -&gt; SKODE<span class="jp-subline">MIDIからSKODEへ</span></figcaption>
           </figure>
           <figure class="demo-card">
-            <img src="sk8r.png" alt="Multi-slider GUI controlling Skred">
+            <img src="sk8r.png" alt="Multi-slider GUI controlling skred">
             <figcaption>multi-slider GUI<span class="jp-subline">マルチスライダーGUI</span></figcaption>
           </figure>
           <figure class="demo-card">
-            <img src="rototem.png" alt="Looping application controlling Skred">
+            <img src="rototem.png" alt="Looping application controlling skred">
             <figcaption>looper<span class="jp-subline">ルーパー</span></figcaption>
           </figure>
         </div>
         <aside class="notes">
-          The live demo is not only typing commands into this deck. The useful boundary is that Skred accepts SKODE from outside programs too: a drum pad interface, a MIDI-to-SKODE translator, a multi-slider control GUI, and a looping app can all speak the same terse command surface.
+          The live demo is not only typing commands into this deck. The useful boundary is that skred accepts SKODE from outside programs too: a drum pad interface, a MIDI-to-SKODE translator, a multi-slider control GUI, and a looping app can all speak the same terse command surface.
         </aside>
       </section>
 
       <section class="icon-frame" data-cue="soft">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-06.png" alt="">
         <p class="eyebrow">friends<span class="jp-inline">仲間たち</span></p>
-        <h2>Skred can run in the browser.<span class="jp-inline">Skredはブラウザでも動く。</span></h2>
+        <h2>skred can run in the browser.<span class="jp-inline">skredはブラウザでも動く。</span></h2>
         <div class="friend-grid">
           <figure class="friend-card">
-            <img src="wasm-skred.png" alt="WASM build of Skred running in a browser">
-            <figcaption>Skred WASM<span class="jp-subline">SkredのWASM版</span></figcaption>
+            <img src="wasm-skred.png" alt="WASM build of skred running in a browser">
+            <figcaption>skred WASM<span class="jp-subline">skredのWASM版</span></figcaption>
           </figure>
           <figure class="friend-card">
-            <img src="learn-skred.png" alt="learn-skred page using browser Skred">
+            <img src="learn-skred.png" alt="learn-skred page using browser skred">
             <figcaption>learn-skred<span class="jp-subline">学習ページ</span></figcaption>
           </figure>
           <figure class="friend-card">
-            <img src="tokyo-adc-wasm.png" alt="This presentation using the Skred WASM module">
+            <img src="tokyo-adc-wasm.png" alt="This presentation using the skred WASM module">
             <figcaption>this deck<span class="jp-subline">この発表デッキ</span></figcaption>
           </figure>
         </div>
         <aside class="notes">
-          This is the other friend page: Skred is not only a native shell. The same engine can be compiled with Emscripten into a WASM build and loaded by a browser page. That is what powers the browser Skred page, the learn-skred page, and this presentation's live audio controls. The point is that the same SKODE surface can move between a local runtime, web demos, teaching pages, and slides.
+          This is the other friend page: skred is not only a native shell. The same engine can be compiled with Emscripten into a WASM build and loaded by a browser page. That is what powers the browser skred page, the learn-skred page, and this presentation's live audio controls. The point is that the same SKODE surface can move between a local runtime, web demos, teaching pages, and slides.
         </aside>
       </section>
 
@@ -1550,7 +1726,7 @@ y2 %4 [kick] yt
           </figure>
         </div>
         <aside class="notes">
-          Acknowledge the Audio Developer Conference for making a place for this kind of weird tool-building conversation. The logo grid is alphabetical: Audio Developer Conference, AMY project, Casio, Korg, Moog, Roland, and Sequential Circuits. These projects and synth makers shaped the sounds and interfaces in my head. Skred is its own odd little thing, but it exists inside that lineage.
+          Acknowledge the Audio Developer Conference for making a place for this kind of weird tool-building conversation. The logo grid is alphabetical: Audio Developer Conference, AMY project, Casio, Korg, Moog, Roland, and Sequential Circuits. These projects and synth makers shaped the sounds and interfaces in my head. skred is its own odd little thing, but it exists inside that lineage.
         </aside>
       </section>
 
@@ -1573,6 +1749,44 @@ y2 %4 [kick] yt
         </div>
         <aside class="notes">
           I built this because it is the tool I wanted to exist. I am looking for R&D collaborations, instrument design conversations, and people who like small sound machines enough to discuss protocol surfaces over drinks after the session.
+        </aside>
+      </section>
+
+      <section class="icon-frame corner-icon-safe bonus-slide" data-cue="demo">
+        <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-13.png" alt="">
+        <p class="eyebrow">bonus: k-synth web app<span class="jp-inline">おまけ: k-synthウェブアプリ</span></p>
+        <h2>Array playground, drum pad, and drum machine.<span class="jp-inline">配列の遊び場、ドラムパッド、ドラムマシン。</span></h2>
+        <div class="bonus-grid">
+          <figure class="bonus-card qr">
+            <img src="qrcode-ksynth.png" alt="QR code for the k-synth web app">
+            <figcaption>octetta.github.io/k-synth</figcaption>
+          </figure>
+          <figure class="bonus-card app-shot">
+            <img src="ksynth.png" alt="Screenshot of the k-synth web app">
+            <figcaption>browser playground</figcaption>
+          </figure>
+        </div>
+        <aside class="notes">
+          Bonus slide if there is extra time. The k-synth web app is the hands-on version: a playground for trying array expressions, a drum pad, and a drum machine interface. Point the QR code at the live app and use the screenshot to orient people before they open it.
+        </aside>
+      </section>
+
+      <section class="icon-frame corner-icon-safe bonus-slide" data-cue="soft">
+        <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-15.png" alt="">
+        <p class="eyebrow">bonus: minimidio<span class="jp-inline">おまけ: minimidio</span></p>
+        <h2>Easy MIDI (1.0)<span class="jp-inline">かんたんMIDI（1.0）</span></h2>
+        <div class="bonus-grid">
+          <figure class="bonus-card qr">
+            <img src="qrcode-minimidio.png" alt="QR code for the minimidio project">
+            <figcaption>github.com/octetta/minimidio</figcaption>
+          </figure>
+          <figure class="bonus-card app-shot">
+            <img src="minimidio.png" alt="Screenshot of the minimidio project">
+            <figcaption>minimidio</figcaption>
+          </figure>
+        </div>
+        <aside class="notes">
+          Bonus slide if there is extra time. Easy MIDI 1.0 is the small friendly version of the same interface idea: make MIDI control approachable without turning it into a giant application. Point the QR code at minimidio and use the screenshot to orient people before they open it.
         </aside>
       </section>
     </div>

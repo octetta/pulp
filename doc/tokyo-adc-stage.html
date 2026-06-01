@@ -412,6 +412,12 @@
       text-transform: none;
     }
 
+    .japanese-hidden .jp-inline,
+    .japanese-hidden .jp-subline,
+    .japanese-hidden .jp-svg {
+      display: none;
+    }
+
     .svg-stage {
       width: 100%;
       box-sizing: border-box;
@@ -1006,6 +1012,7 @@
         <div class="stage-actions">
           <button class="stage-btn" type="button" data-stage-action="boot">Boot Skred</button>
           <button class="stage-btn secondary" type="button" data-stage-action="mute">Toggle transition cues</button>
+          <button class="stage-btn secondary" type="button" data-stage-action="toggle-japanese">Hide Japanese</button>
           <button class="stage-btn warning" type="button" data-stage-action="panic">Panic</button>
         </div>
         <p class="small-note">Hack point: open DevTools and call <code>skode("v0 w0 f220 a0.3 l1")</code>.</p>
@@ -1090,16 +1097,16 @@
             <path d="M 798 136 H 834" stroke="#047857" stroke-width="4" marker-end="url(#arrowhead)"></path>
             <text x="128" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">SKODE</text>
             <text x="128" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">ASCII control</text>
-            <text x="128" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">ASCII制御</text>
+            <text class="jp-svg" x="128" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">ASCII制御</text>
             <text x="404" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Skred</text>
             <text x="404" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">runtime shell</text>
-            <text x="404" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">実行シェル</text>
+            <text class="jp-svg" x="404" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">実行シェル</text>
             <text x="680" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Pulp</text>
             <text x="680" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">audio engine</text>
-            <text x="680" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">オーディオエンジン</text>
+            <text class="jp-svg" x="680" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">オーディオエンジン</text>
             <text x="944" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Air</text>
             <text x="944" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">speakers move</text>
-            <text x="944" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">スピーカーを鳴らす</text>
+            <text class="jp-svg" x="944" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">スピーカーを鳴らす</text>
           </svg>
         </div>
         <aside class="notes">
@@ -1175,25 +1182,25 @@
             <g fill="#111827" font-family="Fira Code, monospace" font-size="24" font-weight="700" text-anchor="middle">
               <text x="124" y="222">wave</text>
               <text x="124" y="249">table</text>
-              <text x="124" y="272" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">波形テーブル</text>
+              <text class="jp-svg" x="124" y="272" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">波形テーブル</text>
               <text x="324" y="244">freq</text>
-              <text x="324" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">周波数</text>
+              <text class="jp-svg" x="324" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">周波数</text>
               <text x="524" y="244">filter</text>
-              <text x="524" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">フィルター</text>
+              <text class="jp-svg" x="524" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">フィルター</text>
               <text x="724" y="244">envelope</text>
-              <text x="724" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">エンベロープ</text>
+              <text class="jp-svg" x="724" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">エンベロープ</text>
               <text x="924" y="244">pan/out</text>
-              <text x="924" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">定位/出力</text>
+              <text class="jp-svg" x="924" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">定位/出力</text>
               <text x="324" y="91">FM</text>
-              <text x="324" y="108" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">周波数変調</text>
+              <text class="jp-svg" x="324" y="108" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">周波数変調</text>
               <text x="524" y="91">filt mod</text>
-              <text x="524" y="108" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">フィルター変調</text>
+              <text class="jp-svg" x="524" y="108" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">フィルター変調</text>
               <text x="724" y="91">ADSR</text>
-              <text x="724" y="108" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">ADSR</text>
+              <text class="jp-svg" x="724" y="108" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">ADSR</text>
               <text x="124" y="394">phase</text>
-              <text x="124" y="411" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">位相</text>
+              <text class="jp-svg" x="124" y="411" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">位相</text>
               <text x="724" y="394">AM</text>
-              <text x="724" y="411" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">振幅変調</text>
+              <text class="jp-svg" x="724" y="411" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">振幅変調</text>
             </g>
           </svg>
         </div>
@@ -1577,6 +1584,7 @@ y2 %4 [kick] yt
       running: false,
       muted: false,
       booting: false,
+      japaneseHidden: false,
       lastCueAt: 0,
       cueContext: null,
       dwWaveTimer: null,
@@ -1744,6 +1752,36 @@ y2 %4 [kick] yt
         });
       },
 
+      initJapaneseToggle() {
+        let hidden = false;
+        try {
+          hidden = localStorage.getItem("stageJapaneseHidden") === "1";
+        } catch (err) {
+          hidden = false;
+        }
+        this.setJapaneseHidden(hidden, false);
+      },
+
+      setJapaneseHidden(hidden, persist = true) {
+        this.japaneseHidden = hidden;
+        document.body.classList.toggle("japanese-hidden", hidden);
+        document.querySelectorAll("[data-stage-action='toggle-japanese']").forEach(btn => {
+          btn.textContent = hidden ? "Show Japanese" : "Hide Japanese";
+          btn.setAttribute("aria-pressed", String(hidden));
+        });
+        if (persist) {
+          try {
+            localStorage.setItem("stageJapaneseHidden", hidden ? "1" : "0");
+          } catch (err) {
+            // Ignore storage failures during local file previews.
+          }
+        }
+      },
+
+      toggleJapanese() {
+        this.setJapaneseHidden(!this.japaneseHidden);
+      },
+
       runReplCommand(cmd) {
         const clean = cmd.trim();
         if (!clean) return;
@@ -1864,6 +1902,7 @@ y2 %4 [kick] yt
         if (action === "boot") window.SkredStage.boot();
         if (action === "mute") window.SkredStage.toggleMute();
         if (action === "toggle-repl") window.SkredStage.toggleRepl();
+        if (action === "toggle-japanese") window.SkredStage.toggleJapanese();
         if (action === "repl-done") window.SkredStage.hideRepl();
         if (action === "repl-clear") window.SkredStage.clearRepl();
         if (action === "panic") window.SkredStage.stop();
@@ -1877,6 +1916,8 @@ y2 %4 [kick] yt
         if (targetId) window.SkredStage.renderLog(targetId, log);
       }
     });
+
+    window.SkredStage.initJapaneseToggle();
 
     document.addEventListener("input", event => {
       const slider = event.target.closest("[data-stage-action='dw-slider']");

@@ -195,6 +195,13 @@
       line-height: 1.35;
     }
 
+    .node .jp-subline {
+      margin-top: 0.45em;
+      font-size: 0.76em;
+      font-weight: 500;
+      line-height: 1.28;
+    }
+
     .node .line-count {
       display: inline-block;
       margin-top: 12px;
@@ -246,6 +253,14 @@
       margin-top: 10px;
       color: #64748b;
       font: 0.4em/1.35 "Fira Code", monospace;
+    }
+
+    figcaption .jp-subline {
+      margin-top: 0.22em;
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 0.92em;
+      font-weight: 500;
+      line-height: 1.3;
     }
 
     .logo-image {
@@ -363,6 +378,40 @@
       margin-top: 18px !important;
     }
 
+    .jp-subline {
+      display: block;
+      margin-top: 0.22em;
+      color: #64748b;
+      font-size: 0.42em;
+      font-weight: 600;
+      line-height: 1.22;
+    }
+
+    .subtitle .jp-subline {
+      margin-top: 0.34em;
+      font-size: 0.58em;
+      font-weight: 500;
+      line-height: 1.32;
+    }
+
+    .jp-inline {
+      display: inline-block;
+      margin-left: 0.45em;
+      color: #64748b;
+      font-size: 0.52em;
+      font-weight: 600;
+      line-height: 1.1;
+      vertical-align: baseline;
+    }
+
+    .eyebrow .jp-inline {
+      margin-left: 0.6em;
+      color: #64748b;
+      font-size: 0.92em;
+      font-weight: 600;
+      text-transform: none;
+    }
+
     .svg-stage {
       width: 100%;
       box-sizing: border-box;
@@ -397,8 +446,8 @@
     }
 
     .symbol-card {
-      min-height: 122px;
-      padding: 18px;
+      min-height: 104px;
+      padding: 14px;
       border: 2px solid #17202a;
       border-radius: 4px;
       background: #ffffff;
@@ -409,7 +458,7 @@
       display: block;
       color: #111827;
       font: 800 0.84em "Fira Code", monospace;
-      margin-bottom: 0.45em;
+      margin-bottom: 0.32em;
     }
 
     .symbol-card span {
@@ -417,6 +466,13 @@
       color: var(--ink-soft);
       font-size: 0.48em;
       line-height: 1.3;
+    }
+
+    .symbol-card .jp-subline {
+      margin-top: 0.2em;
+      font-size: 0.86em;
+      font-weight: 500;
+      line-height: 1.25;
     }
 
     .symbol-card .courier-symbol {
@@ -443,11 +499,32 @@
 
     .qr-with-icon {
       display: grid;
-      grid-template-columns: minmax(240px, 360px) minmax(120px, 180px);
-      gap: 28px;
-      align-items: end;
-      width: min(100%, 620px);
+      grid-template-columns: minmax(260px, 340px) minmax(360px, 460px);
+      gap: 34px;
+      align-items: center;
+      width: min(100%, 840px);
       margin-top: 26px;
+    }
+
+    .qr-frame {
+      width: min(100%, 320px);
+      box-sizing: border-box;
+      padding: 14px;
+      border: 2px solid #17202a;
+      border-radius: 4px;
+      background: #ffffff;
+      box-shadow: 0 10px 28px rgb(15 23 42 / 0.06);
+    }
+
+    .qr-image {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: contain;
+      image-rendering: pixelated;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
     }
 
     .qr-side-icon {
@@ -465,6 +542,7 @@
       display: flex;
       gap: 12px;
       align-items: center;
+      justify-content: center;
     }
 
     .qr-heart {
@@ -591,6 +669,17 @@
       width: min(100%, 980px);
       margin-top: 28px;
       align-items: center;
+    }
+
+    .link-octetta-logo {
+      display: block;
+      width: min(100%, 440px);
+      max-height: 24vh;
+      object-fit: contain;
+      margin: 0 auto 20px;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
     }
 
     .ack-card {
@@ -929,12 +1018,11 @@
         <div class="media-split">
           <div>
             <p class="eyebrow">Tokyo ADC 2026</p>
-            <h1>BEEPS and PORTS</h1>
-            <p class="subtitle">How to annoy everyone in your house while building an audio synthesizer.</p>
+            <h1>BEEPS and PORTS<span class="jp-subline">ビープ音とポート</span></h1>
+            <p class="subtitle">How to annoy everyone in your house while building an audio synthesizer.<span class="jp-subline">家中のみんなにうるさがられつつ、オーディオシンセサイザーを作る方法。</span></p>
           </div>
           <figure class="stage-figure">
             <img class="stage-image transparent-art" src="skred-octopus-transparent.png" alt="Skred octopus illustration">
-            <figcaption>Skred: too many arms, exactly enough ports.</figcaption>
           </figure>
         </div>
       </section>
@@ -942,8 +1030,8 @@
       <section data-cue="soft">
         <div class="media-split">
           <div>
-            <p class="eyebrow">background</p>
-            <h2>Small machines. Immediate sound.</h2>
+            <p class="eyebrow">background<span class="jp-inline">背景</span></p>
+            <h2>Small machines. Immediate sound.<span class="jp-inline">小さなマシン。すぐ鳴る音。</span></h2>
             <img class="slide-icon below-text-left" src="beeps-and-ports-sprites/beeps-and-ports-01.png" alt="">
           </div>
           <figure class="stage-figure">
@@ -959,8 +1047,8 @@
       <section class="icon-frame" data-cue="soft">
         <img class="slide-icon low-corner" src="beeps-and-ports-sprites/beeps-and-ports-03.png" alt="">
         <img class="slide-icon lower-left" src="beeps-and-ports-sprites/beeps-and-ports-10.png" alt="">
-        <p class="eyebrow">the itch</p>
-        <h2>I wanted command-line immediacy for sound.</h2>
+        <p class="eyebrow">the itch<span class="jp-inline">きっかけ</span></p>
+        <h2>I wanted command-line immediacy for sound.<span class="jp-inline">音にもコマンドラインの即時性がほしかった。</span></h2>
         <aside class="notes">
           For years, I wanted a simple way to play with sound without booting a giant tool or wiring together a whole environment first. This is influenced by old PC sound hardware, 80s analog and digital synthesizers, command prompts, tiny notations, and the pleasant danger of making something immediate enough to surprise me.
         </aside>
@@ -968,13 +1056,13 @@
 
       <section class="icon-frame" data-cue="tick">
         <img class="slide-icon lower-left" src="beeps-and-ports-sprites/beeps-and-ports-04.png" alt="">
-        <p class="eyebrow">why terse text?</p>
-        <h2>Small symbols become tools.</h2>
+        <p class="eyebrow">why terse text?<span class="jp-inline">なぜ短いテキスト？</span></p>
+        <h2>Small symbols become tools.<span class="jp-inline">小さな記号が道具になる。</span></h2>
         <div class="symbol-grid">
-          <div class="symbol-card"><b>Hg</b><span>chemistry</span></div>
-          <div class="symbol-card"><b>&sum;</b><span>math</span></div>
-          <div class="symbol-card"><b>&#9833;</b><span>music</span></div>
-          <div class="symbol-card"><b class="courier-symbol">ls</b><span>shell</span></div>
+          <div class="symbol-card"><b>Hg</b><span>chemistry<span class="jp-subline">化学</span></span></div>
+          <div class="symbol-card"><b>&sum;</b><span>math<span class="jp-subline">数学</span></span></div>
+          <div class="symbol-card"><b>&#9833;</b><span>music<span class="jp-subline">音楽</span></span></div>
+          <div class="symbol-card"><b class="courier-symbol">ls</b><span>shell<span class="jp-subline">シェル</span></span></div>
           <div class="symbol-card"><b>v0 w10</b><span>SKODE</span></div>
         </div>
         <aside class="notes">
@@ -984,8 +1072,8 @@
 
       <section data-cue="tick">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-05.png" alt="">
-        <p class="eyebrow">the stack</p>
-        <h2>Text -&gt; engine -&gt; speakers</h2>
+        <p class="eyebrow">the stack<span class="jp-inline">構成</span></p>
+        <h2>Text -&gt; engine -&gt; speakers<span class="jp-inline">テキスト -&gt; エンジン -&gt; スピーカー</span></h2>
         <div class="svg-stage bare">
           <svg viewBox="0 0 1060 300" role="img" aria-label="SKODE to Skred to Pulp to Speakers">
             <defs>
@@ -1002,12 +1090,16 @@
             <path d="M 798 136 H 834" stroke="#047857" stroke-width="4" marker-end="url(#arrowhead)"></path>
             <text x="128" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">SKODE</text>
             <text x="128" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">ASCII control</text>
+            <text x="128" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">ASCII制御</text>
             <text x="404" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Skred</text>
             <text x="404" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">runtime shell</text>
+            <text x="404" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">実行シェル</text>
             <text x="680" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Pulp</text>
             <text x="680" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">audio engine</text>
+            <text x="680" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">オーディオエンジン</text>
             <text x="944" y="118" text-anchor="middle" fill="#111827" font-family="Fira Code, monospace" font-size="34" font-weight="700">Air</text>
             <text x="944" y="158" text-anchor="middle" fill="#586676" font-family="Inter, sans-serif" font-size="20">speakers move</text>
+            <text x="944" y="184" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="16" font-weight="600">スピーカーを鳴らす</text>
           </svg>
         </div>
         <aside class="notes">
@@ -1017,9 +1109,9 @@
 
       <section data-cue="code">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-06.png" alt="">
-        <p class="eyebrow">stack block 1</p>
+        <p class="eyebrow">stack block 1<span class="jp-inline">構成要素 1</span></p>
         <h2>SKODE</h2>
-        <p class="subtitle">ASCII shorthand for changing sound without ceremony.</p>
+        <p class="subtitle">ASCII shorthand for changing sound without ceremony.<span class="jp-subline">音を手早く変えるためのASCII略記。</span></p>
         <figure class="stage-figure">
           <img class="stage-image skode-conductor transparent-art" src="skode-conductor-baton-transparent.png" alt="Hand waving a conductor baton toward sound waves">
         </figure>
@@ -1032,9 +1124,9 @@
         <img class="slide-icon lower-left" src="beeps-and-ports-sprites/beeps-and-ports-03.png" alt="">
         <div class="media-split">
           <div>
-            <p class="eyebrow">stack block 2</p>
+            <p class="eyebrow">stack block 2<span class="jp-inline">構成要素 2</span></p>
             <h2>Skred</h2>
-            <p class="subtitle">The shell where terse text becomes engine state.</p>
+            <p class="subtitle">The shell where terse text becomes engine state.<span class="jp-subline">短いテキストがエンジンの状態になるシェル。</span></p>
           </div>
           <figure class="stage-figure">
             <img class="logo-image" src="https://raw.githubusercontent.com/octetta/skred/master/docs/skred.svg" alt="Skred logo">
@@ -1048,8 +1140,8 @@
 
       <section data-cue="low">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-08.png" alt="">
-        <p class="eyebrow">voice engine</p>
-        <h2>One voice is a signal path.</h2>
+        <p class="eyebrow">voice engine<span class="jp-inline">ボイスエンジン</span></p>
+        <h2>One voice is a signal path.<span class="jp-inline">ひとつのボイスは信号経路。</span></h2>
         <div class="svg-stage bare">
           <svg viewBox="0 0 1080 470" role="img" aria-label="Simplified Pulp voice engine diagram">
             <defs>
@@ -1058,7 +1150,7 @@
               </marker>
             </defs>
             <g fill="#ffffff" stroke="#17202a" stroke-width="4">
-              <rect x="52" y="194" width="145" height="82" rx="6"></rect>
+              <rect x="52" y="184" width="145" height="102" rx="6"></rect>
               <rect x="252" y="194" width="145" height="82" rx="6"></rect>
               <rect x="452" y="194" width="145" height="82" rx="6"></rect>
               <rect x="652" y="194" width="145" height="82" rx="6"></rect>
@@ -1081,17 +1173,27 @@
               <path d="M 724 352 V 288"></path>
             </g>
             <g fill="#111827" font-family="Fira Code, monospace" font-size="24" font-weight="700" text-anchor="middle">
-              <text x="124" y="228">wave</text>
-              <text x="124" y="255">table</text>
+              <text x="124" y="222">wave</text>
+              <text x="124" y="249">table</text>
+              <text x="124" y="272" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">波形テーブル</text>
               <text x="324" y="244">freq</text>
+              <text x="324" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">周波数</text>
               <text x="524" y="244">filter</text>
+              <text x="524" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">フィルター</text>
               <text x="724" y="244">envelope</text>
+              <text x="724" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">エンベロープ</text>
               <text x="924" y="244">pan/out</text>
+              <text x="924" y="266" fill="#64748b" font-family="Inter, sans-serif" font-size="15" font-weight="600">定位/出力</text>
               <text x="324" y="91">FM</text>
+              <text x="324" y="108" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">周波数変調</text>
               <text x="524" y="91">filt mod</text>
+              <text x="524" y="108" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">フィルター変調</text>
               <text x="724" y="91">ADSR</text>
+              <text x="724" y="108" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">ADSR</text>
               <text x="124" y="394">phase</text>
+              <text x="124" y="411" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">位相</text>
               <text x="724" y="394">AM</text>
+              <text x="724" y="411" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="600">振幅変調</text>
             </g>
           </svg>
         </div>
@@ -1104,8 +1206,8 @@
         <img class="slide-icon bottom-right" src="beeps-and-ports-sprites/beeps-and-ports-09.png" alt="">
         <div class="media-split">
           <div>
-            <p class="eyebrow">stack block 4</p>
-            <h2>Speakers</h2>
+            <p class="eyebrow">stack block 4<span class="jp-inline">構成要素 4</span></p>
+            <h2>Speakers<span class="jp-inline">スピーカー</span></h2>
             <div class="stage-actions">
               <button class="stage-btn cueable" type="button" data-skode="S0 v0 w0 f440 a5 l1">Audition</button>
               <button class="stage-btn secondary cueable" type="button" data-skode="S0">Stop</button>
@@ -1122,8 +1224,8 @@
         <img class="slide-icon lower-left" src="beeps-and-ports-sprites/beeps-and-ports-07.png" alt="">
         <div class="media-split">
           <div>
-            <p class="eyebrow">isolation and safety</p>
-            <h2>Small parts are easier to restart.</h2>
+            <p class="eyebrow">isolation and safety<span class="jp-inline">分離と安全性</span></p>
+            <h2>Small parts are easier to restart.<span class="jp-inline">小さな部品は再起動しやすい。</span></h2>
           </div>
           <figure class="stage-figure">
             <div class="svg-stage bare">
@@ -1186,8 +1288,8 @@
 
       <section class="icon-frame" data-cue="warm">
         <img class="slide-icon bottom-right" src="beeps-and-ports-sprites/beeps-and-ports-11.png" alt="">
-        <p class="eyebrow">enough excuses</p>
-        <h2>Make sound. Change sound. Stop sound.</h2>
+        <p class="eyebrow">enough excuses<span class="jp-inline">言い訳はここまで</span></p>
+        <h2>Make sound. Change sound. Stop sound.<span class="jp-inline">音を作る。変える。止める。</span></h2>
         <div class="stage-actions">
           <button class="stage-btn cueable" type="button" data-skode="S0 v0 w0 f440 a0 t 0 1 0 0 l1">Make a sound</button>
           <button class="stage-btn cueable" type="button" data-skode="S0 v0 w0 f880 a0 t 0 1 0 0 l1">One octave up</button>
@@ -1201,8 +1303,8 @@
 
       <section class="icon-frame narrow-cell-slide" data-cue="code">
         <img class="slide-icon bottom-right" src="beeps-and-ports-sprites/beeps-and-ports-06.png" alt="">
-        <p class="eyebrow">tiny protocol</p>
-        <h2>Short commands change live state.</h2>
+        <p class="eyebrow">tiny protocol<span class="jp-inline">小さなプロトコル</span></p>
+        <h2>Short commands change live state.<span class="jp-inline">短いコマンドがライブ状態を変える。</span></h2>
         <div class="notebook-cell">
           <code class="big-code">v0 w0 f220 a0.8
 v1 m1 f6
@@ -1223,8 +1325,8 @@ v0 F1,40</code>
         <img class="slide-icon lower-left" src="beeps-and-ports-sprites/beeps-and-ports-13.png" alt="">
         <div class="media-split">
           <div>
-            <p class="eyebrow">k-synth</p>
-            <h2>Arrays can become sound.</h2>
+            <p class="eyebrow">k-synth<span class="jp-inline">k-synth</span></p>
+            <h2>Arrays can become sound.<span class="jp-inline">配列を音にできる。</span></h2>
           </div>
           <figure class="stage-figure">
             <img class="stage-image" src="https://raw.githubusercontent.com/octetta/k-synth/main/ksynth.png" alt="k-synth logo">
@@ -1240,8 +1342,8 @@ v0 F1,40</code>
         <img class="slide-icon bottom-right" src="beeps-and-ports-sprites/beeps-and-ports-18.png" alt="">
         <div class="media-split">
           <div>
-            <p class="eyebrow">sk/dw8k-01.ks -&gt; W10</p>
-            <h2>The first DW-8000 wave is seven lines of text.</h2>
+            <p class="eyebrow">sk/dw8k-01.ks -&gt; W10<span class="jp-inline">テキストから波形へ</span></p>
+            <h2>The first DW-8000 wave is seven lines of text.<span class="jp-inline">最初のDW-8000波形は7行のテキスト。</span></h2>
             <div class="notebook-cell">
               <code class="big-code">/ DW-8000 Wave 01: strings
 / Perfect 1/h sawtooth. All 32 harmonics.
@@ -1258,7 +1360,7 @@ W: w P $ A</code>
           </div>
           <figure class="stage-figure">
             <img class="stage-image compact-portrait" src="korg-joe.jpg" alt="Joe with Korg synthesizer">
-            <figcaption>the Korg obsession, made textual</figcaption>
+            <figcaption>the Korg obsession, made textual<span class="jp-subline">Korgへのこだわりをテキストにする</span></figcaption>
           </figure>
         </div>
         <aside class="notes">
@@ -1268,8 +1370,8 @@ W: w P $ A</code>
 
       <section class="icon-frame" data-cue="warm">
         <img class="slide-icon bottom-right" src="beeps-and-ports-sprites/beeps-and-ports-15.png" alt="">
-        <p class="eyebrow">808 ghosts in text files</p>
-        <h2>Tiny patches make drum sounds.</h2>
+        <p class="eyebrow">808 ghosts in text files<span class="jp-inline">テキストに宿る808</span></p>
+        <h2>Tiny patches make drum sounds.<span class="jp-inline">小さなパッチがドラム音を作る。</span></h2>
         <div class="diagram">
           <div class="node">
             <b>sk/drums-kick.ks</b>
@@ -1300,8 +1402,8 @@ W: w P $ A</code>
 
       <section class="icon-frame" data-cue="code">
         <img class="slide-icon lower-left" src="beeps-and-ports-sprites/beeps-and-ports-14.png" alt="">
-        <p class="eyebrow">deferred execution</p>
-        <h2>SKODE can schedule its own future.</h2>
+        <p class="eyebrow">deferred execution<span class="jp-inline">遅延実行</span></p>
+        <h2>SKODE can schedule its own future.<span class="jp-inline">SKODEは先の実行を予約できる。</span></h2>
         <div class="notebook-cell">
           <code class="big-code">~1 v12l1 ~1 v12l1 ~1 v12l1
 v10l2 +.5 v11l2</code>
@@ -1313,8 +1415,8 @@ v10l2 +.5 v11l2</code>
 
       <section data-cue="code">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-17.png" alt="">
-        <p class="eyebrow">patterns</p>
-        <h2>Patterns make timed chunks reusable.</h2>
+        <p class="eyebrow">patterns<span class="jp-inline">パターン</span></p>
+        <h2>Patterns make timed chunks reusable.<span class="jp-inline">パターンで時間指定したまとまりを再利用する。</span></h2>
         <div class="notebook-cell">
           <code class="big-code">y0
 [v10l2 +.5 v10l1] x0
@@ -1328,8 +1430,8 @@ Z1</code>
 
       <section class="icon-frame narrow-code-slide" data-cue="code">
         <img class="slide-icon bottom-right" src="beeps-and-ports-sprites/beeps-and-ports-16.png" alt="">
-        <p class="eyebrow">909.sk</p>
-        <h2>One file can build a groove.</h2>
+        <p class="eyebrow">909.sk<span class="jp-inline">909.sk</span></p>
+        <h2>One file can build a groove.<span class="jp-inline">ひとつのファイルでグルーヴを作る。</span></h2>
         <code class="big-code">/w24,303
 [sk/drums-snare.ks]/ks wait 250 k&gt;d d&gt;r /r300
 [sk/drums-kick.ks]/ks wait 250 k&gt;d d&gt;r /r301
@@ -1349,24 +1451,24 @@ y2 %4 [kick] yt
 
       <section class="icon-frame" data-cue="demo">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-12.png" alt="">
-        <p class="eyebrow">friends</p>
-        <h2>External programs &rarr; SKODE.</h2>
+        <p class="eyebrow">friends<span class="jp-inline">仲間たち</span></p>
+        <h2>External programs &rarr; SKODE.<span class="jp-inline">外部プログラム &rarr; SKODE。</span></h2>
         <div class="demo-grid">
           <figure class="demo-card">
             <img src="sk8-pad.png" alt="Drum pad application talking to Skred">
-            <figcaption>drum pad</figcaption>
+            <figcaption>drum pad<span class="jp-subline">ドラムパッド</span></figcaption>
           </figure>
           <figure class="demo-card">
             <img src="midi-sk8.png" alt="MIDI to SKODE translator">
-            <figcaption>MIDI -&gt; SKODE</figcaption>
+            <figcaption>MIDI -&gt; SKODE<span class="jp-subline">MIDIからSKODEへ</span></figcaption>
           </figure>
           <figure class="demo-card">
             <img src="sk8r.png" alt="Multi-slider GUI controlling Skred">
-            <figcaption>multi-slider GUI</figcaption>
+            <figcaption>multi-slider GUI<span class="jp-subline">マルチスライダーGUI</span></figcaption>
           </figure>
           <figure class="demo-card">
             <img src="rototem.png" alt="Looping application controlling Skred">
-            <figcaption>looper</figcaption>
+            <figcaption>looper<span class="jp-subline">ルーパー</span></figcaption>
           </figure>
         </div>
         <aside class="notes">
@@ -1376,20 +1478,20 @@ y2 %4 [kick] yt
 
       <section class="icon-frame" data-cue="soft">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-06.png" alt="">
-        <p class="eyebrow">friends</p>
-        <h2>Skred can run in the browser.</h2>
+        <p class="eyebrow">friends<span class="jp-inline">仲間たち</span></p>
+        <h2>Skred can run in the browser.<span class="jp-inline">Skredはブラウザでも動く。</span></h2>
         <div class="friend-grid">
           <figure class="friend-card">
             <img src="wasm-skred.png" alt="WASM build of Skred running in a browser">
-            <figcaption>Skred WASM</figcaption>
+            <figcaption>Skred WASM<span class="jp-subline">SkredのWASM版</span></figcaption>
           </figure>
           <figure class="friend-card">
             <img src="learn-skred.png" alt="learn-skred page using browser Skred">
-            <figcaption>learn-skred</figcaption>
+            <figcaption>learn-skred<span class="jp-subline">学習ページ</span></figcaption>
           </figure>
           <figure class="friend-card">
             <img src="tokyo-adc-wasm.png" alt="This presentation using the Skred WASM module">
-            <figcaption>this deck</figcaption>
+            <figcaption>this deck<span class="jp-subline">この発表デッキ</span></figcaption>
           </figure>
         </div>
         <aside class="notes">
@@ -1399,8 +1501,8 @@ y2 %4 [kick] yt
 
       <section data-cue="soft">
         <img class="slide-icon" src="beeps-and-ports-sprites/beeps-and-ports-08.png" alt="">
-        <p class="eyebrow">what exists now?</p>
-        <h2>The protocol is the instrument.</h2>
+        <p class="eyebrow">what exists now?<span class="jp-inline">今あるもの</span></p>
+        <h2>The protocol is the instrument.<span class="jp-inline">プロトコルそのものが楽器。</span></h2>
         <aside class="notes">
           What exists now: macros, patterns, generated drums, file-backed patches, and browser/native runtimes. The interesting part is not one synth. It is a small protocol surface that can sit between text files, generated tables, samples, runtimes, instruments, and humans. That is why the protocol itself starts to feel like the instrument.
         </aside>
@@ -1408,8 +1510,8 @@ y2 %4 [kick] yt
 
       <section class="icon-frame" data-cue="soft">
         <img class="slide-icon bottom-right" src="beeps-and-ports-sprites/beeps-and-ports-19-heart.png" alt="">
-        <p class="eyebrow">acknowledgements</p>
-        <h2>Thanks for the long and lovely journey...</h2>
+        <p class="eyebrow">acknowledgements<span class="jp-inline">謝辞</span></p>
+        <h2>Thanks for the long and lovely journey...<span class="jp-inline">長く楽しい旅をありがとう...</span></h2>
         <div class="ack-grid">
           <figure class="ack-card">
             <img src="adc-logo.png" alt="Audio Developer Conference logo">
@@ -1446,20 +1548,20 @@ y2 %4 [kick] yt
       </section>
 
       <section class="icon-frame" data-cue="end">
-        <p class="eyebrow">links</p>
-        <h2>FIND ME, clone it, crash it, make it louder.</h2>
+        <p class="eyebrow">links<span class="jp-inline">リンク</span></p>
+        <h2>FIND ME, clone it, crash it, make it louder.<span class="jp-inline">見つけて、クローンして、クラッシュさせて、もっと大きな音に。</span></h2>
         <div class="qr-with-icon">
-          <div class="qr-grid single-qr">
-            <div class="qr-card">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;margin=10&amp;data=https%3A%2F%2Fgithub.com%2Foctetta" alt="QR code for the Octetta GitHub organization">
-              <b>octetta \ github.com/octetta</b>
-            </div>
+          <div class="qr-frame">
+            <img class="qr-image" src="learn-octetta-qrcode.png" alt="QR code for Octetta">
           </div>
-          <div class="qr-side-icons">
-            <img class="qr-side-icon" src="beeps-and-ports-sprites/beeps-and-ports-19.png" alt="">
-            <img class="qr-side-icon" src="beeps-and-ports-sprites/beeps-and-ports-10.png" alt="">
-            <span class="qr-heart" aria-hidden="true">&hearts;</span>
-            <img class="qr-side-icon honored" src="purple-friend.png" alt="">
+          <div>
+            <img class="link-octetta-logo" src="logo.svg" alt="Octetta logo">
+            <div class="qr-side-icons">
+              <img class="qr-side-icon" src="beeps-and-ports-sprites/beeps-and-ports-19.png" alt="">
+              <img class="qr-side-icon" src="beeps-and-ports-sprites/beeps-and-ports-10.png" alt="">
+              <span class="qr-heart" aria-hidden="true">&hearts;</span>
+              <img class="qr-side-icon honored" src="purple-friend.png" alt="">
+            </div>
           </div>
         </div>
         <aside class="notes">

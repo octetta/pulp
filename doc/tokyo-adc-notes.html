@@ -278,37 +278,37 @@
         eyebrow: "the stack",
         title: "Text -> engine -> speakers",
         cue: "SKODE -> Skred -> Pulp -> speakers.",
-        notes: "SKODE is the compact ASCII shorthand. Skred is the runtime shell, native or in the browser. Pulp is the C audio engine underneath it: voices, buffers, tables, filters, modulators, samples. The speakers are where all the architecture stops being abstract. The more poetic version is: text becomes state, and state becomes air pressure."
+        notes: "This is the four-part stack. SKODE is the terse ASCII command surface, parsed by ANDS. skred is the REPL/runtime where those commands become state changes. PULP is the C audio engine underneath it: voices, buffers, tables, filters, modulators, samples. Air is the final output, where state changes become speaker motion."
       },
       {
         eyebrow: "stack block 1",
         title: "SKODE",
         cue: "Example: v0 w0 f220 a0.8, v1 m1 f6, v0 F1,40.",
-        notes: "ASCII shorthand for changing sound without ceremony. The slide image replaces the literal SKODE block with a more visual idea: a hand waving a conductor's baton becomes controlled motion on the right. The important thing is not memorizing every symbol; it is that the text is short enough to type live and direct enough to change the running engine."
+        notes: "SKODE is the text vocabulary, and ANDS is the parser that makes it usable with very little syntax. Emphasize state changes rather than only sound changes: a short ASCII gesture can set a voice, schedule a hit, load a table, or alter a running patch quickly enough to feel playable."
       },
       {
         eyebrow: "stack block 2",
-        title: "Skred",
+        title: "skred",
         cue: "The shell/runtime layer.",
-        notes: "Skred is the runtime playground: native process, browser sandbox, and a shell-like place to load patches, run commands, and restart when I do something adventurous."
+        notes: "skred is the REPL/runtime playground: native process, browser sandbox, and a place to load patches, run commands, inspect behavior, and restart when I do something adventurous."
       },
       {
-        eyebrow: "Pulp voice engine",
-        title: "One voice is a signal path.",
+        eyebrow: "stack block 3",
+        title: "PULP: one voice is a signal path. Many voices.",
         cue: "Use the diagram as the mental model, not a full spec.",
-        notes: "This is the stage-friendly version of one Pulp voice from the voice structure diagram in learn.html. Pulp runs many voices; each voice is a small signal path with places to interfere. The full version includes more details, but the mental model is enough here: a waveform table is read at a frequency, shaped by filters and envelopes, then panned to output. Other voices can interfere through FM, AM, pan modulation, phase distortion, and filter modulation."
+        notes: "This is the stage-friendly version of one PULP voice from the voice structure diagram in learn.html. One voice is a small signal path with places to interfere, and PULP runs many voices at once. The full version includes more details, but the mental model is enough here: a waveform table is read at a frequency, shaped by filters and envelopes, then panned to output. Other voices can interfere through FM, AM, pan modulation, phase distortion, and filter modulation."
       },
       {
         eyebrow: "stack block 4",
-        title: "Speakers",
+        title: "Air (AKA speakers)",
         cue: "Audition button available on the laptop.",
-        notes: "miniaudio is the small cross-platform layer that gets samples to the device. This is the point where the engine stops being internal state and becomes samples sent to real hardware."
+        notes: "This is the deliberately physical end of the stack: not another software box, just air. miniaudio is the practical bridge to the device, and the speakers are where all the careful state changes become pressure waves people can actually hear."
       },
       {
-        eyebrow: "isolation and safety",
+        eyebrow: "PORTS: isolation and safety",
         title: "Small parts are easier to restart.",
         cue: "Architecture as a safety strategy.",
-        notes: "The safety strategy is architectural. Keep the audio engine small and sharp, then isolate it behind pipes, network ports, browser sandboxes, and process boundaries. Ports reduce the blast radius: easy to start, easy to kill, easy to restart. If Skred dies from a bad command, the host can kill it and spin it back up. The point is not that crashes are good; the point is that the blast radius is contained and recovery is cheap."
+        notes: "PORTS is the safety story: isolate the live runtime behind pipes, network ports, browser sandboxes, and process boundaries. The right-side block is intentionally just audio and speakers; the engine work is inside the isolated runtime. Ports reduce the blast radius: easy to start, easy to kill, easy to restart. If skred dies from a bad command, the host can kill it and spin it back up. The point is not that crashes are good; the point is that the blast radius is contained and recovery is cheap."
       },
       {
         eyebrow: "enough excuses",
@@ -344,31 +344,31 @@
         eyebrow: "deferred execution",
         title: "SKODE can schedule its own future.",
         cue: "Use the loaded drum voices: cowbell scheduling, then kick/snare timing.",
-        notes: "Deferred execution is not just a pattern feature. It works anywhere SKODE is parsed: from a button, from a file, or directly in the REPL. After the drum voices are loaded, the first line schedules three cowbell hits with repeated ~1 delays. The second line triggers the kick, then uses +.5 to place the snare after it."
+        notes: "Deferred execution is not just a pattern feature. It works anywhere SKODE is parsed: from a button, from a file, or directly in the REPL. After the drum voices are loaded on the previous slide, use Absolute to run the first line: three cowbell hits at explicit delays. Then use Clock relative to run the second line: a kick now, with a snare placed relative to it by +.5. These buttons intentionally do not reset the voices."
       },
       {
         eyebrow: "patterns",
         title: "Patterns make timed chunks reusable.",
         cue: "Patterns install reusable timed steps.",
-        notes: "Patterns are step sequences. y0 selects pattern 0, bracketed SKODE is stored into steps with x0 and x1, and Z1 starts the pattern clock. Deferred commands inside a step let a single step contain timing, not just a single trigger."
+        notes: "Patterns are step sequences. y0 selects pattern 0, bracketed SKODE is stored into steps with x0 and x1, and Z1 starts the pattern clock. Use Start to run the whole displayed block, then Stop to send Z0 and halt the pattern clock. Deferred commands inside a step let a single step contain timing, not just a single trigger."
       },
       {
         eyebrow: "909.sk",
         title: "One file can build a groove.",
         cue: "Load 909, start patterns, stop patterns.",
-        notes: "This is the bigger patch-file version: a patch file can load samples, generate drums, define voices, and install patterns. Sample slots, generated drums, named chunks, voice setup, and pattern installation live in one text file. The demo point is that SKODE is not only a REPL trick; it can be saved, loaded, and reused."
+        notes: "This is the bigger patch-file version: a patch file can load samples, generate drums, define voices, and install patterns. Load reads the 909 patch, Start starts the pattern clock, and Stop stops the clock and the patch voice group. The demo point is that SKODE is not only a REPL trick; it can be saved, loaded, and reused."
       },
       {
         eyebrow: "friends",
-        title: "External programs can talk SKODE to Skred.",
+        title: "External programs -> SKODE.",
         cue: "Mention the external controllers quickly.",
-        notes: "The live demo is not only typing commands into this deck. The useful boundary is that Skred accepts SKODE from outside programs too: a drum pad interface, a MIDI-to-SKODE translator, a multi-slider control GUI, and a looping app can all speak the same terse command surface."
+        notes: "The live demo is not only typing commands into this deck. The useful boundary is that skred accepts SKODE from outside programs too: a drum pad interface, a MIDI-to-SKODE translator, a multi-slider control GUI, and a looping app can all speak the same terse command surface."
       },
       {
         eyebrow: "friends",
-        title: "Skred can run in the browser.",
+        title: "skred can run in the browser.",
         cue: "Point from native Skred to WASM Skred, learn-skred, and this deck.",
-        notes: "This is the other friend page: Skred is not only a native shell. The same engine can be compiled with Emscripten into a WASM build and loaded by a browser page. That is what powers the browser Skred page, the learn-skred page, and this presentation's live audio controls. The point is that the same SKODE surface can move between a local runtime, web demos, teaching pages, and slides."
+        notes: "This is the other friend page: skred is not only a native shell. The same engine can be compiled with Emscripten into a WASM build and loaded by a browser page. That is what powers the browser skred page, the learn-skred page, and this presentation's live audio controls. The point is that the same SKODE surface can move between a local runtime, web demos, teaching pages, and slides."
       },
       {
         eyebrow: "what exists now?",
@@ -378,15 +378,27 @@
       },
       {
         eyebrow: "acknowledgements",
-        title: "Built in a long synth weather system.",
+        title: "Thanks for the long and lovely journey...",
         cue: "Acknowledge ADC, AMY, and the synth makers.",
-        notes: "Acknowledge the Audio Developer Conference for making a place for this kind of weird tool-building conversation. The logo grid is alphabetical: Audio Developer Conference, AMY project, Casio, Korg, Moog, Roland, and Sequential Circuits. These projects and synth makers shaped the sounds and interfaces in my head. Skred is its own odd little thing, but it exists inside that lineage."
+        notes: "Acknowledge the Audio Developer Conference for making a place for this kind of weird tool-building conversation. The logo grid is alphabetical: Audio Developer Conference, AMY project, Casio, Korg, Moog, Roland, and Sequential Circuits. These projects and synth makers shaped the sounds and interfaces in my head. skred is its own odd little thing, but it exists inside that lineage."
       },
       {
         eyebrow: "links",
-        title: "Clone it, crash it, make it louder.",
+        title: "FIND ME, clone it, crash it, make it louder.",
         cue: "Close with collaboration ask.",
         notes: "I built this because it is the tool I wanted to exist. I am looking for R&D collaborations, instrument design conversations, and people who like small sound machines enough to discuss protocol surfaces over drinks after the session."
+      },
+      {
+        eyebrow: "bonus: k-synth web app",
+        title: "Array playground, drum pad, and drum machine.",
+        cue: "Use only if there is extra time.",
+        notes: "Bonus slide if there is extra time. The k-synth web app is the hands-on version: a playground for trying array expressions, a drum pad, and a drum machine interface. Point the QR code at the live app and use the screenshot to orient people before they open it."
+      },
+      {
+        eyebrow: "bonus: minimidio",
+        title: "Easy MIDI (1.0)",
+        cue: "Use only if there is extra time.",
+        notes: "Bonus slide if there is extra time. Easy MIDI 1.0 is the small friendly version of the same interface idea: make MIDI control approachable without turning it into a giant application. Point the QR code at minimidio and use the screenshot to orient people before they open it."
       }
     ];
 

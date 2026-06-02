@@ -1599,6 +1599,13 @@ int skode_function(ands_t *s, int info) {
           qt += dt;
         }
       } break;
+    case ATOM4('DO?-'): // conditional-string-if-gt-zero number [tag]
+      if (argc && x>0) {
+        int tag = 0;
+        if (argc > 1) tag = (int)arg[1];
+        uint64_t qt = SAMPLE_COUNT_GET();
+        queue_item(qt, ands_string(ctx->parse), ctx->voice, tag);
+      } break;
     case ATOM4('R---'): // repeat-string count delay [tag]
       if (argc > 1) {
         uint64_t qt = SAMPLE_COUNT_GET();

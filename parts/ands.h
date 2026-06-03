@@ -27,6 +27,8 @@ enum {
 typedef struct ands_s ands_t;
 typedef uint32_t atom_t;
 
+#define ANDS_VAR_MAX (128)
+
 ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user);
 void ands_free(ands_t *s);
 int ands_consume(ands_t *s, char *line);

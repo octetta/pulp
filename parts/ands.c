@@ -16,7 +16,7 @@
  * number     = [-]?[0-9]+('.'[0-9]+)?([eE][-+]?[0-9]+)? | '.' | '-' | 'e'
  * string     = '{' [^}]* '}' ... migrating to [,] soon, but either work now
  * array      = '(' (number (',' | ' ')*)* ')'
- * variable   = '$' [0-9]
+ * variable   = '$' [0-9]{1,3}
  * defer      = ('+' | '~') number chunk
  * comment    = '#' [^\n;]* ('\n' | ';')
  * separator  = ' ' | ',' | '\t' | '\n' | '\r'
@@ -33,7 +33,7 @@
  * - Commas and spaces are interchangeable separators
  * - Bare '.', '-', or 'e' produce NaN (for future "default value" feature)
  * - Arguments can precede atoms (side effect): "440 f" works like "f440"
- * - Variables $0-$9 for value storage and recall
+ * - Variables $0-$127 for value storage and recall
  */
 
 #define IS_NUMBER(c) (isdigit(c) || strchr("-.", c))
@@ -60,10 +60,23 @@ static double ands_defer_time_clamp(double d) {
   return (d < 0.0) ? 0.0 : d;
 }
 
+static int ands_var_parse(char **ptr, char *end) {
+  int value = 0;
+  int digits = 0;
+
+  while (*ptr < end && digits < 3 && isdigit(**ptr)) {
+    value = (value * 10) + (**ptr - '0');
+    (*ptr)++;
+    digits++;
+  }
+
+  return digits ? value : -1;
+}
+
 #define ARG_MAX (8)
 #define ATOM_MAX (4)
 #define ATOM_NIL (0x2d2d2d2d)
-#define VAR_MAX (10)
+#define VAR_MAX (ANDS_VAR_MAX)
 
 // ============================================================================
 // UNIFIED BUFFER MANAGEMENT
@@ -366,13 +379,14 @@ int ands_consume(ands_t *s, char *line) {
 
             case GET_VARIABLE:
                 if (isdigit(*ptr)) {
-                    char c = *ptr;
-                    double d = s->global_var[c-'0'];
+                    int variable = ands_var_parse(&ptr, end);
+                    double d = ands_get_local(s, variable);
                     if (s->arg_len < s->arg_cap) {
                         s->arg[s->arg_len++] = d;
                     }
-                    if (s->trace) printf("# GET_VARIABLE %c (%g)\n", c, d);
+                    if (s->trace) printf("# GET_VARIABLE %d (%g)\n", variable, d);
                     s->state = START;
+                    ptr--;
                 } else {
                     if (s->trace) puts("# not a var");
                     s->state = START;
@@ -386,7 +400,9 @@ int ands_consume(ands_t *s, char *line) {
                 } else if (IS_VARIABLE(*ptr)) {
                     ptr++;
                     if (ptr < end && isdigit(*ptr)) {
-                        s->defer_num = ands_defer_time_clamp(s->global_var[*ptr-'0']);
+                        int variable = ands_var_parse(&ptr, end);
+                        s->defer_num = ands_defer_time_clamp(ands_get_local(s, variable));
+                        ptr--;
                     } else {
                         s->defer_num = 0.0;
                     }

@@ -14,6 +14,7 @@ typedef struct {
     char      data[KS_MAXLEN];
     int       len;
     int       writer;
+    uint64_t  seq;
 } KS_Slot;
 
 typedef struct {
@@ -32,7 +33,7 @@ typedef struct {
 extern KS_Bus ks_bus;
 
 void  ks_bus_init(void);
-int   ks_send(int writer, const char *cmd, int len);
-char *ks_recv(int *len, int *writer); /* blocks until a message arrives */
+int   ks_send(int writer, const char *cmd, int len, uint64_t seq);
+char *ks_recv(int *len, int *writer, uint64_t *seq); /* blocks until a message arrives */
 
 #endif

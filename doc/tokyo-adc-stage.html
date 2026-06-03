@@ -582,6 +582,17 @@
       box-shadow: 0 10px 28px rgb(15 23 42 / 0.06);
     }
 
+    .qr-link {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .qr-link:focus-visible {
+      outline: 4px solid var(--accent);
+      outline-offset: 6px;
+    }
+
     .qr-image {
       display: block;
       width: 100%;
@@ -1735,7 +1746,9 @@ y2 %4 [kick] yt
         <h2>FIND ME, clone it, crash it, make it louder.<span class="jp-inline">見つけて、クローンして、クラッシュさせて、もっと大きな音に。</span></h2>
         <div class="qr-with-icon">
           <div class="qr-frame">
-            <img class="qr-image" src="learn-octetta-qrcode.png" alt="QR code for Octetta">
+            <a class="qr-link" href="https://octetta.github.io/pulp/doc/learn.html" target="_blank" rel="noopener noreferrer" aria-label="Open the Octetta learning page">
+              <img class="qr-image" src="learn-octetta-qrcode.png" alt="QR code for Octetta">
+            </a>
           </div>
           <div>
             <img class="link-octetta-logo" src="logo.svg" alt="Octetta logo">
@@ -1758,7 +1771,9 @@ y2 %4 [kick] yt
         <h2>Array playground, drum pad, and drum machine.<span class="jp-inline">配列の遊び場、ドラムパッド、ドラムマシン。</span></h2>
         <div class="bonus-grid">
           <figure class="bonus-card qr">
-            <img src="qrcode-ksynth.png" alt="QR code for the k-synth web app">
+            <a class="qr-link" href="https://octetta.github.io/k-synth" target="_blank" rel="noopener noreferrer" aria-label="Open the k-synth web app">
+              <img src="qrcode-ksynth.png" alt="QR code for the k-synth web app">
+            </a>
             <figcaption>octetta.github.io/k-synth</figcaption>
           </figure>
           <figure class="bonus-card app-shot">
@@ -1777,7 +1792,9 @@ y2 %4 [kick] yt
         <h2>Easy MIDI (1.0)<span class="jp-inline">かんたんMIDI（1.0）</span></h2>
         <div class="bonus-grid">
           <figure class="bonus-card qr">
-            <img src="qrcode-minimidio.png" alt="QR code for the minimidio project">
+            <a class="qr-link" href="https://github.com/octetta/minimidio" target="_blank" rel="noopener noreferrer" aria-label="Open the minimidio project">
+              <img src="qrcode-minimidio.png" alt="QR code for the minimidio project">
+            </a>
             <figcaption>github.com/octetta/minimidio</figcaption>
           </figure>
           <figure class="bonus-card app-shot">

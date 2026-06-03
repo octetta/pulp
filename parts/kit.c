@@ -346,6 +346,8 @@ static char *doc_path = NULL;
 static FILE *doc_file = NULL;
 
 void handle_doc(char *line, FILE *in, const char *fname, int *lnum) {
+    (void)line;
+    (void)fname;
     char buf[4096];
     while (fgets(buf, sizeof(buf), in)) {
         (*lnum)++;

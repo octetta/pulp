@@ -529,8 +529,6 @@ static float *this_capture;
 
 synth_sample_t sampling = {0};
 
-static int first = 1;
-
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user) {
   (void)input;
   (void)user;
@@ -567,11 +565,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     float sample_right = 0.0f;
     
     float record_mono = 0.0f;
-    
-    float record_a_left = 0.0;
-    float record_a_right = 0.0;
-    float record_b_left = 0.0;
-    float record_b_right = 0.0;
     
     float f = 0.0f;
     float whiteish = audio_rng_float(&synth_random);

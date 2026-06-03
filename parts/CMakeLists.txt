@@ -141,3 +141,19 @@ add_test(
     -DKIT_TOOL_EXE=${KIT_TOOL_EXE}
     -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/SmokeTest.cmake
 )
+
+add_executable(ands_parser_tests tests/ands_parser_tests.c)
+target_link_libraries(ands_parser_tests PRIVATE api)
+
+add_test(
+  NAME ands.parser-contract
+  COMMAND ands_parser_tests
+)
+
+add_executable(skode_state_tests tests/skode_state_tests.c)
+target_link_libraries(skode_state_tests PRIVATE api)
+
+add_test(
+  NAME skode.command-state
+  COMMAND skode_state_tests
+)

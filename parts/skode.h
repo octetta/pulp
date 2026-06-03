@@ -30,7 +30,6 @@ typedef struct skode_s {
   int step;
   int trace;
   int verbose;
-  int events; // do incoming events go to the logger?
   ands_t *parse;
   int quit;
   int (*puts)(struct skode_s *w, const char *s);
@@ -69,7 +68,6 @@ int null_printf(const char *fmt, ...);
   .step = -1, \
   .trace = 0, \
   .verbose = 0, \
-  .events = 0, \
   .parse = NULL, \
   .quit = 0, \
   .puts = skode_puts, \
@@ -85,13 +83,5 @@ int null_printf(const char *fmt, ...);
 
 
 void skode_init(skode_t *w);
-
-#if 1
-
-int perf_start(void);
-void perf_stop(void);
-
-
-#endif
 
 #endif

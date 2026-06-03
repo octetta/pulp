@@ -69,45 +69,6 @@ void sk_sleep(int milliseconds) {
 #endif
 }
 
-
-#define MPSC_QUEUE_IMPLEMENTATION
-#include "mpsc_queue.h"
-static mpsc_queue mq;
-
-#if 0 // performance event listener
-#ifndef _WIN32
-#include <pthread.h>
-#endif
-
-static pthread_t perf_thread_handle;
-static int perf_running = 1;
-#include "util.h"
-static void *perf_main(void *arg) {
-  char msg[65536];
-  //util_set_thread_name("perf");
-  while (perf_running) {
-    mpsc_queue_receive(&mq, msg, sizeof(msg));
-    //bool r = mpsc_queue_receive(&mq, msg, sizeof(msg));
-    //printf("# perf_main (%d) <%s>\n", r, msg);
-  }
-  return NULL;
-}
-
-int perf_start(void) {
-  mpsc_queue_init(&mq);
-  perf_running = 1;
-  pthread_create(&perf_thread_handle, NULL, perf_main, NULL);
-  pthread_detach(perf_thread_handle);
-  return 0;
-}
-
-void perf_stop(void) {
-  perf_running = 0;
-  mpsc_queue_send(&mq, "#"); // tickle perf_main to make sure it sees the flag change
-}
-
-#endif
-
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
@@ -303,7 +264,6 @@ void skode_show(skode_t *ctx) {
       ctx->printf(ctx, " v%d", skode_ctx[i]->voice);
       ctx->printf(ctx, " y%d", skode_ctx[i]->pattern);
       ctx->printf(ctx, " x%d", skode_ctx[i]->step);
-      //ctx->printf(ctx, " .events=%dn", skode_ctx[i]->events);
       ctx->printf(ctx, " .which=%d", skode_ctx[i]->which);
       ctx->printf(ctx, " .ip=%x", skode_ctx[i]->ip);
       ctx->printf(ctx, " .port=%x", skode_ctx[i]->port);
@@ -2593,8 +2553,6 @@ int skode_consume(char *line, skode_t *ctx) {
   ctx->log[0] = '\0';
   skode_ctx[skode_hash(ctx)] = ctx;
 
-  if (ctx->events) mpsc_queue_send(&mq, line);
-
   int r = 0;
 
   ands_consume(ctx->parse, line);
@@ -2635,7 +2593,6 @@ void skode_init(skode_t *ctx) {
   ctx->step = -1;
   ctx->trace = 0;
   ctx->verbose = 0;
-  ctx->events = 0;
   ctx->parse = NULL;
   ctx->quit = 0;
   ctx->puts = skode_puts;

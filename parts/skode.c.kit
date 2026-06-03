@@ -8,6 +8,7 @@
 #include "synth-state.h"
 #include "synth-config.h"
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -1727,6 +1728,26 @@ int skode_function(ands_t *s, int info) {
         @endif
       }
       break;
+    case ATOM4('=d--'): // assign a variable from an element of the d array =d var d-index
+      if (argc > 1) {
+        int y = (int)arg[1];
+        double *data = ands_data(ctx->parse);
+        int data_len = ands_data_len(ctx->parse);
+        if (x>=0 && x < 128 && y>=0 && y < data_len) {
+          // x is the dest var y is the d index
+          ands_set_local(ctx->parse, x, data[y]);
+        }
+      }
+      break;
+    case ATOM4('d@--'): // show an element from d array
+      if (argc) {
+        double *data = ands_data(ctx->parse);
+        int data_len = ands_data_len(ctx->parse);
+        if (x>=0 && x < data_len) {
+          ctx->printf(ctx, "# %g\n", data[x]);
+        }
+      }
+      break;
     case ATOM4('d>r-'): // data-to-rec
       {
         double *data = ands_data(ctx->parse);
@@ -2263,6 +2284,30 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('/wex'): // wave-expand wave
       if (argc && x >= 200 && x <=999) wave_table_dynamic_expand(x);
+      break;
+    case ATOM4('/cat'): // print a text file
+      if (strlen(ands_string(ctx->parse))) {
+        FILE *in = fopen(ands_string(ctx->parse), "rt");
+        if (in) {
+          char line[1024];
+          while (fgets(line, sizeof(line), in)) {
+            char *p = line;
+            while (*p) {
+              if (*p == '\n' || *p == '\n') {
+                *p = '\0';
+                break;
+              }
+              if (!isprint(*p)) {
+                *p = '\0';
+                break;
+              }
+              p++;
+            }
+            ctx->printf(ctx, "%s\n", line);
+          }
+          fclose(in);
+        }
+      }
       break;
     case ATOM4('/cd-'): // change directory
       ctx->printf(ctx, "# [%s] /cd\n", ands_string(ctx->parse));

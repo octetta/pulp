@@ -32,7 +32,18 @@ char *skred_log(void);
 // enable / disable logging
 void skred_logger(int f);
 
-// clumsy enumeration
+// Audio device management. Selection values are list slots from the latest
+// refresh; -1 selects the default device and -2 disables capture.
+int skred_audio_refresh(void);
+int skred_audio_select(int is_capture, int selection);
+int skred_audio_reconnect(void);
+int skred_audio_disconnect(void);
+int skred_audio_running(void);
+char *skred_audio_status(void);
+int skred_audio_command(const char *line);
+char *skred_audio_message(void);
+
+// Compatibility enumeration API.
 int skred_devices(int isCapture);
 int skred_device_idx(int isCapture, int idx);
 char *skred_device_str(int isCapture, int idx);

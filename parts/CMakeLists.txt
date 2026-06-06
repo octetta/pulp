@@ -163,6 +163,14 @@ add_test(
   COMMAND skode_state_tests
 )
 
+add_executable(audio_command_tests tests/audio_command_tests.c)
+target_link_libraries(audio_command_tests PRIVATE api)
+
+add_test(
+  NAME audio.command-routing
+  COMMAND audio_command_tests
+)
+
 if(NOT RECORD_FEATURE_INDEX EQUAL -1)
   add_executable(recording_tests tests/recording_tests.c)
   target_link_libraries(recording_tests PRIVATE api)

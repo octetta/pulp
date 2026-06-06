@@ -1869,7 +1869,6 @@ y2 %4 [kick] yt
 
         try {
           this.initCueAudio();
-          Module._skred_set_audio_device(0, 0);
           Module._skred_start(256, 32, 0);
           this.running = true;
           this.booting = false;
@@ -1908,11 +1907,24 @@ y2 %4 [kick] yt
 
       command(script, options) {
         if (!script) return false;
-        if (!this.running && !this.boot()) return false;
 
         let combinedLog = "";
         const collectLog = options && options.collectLog;
         String(script).split("|").map(cmd => cmd.trim()).filter(Boolean).forEach(cmd => {
+          const action = cmd.split(/\s+/)[0].toLowerCase();
+          if (["/als", "/aout", "/ain", "/a?"].includes(action)) {
+            if (!this.runtimeReady || typeof Module === "undefined" ||
+                !Module.ccall || !Module._skred_audio_message) {
+              if (collectLog) combinedLog += "# audio runtime not ready\n";
+              return;
+            }
+            Module.ccall("skred_audio_command", "number", ["string"], [cmd]);
+            const ptr = Module._skred_audio_message();
+            const message = ptr ? Module.UTF8ToString(ptr) : "";
+            if (message && collectLog) combinedLog += message + "\n";
+            return;
+          }
+          if (!this.running && !this.boot()) return;
           Module.ccall("skred_command", null, ["string"], [cmd]);
           const log = this.readLog();
           if (collectLog) {

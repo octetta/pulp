@@ -51,6 +51,8 @@ int skode_printf(skode_t *ctx, const char *fmt, ...) {
 int null_puts(const char *s) { (void)s; return 0; }
 int null_printf(const char *fmt, ...) { (void)fmt; return 0; }
 
+#define SAMPLES_TO_MSEC(n) ((double)(n) * (double)1000.0 / (double)MAIN_SAMPLE_RATE)
+
 #ifdef _WIN32
     #include <windows.h>
 #else
@@ -246,7 +248,7 @@ void skode_double_dump(skode_t *ctx, double *data, int data_len) {
       }
     }
     if (data_len <= 5) ctx->printf(ctx, ")\n");
-    else ctx->printf(ctx, ") # %d elements\n", data_len);
+    else ctx->printf(ctx, ") # |%d| %gms\n", data_len, SAMPLES_TO_MSEC(data_len));
 }
 
 void skode_show(skode_t *ctx) {
@@ -310,9 +312,9 @@ void show_stats(skode_t *ctx) {
   ctx->printf(ctx, "# rec_state : %d rec_ptr %ld\n", rec_state, rec_ptr);
 @endif
   ctx->printf(ctx, "# synth frames per callback %d : %gms\n",
-    synth_frames_per_callback, (float)synth_frames_per_callback / (float)MAIN_SAMPLE_RATE * 1000.0f);
+    synth_frames_per_callback, SAMPLES_TO_MSEC(synth_frames_per_callback));
   ctx->printf(ctx, "# seq frames per callback %d : %gms\n",
-    seq_frames_per_callback, (float)seq_frames_per_callback / (float)MAIN_SAMPLE_RATE * 1000.0f);
+    seq_frames_per_callback, SAMPLES_TO_MSEC(seq_frames_per_callback));
   ctx->printf(ctx, "# queue_size %d\n", seq_queued());
   seq_foreach(show_stats_cb, ctx);
 }
@@ -880,7 +882,7 @@ static void print_wave_stats(skode_t *ctx, const char *label, float *data, int n
     wave_stats_t s = wave_stats(data, n);
     float ms = (rate > 0.0f) ? ((float)n / rate * 1000.0f) : 0.0f;
     ctx->printf(ctx,
-        "# %s len %d (%gms) min %+0.3f max %+0.3f peak %0.3f rms %0.3f dc %+0.4f zc %d",
+        "# %s |%d| (%gms) min %+0.3f max %+0.3f peak %0.3f rms %0.3f dc %+0.4f zc %d",
         label, n, ms, s.min, s.max, s.peak, s.rms, s.dc, s.zero_crossings);
     if (s.clipped) ctx->printf(ctx, " clip %d", s.clipped);
     ctx->puts(ctx, "");
@@ -1546,7 +1548,7 @@ int skode_function(ands_t *s, int info) {
         // free and re-allocate...
         if (x > 0) ands_data_resize(ctx->parse, x);
       }
-      ctx->printf(ctx, "# /D data %p cap %d len %d\n",
+      ctx->printf(ctx, "# /D data %p cap %d |%d|\n",
         ands_data(ctx->parse),
         ands_data_cap(ctx->parse),
         ands_data_len(ctx->parse));
@@ -1963,9 +1965,9 @@ int skode_function(ands_t *s, int info) {
               print_wave_stats(ctx, "recording", sampling.where, sampling.len, (float)MAIN_SAMPLE_RATE);
               print_audio_braille_labeled(ctx, sampling.where, sampling.len, w, h, sampling.offset, sampling.len - sampling.trim);
               int len = sampling.len - sampling.offset - sampling.trim;
-              ctx->printf(ctx,"+offset %d -trim %d = len %d (%gms)\n",
+              ctx->printf(ctx,"+offset %d -trim %d = |%d| %gms\n",
                 sampling.offset, sampling.trim, len,
-                (float)len / (float)MAIN_SAMPLE_RATE * 1000.0);
+                SAMPLES_TO_MSEC(len));
             }
           }
         }

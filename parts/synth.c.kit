@@ -61,6 +61,22 @@ void synth_free(void) {
   synth_free_waves();
 }
 
+@if(RECORD)
+int synth_record_track_set(int voice, int track) {
+  if (voice < 0 || voice >= synth_config.voice_max ||
+      track < 0 || track > RECORD_TRACK_MAX) {
+    return -1;
+  }
+  atomic_store_int(&sv.record_pending[voice], track);
+  return 0;
+}
+
+int synth_record_track_get(int voice) {
+  if (voice < 0 || voice >= synth_config.voice_max) return -1;
+  return atomic_load_int(&sv.record_pending[voice]);
+}
+@endif
+
 
 int requested_synth_frames_per_callback = SYNTH_FRAMES_PER_CALLBACK;
 int synth_frames_per_callback = 0;
@@ -531,8 +547,21 @@ synth_sample_t sampling = {0};
 
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user) {
   (void)input;
+  @if(RECORD)
+  synth_record_bus_t *record_bus = (synth_record_bus_t *)user;
+  float *record_frames = NULL;
+  if (record_bus && record_bus->channels == RECORD_CHANNELS) {
+    record_frames = record_bus->frames;
+  }
+  @else
   (void)user;
+  @endif
   const int nvoices = synth_voice_count();
+  @if(RECORD)
+  for (int n = 0; n < nvoices; n++) {
+    sv.record[n] = atomic_load_int(&sv.record_pending[n]);
+  }
+  @endif
 #if 0
   const int nframes = num_frames;
   (void)nframes; /* available for future vectorised frame loop */
@@ -563,6 +592,10 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     @endif
     float sample_left = 0.0f;
     float sample_right = 0.0f;
+    @if(RECORD)
+    float record_left[RECORD_TRACK_COUNT] = {0};
+    float record_right[RECORD_TRACK_COUNT] = {0};
+    @endif
     
     float record_mono = 0.0f;
     
@@ -739,6 +772,13 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         right *= sv.pan_right[n];
         sample_left  += left;
         sample_right += right;
+        @if(RECORD)
+        int track = sv.record[n];
+        if (track >= 1 && track <= RECORD_TRACK_MAX) {
+          record_left[track] += left;
+          record_right[track] += right;
+        }
+        @endif
       }
     }
 
@@ -766,6 +806,19 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
 
     sample_left  *= volume_adjusted;
     sample_right *= volume_adjusted;
+
+    @if(RECORD)
+    if (record_frames) {
+      float *record_frame = record_frames + ((size_t)i * RECORD_CHANNELS);
+      record_frame[0] = sample_left;
+      record_frame[1] = sample_right;
+      for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
+        int channel = track * AUDIO_CHANNELS;
+        record_frame[channel] = record_left[track];
+        record_frame[channel + 1] = record_right[track];
+      }
+    }
+    @endif
 
     // Write to all channels
     buffer[i * num_channels + 0] = sample_left;
@@ -971,8 +1024,9 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || sv.disconnect[v])
         APPEND(" m%d", sv.disconnect[v]);
     @if(RECORD)
-    if (verbose || sv.record[v])
-        APPEND(" r%d", sv.record[v]);
+    int record_track = synth_record_track_get(v);
+    if (verbose || record_track)
+        APPEND(" r%d", record_track);
     @endif
 
     @if(SMOOTHER)
@@ -1468,6 +1522,7 @@ void voice_reset(int i) {
   @endif
   @if(RECORD)
   sv.record[i] = 0;
+  atomic_store_int(&sv.record_pending[i], 0);
   @endif
   @if(XM)
   sv.ring_osc[i] = -1;

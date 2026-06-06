@@ -19,6 +19,9 @@
 #include "ks_chan.h"
 #include "kse.h"
 @endif
+@if(RECORD)
+#include "recorder.h"
+@endif
 
 int skode_puts(skode_t *ctx, const char *s) {
   if (!ctx || ctx->log_enable == 0) return 0;
@@ -74,117 +77,6 @@ void sk_sleep(int milliseconds) {
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
-
-@if(RECORD)
-// TODO, use the sv.record[] array to determine
-// which how many channels and voices to write to the
-// wave file (update the header too)
-
-// TODO at a minimum make cue notes for the voice number
-// and left/right designation to the wave file
-
-// MAYBE store the voice parameters in a cue note?
-// MAYBE store patterns in a cue note?
-// MAYBE store tempo in cue note?
-// MAYBE have a user note for each oscillator that's
-//       stored in a queue note
-// MAYBE have a user note for pattern that's stored in a queue note
-
-void save_wav(skode_t *ctx, char *filename, float *samples, long num_samples, int *record, int max) {
-  int *record_safe;
-
-  record_safe = (int *)malloc(sizeof(int)*max);
-  if (record_safe == NULL) {
-    ctx->puts(ctx, "OUCH"); return;
-  } // nowhere to keep state
-  
-  int num_channels = 0;  // 32 pairs = 64 channels
-
-  for (int i = 0; i < max; i++) {
-    record_safe[i] = record[i];
-    if (record[i]) num_channels += 2;
-  }
-
-  if (num_channels == 0) {
-    free(record_safe);
-    return;
-  } // nothing to record
-
-  FILE *f = fopen(filename, "wb");
-  if (!f) {
-    ctx->puts(ctx, "# can't open file\n");
-    return;
-  }
-
-  int sample_rate = 44100;
-  int bits_per_sample = 16;
-  int byte_rate = sample_rate * num_channels * bits_per_sample / 8;
-  int block_align = num_channels * bits_per_sample / 8;
-  int data_size = num_samples * block_align;
-   
-  // WAV header
-  fwrite("RIFF", 1, 4, f);
-  uint32_t chunk_size = 36 + data_size;
-  fwrite(&chunk_size, 4, 1, f);
-  fwrite("WAVE", 1, 4, f);
-   
-  // fmt subchunk
-  fwrite("fmt ", 1, 4, f);
-  uint32_t subchunk1_size = 16;
-  fwrite(&subchunk1_size, 4, 1, f);
-  uint16_t audio_format = 1;  // PCM
-  fwrite(&audio_format, 2, 1, f);
-  uint16_t channels = num_channels;
-  fwrite(&channels, 2, 1, f);
-  fwrite(&sample_rate, 4, 1, f);
-  fwrite(&byte_rate, 4, 1, f);
-  uint16_t align = block_align;
-  fwrite(&align, 2, 1, f);
-  uint16_t bps = bits_per_sample;
-  fwrite(&bps, 2, 1, f);
-
-  // data subchunk
-  fwrite("data", 1, 4, f);
-  fwrite(&data_size, 4, 1, f);
-
-  // since skred plays loose and wild with sample ranges,
-  // get the min/max of all the samples in the recorded range
-
-  float fbig = 0.0;
-  float fsmall = 0.0;
-  for (int i = 0; i < num_samples * synth_config.voice_max * AUDIO_CHANNELS; i++) {
-    float g = samples[i];
-    if (g > fbig) fbig = g;
-    if (g < fsmall) fsmall = g;
-  }
-
-  // use the min/max to make a scale factor that keeps 0
-  // in the same relative place
-
-  float scale;
-  if (fabsf(fsmall) > fabsf(fbig)) {
-    scale = -1.0f / fsmall;
-  } else {
-    scale = 1.0f / fbig;
-  }
- 
-  // Convert scaled float samples to 16-bit PCM
-
-  for (int i = 0; i < num_samples * synth_config.voice_max * AUDIO_CHANNELS; i++) {
-    int ri = (i % (synth_config.voice_max * AUDIO_CHANNELS)) >> 1;
-    if (record_safe[ri] == 0) continue; // skip things that aren't recorded
-    float g = samples[i];
-    g *= scale;
-    if (g > 1.0f) g = 1.0f;
-    if (g < -1.0f) g = -1.0f;
-    int16_t sample = (int16_t)(g * 32767.0f);
-    fwrite(&sample, 2, 1, f);
-  }
-
-  fclose(f);
-  free(record_safe);
-}
-@endif
 
 void voice_show(skode_t *ctx, int v, char c, int verbose) {
   char s[1024];
@@ -308,9 +200,6 @@ int show_stats_cb(int n, uint64_t timestamp, uint64_t id, int tag, const event_t
 }
 
 void show_stats(skode_t *ctx) {
-@if(RECORD)
-  ctx->printf(ctx, "# rec_state : %d rec_ptr %ld\n", rec_state, rec_ptr);
-@endif
   ctx->printf(ctx, "# synth frames per callback %d : %gms\n",
     synth_frames_per_callback, SAMPLES_TO_MSEC(synth_frames_per_callback));
   ctx->printf(ctx, "# seq frames per callback %d : %gms\n",
@@ -435,7 +324,6 @@ int skode_ks_result_to_data(skode_t *ctx, int writer) {
 }
 
 void ksynth_loader(skode_t *ctx, FILE *in, int writer, int verbose) {
-  int r = 0;
   if (in) {
     char line[1024];
     while (fgets(line, sizeof(line), in) != NULL) {
@@ -1721,8 +1609,8 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     @if(RECORD)
-    case ATOM4('r---'): // record-mode bool
-      if (argc) { if (rec_state == 0) sv.record[voice] = x; }
+    case ATOM4('r---'): // additional recording track, 0=none, 1..4=stem
+      if (argc) synth_record_track_set(voice, x);
       break;
     @endif
     @if(SEQ)
@@ -2089,6 +1977,50 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('/q--'): // quit
       ctx->quit = -1;
       return 0;
+    @if(RECORD)
+    case ATOM4('/rg-'): // start multitrack file recording
+      {
+        const char *filename = ands_string(ctx->parse);
+        double max_seconds = argc ? arg[0] : 0.0;
+        if (!filename || filename[0] == '\0') {
+          ctx->printf(ctx, "# /rg requires [filename]\n");
+        } else if (max_seconds < 0.0) {
+          ctx->printf(ctx, "# /rg duration must be >= 0\n");
+        } else if (recorder_start(filename, max_seconds) == 0) {
+          if (max_seconds > 0.0) {
+            ctx->printf(ctx, "# recording [%s] max=%g seconds\n",
+                        filename, max_seconds);
+          } else {
+            ctx->printf(ctx, "# recording [%s]\n", filename);
+          }
+        } else {
+          ctx->printf(ctx, "# recording start failed [%s]\n", filename);
+        }
+      }
+      break;
+    case ATOM4('/rs-'): // stop multitrack file recording
+      if (recorder_stop() == 0) {
+        ctx->printf(ctx, "# recording stopped\n");
+      } else {
+        ctx->printf(ctx, "# recording stop failed\n");
+      }
+      break;
+    case ATOM4('/r?-'): // multitrack file recording status
+      {
+        const char *state = "unknown";
+        switch (recorder_state()) {
+          case RECORDER_STOPPED: state = "stopped"; break;
+          case RECORDER_RECORDING: state = "recording"; break;
+          case RECORDER_STOPPING: state = "stopping"; break;
+          case RECORDER_ERROR: state = "error"; break;
+        }
+        ctx->printf(ctx, "# recorder state=%s frames=%llu dropped=%llu\n",
+                    state,
+                    (unsigned long long)recorder_frames_written(),
+                    (unsigned long long)recorder_dropped_frames());
+      }
+      break;
+    @endif
     case ATOM4('/r--'): // sample-to-wave slot one_shot offset
       {
         int wave_slot = EXT_SAMPLE_000;
@@ -2263,47 +2195,6 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "skode_sample -> %d %d %d\n", sampling.busy, sampling.go, sampling.frames);
       }
       break;
-    @if(RECORD)
-    case ATOM4('<---'): // record duration
-      if (argc) {
-        rec_state = 0;
-        float max_sec = arg[0];
-        float max_samples;
-        if (max_sec > 0.0f) {
-          if (max_sec > rec_sec) {
-            max_sec = rec_sec;
-          }
-          max_samples = max_sec * (float)(MAIN_SAMPLE_RATE * AUDIO_CHANNELS * synth_config.voice_max);
-          rec_max = max_samples;
-        }
-        rec_ptr = 0;
-        rec_state = 1;
-      }
-      break;
-    @endif
-    @if(RECORD)
-    case ATOM4('*---'): // write-recorded
-      {
-        #include <sys/time.h>
-        #include <unistd.h>
-        if (rec_ptr) {
-          rec_state = 0;
-          pid_t pid = getpid();
-          struct timeval tv;
-          gettimeofday(&tv, NULL);
-          long long ms = (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
-          char name[1024];
-#ifdef _WIN32
-          sprintf(name, "skred-%lld-%lld.wav", pid, ms);
-#else
-          sprintf(name, "skred-%d-%lld.wav", pid, ms);
-#endif
-          ctx->printf(ctx, "# file %s (%ld frames)\n", name, rec_ptr);
-          save_wav(ctx, name, recording, rec_ptr/synth_config.voice_max/AUDIO_CHANNELS, sv.record, synth_config.voice_max);
-        }
-      }
-      break;
-    @endif
     case ATOM4('>---'): // copy-voice dest-voice
       if (argc) voice_copy(voice, x);
       break;
@@ -2482,6 +2373,7 @@ int skode_function(ands_t *s, int info) {
 
 @if(SEQ)
 int skode_defer(ands_t *s, int info) {
+  (void)info;
   skode_t *ctx = (skode_t*)ands_user(s);
   char mode = ands_defer_mode(s);
   double delay = ands_defer_num(s);

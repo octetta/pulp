@@ -18,6 +18,12 @@ typedef int pthread_attr_t;
 static inline int pthread_attr_init(pthread_attr_t *a) { (void)a; return 0; }
 static inline int pthread_attr_setstacksize(pthread_attr_t *a, size_t s) { (void)a; (void)s; return 0; }
 static inline int pthread_detach(pthread_t t) { (void)t; return 0; }
+static inline int pthread_join(pthread_t t, void **result) {
+    (void)result;
+    if (WaitForSingleObject(t, INFINITE) != WAIT_OBJECT_0) return 1;
+    CloseHandle(t);
+    return 0;
+}
 
 // nanosleep wrapper for Windows
 static inline int nanosleep(const struct timespec *req, struct timespec *rem) {

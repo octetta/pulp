@@ -1,0 +1,255 @@
+@if(RECORD)
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifndef _WIN32
+#include <pthread.h>
+#else
+#include "portable_win.h"
+#endif
+
+#include "miniaudio.h"
+#include "portable_atomic.h"
+#include "recorder.h"
+
+#define RECORDER_RING_SECONDS 5
+#define RECORDER_WRITE_CHUNK_FRAMES 4096
+
+typedef struct {
+  ma_pcm_rb ring;
+  ma_event wake;
+  ma_encoder encoder;
+  pthread_t thread;
+  atomic_int_t state;
+  atomic_int_t stop_requested;
+  atomic_int_t producer_active;
+  atomic_uint64_t frames_written;
+  atomic_uint64_t dropped_frames;
+  synth_record_bus_t bus;
+  float *scratch;
+  int scratch_frames;
+  int sample_rate;
+  int initialized;
+  int encoder_initialized;
+  int thread_started;
+  atomic_int_t terminal_state;
+  uint64_t frame_limit;
+  uint64_t frames_submitted;
+} recorder_t;
+
+static recorder_t recorder;
+
+static void recorder_request_stop(int terminal_state) {
+  atomic_store_int(&recorder.terminal_state, terminal_state);
+  atomic_store_int(&recorder.state, RECORDER_STOPPING);
+  atomic_store_int(&recorder.stop_requested, 1);
+  ma_event_signal(&recorder.wake);
+}
+
+static int recorder_write_ring(const float *frames, ma_uint32 frame_count) {
+  ma_uint32 remaining = frame_count;
+  while (remaining > 0) {
+    ma_uint32 count = remaining;
+    void *dst = NULL;
+    if (ma_pcm_rb_acquire_write(&recorder.ring, &count, &dst) != MA_SUCCESS || count == 0) {
+      return -1;
+    }
+    memcpy(dst, frames, (size_t)count * RECORD_CHANNELS * sizeof(float));
+    if (ma_pcm_rb_commit_write(&recorder.ring, count) != MA_SUCCESS) return -1;
+    frames += (size_t)count * RECORD_CHANNELS;
+    remaining -= count;
+  }
+  return 0;
+}
+
+static void recorder_drain(void) {
+  for (;;) {
+    ma_uint32 count = RECORDER_WRITE_CHUNK_FRAMES;
+    void *src = NULL;
+    if (ma_pcm_rb_acquire_read(&recorder.ring, &count, &src) != MA_SUCCESS || count == 0) {
+      break;
+    }
+    ma_uint64 written = 0;
+    ma_result result = ma_encoder_write_pcm_frames(
+      &recorder.encoder, src, count, &written);
+    if (result != MA_SUCCESS || written != count) {
+      ma_pcm_rb_commit_read(&recorder.ring, count);
+      recorder_request_stop(RECORDER_ERROR);
+      break;
+    }
+    ma_pcm_rb_commit_read(&recorder.ring, count);
+    atomic_fetch_add_uint64(&recorder.frames_written, written);
+  }
+}
+
+static void *recorder_writer(void *arg) {
+  (void)arg;
+  for (;;) {
+    recorder_drain();
+    if (atomic_load_int(&recorder.stop_requested) &&
+        atomic_load_int(&recorder.producer_active) == 0 &&
+        ma_pcm_rb_available_read(&recorder.ring) == 0) {
+      break;
+    }
+    ma_event_wait(&recorder.wake);
+  }
+
+  if (recorder.encoder_initialized) {
+    ma_encoder_uninit(&recorder.encoder);
+    recorder.encoder_initialized = 0;
+  }
+  atomic_store_int(&recorder.state,
+                   atomic_load_int(&recorder.terminal_state));
+  return NULL;
+}
+
+static void recorder_reap_thread(void) {
+  if (!recorder.thread_started) return;
+  pthread_join(recorder.thread, NULL);
+  recorder.thread_started = 0;
+}
+
+int recorder_init(int max_block_frames, int sample_rate) {
+  if (recorder.initialized) return 0;
+  if (max_block_frames < 1 || sample_rate < 1) return -1;
+
+  memset(&recorder, 0, sizeof(recorder));
+  recorder.scratch = (float *)calloc(
+    (size_t)max_block_frames * RECORD_CHANNELS, sizeof(float));
+  if (!recorder.scratch) return -1;
+
+  ma_uint32 ring_frames = (ma_uint32)(sample_rate * RECORDER_RING_SECONDS);
+  if (ma_pcm_rb_init(ma_format_f32, RECORD_CHANNELS, ring_frames,
+                     NULL, NULL, &recorder.ring) != MA_SUCCESS) {
+    free(recorder.scratch);
+    recorder.scratch = NULL;
+    return -1;
+  }
+  if (ma_event_init(&recorder.wake) != MA_SUCCESS) {
+    ma_pcm_rb_uninit(&recorder.ring);
+    free(recorder.scratch);
+    recorder.scratch = NULL;
+    return -1;
+  }
+
+  recorder.bus.frames = recorder.scratch;
+  recorder.bus.channels = RECORD_CHANNELS;
+  recorder.scratch_frames = max_block_frames;
+  recorder.sample_rate = sample_rate;
+  recorder.initialized = 1;
+  atomic_store_int(&recorder.state, RECORDER_STOPPED);
+  return 0;
+}
+
+void recorder_uninit(void) {
+  if (!recorder.initialized) return;
+  recorder_stop();
+  recorder_reap_thread();
+  ma_event_uninit(&recorder.wake);
+  ma_pcm_rb_uninit(&recorder.ring);
+  free(recorder.scratch);
+  memset(&recorder, 0, sizeof(recorder));
+}
+
+int recorder_start(const char *filename, double max_seconds) {
+  if (!recorder.initialized || !filename || filename[0] == '\0') return -1;
+  int state = atomic_load_int(&recorder.state);
+  if (state != RECORDER_STOPPED && state != RECORDER_ERROR) return -1;
+  recorder_reap_thread();
+
+  ma_pcm_rb_reset(&recorder.ring);
+  atomic_store_int(&recorder.stop_requested, 0);
+  atomic_store_int(&recorder.producer_active, 0);
+  atomic_store_uint64(&recorder.frames_written, 0);
+  atomic_store_uint64(&recorder.dropped_frames, 0);
+  recorder.frames_submitted = 0;
+  recorder.frame_limit = 0;
+  if (max_seconds > 0.0) {
+    recorder.frame_limit = (uint64_t)(max_seconds * recorder.sample_rate);
+  }
+  atomic_store_int(&recorder.terminal_state, RECORDER_STOPPED);
+
+  ma_encoder_config config = ma_encoder_config_init(
+    ma_encoding_format_wav, ma_format_f32, RECORD_CHANNELS,
+    (ma_uint32)recorder.sample_rate);
+  if (ma_encoder_init_file(filename, &config, &recorder.encoder) != MA_SUCCESS) {
+    atomic_store_int(&recorder.state, RECORDER_ERROR);
+    return -1;
+  }
+  recorder.encoder_initialized = 1;
+
+  if (pthread_create(&recorder.thread, NULL, recorder_writer, NULL) != 0) {
+    ma_encoder_uninit(&recorder.encoder);
+    recorder.encoder_initialized = 0;
+    atomic_store_int(&recorder.state, RECORDER_ERROR);
+    return -1;
+  }
+  recorder.thread_started = 1;
+  atomic_store_int(&recorder.state, RECORDER_RECORDING);
+  return 0;
+}
+
+int recorder_stop(void) {
+  if (!recorder.initialized) return 0;
+  int state = atomic_load_int(&recorder.state);
+  if (state == RECORDER_RECORDING) {
+    recorder_request_stop(RECORDER_STOPPED);
+  }
+  recorder_reap_thread();
+  return atomic_load_int(&recorder.state) == RECORDER_ERROR ? -1 : 0;
+}
+
+int recorder_state(void) {
+  return atomic_load_int(&recorder.state);
+}
+
+uint64_t recorder_frames_written(void) {
+  return atomic_load_uint64(&recorder.frames_written);
+}
+
+uint64_t recorder_dropped_frames(void) {
+  return atomic_load_uint64(&recorder.dropped_frames);
+}
+
+synth_record_bus_t *recorder_begin_block(int frame_count) {
+  if (frame_count < 1 || frame_count > recorder.scratch_frames) return NULL;
+  if (atomic_load_int(&recorder.state) != RECORDER_RECORDING) return NULL;
+  atomic_store_int(&recorder.producer_active, 1);
+  if (atomic_load_int(&recorder.state) != RECORDER_RECORDING) {
+    atomic_store_int(&recorder.producer_active, 0);
+    return NULL;
+  }
+  return &recorder.bus;
+}
+
+void recorder_end_block(int frame_count) {
+  if (atomic_load_int(&recorder.producer_active) == 0) return;
+
+  ma_uint32 submit = (ma_uint32)frame_count;
+  if (recorder.frame_limit > 0) {
+    uint64_t remaining = recorder.frame_limit - recorder.frames_submitted;
+    if (remaining < submit) submit = (ma_uint32)remaining;
+  }
+
+  if (submit > 0) {
+    if (ma_pcm_rb_available_write(&recorder.ring) < submit ||
+        recorder_write_ring(recorder.scratch, submit) != 0) {
+      atomic_fetch_add_uint64(&recorder.dropped_frames, submit);
+      atomic_store_int(&recorder.producer_active, 0);
+      recorder_request_stop(RECORDER_ERROR);
+      return;
+    }
+    recorder.frames_submitted += submit;
+    ma_event_signal(&recorder.wake);
+  }
+
+  atomic_store_int(&recorder.producer_active, 0);
+  if (recorder.frame_limit > 0 &&
+      recorder.frames_submitted >= recorder.frame_limit) {
+    recorder_request_stop(RECORDER_STOPPED);
+  }
+}
+
+@endif

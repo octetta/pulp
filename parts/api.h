@@ -1,6 +1,8 @@
 #ifndef SKRED_API_H
 #define SKRED_API_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -13,6 +15,13 @@ int skred_command(char* cmd);
 
 // Safely tear down resources
 void skred_stop(void);
+
+// RECORD feature: writes master plus four stereo stems to a 10-channel WAV.
+int skred_record_start(const char *filename, double max_seconds);
+int skred_record_stop(void);
+int skred_record_state(void);
+uint64_t skred_record_frames_written(void);
+uint64_t skred_record_dropped_frames(void);
 
 // list of included features
 char *skred_features(void);

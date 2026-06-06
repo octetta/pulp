@@ -27,6 +27,7 @@
 
 #include "synth-config.h"
 #include "synth-types.h"   /* mmf_t, envelope_t, wave_name_t */
+#include "portable_atomic.h"
 
 #include <time.h>          /* struct timespec (voice_mark_a/b) */
 
@@ -87,7 +88,9 @@ typedef struct {
     int    * restrict wave_table_index;
     int    * restrict disconnect;
     @if(RECORD)
+    /* 0 = master only; 1..RECORD_TRACK_MAX = additional stereo stem. */
     int    * restrict record;
+    atomic_int_t * restrict record_pending;
     @endif
     int    * restrict interpolate;
     int    * restrict phase_reset;

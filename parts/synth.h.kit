@@ -67,6 +67,11 @@ void osc_trigger(int voice);
 
 int volume_set(float v);
 
+@if(RECORD)
+int synth_record_track_set(int voice, int track);
+int synth_record_track_get(int voice);
+@endif
+
 int amp_set(int v, float f);
 int pan_set(int voice, float f);
 int freq_set(int v, float f);

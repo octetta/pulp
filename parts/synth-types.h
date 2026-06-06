@@ -4,6 +4,9 @@
 #define MAIN_SAMPLE_RATE (44100)
 #define VOICE_MAX (64)
 #define AUDIO_CHANNELS (2)
+#define RECORD_TRACK_MAX (4)
+#define RECORD_TRACK_COUNT (RECORD_TRACK_MAX + 1)
+#define RECORD_CHANNELS (RECORD_TRACK_COUNT * AUDIO_CHANNELS)
 #define AMY_FACTOR (0.025f)
 #define SYNTH_FRAMES_PER_CALLBACK (128)
 
@@ -154,5 +157,10 @@ typedef struct {
   int offset;
   int trim;
 } synth_sample_t;
+
+typedef struct {
+  float *frames;
+  int channels;
+} synth_record_bus_t;
 
 #endif

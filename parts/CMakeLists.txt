@@ -4,6 +4,7 @@ project(mini-skred)
 # 1. Build the tool
 set(KIT_OPTS "" CACHE STRING "Extra flags for the kit tool")
 separate_arguments(KIT_OPTS_LIST NATIVE_COMMAND "${KIT_OPTS}")
+list(FIND KIT_OPTS_LIST "RECORD=1" RECORD_FEATURE_INDEX)
 option(USE_EXTERNAL_KIT "Use an existing native kit_tool binary" OFF)
 set(KIT_TOOL_PATH "" CACHE FILEPATH "Path to a prebuilt native kit_tool")
 
@@ -55,6 +56,10 @@ set(API_KIT_MODULES
     synth-alloc
     seq
 )
+
+if(NOT RECORD_FEATURE_INDEX EQUAL -1)
+    list(APPEND API_KIT_MODULES recorder)
+endif()
 
 set(API_GEN_SOURCES "")
 
@@ -157,3 +162,13 @@ add_test(
   NAME skode.command-state
   COMMAND skode_state_tests
 )
+
+if(NOT RECORD_FEATURE_INDEX EQUAL -1)
+  add_executable(recording_tests tests/recording_tests.c)
+  target_link_libraries(recording_tests PRIVATE api)
+
+  add_test(
+    NAME recording.track-routing
+    COMMAND recording_tests
+  )
+endif()

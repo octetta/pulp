@@ -150,6 +150,7 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(disconnect,       int);
     @if(RECORD)
     VALLOC(record,           int);
+    VALLOC(record_pending,   atomic_int_t);
     @endif
     VALLOC(interpolate,      int);
     VALLOC(phase_reset,      int);
@@ -258,6 +259,8 @@ void synth_free_voices(void) {
     VFREE(wave_table_index); VFREE(disconnect);
     @if(RECORD)
     VFREE(record);
+    free((void *)sv.record_pending);
+    sv.record_pending = NULL;
     @endif
     VFREE(interpolate);      VFREE(phase_reset);
     @if(BENCH)

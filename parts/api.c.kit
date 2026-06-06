@@ -18,6 +18,9 @@
 @if(KSYNTH)
 #include "kse.h"
 @endif
+@if(RECORD)
+#include "recorder.h"
+@endif
 
 #define ONE_FRAME_MAX (64 * 1024)
 
@@ -35,7 +38,15 @@ static void pattern_cb(int voice, char *arg) {
 @endif
 
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
-  synth((float *)output, (float *)input, (int)frame_count, (int)pDevice->playback.channels, pDevice->pUserData);
+  @if(RECORD)
+  synth_record_bus_t *record_bus = recorder_begin_block((int)frame_count);
+  synth((float *)output, (float *)input, (int)frame_count,
+        (int)pDevice->playback.channels, record_bus);
+  recorder_end_block((int)frame_count);
+  @else
+  synth((float *)output, (float *)input, (int)frame_count,
+        (int)pDevice->playback.channels, pDevice->pUserData);
+  @endif
   @if(SEQ)
   seq(SAMPLE_COUNT_GET(), event_cb, pattern_cb);
   @endif
@@ -171,6 +182,9 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   @if(KSYNTH)
   kse_start();
   @endif
+  @if(RECORD)
+  if (recorder_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
+  @endif
 
     // 3. Initialize and start miniaudio device
   ensure_context_initialized();
@@ -233,12 +247,57 @@ void skred_stop(void) {
   // turn down volume smoothly to avoid clicks
   volume_set(-90);
   ma_device_uninit(&synth_device);
+  @if(RECORD)
+  recorder_uninit();
+  @endif
   if (context_initialized) {
     ma_context_uninit(&synth_context);
     context_initialized = 0;
   }
   wave_free();
   synth_free();
+}
+
+int skred_record_start(const char *filename, double max_seconds) {
+  @if(RECORD)
+  return recorder_start(filename, max_seconds);
+  @else
+  (void)filename;
+  (void)max_seconds;
+  return -1;
+  @endif
+}
+
+int skred_record_stop(void) {
+  @if(RECORD)
+  return recorder_stop();
+  @else
+  return -1;
+  @endif
+}
+
+int skred_record_state(void) {
+  @if(RECORD)
+  return recorder_state();
+  @else
+  return -1;
+  @endif
+}
+
+uint64_t skred_record_frames_written(void) {
+  @if(RECORD)
+  return recorder_frames_written();
+  @else
+  return 0;
+  @endif
+}
+
+uint64_t skred_record_dropped_frames(void) {
+  @if(RECORD)
+  return recorder_dropped_frames();
+  @else
+  return 0;
+  @endif
 }
 
 static char _features_[65536] = {0};
@@ -288,6 +347,9 @@ CAT(UDP)
 @endif
 @if(KSYNTH)
 CAT(KSYNTH)
+@endif
+@if(RECORD)
+CAT(RECORD)
 @endif
 return _features_;
 }

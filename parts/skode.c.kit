@@ -1263,6 +1263,18 @@ void record_find_trim(int argc, float arg0, float arg1) {
   if (trail0 > 0) sampling.trim = trail0;
 }
 
+void skode_envelope_velocity(int voice, float x, uint64_t now) {
+  uint64_t t = sv.link_trig_samp[voice];
+  if (t > 0) {
+    uint64_t qt = t + now;
+    char cmd[32];
+    sprintf(cmd, "v%d___l%g", voice, x);
+    queue_item(qt, cmd, voice, 0);
+  } else {
+    envelope_velocity(voice, x);
+  }
+}
+
 int skode_function(ands_t *s, int info) {
   uint32_t atom = ands_atom_num(s);
   int argc = ands_arg_len(s);
@@ -1443,8 +1455,12 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('I---'): // log-event bool
       if (argc) {} break; // TODO en/dis-able send timestamp wire to the event logger
-    case ATOM4('L---'): // link-trigger voice
-      if (argc) { sv.link_trig[voice] = x; } break;
+    case ATOM4('L---'): // link-trigger-delay seconds
+      if (argc) {
+        sv.link_trig[voice] = arg[0];
+        sv.link_trig_samp[voice] = (uint64_t)(arg[0] * (double)MAIN_SAMPLE_RATE);
+      }
+      break;
     @if(FILT)
     case ATOM4('J---'): // filter-mode selector
       if (argc) {
@@ -1539,18 +1555,22 @@ int skode_function(ands_t *s, int info) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }
       }
       break;
+    case ATOM4('___l'): // delayed velocity amount (doesn't propogate)
+      envelope_velocity(voice, arg[0]);
+      break;
     case ATOM4('l---'): // velocity amount
       if (argc) {
+        uint64_t now = SAMPLE_COUNT_GET();
         int a = sv.link_velo_0[voice];
         int b = sv.link_velo_1[voice];
         int c = sv.link_velo_2[voice];
         int d = sv.link_velo_3[voice];
-        double x = arg[0];
-        envelope_velocity(voice, x);
-        if (a >= 0) envelope_velocity(a, x);
-        if (b >= 0) envelope_velocity(b, x);
-        if (c >= 0) envelope_velocity(c, x);
-        if (d >= 0) envelope_velocity(d, x);
+        double vel = arg[0];
+        skode_envelope_velocity(voice, vel, now);
+        if (a >= 0) skode_envelope_velocity(a, vel, now);
+        if (b >= 0) skode_envelope_velocity(b, vel, now);
+        if (c >= 0) skode_envelope_velocity(c, vel, now);
+        if (d >= 0) skode_envelope_velocity(d, vel, now);
       }
       break;
     case ATOM4('m---'): // mute-audio bool

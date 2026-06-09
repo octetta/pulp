@@ -955,7 +955,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         }
     /* --- trigger link (suppress if unset) --- */
     if (verbose || (int)sv.link_trig[v] >= 0)
-        APPEND(" L%d", (int)sv.link_trig[v]);
+        APPEND(" L%g", sv.link_trig[v]);
     @endif
 
     /* --- playback direction (suppress b0 default) --- */

@@ -1,31 +1,35 @@
 # s <- $
 S100 v0 w0 a10 t 0 .25 0 0 l1
-[./sk/gm-snare-chase.ks] /ks wait 50 k>d d>r /r 300
-[./sk/gm-snare.ks] /ks wait 50 k>d d>r /r 301
-[./sk/drums-snare.ks] /ks wait 50 k>d d>r /r 302
-[./sk/dm-snare-crack.ks] /ks wait 50 k>d d>r /r 303
-[./sk/dm-snare-metal.ks] /ks wait 50 k>d d>r /r 304
-[./sk/is-snare-elec.ks] /ks wait 50 k>d d>r /r 305
-[./sk/is-snare.ks] /ks wait 50 k>d d>r /r 306
-[./sk/is-snare-s900.ks] /ks wait 50 k>d d>r /r 307
-[./sk/kw-snare-rimshot.ks] /ks wait 50 k>d d>r /r 308
-[./sk/kw-snare.ks] /ks wait 50 k>d d>r /r 309
-[./sk/nin-snare-ghost.ks] /ks wait 50 k>d d>r /r 310
-[./sk/nin-snare.ks] /ks wait 50 k>d d>r /r 311
-[./sk/nap-snare-crack.ks] /ks wait 50 k>d d>r /r 312
-[./sk/nap-snare-rim.ks] /ks wait 50 k>d d>r /r 313
-v0 w300 l1 wait 500
-v0 w301 l1 wait 500
-v0 w302 l1 wait 500
-v0 w303 l1 wait 500
-v0 w304 l1 wait 500
-v0 w305 l1 wait 500
-v0 w306 l1 wait 500
-v0 w307 l1 wait 500
-v0 w308 l1 wait 500
-v0 w309 l1 wait 500
-v0 w310 l1 wait 500
-v0 w311 l1 wait 500
-v0 w312 l1 wait 500
-v0 w313 l1 wait 500
-v0 w0 l1
+[./sk/gm-snare-chase.ks] /ks kw 50 k>d d>r /r 300
+[./sk/gm-snare.ks] /ks kw 50 k>d d>r /r 301
+[./sk/drums-snare.ks] /ks kw 50 k>d d>r /r 302
+[./sk/dm-snare-crack.ks] /ks kw 50 k>d d>r /r 303
+[./sk/dm-snare-metal.ks] /ks kw 50 k>d d>r /r 304
+[./sk/is-snare-elec.ks] /ks kw 50 k>d d>r /r 305
+[./sk/is-snare.ks] /ks kw 50 k>d d>r /r 306
+[./sk/is-snare-s900.ks] /ks kw 50 k>d d>r /r 307
+[./sk/kw-snare-rimshot.ks] /ks kw 50 k>d d>r /r 308
+[./sk/kw-snare.ks] /ks kw 50 k>d d>r /r 309
+[./sk/nin-snare-ghost.ks] /ks kw 50 k>d d>r /r 310
+[./sk/nin-snare.ks] /ks kw 50 k>d d>r /r 311
+[./sk/nap-snare-crack.ks] /ks kw 50 k>d d>r /r 312
+[./sk/nap-snare-rim.ks] /ks kw 50 k>d d>r /r 313
+=0,55
+=1,69
+[v0 f440 w300 l1] x0
+[v0 w301 l1] xa
+[v0 w302 l1] xa
+[v0 w303 l1] xa
+[v0 w304 l1] xa
+[v0 w305 l1] xa
+[v0 w306 l1] xa
+[v0 w307 l1] xa
+[v0 w308 l1] xa
+[v0 w309 l1] xa
+[v0 w310 l1] xa
+[v0 w311 l1] xa
+[v0 w312 l1] xa
+[v0 w313 l1] xa
+[v0 w10 n$0 l1]xa
+[v0 w0 n$1 l1]xa
+Z1

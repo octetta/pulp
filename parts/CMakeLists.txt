@@ -93,6 +93,8 @@ add_library(api STATIC
   "${SYNTH_STATE_H}"
 )
 
+set_target_properties(api PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 # 5. Include Directories for the library
 target_include_directories(api PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 target_include_directories(api PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

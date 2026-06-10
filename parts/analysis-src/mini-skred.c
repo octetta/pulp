@@ -1,0 +1,109 @@
+#include "api.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "uedit.h"
+
+void usage(void) {
+  printf("# skred\n");
+  printf("-v<voice-count> (1 to 64)\n");
+  printf("-r<requested-frame-size> (128 to ?)\n");
+  printf("-n = do not use editor (for use as a subprocess)\n");
+  printf("-p<udp-port> (0 means no udp)\n");
+  printf("-l show output/input devices\n");
+  exit(1);
+}
+
+static int handle_audio_command(const char *line) {
+  int result = skred_audio_command(line);
+  if (result == 0) return 0;
+  const char *message = skred_audio_message();
+  if (message && message[0]) printf("%s\n", message);
+  return 1;
+}
+
+int main(int argc, char **argv) {
+  int useue = 1;
+  unsigned int vc = 32;
+  unsigned int req = 128;
+  int udp_port = 60440;
+  int output = -1;
+  int input = -1;
+
+  for (int i=1; i<argc; i++) {
+    if (argv[i][0] == '-') {
+      switch (argv[i][1]) {
+        case 'n': useue = 0; break;
+        case 'v': vc = atoi(&argv[i][2]); break;
+        case 'r': req = atoi(&argv[i][2]); break;
+        case 'p': udp_port = (int)strtol(&(argv[i][2]), NULL, 0); break;
+        case 'l': {
+          skred_enumerate_devices(0);
+          skred_enumerate_devices(1);
+          printf("# Output Devices\n");
+          for (int i=0; i<skred_devices(0); i++) printf("%d %s\n", skred_device_idx(0, i), skred_device_str(0, i));
+          printf("# Input Devices\n");
+          for (int i=0; i<skred_devices(1); i++) printf("%d %s\n", skred_device_idx(1, i), skred_device_str(1, i));
+          exit(1);
+        } break;
+        case 'i': {
+          skred_enumerate_devices(1);
+          input = atoi(&argv[i][2]);
+          // NEED TO VALIDATE
+        } break;
+        case 'o': {
+          skred_enumerate_devices(0);
+          output = atoi(&argv[i][2]);
+          // NEED TO VALIDATE
+        } break;
+        default:
+          usage();
+          break;
+      }
+    }
+  }
+
+  if (!useue) {
+    // Force line buffering: buffers are flushed at every '\n'
+    setvbuf(stdin,  NULL, _IOLBF, 0);
+    setvbuf(stdout, NULL, _IOLBF, 0);
+  }
+
+  printf("# ( %s)\n", skred_features());
+  printf("# frames/callback %d\n", req);
+  printf("# voices %d\n", vc);
+
+  skred_set_audio_device(output, input);
+
+  if (skred_start(req, vc, udp_port) != 0) {
+    return 1;
+  }
+
+  skred_logger(1);
+
+  while (1) {
+    char line[1024];
+    char *out = NULL;
+    if (useue) {
+      int r = uedit("# ", line, sizeof(line)-1);
+      if (r == 0) continue;
+      if (r < 0) break;
+      out = line;
+    } else {
+      out = fgets(line, sizeof(line)-1, stdin);
+      if (out == NULL) break;
+      if (strlen(line) == 0) continue;
+    }
+    if (handle_audio_command(out)) continue;
+    int r = skred_command(out);
+    char *log = skred_log();
+    if (strlen(log)) printf("%s", log);
+    if (r == 0) continue;
+    if (r < 0) break;
+    printf("r = %d\n", r);
+  }
+
+  skred_stop();
+  return 0;
+}

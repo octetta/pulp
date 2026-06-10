@@ -16,13 +16,9 @@
 #include <unistd.h>
 #include <dirent.h>
 
-@if(KSYNTH)
 #include "ks_chan.h"
 #include "kse.h"
-@endif
-@if(RECORD)
 #include "recorder.h"
-@endif
 
 int skode_puts(skode_t *ctx, const char *s) {
   if (!ctx || !s || ctx->log_enable == 0) return 0;
@@ -128,7 +124,6 @@ static int skode_double_to_int(double value, int *out) {
   return 1;
 }
 
-@if(SEQ)
 static int skode_seconds_to_samples(double seconds, uint64_t *out) {
   if (!out || !isfinite(seconds) || seconds < 0.0) return 0;
   long double samples = (long double)seconds * (long double)MAIN_SAMPLE_RATE;
@@ -139,7 +134,6 @@ static int skode_seconds_to_samples(double seconds, uint64_t *out) {
 static uint64_t skode_u64_add(uint64_t a, uint64_t b) {
   return a > UINT64_MAX - b ? UINT64_MAX : a + b;
 }
-@endif
 
 static void skode_copy_string(char *dst, size_t dst_size, const char *src) {
   if (!dst || dst_size == 0) return;
@@ -202,9 +196,7 @@ void skode_show(skode_t *ctx) {
   }
 }
 
-@if(UDP)
 #include "udp.h"
-@endif
 
 void system_show(skode_t *ctx) {
   skode_t wprime;
@@ -212,38 +204,9 @@ void system_show(skode_t *ctx) {
     ctx = &wprime;
     skode_init(ctx);
   }
-  @if(UDP)
   ctx->printf(ctx, "# udp_port %d\n", udp_info());
-  @endif
 }
 
-@if(BENCH)
-int show_stats_cb(int n, uint64_t timestamp, uint64_t id, int tag, const event_t *e, void *user) {
-  uint64_t now = SAMPLE_COUNT_GET();
-  uint64_t then = timestamp - now;
-  double ms = (double)then / (double)MAIN_SAMPLE_RATE * 1000.0;
-  skode_t *ctx = user;
-  ctx->printf(ctx, "# (%d,%ld,%d) %ld +%g ms %d [%s]\n",
-    n,
-    id,
-    tag,
-    timestamp,
-    ms,
-    e->voice,
-    e->what
-  );
-  return 0;
-}
-
-void show_stats(skode_t *ctx) {
-  ctx->printf(ctx, "# synth frames per callback %d : %gms\n",
-    synth_frames_per_callback, SAMPLES_TO_MSEC(synth_frames_per_callback));
-  ctx->printf(ctx, "# seq frames per callback %d : %gms\n",
-    seq_frames_per_callback, SAMPLES_TO_MSEC(seq_frames_per_callback));
-  ctx->printf(ctx, "# queue_size %d\n", seq_queued());
-  seq_foreach(show_stats_cb, ctx);
-}
-@endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -326,7 +289,6 @@ void show_threads(skode_t *ctx) {
 #endif
 }
 
-@if(KSYNTH)
 uint64_t skode_ks_submit(skode_t *ctx, int writer, char *cmd, int len) {
   uint64_t seq = kse_submit(writer, cmd, len);
   if (seq) {
@@ -393,7 +355,6 @@ int ksynth_load(skode_t *ctx, int writer, int n, int verbose) {
   ksynth_loader(ctx, in, writer, verbose);
   return r;
 }
-@endif
 
 int skode_load(skode_t *ctx, int voice, int n, int verbose) {
   (void)voice;
@@ -664,13 +625,7 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
 
 // this is a mess i need to clean up
 
-@if(SCOPE)
-#include "scope-shared.h"
-extern int scope_enable;
-extern scope_buffer_t *scope;
-@endif
 
-@if(SEQ)
 void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
   if (pattern_pointer < 0 || pattern_pointer >= PATTERNS_MAX) return;
   int first = 1;
@@ -694,12 +649,11 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
 }
 
 void tempo_set(float m);
-@endif
 
 void downsample_block_average_min_max(
     const float *source, int source_len, float *dest, int dest_len,
     float *min, float *max) {
-    
+
     if (source_len <= 0 || dest_len <= 0) return;
 
     // CASE 1: STRETCH (source is smaller than display)
@@ -708,7 +662,7 @@ void downsample_block_average_min_max(
         for (int i = 0; i < dest_len; i++) {
             int src_idx = (int)(i * step);
             float val = source[src_idx];
-            
+
             dest[i] = val;
             if (min) min[i] = val;
             if (max) max[i] = val;
@@ -722,7 +676,7 @@ void downsample_block_average_min_max(
     for (int i = 0; i < dest_len; i++) {
         int start_idx = (int)(i * block_size);
         int end_idx = (int)((i + 1) * block_size);
-        
+
         // Ensure we don't go out of bounds
         if (end_idx > source_len) end_idx = source_len;
         if (start_idx >= source_len) start_idx = source_len - 1;
@@ -961,7 +915,7 @@ void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_cha
             val = data[idx];
             if (idx < n - 1) val = data[idx] * (1.0f - fract) + data[idx+1] * fract;
         }
-        
+
         y_coords[x] = (int)((val / max_abs + 1.0f) * 0.5f * (total_dots_y - 1));
 
         int start = (int)((long long)x * n / total_dots_x);
@@ -1057,12 +1011,6 @@ int wavetable_show(skode_t *ctx, int n) {
       stats.min, stats.max, stats.peak, stats.rms, stats.dc, stats.zero_crossings);
     if (stats.clipped) ctx->printf(ctx, " clip %d", stats.clipped);
     ctx->puts(ctx, "");
-    @if(SCOPE)
-    if (scope_enable) {
-      downsample_block_average_min_max(table, size, scope->wave_data, SCOPE_WAVE_WIDTH, scope->wave_min, scope->wave_max);
-      scope->wave_len = SCOPE_WAVE_WIDTH;
-    }
-    @endif
   }
   return 0;
 }
@@ -1133,105 +1081,22 @@ void skode_sample_go(int frames) {
 
 #include "miniaudio.h"
 
-@doc
-## enabled features
-@enddoc
 
-@if(ADSR)
-@doc
-### time-based ampltude envelope (ADSR)
-@enddoc
-@endif
 
-@if(AM)
-@doc
-### amplitude modulation (AM)
-@enddoc
-@endif
 
-@if(PD)
-@doc
-### phase distortion (CZ)
-@enddoc
-@endif
 
-@if(FM)
-@doc
-### frequency modulation
-@enddoc
-@endif
 
-@if(FILT)
-@doc
-### multi-mode resonant filtering
-@enddoc
-@endif
 
-@if(FADSR)
-@doc
-### time-based filter envelope (ADSR)
-@enddoc
-@endif
 
-@if(GLISS)
-@doc
-### frequency sweeping (glide or portamento)
-@enddoc
-@endif
 
-@if(SAH)
-@doc
-### sample-and-hold
-@enddoc
-@endif
 
-@if(PANMOD)
-@doc
-### pan modulation
-@enddoc
-@endif
 
-@if(CRUSH)
-@doc
-### bit-depth reduction (bit-crush)
-@enddoc
-@endif
 
-@if(SMOOTHER)
-@doc
-### amplitude slew-rate (smoother)
-@enddoc
-@endif
 
-@if(RECORD)
-@doc
-### recording
-@enddoc
-@endif
 
-@if(UDP)
-@doc
-### skode UDP server
-@enddoc
-@endif
 
-@if(SEQ)
-@doc
-### patterns and events
-@enddoc
-@endif
 
-@if(SCOPE)
-@doc
-### waveform scope shared memory
-@enddoc
-@endif
 
-@if(BENCH)
-@doc
-### benchmarking tools
-@enddoc
-@endif
 
 void normalize_buffer(float* pSamples, ma_uint32 frameCount, ma_uint32 channels) {
     float maxAmp = 0.0f;
@@ -1355,20 +1220,9 @@ int skode_function(ands_t *s, int info) {
       if (x_valid && x >= 0) sk_sleep(x);
       break;
     case ATOM4('a---'): // amp loudness
-@doc
-
-`a` set voice loudness (amplitude) in dB
-
-@enddoc
       if (argc) amp_set(voice, arg[0]);
       break;
-    @if(AM)
     case ATOM4('A---'): // AM voice depth
-@doc
-
-`A x,y,z` set voice amplitude modulation (AM) using voice `x`, depth 'y', and offset 'z'
-
-@enddoc
       if (argc < 2) {
         amp_mod_set(voice, -1, 0, 0);
       } else if (x_valid) {
@@ -1377,36 +1231,11 @@ int skode_function(ands_t *s, int info) {
         amp_mod_set(voice, x, arg[1], a);
       }
       break;
-    @endif
     case ATOM4('b---'): // wave-direction bool
-@doc
-
-`b [0|1]` set voice waveform playback direction 0=forward, 1=backward
-
-@enddoc
       if (argc == 0) { wave_dir(voice, -1); } else { wave_dir(voice, x); } break;
     case ATOM4('B---'): // wave-loop bool
-@doc
-
-`B [0|1]` set voice waveform looping 0=off, 1=on
-
-@enddoc
       if (argc == 0) { wave_loop(voice, -1); } else { wave_loop(voice, x); } break;
-    @if(PD)
     case ATOM4('c---'): // phase-distortion algo distortion
-@doc
-
-`c mode, depth` set voice CZ / phase distortion with `mode` (below) and `depth` (0.0 to 1.0)
-  0 = off
-  1 = saw -> pulse
-  2 = folded sine
-  3 = triangle
-  4 = double sine
-  5 = saw -> triangle
-  6 = resonant 1
-  7 = resonant 2
-
-@enddoc
       if (argc == 0) {
         cz_set(voice, 0, .5);
       } else if (argc == 1) {
@@ -1422,7 +1251,6 @@ int skode_function(ands_t *s, int info) {
         cmod_set(voice, x, arg[1]);
       }
       break;
-    @endif
     case ATOM4('D---'): // data-size
       if (argc) {
         if (x > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, x);
@@ -1440,7 +1268,6 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('f---'): // freq hz
       if (argc) freq_set(voice, arg[0]);
       break;
-    @if(FILT && FADSR)
     case ATOM4('ft--'): // filter-adsr A D S R
       if (argc == 4) {
         float a = arg[0];
@@ -1454,8 +1281,6 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('fd--'): // filter-adsr depth
       if (argc) sv.filter_env_depth[voice] = arg[0];
       break;
-    @endif
-    @if(FM)
     case ATOM4('F---'): // FM voice depth
       if (argc <= 1) {
         freq_mod_set(voice, -1, 0, 0);
@@ -1468,8 +1293,6 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('FF--'): // FM mode
       if (argc) sv.freq_mod_mode[voice] = x;
       break;
-    @endif
-    @if(GLISS)
     case ATOM4('g---'): // glissando speed
       if (argc) {
         if (arg[0] <= 0) {
@@ -1481,7 +1304,6 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
-    @endif
     case ATOM4('G---'): // link-midi voice [voice]
       if (argc) {
         int links[4] = {-1, -1, -1, -1};
@@ -1496,10 +1318,8 @@ int skode_function(ands_t *s, int info) {
         sv.link_midi_3[voice] = links[3];
       }
       break;
-    @if(SAH)
     case ATOM4('h---'): // sample-hold phase-count
       if (argc) { sv.sample_hold_max[voice] = x; } break;
-    @endif
     case ATOM4('H---'): // link-velo voice [voice [voice [voice]]]
       if (argc) {
         int links[4] = {-1, -1, -1, -1};
@@ -1541,7 +1361,6 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
-    @if(FILT)
     case ATOM4('J---'): // filter-mode selector
       if (argc) {
         sv.filter_mode[voice] = x;
@@ -1553,8 +1372,6 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('K---'): // filter-cutoff freq
       if (argc) { mmf_set_freq(voice, arg[0]); }
       break;
-    @endif
-    @if(KSYNTH)
     #define TMP_WRITER 0
     case ATOM4('/ks-'): // ksynth-load num (verbose)
       {
@@ -1618,18 +1435,13 @@ int skode_function(ands_t *s, int info) {
         skode_ks_result_to_data(ctx, writer);
       }
       break;
-    @endif
-    @if(ADSR)
     case ATOM4('k---'): // adsr-mode bool
       if (argc) { sv.amp_envelope_mode[voice] = x; } break;
-    @endif
-    @if(UDP)
     case ATOM4('udp-'): // show-udp
       if (argc) {
         ctx->printf(ctx, "# udp [%d] %d/%d\n", ctx->which, ctx->ip, ctx->port);
       }
       break;
-    @endif
     case ATOM4('log-'): // log-enable bool
       if (argc) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }
@@ -1656,11 +1468,9 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('m---'): // mute-audio bool
       if (argc) { wave_mute(voice, x); }
       break;
-    @if(SEQ)
     case ATOM4('M---'): // tempo bpm
       if (argc) { tempo_set(arg[0]); }
       break;
-    @endif
     case ATOM4('n---'): // midi-freq note-number (cents)
       if (argc) {
         float note = arg[0];
@@ -1687,7 +1497,6 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('p---'): // pan value
       if (argc) pan_set(voice, arg[0]);
       break;
-    @if(PANMOD)
     case ATOM4('P---'): // pan-mod voice depth
       if (argc < 2) {
         pan_mod_set(voice, -1, 0, 0);
@@ -1697,23 +1506,15 @@ int skode_function(ands_t *s, int info) {
         pan_mod_set(voice, x, arg[1], a);
       }
       break;
-    @endif
-    @if(CRUSH)
     case ATOM4('q---'):  // bit-crush bit-depth
       if (argc) { wave_quant(voice, x); }
       break;
-    @endif
-    @if(FILT)
     case ATOM4('Q---'):
       if (argc) { mmf_set_res(voice, arg[0]); }
       break;
-    @endif
-    @if(RECORD)
     case ATOM4('r---'): // additional recording track, 0=none, 1..4=stem
       if (argc) synth_record_track_set(voice, x);
       break;
-    @endif
-    @if(SEQ)
     case ATOM4('R!--'):  // remove-events tag
       if (argc) {
         int tag = x;
@@ -1757,8 +1558,6 @@ int skode_function(ands_t *s, int info) {
           qt = skode_u64_add(qt, dt);
         }
       } break;
-    @endif
-    @if(SMOOTHER)
     case ATOM4('s---'): // volume-smooth bool
       if (argc) {
         if (arg[0] <= 0) {
@@ -1769,15 +1568,12 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
-    @endif
     case ATOM4('S---'): // voice-reset voice
       if (argc) wave_reset(x);
       break;
-    @if(ADSR)
     case ATOM4('t---'): // adsr-set attack decay sustain release
       if (argc > 3) envelope_set(voice, arg[0], arg[1], arg[2], arg[3]);
       break;
-    @endif
     case ATOM4('T---'): // trigger
       {
         envelope_velocity(voice, 1);
@@ -1811,9 +1607,6 @@ int skode_function(ands_t *s, int info) {
         if (argc > 2) {
           if (skode_double_to_int(arg[2], &n)) sv.one_shot[voice] = n != 0;
         }
-        @if(SCOPE)
-        if (scope_enable) sprintf(scope->wave_text, "w%d", x);
-        @endif
       }
       break;
     case ATOM4('=d--'): // assign a variable from an element of the d array =d var d-index
@@ -1984,9 +1777,6 @@ int skode_function(ands_t *s, int info) {
             }
           }
         }
-        @if(SCOPE)
-        if (scope_enable) sprintf(scope->wave_text, "w%d", x);
-        @endif
       } else if (argc == 0) {
         int c = 0;
         ctx->printf(ctx, "# MAX %d\n", WAVE_TABLE_MAX);
@@ -1994,12 +1784,8 @@ int skode_function(ands_t *s, int info) {
           wavetable_show(ctx, i);
           c++;
         }
-        @if(SCOPE)
-        if (scope_enable) sprintf(scope->wave_text, "%d waves loaded", c);
-        @endif
       }
       break;
-    @if(SEQ)
     case ATOM4('xg--'): // goto-step #
     case ATOM4('>x--'): // goto-step #
       seq_step_goto(ctx->pattern, x);
@@ -2067,16 +1853,6 @@ int skode_function(ands_t *s, int info) {
       ctx->printf(ctx, "M%g\n", tempo_bpm * 4.0f);
       for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p, 1);
       break;
-    @endif
-    @if(XM)
-    case ATOM4('XM--'): // ring modulation osc amount
-      if (argc) {
-        sv.ring_osc[voice] = x_valid && skode_voice_valid(x) ? x : -1;
-        if (argc > 1) sv.ring_amount[voice] = arg[1];
-        else sv.ring_amount[voice] = 0.0;
-      }
-      break;
-    @endif
     case ATOM4('v?--'): // show-voice
     case ATOM4('?---'): // show-voice
       voice_show(ctx, voice, ' ', ctx->verbose); break;
@@ -2094,15 +1870,9 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('g>l-'):
       if (argc) ands_global_to_local(ctx->parse, x);
       break;
-    @if(BENCH)
-    case ATOM4('/m_-'): // benchmark voice
-      synth_voice_bench(voice);
-      break;
-    @endif
     case ATOM4('/q--'): // quit
       ctx->quit = -1;
       return 0;
-    @if(RECORD)
     case ATOM4('/rg-'): // start multitrack file recording
       {
         const char *filename = ands_string(ctx->parse);
@@ -2145,7 +1915,6 @@ int skode_function(ands_t *s, int info) {
                     (unsigned long long)recorder_dropped_frames());
       }
       break;
-    @endif
     case ATOM4('/r--'): // sample-to-wave slot one_shot offset
       {
         int wave_slot = EXT_SAMPLE_000;
@@ -2244,11 +2013,6 @@ int skode_function(ands_t *s, int info) {
                   ctx->printf(ctx, "# [%s] e>%d\n", EXTRA_PTR(i), i);
               }
               break;
-            @if(BENCH)
-            case 1: show_threads(ctx); break;
-            case 4: show_stats(ctx); break;
-            case 6: ctx->printf(ctx, "%s", seq_stats()); break;
-            @endif
           }
         }
       }
@@ -2328,11 +2092,9 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('/---'): // default-wave voice
       wave_default(voice);
       break;
-    @if(SEQ)
     case ATOM4('%---'): // pattern-modulus num
       if (argc) seq_modulo_set(ctx->pattern, x);
       break;
-    @endif
     case ATOM4('W@--'):  // get a wavetable parameter to a variable
       if (argc > 1 && x_valid && skode_wave_valid(x)) {
         int wave = x;
@@ -2501,7 +2263,6 @@ int skode_function(ands_t *s, int info) {
   return 0;
 }
 
-@if(SEQ)
 int skode_defer(ands_t *s, int info) {
   (void)info;
   skode_t *ctx = (skode_t*)ands_user(s);
@@ -2536,7 +2297,6 @@ int skode_defer(ands_t *s, int info) {
   ctx->defer_last = t;
   return 0;
 }
-@endif
 
 int skode_chunk_end(ands_t *s, int info) {
   skode_t *ctx = (skode_t*)ands_user(s);
@@ -2556,9 +2316,7 @@ int skode_callback(ands_t *s, int info) {
   skode_t *ctx = (skode_t*)ands_user(s);
   switch (info) {
     case FUNCTION: return skode_function(s, info);
-    @if(SEQ)
     case DEFER: return skode_defer(s, info);
-    @endif
     case CHUNK_END: return skode_chunk_end(s, info);
     case GOT_STRING: { if (ctx->trace) ctx->printf(ctx, "# -> [%s]\n", ands_string(s)); } break;
     case GOT_ARRAY: { if (ctx->trace) ctx->printf(ctx, "# -> (..%d..)\n", ands_data_len(s)); } break;

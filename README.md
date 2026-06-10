@@ -61,6 +61,21 @@ make test   # smoke test
 make warn   # -Wall -Wextra -Wpedantic -Werror
 ```
 
+## Static Analysis
+
+The project authors feature-gated C in `.c.kit` and `.h.kit` files. Generate
+the canonical max-feature C source tree for source-only analysis services with:
+
+```sh
+make analysis-src
+```
+
+Commit changes under `parts/analysis-src`. CI runs `make analysis-check` and
+fails when those files no longer match the templates. Configure repository
+scanners such as CodeVerify to include ordinary source files under `parts/`
+and use `parts/analysis-src/` for the generated modules. Build directories
+under `parts/build_*` remain disposable and ignored.
+
 ## WASM Build
 
 ```sh

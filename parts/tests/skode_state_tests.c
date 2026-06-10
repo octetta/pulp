@@ -149,6 +149,61 @@ static void test_trigger_delay_lifecycle(void) {
   consume(test, &ctx, "v0 H999 l1");
 }
 
+static void test_parameter_and_buffer_safety(void) {
+  const char *test = "parameter and buffer safety";
+
+  struct {
+    skode_t ctx;
+    unsigned char guard[32];
+  } guarded = { .ctx = SKODE_EMPTY() };
+  skode_init(&guarded.ctx);
+  guarded.ctx.log_enable = 1;
+  memset(guarded.guard, 0x5a, sizeof(guarded.guard));
+
+  char first[2001];
+  char second[5001];
+  memset(first, 'a', sizeof(first) - 1);
+  first[sizeof(first) - 1] = '\0';
+  memset(second, 'b', sizeof(second) - 1);
+  second[sizeof(second) - 1] = '\0';
+  skode_printf(&guarded.ctx, "%s", first);
+  skode_printf(&guarded.ctx, "%s", second);
+  if (guarded.ctx.log_len >= (int)sizeof(guarded.ctx.log)) {
+    fail(test, "log length exceeded buffer");
+  }
+  for (size_t i = 0; i < sizeof(guarded.guard); i++) {
+    if (guarded.guard[i] != 0x5a) {
+      fail(test, "log write changed guard bytes");
+      break;
+    }
+  }
+
+  skode_t ctx = new_ctx();
+  consume(test, &ctx, "wait");
+  consume(test, &ctx, "100000000 >");
+  consume(test, &ctx, "v0 G100000000 n60");
+  expect_int(test, (int)sv.link_midi_0[0], -1, "invalid MIDI link");
+  consume(test, &ctx, "100000000 0 W@");
+  consume(test, &ctx, "100000000 W");
+
+  consume(test, &ctx, "(1 2 3) d>r; -100 w>; w!");
+  extern synth_sample_t sampling;
+  expect_int(test, sampling.offset, 0, "clamped recording offset");
+  expect_int(test, sampling.len, 3, "recording length");
+
+  char long_text[400];
+  memset(long_text, 'x', sizeof(long_text));
+  long_text[0] = '[';
+  long_text[sizeof(long_text) - 4] = ']';
+  long_text[sizeof(long_text) - 3] = 'v';
+  long_text[sizeof(long_text) - 2] = 't';
+  long_text[sizeof(long_text) - 1] = '\0';
+  consume(test, &ctx, long_text);
+  if (strnlen(sv.text[0], TEXT_MAX) >= TEXT_MAX) {
+    fail(test, "voice text was not terminated");
+  }
+}
+
 static void test_context_modes(void) {
   const char *test = "context modes";
   skode_t ctx = new_ctx();
@@ -172,6 +227,7 @@ int main(void) {
   test_data_array_logging();
   test_midi_and_links();
   test_trigger_delay_lifecycle();
+  test_parameter_and_buffer_safety();
   test_context_modes();
 
   synth_free();

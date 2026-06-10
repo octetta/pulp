@@ -67,6 +67,7 @@ int queue_size(queue_t *q) {
 
 // Lock-free multi-producer enqueue
 bool queue_put(queue_t *q, uint64_t timestamp, int tag, void *data, int voice, char *what) {
+    if (!q || !q->incoming.items || q->incoming.capacity <= 1) return false;
     ring_buffer_t *rb = &q->incoming;
     int capacity = rb->capacity;
     
@@ -122,6 +123,7 @@ bool queue_put(queue_t *q, uint64_t timestamp, int tag, void *data, int voice, c
 
 // Simpler approach: Always check ring buffer before popping from heap
 bool queue_get_filtered(queue_t *q, uint64_t limit_ts, item_t *out) {
+    if (!q || !out || !q->incoming.items || !q->sorted.heap) return false;
     ring_buffer_t *rb = &q->incoming;
     priority_queue_t *pq = &q->sorted;
     

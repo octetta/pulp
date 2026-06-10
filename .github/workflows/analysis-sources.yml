@@ -1,0 +1,14 @@
+name: Analysis sources
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  generated-source-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical generated C sources
+        working-directory: parts
+        run: make analysis-check

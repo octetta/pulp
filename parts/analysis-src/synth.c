@@ -31,11 +31,9 @@ static int verbose = 0;
 int volume_set(float v);
 static int voice_invalid(int voice);
 
-@if(AM || FM || PANMOD || PD)
 static int mod_voice_invalid(int voice) {
   return voice < -1 || voice >= synth_config.voice_max;
 }
-@endif
 
 void synth_init(int vc) {
   SAMPLE_COUNT_PUT(0);
@@ -69,7 +67,6 @@ void synth_free(void) {
   synth_free_waves();
 }
 
-@if(RECORD)
 int synth_record_track_set(int voice, int track) {
   if (voice < 0 || voice >= synth_config.voice_max ||
       track < 0 || track > RECORD_TRACK_MAX) {
@@ -83,7 +80,6 @@ int synth_record_track_get(int voice) {
   if (voice < 0 || voice >= synth_config.voice_max) return -1;
   return atomic_load_int(&sv.record_pending[voice]);
 }
-@endif
 
 
 int requested_synth_frames_per_callback = SYNTH_FRAMES_PER_CALLBACK;
@@ -145,20 +141,19 @@ void osc_set_freq(int v, float f) {
 static inline float fast_pow(float a, float b) {
     // Clamp input to avoid undefined behavior
     if (a <= 0.0f) return 0.0f;
-    
+
     union { float f; int i; } u = { a };
     u.i = (int)(b * (u.i - 1065353216) + 1065353216);
     return u.f;
 }
 
-@if(PD)
 float cz_phasor(int n, float p, float d, int table_size) {
     const float table_size_f = (float)table_size;
     float phase = p / table_size_f;
-    
+
     // Clamp d to safe range [0, 1)
     d = (d < 0.0f) ? 0.0f : (d > 0.999f ? 0.999f : d);
-    
+
     switch (n) {
         case 1: { // saw -> pulse
             const float inv_d = 0.5f / d;
@@ -216,35 +211,34 @@ float cz_phasor(int n, float p, float d, int table_size) {
         default:
             return p;
     }
-    
+
     return phase * table_size_f;
 }
-@endif
 
 float osc_next(int voice, float phase_inc) {
     if (sv.finished[voice]) return 0.0f;
-    
+
     const int table_size = sv.table_size[voice];
     const bool one_shot = sv.one_shot[voice];
     const bool loop_enabled = sv.loop_enabled[voice];
-    
+
     if (sv.direction[voice]) phase_inc = -phase_inc;
-    
+
     float phase = sv.phase[voice] + phase_inc;
-    
+
     if (!isfinite(phase)) {
         sv.phase[voice] = 0.0f;
         sv.finished[voice] = one_shot;
         return 0.0f;
     }
-    
+
     // Get loop boundaries (precomputed if available)
     const float loop_start = loop_enabled && sv.loop_valid[voice] 
         ? sv.loop_start_f[voice] : 0.0f;
     const float loop_end = loop_enabled && sv.loop_valid[voice]
         ? sv.loop_end_f[voice] : (float)table_size;
     const float loop_length = loop_end - loop_start;
-    
+
     // Wrap phase
     if (phase >= loop_end) {
         if (one_shot && !loop_enabled) {
@@ -261,14 +255,13 @@ float osc_next(int voice, float phase_inc) {
             phase = loop_end - fmodf(loop_start - phase, loop_length);
         }
     }
-    
+
     sv.phase[voice] = phase;
-    
+
     // Get sample
 
     float final_phase;
 
-    @if(PD) 
     if (sv.cz_mode[voice] && sv.cz_mod_osc[voice] >= 0) {
       int dv = sv.cz_mod_osc[voice];
       float dm = (dv >= 0) ? sv.sample[dv] * sv.cz_mod_depth[voice] : 1.0f;
@@ -276,27 +269,24 @@ float osc_next(int voice, float phase_inc) {
     } else {
       final_phase = phase;
     }
-    @else
-    final_phase = phase;
-    @endif
-    
+
     int idx = (int)final_phase;
-    
+
     if (idx >= table_size) idx = table_size - 1;
     if (idx < 0) idx = 0;
-    
+
     // Check if interpolation is enabled for this voice
     if (sv.interpolate[voice]) {
         // Linear interpolation
         float frac = final_phase - (float)idx;
-        
+
         int next_idx = idx + 1;
         //if (next_idx >= table_size) next_idx = 0;  // Wrap for seamless loops
         if (next_idx >= table_size) next_idx = sv.one_shot[voice] ? table_size - 1 : 0;
-        
+
         float sample1 = sv.table[voice][idx];
         float sample2 = sv.table[voice][next_idx];
-        
+
         return sample1 + frac * (sample2 - sample1);
     } else {
         // No interpolation - just return the sample
@@ -354,7 +344,7 @@ void osc_set_wave_table_index(int voice, int wave) {
 
 void osc_trigger(int voice) {
     sv.finished[voice] = 0;
-    
+
     if (sv.one_shot[voice]) {
         if (sv.direction[voice]) {
             sv.phase[voice] = (float)(sv.table_size[voice] - 1);
@@ -383,7 +373,6 @@ float quantize_bits_int(float v, int bits) {
   return (float)iv * (1.0f / (float)levels);
 }
 
-@if(FILT)
 // Process a single sample through the filter - VERY FAST
 // Only multiplication and addition, no transcendental functions
 float mmf_process(int n, float input) {
@@ -393,18 +382,16 @@ float mmf_process(int n, float input) {
                   sv.filter[n].b2 * sv.filter[n].x2 -
                   sv.filter[n].a1 * sv.filter[n].y1 -
                   sv.filter[n].a2 * sv.filter[n].y2;
-    
+
     // Update delay lines
     sv.filter[n].x2 = sv.filter[n].x1;
     sv.filter[n].x1 = input;
     sv.filter[n].y2 = sv.filter[n].y1;
     sv.filter[n].y1 = output;
-    
+
     return output;
 }
-@endif
 
-@if(ADSR)
 
 // Initialize the envelope
 void envelope_init_e(envelope_t *e, float a, float d, float s, float r) {
@@ -494,15 +481,10 @@ float envelope_step_e(envelope_t *e, uint64_t current_sample) {
 float amp_envelope_step(int v, uint64_t current_sample) {
     return envelope_step_e(&sv.amp_envelope[v], current_sample);
 }
-@endif
 
 #include "util.h"
 
 static sben_t bench[BENLEN] = {};
-@if(BENCH)
-static int benchp = 0;
-static int64_t bencho = 0;
-@endif
 static char _stats[65536] = "";
 
 char *synth_stats(void) {
@@ -532,21 +514,11 @@ char *synth_stats(void) {
 
 #endif
 
-@if(BENCH)
-void synth_voice_bench(int voice) {
-  sv.mark_b[voice].tv_sec = 0;
-  sv.mark_b[voice].tv_nsec = 0;
-  clock_gettime(VOICE_CLOCK, &sv.mark_a[voice]);
-  sv.mark_go[voice] = 1;
-}
-@endif
 
 
-@if(FILT)
 
 void mmf_set_params(int n, float f, float resonance);
 #define FILTER_UC (16)
-@endif
 
 static float empty_capture[65536] = {0};
 static float *this_capture;
@@ -555,21 +527,15 @@ synth_sample_t sampling = {0};
 
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user) {
   (void)input;
-  @if(RECORD)
   synth_record_bus_t *record_bus = (synth_record_bus_t *)user;
   float *record_frames = NULL;
   if (record_bus && record_bus->channels == RECORD_CHANNELS) {
     record_frames = record_bus->frames;
   }
-  @else
-  (void)user;
-  @endif
   const int nvoices = synth_voice_count();
-  @if(RECORD)
   for (int n = 0; n < nvoices; n++) {
     sv.record[n] = atomic_load_int(&sv.record_pending[n]);
   }
-  @endif
 #if 0
   const int nframes = num_frames;
   (void)nframes; /* available for future vectorised frame loop */
@@ -585,39 +551,22 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
   if (input) this_capture = input;
   else this_capture = empty_capture;
 
-  @if(BENCH)
-  BEN_MARK_A(bench, benchp, num_frames, bencho);
-  @endif
 
-  @if(ADSR || FILT)
   uint64_t callback_sample = SAMPLE_COUNT_ADD(num_frames);
-  @else
-  SAMPLE_COUNT_ADD(num_frames);
-  @endif
   for (int i = 0; i < num_frames; i++) {
-    @if(ADSR || FILT)
     uint64_t current_sample = callback_sample + (uint64_t)i;
-    @endif
     float sample_left = 0.0f;
     float sample_right = 0.0f;
-    @if(RECORD)
     float record_left[RECORD_TRACK_COUNT] = {0};
     float record_right[RECORD_TRACK_COUNT] = {0};
-    @endif
-    
+
     float record_mono = 0.0f;
-    
+
     float f = 0.0f;
     float whiteish = audio_rng_float(&synth_random);
     float cap_left = this_capture[i*2];
     float cap_right = this_capture[i*2+1];
     for (int n = 0; n < nvoices; n++) {
-      @if(BENCH)
-      if (sv.mark_go[n]) {
-        clock_gettime(VOICE_CLOCK, &sv.mark_b[n]);
-        sv.mark_go[n] = 0;
-      }
-      @endif
       if (sv.finished[n]) {
         //sv.sample[n] = 0.0f; // remove to try the below
         // hold last value to modulator consumers see statle output after one-shot ends
@@ -627,14 +576,13 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         sv.sample[n] = 0.0f;
         continue;
       }
-      @if(GLISS)
       if (sv.glissando_enable[n]) {
         // If multiplier is effectively 1, we are already there
         if (sv.glissando_speed[n] == 1.0f) {
           sv.glissando_enable[n] = 0;
         } else {
           sv.phase_inc[n] *= sv.glissando_speed[n];
-          
+
           // Check if we crossed the target (works for both gliding up and down)
           if ((sv.glissando_speed[n] > 1.0f && sv.phase_inc[n] >= sv.glissando_target[n]) ||
               (sv.glissando_speed[n] < 1.0f && sv.phase_inc[n] <= sv.glissando_target[n])) {
@@ -643,7 +591,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
           }
         }
       }
-      @endif
       char is_capture = 0;
       if (sv.wave_table_index[n] == WAVE_TABLE_NOISE_ALT) {
         // bypass lots of stuff if this voice uses random source...
@@ -658,7 +605,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         f = cap_right;
         is_capture = 1;
       } else {
-        @if(FM)
         if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
           int mod = sv.freq_mod_osc[n];
           float g = sv.sample[mod] * sv.freq_mod_depth[n] + sv.freq_mod_adder[n];
@@ -672,16 +618,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         } else {
           f = osc_next(n, sv.phase_inc[n]);
         }
-        @else
-        f = osc_next(n, sv.phase_inc[n]);
-        @endif
-        @if(XM)
-        if (sv.ring_osc[n] >= 0.0) {
-          f *= sv.sample[sv.ring_osc[n]];
-        }
-        @endif
       }
-      @if(SAH)
       if (sv.sample_hold_max[n]) {
         if (sv.sample_hold_count[n] == 0) {
           sv.sample_hold[n] = f;
@@ -694,18 +631,12 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       } else {
         sv.sample[n] = f;
       }
-      @else
-      sv.sample[n] = f;
-      @endif
 
-      @if(CRUSH)
       // apply quantizer
       if (sv.quantize[n]) {
         sv.sample[n] = quantize_bits_int(sv.sample[n], sv.quantize[n]);
       }
-      @endif
 
-      @if(FILT)
       // apply multi-mode filter
       if (sv.filter_mode[n]) {
         if (sv.filter_update_counter[n] <= 0) {
@@ -722,40 +653,31 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         sv.filter_update_counter[n]--;
         sv.sample[n] = mmf_process(n, sv.sample[n]);
       }
-      @endif
 
       // apply amp to sample
       float amp = sv.amp[n];
 #if 1
-      @if(SMOOTHER)
       if (sv.smoother_enable[n]) {
         sv.smoother_gain[n] += sv.smoother_smoothing[n] * (amp - sv.smoother_gain[n]);
         amp = sv.smoother_gain[n];
       }
-     @endif
 #endif
       float env = 1.0f;
       float mod = 1.0f;
 
-      @if(ADSR)
       if (sv.use_amp_envelope[n]) env = amp_envelope_step(n, current_sample);
-      @endif
 
-      @if(AM)
       if (sv.amp_mod_osc[n] >= 0) {
         int m = sv.amp_mod_osc[n];
         mod = sv.sample[m] * sv.amp_mod_depth[n] + sv.amp_mod_adder[n];
       }
-      @endif
-      
+
       float final = amp * env * mod;
 #if 0
-      @if(SMOOTHER)
       if (sv.smoother_enable[n]) {
         sv.smoother_gain[n] += sv.smoother_smoothing[n] * (final - sv.smoother_gain[n]);
         final = sv.smoother_gain[n];
       }
-      @endif
 #endif
 
       sv.sample[n] *= final;
@@ -768,25 +690,21 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         float left  = sv.sample[n];
         float right = sv.sample[n];
         // accumulate samples
-        @if(PANMOD)
         if (sv.pan_mod_osc[n] >= 0) {
           // handle pan modulation
           float q = sv.sample[sv.pan_mod_osc[n]] * sv.pan_mod_depth[n] + sv.pan_mod_adder[n];
           sv.pan_left[n]  = (1.0f - q) / 2.0f;
           sv.pan_right[n] = (1.0f + q) / 2.0f;
         }
-        @endif
         left  *= sv.pan_left[n];
         right *= sv.pan_right[n];
         sample_left  += left;
         sample_right += right;
-        @if(RECORD)
         int track = sv.record[n];
         if (track >= 1 && track <= RECORD_TRACK_MAX) {
           record_left[track] += left;
           record_right[track] += right;
         }
-        @endif
       }
     }
 
@@ -815,7 +733,6 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     sample_left  *= volume_adjusted;
     sample_right *= volume_adjusted;
 
-    @if(RECORD)
     if (record_frames) {
       float *record_frame = record_frames + ((size_t)i * RECORD_CHANNELS);
       record_frame[0] = sample_left;
@@ -826,18 +743,13 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         record_frame[channel + 1] = record_right[track];
       }
     }
-    @endif
 
     // Write to all channels
     buffer[i * num_channels + 0] = sample_left;
     buffer[i * num_channels + 1] = sample_right;
   }
-  @if(BENCH)
-  BEN_MARK_B(bench, benchp, bencho);
-  @endif
 }
 
-@if(ADSR)
 int envelope_is_flat(int v) {
   if (sv.amp_envelope[v].a == 0.0f &&
     sv.amp_envelope[v].d == 0.0f &&
@@ -845,9 +757,7 @@ int envelope_is_flat(int v) {
     sv.amp_envelope[v].r == 0.0f) return 1;
   return 0;
 }
-@endif
 
-@if(PD)
 int cz_set(int v, int n, float f) {
   sv.cz_mode[v] = n;
   sv.cz_distortion[v] = f;
@@ -860,7 +770,6 @@ int cmod_set(int voice, int o, float f) {
   sv.cz_mod_depth[voice] = f;
   return 0;
 }
-@endif
 
 #include <stdio.h>
 
@@ -941,14 +850,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             d_to_s_or_nan(sv.link_midi_2[v]),
             d_to_s_or_nan(sv.link_midi_3[v]));
         }
-    @if(XM)
-    if (verbose
-        || sv.ring_osc[v] >= 0)
-        APPEND(" XM%d,%g",
-          sv.ring_osc[v], sv.ring_amount[v]);
-    @endif
 
-    @if(ADSR)
     if (verbose
         || (int)sv.link_velo_0[v] >= 0
         || (int)sv.link_velo_1[v] >= 0
@@ -963,7 +865,6 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     /* --- trigger link (suppress if unset) --- */
     if (verbose || (int)sv.link_trig[v] >= 0)
         APPEND(" L%g", sv.link_trig[v]);
-    @endif
 
     /* --- playback direction (suppress b0 default) --- */
     if (verbose || sv.direction[v])
@@ -977,17 +878,12 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || sv.pan[v] != 0.0f)
         APPEND(" p%g", sv.pan[v]);
 
-    @if(PANMOD)
     if (verbose || (sv.pan_mod_osc[v] >= 0 && sv.pan_mod_depth[v] != 0.0f))
         APPEND(" P%d,%g,%g", sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
-    @endif
 
-    @if(FILT)
     if (verbose || sv.filter_mode[v])
         APPEND(" J%d K%g Q%g", sv.filter_mode[v], sv.filter_freq[v], sv.filter_res[v]);
-    @endif
 
-    @if(FADSR)
     if (verbose || sv.use_filter_envelope[v])
         APPEND(" ft %g %g %g %g fd %g",
             sv.filter_envelope[v].a,
@@ -995,59 +891,41 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             sv.filter_envelope[v].s,
             sv.filter_envelope[v].r,
             sv.filter_env_depth[v]);
-    @endif
 
     /* --- phase distortion (suppress if mode 0) --- */
-    @if(PD)
     if (verbose || sv.cz_mode[v])
         APPEND(" c%d,%g", sv.cz_mode[v], sv.cz_distortion[v]);
 
     if (verbose || (sv.cz_mod_osc[v] >= 0 && sv.cz_mod_depth[v] != 0.0f))
         APPEND(" C%d,%g", sv.cz_mod_osc[v], sv.cz_mod_depth[v]);
-    @endif
 
-    @if(SAH)
     if (verbose || sv.sample_hold_max[v]) APPEND(" h%d", sv.sample_hold_max[v]);
-    @endif
 
-    @if(CRUSH)
     if (verbose || sv.quantize[v]) APPEND(" q%d", sv.quantize[v]);
-    @endif
 
-    @if(AM)
     if (verbose || (sv.amp_mod_osc[v] >= 0 && sv.amp_mod_depth[v] != 0.0f))
         APPEND(" A%d,%g,%g", sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
-    @endif
 
-    @if(FM)
     if (verbose || (sv.freq_mod_osc[v] >= 0 && sv.freq_mod_depth[v] != 0.0f)) {
         if (sv.freq_mod_mode[v] == 1)
             APPEND(" FF1");
         APPEND(" F%d,%g,%g", sv.freq_mod_osc[v], sv.freq_mod_depth[v], sv.freq_mod_adder[v]);
     }
-    @endif
 
     /* --- mix / record flags (suppress if default) --- */
     if (verbose || sv.disconnect[v])
         APPEND(" m%d", sv.disconnect[v]);
-    @if(RECORD)
     int record_track = synth_record_track_get(v);
     if (verbose || record_track)
         APPEND(" r%d", record_track);
-    @endif
 
-    @if(SMOOTHER)
     if (verbose || (sv.smoother_enable[v] && sv.smoother_smoothing[v] != SMOOTH_DEFAULT))
         APPEND(" s%g", sv.smoother_smoothing[v]);
-    @endif
 
-    @if(GLISS)
     // Show the time (e.g., g0.05), not the multiplier (e.g., g1.00014)
     if (verbose || sv.glissando_time[v] > 0.0f) 
         APPEND(" g%g", sv.glissando_time[v]);
-    @endif
 
-    @if(ADSR)
     if (verbose || !envelope_is_flat(v))
         APPEND(" t%g,%g,%g,%g k%d",
             sv.amp_envelope[v].a,
@@ -1055,7 +933,6 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             sv.amp_envelope[v].s,
             sv.amp_envelope[v].r,
             sv.amp_envelope_mode[v]);
-    @endif
 
     if (sv.text[v][0] != '\0') APPEND(" [%s] vt", sv.text[v]);
 
@@ -1071,22 +948,10 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" phase:%g phase_inc:%g", sv.phase[v], sv.phase_inc[v]);
         APPEND(" sample:%g", sv.sample[v]);
         APPEND(" finished:%d one_shot:%d", sv.finished[v], sv.one_shot[v]);
-        @if(SMOOTHER)
         APPEND(" smoother_gain:%g", sv.smoother_gain[v]);
-        @endif
-        @if(FILT)
         APPEND(" filter_update_counter:%d", sv.filter_update_counter[v]);
-        @endif
-        @if(FADSR)
         APPEND(" filter_env_active:%d", sv.filter_envelope[v].is_active);
-        @endif
-        @if(ADSR)
         APPEND(" amp_env_active:%d", sv.amp_envelope[v].is_active);
-        @endif
-        @if(BENCH)
-        APPEND(" latency:%.2fms",
-            (double)ts_diff_ns(&sv.mark_a[v], &sv.mark_b[v]) / 1000000.0);
-        @endif
     }
 
 #undef APPEND
@@ -1114,12 +979,10 @@ int pan_set(int voice, float f) {
   return 0;
 }
 
-@if(CRUSH)
 int wave_quant(int voice, int n) {
   sv.quantize[voice] = n;
   return 0;
 }
-@endif
 
 int freq_set(int voice, float f) {
   if (voice_invalid(voice) || !isfinite(f)) return SYNTH_INVALID_VOICE;
@@ -1127,7 +990,6 @@ int freq_set(int voice, float f) {
 
   float target_inc = osc_get_phase_inc(voice, f);
 
-  @if(GLISS)
   float glide_time = sv.glissando_time[voice];
 
   // Safety: Only glide if time is set and current pitch is above a 'floor' (e.g., 20Hz)
@@ -1135,7 +997,7 @@ int freq_set(int voice, float f) {
   if (glide_time > 0.0f && sv.phase_inc[voice] > 0.001f) {
     sv.glissando_target[voice] = target_inc;
     float frames = glide_time * MAIN_SAMPLE_RATE;
-    
+
     // The multiplier 'm' that reaches target in N frames: start * m^N = target
     sv.glissando_speed[voice] = powf(target_inc / sv.phase_inc[voice], 1.0f / frames);
     sv.glissando_enable[voice] = 1;
@@ -1144,9 +1006,6 @@ int freq_set(int voice, float f) {
     sv.phase_inc[voice] = target_inc;
     sv.glissando_enable[voice] = 0;
   }
-  @else
-  sv.phase_inc[voice] = target_inc;
-  @endif
 
   sv.freq[voice] = f;
   return 0;
@@ -1172,7 +1031,6 @@ int wave_dir(int voice, int state) {
   return 0;
 }
 
-@if(PANMOD)
 int pan_mod_set(int voice, int o, float f, float a) {
   if (voice_invalid(voice) || mod_voice_invalid(o)) return SYNTH_INVALID_VOICE;
   sv.pan_mod_osc[voice] = o;
@@ -1180,7 +1038,6 @@ int pan_mod_set(int voice, int o, float f, float a) {
   sv.pan_mod_adder[voice] = a;
   return 0;
 }
-@endif
 
 int wave_set(int voice, int wave) {
   if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
@@ -1192,7 +1049,6 @@ int wave_set(int voice, int wave) {
   return 0;
 }
 
-@if(AM)
 int amp_mod_set(int voice, int o, float f, float a) {
   if (voice_invalid(voice) || mod_voice_invalid(o)) return SYNTH_INVALID_VOICE;
   sv.amp_mod_osc[voice] = o;
@@ -1200,9 +1056,7 @@ int amp_mod_set(int voice, int o, float f, float a) {
   sv.amp_mod_adder[voice] = a;
   return 0;
 }
-@endif
 
-@if(FM)
 int freq_mod_set(int voice, int o, float f, float a) {
   if (voice_invalid(voice) || mod_voice_invalid(o)) return SYNTH_INVALID_VOICE;
   sv.freq_mod_osc[voice] = o;
@@ -1214,7 +1068,6 @@ int freq_mod_set(int voice, int o, float f, float a) {
     sv.freq_scale[voice] = 1.0f;
   return 0;
 }
-@endif
 
 int wave_loop(int voice, int state) {
   if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
@@ -1227,14 +1080,11 @@ int wave_loop(int voice, int state) {
 }
 
 
-@if(ADSR)
 int envelope_set(int voice, float a, float d, float s, float r) {
   envelope_init(voice, a, d, s, r);
   return 0;
 }
-@endif
 
-@if(FILT)
 // Set parameters - only recalculates coefficients if values changed
 void mmf_set_params(int n, float f, float resonance) {
     // Only recalculate if parameters changed
@@ -1335,7 +1185,6 @@ void mmf_init(int n, float f, float resonance) {
     // Calculate initial coefficients
     mmf_set_params(n, f, resonance);
 }
-@endif
 
 int voice_copy(int v, int n) {
   if (voice_invalid(v) || voice_invalid(n)) return SYNTH_INVALID_VOICE;
@@ -1350,50 +1199,31 @@ int voice_copy(int v, int n) {
   sv.link_midi_3[n] = sv.link_midi_3[v];
   sv.midi_transpose[n] = sv.midi_transpose[v];
   sv.midi_cents[n] = sv.midi_cents[v];
-  @if(ADSR)
   envelope_set(n, sv.amp_envelope[v].a, sv.amp_envelope[v].d, sv.amp_envelope[v].s, sv.amp_envelope[v].r);
   sv.link_velo_0[n] = sv.link_velo_0[v];
   sv.link_velo_1[n] = sv.link_velo_1[v];
   sv.link_velo_2[n] = sv.link_velo_2[v];
   sv.link_velo_3[n] = sv.link_velo_3[v];
-  @endif
   sv.link_trig[n] = sv.link_trig[v];
   sv.link_trig_samp[n] = sv.link_trig_samp[v];
   //
   pan_set(n, sv.pan[v]);
-  @if(AM)
   amp_mod_set(n, sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
-  @endif
-  @if(FM)
   freq_mod_set(n, sv.freq_mod_osc[v], sv.freq_mod_depth[v], sv.freq_mod_adder[v]);
-  @endif
-  @if(PANMOD)
   pan_mod_set(n, sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
-  @endif
-  @if(CRUSH)
   wave_quant(n, sv.quantize[v]);
-  @endif
-  @if(SAH)
   sv.sample_hold_max[n] = sv.sample_hold_max[v];
   sv.sample_hold_count[n] = sv.sample_hold_count[v];
   sv.sample_hold[n] = sv.sample_hold[v];
-  @endif
-  @if(PD)
   cz_set(n, sv.cz_mode[v], sv.cz_distortion[v]);
   cmod_set(n, sv.cz_mod_osc[v], sv.cz_mod_depth[v]);
-  @endif
-  @if(FILT)
   sv.filter_mode[n] = sv.filter_mode[v];
   mmf_init(n, sv.filter_freq[v], sv.filter_res[v]);
-  @endif
-  @if(GLISS)
   sv.phase_inc[n] = sv.phase_inc[v];
   sv.glissando_enable[n] = sv.glissando_enable[v];
   sv.glissando_speed[n] = sv.glissando_speed[v];
   sv.glissando_target[n] = sv.glissando_target[v];
   sv.glissando_time[n] = sv.glissando_time[v];
-  @endif
-  @if(FADSR)
   sv.use_filter_envelope[n] = sv.use_filter_envelope[v];
   sv.filter_env_depth[n] = sv.filter_env_depth[v];
   float a = sv.filter_envelope[v].a;
@@ -1401,11 +1231,6 @@ int voice_copy(int v, int n) {
   float s = sv.filter_envelope[v].s;
   float r = sv.filter_envelope[v].r;
   envelope_init_e(&sv.filter_envelope[n], a, d, s, r);
-  @endif
-  @if(XM)
-  sv.ring_osc[n] = sv.ring_osc[v];
-  sv.ring_amount[n] = sv.ring_amount[v];
-  @endif
   //
   // TODO stuff is missing from here...
   //
@@ -1468,16 +1293,12 @@ void voice_reset(int i) {
   sv.sample[i] = 0;
   sv.amp[i] = NEG_60_DB_AS_LINEAR;
   sv.user_amp[i] = NEG_60_DB;
-  @if(ADSR)
   sv.use_amp_envelope[i] = 1;
-  @endif
   sv.disconnect[i] = 0;
   sv.direction[i] = 0;
-  @if(ADSR)
   sv.amp_envelope_mode[i] = 0; // exp
   sv.amp_envelope[i].is_active = 0;
   envelope_init(i, 0.0f, 0.0f, 1.0f, 0.0f);
-  @endif
   sv.freq[i] = 440.0f;
   sv.midi_note[i] = 69.0f;
   sv.last_midi_note[i] = 69.0f;
@@ -1487,12 +1308,10 @@ void voice_reset(int i) {
   sv.link_midi_1[i] = -1;
   sv.link_midi_2[i] = -1;
   sv.link_midi_3[i] = -1;
-  @if(ADSR)
   sv.link_velo_0[i] = -1;
   sv.link_velo_1[i] = -1;
   sv.link_velo_2[i] = -1;
   sv.link_velo_3[i] = -1;
-  @endif
   sv.link_trig[i] = -1;
   sv.link_trig_samp[i] = 0;
   osc_set_wave_table_index(i, WAVE_TABLE_SINE);
@@ -1501,38 +1320,25 @@ void voice_reset(int i) {
   sv.pan_left[i] = 0.5f;
   sv.pan_right[i] = 0.5f;
   // pan smoothing?
-  @if(AM)
   sv.amp_mod_osc[i] = -1;
   sv.amp_mod_depth[i] = 0.0f;
   sv.amp_mod_adder[i] = 0.0f;
-  @endif
-  @if(FM)
   sv.freq_mod_osc[i] = -1;
   sv.freq_mod_depth[i] = 0.0f;
   sv.freq_mod_adder[i] = 0.0f;
   sv.freq_mod_mode[i] = 0;
   sv.freq_scale[i] = 1.0f;
-  @endif
-  @if(PANMOD)
   sv.pan_mod_osc[i] = -1;
   sv.pan_mod_depth[i] = 0.0f;
   sv.pan_mod_adder[i] = 0.0f;
-  @endif
-  @if(CRUSH)
   sv.quantize[i] = 0;
-  @endif
-  @if(FILT)
   sv.filter_mode[i] = 0;
   sv.filter_update_counter[i] = FILTER_UC;
   mmf_init(i, 8000.0f, 0.707f);
-  @endif
-  @if(FADSR)
   sv.use_filter_envelope[i]   = 0;
   sv.filter_env_depth[i]      = 0.0f;
   envelope_init_e(&sv.filter_envelope[i], 0.0f, 0.0f, 1.0f, 0.0f);
-  @endif
   //
-  @if(SMOOTHER)
   sv.smoother_enable[i] = 1;
 #if 0
   sv.smoother_gain[i] = 0.0f;
@@ -1540,22 +1346,13 @@ void voice_reset(int i) {
   sv.smoother_gain[i] = sv.amp[i];
 #endif
   sv.smoother_smoothing[i] = SMOOTH_DEFAULT;
-  @endif(SMOOTHER)
   //
-  @if(GLISS)
   sv.phase_inc[i] = 1e-9; // ??here??
   sv.glissando_enable[i] = 0;
   sv.glissando_speed[i] = 1.0f;
   sv.glissando_target[i] = 0.0f; // sv.freq[i]; // maybe 0.0f???
-  @endif
-  @if(RECORD)
   sv.record[i] = 0;
   atomic_store_int(&sv.record_pending[i], 0);
-  @endif
-  @if(XM)
-  sv.ring_osc[i] = -1;
-  sv.ring_amount[i] = 0.0;
-  @endif
   sv.text[i][0] = '\0';
 }
 
@@ -1575,32 +1372,21 @@ int wave_reset(int voice) {
 int envelope_velocity(int voice, float f) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
     if (f == 0) {
-        @if(ADSR)
         amp_envelope_release(voice);
-        @endif
-        @if(FADSR)
         if (sv.use_filter_envelope[voice])
             envelope_release_e(&sv.filter_envelope[voice]);
-        @endif
     } else {
-        @if(ADSR)
         sv.use_amp_envelope[voice] = 1;
-        @endif
         if (sv.one_shot[voice]) {
             osc_trigger(voice);
         }
-        @if(ADSR)
         amp_envelope_trigger(voice, f);
-        @endif
-        @if(FADSR)
         if (sv.use_filter_envelope[voice])
             envelope_trigger_e(&sv.filter_envelope[voice], f);
-        @endif
     }
     return 0;
 }
 
-@if(FILT)
 int mmf_set_freq(int n, float f) {
   sv.filter_freq[n] = f;
   mmf_set_params(n, f, sv.filter_res[n]);
@@ -1614,7 +1400,6 @@ int mmf_set_res(int n, float res) {
   }
   return 0;
 }
-@endif
 
 void normalize_preserve_zero(float *data, int length) {
   if (length == 0) return;

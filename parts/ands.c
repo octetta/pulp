@@ -108,7 +108,7 @@ static void buffer_clear(buffer_t *b) {
 }
 
 static void buffer_push(buffer_t *b, char c) {
-    if (b->len < b->cap - 1) {
+    if (b->data && b->len < b->cap - 1) {
         b->data[b->len++] = c;
         b->data[b->len] = '\0';
     }
@@ -248,7 +248,8 @@ static void action_finish_defer(ands_t *s) {
 static void action_finish_array(ands_t *s) {
     // Push final number if any
     if (s->num.len > 0) {
-        s->data[s->data_len++] = ands_strtod(buffer_str(&s->num));
+        if (s->data && s->data_len < s->data_cap)
+            s->data[s->data_len++] = ands_strtod(buffer_str(&s->num));
         buffer_clear(&s->num);
     }
 }
@@ -459,7 +460,9 @@ int ands_consume(ands_t *s, char *line) {
 // ============================================================================
 
 ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user) {
-    ands_t *s = (ands_t*)malloc(sizeof(ands_t));
+    if (!fn) return NULL;
+    ands_t *s = (ands_t*)calloc(1, sizeof(ands_t));
+    if (!s) return NULL;
 
     s->global_var = s->local_var;
     s->global_save = s->local_var;
@@ -478,6 +481,11 @@ ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user) {
     s->data_cap = DATA_BUF_LEN;
     s->data_len = 0;
     s->data = (double*)malloc(s->data_cap * sizeof(double));
+    if (!s->num.data || !s->string[0].data || !s->string[1].data ||
+        !s->atom.data || !s->defer.data || !s->data) {
+        ands_free(s);
+        return NULL;
+    }
 
     s->defer_num = 0;
     s->defer_mode = '?';
@@ -498,6 +506,7 @@ ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user) {
 }
 
 void ands_free(ands_t *s) {
+    if (!s) return;
     buffer_free(&s->num);
     buffer_free(&s->string[0]);
     buffer_free(&s->string[1]);
@@ -508,6 +517,7 @@ void ands_free(ands_t *s) {
     s->data = NULL;
     s->data_cap = 0;
     s->data_len = 0;
+    free(s);
 }
 
 // Accessor functions
@@ -525,17 +535,20 @@ char *ands_defer_string(ands_t *s) { return buffer_str(&s->defer); }
 char ands_defer_mode(ands_t *s) { return s->defer_mode; }
 char *ands_atom_string(ands_t *s) { return atom_string(s->atom_num); }
 double *ands_data(ands_t *s) { return s->data; }
-void ands_data_len_set(ands_t *s, int n) { if (n <= s->data_cap) s->data_len = n; }
+void ands_data_len_set(ands_t *s, int n) {
+  if (n >= 0 && n <= s->data_cap) s->data_len = n;
+}
 int ands_data_len(ands_t *s) { return s->data_len; }
 void ands_data_resize(ands_t *s, int len) {
+  if (!s || len <= 0) return;
+  double *data = (double *)calloc((size_t)len, sizeof(double));
+  if (!data) return;
   if (s->data) {
     free(s->data);
-    s->data = NULL;
-    s->data_len = 0;
-    s->data_cap = 0;
   }
-  s->data = (double *)calloc(len, sizeof(double));
-  if (s->data) s->data_cap = len;
+  s->data = data;
+  s->data_len = 0;
+  s->data_cap = len;
 }
 int ands_data_cap(ands_t *s) { return s->data_cap; }
 
@@ -611,12 +624,16 @@ void ands_global_to_local(ands_t *s, int n) {
 #define STRING_PTR(s) s->string[s->string_idx % STRING_BUF_MOD].data
 
 char *ands_string_from_external(ands_t *s, char *src, int len) {
-  if (len > STRING_BUF_LEN) len = STRING_BUF_LEN;
-  strncpy(STRING_PTR(s), src, len);
+  if (!s || !src) return NULL;
+  if (len < 0) len = 0;
+  if (len >= STRING_BUF_LEN) len = STRING_BUF_LEN - 1;
+  memcpy(STRING_PTR(s), src, (size_t)len);
+  STRING_PTR(s)[len] = '\0';
   return STRING_PTR(s);
 }
 
 char *ands_string_to_external(ands_t *s, char *dst, int len) {
-  strncpy(dst, STRING_PTR(s), len);
+  if (!s || !dst || len <= 0) return dst;
+  snprintf(dst, (size_t)len, "%s", STRING_PTR(s));
   return dst;
 }

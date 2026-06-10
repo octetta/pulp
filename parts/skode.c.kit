@@ -1264,11 +1264,12 @@ void record_find_trim(int argc, float arg0, float arg1) {
 }
 
 void skode_envelope_velocity(int voice, float x, uint64_t now) {
+  if (voice < 0 || voice >= synth_config.voice_max) return;
   uint64_t t = sv.link_trig_samp[voice];
   if (t > 0) {
-    uint64_t qt = t + now;
+    uint64_t qt = t > UINT64_MAX - now ? UINT64_MAX : t + now;
     char cmd[32];
-    sprintf(cmd, "v%d___l%g", voice, x);
+    snprintf(cmd, sizeof(cmd), "v%d___l%g", voice, x);
     queue_item(qt, cmd, voice, 0);
   } else {
     envelope_velocity(voice, x);
@@ -1457,8 +1458,16 @@ int skode_function(ands_t *s, int info) {
       if (argc) {} break; // TODO en/dis-able send timestamp wire to the event logger
     case ATOM4('L---'): // link-trigger-delay seconds
       if (argc) {
-        sv.link_trig[voice] = arg[0];
-        sv.link_trig_samp[voice] = (uint64_t)(arg[0] * (double)MAIN_SAMPLE_RATE);
+        double seconds = arg[0];
+        if (!isfinite(seconds) || seconds <= 0.0) {
+          sv.link_trig[voice] = -1.0f;
+          sv.link_trig_samp[voice] = 0;
+        } else {
+          long double samples = (long double)seconds * (long double)MAIN_SAMPLE_RATE;
+          sv.link_trig[voice] = (float)seconds;
+          sv.link_trig_samp[voice] =
+            samples >= (long double)UINT64_MAX ? UINT64_MAX : (uint64_t)samples;
+        }
       }
       break;
     @if(FILT)

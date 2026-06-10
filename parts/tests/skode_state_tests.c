@@ -33,6 +33,15 @@ static void expect_float(const char *test, float got, float want, float eps, con
   }
 }
 
+static void expect_u64(const char *test, uint64_t got, uint64_t want, const char *label) {
+  if (got != want) {
+    char msg[160];
+    snprintf(msg, sizeof(msg), "%s expected %llu, got %llu", label,
+      (unsigned long long)want, (unsigned long long)got);
+    fail(test, msg);
+  }
+}
+
 static skode_t new_ctx(void) {
   skode_t ctx = SKODE_EMPTY();
   skode_init(&ctx);
@@ -108,15 +117,36 @@ static void test_data_array_logging(void) {
 static void test_midi_and_links(void) {
   const char *test = "midi and links";
   skode_t ctx = new_ctx();
-  consume(test, &ctx, "v0 G1 H2 L3 N12 5 n60");
+  consume(test, &ctx, "v0 G1 H2 L0.25 N12 5 n60");
 
   expect_int(test, (int)sv.link_midi_0[0], 1, "link_midi_0");
   expect_int(test, (int)sv.link_velo_0[0], 2, "link_velo_0");
-  expect_int(test, (int)sv.link_trig[0], 3, "link_trig");
+  expect_float(test, sv.link_trig[0], 0.25f, 0.0001f, "link_trig");
+  expect_u64(test, sv.link_trig_samp[0], MAIN_SAMPLE_RATE / 4, "link_trig_samp");
   expect_float(test, sv.midi_transpose[0], 12.0f, 0.0001f, "midi_transpose");
   expect_float(test, sv.midi_cents[0], 5.0f, 0.0001f, "midi_cents");
   expect_float(test, sv.last_midi_note[0], 60.0f, 0.0001f, "last_midi_note voice 0");
   expect_float(test, sv.last_midi_note[1], 60.0f, 0.0001f, "last_midi_note linked voice");
+}
+
+static void test_trigger_delay_lifecycle(void) {
+  const char *test = "trigger delay lifecycle";
+  skode_t ctx = new_ctx();
+
+  consume(test, &ctx, "v0 L0.5");
+  voice_copy(0, 1);
+  expect_float(test, sv.link_trig[1], 0.5f, 0.0001f, "copied link_trig");
+  expect_u64(test, sv.link_trig_samp[1], MAIN_SAMPLE_RATE / 2, "copied link_trig_samp");
+
+  wave_reset(0);
+  expect_float(test, sv.link_trig[0], -1.0f, 0.0001f, "reset link_trig");
+  expect_u64(test, sv.link_trig_samp[0], 0, "reset link_trig_samp");
+
+  consume(test, &ctx, "v1 L-1");
+  expect_float(test, sv.link_trig[1], -1.0f, 0.0001f, "disabled link_trig");
+  expect_u64(test, sv.link_trig_samp[1], 0, "disabled link_trig_samp");
+
+  consume(test, &ctx, "v0 H999 l1");
 }
 
 static void test_context_modes(void) {
@@ -141,6 +171,7 @@ int main(void) {
   test_text_and_show_logging();
   test_data_array_logging();
   test_midi_and_links();
+  test_trigger_delay_lifecycle();
   test_context_modes();
 
   synth_free();

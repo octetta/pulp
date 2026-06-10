@@ -1336,6 +1336,8 @@ int voice_copy(int v, int n) {
   sv.link_velo_2[n] = sv.link_velo_2[v];
   sv.link_velo_3[n] = sv.link_velo_3[v];
   @endif
+  sv.link_trig[n] = sv.link_trig[v];
+  sv.link_trig_samp[n] = sv.link_trig_samp[v];
   //
   pan_set(n, sv.pan[v]);
   @if(AM)
@@ -1465,8 +1467,9 @@ void voice_reset(int i) {
   sv.link_velo_1[i] = -1;
   sv.link_velo_2[i] = -1;
   sv.link_velo_3[i] = -1;
-  sv.link_trig[i] = -1;
   @endif
+  sv.link_trig[i] = -1;
+  sv.link_trig_samp[i] = 0;
   osc_set_wave_table_index(i, WAVE_TABLE_SINE);
   //
   sv.pan[i] = 0;

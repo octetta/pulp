@@ -59,6 +59,40 @@ static void consume(const char *test, skode_t *ctx, const char *line) {
   }
 }
 
+typedef struct {
+  int count;
+  event_t event;
+} event_capture_t;
+
+static int capture_event(int unused, uint64_t timestamp, uint64_t id, int tag,
+                         const event_t *event, void *user) {
+  (void)unused;
+  (void)timestamp;
+  (void)id;
+  (void)tag;
+  event_capture_t *capture = user;
+  capture->count++;
+  capture->event = *event;
+  return 0;
+}
+
+static skode_t *queued_event_ctx;
+static int test_pattern_voice[PATTERNS_MAX];
+
+static void execute_queued_event(const event_t *event) {
+  if (skode_execute_event(event, queued_event_ctx) != 0) {
+    fail("opcode events", "queued event execution failed");
+  }
+}
+
+static void execute_pattern_program(int pattern, const event_program_t *program) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX ||
+      skode_execute_program_state(program, &test_pattern_voice[pattern],
+        SAMPLE_COUNT_GET(), -1) != 0) {
+    fail("opcode events", "pattern program execution failed");
+  }
+}
+
 static void test_voice_core_commands(void) {
   const char *test = "voice core commands";
   skode_t ctx = new_ctx();
@@ -149,6 +183,306 @@ static void test_trigger_delay_lifecycle(void) {
   consume(test, &ctx, "v0 H999 l1");
 }
 
+static void test_opcode_events(void) {
+  const char *test = "opcode events";
+  skode_t ctx = new_ctx();
+  seq_kill_all();
+
+  consume(test, &ctx, "v0 L0.25 l0.75");
+  expect_int(test, seq_queued(), 1, "queued opcode count");
+
+  event_capture_t capture = {0};
+  seq_foreach(capture_event, &capture);
+  expect_int(test, capture.count, 1, "captured event count");
+  expect_int(test, capture.event.voice, 0, "event voice");
+  expect_int(test, capture.event.opcode.code,
+             SKODE_OP_ENVELOPE_VELOCITY, "event opcode");
+  expect_int(test, capture.event.opcode.argc, 1, "opcode argc");
+  expect_float(test, (float)capture.event.opcode.arg[0], 0.75f,
+               0.0001f, "opcode velocity");
+
+  event_t invalid = capture.event;
+  invalid.voice = 1000000;
+  expect_int(test, skode_execute_event(&invalid, &ctx), -1,
+             "invalid opcode voice");
+  invalid = capture.event;
+  invalid.opcode.arg[0] = NAN;
+  expect_int(test, skode_execute_event(&invalid, &ctx), -1,
+             "non-finite opcode argument");
+  invalid = capture.event;
+  invalid.voice_var = UINT8_MAX;
+  expect_int(test, skode_execute_event(&invalid, &ctx), -1,
+             "invalid variable voice");
+
+  event_program_t program;
+  expect_int(test, skode_compile_program("v2 a-12 p0.25", &program),
+             SKODE_COMPILE_OK, "compile scalar program");
+  expect_int(test, program.count, 3, "compiled operation count");
+  expect_int(test, skode_execute_program(&program, 0, SAMPLE_COUNT_GET(), 0),
+             0, "compiled program execution");
+  expect_float(test, sv.user_amp[2], -12.0f, 0.0001f, "compiled amp value");
+  expect_float(test, sv.pan[2], 0.25f, 0.0001f, "compiled pan value");
+  program.count = SEQ_PROGRAM_OP_MAX + 1;
+  expect_int(test, skode_execute_program(&program, 0, SAMPLE_COUNT_GET(), 0),
+             -1, "oversized program rejection");
+  program.count = 0;
+  expect_int(test, skode_execute_program(&program, 0, SAMPLE_COUNT_GET(), 0),
+             0, "empty program no-op");
+
+  expect_int(test, skode_compile_program("[name] vt", &program),
+             SKODE_COMPILE_IMMEDIATE_ONLY,
+             "string command fallback");
+  expect_int(test, skode_compile_program("(1 2 3) d>r", &program),
+             SKODE_COMPILE_IMMEDIATE_ONLY,
+             "array command rejection");
+  expect_int(test, skode_compile_program("#", &program),
+             SKODE_COMPILE_OK, "compile sequence no-op");
+  expect_int(test, program.count, 0, "sequence no-op operation count");
+  expect_int(test, seq_step_set(0, 3, "#", &program), 0,
+             "store sequence no-op");
+  if (strcmp(seq_pattern[0][3], "#") != 0) {
+    fail(test, "sequence no-op source was not stored");
+  }
+  pattern_reset(7);
+  expect_int(test, seq_step_append(7, "#", &program), 0,
+             "append sequence no-op");
+  expect_int(test, seq_pattern_length[7], 1,
+             "sequence no-op advances pattern length");
+
+  seq_kill_all();
+  expect_int(test, skode_compile_program("v1 a-3 ~0.01 n60", &program),
+             SKODE_COMPILE_OK, "compile deferred program");
+  uint64_t now = SAMPLE_COUNT_GET();
+  expect_int(test, skode_execute_program(&program, 0, now, 9), 0,
+             "execute deferred program");
+  expect_float(test, sv.user_amp[1], -3.0f, 0.0001f,
+               "immediate program operation");
+  expect_int(test, seq_queued(), 1, "deferred opcode count");
+  memset(&capture, 0, sizeof(capture));
+  seq_foreach(capture_event, &capture);
+  expect_int(test, capture.event.opcode.code, SKODE_OP_MIDI_NOTE,
+             "deferred opcode");
+  expect_int(test, capture.event.voice, 1, "deferred opcode voice");
+
+  queued_event_ctx = &ctx;
+  seq(now + MAIN_SAMPLE_RATE, execute_queued_event, execute_pattern_program);
+  expect_float(test, sv.last_midi_note[1], 60.0f, 0.0001f,
+               "deferred MIDI execution");
+
+  memset(test_pattern_voice, 0, sizeof(test_pattern_voice));
+  expect_int(test, skode_compile_program("v4 a-8", &program),
+             SKODE_COMPILE_OK, "compile sequence step");
+  expect_int(test, seq_step_set(0, 0, "v4 a-8", &program), 0,
+             "store sequence step");
+  expect_int(test, skode_compile_program("p0.5", &program),
+             SKODE_COMPILE_OK, "compile sequence follow-up");
+  expect_int(test, seq_step_set(0, 1, "p0.5", &program), 0,
+             "store sequence follow-up");
+  expect_int(test, seq_program[0][0].count, 2, "compiled sequence step");
+  expect_int(test, seq_program[0][1].count, 1, "compiled follow-up step");
+  execute_pattern_program(0, &seq_program[0][0]);
+  execute_pattern_program(0, &seq_program[0][1]);
+  expect_float(test, sv.user_amp[4], -8.0f, 0.0001f,
+               "sequence program amp");
+  expect_float(test, sv.pan[4], 0.5f, 0.0001f,
+               "persistent sequence voice");
+
+  ctx.log_enable = 1;
+  expect_int(test, skode_compile_program("not schedulable", &program),
+             SKODE_COMPILE_IMMEDIATE_ONLY,
+             "reject immediate-only sequence command");
+  expect_int(test, seq_step_set(0, 2, "not schedulable", NULL), -1,
+             "reject uncompiled sequence step");
+  expect_int(test, seq_program[0][2].count, 0,
+             "rejected sequence operation count");
+  if (seq_pattern[0][2][0] != '\0') {
+    fail(test, "rejected sequence source was stored");
+  }
+
+  seq_kill_all();
+}
+
+static void test_909_sequence_programs(void) {
+  const char *test = "909 sequence programs";
+  if (!skode_opcode_supported(SKODE_OP_FILTER_MODE)) return;
+
+  static const char *programs[] = {
+    "v2 n69 l1",
+    "v3 l1 +.25 v3 l1 +.25 v3 l1 +.25 v3 l1",
+    "+.5 v4 l1 +.25 v4l.5",
+    "v12 n$0 l1 +.5 v12 n$0 l.75",
+    "=0,$1",
+    "=1,40 v12 J0",
+    "=1,60 v13 J0",
+    "=2,55 v12 J1 v13 J1",
+    "=2,45 v0 n$5 l2 v12m0 v13m0",
+  };
+  event_program_t program;
+  for (size_t i = 0; i < sizeof(programs) / sizeof(programs[0]); i++) {
+    if (skode_compile_program(programs[i], &program) != SKODE_COMPILE_OK) {
+      char msg[256];
+      snprintf(msg, sizeof(msg), "failed to compile [%s]", programs[i]);
+      fail(test, msg);
+    }
+  }
+
+  global_var[1] = 52;
+  expect_int(test, skode_compile_program("=0,$1 v4 n$0", &program),
+             SKODE_COMPILE_OK, "compile variable sequence");
+  expect_int(test, skode_execute_program(&program, 0, SAMPLE_COUNT_GET(), 0),
+             0, "execute variable sequence");
+  expect_float(test, (float)global_var[0], 52, 0.0001f,
+               "runtime variable assignment");
+  expect_float(test, sv.last_midi_note[4], 52, 0.0001f,
+               "runtime variable note");
+
+  seq_kill_all();
+  global_var[2] = 3;
+  global_var[3] = 45;
+  expect_int(test, skode_compile_program("v$2 n$3", &program),
+             SKODE_COMPILE_OK, "compile queued variable sequence");
+  uint64_t now = SAMPLE_COUNT_GET();
+  expect_int(test, skode_queue_program(&program, 0, now + 128, 0),
+             0, "queue variable sequence");
+  global_var[2] = 5;
+  global_var[3] = 47;
+  queued_event_ctx = NULL;
+  seq(now + 256, execute_queued_event, execute_pattern_program);
+  expect_float(test, sv.last_midi_note[5], 47, 0.0001f,
+               "queued runtime variable resolution");
+
+  seq_kill_all();
+  expect_int(test, skode_compile_program("=0,1 =0,2 =0,3", &program),
+             SKODE_COMPILE_OK, "compile equal-time register writes");
+  now = SAMPLE_COUNT_GET();
+  expect_int(test, skode_queue_program(&program, 0, now + 128, 0),
+             0, "queue equal-time register writes");
+  seq(now + 256, execute_queued_event, execute_pattern_program);
+  expect_float(test, (float)global_var[0], 3, 0.0001f,
+               "equal-time opcode order");
+
+  global_var[2] = 6;
+  int persistent_voice = 0;
+  expect_int(test, skode_compile_program("v$2 a-9", &program),
+             SKODE_COMPILE_OK, "compile variable pattern voice");
+  expect_int(test, skode_execute_program_state(&program, &persistent_voice,
+             SAMPLE_COUNT_GET(), 0), 0, "execute variable pattern voice");
+  expect_int(test, persistent_voice, 6, "persistent variable pattern voice");
+  expect_int(test, skode_compile_program("p-.5", &program),
+             SKODE_COMPILE_OK, "compile persistent voice follow-up");
+  expect_int(test, skode_execute_program_state(&program, &persistent_voice,
+             SAMPLE_COUNT_GET(), 0), 0, "execute persistent voice follow-up");
+  expect_float(test, sv.pan[6], -.5f, 0.0001f,
+               "persistent variable voice follow-up");
+
+  global_var[4] = -1;
+  expect_int(test, skode_compile_program("v6 ~$4 a-7", &program),
+             SKODE_COMPILE_OK, "compile variable defer");
+  expect_int(test, skode_execute_program(&program, 0, SAMPLE_COUNT_GET(), 0),
+             0, "execute clamped variable defer");
+  expect_float(test, sv.user_amp[6], -7, 0.0001f,
+               "clamped variable defer execution");
+
+  pattern_reset(9);
+  expect_int(test, skode_compile_program("v$2 +.5 n$3", &program),
+             SKODE_COMPILE_OK, "compile diagnostic pattern");
+  expect_int(test, seq_step_set(9, 0, "v$2 +.5 n$3", &program), 0,
+             "store diagnostic pattern");
+
+  skode_t ctx = new_ctx();
+  ctx.log_enable = 1;
+  ctx.pattern = 9;
+  consume(test, &ctx, "?o-1,0");
+  if (strstr(ctx.log, "# pattern:9 step:0 source:[v$2 +.5 n$3]") == NULL ||
+      strstr(ctx.log, "VOICE $2") == NULL ||
+      strstr(ctx.log, "DELAY + 0.5") == NULL ||
+      strstr(ctx.log, "MIDI_NOTE $3") == NULL) {
+    fail(test, "compiled pattern diagnostic output mismatch");
+  }
+
+  seq_kill_all();
+  expect_int(test, skode_compile_program("v$2 ~1 n$3", &program),
+             SKODE_COMPILE_OK, "compile diagnostic queue event");
+  expect_int(test, skode_execute_program(&program, 0,
+             SAMPLE_COUNT_GET(), 17), 0, "queue diagnostic event");
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "?o");
+  if (strstr(ctx.log, "# opcode queue size:1") == NULL ||
+      strstr(ctx.log, "tag:17") == NULL ||
+      strstr(ctx.log, "voice:$2 MIDI_NOTE $3") == NULL) {
+    fail(test, "queued opcode diagnostic output mismatch");
+  }
+  seq_kill_all();
+}
+
+static void test_scalar_voice_opcode_inventory(void) {
+  const char *test = "scalar voice opcode inventory";
+  struct {
+    const char *command;
+    skode_opcode_t opcode;
+  } cases[] = {
+    {"a-6", SKODE_OP_AMP},
+    {"A1,.5,0", SKODE_OP_AMP_MOD},
+    {"b1", SKODE_OP_WAVE_DIRECTION},
+    {"B1", SKODE_OP_WAVE_LOOP},
+    {"c1,.5", SKODE_OP_PHASE_DISTORTION},
+    {"C1,.5", SKODE_OP_PHASE_MOD},
+    {"f220", SKODE_OP_FREQ},
+    {"ft.01,.2,.5,.3", SKODE_OP_FILTER_ENVELOPE},
+    {"fd2", SKODE_OP_FILTER_ENVELOPE_DEPTH},
+    {"F1,.5,0", SKODE_OP_FREQ_MOD},
+    {"FF1", SKODE_OP_FREQ_MOD_MODE},
+    {"g.1", SKODE_OP_GLISSANDO},
+    {"G1,2", SKODE_OP_LINK_MIDI},
+    {"h4", SKODE_OP_SAMPLE_HOLD},
+    {"H1,2", SKODE_OP_LINK_VELOCITY},
+    {"L.01", SKODE_OP_TRIGGER_DELAY},
+    {"J1", SKODE_OP_FILTER_MODE},
+    {"K1200", SKODE_OP_FILTER_FREQ},
+    {"k1", SKODE_OP_ENVELOPE_MODE},
+    {"l1", SKODE_OP_VELOCITY},
+    {"m1", SKODE_OP_MUTE},
+    {"n60", SKODE_OP_MIDI_NOTE},
+    {"N-12,5", SKODE_OP_MIDI_DETUNE},
+    {"p.25", SKODE_OP_PAN},
+    {"P1,.5,0", SKODE_OP_PAN_MOD},
+    {"q8", SKODE_OP_QUANTIZE},
+    {"Q.7", SKODE_OP_FILTER_RESONANCE},
+    {"r2", SKODE_OP_RECORD_TRACK},
+    {"s.01", SKODE_OP_SMOOTHER},
+    {"S3", SKODE_OP_VOICE_RESET},
+    {"t.01,.2,.5,.3", SKODE_OP_ENVELOPE},
+    {"T", SKODE_OP_TRIGGER},
+    {"w2,1,0", SKODE_OP_WAVE},
+    {">3", SKODE_OP_VOICE_COPY},
+    {"/", SKODE_OP_WAVE_DEFAULT},
+    {"=0,$1", SKODE_OP_VARIABLE_SET},
+    {"XM1,.5", SKODE_OP_RING_MOD},
+  };
+
+  for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+    event_program_t program;
+    skode_compile_result_t result =
+      skode_compile_program(cases[i].command, &program);
+    skode_compile_result_t expected =
+      skode_opcode_supported(cases[i].opcode) ?
+      SKODE_COMPILE_OK : SKODE_COMPILE_IMMEDIATE_ONLY;
+    if (result != expected) {
+      char msg[256];
+      snprintf(msg, sizeof(msg), "[%s] expected %d, got %d",
+        cases[i].command, expected, result);
+      fail(test, msg);
+    }
+  }
+
+  event_program_t program;
+  expect_int(test, skode_compile_program("n-", &program),
+             SKODE_COMPILE_OK, "compile MIDI default note");
+  expect_int(test, skode_compile_program("N-,7", &program),
+             SKODE_COMPILE_OK, "compile MIDI transpose default");
+}
+
 static void test_parameter_and_buffer_safety(void) {
   const char *test = "parameter and buffer safety";
 
@@ -227,6 +561,9 @@ int main(void) {
   test_data_array_logging();
   test_midi_and_links();
   test_trigger_delay_lifecycle();
+  test_opcode_events();
+  test_909_sequence_programs();
+  test_scalar_voice_opcode_inventory();
   test_parameter_and_buffer_safety();
   test_context_modes();
 

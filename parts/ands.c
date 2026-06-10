@@ -145,9 +145,11 @@ typedef struct ands_s {
     // Defer state
     double defer_num;
     char defer_mode;
+    int defer_var;
     
     // Argument stack
     double arg[ARG_MAX];
+    int arg_var[ARG_MAX];
     int arg_len;
     int arg_cap;
     
@@ -220,7 +222,9 @@ static void action_finish_number(ands_t *s) {
     double val = ands_strtod(buffer_str(&s->num));
     if (s->trace) printf("# ARG_PUSH %g\n", val);
     if (s->arg_len < s->arg_cap) {
-        s->arg[s->arg_len++] = val;
+        s->arg[s->arg_len] = val;
+        s->arg_var[s->arg_len] = -1;
+        s->arg_len++;
     }
     buffer_clear(&s->num);
 }
@@ -383,7 +387,9 @@ int ands_consume(ands_t *s, char *line) {
                     int variable = ands_var_parse(&ptr, end);
                     double d = ands_get_local(s, variable);
                     if (s->arg_len < s->arg_cap) {
-                        s->arg[s->arg_len++] = d;
+                        s->arg[s->arg_len] = d;
+                        s->arg_var[s->arg_len] = variable;
+                        s->arg_len++;
                     }
                     if (s->trace) printf("# GET_VARIABLE %d (%g)\n", variable, d);
                     s->state = START;
@@ -403,14 +409,17 @@ int ands_consume(ands_t *s, char *line) {
                     if (ptr < end && isdigit(*ptr)) {
                         int variable = ands_var_parse(&ptr, end);
                         s->defer_num = ands_defer_time_clamp(ands_get_local(s, variable));
+                        s->defer_var = variable;
                         ptr--;
                     } else {
                         s->defer_num = 0.0;
+                        s->defer_var = -1;
                     }
                     buffer_clear(&s->num);
                     s->state = GET_DEFER_STRING;
                 } else {
                     s->defer_num = ands_defer_time_clamp(ands_strtod(buffer_str(&s->num)));
+                    s->defer_var = -1;
                     buffer_clear(&s->num);
                     s->state = GET_DEFER_STRING;
                     goto reprocess;
@@ -489,9 +498,11 @@ ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user) {
 
     s->defer_num = 0;
     s->defer_mode = '?';
+    s->defer_var = -1;
 
     s->arg_cap = ARG_MAX;
     s->arg_len = 0;
+    for (int i = 0; i < ARG_MAX; i++) s->arg_var[i] = -1;
 
     s->atom_num = ATOM_NIL;
 
@@ -524,6 +535,9 @@ void ands_free(ands_t *s) {
 uint32_t ands_atom_num(ands_t *s) { return s->atom_num; }
 int ands_arg_len(ands_t *s) { return s->arg_len; }
 double *ands_arg(ands_t *s) { return s->arg; }
+int ands_arg_var(ands_t *s, int n) {
+  return n >= 0 && n < s->arg_len ? s->arg_var[n] : -1;
+}
 void *ands_user(ands_t *s) { return s->user; }
 char *ands_string(ands_t *s) { return buffer_str(&s->string[s->string_read_idx]); }
 int ands_string_len(ands_t *s) { return s->string[s->string_read_idx].len; }
@@ -531,6 +545,7 @@ void ands_chunk_mode(ands_t *s, int mode) { s->mode = mode; }
 int ands_chunk_mode_get(ands_t *s) { return s->mode; }
 void ands_trace_set(ands_t *s, int n) { s->trace = n; }
 double ands_defer_num(ands_t *s) { return s->defer_num; }
+int ands_defer_var(ands_t *s) { return s->defer_var; }
 char *ands_defer_string(ands_t *s) { return buffer_str(&s->defer); }
 char ands_defer_mode(ands_t *s) { return s->defer_mode; }
 char *ands_atom_string(ands_t *s) { return atom_string(s->atom_num); }
@@ -552,16 +567,26 @@ void ands_data_resize(ands_t *s, int len) {
 }
 int ands_data_cap(ands_t *s) { return s->data_cap; }
 
-void ands_arg_clear(ands_t *s) { s->arg_len = 0; }
+void ands_arg_clear(ands_t *s) {
+    if (!s) return;
+    s->arg_len = 0;
+    for (int i = 0; i < ARG_MAX; i++) s->arg_var[i] = -1;
+}
 
 double ands_arg_push(ands_t *s, double n) {
     if (s->arg_len < s->arg_cap) {
-        s->arg[s->arg_len++] = n;
+        s->arg[s->arg_len] = n;
+        s->arg_var[s->arg_len] = -1;
+        s->arg_len++;
     }
     return n;
 }
 
-void ands_arg_len_set(ands_t *s, int n) { s->arg_len = n; }
+void ands_arg_len_set(ands_t *s, int n) {
+    if (!s || n < 0 || n > s->arg_cap) return;
+    for (int i = s->arg_len; i < n; i++) s->arg_var[i] = -1;
+    s->arg_len = n;
+}
 
 double ands_arg_drop(ands_t *s) {
     int n = s->arg_len;
@@ -570,6 +595,7 @@ double ands_arg_drop(ands_t *s) {
         x = s->arg[0];
         for (int i = 1; i < ARG_MAX; i++) {
             s->arg[i-1] = s->arg[i];
+            s->arg_var[i-1] = s->arg_var[i];
         }
         s->arg_len--;
     }
@@ -579,15 +605,20 @@ double ands_arg_drop(ands_t *s) {
 double ands_arg_swap(ands_t *s) {
     if (s->arg_len > 1) {
         double t = s->arg[0];
+        int tv = s->arg_var[0];
         s->arg[0] = s->arg[1];
+        s->arg_var[0] = s->arg_var[1];
         s->arg[1] = t;
+        s->arg_var[1] = tv;
     }
     return 0;
 }
 
 double ands_arg_push_many(ands_t *s, double *a, int n) {
     for (int i = 0; i < n && s->arg_len < s->arg_cap; i++) {
-        s->arg[s->arg_len++] = a[i];
+        s->arg[s->arg_len] = a[i];
+        s->arg_var[s->arg_len] = -1;
+        s->arg_len++;
     }
     return 0;
 }

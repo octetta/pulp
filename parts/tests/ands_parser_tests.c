@@ -13,9 +13,11 @@ typedef struct {
   char atom[5];
   int argc;
   double args[MAX_ARGS];
+  int arg_var[MAX_ARGS];
   char text[256];
   char defer_mode;
   double defer_num;
+  int defer_var;
 } event_t;
 
 typedef struct {
@@ -56,7 +58,10 @@ static int record_cb(ands_t *s, int info) {
   strncpy(e->atom, ands_atom_string(s), sizeof(e->atom) - 1);
   e->argc = ands_arg_len(s);
   if (e->argc > MAX_ARGS) e->argc = MAX_ARGS;
-  for (int i = 0; i < e->argc; i++) e->args[i] = ands_arg(s)[i];
+  for (int i = 0; i < e->argc; i++) {
+    e->args[i] = ands_arg(s)[i];
+    e->arg_var[i] = ands_arg_var(s, i);
+  }
 
   if (info == GOT_STRING) {
     strncpy(e->text, ands_string(s), sizeof(e->text) - 1);
@@ -67,6 +72,7 @@ static int record_cb(ands_t *s, int info) {
   } else if (info == DEFER) {
     e->defer_mode = ands_defer_mode(s);
     e->defer_num = ands_defer_num(s);
+    e->defer_var = ands_defer_var(s);
     strncpy(e->text, ands_defer_string(s), sizeof(e->text) - 1);
   }
 
@@ -216,12 +222,30 @@ static void test_defer(void) {
   expect_event(test, &r, 3, CHUNK_END, "----");
 }
 
+static void test_variable_provenance(void) {
+  const char *test = "variable provenance";
+  recorder_t r;
+  char input[] = "v$3 n60,$4 +$5 l$6";
+  run_parse(test, input, &r);
+
+  expect_event(test, &r, 0, FUNCTION, "v---");
+  if (r.events[0].arg_var[0] != 3)
+    fail(test, "voice argument lost variable provenance");
+  expect_event(test, &r, 1, FUNCTION, "n---");
+  if (r.events[1].arg_var[0] != -1 || r.events[1].arg_var[1] != 4)
+    fail(test, "mixed note arguments lost provenance");
+  expect_event(test, &r, 3, DEFER, "----");
+  if (r.events[3].defer_var != 5)
+    fail(test, "defer argument lost variable provenance");
+}
+
 int main(void) {
   test_compact_commands();
   test_strings_and_arrays();
   test_variables_and_nan_defaults();
   test_comments_and_chunks();
   test_defer();
+  test_variable_provenance();
 
   if (failures) {
     fprintf(stderr, "%d ANDS parser test failure(s)\n", failures);

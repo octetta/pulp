@@ -41,6 +41,7 @@ set(API_PLAIN_SOURCES
     miniaudio.c
     util.c
     miniwav.c
+    skode-event.c
     skqueue.c
     udp.c
     ksynth.c

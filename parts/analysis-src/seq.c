@@ -11,6 +11,7 @@ int requested_seq_frames_per_callback = SEQ_FRAMES_PER_CALLBACK;
 int seq_frames_per_callback = 0;
 
 char seq_pattern[PATTERNS_MAX][SEQ_STEPS_MAX][STEP_MAX];
+event_program_t seq_program[PATTERNS_MAX][SEQ_STEPS_MAX];
 int seq_pattern_length[PATTERNS_MAX];
 
 int scope_pattern_pointer = 0;
@@ -77,7 +78,7 @@ static int pattern_length_compute(int p) {
 
 static queue_t seq_q;
 
-void do_event(uint64_t now, void (*event_fn)(int voice, char *arg)) {
+void do_event(uint64_t now, void (*event_fn)(const event_t *event)) {
   // Run expired (ready) queued events.
   item_t item;
   static uint64_t last_ts = 0;
@@ -87,14 +88,15 @@ void do_event(uint64_t now, void (*event_fn)(int voice, char *arg)) {
         printf("OUT OF ORDER\n");
       }
       last_ts = item.timestamp;
-      event_fn(item.event.voice, item.event.what);
+      event_fn(&item.event);
     } else {
       break;
     }
   }
 }
 
-void do_pattern(uint64_t now, void (*pattern_fn)(int voice, char *arg)) {
+void do_pattern(uint64_t now,
+    void (*program_fn)(int pattern, const event_program_t *program)) {
   // Advance the master clock from the absolute sample timeline rather than
   // callback cadence so larger buffers do not smear beat timing.
   double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
@@ -120,7 +122,7 @@ void do_pattern(uint64_t now, void (*pattern_fn)(int voice, char *arg)) {
           seq_state[p] = SEQ_STOPPED;
           seq_pointer[p] = 0;
         } else {
-          if (seq_mute[p] == 0) pattern_fn(0, seq_pattern[p][step]);
+          if (seq_mute[p] == 0) program_fn(p, &seq_program[p][step]);
         }
       }
     }
@@ -128,10 +130,11 @@ void do_pattern(uint64_t now, void (*pattern_fn)(int voice, char *arg)) {
 
 }
 
-void seq(uint64_t now, void (*event_fn)(int voice, char *arg), void (*pattern_fn)(int voice, char *arg)) {
+void seq(uint64_t now, void (*event_fn)(const event_t *event),
+    void (*program_fn)(int pattern, const event_program_t *program)) {
 
   do_event(now, event_fn);
-  do_pattern(now, pattern_fn);
+  do_pattern(now, program_fn);
 
 }
 
@@ -144,6 +147,7 @@ void pattern_reset(int p) {
   seq_offset[p] = 0;
   for (int s = 0; s < SEQ_STEPS_MAX; s++) {
     seq_pattern[p][s][0] = '\0';
+    seq_program[p][s].count = 0;
   }
   seq_text[p][0] = '\0';
 }
@@ -158,9 +162,8 @@ void seq_init(void) {
   }
 }
 
-int queue_item(uint64_t when, char *what, int voice, int tag) {
-  queue_put(&seq_q, when, tag, NULL, voice, what);
-  return 0;
+int queue_event(uint64_t when, const event_t *event, int tag) {
+  return queue_put_event(&seq_q, when, tag, NULL, event) ? 0 : -1;
 }
 
 void seq_modulo_set(int pattern, int m) {
@@ -169,15 +172,25 @@ void seq_modulo_set(int pattern, int m) {
   seq_modulo[pattern] = m;
 }
 
-void seq_step_set(int pattern, int step, char *scratch) {
-  if (pattern < 0 || pattern >= PATTERNS_MAX) return;
-  if (step < 0 || step >= SEQ_STEPS_MAX) return;
-  if (scratch == NULL || scratch[0] == '\0') {
+int seq_step_set(int pattern, int step, const char *source,
+    const event_program_t *program) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return -1;
+  if (step < 0 || step >= SEQ_STEPS_MAX) return -1;
+  if (source && strnlen(source, STEP_MAX) >= STEP_MAX) return -1;
+  if (source == NULL || source[0] == '\0') {
     seq_pattern[pattern][step][0] = '\0';
+    seq_program[pattern][step].count = 0;
+  } else if (strcmp(source, "-") == 0) {
+    snprintf(seq_pattern[pattern][step], STEP_MAX, "%s", source);
+    seq_program[pattern][step].count = 0;
+  } else if (!program || program->count > SEQ_PROGRAM_OP_MAX) {
+    return -1;
   } else {
-    snprintf(seq_pattern[pattern][step], STEP_MAX, "%s", scratch);
+    snprintf(seq_pattern[pattern][step], STEP_MAX, "%s", source);
+    seq_program[pattern][step] = *program;
   }
   seq_pattern_length[pattern] = pattern_length_compute(pattern);
+  return 0;
 }
 
 char *seq_step_get(int pattern, int step) {
@@ -186,8 +199,9 @@ char *seq_step_get(int pattern, int step) {
   return seq_pattern[pattern][step];
 }
 
-void seq_step_append(int pattern, char *scratch) {
-  seq_step_set(pattern, seq_pattern_length[pattern], scratch);
+int seq_step_append(int pattern, const char *source,
+    const event_program_t *program) {
+  return seq_step_set(pattern, seq_pattern_length[pattern], source, program);
 }
 
 void seq_pattern_length_set(int pattern, int len) {
@@ -236,11 +250,13 @@ int seq_capacity(void) { return seq_q.max_size; }
 typedef struct {
   int (*fn)(int, uint64_t, uint64_t, int, const event_t *e, void*);
   void *user;
+  int count;
 } bridge_t;
 
 int seq_foreach_cb(const item_t *item, void *user) {
   bridge_t *b = (bridge_t *)user;
-  b->fn(666, item->timestamp, item->id, item->tag, &item->event, b->user);
+  b->fn(b->count++, item->timestamp, item->id, item->tag,
+    &item->event, b->user);
   return 0;
 }
 
@@ -248,6 +264,7 @@ int seq_foreach(int (*fn)(int, uint64_t, uint64_t, int, const event_t *e, void*)
   bridge_t b;
   b.fn = fn;
   b.user = user;
+  b.count = 0;
   queue_foreach(&seq_q, seq_foreach_cb, &b);
   return 0;
 }

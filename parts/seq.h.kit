@@ -1,6 +1,8 @@
 #ifndef _SEQ_H_
 #define _SEQ_H_
 
+#include <stdint.h>
+
 #define SEQ_FRAMES_PER_CALLBACK (128)
 
 #define PATTERNS_MAX (128)
@@ -13,27 +15,49 @@ enum {
   SEQ_PAUSED = 2,
 };
 
-#define QUEUED_MAX (2048) // the wire string max size
 #define QUEUE_SIZE (2048) // the actual queue max depth
 
+#define SEQ_OPCODE_ARG_MAX (4)
+#define SEQ_PROGRAM_OP_MAX (16)
+
 typedef struct {
-  int state;
-  char what[QUEUED_MAX];
+  uint8_t code;
+  uint8_t argc;
+  char mode;
+  uint8_t var_mask;
+  float arg[SEQ_OPCODE_ARG_MAX];
+} opcode_event_t;
+
+typedef struct {
   int voice;
+  uint8_t voice_var;
+  opcode_event_t opcode;
 } event_t;
 
-void seq(uint64_t now, void (*queue_fn)(int voice, char *arg), void (*pattern_fn)(int voice, char *arg));
+typedef struct {
+  opcode_event_t opcode;
+} program_op_t;
+
+typedef struct {
+  uint8_t count;
+  program_op_t op[SEQ_PROGRAM_OP_MAX];
+} event_program_t;
+
+void seq(uint64_t now, void (*event_fn)(const event_t *event),
+  void (*program_fn)(int pattern, const event_program_t *program));
 void seq_init(void);
 void seq_rewind(void);
 uint64_t seq_master_tick(void);
 void pattern_reset(int p);
-int queue_item(uint64_t when, char *what, int voice, int tag);
+int queue_event(uint64_t when, const event_t *event, int tag);
 void tempo_set(float m);
 
 void seq_modulo_set(int pattern, int m);
-void seq_step_set(int pattern, int step, char *scratch);
+int seq_step_set(int pattern, int step, const char *source,
+  const event_program_t *program);
 char *seq_step_get(int pattern, int step);
-void seq_step_append(int pattern, char *scratch);
+int seq_step_append(int pattern, const char *source,
+  const event_program_t *program);
 void seq_pattern_length_set(int pattern, int len);
 void seq_step_goto(int pattern, int step);
 void seq_state_set(int p, int state);
@@ -49,6 +73,7 @@ extern int seq_state[PATTERNS_MAX];
 extern int seq_mute[PATTERNS_MAX];
 extern int seq_pattern_length[PATTERNS_MAX];
 extern char seq_pattern[PATTERNS_MAX][SEQ_STEPS_MAX][STEP_MAX];
+extern event_program_t seq_program[PATTERNS_MAX][SEQ_STEPS_MAX];
 
 #define TEXT_MAX (32+1)
 typedef char text_t[TEXT_MAX];

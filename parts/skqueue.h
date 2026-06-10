@@ -40,7 +40,7 @@ void queue_init(queue_t *q, int max_size);
 void queue_free(queue_t *q);
 
 // Lock-free: Multiple producers can call this (returns false if full)
-bool queue_put(queue_t *q, uint64_t timestamp, int tag, void *data, int voice, char *what);
+bool queue_put_event(queue_t *q, uint64_t timestamp, int tag, void *data, const event_t *event);
 
 // Lock-free for audio callback: Gets next item by timestamp
 // Internally transfers from ring buffer to heap as needed

@@ -9,6 +9,7 @@
 #include "synth-config.h"
 
 #include <ctype.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -207,6 +208,85 @@ void system_show(skode_t *ctx) {
   ctx->printf(ctx, "# udp_port %d\n", udp_info());
 }
 
+
+static void opcode_arg_show(skode_t *ctx, const opcode_event_t *opcode,
+    int n) {
+  if (opcode->var_mask & (1U << n)) {
+    ctx->printf(ctx, " $%d", (int)opcode->arg[n]);
+  } else if (isnan(opcode->arg[n]) &&
+      ((uint8_t)opcode->mode & (1U << n))) {
+    ctx->printf(ctx, " -");
+  } else {
+    ctx->printf(ctx, " %g", opcode->arg[n]);
+  }
+}
+
+static void opcode_show(skode_t *ctx, int index,
+    const opcode_event_t *opcode) {
+  ctx->printf(ctx, "#   %02d %s", index,
+    skode_opcode_name(opcode->code));
+  if (opcode->code == SKODE_OP_DELAY)
+    ctx->printf(ctx, " %c", opcode->mode);
+  for (int i = 0; i < opcode->argc; i++)
+    opcode_arg_show(ctx, opcode, i);
+  ctx->puts(ctx, "");
+}
+
+static int opcode_queue_show_cb(int n, uint64_t timestamp, uint64_t id,
+    int tag, const event_t *event, void *user) {
+  skode_t *ctx = user;
+  uint64_t now = SAMPLE_COUNT_GET();
+  double ms = timestamp >= now ?
+    (double)(timestamp - now) * 1000.0 / MAIN_SAMPLE_RATE :
+    -(double)(now - timestamp) * 1000.0 / MAIN_SAMPLE_RATE;
+  ctx->printf(ctx, "# queue %02d id:%" PRIu64 " tag:%d at:%" PRIu64
+    " %+.3fms voice:", n, id, tag, timestamp, ms);
+  if (event->voice_var)
+    ctx->printf(ctx, "$%u", (unsigned)event->voice_var - 1);
+  else
+    ctx->printf(ctx, "%d", event->voice);
+  ctx->printf(ctx, " %s", skode_opcode_name(event->opcode.code));
+  for (int i = 0; i < event->opcode.argc; i++)
+    opcode_arg_show(ctx, &event->opcode, i);
+  ctx->puts(ctx, "");
+  return 0;
+}
+
+static void opcode_queue_show(skode_t *ctx) {
+  ctx->printf(ctx, "# opcode queue size:%d\n", seq_queued());
+  seq_foreach(opcode_queue_show_cb, ctx);
+}
+
+static void opcode_pattern_step_show(skode_t *ctx, int pattern, int step) {
+  const event_program_t *program = &seq_program[pattern][step];
+  ctx->printf(ctx, "# pattern:%d step:%d source:[%s]\n",
+    pattern, step, seq_pattern[pattern][step]);
+  if (program->count == 0) {
+    ctx->puts(ctx, "#   (no-op)");
+    return;
+  }
+  for (int i = 0; i < program->count; i++)
+    opcode_show(ctx, i, &program->op[i].opcode);
+}
+
+static void opcode_pattern_show(skode_t *ctx, int pattern, int step) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) {
+    ctx->printf(ctx, "# invalid opcode pattern:%d\n", pattern);
+    return;
+  }
+  if (step >= 0) {
+    if (step >= SEQ_STEPS_MAX) {
+      ctx->printf(ctx, "# invalid opcode step:%d\n", step);
+      return;
+    }
+    opcode_pattern_step_show(ctx, pattern, step);
+    return;
+  }
+  ctx->printf(ctx, "# opcode pattern:%d length:%d\n",
+    pattern, seq_pattern_length[pattern]);
+  for (int s = 0; s < seq_pattern_length[pattern]; s++)
+    opcode_pattern_step_show(ctx, pattern, s);
+}
 
 #ifdef _WIN32
 #include <windows.h>
@@ -1191,11 +1271,296 @@ void skode_envelope_velocity(int voice, float x, uint64_t now) {
   uint64_t t = sv.link_trig_samp[voice];
   if (t > 0) {
     uint64_t qt = t > UINT64_MAX - now ? UINT64_MAX : t + now;
-    char cmd[32];
-    snprintf(cmd, sizeof(cmd), "v%d___l%g", voice, x);
-    queue_item(qt, cmd, voice, 0);
+    event_t event = {0};
+    event.voice = voice;
+    event.opcode.code = SKODE_OP_ENVELOPE_VELOCITY;
+    event.opcode.argc = 1;
+    event.opcode.arg[0] = x;
+    queue_event(qt, &event, 0);
   } else {
     envelope_velocity(voice, x);
+  }
+}
+
+static int skode_compile_scheduled(skode_t *ctx, const char *text,
+    event_program_t *program) {
+  skode_compile_result_t result = skode_compile_program(text, program);
+  if (result == SKODE_COMPILE_OK) return 1;
+  ctx->printf(ctx, "# command is not schedulable (%d)\n", result);
+  return 0;
+}
+
+int skode_opcode_supported(skode_opcode_t opcode) {
+  switch (opcode) {
+    case SKODE_OP_VOICE:
+    case SKODE_OP_AMP:
+    case SKODE_OP_FREQ:
+    case SKODE_OP_MIDI_NOTE:
+    case SKODE_OP_PAN:
+    case SKODE_OP_VELOCITY:
+    case SKODE_OP_ENVELOPE_VELOCITY:
+    case SKODE_OP_WAVE_DIRECTION:
+    case SKODE_OP_WAVE_LOOP:
+    case SKODE_OP_LINK_MIDI:
+    case SKODE_OP_LINK_VELOCITY:
+    case SKODE_OP_TRIGGER_DELAY:
+    case SKODE_OP_MUTE:
+    case SKODE_OP_MIDI_DETUNE:
+    case SKODE_OP_VOICE_RESET:
+    case SKODE_OP_TRIGGER:
+    case SKODE_OP_WAVE:
+    case SKODE_OP_VOICE_COPY:
+    case SKODE_OP_WAVE_DEFAULT:
+    case SKODE_OP_VARIABLE_SET:
+      return 1;
+    case SKODE_OP_AMP_MOD: return 1;
+    case SKODE_OP_PHASE_DISTORTION:
+    case SKODE_OP_PHASE_MOD:
+      return 1;
+    case SKODE_OP_FILTER_ENVELOPE:
+    case SKODE_OP_FILTER_ENVELOPE_DEPTH:
+      return 1;
+    case SKODE_OP_FREQ_MOD:
+    case SKODE_OP_FREQ_MOD_MODE:
+      return 1;
+    case SKODE_OP_GLISSANDO: return 1;
+    case SKODE_OP_SAMPLE_HOLD: return 1;
+    case SKODE_OP_FILTER_MODE:
+    case SKODE_OP_FILTER_FREQ:
+    case SKODE_OP_FILTER_RESONANCE:
+      return 1;
+    case SKODE_OP_ENVELOPE_MODE:
+    case SKODE_OP_ENVELOPE:
+      return 1;
+    case SKODE_OP_PAN_MOD: return 1;
+    case SKODE_OP_QUANTIZE: return 1;
+    case SKODE_OP_RECORD_TRACK: return 1;
+    case SKODE_OP_SMOOTHER: return 1;
+    case SKODE_OP_NONE:
+    case SKODE_OP_DELAY:
+    default:
+      return 0;
+  }
+}
+
+static int skode_opcode_int(const opcode_event_t *opcode, int n, int *value) {
+  return opcode && n >= 0 && n < opcode->argc &&
+    skode_double_to_int(opcode->arg[n], value);
+}
+
+static void skode_opcode_links(const opcode_event_t *opcode,
+    float *link0, float *link1, float *link2, float *link3) {
+  int links[4] = {-1, -1, -1, -1};
+  for (int i = 0; i < opcode->argc && i < 4; i++) {
+    int link;
+    if (skode_opcode_int(opcode, i, &link) && skode_voice_valid(link))
+      links[i] = link;
+  }
+  *link0 = links[0];
+  *link1 = links[1];
+  *link2 = links[2];
+  *link3 = links[3];
+}
+
+int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
+  if (!opcode || !skode_voice_valid(voice) ||
+      opcode->argc > SEQ_OPCODE_ARG_MAX || opcode->var_mask != 0) return -1;
+  uint8_t default_mask =
+    opcode->code == SKODE_OP_MIDI_NOTE ||
+    opcode->code == SKODE_OP_MIDI_DETUNE ? 1U : 0U;
+  if (((uint8_t)opcode->mode & ~default_mask) != 0) return -1;
+  for (int i = 0; i < opcode->argc; i++) {
+    if (!isfinite(opcode->arg[i]) &&
+        !(isnan(opcode->arg[i]) && (default_mask & (1U << i)))) {
+      return -1;
+    }
+  }
+  int x = 0;
+  int x_valid = skode_opcode_int(opcode, 0, &x);
+  switch ((skode_opcode_t)opcode->code) {
+    case SKODE_OP_AMP:
+      return opcode->argc == 1 ? amp_set(voice, opcode->arg[0]) : -1;
+    case SKODE_OP_AMP_MOD:
+      if (opcode->argc < 2) return amp_mod_set(voice, -1, 0, 0);
+      return x_valid ? amp_mod_set(voice, x, opcode->arg[1],
+        opcode->argc > 2 ? opcode->arg[2] : 0) : -1;
+    case SKODE_OP_WAVE_DIRECTION:
+      return opcode->argc == 0 ? wave_dir(voice, -1) :
+        (x_valid ? wave_dir(voice, x) : -1);
+    case SKODE_OP_WAVE_LOOP:
+      return opcode->argc == 0 ? wave_loop(voice, -1) :
+        (x_valid ? wave_loop(voice, x) : -1);
+    case SKODE_OP_PHASE_DISTORTION:
+      if (opcode->argc == 0) return cz_set(voice, 0, .5f);
+      if (!x_valid) return -1;
+      return cz_set(voice, x,
+        opcode->argc > 1 ? opcode->arg[1] : .5f);
+    case SKODE_OP_PHASE_MOD:
+      if (opcode->argc < 2) return cmod_set(voice, -1, 0);
+      return x_valid ? cmod_set(voice, x, opcode->arg[1]) : -1;
+    case SKODE_OP_FREQ:
+      return opcode->argc == 1 ? freq_set(voice, opcode->arg[0]) : -1;
+    case SKODE_OP_FILTER_ENVELOPE:
+      if (opcode->argc != 4) return -1;
+      envelope_init_e(&sv.filter_envelope[voice], opcode->arg[0],
+        opcode->arg[1], opcode->arg[2], opcode->arg[3]);
+      sv.use_filter_envelope[voice] = !(opcode->arg[0] == 0 &&
+        opcode->arg[1] == 0 && opcode->arg[2] == 1 &&
+        opcode->arg[3] == 0);
+      return 0;
+    case SKODE_OP_FILTER_ENVELOPE_DEPTH:
+      if (opcode->argc != 1) return -1;
+      sv.filter_env_depth[voice] = opcode->arg[0];
+      return 0;
+    case SKODE_OP_FREQ_MOD:
+      if (opcode->argc <= 1) return freq_mod_set(voice, -1, 0, 0);
+      return x_valid ? freq_mod_set(voice, x, opcode->arg[1],
+        opcode->argc > 2 ? opcode->arg[2] : 0) : -1;
+    case SKODE_OP_FREQ_MOD_MODE:
+      if (!x_valid) return -1;
+      sv.freq_mod_mode[voice] = x;
+      return 0;
+    case SKODE_OP_GLISSANDO:
+      if (opcode->argc != 1) return -1;
+      if (opcode->arg[0] <= 0) {
+        sv.glissando_enable[voice] = 0;
+        sv.glissando_time[voice] = 0;
+      } else {
+        sv.glissando_enable[voice] = 1;
+        sv.glissando_time[voice] = opcode->arg[0];
+      }
+      return 0;
+    case SKODE_OP_LINK_MIDI:
+      if (opcode->argc < 1) return -1;
+      skode_opcode_links(opcode, &sv.link_midi_0[voice],
+        &sv.link_midi_1[voice], &sv.link_midi_2[voice],
+        &sv.link_midi_3[voice]);
+      return 0;
+    case SKODE_OP_SAMPLE_HOLD:
+      if (!x_valid) return -1;
+      sv.sample_hold_max[voice] = x;
+      return 0;
+    case SKODE_OP_LINK_VELOCITY:
+      if (opcode->argc < 1) return -1;
+      skode_opcode_links(opcode, &sv.link_velo_0[voice],
+        &sv.link_velo_1[voice], &sv.link_velo_2[voice],
+        &sv.link_velo_3[voice]);
+      return 0;
+    case SKODE_OP_TRIGGER_DELAY:
+      if (opcode->argc != 1) return -1;
+      if (opcode->arg[0] <= 0) {
+        sv.link_trig[voice] = -1;
+        sv.link_trig_samp[voice] = 0;
+      } else {
+        long double samples =
+          (long double)opcode->arg[0] * MAIN_SAMPLE_RATE;
+        sv.link_trig[voice] = opcode->arg[0];
+        sv.link_trig_samp[voice] = samples >= (long double)UINT64_MAX ?
+          UINT64_MAX : (uint64_t)samples;
+      }
+      return 0;
+    case SKODE_OP_FILTER_MODE:
+      if (!x_valid) return -1;
+      sv.filter_mode[voice] = x;
+      mmf_set_params(voice, sv.filter_freq[voice], sv.filter_res[voice]);
+      return 0;
+    case SKODE_OP_FILTER_FREQ:
+      return opcode->argc == 1 ? mmf_set_freq(voice, opcode->arg[0]) : -1;
+    case SKODE_OP_ENVELOPE_MODE:
+      if (!x_valid) return -1;
+      sv.amp_envelope_mode[voice] = x;
+      return 0;
+    case SKODE_OP_ENVELOPE_VELOCITY:
+      return opcode->argc == 1 ?
+        envelope_velocity(voice, opcode->arg[0]) : -1;
+    case SKODE_OP_VELOCITY:
+      if (opcode->argc != 1) return -1;
+      {
+        uint64_t now = SAMPLE_COUNT_GET();
+        skode_envelope_velocity(voice, opcode->arg[0], now);
+        if (sv.link_velo_0[voice] >= 0)
+          skode_envelope_velocity(sv.link_velo_0[voice], opcode->arg[0], now);
+        if (sv.link_velo_1[voice] >= 0)
+          skode_envelope_velocity(sv.link_velo_1[voice], opcode->arg[0], now);
+        if (sv.link_velo_2[voice] >= 0)
+          skode_envelope_velocity(sv.link_velo_2[voice], opcode->arg[0], now);
+        if (sv.link_velo_3[voice] >= 0)
+          skode_envelope_velocity(sv.link_velo_3[voice], opcode->arg[0], now);
+        return 0;
+      }
+    case SKODE_OP_MUTE:
+      return x_valid ? wave_mute(voice, x) : -1;
+    case SKODE_OP_MIDI_NOTE:
+      if (opcode->argc != 1 && opcode->argc != 2) return -1;
+      return skode_midi_note(voice, opcode->arg[0],
+        opcode->argc == 2 ? opcode->arg[1] : 0);
+    case SKODE_OP_MIDI_DETUNE:
+      if (opcode->argc < 1 || opcode->argc > 2) return -1;
+      if (!isnan(opcode->arg[0]))
+        sv.midi_transpose[voice] = opcode->arg[0];
+      if (opcode->argc > 1) sv.midi_cents[voice] = opcode->arg[1];
+      return 0;
+    case SKODE_OP_PAN:
+      return opcode->argc == 1 ? pan_set(voice, opcode->arg[0]) : -1;
+    case SKODE_OP_PAN_MOD:
+      if (opcode->argc < 2) return pan_mod_set(voice, -1, 0, 0);
+      return x_valid ? pan_mod_set(voice, x, opcode->arg[1],
+        opcode->argc > 2 ? opcode->arg[2] : 0) : -1;
+    case SKODE_OP_QUANTIZE:
+      return x_valid ? wave_quant(voice, x) : -1;
+    case SKODE_OP_FILTER_RESONANCE:
+      return opcode->argc == 1 ? mmf_set_res(voice, opcode->arg[0]) : -1;
+    case SKODE_OP_RECORD_TRACK:
+      return x_valid ? synth_record_track_set(voice, x) : -1;
+    case SKODE_OP_SMOOTHER:
+      if (opcode->argc != 1) return -1;
+      if (opcode->arg[0] <= 0) {
+        sv.smoother_enable[voice] = 0;
+      } else {
+        sv.smoother_enable[voice] = 1;
+        sv.smoother_smoothing[voice] = opcode->arg[0];
+      }
+      return 0;
+    case SKODE_OP_VOICE_RESET:
+      return x_valid ? wave_reset(x) : -1;
+    case SKODE_OP_ENVELOPE:
+      return opcode->argc == 4 ? envelope_set(voice, opcode->arg[0],
+        opcode->arg[1], opcode->arg[2], opcode->arg[3]) : -1;
+    case SKODE_OP_TRIGGER:
+      if (opcode->argc != 0) return -1;
+      envelope_velocity(voice, 1);
+      if (sv.link_velo_0[voice] >= 0) envelope_velocity(sv.link_velo_0[voice], 1);
+      if (sv.link_velo_1[voice] >= 0) envelope_velocity(sv.link_velo_1[voice], 1);
+      if (sv.link_velo_2[voice] >= 0) envelope_velocity(sv.link_velo_2[voice], 1);
+      if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1);
+      return 0;
+    case SKODE_OP_WAVE:
+      if (!x_valid || wave_set(voice, x) != 0) return -1;
+      if (opcode->argc > 1) {
+        int value;
+        if (!skode_opcode_int(opcode, 1, &value)) return -1;
+        sv.interpolate[voice] = value != 0;
+      }
+      if (opcode->argc > 2) {
+        int value;
+        if (!skode_opcode_int(opcode, 2, &value)) return -1;
+        sv.one_shot[voice] = value != 0;
+      }
+      return 0;
+    case SKODE_OP_VOICE_COPY:
+      return x_valid && skode_voice_valid(x) ? voice_copy(voice, x) : -1;
+    case SKODE_OP_WAVE_DEFAULT:
+      return opcode->argc == 0 ? wave_default(voice) : -1;
+    case SKODE_OP_VARIABLE_SET:
+      if (opcode->argc != 2 || !x_valid ||
+          x < 0 || x >= ANDS_VAR_MAX) return -1;
+      global_var[x] = opcode->arg[1];
+      return 0;
+    case SKODE_OP_NONE:
+    case SKODE_OP_DELAY:
+    case SKODE_OP_VOICE:
+    default:
+      return -1;
   }
 }
 
@@ -1476,12 +1841,7 @@ int skode_function(ands_t *s, int info) {
         float note = arg[0];
         float cents = 0.0;
         if (argc > 1) cents = arg[1];
-        if (isnan(note)) note = sv.last_midi_note[voice];
-        freq_midi(voice, note, cents);
-        if (sv.link_midi_0[voice] >= 0) freq_midi(sv.link_midi_0[voice], note, cents);
-        if (sv.link_midi_1[voice] >= 0) freq_midi(sv.link_midi_1[voice], note, cents);
-        if (sv.link_midi_2[voice] >= 0) freq_midi(sv.link_midi_2[voice], note, cents);
-        if (sv.link_midi_3[voice] >= 0) freq_midi(sv.link_midi_3[voice], note, cents);
+        skode_midi_note(voice, note, cents);
       }
       break;
     case ATOM4('N---'): // detune-midi key cents
@@ -1527,6 +1887,9 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('RR--'): // repeat-string-tempo count delay [tag]
       if (argc > 1 && x_valid && x > 0 && x <= QUEUE_SIZE &&
           isfinite(arg[1]) && arg[1] >= 0.0) {
+        event_program_t program;
+        if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
+          break;
         uint64_t qt = SAMPLE_COUNT_GET();
         double t = (tempo_time_per_step * 4.0f);
         uint64_t dt;
@@ -1534,27 +1897,33 @@ int skode_function(ands_t *s, int info) {
         int tag = 0;
         if (argc > 2) skode_double_to_int(arg[2], &tag);
         for (int i=0; i<x; i++) {
-          queue_item(qt, ands_string(ctx->parse), ctx->voice, tag);
+          if (skode_queue_program(&program, ctx->voice, qt, tag) != 0) break;
           qt = skode_u64_add(qt, dt);
         }
       } break;
     case ATOM4('DO?-'): // conditional-string-if-gt-zero number [tag]
       if (argc && x>0) {
+        event_program_t program;
+        if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
+          break;
         int tag = 0;
         if (argc > 1) skode_double_to_int(arg[1], &tag);
         uint64_t qt = SAMPLE_COUNT_GET();
-        queue_item(qt, ands_string(ctx->parse), ctx->voice, tag);
+        skode_queue_program(&program, ctx->voice, qt, tag);
       } break;
     case ATOM4('R---'): // repeat-string count delay [tag]
       if (argc > 1 && x_valid && x > 0 && x <= QUEUE_SIZE &&
           isfinite(arg[1]) && arg[1] >= 0.0) {
+        event_program_t program;
+        if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
+          break;
         uint64_t qt = SAMPLE_COUNT_GET();
         uint64_t dt;
         if (!skode_seconds_to_samples(arg[1], &dt)) break;
         int tag = 0;
         if (argc > 2) skode_double_to_int(arg[2], &tag);
         for (int i=0; i<x; i++) {
-          queue_item(qt, ands_string(ctx->parse), ctx->voice, tag);
+          if (skode_queue_program(&program, ctx->voice, qt, tag) != 0) break;
           qt = skode_u64_add(qt, dt);
         }
       } break;
@@ -1791,7 +2160,18 @@ int skode_function(ands_t *s, int info) {
       seq_step_goto(ctx->pattern, x);
       break;
     case ATOM4('xa--'): // append step
-      seq_step_append(ctx->pattern, ands_string(ctx->parse));
+      {
+        const char *source = ands_string(ctx->parse);
+        event_program_t program;
+        int source_only = source[0] == '\0' || strcmp(source, "-") == 0;
+        skode_compile_result_t result = source_only ?
+          SKODE_COMPILE_OK : skode_compile_program(source, &program);
+        if (result == SKODE_COMPILE_OK) {
+          seq_step_append(ctx->pattern, source, source_only ? NULL : &program);
+        } else {
+          ctx->printf(ctx, "# sequence command is not schedulable (%d)\n", result);
+        }
+      }
       break;
     case ATOM4('<x--'): // (pattern) step-string-to-skode step-number
       if (arg == 0) {
@@ -1809,7 +2189,17 @@ int skode_function(ands_t *s, int info) {
           ctx->step = x;
         }
         if (x >= 0 && x < SEQ_STEPS_MAX) {
-          seq_step_set(ctx->pattern, ctx->step, ands_string(ctx->parse));
+          const char *source = ands_string(ctx->parse);
+          event_program_t program;
+          int source_only = source[0] == '\0' || strcmp(source, "-") == 0;
+          skode_compile_result_t result = source_only ?
+            SKODE_COMPILE_OK : skode_compile_program(source, &program);
+          if (result == SKODE_COMPILE_OK) {
+            seq_step_set(ctx->pattern, ctx->step, source,
+              source_only ? NULL : &program);
+          } else {
+            ctx->printf(ctx, "# sequence command is not schedulable (%d)\n", result);
+          }
         }
       }
       break;
@@ -1863,6 +2253,24 @@ int skode_function(ands_t *s, int info) {
       voice_show_all(ctx, voice, ctx->verbose); break;
     case ATOM4('?s--'): // show-skode-string
       ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
+      break;
+    case ATOM4('?o--'): // show compiled opcode queue or pattern
+      if (argc == 0) {
+        opcode_queue_show(ctx);
+      } else {
+        if (!x_valid) {
+          ctx->printf(ctx, "# invalid opcode pattern\n");
+          break;
+        }
+        int pattern = x;
+        int step = -1;
+        if (pattern == -1) pattern = ctx->pattern;
+        if (argc > 1 && !skode_double_to_int(arg[1], &step)) {
+          ctx->printf(ctx, "# invalid opcode step\n");
+          break;
+        }
+        opcode_pattern_show(ctx, pattern, step);
+      }
       break;
     case ATOM4('l>g-'):
       if (argc) ands_local_to_global(ctx->parse, x);
@@ -1980,9 +2388,11 @@ int skode_function(ands_t *s, int info) {
           s = EXTRA_PTR(x);
         }
         if (s[0] != '\0') {
+          event_program_t program;
+          if (!skode_compile_scheduled(ctx, s, &program)) break;
           uint64_t now = SAMPLE_COUNT_GET();
           int tag = 0;
-          queue_item(now, s, voice, tag);
+          skode_queue_program(&program, voice, now, tag);
         }
       }
       break;
@@ -2290,7 +2700,9 @@ int skode_defer(ands_t *s, int info) {
       ands_defer_string(s),
       ctx->defer_last);
   }
-  queue_item(qt, ands_defer_string(s), ctx->voice, -1);
+  event_program_t program;
+  if (!skode_compile_scheduled(ctx, ands_defer_string(s), &program)) return 0;
+  skode_queue_program(&program, ctx->voice, qt, -1);
   // If this defer is created while seq() is already running a pattern step,
   // a due-now event such as +0 will not be drained until the next callback.
   // Revisit if mixed immediate/deferred pattern attacks need tighter alignment.

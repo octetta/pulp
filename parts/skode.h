@@ -18,6 +18,58 @@ typedef struct {
 } voice_stack_t;
 
 #include "ands.h"
+#include "seq.h"
+
+typedef enum {
+  SKODE_OP_NONE = 0,
+  SKODE_OP_DELAY,
+  SKODE_OP_VOICE,
+  SKODE_OP_AMP,
+  SKODE_OP_FREQ,
+  SKODE_OP_MIDI_NOTE,
+  SKODE_OP_PAN,
+  SKODE_OP_VELOCITY,
+  SKODE_OP_ENVELOPE_VELOCITY,
+  SKODE_OP_AMP_MOD,
+  SKODE_OP_WAVE_DIRECTION,
+  SKODE_OP_WAVE_LOOP,
+  SKODE_OP_PHASE_DISTORTION,
+  SKODE_OP_PHASE_MOD,
+  SKODE_OP_FILTER_ENVELOPE,
+  SKODE_OP_FILTER_ENVELOPE_DEPTH,
+  SKODE_OP_FREQ_MOD,
+  SKODE_OP_FREQ_MOD_MODE,
+  SKODE_OP_GLISSANDO,
+  SKODE_OP_LINK_MIDI,
+  SKODE_OP_SAMPLE_HOLD,
+  SKODE_OP_LINK_VELOCITY,
+  SKODE_OP_TRIGGER_DELAY,
+  SKODE_OP_FILTER_MODE,
+  SKODE_OP_FILTER_FREQ,
+  SKODE_OP_ENVELOPE_MODE,
+  SKODE_OP_MUTE,
+  SKODE_OP_MIDI_DETUNE,
+  SKODE_OP_PAN_MOD,
+  SKODE_OP_QUANTIZE,
+  SKODE_OP_FILTER_RESONANCE,
+  SKODE_OP_RECORD_TRACK,
+  SKODE_OP_SMOOTHER,
+  SKODE_OP_VOICE_RESET,
+  SKODE_OP_ENVELOPE,
+  SKODE_OP_TRIGGER,
+  SKODE_OP_WAVE,
+  SKODE_OP_VOICE_COPY,
+  SKODE_OP_WAVE_DEFAULT,
+  SKODE_OP_VARIABLE_SET,
+  SKODE_OP_RING_MOD,
+} skode_opcode_t;
+
+typedef enum {
+  SKODE_COMPILE_OK = 0,
+  SKODE_COMPILE_IMMEDIATE_ONLY,
+  SKODE_COMPILE_INVALID,
+  SKODE_COMPILE_TOO_LARGE,
+} skode_compile_result_t;
 
 #define SKODE_LOG_MAX (4096)
 
@@ -49,6 +101,23 @@ typedef struct skode_s {
 } skode_t;
 
 int skode_consume(char *line, skode_t *w);
+int skode_execute_event(const event_t *event, skode_t *ctx);
+int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice);
+int skode_opcode_supported(skode_opcode_t opcode);
+const char *skode_opcode_name(uint8_t opcode);
+int skode_execute_program(const event_program_t *program, int voice,
+  uint64_t now, int tag);
+int skode_execute_program_state(const event_program_t *program, int *voice,
+  uint64_t now, int tag);
+skode_compile_result_t skode_compile_program(const char *text,
+  event_program_t *program);
+int skode_queue_program(const event_program_t *program, int voice,
+  uint64_t when, int tag);
+int skode_queue_program_deferred(const event_program_t *program, int voice,
+  uint64_t base, char mode, double delay, int tag);
+int skode_midi_note(int voice, float note, float cents);
+void skode_envelope_velocity(int voice, float x, uint64_t now);
+extern double global_var[ANDS_VAR_MAX];
 void show_threads(skode_t *w);
 void system_show(skode_t *w);
 int audio_show(skode_t *w);

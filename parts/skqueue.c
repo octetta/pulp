@@ -16,6 +16,11 @@ static uint64_t get_next_qid(void) {
     return atomic_fetch_add_uint64(&global_qid, 1);
 }
 
+static bool item_before(const item_t *a, const item_t *b) {
+    if (a->timestamp != b->timestamp) return a->timestamp < b->timestamp;
+    return a->id < b->id;
+}
+
 static void ring_buffer_init(ring_buffer_t *rb, int capacity) {
     rb->items = (item_t *)calloc(capacity, sizeof(item_t));
     rb->capacity = capacity;
@@ -66,8 +71,10 @@ int queue_size(queue_t *q) {
 }
 
 // Lock-free multi-producer enqueue
-bool queue_put(queue_t *q, uint64_t timestamp, int tag, void *data, int voice, char *what) {
+bool queue_put_event(queue_t *q, uint64_t timestamp, int tag, void *data, const event_t *event) {
     if (!q || !q->incoming.items || q->incoming.capacity <= 1) return false;
+    if (!event) return false;
+    if (event->opcode.argc > SEQ_OPCODE_ARG_MAX) return false;
     ring_buffer_t *rb = &q->incoming;
     int capacity = rb->capacity;
     
@@ -98,20 +105,7 @@ bool queue_put(queue_t *q, uint64_t timestamp, int tag, void *data, int voice, c
             item->id = get_next_qid();
             item->tag = tag;
             item->data = data;
-            item->event.voice = voice;
-            item->event.state = 1;
-            
-            if (what != NULL) {
-                size_t max_len = sizeof(item->event.what) - 1;
-                size_t len = 0;
-                while (len < max_len && what[len] != '\0') {
-                    item->event.what[len] = what[len];
-                    len++;
-                }
-                item->event.what[len] = '\0';
-            } else {
-                item->event.what[0] = '\0';
-            }
+            item->event = *event;
             
             atomic_store_int(&item->cancelled, 0);
             
@@ -162,11 +156,12 @@ bool queue_get_filtered(queue_t *q, uint64_t limit_ts, item_t *out) {
                 while (2 * idx + 1 < pq->size) {
                     int child = 2 * idx + 1;
                     
-                    if (child + 1 < pq->size && pq->heap[child + 1].timestamp < pq->heap[child].timestamp) {
+                    if (child + 1 < pq->size &&
+                        item_before(&pq->heap[child + 1], &pq->heap[child])) {
                         child++;
                     }
                     
-                    if (temp.timestamp <= pq->heap[child].timestamp) break;
+                    if (!item_before(&pq->heap[child], &temp)) break;
                     
                     pq->heap[idx] = pq->heap[child];
                     idx = child;
@@ -191,11 +186,12 @@ bool queue_get_filtered(queue_t *q, uint64_t limit_ts, item_t *out) {
             while (2 * idx + 1 < pq->size) {
                 int child = 2 * idx + 1;
                 
-                if (child + 1 < pq->size && pq->heap[child + 1].timestamp < pq->heap[child].timestamp) {
+                if (child + 1 < pq->size &&
+                    item_before(&pq->heap[child + 1], &pq->heap[child])) {
                     child++;
                 }
                 
-                if (temp.timestamp <= pq->heap[child].timestamp) break;
+                if (!item_before(&pq->heap[child], &temp)) break;
                 
                 pq->heap[idx] = pq->heap[child];
                 idx = child;
@@ -223,11 +219,12 @@ bool queue_get_filtered(queue_t *q, uint64_t limit_ts, item_t *out) {
             while (2 * idx + 1 < pq->size) {
                 int child = 2 * idx + 1;
                 
-                if (child + 1 < pq->size && pq->heap[child + 1].timestamp < pq->heap[child].timestamp) {
+                if (child + 1 < pq->size &&
+                    item_before(&pq->heap[child + 1], &pq->heap[child])) {
                     child++;
                 }
                 
-                if (temp.timestamp <= pq->heap[child].timestamp) break;
+                if (!item_before(&pq->heap[child], &temp)) break;
                 
                 pq->heap[idx] = pq->heap[child];
                 idx = child;

@@ -161,6 +161,8 @@ into the opcode representation above.
 | `~seconds ...` | deferred commands | Seconds-relative defer | `skode_defer()`, `skode_queue_program()` |
 | `[commands] R count,seconds[,tag]` | string | Repeat using seconds | `skode_compile_program()`, `skode_queue_program()` |
 | `[commands] RR count,steps[,tag]` | string | Repeat using tempo-relative step duration | `skode_compile_program()`, `skode_queue_program()` |
+| `eR macro,count,seconds[,tag]` | external string | Compile a macro snapshot and repeat it using seconds | `skode_extra_copy()`, `skode_compile_program()`, `skode_queue_program()` |
+| `eRR macro,count,beats[,tag]` | external string | Compile a macro snapshot and repeat it using tempo-relative beat duration | same as above |
 | `[commands] DO? value[,tag]` | string | Queue once when `value > 0` | `skode_compile_program()`, `skode_queue_program()` |
 | `R! tag` | numeric | Remove queued events with a tag | `seq_kill_by_tag()` |
 | `R!!` | none | Remove all queued events | `seq_kill_all()` |
@@ -180,6 +182,8 @@ Expansion uses snapshot semantics, so editing buffer 12 later does not change
 an existing pattern or queued event. Undefined buffers, recursive cycles,
 `e!$N`, and expansions beyond 32 operations are rejected. Argumentless `e!`
 continues to mean "execute the current parser string" and is immediate-only.
+`eR` and `eRR` use the same snapshot compilation but schedule the resulting
+program repeatedly without expanding it once per repetition.
 
 ## Pattern and Sequence Commands
 
@@ -272,6 +276,8 @@ Skode has `SKODE_EXTRA_MAX` (128) external string buffers of 256 bytes each.
 | `<e index` | numeric | Copy external buffer to parser string | `ands_string_from_external()` |
 | `e? [index]` | optional numeric | Show one or all non-empty buffers | direct buffer inspection |
 | `e! index` | literal numeric | Compile and inline a macro buffer; schedulable | `skode_extra_copy()`, `skode_compile_program()` |
+| `eR index,count,seconds[,tag]` | numeric | Repeat a compiled macro snapshot using seconds | `skode_repeat_macro()` |
+| `eRR index,count,beats[,tag]` | numeric | Repeat a compiled macro snapshot using tempo | `skode_repeat_macro()` |
 | `[file] /ks [verbose]` | string | Load a named Ksynth source file | `ksynth_load_name()` |
 | `/k file-number[,verbose]` | numeric | Load numbered Ksynth source | `ksynth_load()` |
 | `[code] ks`, `[code] k!` | string | Submit Ksynth source | `skode_ks_submit()` |

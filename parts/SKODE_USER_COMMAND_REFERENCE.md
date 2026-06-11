@@ -311,6 +311,8 @@ ticks and their `%` modulus, so their duration is not necessarily one beat.
 | `~seconds commands` | Second delay followed by commands | Compiles the remaining commands and schedules them after a real-time delay. |
 | `[commands] R count,seconds[,tag]` | Repeat count, interval, optional tag | Queues the command program `count` times, starting immediately and spacing starts by seconds. |
 | `[commands] RR count,beats[,tag]` | Repeat count, beat interval, optional tag | Queues the program repeatedly using tempo-relative spacing. |
+| `eR macro,count,seconds[,tag]` | Macro index, repeat count, interval, optional tag | Compiles an external macro once and queues `count` invocations, starting immediately and spacing starts by seconds. |
+| `eRR macro,count,beats[,tag]` | Macro index, repeat count, beat interval, optional tag | Compiles an external macro once and queues repeated invocations using tempo-relative spacing. |
 | `[commands] DO? value[,tag]` | Condition and optional tag | Queues the program once when `value` is greater than zero. |
 | `R! tag` | Integer event tag | Removes queued events carrying that tag. Already executed events are unaffected. |
 | `R!!` | None | Clears all queued events. It does not erase patterns or reset voices. |
@@ -359,11 +361,18 @@ up to 255 text characters plus its terminator.
 | `<e N` | Buffer index | Copies external macro `N` into the parser string buffer without executing it. | No |
 | `e? [N]` | Optional buffer index | Displays one macro, or every nonempty macro when no index is given. | No |
 | `e!N` | Literal buffer index | Compiles and executes macro `N`. When used inside another compiled program, its opcodes are inlined as a snapshot. | Yes |
+| `eR N,count,seconds[,tag]` | Literal buffer index, count, interval, optional tag | Compiles macro `N` once and repeats that snapshot at real-time intervals. | No |
+| `eRR N,count,beats[,tag]` | Literal buffer index, count, beat interval, optional tag | Compiles macro `N` once and repeats that snapshot at tempo-relative intervals. | No |
 | `[commands] e!` | Current parser string | Compiles and executes the current string immediately. Argumentless `e!` itself cannot be nested in a compiled program. | No |
 
 Literal `e!N` calls may be used inside patterns, defers, repeats, and other
 external macros. Recursive macro cycles, undefined macros, runtime-selected
 `e!$N`, and expansions beyond 32 operations are rejected.
+
+`eR` and `eRR` are control-thread scheduling commands. The macro is copied and
+compiled once when the command is issued, so later edits do not affect queued
+invocations. The 32-operation limit applies to one compiled invocation, not
+the repeat count.
 
 ## Registers and Data
 

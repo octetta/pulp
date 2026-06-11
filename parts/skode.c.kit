@@ -1462,6 +1462,51 @@ static int skode_compile_scheduled(skode_t *ctx, const char *text,
   return 0;
 }
 
+@if(SEQ)
+static void skode_queue_repeated(const event_program_t *program, int voice,
+    int count, double seconds, int tag) {
+  uint64_t dt;
+  if (!program || count <= 0 || count > QUEUE_SIZE ||
+      !skode_seconds_to_samples(seconds, &dt)) {
+    return;
+  }
+  uint64_t qt = SAMPLE_COUNT_GET();
+  for (int i = 0; i < count; i++) {
+    if (skode_queue_program(program, voice, qt, tag) != 0) break;
+    qt = skode_u64_add(qt, dt);
+  }
+}
+
+static void skode_repeat_macro(skode_t *ctx, const double *arg, int argc,
+    int tempo_relative) {
+  int macro_index;
+  int count;
+  if (!ctx || !arg || argc < 3 ||
+      !skode_double_to_int(arg[0], &macro_index) ||
+      !skode_extra_valid(macro_index) ||
+      !skode_double_to_int(arg[1], &count) ||
+      count <= 0 || count > QUEUE_SIZE ||
+      !isfinite(arg[2]) || arg[2] < 0.0) {
+    return;
+  }
+
+  int tag = 0;
+  if (argc > 3 && !skode_double_to_int(arg[3], &tag)) return;
+
+  char macro[STRING_BUF_LEN];
+  if (skode_extra_copy(macro_index, macro, sizeof(macro)) != 0 ||
+      macro[0] == '\0') {
+    return;
+  }
+  event_program_t program;
+  if (!skode_compile_scheduled(ctx, macro, &program)) return;
+
+  double seconds = arg[2];
+  if (tempo_relative) seconds *= tempo_step_seconds_get() * 4.0f;
+  skode_queue_repeated(&program, ctx->voice, count, seconds, tag);
+}
+@endif
+
 int skode_opcode_supported(skode_opcode_t opcode) {
   switch (opcode) {
     case SKODE_OP_VOICE:
@@ -2192,17 +2237,17 @@ int skode_function(ands_t *s, int info) {
         event_program_t program;
         if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
           break;
-        uint64_t qt = SAMPLE_COUNT_GET();
-        double t = (tempo_step_seconds_get() * 4.0f);
-        uint64_t dt;
-        if (!skode_seconds_to_samples(t * arg[1], &dt)) break;
         int tag = 0;
         if (argc > 2) skode_double_to_int(arg[2], &tag);
-        for (int i=0; i<x; i++) {
-          if (skode_queue_program(&program, ctx->voice, qt, tag) != 0) break;
-          qt = skode_u64_add(qt, dt);
-        }
+        double seconds = tempo_step_seconds_get() * 4.0f * arg[1];
+        skode_queue_repeated(&program, ctx->voice, x, seconds, tag);
       } break;
+    case ATOM4('eRR-'): // repeat-external-macro-tempo macro count beats [tag]
+      skode_repeat_macro(ctx, arg, argc, 1);
+      break;
+    case ATOM4('eR--'): // repeat-external-macro macro count seconds [tag]
+      skode_repeat_macro(ctx, arg, argc, 0);
+      break;
     case ATOM4('DO?-'): // conditional-string-if-gt-zero number [tag]
       if (argc && x>0) {
         event_program_t program;
@@ -2219,15 +2264,9 @@ int skode_function(ands_t *s, int info) {
         event_program_t program;
         if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
           break;
-        uint64_t qt = SAMPLE_COUNT_GET();
-        uint64_t dt;
-        if (!skode_seconds_to_samples(arg[1], &dt)) break;
         int tag = 0;
         if (argc > 2) skode_double_to_int(arg[2], &tag);
-        for (int i=0; i<x; i++) {
-          if (skode_queue_program(&program, ctx->voice, qt, tag) != 0) break;
-          qt = skode_u64_add(qt, dt);
-        }
+        skode_queue_repeated(&program, ctx->voice, x, arg[1], tag);
       } break;
     @endif
     @if(SMOOTHER)

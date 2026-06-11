@@ -64,6 +64,13 @@ typedef struct {
   event_t event;
 } event_capture_t;
 
+typedef struct {
+  int count;
+  uint64_t timestamp[8];
+  int tag[8];
+  event_t event[8];
+} repeat_capture_t;
+
 static int capture_event(int unused, uint64_t timestamp, uint64_t id, int tag,
                          const event_t *event, void *user) {
   (void)unused;
@@ -73,6 +80,21 @@ static int capture_event(int unused, uint64_t timestamp, uint64_t id, int tag,
   event_capture_t *capture = user;
   capture->count++;
   capture->event = *event;
+  return 0;
+}
+
+static int capture_repeat(int unused, uint64_t timestamp, uint64_t id, int tag,
+                          const event_t *event, void *user) {
+  (void)unused;
+  (void)id;
+  repeat_capture_t *capture = user;
+  if (capture->count < 8) {
+    int n = capture->count;
+    capture->timestamp[n] = timestamp;
+    capture->tag[n] = tag;
+    capture->event[n] = *event;
+  }
+  capture->count++;
   return 0;
 }
 
@@ -256,6 +278,42 @@ static void test_opcode_events(void) {
                "external macro amplitude");
   expect_float(test, sv.pan[2], 0.25f, 0.0001f,
                "command after external macro");
+
+  if (strstr(skred_features(), "SEQ ") != NULL) {
+    consume(test, &ctx, "[v6 a-4] e>115");
+    seq_kill_all();
+    consume(test, &ctx, "eR115,3,.01,42");
+    consume(test, &ctx, "[v6 a-1] e>115");
+    repeat_capture_t repeats = {0};
+    seq_foreach(capture_repeat, &repeats);
+    expect_int(test, repeats.count, 3, "real-time macro repeat count");
+    uint64_t real_time_dt = (uint64_t)(0.01 * MAIN_SAMPLE_RATE);
+    for (int i = 0; i < 3; i++) {
+      expect_int(test, repeats.tag[i], 42, "real-time macro repeat tag");
+      expect_int(test, repeats.event[i].voice, 6,
+                 "real-time macro repeat voice");
+      expect_float(test, repeats.event[i].opcode.arg[0], -4.0f, 0.0001f,
+                   "real-time macro repeat snapshot");
+      if (i > 0) {
+        expect_u64(test, repeats.timestamp[i] - repeats.timestamp[i - 1],
+                   real_time_dt, "real-time macro repeat spacing");
+      }
+    }
+    seq_kill_all();
+
+    expect_int(test, tempo_set(120.0f), 0, "macro repeat tempo");
+    consume(test, &ctx, "[a-3] e>114");
+    consume(test, &ctx, "eRR114,2,.25,7");
+    memset(&repeats, 0, sizeof(repeats));
+    seq_foreach(capture_repeat, &repeats);
+    expect_int(test, repeats.count, 2, "tempo macro repeat count");
+    expect_int(test, repeats.tag[0], 7, "tempo macro repeat first tag");
+    expect_int(test, repeats.tag[1], 7, "tempo macro repeat second tag");
+    expect_u64(test, repeats.timestamp[1] - repeats.timestamp[0],
+               (uint64_t)(0.125 * MAIN_SAMPLE_RATE),
+               "tempo macro repeat spacing");
+    seq_kill_all();
+  }
 
   consume(test, &ctx, "[e!120 n64] e>121");
   expect_int(test, skode_compile_program("e!121", &program),

@@ -15,6 +15,12 @@ not alter already compiled or queued events. Nested macros are supported, but
 undefined buffers, recursive cycles, runtime-selected `e!$n` calls, and
 expansions beyond `SEQ_PROGRAM_OP_MAX` are rejected.
 
+`eR macro,count,seconds[,tag]` and `eRR macro,count,beats[,tag]` copy and
+compile the selected external macro once on the control thread, then queue
+repeated invocations of that snapshot. Repetition does not duplicate the
+program's opcodes, so `SEQ_PROGRAM_OP_MAX` applies to each invocation rather
+than to the total number of repeats.
+
 ## Compiled Commands
 
 The base voice command set includes:

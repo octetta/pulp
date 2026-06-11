@@ -78,6 +78,7 @@ void sk_sleep(int milliseconds) {
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
+#include "portable_atomic.h"
 
 void voice_show(skode_t *ctx, int v, char c, int verbose) {
   char s[1024];
@@ -101,14 +102,43 @@ int voice_show_all(skode_t *ctx, int voice, int verbose) {
 static skode_t *skode_ctx[SKODE_CTX_MAX];
 
 #define STRING_BUF_LEN (256)
-#define STRING_BUF_IDX_MAX (128) // idea one macro per midi key?
+#define STRING_BUF_IDX_MAX SKODE_EXTRA_MAX // idea one macro per midi key?
 static char _skode_extra[STRING_BUF_IDX_MAX][STRING_BUF_LEN];
 static char _skode_extra_invalid[STRING_BUF_LEN];
+static simple_mutex_t skode_extra_mutex;
+static atomic_int_t skode_global_state;
 static int skode_extra_valid(int n) { return n >= 0 && n < STRING_BUF_IDX_MAX; }
 static char *skode_extra_ptr(int n) {
   if (skode_extra_valid(n)) return _skode_extra[n];
   _skode_extra_invalid[0] = '\0';
   return _skode_extra_invalid;
+}
+
+static void skode_global_init(void) {
+  int state = atomic_load_int(&skode_global_state);
+  if (state == 2) return;
+
+  int expected = 0;
+  if (atomic_compare_exchange_int(&skode_global_state, &expected, 1)) {
+    simple_mutex_init(&skode_extra_mutex);
+    for (int i = 0; i < SKODE_CTX_MAX; i++) skode_ctx[i] = NULL;
+    _skode_extra_invalid[0] = '\0';
+    for (int i = 0; i < STRING_BUF_IDX_MAX; i++) _skode_extra[i][0] = '\0';
+    atomic_store_int(&skode_global_state, 2);
+    return;
+  }
+
+  while (atomic_load_int(&skode_global_state) != 2) {
+  }
+}
+
+int skode_extra_copy(int index, char *dst, size_t dst_size) {
+  if (!skode_extra_valid(index) || !dst || dst_size == 0) return -1;
+  skode_global_init();
+  simple_mutex_lock(&skode_extra_mutex);
+  snprintf(dst, dst_size, "%s", _skode_extra[index]);
+  simple_mutex_unlock(&skode_extra_mutex);
+  return 0;
 }
 
 static int skode_voice_valid(int voice) {
@@ -274,18 +304,22 @@ static void opcode_pattern_show(skode_t *ctx, int pattern, int step) {
     ctx->printf(ctx, "# invalid opcode pattern:%d\n", pattern);
     return;
   }
+  seq_edit_lock();
   if (step >= 0) {
     if (step >= SEQ_STEPS_MAX) {
       ctx->printf(ctx, "# invalid opcode step:%d\n", step);
+      seq_edit_unlock();
       return;
     }
     opcode_pattern_step_show(ctx, pattern, step);
+    seq_edit_unlock();
     return;
   }
   ctx->printf(ctx, "# opcode pattern:%d length:%d\n",
     pattern, seq_pattern_length[pattern]);
   for (int s = 0; s < seq_pattern_length[pattern]; s++)
     opcode_pattern_step_show(ctx, pattern, s);
+  seq_edit_unlock();
 }
 
 #ifdef _WIN32
@@ -708,6 +742,7 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
 
 void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
   if (pattern_pointer < 0 || pattern_pointer >= PATTERNS_MAX) return;
+  seq_edit_lock();
   int first = 1;
   for (int s = 0; s < SEQ_STEPS_MAX; s++) {
     char *line = seq_pattern[pattern_pointer][s];
@@ -726,9 +761,9 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
     ctx->printf(ctx, "[%s] x%d", line, s);
     ctx->puts(ctx, "");
   }
+  seq_edit_unlock();
 }
 
-void tempo_set(float m);
 
 void downsample_block_average_min_max(
     const float *source, int source_len, float *dest, int dest_len,
@@ -1834,7 +1869,9 @@ int skode_function(ands_t *s, int info) {
       if (argc) { wave_mute(voice, x); }
       break;
     case ATOM4('M---'): // tempo bpm
-      if (argc) { tempo_set(arg[0]); }
+      if (argc && tempo_set(arg[0]) != 0)
+        ctx->printf(ctx, "# tempo must be between %g and %g BPM\n",
+          (double)SEQ_TEMPO_MIN_BPM, (double)SEQ_TEMPO_MAX_BPM);
       break;
     case ATOM4('n---'): // midi-freq note-number (cents)
       if (argc) {
@@ -1891,7 +1928,7 @@ int skode_function(ands_t *s, int info) {
         if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
           break;
         uint64_t qt = SAMPLE_COUNT_GET();
-        double t = (tempo_time_per_step * 4.0f);
+        double t = (tempo_step_seconds_get() * 4.0f);
         uint64_t dt;
         if (!skode_seconds_to_samples(t * arg[1], &dt)) break;
         int tag = 0;
@@ -2176,8 +2213,10 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('<x--'): // (pattern) step-string-to-skode step-number
       if (arg == 0) {
       } else {
+        seq_edit_lock();
         char *s = seq_step_get(ctx->pattern, x);
         ands_string_from_external(ctx->parse, s, strlen(s));
+        seq_edit_unlock();
       }
       break;
     case ATOM4('x---'): // set-step-string step
@@ -2211,11 +2250,13 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('yt--'): // {note} pattern-text
       if (ctx->pattern >= 0 && ctx->pattern < PATTERNS_MAX) {
+        seq_edit_lock();
         skode_copy_string(seq_text[ctx->pattern], TEXT_MAX, ands_string(ctx->parse));
+        seq_edit_unlock();
       }
       break;
     case ATOM4('ym--'): // pattern-mute 0/1
-      if (argc && ctx->pattern >= 0 && ctx->pattern < PATTERNS_MAX) seq_mute[ctx->pattern] = x;
+      if (argc) seq_mute_set(ctx->pattern, x);
       break;
     case ATOM4('Y---'): // clear-pattern which
       if (argc && x >= 0 && x < PATTERNS_MAX) {
@@ -2234,13 +2275,13 @@ int skode_function(ands_t *s, int info) {
       if (argc) {
         seq_state_all(x);
       } else {
-        ctx->printf(ctx, "M%g\n", tempo_bpm * 4.0f);
+        ctx->printf(ctx, "M%g\n", tempo_bpm_get());
         for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p, 0);
       }
       break;
     case ATOM4('z?\?-'): // show all patterns
     case ATOM4('Z?--'): // show all patterns
-      ctx->printf(ctx, "M%g\n", tempo_bpm * 4.0f);
+      ctx->printf(ctx, "M%g\n", tempo_bpm_get());
       for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p, 1);
       break;
     case ATOM4('v?--'): // show-voice
@@ -2368,24 +2409,27 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('<e--'): // external-string-to-skode external-index
       if (argc && skode_extra_valid(x)) {
-        ands_string_from_external(ctx->parse, EXTRA_PTR(x), STRING_BUF_LEN);
+        char macro[STRING_BUF_LEN];
+        if (skode_extra_copy(x, macro, sizeof(macro)) == 0)
+          ands_string_from_external(ctx->parse, macro, strlen(macro));
       }
       break;
     case ATOM4('e>--'): // skode-string-to-external external-index
       if (argc && skode_extra_valid(x)) {
         char *s = ands_string(ctx->parse);
-        //ands_string_to_extra(ctx->parse, x, s);
-        //ands_string_to_external(ctx->parse, EXTRA_PTR(x), STRING_BUF_LEN);
+        simple_mutex_lock(&skode_extra_mutex);
         skode_copy_string(EXTRA_PTR(x), STRING_BUF_LEN, s);
+        simple_mutex_unlock(&skode_extra_mutex);
       }
       break;
     case ATOM4('e!--'): // execute-string num
       {
-        char *s = "";
+        char macro[STRING_BUF_LEN] = "";
+        const char *s = "";
         if (argc == 0) {
           s = ands_string(ctx->parse);
-        } else if (skode_extra_valid(x)) {
-          s = EXTRA_PTR(x);
+        } else if (skode_extra_copy(x, macro, sizeof(macro)) == 0) {
+          s = macro;
         }
         if (s[0] != '\0') {
           event_program_t program;
@@ -2397,6 +2441,7 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('e?--'): // show-execute-string [num]
+      simple_mutex_lock(&skode_extra_mutex);
       if (argc) {
         if (skode_extra_valid(x)) ctx->printf(ctx, "# [%s] e>%d\n", EXTRA_PTR(x), x);
       } else {
@@ -2405,6 +2450,7 @@ int skode_function(ands_t *s, int info) {
             ctx->printf(ctx, "# [%s] e>%d\n", EXTRA_PTR(i), i);
         }
       }
+      simple_mutex_unlock(&skode_extra_mutex);
       break;
     case ATOM4('/s--'): // system-show num
       {
@@ -2418,10 +2464,12 @@ int skode_function(ands_t *s, int info) {
             case 3: ctx->printf(ctx, "%s", synth_stats()); break;
             case 5: skode_show(ctx); break;
             case 7:
+              simple_mutex_lock(&skode_extra_mutex);
               for (int i=0; i<STRING_BUF_IDX_MAX; i++) {
                 if (strlen(EXTRA_PTR(i)))
                   ctx->printf(ctx, "# [%s] e>%d\n", EXTRA_PTR(i), i);
               }
+              simple_mutex_unlock(&skode_extra_mutex);
               break;
           }
         }
@@ -2684,7 +2732,7 @@ int skode_defer(ands_t *s, int info) {
     ctx->defer_sample_time = SAMPLE_COUNT_GET();
   }
   uint64_t dst = ctx->defer_sample_time;
-  if (mode == '+') delay *= (tempo_time_per_step * 4.0f);
+  if (mode == '+') delay *= (tempo_step_seconds_get() * 4.0f);
   double t = ctx->defer_last + delay;
   uint64_t relative;
   if (!skode_seconds_to_samples(t, &relative)) return 0;
@@ -2742,6 +2790,7 @@ double global_var[ANDS_VAR_MAX];
 
 int skode_consume(char *line, skode_t *ctx) {
   if (!line || !ctx) return -1;
+  skode_global_init();
   if (ctx->parse == NULL) {
     // TODO this should live in wire-init or similar
     ctx->parse = ands_new(skode_callback, (void *)ctx);
@@ -2779,14 +2828,7 @@ int audio_show(skode_t *ctx) {
 }
 
 void skode_init(skode_t *ctx) {
-  static int first = 1;
-  if (first) {
-    for (int i = 0; i < SKODE_CTX_MAX; i++) {
-      skode_ctx[i] = NULL;
-    }
-    EXTRA_INIT();
-    first = 0;
-  }
+  skode_global_init();
   ctx->voice = 0;
   ctx->pattern = 0;
   ctx->step = -1;

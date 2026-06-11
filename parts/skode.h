@@ -72,6 +72,8 @@ typedef enum {
 } skode_compile_result_t;
 
 #define SKODE_LOG_MAX (4096)
+#define SKODE_EXTRA_MAX (128)
+#define SKODE_COMPILE_DEPTH_MAX (16)
 
 typedef struct skode_s {
   int voice;
@@ -111,6 +113,7 @@ int skode_execute_program_state(const event_program_t *program, int *voice,
   uint64_t now, int tag);
 skode_compile_result_t skode_compile_program(const char *text,
   event_program_t *program);
+int skode_extra_copy(int index, char *dst, size_t dst_size);
 int skode_queue_program(const event_program_t *program, int voice,
   uint64_t when, int tag);
 int skode_queue_program_deferred(const event_program_t *program, int voice,

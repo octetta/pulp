@@ -22,6 +22,7 @@
 #define ONE_FRAME_MAX (64 * 1024)
 
 static int pattern_voice[PATTERNS_MAX];
+static int pattern_voice_generation[PATTERNS_MAX];
 
 static void event_cb(const event_t *event) {
   static skode_t w = SKODE_EMPTY();
@@ -29,6 +30,11 @@ static void event_cb(const event_t *event) {
 }
 static void pattern_cb(int pattern, const event_program_t *program) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return;
+  int generation = seq_pattern_generation(pattern);
+  if (pattern_voice_generation[pattern] != generation) {
+    pattern_voice[pattern] = 0;
+    pattern_voice_generation[pattern] = generation;
+  }
   skode_execute_program_state(program, &pattern_voice[pattern],
     SAMPLE_COUNT_GET(), -1);
 }
@@ -369,9 +375,11 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   synth_init(vc);
   wave_table_init(0);
   voice_init();
-  tempo_set(120.0);
   seq_init();
+  tempo_set(120.0);
   memset(pattern_voice, 0, sizeof(pattern_voice));
+  for (int p = 0; p < PATTERNS_MAX; p++)
+    pattern_voice_generation[p] = seq_pattern_generation(p);
 
     // 2. Start UDP listening thread
   udp_port = port;

@@ -6,7 +6,7 @@
 #define SEQ_FRAMES_PER_CALLBACK (128)
 
 #define PATTERNS_MAX (128)
-#define SEQ_STEPS_MAX (256)
+#define SEQ_STEPS_MAX (128)
 #define STEP_MAX (256)
 
 enum {
@@ -18,7 +18,10 @@ enum {
 #define QUEUE_SIZE (2048) // the actual queue max depth
 
 #define SEQ_OPCODE_ARG_MAX (4)
-#define SEQ_PROGRAM_OP_MAX (16)
+#define SEQ_PROGRAM_OP_MAX (32)
+#define SEQ_TEMPO_MIN_BPM (1.0f)
+#define SEQ_TEMPO_MAX_BPM (960.0f)
+#define SEQ_MAX_CATCHUP_TICKS (64)
 
 typedef struct {
   uint8_t code;
@@ -50,9 +53,12 @@ void seq_rewind(void);
 uint64_t seq_master_tick(void);
 void pattern_reset(int p);
 int queue_event(uint64_t when, const event_t *event, int tag);
-void tempo_set(float m);
+int tempo_set(float bpm);
+float tempo_bpm_get(void);
+float tempo_step_seconds_get(void);
 
 void seq_modulo_set(int pattern, int m);
+void seq_mute_set(int pattern, int state);
 int seq_step_set(int pattern, int step, const char *source,
   const event_program_t *program);
 char *seq_step_get(int pattern, int step);
@@ -62,6 +68,9 @@ void seq_pattern_length_set(int pattern, int len);
 void seq_step_goto(int pattern, int step);
 void seq_state_set(int p, int state);
 void seq_state_all(int state);
+int seq_pattern_generation(int pattern);
+void seq_edit_lock(void);
+void seq_edit_unlock(void);
 
 extern int requested_seq_frames_per_callback;
 extern int seq_frames_per_callback;
@@ -78,9 +87,6 @@ extern event_program_t seq_program[PATTERNS_MAX][SEQ_STEPS_MAX];
 #define TEXT_MAX (32+1)
 typedef char text_t[TEXT_MAX];
 extern text_t seq_text[PATTERNS_MAX];
-
-extern float tempo_bpm;
-extern float tempo_time_per_step;
 
 int seq_queued(void);
 int seq_capacity(void);

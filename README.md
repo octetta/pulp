@@ -10,6 +10,17 @@ or
 
 Nobody likes the pulp...
 
+## Architecture
+
+See [parts/ARCHITECTURE.md](parts/ARCHITECTURE.md) for the runtime model,
+real-time boundaries, generated-source workflow, adoption options, and a guide
+to navigating the codebase.
+
+Skode documentation:
+
+- [User command reference](parts/SKODE_USER_COMMAND_REFERENCE.md)
+- [Command implementation reference](parts/SKODE_COMMANDS.md)
+- [Scheduled opcode model](parts/OPCODES.md)
 
 # Build
 
@@ -23,21 +34,30 @@ cd parts
 
 ```
 ADSR   # amplitude envelope
-AM     # amplitude modulation 
-CRUSH  # reduce bit depth 
+AM     # amplitude modulation
+CRUSH  # reduce bit depth
 FILT   # multimode analog-ish filter
 FADSR  # filter envelope
-FM     # frequency modulation 
+FM     # frequency modulation
+GLISS  # pitch glissando
 PANMOD # stereo panning modulation
-PD     # phase distortion 
-SAH    # sample rate distortion 
-SEQ    # pattern sequencing 
-SMOOTHER # volume change smoother 
+PD     # phase distortion
+SAH    # sample-and-hold distortion
+SEQ    # pattern sequencing
+SMOOTHER # volume change smoother
+XM     # ring modulation
 
 UDP    # receive skode on UDP
-RECORD # multi track wav recording 
-BENCH  # random benchmark measures
+KSYNTH # asynchronous k-synth evaluation
+RECORD # multitrack WAV recording
+SCOPE  # external shared waveform scope integration
+BENCH  # internal benchmark measurements
 ```
+
+The standard `maxed` target enables the features listed in
+`MAXED_KIT_OPTS` in `parts/Makefile`. `XM` is available to custom `KIT_OPTS`
+builds but is not enabled by that preset. `SCOPE` also requires the external
+`scope-shared.h` integration, which is not included in this repository.
 
 ## Native Build
 
@@ -57,14 +77,16 @@ cmake --build build_native
 ## Validation
 
 ```sh
-make test   # smoke test
+make test   # build and run the default test suite
 make warn   # -Wall -Wextra -Wpedantic -Werror
+make warn-maxed # strict canonical maxed-preset build and tests
 ```
 
 ## Static Analysis
 
 The project authors feature-gated C in `.c.kit` and `.h.kit` files. Generate
-the canonical max-feature C source tree for source-only analysis services with:
+the canonical `MAXED_KIT_OPTS` C source tree for source-only analysis services
+with:
 
 ```sh
 make analysis-src

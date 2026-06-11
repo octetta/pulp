@@ -1,12 +1,19 @@
 # Skode Scheduled Opcodes
 
-The audio callback executes only fixed-size numeric opcode events. Scheduled
-Skode text is parsed and compiled on the control thread before it enters a
-queue, defer, repeat, or sequence.
+Scheduled work executed by the audio callback consists only of fixed-size
+numeric opcode events. Skode text is parsed and compiled on a command or UDP
+thread before it enters a queue, defer, repeat, or sequence.
 
 Commands that require a string, data array, parser-owned memory, file access,
 or other control-thread state are immediate-only. Compilation rejects the
 entire scheduled program instead of retaining text as a fallback.
+
+Literal external macro calls such as `e!12` are expanded on the control thread
+while the containing pattern, defer, repeat, or execute-string is compiled.
+The resulting program is a snapshot: later changes to external buffer 12 do
+not alter already compiled or queued events. Nested macros are supported, but
+undefined buffers, recursive cycles, runtime-selected `e!$n` calls, and
+expansions beyond `SEQ_PROGRAM_OP_MAX` are rejected.
 
 ## Compiled Commands
 
@@ -29,10 +36,10 @@ immediate-only.
 
 ## Programs
 
-An `event_program_t` contains at most `SEQ_PROGRAM_OP_MAX` operations. It can
-include `+` tempo-relative and `~` seconds-relative delay markers. Executing a
-program runs due operations directly and queues future operations as typed
-events.
+An `event_program_t` contains at most `SEQ_PROGRAM_OP_MAX` (32) operations. It
+can include `+` tempo-relative and `~` seconds-relative delay markers.
+Executing a program runs due operations directly and queues future operations
+as typed events.
 
 `$n` operands remain register references in the compiled representation. They
 are resolved when each opcode executes, including deferred events and
@@ -41,7 +48,7 @@ commands such as `n-` and `N-`.
 
 Sequence steps retain their source text for display and editing, but playback
 uses the compiled program stored alongside it. Voice selection is persistent
-per pattern, matching the previous parser context behavior. Empty steps and
+per pattern and resets to voice 0 when the pattern is cleared. Empty steps and
 the `-` stop marker do not require a compiled program. Comment-only steps such
 as `#` compile to a zero-operation program, preserving their sequence position
 without invoking the parser during playback.

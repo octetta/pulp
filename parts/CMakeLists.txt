@@ -166,6 +166,14 @@ add_test(
   COMMAND skode_state_tests
 )
 
+add_executable(skqueue_tests tests/skqueue_tests.c)
+target_link_libraries(skqueue_tests PRIVATE api)
+
+add_test(
+  NAME skqueue.concurrent-publication
+  COMMAND skqueue_tests
+)
+
 add_executable(audio_command_tests tests/audio_command_tests.c)
 target_link_libraries(audio_command_tests PRIVATE api)
 

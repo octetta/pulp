@@ -13,6 +13,8 @@ typedef struct {
     void *data;
     event_t event;
     atomic_int_t cancelled;  // 0 = active, 1 = cancelled
+    atomic_int_t ready;      // 0 = free/reserved, 1 = fully published
+    int generation;
 } item_t;
 
 // Lock-free ring buffer for incoming items
@@ -34,6 +36,8 @@ typedef struct {
     ring_buffer_t incoming;  // Lock-free MPSC queue
     priority_queue_t sorted; // Min-heap for sorted access
     int max_size;
+    simple_mutex_t sorted_mutex;
+    atomic_int_t generation;
 } queue_t;
 
 void queue_init(queue_t *q, int max_size);
@@ -42,19 +46,17 @@ void queue_free(queue_t *q);
 // Lock-free: Multiple producers can call this (returns false if full)
 bool queue_put_event(queue_t *q, uint64_t timestamp, int tag, void *data, const event_t *event);
 
-// Lock-free for audio callback: Gets next item by timestamp
-// Internally transfers from ring buffer to heap as needed
+// Non-blocking for audio callback: returns false if admin owns the heap.
 bool queue_get_filtered(queue_t *q, uint64_t limit_ts, item_t *out);
 
 int queue_size(queue_t *q);
 
 // Admin operations
 // Callback receives each item, return 0 to continue, non-zero to stop
-// Note: may see partial/inconsistent state during iteration
 typedef int (*queue_foreach_cb)(const item_t *item, void *userdata);
 void queue_foreach(queue_t *q, queue_foreach_cb callback, void *userdata);
 
-// Cancel items matching a predicate (lock-free using tombstones)
+// Cancel items matching a predicate using tombstones.
 typedef bool (*queue_cancel_cb)(const item_t *item, void *userdata);
 int queue_cancel(queue_t *q, queue_cancel_cb should_cancel, void *userdata);
 

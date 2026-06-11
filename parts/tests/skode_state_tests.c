@@ -4,11 +4,11 @@
 #include <string.h>
 
 #include "ands.h"
+#include "api.h"
 #include "skode.h"
+#include "seq.h"
 #include "synth.h"
 #include "synth-state.h"
-
-void seq_init(void);
 
 static int failures = 0;
 
@@ -78,6 +78,7 @@ static int capture_event(int unused, uint64_t timestamp, uint64_t id, int tag,
 
 static skode_t *queued_event_ctx;
 static int test_pattern_voice[PATTERNS_MAX];
+static int pattern_callback_count;
 
 static void execute_queued_event(const event_t *event) {
   if (skode_execute_event(event, queued_event_ctx) != 0) {
@@ -91,6 +92,16 @@ static void execute_pattern_program(int pattern, const event_program_t *program)
         SAMPLE_COUNT_GET(), -1) != 0) {
     fail("opcode events", "pattern program execution failed");
   }
+}
+
+static void count_pattern_program(int pattern, const event_program_t *program) {
+  (void)pattern;
+  (void)program;
+  pattern_callback_count++;
+}
+
+static void ignore_queued_event(const event_t *event) {
+  (void)event;
 }
 
 static void test_voice_core_commands(void) {
@@ -235,14 +246,144 @@ static void test_opcode_events(void) {
   expect_int(test, skode_compile_program("(1 2 3) d>r", &program),
              SKODE_COMPILE_IMMEDIATE_ONLY,
              "array command rejection");
+  consume(test, &ctx, "[v2 a-11] e>120");
+  expect_int(test, skode_compile_program("e!120 p0.25", &program),
+             SKODE_COMPILE_OK, "compile external macro");
+  expect_int(test, program.count, 3, "external macro operation count");
+  expect_int(test, skode_execute_program(&program, 0, SAMPLE_COUNT_GET(), 0),
+             0, "execute external macro");
+  expect_float(test, sv.user_amp[2], -11.0f, 0.0001f,
+               "external macro amplitude");
+  expect_float(test, sv.pan[2], 0.25f, 0.0001f,
+               "command after external macro");
+
+  consume(test, &ctx, "[e!120 n64] e>121");
+  expect_int(test, skode_compile_program("e!121", &program),
+             SKODE_COMPILE_OK, "compile nested external macro");
+  expect_int(test, program.count, 3, "nested external macro operation count");
+  expect_int(test, skode_execute_program(&program, 0, SAMPLE_COUNT_GET(), 0),
+             0, "execute nested external macro");
+  expect_float(test, sv.last_midi_note[2], 64.0f, 0.0001f,
+               "nested external macro note");
+
+  expect_int(test, skode_compile_program("e!120", &program),
+             SKODE_COMPILE_OK, "compile macro snapshot");
+  expect_int(test, seq_step_set(11, 0, "e!120", &program), 0,
+             "store macro snapshot in pattern");
+  consume(test, &ctx, "[v2 a-2] e>120");
+  int macro_pattern_voice = 0;
+  expect_int(test, skode_execute_program_state(&seq_program[11][0],
+             &macro_pattern_voice, SAMPLE_COUNT_GET(), 0), 0,
+             "execute pattern macro snapshot");
+  expect_float(test, sv.user_amp[2], -11.0f, 0.0001f,
+               "pattern macro snapshot amplitude");
+
+  consume(test, &ctx, "[v7 a-5] e>122");
+  seq_kill_all();
+  expect_int(test, skode_compile_program("~0.01 e!122", &program),
+             SKODE_COMPILE_OK, "compile deferred external macro");
+  expect_int(test, skode_execute_program(&program, 0, SAMPLE_COUNT_GET(), 0),
+             0, "queue deferred external macro");
+  consume(test, &ctx, "[v7 a-1] e>122");
+  memset(&capture, 0, sizeof(capture));
+  seq_foreach(capture_event, &capture);
+  expect_int(test, capture.count, 1, "deferred macro queued event count");
+  expect_int(test, capture.event.voice, 7, "deferred macro snapshot voice");
+  expect_int(test, capture.event.opcode.code, SKODE_OP_AMP,
+             "deferred macro snapshot opcode");
+  expect_float(test, capture.event.opcode.arg[0], -5.0f, 0.0001f,
+               "deferred macro snapshot value");
+  seq_kill_all();
+
+  if (strstr(skred_features(), "SEQ ") != NULL) {
+    consume(test, &ctx, "[v3 a-7] e>118");
+    pattern_reset(10);
+    ctx.pattern = 10;
+    consume(test, &ctx, "[e!118] xa");
+    expect_int(test, seq_pattern_length[10], 1,
+               "append external macro pattern step");
+    expect_int(test, seq_program[10][0].count, 2,
+               "compiled external macro pattern step");
+    consume(test, &ctx, "[v3 a-1] e>118");
+    int dispatched_pattern_voice = 0;
+    expect_int(test, skode_execute_program_state(&seq_program[10][0],
+               &dispatched_pattern_voice, SAMPLE_COUNT_GET(), 0), 0,
+               "execute dispatched pattern macro");
+    expect_float(test, sv.user_amp[3], -7.0f, 0.0001f,
+                 "dispatched pattern macro snapshot");
+
+    consume(test, &ctx, "[v4 a-6] e>119");
+    seq_kill_all();
+    consume(test, &ctx, "~0.01 e!119");
+    expect_int(test, seq_queued(), 1, "dispatcher deferred macro event");
+    consume(test, &ctx, "[v4 a-1] e>119");
+    memset(&capture, 0, sizeof(capture));
+    seq_foreach(capture_event, &capture);
+    expect_int(test, capture.event.voice, 4,
+               "dispatcher deferred macro voice");
+    expect_float(test, capture.event.opcode.arg[0], -6.0f, 0.0001f,
+                 "dispatcher deferred macro snapshot");
+    seq_kill_all();
+  }
+
+  consume(test, &ctx, "[e!124] e>123");
+  consume(test, &ctx, "[e!123] e>124");
+  expect_int(test, skode_compile_program("e!123", &program),
+             SKODE_COMPILE_INVALID, "reject cyclic external macros");
+  consume(test, &ctx,
+    "[v0 ~0 n69l1 ~.25 n$1l2 ~.5 l2 ~.25 l3 ~.25 n60l2 ~.25 n$0l2] e>116");
+  expect_int(test,
+             skode_compile_program(
+               "=0,72 =1,65 v0 N-24,0 v1 N-7,5 e!116", &program),
+             SKODE_COMPILE_OK, "compile expanded external macro");
+  expect_int(test, program.count, 23,
+             "expanded external macro operation count");
+  char macro_command[32];
+  for (int i = 90; i < 105; i++) {
+    snprintf(macro_command, sizeof(macro_command),
+             "[e!%d] e>%d", i + 1, i);
+    consume(test, &ctx, macro_command);
+  }
+  consume(test, &ctx, "[a-1] e>105");
+  expect_int(test, skode_compile_program("e!90", &program),
+             SKODE_COMPILE_OK, "accept maximum compile nesting");
+  expect_int(test, program.count, 1, "maximum nesting operation count");
+  consume(test, &ctx, "[e!106] e>105");
+  consume(test, &ctx, "[a-1] e>106");
+  expect_int(test, skode_compile_program("e!90", &program),
+             SKODE_COMPILE_INVALID, "reject excessive compile nesting");
+  consume(test, &ctx,
+    "[a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 "
+    "a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1 a-1] e>125");
+  expect_int(test, skode_compile_program("e!125 p0", &program),
+             SKODE_COMPILE_TOO_LARGE, "reject oversized macro expansion");
+  expect_int(test, skode_compile_program("e!126", &program),
+             SKODE_COMPILE_INVALID, "reject undefined external macro");
+  expect_int(test, skode_compile_program("e!999", &program),
+             SKODE_COMPILE_INVALID, "reject invalid external macro index");
+  consume(test, &ctx, "[#] e>117");
+  expect_int(test, skode_compile_program("e!117", &program),
+             SKODE_COMPILE_OK, "compile no-op external macro");
+  expect_int(test, program.count, 0, "no-op external macro operation count");
+  expect_int(test, skode_compile_program("e!", &program),
+             SKODE_COMPILE_IMMEDIATE_ONLY,
+             "argumentless external macro remains immediate");
+  expect_int(test, skode_compile_program("e!$0", &program),
+             SKODE_COMPILE_IMMEDIATE_ONLY,
+             "variable external macro remains immediate");
   expect_int(test, skode_compile_program("#", &program),
              SKODE_COMPILE_OK, "compile sequence no-op");
   expect_int(test, program.count, 0, "sequence no-op operation count");
   expect_int(test, seq_step_set(0, 3, "#", &program), 0,
              "store sequence no-op");
+  expect_int(test, seq_step_set(0, SEQ_STEPS_MAX - 1, "#", &program), 0,
+             "store final pattern step");
+  expect_int(test, seq_step_set(0, SEQ_STEPS_MAX, "#", &program), -1,
+             "reject pattern step beyond limit");
   if (strcmp(seq_pattern[0][3], "#") != 0) {
     fail(test, "sequence no-op source was not stored");
   }
+  pattern_reset(0);
   pattern_reset(7);
   expect_int(test, seq_step_append(7, "#", &program), 0,
              "append sequence no-op");
@@ -549,6 +690,41 @@ static void test_context_modes(void) {
   expect_int(test, ands_chunk_mode_get(ctx.parse), 1, "chunk mode");
 }
 
+static void test_tempo_and_pattern_reset_limits(void) {
+  const char *test = "tempo and pattern reset limits";
+  expect_int(test, tempo_set(120.0f), 0, "set normal tempo");
+  expect_float(test, tempo_bpm_get(), 120.0f, 0.001f, "normal tempo");
+  expect_int(test, tempo_set(0.0f), -1, "reject zero tempo");
+  expect_int(test, tempo_set(-1.0f), -1, "reject negative tempo");
+  expect_int(test, tempo_set(NAN), -1, "reject non-finite tempo");
+  expect_int(test, tempo_set(961.0f), -1, "reject excessive tempo");
+  expect_float(test, tempo_bpm_get(), 120.0f, 0.001f,
+               "rejected tempo preserves current value");
+  expect_int(test, tempo_set(1.0f), 0, "accept minimum tempo");
+  expect_int(test, tempo_set(960.0f), 0, "accept maximum tempo");
+
+  event_program_t program = {0};
+  pattern_reset(12);
+  int generation = seq_pattern_generation(12);
+  expect_int(test, seq_step_set(12, 0, "#", &program), 0,
+             "store catch-up pattern");
+  seq_modulo_set(12, 1);
+  seq_state_set(12, 1);
+  seq_rewind();
+  pattern_callback_count = 0;
+  seq((uint64_t)MAIN_SAMPLE_RATE * 100, ignore_queued_event,
+      count_pattern_program);
+  expect_int(test, pattern_callback_count, SEQ_MAX_CATCHUP_TICKS,
+             "bounded pattern catch-up");
+
+  pattern_reset(12);
+  expect_int(test, seq_pattern_generation(12), generation + 1,
+             "pattern clear generation");
+  expect_int(test, seq_state[12], SEQ_STOPPED, "cleared pattern state");
+  expect_int(test, seq_pattern_length[12], 0, "cleared pattern length");
+  expect_int(test, tempo_set(120.0f), 0, "restore default tempo");
+}
+
 int main(void) {
   synth_init(8);
   wave_table_init(0);
@@ -566,6 +742,7 @@ int main(void) {
   test_scalar_voice_opcode_inventory();
   test_parameter_and_buffer_safety();
   test_context_modes();
+  test_tempo_and_pattern_reset_limits();
 
   synth_free();
 

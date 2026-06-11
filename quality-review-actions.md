@@ -2,9 +2,26 @@
 
 Recorded June 6, 2026.
 
+## Status Update
+
+Reviewed against the implementation on June 11, 2026.
+
+- **Still open:** `ks_eval()` result ownership.
+- **Resolved:** event queue publication ordering; covered by
+  `skqueue_tests.c`.
+- **Still open:** deterministic Ksynth and UDP worker shutdown.
+- **Partially resolved:** `ands_free()` now frees the parser object and
+  `ands_new()` checks allocation failures, but `skode_t` still has no explicit
+  destructor and UDP context cleanup remains unfinished.
+- **Partially resolved:** audio device initialization and startup failures now
+  propagate from `skred_start()`, but complete unwind coverage for every
+  partial-start failure remains follow-up work.
+
+Line references below describe the June 6 snapshot and may have moved.
+
 ## Critical
 
-### Fix `ks_eval` result ownership
+### Fix `ks_eval` result ownership - Open
 
 - `ks_eval()` returns a pointer into its arena after resetting that arena.
 - `kse.c` retains and later reads this invalid pointer.
@@ -20,20 +37,19 @@ Relevant code:
 
 ## High
 
-### Correct event queue publication ordering
+### Correct event queue publication ordering - Resolved
 
-- `queue_put()` advances `write_idx` before the selected slot is fully written.
-- A concurrent consumer can observe and copy an incomplete event.
-- Introduce per-slot readiness/sequence state or use another correct bounded
-  MPSC queue design.
-- Add a sustained multi-producer/single-consumer concurrency test.
+The June 6 implementation published `write_idx` before completing the selected
+slot. The current queue uses per-slot readiness state and generation checks, so
+the consumer only copies fully published events. A sustained
+multi-producer/single-consumer test now covers this behavior.
 
 Relevant code:
 
 - `parts/skqueue.c:87`
 - `parts/skqueue.c:130`
 
-### Make worker shutdown deterministic
+### Make worker shutdown deterministic - Open
 
 - The k-synth and UDP workers are detached and are not joined during shutdown.
 - Their running flags are shared between threads without atomic access or a
@@ -49,11 +65,10 @@ Relevant code:
 
 ## Medium
 
-### Complete parser and context cleanup
+### Complete parser and context cleanup - Partially Resolved
 
-- `ands_free()` releases internal allocations but does not free the `ands_t`
-  object itself.
-- There is no matching destructor for parser state owned by a `skode_t`.
+- `ands_free()` now releases internal allocations and the `ands_t` object.
+- There is still no matching destructor for parser state owned by a `skode_t`.
 - UDP context cleanup is explicitly unfinished.
 - Add clear ownership APIs and test cleanup of partially and fully initialized
   contexts.
@@ -64,13 +79,13 @@ Relevant code:
 - `parts/skode.c.kit:2548`
 - `parts/udp.c:156`
 
-### Handle initialization and allocation failures
+### Handle initialization and allocation failures - Partially Resolved
 
-- `ands_new()` assumes its object and buffer allocations succeed.
-- Audio device initialization and startup return values are ignored.
-- `skred_start()` reports success even when initialization fails.
-- Add failure checks, unwind partially initialized state, and return meaningful
-  errors to callers.
+- `ands_new()` now checks object and buffer allocations.
+- Audio device initialization and startup failures now propagate.
+- `skred_start()` now returns failure when audio startup fails.
+- Complete unwind of every resource created before a later startup failure
+  remains to be audited and tested.
 
 Relevant code:
 
@@ -88,7 +103,7 @@ Relevant code:
 - Run AddressSanitizer and UndefinedBehaviorSanitizer when their runtime
   libraries are available in the development environment.
 
-## Review Snapshot
+## June 6 Review Snapshot
 
 - `make test`: passed all 3 existing tests.
 - `make warn`: passed with `-Wall -Wextra -Wpedantic -Werror`.
@@ -96,3 +111,7 @@ Relevant code:
   libraries were missing.
 - Overall assessment: good experimental/research quality, with moderate-to-high
   runtime risk until the ownership and concurrency issues above are resolved.
+
+The queue risk described in that assessment has since been addressed. The
+remaining highest-risk items are Ksynth result lifetime and detached worker
+shutdown.

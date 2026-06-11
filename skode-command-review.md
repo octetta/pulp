@@ -6,32 +6,43 @@ This review evaluates the command set for internal consistency by inferring
 intent from the implementation, canonical state output, documentation, and
 existing patch files.
 
+## Status Update
+
+Reviewed against the implementation on June 11, 2026.
+
+- **Resolved:** `/r` offset indexing, `w>r` transfer behavior, `x-` handling,
+  `G`/`H` link replacement, square-bracket documentation, bare `wait`, and the
+  presentation's amplitude examples.
+- **Still open by design or pending decision:** the `S100` reset-all sentinel,
+  incomplete serialization of `w` interpolation/one-shot flags, query syntax
+  consistency, aliases, and undocumented numeric selector families.
+
+Line references below describe the June 6 snapshot and may have moved.
+
 ## High Priority
 
-### `/r` reads the wrong offset argument
+### Former `/r` offset indexing bug - Resolved
 
-`/r slot one_shot offset` checks for three arguments but reads `arg[3]`, the
-fourth argument, instead of `arg[2]`.
+The June 6 implementation read the fourth argument. It now reads `arg[2]`, so
+`/r slot,one_shot,offset` matches its documented three-argument form.
 
 Relevant code:
 
 - `parts/skode.c.kit:2092`
 
-### `w>r` often performs no transfer
+### Former conditional `w>r` transfer bug - Resolved
 
-Wave-to-record only copies when the recording buffer must first be enlarged.
-If the buffer already has sufficient capacity, its `valid` flag remains false
-and nothing is copied. This conflicts with the more reliable `d>r` behavior.
+Wave-to-record now copies whenever the recording buffer is available and large
+enough, allocating it first only when necessary.
 
 Relevant code:
 
 - `parts/skode.c.kit:1874`
 
-### `x` cannot recognize its NaN/default argument
+### Former `x-` default-argument bug - Resolved
 
-The `x` command compares `arg[0] == NAN`, which is always false. The apparent
-intent is for a NaN placeholder such as `x-` or `x.` to advance to the next
-step. This requires `isnan(arg[0])`.
+The `x` command now uses `isnan(arg[0])`, so placeholders such as `x-` and
+`x.` advance the edit cursor as intended.
 
 Relevant code:
 
@@ -39,7 +50,7 @@ Relevant code:
 
 ## Medium Priority
 
-### `S100` is an accidental reset-all sentinel
+### `S100` is an accidental reset-all sentinel - Open
 
 `S` appears to mean "reset the specified voice," but an invalid voice causes
 all voices to reset. Documentation and patches use `S100` as "quiet/reset all,"
@@ -54,12 +65,10 @@ Relevant code:
 - `parts/synth.c.kit:1486`
 - `doc/learn.html:314`
 
-### `G` and `H` do not replace their link lists
+### Former partial `G` and `H` link replacement - Resolved
 
-`G5` changes only MIDI-link slot zero and leaves slots 1 through 3 untouched.
-`H` behaves the same way for velocity links. These commands look like complete
-list setters, and canonical voice output emits complete lists, so omitted
-positions should probably reset to `-1`.
+`G` and `H` now build complete four-slot lists initialized to `-1`; omitted
+positions clear old MIDI and velocity links.
 
 Relevant code:
 
@@ -67,7 +76,7 @@ Relevant code:
 - `parts/skode.c.kit:1537`
 - `parts/synth.c.kit:872`
 
-### Voice serialization is not a complete round trip
+### Voice serialization is not a complete round trip - Open
 
 `voice_format()` emits most selected-voice state, but it does not emit the
 interpolation and one-shot arguments supported by `w`. Replaying `?` output can
@@ -78,20 +87,19 @@ Relevant code:
 - `parts/skode.c.kit:1814`
 - `parts/synth.c.kit:849`
 
-### Documented string syntax disagrees with the parser
+### Former string-syntax documentation mismatch - Resolved
 
-The web quick reference recommends `{v0l1}e>0`, while the current ANDS parser
-recognizes square-bracket strings only.
+Current documentation uses square-bracket strings, matching the ANDS parser.
 
 Relevant code:
 
 - `doc/index.html:322`
 - `parts/ands.c:310`
 
-### Bare `wait` reads an argument that was not supplied
+### Former bare-`wait` argument bug - Resolved
 
-`wait` checks the `arg` pointer, which is always valid, instead of checking
-`argc`. A bare `wait` can therefore read stale or uninitialized argument data.
+`wait` now validates the first numeric argument before sleeping. A bare
+`wait` is a no-op.
 
 Relevant code:
 
@@ -134,10 +142,10 @@ Examples include:
 Aliases may be useful for compatibility, but one form should be identified as
 canonical and the numeric selectors should be named or documented.
 
-### Amplitude documentation is inaccurate
+### Former amplitude documentation error - Resolved
 
-The presentation describes `a1` as full amplitude. SKODE amplitude is expressed
-in dB, making `a0` the unity setting.
+The presentation now uses `a0` for unity amplitude and negative dB values for
+quieter examples.
 
 Relevant code and documentation:
 
@@ -182,6 +190,6 @@ Create a machine-readable command table with these fields:
 - Compatibility aliases
 - Error behavior
 
-Use that table to drive documentation and contract tests. At minimum, add tests
-for argument counts, link-list replacement, reset-all behavior, data movement,
-pattern-step defaults, and `voice_format()` round trips.
+Use that table to drive documentation and contract tests. Remaining useful
+coverage includes argument-count boundaries, reset-all behavior, numeric
+selector contracts, and `voice_format()` round trips.

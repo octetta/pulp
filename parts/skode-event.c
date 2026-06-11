@@ -14,6 +14,8 @@
 
 _Static_assert(SKODE_OP_RING_MOD <= UINT8_MAX,
   "Skode opcodes must fit in opcode_event_t.code");
+_Static_assert(SEQ_PROGRAM_OP_MAX <= UINT8_MAX,
+  "Compiled program length must fit in event_program_t.count");
 
 const char *skode_opcode_name(uint8_t opcode) {
   static const char *const names[] = {
@@ -35,6 +37,8 @@ typedef struct {
   event_program_t *program;
   skode_compile_result_t result;
   int depth;
+  uint64_t *macro_active;
+  int accepts_empty;
 } skode_compile_t;
 
 static int event_voice_valid(int voice) {
@@ -69,7 +73,18 @@ static int program_push(event_program_t *program, skode_opcode_t code,
 }
 
 static skode_compile_result_t compile_program_inner(const char *text,
-  event_program_t *program, int depth);
+  event_program_t *program, int depth, uint64_t *macro_active);
+
+static int program_append(event_program_t *program,
+    const event_program_t *nested) {
+  if (!program || !nested ||
+      nested->count > SEQ_PROGRAM_OP_MAX - program->count) {
+    return -1;
+  }
+  for (int i = 0; i < nested->count; i++)
+    program->op[program->count++] = nested->op[i];
+  return 0;
+}
 
 static int skode_compile_callback(ands_t *s, int info) {
   skode_compile_t *compile = ands_user(s);
@@ -81,7 +96,7 @@ static int skode_compile_callback(ands_t *s, int info) {
   }
   if (info == DEFER) {
     double delay = ands_defer_num(s);
-    if (!isfinite(delay) || compile->depth >= SEQ_PROGRAM_OP_MAX) {
+    if (!isfinite(delay) || compile->depth >= SKODE_COMPILE_DEPTH_MAX) {
       compile->result = SKODE_COMPILE_INVALID;
       return 0;
     }
@@ -100,15 +115,10 @@ static int skode_compile_callback(ands_t *s, int info) {
     }
     event_program_t nested = {0};
     compile->result = compile_program_inner(ands_defer_string(s), &nested,
-      compile->depth + 1);
+      compile->depth + 1, compile->macro_active);
     if (compile->result != SKODE_COMPILE_OK) return 0;
-    for (int i = 0; i < nested.count; i++) {
-      if (compile->program->count >= SEQ_PROGRAM_OP_MAX) {
-        compile->result = SKODE_COMPILE_TOO_LARGE;
-        return 0;
-      }
-      compile->program->op[compile->program->count++] = nested.op[i];
-    }
+    if (program_append(compile->program, &nested) != 0)
+      compile->result = SKODE_COMPILE_TOO_LARGE;
     return 0;
   }
   if (info != FUNCTION) return 0;
@@ -120,6 +130,43 @@ static int skode_compile_callback(ands_t *s, int info) {
   int min_argc = -1;
   int max_argc = -1;
   uint8_t default_mask = 0;
+
+  if (atom == SKODE_ATOM('e', '!', '-', '-')) {
+    if (argc != 1 || ands_arg_var(s, 0) >= 0) {
+      compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
+      return 0;
+    }
+    if (!isfinite(arg[0]) || floor(arg[0]) != arg[0] || arg[0] < 0 ||
+        arg[0] >= SKODE_EXTRA_MAX) {
+      compile->result = SKODE_COMPILE_INVALID;
+      return 0;
+    }
+    int index = (int)arg[0];
+    char macro[STEP_MAX];
+    if (skode_extra_copy(index, macro, sizeof(macro)) != 0 ||
+        macro[0] == '\0') {
+      compile->result = SKODE_COMPILE_INVALID;
+      return 0;
+    }
+    uint64_t bit = UINT64_C(1) << (index % 64);
+    uint64_t *active = &compile->macro_active[index / 64];
+    if (*active & bit) {
+      compile->result = SKODE_COMPILE_INVALID;
+      return 0;
+    }
+    *active |= bit;
+    event_program_t nested = {0};
+    compile->result = compile_program_inner(macro, &nested,
+      compile->depth + 1, compile->macro_active);
+    *active &= ~bit;
+    if (compile->result == SKODE_COMPILE_OK &&
+        program_append(compile->program, &nested) != 0) {
+      compile->result = SKODE_COMPILE_TOO_LARGE;
+    }
+    if (compile->result == SKODE_COMPILE_OK && nested.count == 0)
+      compile->accepts_empty = 1;
+    return 0;
+  }
 
   switch (atom) {
     case SKODE_ATOM('v', '-', '-', '-'):
@@ -246,8 +293,8 @@ static int skode_compile_callback(ands_t *s, int info) {
 }
 
 static skode_compile_result_t compile_program_inner(const char *text,
-    event_program_t *program, int depth) {
-  if (!text || !program || depth > SEQ_PROGRAM_OP_MAX)
+    event_program_t *program, int depth, uint64_t *macro_active) {
+  if (!text || !program || depth > SKODE_COMPILE_DEPTH_MAX)
     return SKODE_COMPILE_INVALID;
   size_t len = strnlen(text, STEP_MAX);
   if (len == 0 || len >= STEP_MAX)
@@ -259,6 +306,7 @@ static skode_compile_result_t compile_program_inner(const char *text,
     .program = program,
     .result = SKODE_COMPILE_OK,
     .depth = depth,
+    .macro_active = macro_active,
   };
   ands_t *parser = ands_new(skode_compile_callback, &compile);
   if (!parser) return SKODE_COMPILE_INVALID;
@@ -266,7 +314,7 @@ static skode_compile_result_t compile_program_inner(const char *text,
   ands_free(parser);
   if (result != 0) return SKODE_COMPILE_INVALID;
   if (compile.result == SKODE_COMPILE_OK && program->count == 0 &&
-      strchr(text, '#') == NULL)
+      strchr(text, '#') == NULL && !compile.accepts_empty)
     return SKODE_COMPILE_INVALID;
   return compile.result;
 }
@@ -275,7 +323,8 @@ skode_compile_result_t skode_compile_program(const char *text,
     event_program_t *program) {
   if (!program) return SKODE_COMPILE_INVALID;
   memset(program, 0, sizeof(*program));
-  return compile_program_inner(text, program, 0);
+  uint64_t macro_active[(SKODE_EXTRA_MAX + 63) / 64] = {0};
+  return compile_program_inner(text, program, 0, macro_active);
 }
 
 int skode_midi_note(int voice, float note, float cents) {
@@ -329,7 +378,7 @@ int skode_execute_event(const event_t *event, skode_t *ctx) {
 static int delay_to_samples(char mode, double delay, uint64_t *samples) {
   if (!samples || !isfinite(delay) || delay < 0.0) return -1;
   if (mode != '+' && mode != '~') return -1;
-  if (mode == '+') delay *= tempo_time_per_step * 4.0;
+  if (mode == '+') delay *= tempo_step_seconds_get() * 4.0;
   long double value = (long double)delay * (long double)MAIN_SAMPLE_RATE;
   if (value > (long double)UINT64_MAX) return -1;
   *samples = (uint64_t)value;

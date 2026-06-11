@@ -61,7 +61,7 @@ opcodes and may run from the audio callback.
   `n-` and `N-`.
 - `+delay command` defers by a tempo-relative amount.
 - `~seconds command` defers by seconds.
-- Compiled programs contain at most `SEQ_PROGRAM_OP_MAX` (16) operations.
+- Compiled programs contain at most `SEQ_PROGRAM_OP_MAX` (32) operations.
 - Each compiled opcode contains at most `SEQ_OPCODE_ARG_MAX` (4) arguments.
 
 Register operands remain symbolic in compiled programs and are resolved when
@@ -144,6 +144,12 @@ delay. It also propagates velocity to voices configured by `H`.
 `w` changes the selected wavetable. The optional second and third arguments
 set interpolation and one-shot playback flags.
 
+`S` takes an explicit voice number rather than using the selected voice. In
+the current implementation, an out-of-range voice invokes `voice_init()` and
+resets every voice; `S100` therefore acts as reset-all with the default voice
+limit. This sentinel behavior is retained for compatibility but is not a
+dedicated reset-all command.
+
 ## Scheduling and Queue Commands
 
 These commands run on the control thread but compile their string contents
@@ -159,7 +165,7 @@ into the opcode representation above.
 | `R! tag` | numeric | Remove queued events with a tag | `seq_kill_by_tag()` |
 | `R!!` | none | Remove all queued events | `seq_kill_all()` |
 | `[commands] e!` | string | Compile and queue the parser string now | `skode_compile_program()`, `skode_queue_program()` |
-| `e! index` | external string | Compile and queue external string buffer `index` | same as above |
+| `e! index` | external string | Expand a literal external buffer while compiling, then queue it | same as above |
 | `?o` | none | Show queued opcode events | `opcode_queue_show()` |
 | `?o pattern[,step]` | numeric | Show compiled pattern programs | `opcode_pattern_show()` |
 
@@ -167,30 +173,45 @@ Commands containing strings, arrays, file operations, or other immediate-only
 operations are rejected by `skode_compile_program()`. There is no fallback
 that sends command text into the audio callback.
 
+Literal external macro references such as `e!12` are the exception: the
+compiler reads buffer 12 on the control thread and inlines its compiled
+opcodes. This works inside patterns, defers, repeats, and nested macros.
+Expansion uses snapshot semantics, so editing buffer 12 later does not change
+an existing pattern or queued event. Undefined buffers, recursive cycles,
+`e!$N`, and expansions beyond 32 operations are rejected. Argumentless `e!`
+continues to mean "execute the current parser string" and is immediate-only.
+
 ## Pattern and Sequence Commands
 
 Sequence support is compiled under the `SEQ` feature.
 
 | Command | Arguments or string | Behavior | Main function or state |
 | --- | --- | --- | --- |
-| `M` | `bpm` | Set tempo | `tempo_set()` |
+| `M` | `bpm` | Set tempo from 1 to 960 BPM | `tempo_set()` |
 | `y` | `pattern` | Select the editing pattern | `ctx->pattern` |
 | `[text] yt` | string | Name the selected pattern | `seq_text[]` |
-| `ym` | `0/1` | Mute the selected pattern | `seq_mute[]` |
+| `ym` | `0/1` | Mute the selected pattern | `seq_mute_set()` |
 | `Y` | `pattern` | Clear a pattern | `pattern_reset()` |
 | `[commands] xa` | string | Append a compiled step | `seq_step_append()` |
 | `[commands] x step` | string | Set a compiled step; `x-` advances the edit cursor | `seq_step_set()` |
 | `<x step` | numeric | Copy a step's source text into the parser string | `seq_step_get()` |
 | `xg step`, `>x step` | numeric | Jump pattern playback to a step | `seq_step_goto()` |
 | `%` | `modulus` | Set the selected pattern's modulus | `seq_modulo_set()` |
-| `z` | `[0/1]` | Set selected pattern playback state, or show it | `seq_state_set()`, `pattern_show()` |
+| `z` | `[0..3]` | Set selected pattern state (`stop`, `start`, `pause`, `resume`), or show it | `seq_state_set()`, `pattern_show()` |
 | `z?` | none | Show selected pattern | `pattern_show()` |
-| `Z` | `[0/1]` | Set all pattern states, or show all patterns | `seq_state_all()`, `pattern_show()` |
+| `Z` | `[0..3]` | Set all pattern states, or show all patterns | `seq_state_all()`, `pattern_show()` |
 | `Z?`, `z??` | none | Show all patterns with steps | `pattern_show()` |
 
 Sequence steps retain their source text for editing and diagnostics, but
 playback uses the compiled `event_program_t`. Each pattern keeps its own
-persistent current voice during playback.
+persistent current voice during playback. Clearing a pattern resets that
+selection to voice 0 before the pattern next runs.
+
+Tempo is limited to 960 BPM. At four sequence steps per beat this is 64 steps
+per second, which remains practical for control-rate sequencing while avoiding
+unbounded catch-up work in the audio callback. If processing falls behind,
+SKRED executes at most 64 missed pattern ticks in one callback and resumes from
+the current timeline.
 
 ## Voice, Wave, and Synth Control
 
@@ -243,13 +264,14 @@ scheduled opcode compiler and writes the global register array when executed.
 
 ## String Buffers and Ksynth
 
-Skode has 128 external string buffers of 256 bytes each.
+Skode has `SKODE_EXTRA_MAX` (128) external string buffers of 256 bytes each.
 
 | Command | Arguments or string | Behavior | Main function |
 | --- | --- | --- | --- |
 | `[text] e> index` | string | Copy parser string to external buffer | `skode_copy_string()` |
 | `<e index` | numeric | Copy external buffer to parser string | `ands_string_from_external()` |
 | `e? [index]` | optional numeric | Show one or all non-empty buffers | direct buffer inspection |
+| `e! index` | literal numeric | Compile and inline a macro buffer; schedulable | `skode_extra_copy()`, `skode_compile_program()` |
 | `[file] /ks [verbose]` | string | Load a named Ksynth source file | `ksynth_load_name()` |
 | `/k file-number[,verbose]` | numeric | Load numbered Ksynth source | `ksynth_load()` |
 | `[code] ks`, `[code] k!` | string | Submit Ksynth source | `skode_ks_submit()` |
@@ -338,7 +360,8 @@ The normal WASM build enables the voice and sequence features listed in
 | Event and program execution | `skode-event.c`, `run_program()` |
 | Voice opcode dispatch | `skode.c.kit`, `skode_execute_voice_opcode()` |
 | Synth functions and state | `synth.c.kit`, `synth.h.kit` |
-| Queue and sequence implementation | `seq.c.kit`, `seq.h.kit` |
+| Queue implementation | `skqueue.c`, `skqueue.h` |
+| Sequence implementation | `seq.c.kit`, `seq.h.kit` |
 | Parser implementation | `ands.c`, `ands.h` |
 | Scheduled-opcode design notes | `OPCODES.md` |
 

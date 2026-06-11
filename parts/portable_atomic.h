@@ -97,6 +97,10 @@
     static inline void simple_mutex_lock(simple_mutex_t *m) {
         EnterCriticalSection(m);
     }
+
+    static inline int simple_mutex_trylock(simple_mutex_t *m) {
+        return TryEnterCriticalSection(m) != 0;
+    }
     
     static inline void simple_mutex_unlock(simple_mutex_t *m) {
         LeaveCriticalSection(m);
@@ -115,6 +119,10 @@
     
     static inline void simple_mutex_lock(simple_mutex_t *m) {
         pthread_mutex_lock(m);
+    }
+
+    static inline int simple_mutex_trylock(simple_mutex_t *m) {
+        return pthread_mutex_trylock(m) == 0;
     }
     
     static inline void simple_mutex_unlock(simple_mutex_t *m) {

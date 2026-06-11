@@ -1,5 +1,8 @@
 # Skred Virtual File System (VFS)
 
+> Experimental standalone copy. This API is not currently wired into the main
+> SKRED CMake build or the Skode file commands.
+
 The Skred VFS is a lightweight abstraction layer designed to unify file system interactions within the skred audio engine. It allows the engine to mount either a standard physical directory or a flat `.zip` archive, providing a unified API to read files, write files, and iterate directory structures.
 
 Crucially, it implements an internal **Current Working Directory (CWD)**. This stateful navigation allows commands like `cd` and `ls` to function transparently across both physical hierarchies and stateless zip archives.
@@ -8,9 +11,10 @@ Crucially, it implements an internal **Current Working Directory (CWD)**. This s
 
 This module requires **miniz**, a single-file ZIP/Deflate library.
 
-1. Download an official amalgamated release zip from the miniz repository.
-2. Extract `miniz.h` and `miniz.c` into your build environment.
-3. Compile both `.c` files alongside your engine source. 
+1. Ensure `miniz.c` and `miniz.h` are present in `vfs/`.
+2. Run `make` in `vfs/` to build the standalone `vfs_test`.
+3. To embed it elsewhere, compile `miniz.c` and `skred_vfs.c` and include
+   `miniz.h` and `skred_vfs.h`.
 
 ## Architecture Notes
 

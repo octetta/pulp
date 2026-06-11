@@ -35,7 +35,7 @@ Follow my two-plus-year (but really life-long journey) to make exactly the sound
 ### Slide 2: The Horizon & The Friction
 *   **Visual:** A simple two-tier architecture stack diagram:
     *   `Control Plane: Elixir (Future Node Orchestration & Logic)`
-    *   `Synthesis Layer: Skred / Pulp (Today's Focus)`
+    *   `Synthesis Layer: SKRED in the PULP repository (Today's Focus)`
 *   **Speaker Voice:** "To put this in context up front: the ultimate home for this engine is an ecosystem where Elixir acts as the high-level control plane to handle complex orchestration, sequencing, and cluster logic. But we aren't focusing on Elixir today. Today, we are zooming all the way down into the underlying engine layer itself. Before you can orchestrate a wall of sound, you need a low-friction, immediate way to make raw noise directly from a text interface."
 
 ---
@@ -44,17 +44,17 @@ Follow my two-plus-year (but really life-long journey) to make exactly the sound
 
 ### Slide 3: Separation of Concerns (Pulp vs. Skred vs. SKODE)
 *   **Visual:** A clear, linear text flow diagram:
-    `SKODE (ASCII Shorthand)` -> `Skred (CLI / WASM Shell Runtime)` -> `Pulp (Core Audio C Library)` -> `Speakers`
+    `SKODE (ASCII Shorthand)` -> `SKRED (CLI / WASM / C API)` -> `PULP repository components` -> `Speakers`
 *   **Speaker Voice:** Break down the ecosystem:
-    *   **Pulp:** The core, low-level engine components written in C. Its only job is turning parameter matrices into raw audio buffers.
-    *   **Skred:** The actual runtime playground environment—the interactive shell executable you type into, running either natively or inside a WebAssembly sandbox browser tab.
+    *   **PULP:** The repository containing the engine, parser, sequencer, hosts, experiments, and build tooling.
+    *   **SKRED:** The audio engine and public C API, with native CLI and WebAssembly hosts.
     *   **SKODE:** The ultra-compact ASCII shorthand language used to talk to the engine.
 
 ### Slide 4: Safe Architecture via Pipes and Network Ports
 *   **Visual:** A simple graphic showing an isolated process box with an explosive "Blast Radius" indicator contained cleanly outside the host system.
 *   **Speaker Voice:** "Let's be completely candid: this C code is not defensive, bubble-wrapped, corporate enterprise software. If you feed it complete garbage, it might segfault. But instead of cluttering the high-priority audio thread with thousands of lines of bulletproof error-checking, we handle safety through architecture.
     
-    We isolate the engine using **pipes or network ports**. If the `Skred` shell drops dead from a bad string, the outer system spins it right back up instantly. The text commands are completely decoupled from the rendering process, containing the blast radius entirely."
+    For process isolation, we can run `mini-skred -n` behind **pipes** or control a separate process through **UDP**. The embedded C API and browser build run the command and rendering layers in one process, so process isolation is a host choice rather than an intrinsic property of the engine."
 
 ---
 
@@ -80,7 +80,7 @@ Follow my two-plus-year (but really life-long journey) to make exactly the sound
 
 ### Slide 7: The SKODE Cheat Sheet
 *   **Visual:** High-contrast text examples for the audience to track visually during the demo:
-    *   `v0 w0 f440 a1` -> Voice 0, Sine wave, 440 Hz, full amplitude.
+    *   `v0 w0 f440 a0` -> Voice 0, sine wave, 440 Hz, unity amplitude (0 dB).
     *   `v1 m1 f4` -> Voice 1 becomes a control modulator running at 4 Hz.
     *   `v0 F1,50` -> Target Voice 0's frequency modulation variable using Voice 1 as the source.
 *   **Speaker Voice:** "Before I pull up the live shell, here are the basic keys. The grammar is stateless in structure but stateful in execution—parameters stay exactly where you put them until a new command overrides them."
@@ -91,7 +91,7 @@ Follow my two-plus-year (but really life-long journey) to make exactly the sound
 
 
 Act I (The Baseline Tone):
-v0 w0 f220 a0.8
+v0 w0 f220 a-8
 
 Act II (The Modulation Layer):
 v1 m1 f6
@@ -99,10 +99,10 @@ v0 F1,40
 
 Act III (The Korg Homage & Drums):
 v0 w8
-v2 d1
+v2 w0 n36 a-6 l1
 
 Act IV (The Fade Out):
-v0 a0 v2 a0
+v0 a-60 v2 a-60
 
 
 ----
@@ -116,7 +116,7 @@ Engine Core: github.com/octetta/pulp
 
 "skred try-it" Shell: octetta.github.io/pulp/doc
 
-"skred learn-it" tutorial: octetta.github.io/doc/learn.html
+"skred learn-it" tutorial: octetta.github.io/pulp/doc/learn.html
 
 Array Generator: github.com/octetta/k-synth
 
@@ -129,5 +129,3 @@ Looking For: Compelling R&D collaborations, instrument design exploration, or de
 
 *  **Speaker Voice:**: "I built this because it’s the exact tool I wanted to see in the world. If you want to push the boundaries of low-ceremony text protocols, explore custom wavetable generation, or talk audio instrument R&D, let’s grab a beer after the sessions. Go clone the repos, play with the shorthand, crash the shell, and go annoy everyone in your own house.
 Thank you."
-
-

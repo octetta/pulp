@@ -3,7 +3,9 @@
 #include "seq.h"
 
 #include "skqueue.h"
+#include "portable_atomic.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -19,6 +21,9 @@ int seq_pointer[PATTERNS_MAX];  // read-only derived value, kept for external in
 int seq_state[PATTERNS_MAX];
 int seq_modulo[PATTERNS_MAX];
 int seq_mute[PATTERNS_MAX];
+static atomic_int_t seq_generation[PATTERNS_MAX];
+static simple_mutex_t seq_edit_mutex;
+static int seq_edit_mutex_ready = 0;
 
 text_t seq_text[PATTERNS_MAX];
 
@@ -33,11 +38,22 @@ static uint64_t master_tick = 0;
 static uint64_t seq_sample_origin = 0;
 static double seq_tick_origin = 0.0;
 
-float tempo_time_per_step = 60.0f;
-float tempo_bpm = 120.0f / 4.0f;
-float tempo_base = 0.0f;
+static float tempo_time_per_step = 60.0f / 120.0f / 4.0f;
+static atomic_int_t tempo_step_micros;
+static atomic_int_t tempo_bpm_milli;
 
-void tempo_set(float m) {
+void seq_edit_lock(void) {
+  simple_mutex_lock(&seq_edit_mutex);
+}
+
+void seq_edit_unlock(void) {
+  simple_mutex_unlock(&seq_edit_mutex);
+}
+
+int tempo_set(float bpm) {
+  if (!isfinite(bpm) || bpm < SEQ_TEMPO_MIN_BPM ||
+      bpm > SEQ_TEMPO_MAX_BPM) return -1;
+  seq_edit_lock();
   uint64_t now = SAMPLE_COUNT_GET();
   double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
   double tick_origin = (double)master_tick;
@@ -48,21 +64,37 @@ void tempo_set(float m) {
   }
   seq_sample_origin = now;
   seq_tick_origin = tick_origin;
-  tempo_base = m;
-  tempo_bpm = m / 4.0;
-  float bps = m / 60.f;
+  float bps = bpm / 60.f;
   float time_per_step = 1.0f / bps / 4.0f;
   tempo_time_per_step = time_per_step;
+  atomic_store_int(&tempo_step_micros,
+    (int)(time_per_step * 1000000.0f + 0.5f));
+  atomic_store_int(&tempo_bpm_milli, (int)(bpm * 1000.0f + 0.5f));
+  seq_edit_unlock();
+  return 0;
+}
+
+float tempo_bpm_get(void) {
+  return (float)atomic_load_int(&tempo_bpm_milli) / 1000.0f;
+}
+
+float tempo_step_seconds_get(void) {
+  return (float)atomic_load_int(&tempo_step_micros) / 1000000.0f;
 }
 
 void seq_rewind(void) {
+  seq_edit_lock();
   seq_sample_origin = SAMPLE_COUNT_GET();
   seq_tick_origin = 0.0;
   master_tick = 0;
+  seq_edit_unlock();
 }
 
 uint64_t seq_master_tick(void) {
-  return master_tick;
+  seq_edit_lock();
+  uint64_t tick = master_tick;
+  seq_edit_unlock();
+  return tick;
 }
 
 @if(BENCH)
@@ -100,6 +132,7 @@ static int pattern_length_compute(int p) {
 }
 
 static queue_t seq_q;
+static int seq_q_ready = 0;
 
 void do_event(uint64_t now, void (*event_fn)(const event_t *event)) {
   // Run expired (ready) queued events.
@@ -120,12 +153,16 @@ void do_event(uint64_t now, void (*event_fn)(const event_t *event)) {
 
 void do_pattern(uint64_t now,
     void (*program_fn)(int pattern, const event_program_t *program)) {
+  if (!simple_mutex_trylock(&seq_edit_mutex)) return;
   // Advance the master clock from the absolute sample timeline rather than
   // callback cadence so larger buffers do not smear beat timing.
   double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
   if (samples_per_step > 0.0 && now > seq_sample_origin) {
     uint64_t target_tick = (uint64_t)(seq_tick_origin +
       ((double)(now - 1 - seq_sample_origin) / samples_per_step));
+    if (target_tick > master_tick &&
+        target_tick - master_tick > SEQ_MAX_CATCHUP_TICKS)
+      master_tick = target_tick - SEQ_MAX_CATCHUP_TICKS;
     while (master_tick < target_tick) {
       master_tick++;
       for (int p = 0; p < PATTERNS_MAX; p++) {
@@ -150,7 +187,7 @@ void do_pattern(uint64_t now,
       }
     }
   }
-
+  seq_edit_unlock();
 }
 
 void seq(uint64_t now, void (*event_fn)(const event_t *event),
@@ -167,7 +204,8 @@ void seq(uint64_t now, void (*event_fn)(const event_t *event),
   @endif
 }
 
-void pattern_reset(int p) {
+static void pattern_reset_locked(int p) {
+  if (p < 0 || p >= PATTERNS_MAX) return;
   seq_pointer[p] = 0;
   seq_state[p] = SEQ_STOPPED;
   seq_modulo[p] = 4;
@@ -179,16 +217,37 @@ void pattern_reset(int p) {
     seq_program[p][s].count = 0;
   }
   seq_text[p][0] = '\0';
+  atomic_fetch_add_int(&seq_generation[p], 1);
+}
+
+void pattern_reset(int p) {
+  seq_edit_lock();
+  pattern_reset_locked(p);
+  seq_edit_unlock();
 }
 
 void seq_init(void) {
-  queue_init(&seq_q, QUEUE_SIZE);
+  if (!seq_edit_mutex_ready) {
+    simple_mutex_init(&seq_edit_mutex);
+    seq_edit_mutex_ready = 1;
+  }
+  if (seq_q_ready) {
+    queue_clear(&seq_q);
+  } else {
+    queue_init(&seq_q, QUEUE_SIZE);
+    seq_q_ready = 1;
+  }
+  atomic_store_int(&tempo_step_micros, 125000);
+  atomic_store_int(&tempo_bpm_milli, 120000);
+  seq_edit_lock();
   seq_sample_origin = SAMPLE_COUNT_GET();
   seq_tick_origin = 0.0;
   master_tick = 0;
   for (int p = 0; p < PATTERNS_MAX; p++) {
-    pattern_reset(p);
+    atomic_store_int(&seq_generation[p], 0);
+    pattern_reset_locked(p);
   }
+  seq_edit_unlock();
 }
 
 int queue_event(uint64_t when, const event_t *event, int tag) {
@@ -198,7 +257,16 @@ int queue_event(uint64_t when, const event_t *event, int tag) {
 void seq_modulo_set(int pattern, int m) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return;
   if (m < 1) m = 1;
+  seq_edit_lock();
   seq_modulo[pattern] = m;
+  seq_edit_unlock();
+}
+
+void seq_mute_set(int pattern, int state) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return;
+  seq_edit_lock();
+  seq_mute[pattern] = state;
+  seq_edit_unlock();
 }
 
 int seq_step_set(int pattern, int step, const char *source,
@@ -206,6 +274,7 @@ int seq_step_set(int pattern, int step, const char *source,
   if (pattern < 0 || pattern >= PATTERNS_MAX) return -1;
   if (step < 0 || step >= SEQ_STEPS_MAX) return -1;
   if (source && strnlen(source, STEP_MAX) >= STEP_MAX) return -1;
+  seq_edit_lock();
   if (source == NULL || source[0] == '\0') {
     seq_pattern[pattern][step][0] = '\0';
     seq_program[pattern][step].count = 0;
@@ -213,12 +282,14 @@ int seq_step_set(int pattern, int step, const char *source,
     snprintf(seq_pattern[pattern][step], STEP_MAX, "%s", source);
     seq_program[pattern][step].count = 0;
   } else if (!program || program->count > SEQ_PROGRAM_OP_MAX) {
+    seq_edit_unlock();
     return -1;
   } else {
     snprintf(seq_pattern[pattern][step], STEP_MAX, "%s", source);
     seq_program[pattern][step] = *program;
   }
   seq_pattern_length[pattern] = pattern_length_compute(pattern);
+  seq_edit_unlock();
   return 0;
 }
 
@@ -230,28 +301,38 @@ char *seq_step_get(int pattern, int step) {
 
 int seq_step_append(int pattern, const char *source,
     const event_program_t *program) {
-  return seq_step_set(pattern, seq_pattern_length[pattern], source, program);
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return -1;
+  seq_edit_lock();
+  int step = seq_pattern_length[pattern];
+  seq_edit_unlock();
+  return seq_step_set(pattern, step, source, program);
 }
 
 void seq_pattern_length_set(int pattern, int len) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return;
   if (len < 0) len = 0;
   if (len > SEQ_STEPS_MAX) len = SEQ_STEPS_MAX;
+  seq_edit_lock();
   seq_pattern_length[pattern] = len;
+  seq_edit_unlock();
 }
 
 // Jump to a specific step on the next tick. Adjusts seq_offset so that
 // (ticks_so_far + 1 - offset) % len == step.
 void seq_step_goto(int pattern, int step) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return;
+  seq_edit_lock();
   int len = seq_pattern_length[pattern];
-  if (len == 0) return;
-  if (step < 0 || step >= len) return;
+  if (len == 0 || step < 0 || step >= len) {
+    seq_edit_unlock();
+    return;
+  }
   int64_t ticks_so_far = (int64_t)(master_tick / (uint64_t)seq_modulo[pattern]);
   seq_offset[pattern] = (ticks_so_far + 1) - (int64_t)step;
+  seq_edit_unlock();
 }
 
-void seq_state_set(int p, int state) {
+static void seq_state_set_locked(int p, int state) {
   if (p < 0 || p >= PATTERNS_MAX) return;
   switch (state) {
     case 0: // stop
@@ -269,8 +350,21 @@ void seq_state_set(int p, int state) {
   }
 }
 
+void seq_state_set(int p, int state) {
+  seq_edit_lock();
+  seq_state_set_locked(p, state);
+  seq_edit_unlock();
+}
+
 void seq_state_all(int state) {
-  for (int p = 0; p < PATTERNS_MAX; p++) seq_state_set(p, state);
+  seq_edit_lock();
+  for (int p = 0; p < PATTERNS_MAX; p++) seq_state_set_locked(p, state);
+  seq_edit_unlock();
+}
+
+int seq_pattern_generation(int pattern) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return -1;
+  return atomic_load_int(&seq_generation[pattern]);
 }
 
 int seq_queued(void) { return queue_size(&seq_q); }

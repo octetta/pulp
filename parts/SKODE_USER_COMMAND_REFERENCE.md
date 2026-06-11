@@ -449,6 +449,123 @@ immediately on the control thread.
 | `k?` | None | Displays the latest Ksynth result. |
 | `k>d` | None | Copies the latest Ksynth result into parser data. |
 
+## Example Sounds
+
+These are starting points rather than exact emulations. The synthesizer
+examples require the named feature gates, and the sample examples require
+`KSYNTH`. Run each example separately, or reset its voices with `S` before
+trying the next one.
+
+### Synthesizer-Inspired Patches
+
+**Moog-style resonant bass.** A saw wave, fast filter envelope, and resonant
+low-pass produce the rounded attack and dark sustain associated with classic
+Moog bass patches. Requires `ADSR`, `FILT`, and `FADSR`.
+
+```text
+S0
+v0 w2 a-8 t.005,.18,.7,.25 J1 K120 Q5 ft.002,.25,.08,.3 fd2600 n36 l1
+~.75 v0 l0
+```
+
+**Casio CZ-1-style phase-distortion brass.** A resonant phase-distortion shape
+gives a bright, slightly hollow digital brass tone. Requires `ADSR` and `PD`.
+
+```text
+S0
+v0 w0 a-10 c6,.72 t.015,.35,.55,.45 n48 l1
+~1 v0 l0
+```
+
+Try `c7,.55` for a thinner resonant shape, or `c1,.8` for a more obvious
+saw-to-pulse character.
+
+**Korg DW-8000-style brass pad.** Wave `17` is the built-in DWGS brass
+wavetable. A slow filter envelope softens its digital harmonic spectrum.
+Requires `ADSR`, `FILT`, and `FADSR`.
+
+```text
+S0
+v0 w17 a-12 t.08,.5,.7,.8 J1 K500 Q2 ft.12,.7,.3,.8 fd3200 n48 l1
+~1.5 v0 l0
+```
+
+Other built-in DWGS waves occupy slots `10` through `25`; wave `10` is
+strings, `13` is electric piano, `15` is clavinet, and `24` is bell.
+
+**Yamaha DX7-style electric piano.** Voice `1` is a decaying sine modulator
+for the sine carrier on voice `0`. Its envelope makes the bright FM attack
+settle into a softer body. Requires `ADSR` and `FM`.
+
+```text
+S0 S1
+v1 w0 n76 a-18 t.001,.35,0,.15 l1
+v0 w0 n52 a-8 t.002,1.2,.18,.6 FF0 F1,8 l1
+~1.5 v0 l0 v1 l0
+```
+
+Increase `F1,8` toward `F1,14` for a harder tine attack. The modulator is also
+present in the output, so its amplitude controls both FM strength and how much
+of the upper sine tone is directly audible.
+
+### Drum Samples
+
+The repository includes Ksynth definitions for synthesized drum one-shots.
+When Skode is started from the `parts` directory, these commands generate a
+kick, snare, and closed hi-hat in dynamic wave slots `300` through `302`:
+
+```text
+[sk/drums-kick.ks] /ks kw k>d d>r /r300
+[sk/drums-snare.ks] /ks kw k>d d>r /r301
+[sk/drums-chh.ks] /ks kw k>d d>r /r302
+```
+
+Assign each sample to a voice and trigger it with `l1` or `T`:
+
+```text
+v0 w300 f440 a-6
+v1 w301 f440 a-8
+v2 w302 f440 a-12
+
+v0 T
+~.25 v2 T
+~.5 v1 T
+~.75 v2 T
+```
+
+The same loading pattern works with files such as `drums-clap.ks`,
+`drums-cowbell.ks`, `drums-tomhi.ks`, and `drums-crash.ks`.
+
+### Sound Effects
+
+These bundled one-shots provide useful raw material for alarms, transitions,
+and game-like effects:
+
+```text
+[sk/nap-fm-alarm.ks] /ks kw k>d d>r /r310
+[sk/nap-noise-sweep.ks] /ks kw k>d d>r /r311
+[sk/nap-perc-zap.ks] /ks kw k>d d>r /r312
+
+v3 w310 f440 a-12
+v4 w311 f440 a-10
+v5 w312 f440 a-8
+```
+
+Trigger the alarm, a rising noise transition, or an electric zap:
+
+```text
+v3 T
+~1 v4 T
+~2.25 v5 T
+```
+
+Changing sample playback frequency changes both pitch and duration:
+
+```text
+v5 f220 T
+~.5 v5 f880 T
+```
+
 ## Short Examples
 
 Play a centered A4 on voice 0:

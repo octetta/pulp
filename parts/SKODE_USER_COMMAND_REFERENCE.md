@@ -304,6 +304,20 @@ Phase-distortion modes:
 beat. `~` always uses seconds. Pattern steps are based on quarter-beat master
 ticks and their `%` modulus, so their duration is not necessarily one beat.
 
+### Timing Accuracy
+
+Queued events and pattern ticks use the synth's absolute 44.1 kHz sample
+counter. The audio callback renders adaptively: when a timing boundary falls
+inside a device block, it renders up to that sample, executes the due commands,
+and then renders the rest of the block. Blocks without internal boundaries are
+rendered normally in one call.
+
+Events scheduled at integer sample times affect that exact sample. Tempo
+boundaries that fall between samples are rounded forward, giving less than one
+sample of sequencing error (under 0.023 ms at 44.1 kHz) during normal
+operation. This improves event placement inside the audio stream; it does not
+remove output-device or hardware buffering latency.
+
 | Command | Parameters | Effect |
 | --- | --- | --- |
 | `M bpm` | `1` through `960` BPM | Sets pattern and tempo-relative event speed. It does not retime events already placed at absolute sample times. |

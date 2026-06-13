@@ -48,6 +48,7 @@ typedef struct {
 
 void seq(uint64_t now, void (*event_fn)(const event_t *event),
   void (*program_fn)(int pattern, const event_program_t *program));
+int seq_next_boundary(uint64_t now, uint64_t limit, uint64_t *boundary);
 void seq_init(void);
 void seq_rewind(void);
 uint64_t seq_master_tick(void);

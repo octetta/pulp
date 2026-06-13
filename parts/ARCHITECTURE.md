@@ -183,12 +183,19 @@ service, and optional recorder.
 The miniaudio callback performs this order:
 
 1. Prepare an optional recording bus.
-2. Render a block with `synth()`.
-3. Submit recording data without writing files on the audio thread.
-4. Run due queued events and pattern steps with `seq()`.
+2. Run due queued events and pattern steps with `seq()`.
+3. Ask the sequencer for the next event or tempo-tick sample in the block.
+4. Render up to that boundary with `synth()`.
+5. Repeat sequencing and rendering for each boundary in the block.
+6. Submit the complete recording block without writing files on the audio thread.
 
-Because sequencing runs after rendering, commands due at the callback boundary
-affect the following rendered block.
+Most callbacks still call `synth()` once. A callback is split only when a
+queued event or pattern clock tick falls inside it. Output, capture input, and
+recording pointers are advanced for each segment, while the absolute synth
+sample counter remains the timing authority. Integer-sample queued events are
+exact; fractional tempo boundaries are rounded forward to the next sample, so
+normal sequencing error is less than one sample. Audio-device buffering and
+hardware latency are unchanged.
 
 `mini-skred.c.kit` is a thin example host. It supports an interactive editor,
 line-oriented subprocess operation, audio-device selection, and UDP startup.

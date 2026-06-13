@@ -217,6 +217,12 @@ unbounded catch-up work in the audio callback. If processing falls behind,
 SKRED executes at most 64 missed pattern ticks in one callback and resumes from
 the current timeline.
 
+The audio callback renders adaptively around queued events and pattern clock
+ticks. A block containing a timing boundary is split at that sample; a block
+without one is rendered in a single call. Integer-sample events are exact, and
+fractional tempo boundaries are rounded forward by less than one sample.
+Device and hardware buffering latency is unaffected.
+
 ## Voice, Wave, and Synth Control
 
 The following commands are immediate-only even when related voice opcodes are

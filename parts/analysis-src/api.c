@@ -41,10 +41,41 @@ static void pattern_cb(int pattern, const event_program_t *program) {
 
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
   synth_record_bus_t *record_bus = recorder_begin_block((int)frame_count);
-  synth((float *)output, (float *)input, (int)frame_count,
-        (int)pDevice->playback.channels, record_bus);
+  uint64_t block_end = SAMPLE_COUNT_GET() + (uint64_t)frame_count;
+  int offset = 0;
+  while (offset < (int)frame_count) {
+    uint64_t now = SAMPLE_COUNT_GET();
+    uint64_t boundary = 0;
+    int immediate_passes = 0;
+    do {
+      seq(now, event_cb, pattern_cb);
+      if (!seq_next_boundary(now, block_end, &boundary) || boundary != now) break;
+      immediate_passes++;
+    } while (immediate_passes < SEQ_MAX_CATCHUP_TICKS);
+
+    int segment_frames = (int)frame_count - offset;
+    if (boundary > now && boundary < block_end) {
+      uint64_t until_boundary = boundary - now;
+      if (until_boundary < (uint64_t)segment_frames)
+        segment_frames = (int)until_boundary;
+    }
+
+    float *segment_output = (float *)output +
+      ((size_t)offset * pDevice->playback.channels);
+    float *segment_input = input ? (float *)input +
+      ((size_t)offset * pDevice->capture.channels) : NULL;
+    synth_record_bus_t segment_bus;
+    synth_record_bus_t *segment_record_bus = NULL;
+    if (record_bus) {
+      segment_bus = *record_bus;
+      segment_bus.frames += (size_t)offset * segment_bus.channels;
+      segment_record_bus = &segment_bus;
+    }
+    synth(segment_output, segment_input, segment_frames,
+          (int)pDevice->playback.channels, segment_record_bus);
+    offset += segment_frames;
+  }
   recorder_end_block((int)frame_count);
-  seq(SAMPLE_COUNT_GET(), event_cb, pattern_cb);
 }
 
 static skode_t w = SKODE_EMPTY();

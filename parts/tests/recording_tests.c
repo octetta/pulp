@@ -101,6 +101,43 @@ static void test_track_routing(void) {
   synth_free();
 }
 
+static void test_sub_block_record_offsets(void) {
+  const char *test = "sub-block record offsets";
+  enum { FRAMES = 128, SPLIT = 37 };
+  float output[FRAMES * AUDIO_CHANNELS] = {0};
+  float recorded[FRAMES * RECORD_CHANNELS] = {0};
+
+  synth_init(4);
+  wave_table_init(0);
+  voice_init();
+  wave_set(0, WAVE_TABLE_SINE);
+  freq_set(0, 440.0f);
+  amp_set(0, 0.0f);
+  envelope_velocity(0, 1.0f);
+
+  synth_record_bus_t first = {recorded, RECORD_CHANNELS};
+  synth(output, NULL, SPLIT, AUDIO_CHANNELS, &first);
+
+  synth_record_bus_t second = {
+    recorded + ((size_t)SPLIT * RECORD_CHANNELS),
+    RECORD_CHANNELS
+  };
+  synth(output + (SPLIT * AUDIO_CHANNELS), NULL, FRAMES - SPLIT,
+        AUDIO_CHANNELS, &second);
+
+  for (int frame = 0; frame < FRAMES; frame++) {
+    int output_index = frame * AUDIO_CHANNELS;
+    int record_index = frame * RECORD_CHANNELS;
+    if (recorded[record_index] != output[output_index] ||
+        recorded[record_index + 1] != output[output_index + 1]) {
+      fail(test, "segmented master track does not match device output");
+      break;
+    }
+  }
+
+  synth_free();
+}
+
 static uint16_t read_u16_le(const unsigned char *p) {
   return (uint16_t)(p[0] | ((uint16_t)p[1] << 8));
 }
@@ -283,6 +320,7 @@ static void test_skode_recording_commands(void) {
 
 int main(void) {
   test_track_routing();
+  test_sub_block_record_offsets();
   test_ring_writer();
   test_duration_limit_and_restart();
   test_skode_recording_commands();

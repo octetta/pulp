@@ -48,6 +48,7 @@ bool queue_put_event(queue_t *q, uint64_t timestamp, int tag, void *data, const 
 
 // Non-blocking for audio callback: returns false if admin owns the heap.
 bool queue_get_filtered(queue_t *q, uint64_t limit_ts, item_t *out);
+bool queue_peek_timestamp(queue_t *q, uint64_t *timestamp);
 
 int queue_size(queue_t *q);
 

@@ -783,6 +783,64 @@ static void test_tempo_and_pattern_reset_limits(void) {
   expect_int(test, tempo_set(120.0f), 0, "restore default tempo");
 }
 
+static void test_sample_accurate_sequence_boundaries(void) {
+  const char *test = "sample accurate sequence boundaries";
+  event_t event = {0};
+  uint64_t boundary = 0;
+
+  seq_kill_all();
+  expect_int(test, tempo_set(120.0f), 0, "set boundary tempo");
+  seq_rewind();
+  uint64_t now = SAMPLE_COUNT_GET();
+  expect_int(test, queue_event(now + 37, &event, 0), 0,
+             "queue in-block event");
+  expect_int(test, seq_next_boundary(now, now + 128, &boundary), 1,
+             "find queued boundary");
+  expect_u64(test, boundary, now + 37, "queued boundary sample");
+  seq_kill_all();
+  expect_int(test, seq_queued(), 0, "clear queued boundary");
+
+  event_program_t program = {0};
+  pattern_reset(13);
+  expect_int(test, seq_step_set(13, 0, "#", &program), 0,
+             "store boundary pattern");
+  seq_modulo_set(13, 1);
+  seq_state_set(13, 1);
+  seq_rewind();
+  now = SAMPLE_COUNT_GET();
+  expect_int(test, seq_next_boundary(now, now + 6000, &boundary), 1,
+             "find 120 BPM tick");
+  expect_u64(test, boundary, now + 5513, "120 BPM tick sample");
+  seq(boundary, ignore_queued_event, count_pattern_program);
+  expect_u64(test, seq_master_tick(), 1, "120 BPM tick dispatch");
+
+  expect_int(test, tempo_set(123.0f), 0, "set fractional boundary tempo");
+  seq_rewind();
+  now = SAMPLE_COUNT_GET();
+  expect_int(test, seq_next_boundary(now, now + 6000, &boundary), 1,
+             "find fractional tick");
+  expect_u64(test, boundary, now + 5379, "fractional tick sample");
+  seq(boundary, ignore_queued_event, count_pattern_program);
+  expect_u64(test, seq_master_tick(), 1, "fractional tick dispatch");
+  pattern_reset(13);
+  expect_int(test, tempo_set(120.0f), 0, "restore boundary tempo");
+}
+
+static void test_silent_voice_fast_path(void) {
+  const char *test = "silent voice fast path";
+  enum { FRAMES = 16 };
+  float output[FRAMES * AUDIO_CHANNELS] = {0};
+
+  wave_reset(7);
+  float phase = sv.phase[7];
+  synth(output, NULL, FRAMES, AUDIO_CHANNELS, NULL);
+
+  expect_float(test, sv.phase[7], phase, 0.0f,
+               "reset voice oscillator remains idle");
+  expect_float(test, sv.sample[7], 0.0f, 0.0f,
+               "reset voice output remains zero");
+}
+
 int main(void) {
   synth_init(8);
   wave_table_init(0);
@@ -801,6 +859,8 @@ int main(void) {
   test_parameter_and_buffer_safety();
   test_context_modes();
   test_tempo_and_pattern_reset_limits();
+  test_sample_accurate_sequence_boundaries();
+  test_silent_voice_fast_path();
 
   synth_free();
 

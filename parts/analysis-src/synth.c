@@ -572,7 +572,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         // hold last value to modulator consumers see statle output after one-shot ends
         continue;
       }  
-      if (sv.amp[n] < NEG_60_DB_AS_LINEAR) {
+      if (sv.user_amp[n] <= SILENT) {
         sv.sample[n] = 0.0f;
         continue;
       }

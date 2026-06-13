@@ -59,7 +59,7 @@ int tempo_set(float bpm) {
   double tick_origin = (double)master_tick;
   if (samples_per_step > 0.0 && now > seq_sample_origin) {
     tick_origin = seq_tick_origin +
-      ((double)(now - 1 - seq_sample_origin) / samples_per_step);
+      ((double)(now - seq_sample_origin) / samples_per_step);
     if (tick_origin < (double)master_tick) tick_origin = (double)master_tick;
   }
   seq_sample_origin = now;
@@ -157,9 +157,9 @@ void do_pattern(uint64_t now,
   // Advance the master clock from the absolute sample timeline rather than
   // callback cadence so larger buffers do not smear beat timing.
   double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
-  if (samples_per_step > 0.0 && now > seq_sample_origin) {
+  if (samples_per_step > 0.0 && now >= seq_sample_origin) {
     uint64_t target_tick = (uint64_t)(seq_tick_origin +
-      ((double)(now - 1 - seq_sample_origin) / samples_per_step));
+      ((double)(now - seq_sample_origin) / samples_per_step));
     if (target_tick > master_tick &&
         target_tick - master_tick > SEQ_MAX_CATCHUP_TICKS)
       master_tick = target_tick - SEQ_MAX_CATCHUP_TICKS;
@@ -188,6 +188,46 @@ void do_pattern(uint64_t now,
     }
   }
   seq_edit_unlock();
+}
+
+int seq_next_boundary(uint64_t now, uint64_t limit, uint64_t *boundary) {
+  if (!boundary || limit < now) return 0;
+  uint64_t next = UINT64_MAX;
+  uint64_t queued;
+  if (queue_peek_timestamp(&seq_q, &queued)) {
+    if (queued <= now) next = now;
+    else if (queued <= limit) next = queued;
+  }
+
+  if (simple_mutex_trylock(&seq_edit_mutex)) {
+    double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
+    uint64_t pattern_tick = UINT64_MAX;
+    for (int p = 0; p < PATTERNS_MAX; p++) {
+      if (seq_state[p] != SEQ_RUNNING || seq_pattern_length[p] == 0) continue;
+      uint64_t modulo = (uint64_t)seq_modulo[p];
+      uint64_t remainder = master_tick % modulo;
+      uint64_t candidate = master_tick + (remainder ? modulo - remainder : modulo);
+      if (candidate < pattern_tick) pattern_tick = candidate;
+    }
+    if (samples_per_step > 0.0 && pattern_tick != UINT64_MAX) {
+      double sample = (double)seq_sample_origin +
+        (((double)pattern_tick - seq_tick_origin) * samples_per_step);
+      uint64_t tick_sample;
+      if (sample <= (double)now) {
+        tick_sample = now;
+      } else if (sample >= (double)UINT64_MAX) {
+        tick_sample = UINT64_MAX;
+      } else {
+        tick_sample = (uint64_t)ceil(sample);
+      }
+      if (tick_sample <= limit && tick_sample < next) next = tick_sample;
+    }
+    simple_mutex_unlock(&seq_edit_mutex);
+  }
+
+  if (next == UINT64_MAX) return 0;
+  *boundary = next;
+  return 1;
 }
 
 void seq(uint64_t now, void (*event_fn)(const event_t *event),

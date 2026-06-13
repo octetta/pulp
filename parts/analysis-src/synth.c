@@ -123,6 +123,11 @@ float audio_rng_float(uint64_t *rng) {
     return (float)((int32_t)val) / 2147483648.0f;
 }
 
+static inline float audio_rng_raw_float(uint64_t raw) {
+    uint32_t val = (uint32_t)(raw >> 32);
+    return (float)((int32_t)val) / 2147483648.0f;
+}
+
 float osc_get_phase_inc(int v, float f) {
   // Compute the frequency in "table samples per system sample"
   // This works even if table_rate ≠ system rate
@@ -563,9 +568,9 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     float record_mono = 0.0f;
 
     float f = 0.0f;
-    float whiteish = audio_rng_float(&synth_random);
-    float cap_left = this_capture[i*2];
-    float cap_right = this_capture[i*2+1];
+    uint64_t noise_raw = audio_rng_next(&synth_random);
+    float whiteish = 0.0f;
+    int whiteish_ready = 0;
     for (int n = 0; n < nvoices; n++) {
       if (sv.finished[n]) {
         //sv.sample[n] = 0.0f; // remove to try the below
@@ -593,16 +598,18 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       }
       char is_capture = 0;
       if (sv.wave_table_index[n] == WAVE_TABLE_NOISE_ALT) {
-        // bypass lots of stuff if this voice uses random source...
-        // reuse the one white noise source for each sample
+        if (!whiteish_ready) {
+          whiteish = audio_rng_raw_float(noise_raw);
+          whiteish_ready = 1;
+        }
         f = whiteish;
       }
       else if (sv.wave_table_index[n] == WAVE_TABLE_CAP_LEFT) {
-        f = cap_left;
+        f = this_capture[i * AUDIO_CHANNELS];
         is_capture = 1;
       }
       else if (sv.wave_table_index[n] == WAVE_TABLE_CAP_RIGHT) {
-        f = cap_right;
+        f = this_capture[i * AUDIO_CHANNELS + 1];
         is_capture = 1;
       } else {
         if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {

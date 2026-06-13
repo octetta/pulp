@@ -41,6 +41,67 @@ static void pq_free(priority_queue_t *pq) {
     pq->heap = NULL;
 }
 
+static void pq_sift_down(priority_queue_t *pq, int idx) {
+    item_t temp = pq->heap[idx];
+    while (2 * idx + 1 < pq->size) {
+        int child = 2 * idx + 1;
+        if (child + 1 < pq->size &&
+            item_before(&pq->heap[child + 1], &pq->heap[child])) {
+            child++;
+        }
+        if (!item_before(&pq->heap[child], &temp)) break;
+        pq->heap[idx] = pq->heap[child];
+        idx = child;
+    }
+    pq->heap[idx] = temp;
+}
+
+static void pq_remove_root(priority_queue_t *pq) {
+    pq->heap[0] = pq->heap[--pq->size];
+    if (pq->size > 0) pq_sift_down(pq, 0);
+}
+
+static void queue_prepare_locked(queue_t *q) {
+    ring_buffer_t *rb = &q->incoming;
+    priority_queue_t *pq = &q->sorted;
+    int read = atomic_load_int(&rb->read_idx);
+    int write = atomic_load_int(&rb->write_idx);
+    int available = write - read;
+    if (available < 0) available = 0;
+    if (available > rb->capacity) available = rb->capacity;
+
+    int published = 0;
+    while (published < available) {
+        int slot = (read + published) % rb->capacity;
+        if (atomic_load_int(&rb->items[slot].ready) == 0) break;
+        published++;
+    }
+
+    if (published > 0) {
+        int old_size = pq->size;
+        int generation = atomic_load_int(&q->generation);
+        for (int i = 0; i < published && pq->size < pq->capacity; i++) {
+            item_t *item = &rb->items[(read + i) % rb->capacity];
+            if (item->generation == generation &&
+                atomic_load_int(&item->cancelled) == 0) {
+                pq->heap[pq->size++] = *item;
+            }
+            atomic_store_int(&item->ready, 0);
+        }
+        atomic_store_int(&rb->read_idx, read + published);
+        if (pq->size > old_size) {
+            for (int i = (pq->size / 2) - 1; i >= 0; i--) {
+                pq_sift_down(pq, i);
+            }
+        }
+    }
+
+    while (pq->size > 0 &&
+           atomic_load_int(&pq->heap[0].cancelled) != 0) {
+        pq_remove_root(pq);
+    }
+}
+
 void queue_init(queue_t *q, int max_size) {
     int capacity = 16;
     while (capacity < max_size && max_size > 0) {
@@ -137,96 +198,11 @@ bool queue_put_event(queue_t *q, uint64_t timestamp, int tag, void *data, const 
 bool queue_get_filtered(queue_t *q, uint64_t limit_ts, item_t *out) {
     if (!q || !out || !q->incoming.items || !q->sorted.heap) return false;
     if (!simple_mutex_trylock(&q->sorted_mutex)) return false;
-    ring_buffer_t *rb = &q->incoming;
     priority_queue_t *pq = &q->sorted;
-    
-    // Always transfer any available items from ring to heap
-    int read = atomic_load_int(&rb->read_idx);
-    int write = atomic_load_int(&rb->write_idx);
-    int available = write - read;
-    if (available < 0) available = 0;
-    if (available > rb->capacity) available = rb->capacity;
-    int published = 0;
-    while (published < available) {
-        int slot = (read + published) % rb->capacity;
-        if (atomic_load_int(&rb->items[slot].ready) == 0) break;
-        published++;
-    }
-    available = published;
-    if (available > 0) {
-        int old_size = pq->size;
-        
-        // Copy all non-cancelled items to heap
-        for (int i = 0; i < available && pq->size < pq->capacity; i++) {
-            int slot = (read + i) % rb->capacity;
-            if (slot < 0 || slot >= rb->capacity) continue;
-            
-            item_t *item = &rb->items[slot];
-            
-            if (item->generation == atomic_load_int(&q->generation) &&
-                atomic_load_int(&item->cancelled) == 0) {
-                pq->heap[pq->size++] = *item;
-            }
-            atomic_store_int(&item->ready, 0);
-        }
-        
-        // Update read pointer
-        atomic_store_int(&rb->read_idx, read + available);
-        
-        // Re-heapify if we added new items
-        if (pq->size > old_size) {
-            for (int i = (pq->size / 2) - 1; i >= 0; i--) {
-                int idx = i;
-                item_t temp = pq->heap[idx];
-                
-                while (2 * idx + 1 < pq->size) {
-                    int child = 2 * idx + 1;
-                    
-                    if (child + 1 < pq->size &&
-                        item_before(&pq->heap[child + 1], &pq->heap[child])) {
-                        child++;
-                    }
-                    
-                    if (!item_before(&pq->heap[child], &temp)) break;
-                    
-                    pq->heap[idx] = pq->heap[child];
-                    idx = child;
-                }
-                
-                pq->heap[idx] = temp;
-            }
-        }
-    }
+    queue_prepare_locked(q);
     
     // Pop from heap
     while (pq->size > 0) {
-        // Check cancelled
-        if (atomic_load_int(&pq->heap[0].cancelled) != 0) {
-            // Remove and re-heapify
-            pq->heap[0] = pq->heap[--pq->size];
-            
-            // Sift down
-            int idx = 0;
-            item_t temp = pq->heap[0];
-            
-            while (2 * idx + 1 < pq->size) {
-                int child = 2 * idx + 1;
-                
-                if (child + 1 < pq->size &&
-                    item_before(&pq->heap[child + 1], &pq->heap[child])) {
-                    child++;
-                }
-                
-                if (!item_before(&pq->heap[child], &temp)) break;
-                
-                pq->heap[idx] = pq->heap[child];
-                idx = child;
-            }
-            
-            pq->heap[idx] = temp;
-            continue;
-        }
-        
         // Check timestamp
         if (pq->heap[0].timestamp > limit_ts) {
             simple_mutex_unlock(&q->sorted_mutex);
@@ -235,30 +211,7 @@ bool queue_get_filtered(queue_t *q, uint64_t limit_ts, item_t *out) {
         
         // Return this item
         *out = pq->heap[0];
-        
-        // Remove and sift down
-        pq->heap[0] = pq->heap[--pq->size];
-        
-        if (pq->size > 0) {
-            int idx = 0;
-            item_t temp = pq->heap[0];
-            
-            while (2 * idx + 1 < pq->size) {
-                int child = 2 * idx + 1;
-                
-                if (child + 1 < pq->size &&
-                    item_before(&pq->heap[child + 1], &pq->heap[child])) {
-                    child++;
-                }
-                
-                if (!item_before(&pq->heap[child], &temp)) break;
-                
-                pq->heap[idx] = pq->heap[child];
-                idx = child;
-            }
-            
-            pq->heap[idx] = temp;
-        }
+        pq_remove_root(pq);
         
         simple_mutex_unlock(&q->sorted_mutex);
         return true;
@@ -270,71 +223,8 @@ bool queue_get_filtered(queue_t *q, uint64_t limit_ts, item_t *out) {
 bool queue_peek_timestamp(queue_t *q, uint64_t *timestamp) {
     if (!q || !timestamp || !q->incoming.items || !q->sorted.heap) return false;
     if (!simple_mutex_trylock(&q->sorted_mutex)) return false;
-    ring_buffer_t *rb = &q->incoming;
     priority_queue_t *pq = &q->sorted;
-
-    int read = atomic_load_int(&rb->read_idx);
-    int write = atomic_load_int(&rb->write_idx);
-    int available = write - read;
-    if (available < 0) available = 0;
-    if (available > rb->capacity) available = rb->capacity;
-    int published = 0;
-    while (published < available) {
-        int slot = (read + published) % rb->capacity;
-        if (atomic_load_int(&rb->items[slot].ready) == 0) break;
-        published++;
-    }
-    available = published;
-    if (available > 0) {
-        int old_size = pq->size;
-        for (int i = 0; i < available && pq->size < pq->capacity; i++) {
-            int slot = (read + i) % rb->capacity;
-            item_t *item = &rb->items[slot];
-            if (item->generation == atomic_load_int(&q->generation) &&
-                atomic_load_int(&item->cancelled) == 0) {
-                pq->heap[pq->size++] = *item;
-            }
-            atomic_store_int(&item->ready, 0);
-        }
-        atomic_store_int(&rb->read_idx, read + available);
-        if (pq->size > old_size) {
-            for (int i = (pq->size / 2) - 1; i >= 0; i--) {
-                int idx = i;
-                item_t temp = pq->heap[idx];
-                while (2 * idx + 1 < pq->size) {
-                    int child = 2 * idx + 1;
-                    if (child + 1 < pq->size &&
-                        item_before(&pq->heap[child + 1], &pq->heap[child])) {
-                        child++;
-                    }
-                    if (!item_before(&pq->heap[child], &temp)) break;
-                    pq->heap[idx] = pq->heap[child];
-                    idx = child;
-                }
-                pq->heap[idx] = temp;
-            }
-        }
-    }
-
-    while (pq->size > 0 &&
-           atomic_load_int(&pq->heap[0].cancelled) != 0) {
-        pq->heap[0] = pq->heap[--pq->size];
-        if (pq->size > 0) {
-            int idx = 0;
-            item_t temp = pq->heap[0];
-            while (2 * idx + 1 < pq->size) {
-                int child = 2 * idx + 1;
-                if (child + 1 < pq->size &&
-                    item_before(&pq->heap[child + 1], &pq->heap[child])) {
-                    child++;
-                }
-                if (!item_before(&pq->heap[child], &temp)) break;
-                pq->heap[idx] = pq->heap[child];
-                idx = child;
-            }
-            pq->heap[idx] = temp;
-        }
-    }
+    queue_prepare_locked(q);
 
     bool found = pq->size > 0;
     if (found) *timestamp = pq->heap[0].timestamp;

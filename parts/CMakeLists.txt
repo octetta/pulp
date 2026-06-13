@@ -182,6 +182,10 @@ add_test(
   COMMAND audio_command_tests
 )
 
+add_executable(render_equivalence_probe EXCLUDE_FROM_ALL
+  tests/render_equivalence_probe.c)
+target_link_libraries(render_equivalence_probe PRIVATE api)
+
 if(NOT RECORD_FEATURE_INDEX EQUAL -1)
   add_executable(recording_tests tests/recording_tests.c)
   target_link_libraries(recording_tests PRIVATE api)

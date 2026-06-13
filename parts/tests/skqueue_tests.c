@@ -41,6 +41,30 @@ int main(void) {
   queue_t queue;
   queue_init(&queue, 2048);
 
+  event_t ordered = {0};
+  queue_put_event(&queue, 20, 0, NULL, &ordered);
+  queue_put_event(&queue, 5, 0, NULL, &ordered);
+  queue_put_event(&queue, 10, 0, NULL, &ordered);
+  uint64_t timestamp = 0;
+  if (!queue_peek_timestamp(&queue, &timestamp) || timestamp != 5) {
+    fprintf(stderr, "peek did not find earliest event\n");
+    return 1;
+  }
+  item_t ordered_item;
+  if (queue_get_filtered(&queue, 4, &ordered_item)) {
+    fprintf(stderr, "peek removed or exposed a future event\n");
+    return 1;
+  }
+  if (!queue_peek_timestamp(&queue, &timestamp) || timestamp != 5 ||
+      !queue_get_filtered(&queue, 5, &ordered_item) ||
+      ordered_item.timestamp != 5 ||
+      !queue_peek_timestamp(&queue, &timestamp) || timestamp != 10) {
+    fprintf(stderr, "peek/get ordering changed\n");
+    return 1;
+  }
+  while (queue_get_filtered(&queue, UINT64_MAX, &ordered_item)) {
+  }
+
   pthread_t threads[PRODUCER_COUNT];
   producer_args_t args[PRODUCER_COUNT];
   for (int p = 0; p < PRODUCER_COUNT; p++) {

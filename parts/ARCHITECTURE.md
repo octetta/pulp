@@ -146,6 +146,13 @@ better opportunity to vectorize the audio loop. Voice counts are rounded to
 `VOICE_ALIGN`, and all voice and wave storage is allocated during
 `synth_init()`.
 
+The sample loop avoids source work that cannot affect the current frame.
+Reset voices at or below the `-60 dB` silence floor exit before oscillator
+processing. Capture input is read only when an active capture voice requests
+it. The audio RNG still advances exactly once per frame to preserve the noise
+stream across silent intervals, but conversion to a floating-point noise sample
+is deferred until an active noise voice requests it.
+
 The allocator has a strict ownership rule: `synth-alloc.c.kit` is the only
 module that allocates and frees the main synth state. The audio callback must
 not call it.

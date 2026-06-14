@@ -109,7 +109,7 @@ typedef struct {
     float sustain_level;     // 0 to 1
     float release_time;   // release duration in samples
     uint64_t sample_start;   // sample count when note is triggered
-    uint64_t sample_release; // sample count when note is released
+    uint64_t sample_release; // release sample; UINT64_MAX while held
     int is_active;            // envelope state
     float velocity; // multiply envelope by this value
     float amplitude_at_release;

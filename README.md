@@ -66,10 +66,14 @@ make native
 ./build_native/mini-skred
 ```
 
+Runtime builds default to `Release`; use `make native BUILD_TYPE=Debug` when
+an unoptimized debugging build is intentional.
+
 To enable features manually with CMake:
 
 ```sh
-cmake -B build_native -S . -DKIT_OPTS="ADSR=1 PD=1 FILT=1 FADSR=1"
+cmake -B build_native -S . -DCMAKE_BUILD_TYPE=Release \
+  -DKIT_OPTS="ADSR=1 PD=1 FILT=1 FADSR=1"
 cmake --build build_native
 ./build_native/mini-skred
 ```
@@ -81,6 +85,16 @@ make test   # build and run the default test suite
 make warn   # -Wall -Wextra -Wpedantic -Werror
 make warn-maxed # strict canonical maxed-preset build and tests
 ```
+
+To measure the synthesis portion of a 128-frame audio callback:
+
+```sh
+cmake --build build_native --target synth_callback_bench
+./build_native/synth_callback_bench 32 5000
+```
+
+The report includes average and worst callback time, the callback deadline,
+average deadline load, and the number of measured deadline overruns.
 
 ## Static Analysis
 

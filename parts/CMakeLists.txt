@@ -186,6 +186,10 @@ add_executable(render_equivalence_probe EXCLUDE_FROM_ALL
   tests/render_equivalence_probe.c)
 target_link_libraries(render_equivalence_probe PRIVATE api)
 
+add_executable(synth_callback_bench EXCLUDE_FROM_ALL
+  tests/synth_callback_bench.c)
+target_link_libraries(synth_callback_bench PRIVATE api)
+
 if(NOT RECORD_FEATURE_INDEX EQUAL -1)
   add_executable(recording_tests tests/recording_tests.c)
   target_link_libraries(recording_tests PRIVATE api)

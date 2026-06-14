@@ -1,4 +1,5 @@
 #include <float.h>
+#include <limits.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -220,14 +221,21 @@ float cz_phasor(int n, float p, float d, int table_size) {
     return phase * table_size_f;
 }
 
+static inline int osc_loop_crossings(float distance, float loop_length) {
+    float crossings = distance / loop_length;
+    return crossings >= (float)(INT_MAX - 1) ?
+        INT_MAX : (int)crossings + 1;
+}
+
 float osc_next(int voice, float phase_inc) {
     if (sv.finished[voice]) return 0.0f;
 
     const int table_size = sv.table_size[voice];
     const bool one_shot = sv.one_shot[voice];
-    const bool loop_enabled = sv.loop_enabled[voice];
+    const bool loop_active = sv.loop_active[voice];
 
     if (sv.direction[voice]) phase_inc = -phase_inc;
+    const bool reverse_step = phase_inc < 0.0f;
 
     float phase = sv.phase[voice] + phase_inc;
 
@@ -238,24 +246,76 @@ float osc_next(int voice, float phase_inc) {
     }
 
     // Get loop boundaries (precomputed if available)
-    const float loop_start = loop_enabled && sv.loop_valid[voice] 
+    const float loop_start = loop_active && sv.loop_valid[voice]
         ? sv.loop_start_f[voice] : 0.0f;
-    const float loop_end = loop_enabled && sv.loop_valid[voice]
+    const float loop_end = loop_active && sv.loop_valid[voice]
         ? sv.loop_end_f[voice] : (float)table_size;
     const float loop_length = loop_end - loop_start;
 
     // Wrap phase
-    if (phase >= loop_end) {
-        if (one_shot && !loop_enabled) {
+    if (!one_shot) {
+        if (phase >= loop_end) {
+            phase = loop_start + fmodf(phase - loop_start, loop_length);
+        } else if (phase < loop_start) {
+            phase = loop_end - fmodf(loop_start - phase, loop_length);
+        }
+    } else if (!reverse_step && phase >= loop_end) {
+        if (!loop_active) {
             phase = loop_end - 1e-6f;
             sv.finished[voice] = 1;
+        } else if (sv.loop_stop_requested[voice]) {
+            sv.loop_active[voice] = 0;
+            sv.loop_stop_requested[voice] = 0;
+            sv.loop_ended[voice] = 1;
+            if (phase >= (float)table_size) {
+                phase = (float)table_size - 1e-6f;
+                sv.finished[voice] = 1;
+            }
+        } else if (sv.loop_bounded[voice]) {
+            int crossings = osc_loop_crossings(phase - loop_end, loop_length);
+            int wraps = crossings < sv.loop_remaining[voice] ?
+                crossings : sv.loop_remaining[voice];
+            phase -= (float)wraps * loop_length;
+            sv.loop_remaining[voice] -= wraps;
+            if (wraps < crossings) {
+                sv.loop_active[voice] = 0;
+                sv.loop_stop_requested[voice] = 0;
+                sv.loop_ended[voice] = 1;
+                if (phase >= (float)table_size) {
+                    phase = (float)table_size - 1e-6f;
+                    sv.finished[voice] = 1;
+                }
+            }
         } else {
             phase = loop_start + fmodf(phase - loop_start, loop_length);
         }
-    } else if (phase < loop_start) {
-        if (one_shot && !loop_enabled) {
+    } else if (reverse_step && phase < loop_start) {
+        if (!loop_active) {
             phase = loop_start;
             sv.finished[voice] = 1;
+        } else if (sv.loop_stop_requested[voice]) {
+            sv.loop_active[voice] = 0;
+            sv.loop_stop_requested[voice] = 0;
+            sv.loop_ended[voice] = 1;
+            if (phase < 0.0f) {
+                phase = 0.0f;
+                sv.finished[voice] = 1;
+            }
+        } else if (sv.loop_bounded[voice]) {
+            int crossings = osc_loop_crossings(loop_start - phase, loop_length);
+            int wraps = crossings < sv.loop_remaining[voice] ?
+                crossings : sv.loop_remaining[voice];
+            phase += (float)wraps * loop_length;
+            sv.loop_remaining[voice] -= wraps;
+            if (wraps < crossings) {
+                sv.loop_active[voice] = 0;
+                sv.loop_stop_requested[voice] = 0;
+                sv.loop_ended[voice] = 1;
+                if (phase < 0.0f) {
+                    phase = 0.0f;
+                    sv.finished[voice] = 1;
+                }
+            }
         } else {
             phase = loop_end - fmodf(loop_start - phase, loop_length);
         }
@@ -323,6 +383,11 @@ void osc_set_wave_table_index(int voice, int wave) {
     sv.one_shot[voice] = sw.one_shot[wave];
     sv.loop_start[voice] = sw.loop_start[wave];
     sv.loop_enabled[voice] = sw.loop_enabled[wave];
+    sv.loop_active[voice] = sv.loop_enabled[voice];
+    sv.loop_bounded[voice] = sv.loop_count[voice] > 0;
+    sv.loop_remaining[voice] = sv.loop_count[voice];
+    sv.loop_stop_requested[voice] = 0;
+    sv.loop_ended[voice] = 0;
     sv.loop_end[voice] = sw.loop_end[wave];
     sv.midi_note[voice] = sw.midi_note[wave];
     sv.offset_hz[voice] = sw.offset_hz[wave];
@@ -349,6 +414,11 @@ void osc_set_wave_table_index(int voice, int wave) {
 
 void osc_trigger(int voice) {
     sv.finished[voice] = 0;
+    sv.loop_active[voice] = sv.loop_enabled[voice];
+    sv.loop_bounded[voice] = sv.loop_count[voice] > 0;
+    sv.loop_remaining[voice] = sv.loop_count[voice];
+    sv.loop_stop_requested[voice] = 0;
+    sv.loop_ended[voice] = 0;
 
     if (sv.one_shot[voice]) {
         if (sv.direction[voice]) {
@@ -360,12 +430,12 @@ void osc_trigger(int voice) {
         // Preserve direction, but start at appropriate boundary
         if (sv.direction[voice]) {
             // Backward playback: start at loop end
-            sv.phase[voice] = sv.loop_enabled[voice] 
+            sv.phase[voice] = sv.loop_active[voice]
                 ? (float)sv.loop_end[voice] - 1e-6f  // or sv.loop_end_f[voice]
                 : (float)(sv.table_size[voice] - 1);
         } else {
             // Forward playback: start at loop start
-            sv.phase[voice] = sv.loop_enabled[voice] 
+            sv.phase[voice] = sv.loop_active[voice]
                 ? (float)sv.loop_start[voice]  // or sv.loop_start_f[voice]
                 : 0.0f;
         }
@@ -398,18 +468,27 @@ float mmf_process(int n, float input) {
 }
 
 
-// Initialize the envelope
-void envelope_init_e(envelope_t *e, float a, float d, float s, float r) {
+static void envelope_snapshot_config(envelope_t *e) {
+    e->attack_time   = e->a * MAIN_SAMPLE_RATE;
+    e->decay_time    = e->d * MAIN_SAMPLE_RATE;
+    e->sustain_level = fmaxf(0, fminf(1.0f, e->s));
+    e->release_time  = e->r * MAIN_SAMPLE_RATE;
+}
+
+// Configure the next trigger without disturbing an envelope in progress.
+void envelope_configure_e(envelope_t *e, float a, float d, float s, float r) {
     e->a = a;
     e->d = d;
     e->s = s;
     e->r = r;
-    e->attack_time          = a * MAIN_SAMPLE_RATE;
-    e->decay_time           = d * MAIN_SAMPLE_RATE;
-    e->sustain_level        = fmaxf(0, fminf(1.0f, s));
-    e->release_time         = r * MAIN_SAMPLE_RATE;
+}
+
+// Initialize both configured parameters and runtime state.
+void envelope_init_e(envelope_t *e, float a, float d, float s, float r) {
+    envelope_configure_e(e, a, d, s, r);
+    envelope_snapshot_config(e);
     e->sample_start         = 0;
-    e->sample_release       = 0;
+    e->sample_release       = UINT64_MAX;
     e->is_active            = 0;
     e->velocity             = 1.0f;
     e->amplitude_at_release = 0.0f;
@@ -422,12 +501,13 @@ void envelope_init(int v, float a, float d, float s, float r) {
 }
 
 void envelope_trigger_e(envelope_t *e, float f) {
+    envelope_snapshot_config(e);
     if (e->is_active)
         e->amplitude_at_trigger = e->current_amplitude;
     else
         e->amplitude_at_trigger = 0.0f;
     e->sample_start   = SAMPLE_COUNT_GET();
-    e->sample_release = 0;
+    e->sample_release = UINT64_MAX;
     e->velocity       = f;
     e->is_active      = 1;
 }
@@ -436,11 +516,15 @@ void amp_envelope_trigger(int v, float f) {
     envelope_trigger_e(&sv.amp_envelope[v], f);
 }
 
-void envelope_release_e(envelope_t *e) {
-    if (e->is_active && e->sample_release == 0) {
-        e->sample_release       = SAMPLE_COUNT_GET();
+void envelope_release_e_at(envelope_t *e, uint64_t current_sample) {
+    if (e->is_active && e->sample_release == UINT64_MAX) {
+        e->sample_release       = current_sample;
         e->amplitude_at_release = e->current_amplitude;
     }
+}
+
+void envelope_release_e(envelope_t *e) {
+    envelope_release_e_at(e, SAMPLE_COUNT_GET());
 }
 
 void amp_envelope_release(int v) {
@@ -451,7 +535,8 @@ float envelope_step_e(envelope_t *e, uint64_t current_sample) {
     if (!e->is_active) return 0.0f;
 
     float out = 0.0f;
-    float samples_since_start = (float)(current_sample - e->sample_start);
+    float samples_since_start = current_sample >= e->sample_start
+        ? (float)(current_sample - e->sample_start) : 0.0f;
 
     if (samples_since_start < e->attack_time) {
         float attack_progress = samples_since_start / e->attack_time;
@@ -465,10 +550,11 @@ float envelope_step_e(envelope_t *e, uint64_t current_sample) {
         out = 1.0f - decay_progress * (1.0f - e->sustain_level);
     }
     else {
-        if (e->sample_release == 0) {
+        if (e->sample_release == UINT64_MAX) {
             out = e->sustain_level;
         } else {
-            float samples_since_release = (float)(current_sample - e->sample_release);
+            float samples_since_release = current_sample >= e->sample_release
+                ? (float)(current_sample - e->sample_release) : 0.0f;
             if (samples_since_release < e->release_time) {
                 float release_progress = samples_since_release / e->release_time;
                 out = e->amplitude_at_release * (1.0f - release_progress);
@@ -625,6 +711,11 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         } else {
           f = osc_next(n, sv.phase_inc[n]);
         }
+      if (sv.loop_ended[n]) {
+        sv.loop_ended[n] = 0;
+        envelope_release_e_at(&sv.amp_envelope[n], current_sample);
+        envelope_release_e_at(&sv.filter_envelope[n], current_sample);
+      }
       }
       if (sv.sample_hold_max[n]) {
         if (sv.sample_hold_count[n] == 0) {
@@ -648,7 +739,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       if (sv.filter_mode[n]) {
         if (sv.filter_update_counter[n] <= 0) {
           float cutoff = sv.filter_freq[n];
-          if (sv.use_filter_envelope[n]) {
+          if (sv.filter_envelope[n].is_active) {
             float env = envelope_step_e(&sv.filter_envelope[n], current_sample);
             env = fmaxf(0.0f, fminf(1.0f, env));
             cutoff = cutoff + (env * sv.filter_env_depth[n]);
@@ -880,6 +971,8 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     /* --- looping (suppress B0 default) --- */
     if (verbose || sv.loop_enabled[v])
         APPEND(" B%d", sv.loop_enabled[v]);
+    if (verbose || sv.loop_count[v])
+        APPEND(" BC%d", sv.loop_count[v]);
 
     /* --- pan (suppress if centre) --- */
     if (verbose || sv.pan[v] != 0.0f)
@@ -955,10 +1048,27 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" phase:%g phase_inc:%g", sv.phase[v], sv.phase_inc[v]);
         APPEND(" sample:%g", sv.sample[v]);
         APPEND(" finished:%d one_shot:%d", sv.finished[v], sv.one_shot[v]);
+        APPEND(" loop_active:%d loop_bounded:%d loop_remaining:%d loop_stop:%d",
+            sv.loop_active[v], sv.loop_bounded[v], sv.loop_remaining[v],
+            sv.loop_stop_requested[v]);
         APPEND(" smoother_gain:%g", sv.smoother_gain[v]);
         APPEND(" filter_update_counter:%d", sv.filter_update_counter[v]);
         APPEND(" filter_env_active:%d", sv.filter_envelope[v].is_active);
+        APPEND(" filter_env_runtime:%g,%g,%g,%g",
+            sv.filter_envelope[v].attack_time,
+            sv.filter_envelope[v].decay_time,
+            sv.filter_envelope[v].sustain_level,
+            sv.filter_envelope[v].release_time);
+        APPEND(" filter_env_release:%llu",
+            (unsigned long long)sv.filter_envelope[v].sample_release);
         APPEND(" amp_env_active:%d", sv.amp_envelope[v].is_active);
+        APPEND(" amp_env_runtime:%g,%g,%g,%g",
+            sv.amp_envelope[v].attack_time,
+            sv.amp_envelope[v].decay_time,
+            sv.amp_envelope[v].sustain_level,
+            sv.amp_envelope[v].release_time);
+        APPEND(" amp_env_release:%llu",
+            (unsigned long long)sv.amp_envelope[v].sample_release);
     }
 
 #undef APPEND
@@ -1083,12 +1193,24 @@ int wave_loop(int voice, int state) {
     else state = 0;
   }
   sv.loop_enabled[voice] = state;
+  sv.loop_active[voice] = state;
+  if (!state) {
+    sv.loop_stop_requested[voice] = 0;
+    sv.loop_ended[voice] = 0;
+  }
+  return 0;
+}
+
+int wave_loop_count(int voice, int count) {
+  if (voice_invalid(voice) || count < 0) return SYNTH_INVALID_VOICE;
+  sv.loop_count[voice] = count;
+  sv.loop_enabled[voice] = 1;
   return 0;
 }
 
 
 int envelope_set(int voice, float a, float d, float s, float r) {
-  envelope_init(voice, a, d, s, r);
+  envelope_configure_e(&sv.amp_envelope[voice], a, d, s, r);
   return 0;
 }
 
@@ -1199,6 +1321,7 @@ int voice_copy(int v, int n) {
   amp_set(n, sv.user_amp[v]);
   freq_set(n, sv.freq[v]);
   wave_loop(n, sv.loop_enabled[v]);
+  wave_loop_count(n, sv.loop_count[v]);
   wave_dir(n, sv.direction[v]);
   sv.link_midi_0[n] = sv.link_midi_0[v];
   sv.link_midi_1[n] = sv.link_midi_1[v];
@@ -1303,6 +1426,13 @@ void voice_reset(int i) {
   sv.use_amp_envelope[i] = 1;
   sv.disconnect[i] = 0;
   sv.direction[i] = 0;
+  sv.loop_enabled[i] = 0;
+  sv.loop_count[i] = 0;
+  sv.loop_bounded[i] = 0;
+  sv.loop_remaining[i] = 0;
+  sv.loop_active[i] = 0;
+  sv.loop_stop_requested[i] = 0;
+  sv.loop_ended[i] = 0;
   sv.amp_envelope_mode[i] = 0; // exp
   sv.amp_envelope[i].is_active = 0;
   envelope_init(i, 0.0f, 0.0f, 1.0f, 0.0f);
@@ -1379,8 +1509,10 @@ int wave_reset(int voice) {
 int envelope_velocity(int voice, float f) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
     if (f == 0) {
+        if (sv.one_shot[voice] && sv.loop_active[voice])
+            sv.loop_stop_requested[voice] = 1;
         amp_envelope_release(voice);
-        if (sv.use_filter_envelope[voice])
+        if (sv.filter_envelope[voice].is_active)
             envelope_release_e(&sv.filter_envelope[voice]);
     } else {
         sv.use_amp_envelope[voice] = 1;

@@ -69,10 +69,46 @@ most 32 operations.
 | `/` | None | Restores the selected voice's default waveform settings. | Yes |
 | `b [direction]` | `0` forward, `1` backward; no argument toggles | Changes the direction used to read the selected wave. | Yes |
 | `B [loop]` | `0` off, `1` on; no argument toggles | Controls whether wave playback wraps at its end. This is most noticeable with sampled or one-shot waves. | Yes |
+| `BC count` | Nonnegative integer; `0` means unlimited | Enables looping and limits a one-shot voice to `count` wraps after its first pass through the loop. The configured count is captured on `l` or `T`; changing it does not alter a note already playing. | Yes |
 | `q bits` | Integer bit-depth control | Quantizes the waveform and adds bit-crusher distortion. Requires `CRUSH`. | Yes |
 | `h phases` | Integer hold length | Holds oscillator values for multiple phases, producing stepped or sample-and-hold distortion. Requires `SAH`. | Yes |
 | `[name] vt` | String | Gives the selected voice a display label. It does not alter sound. | No |
 | `[name] wt wave` | String and wave index | Gives a wavetable a display label. It does not alter sound. | No |
+
+### Direction, Looping, and Triggering
+
+`b`, `B`, `BC`, and `l` describe different parts of one playback lifecycle:
+
+- `b` selects reading direction. `b0` moves toward the wave or loop end;
+  `b1` moves toward its start. It does not enable looping or trigger playback.
+- `B` selects whether playback wraps at the active loop boundary. `B1` enables
+  wrapping and `B0` disables it. With no argument, `B` toggles the setting.
+  This applies immediately to the current playback as well as later triggers.
+- `BC` enables looping and optionally bounds it for one-shot waves. `BC0`
+  means unlimited wrapping. A positive value counts additional wraps after the
+  first traversal of the loop region, so `BC1` plays that region twice: the
+  initial traversal, then one repeat.
+- A positive `l` value, or `T`, starts or retriggers a one-shot, initializes
+  runtime looping from `B`, snapshots the current `BC` bound, resets the
+  remaining wrap count, and triggers its envelopes. Changing `BC` during
+  playback affects the next trigger; changing `B` affects the current one.
+- `l0` releases active envelopes immediately. For a looping one-shot it also
+  requests a clean loop exit: playback leaves the loop when it next reaches
+  the boundary selected by `b`, then continues through any remaining wave tail.
+
+When a positive `BC` count is exhausted without `l0`, the oscillator leaves the
+loop at that boundary and automatically releases the active amplitude and
+filter envelopes. Ordinary cyclic wavetables can still use `b` and `B`, but
+bounded loop completion and one-shot retriggering apply only to one-shots.
+
+```text
+v0 w300 b0 BC1 t.01,.1,.8,.3 l1
+```
+
+This reads forward, traverses the loop region once, wraps once for a second
+traversal, releases the envelope at the next loop boundary, and plays the wave
+tail. Sending `l0` before that boundary releases the envelope early and uses
+the same boundary-and-tail exit.
 
 ## Envelopes and Filters
 
@@ -95,6 +131,13 @@ The `t` command defines an amplitude envelope as
 The envelope output is multiplied by the supplied velocity. `l0` releases the
 envelopes; a nonzero sustain continues indefinitely until that release occurs.
 `T` retriggers at velocity `1`.
+
+Changing `t` or `ft` while an envelope is active does not reshape or restart
+that envelope. The new settings are stored and take effect on the next `l` or
+`T` trigger.
+
+The Wave Playback section describes how `l`, `B`, and `BC` coordinate envelope
+release with a one-shot loop boundary and waveform tail.
 
 For example:
 
@@ -158,7 +201,9 @@ v0 J1 K300 Q2 ft.01,.3,.1,.4 fd2500 n48 l1
 
 This starts a low-pass sweep above the 300 Hz base cutoff, decays toward a
 smaller sustained offset, and returns toward the base cutoff after `l0`.
-`ft0,0,1,0` disables filter-envelope processing.
+`ft0,0,1,0` disables filter-envelope processing on the next trigger. An
+envelope already in progress continues with the settings captured when it was
+triggered.
 
 | Command | Parameters | Effect | Schedulable |
 | --- | --- | --- | --- |

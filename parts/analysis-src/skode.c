@@ -1325,6 +1325,49 @@ static int skode_compile_scheduled(skode_t *ctx, const char *text,
   return 0;
 }
 
+static void skode_queue_repeated(const event_program_t *program, int voice,
+    int count, double seconds, int tag) {
+  uint64_t dt;
+  if (!program || count <= 0 || count > QUEUE_SIZE ||
+      !skode_seconds_to_samples(seconds, &dt)) {
+    return;
+  }
+  uint64_t qt = SAMPLE_COUNT_GET();
+  for (int i = 0; i < count; i++) {
+    if (skode_queue_program(program, voice, qt, tag) != 0) break;
+    qt = skode_u64_add(qt, dt);
+  }
+}
+
+static void skode_repeat_macro(skode_t *ctx, const double *arg, int argc,
+    int tempo_relative) {
+  int macro_index;
+  int count;
+  if (!ctx || !arg || argc < 3 ||
+      !skode_double_to_int(arg[0], &macro_index) ||
+      !skode_extra_valid(macro_index) ||
+      !skode_double_to_int(arg[1], &count) ||
+      count <= 0 || count > QUEUE_SIZE ||
+      !isfinite(arg[2]) || arg[2] < 0.0) {
+    return;
+  }
+
+  int tag = 0;
+  if (argc > 3 && !skode_double_to_int(arg[3], &tag)) return;
+
+  char macro[STRING_BUF_LEN];
+  if (skode_extra_copy(macro_index, macro, sizeof(macro)) != 0 ||
+      macro[0] == '\0') {
+    return;
+  }
+  event_program_t program;
+  if (!skode_compile_scheduled(ctx, macro, &program)) return;
+
+  double seconds = arg[2];
+  if (tempo_relative) seconds *= tempo_step_seconds_get() * 4.0f;
+  skode_queue_repeated(&program, ctx->voice, count, seconds, tag);
+}
+
 int skode_opcode_supported(skode_opcode_t opcode) {
   switch (opcode) {
     case SKODE_OP_VOICE:
@@ -1336,6 +1379,7 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_ENVELOPE_VELOCITY:
     case SKODE_OP_WAVE_DIRECTION:
     case SKODE_OP_WAVE_LOOP:
+    case SKODE_OP_WAVE_LOOP_COUNT:
     case SKODE_OP_LINK_MIDI:
     case SKODE_OP_LINK_VELOCITY:
     case SKODE_OP_TRIGGER_DELAY:
@@ -1425,6 +1469,8 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
     case SKODE_OP_WAVE_LOOP:
       return opcode->argc == 0 ? wave_loop(voice, -1) :
         (x_valid ? wave_loop(voice, x) : -1);
+    case SKODE_OP_WAVE_LOOP_COUNT:
+      return x_valid ? wave_loop_count(voice, x) : -1;
     case SKODE_OP_PHASE_DISTORTION:
       if (opcode->argc == 0) return cz_set(voice, 0, .5f);
       if (!x_valid) return -1;
@@ -1437,7 +1483,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return opcode->argc == 1 ? freq_set(voice, opcode->arg[0]) : -1;
     case SKODE_OP_FILTER_ENVELOPE:
       if (opcode->argc != 4) return -1;
-      envelope_init_e(&sv.filter_envelope[voice], opcode->arg[0],
+      envelope_configure_e(&sv.filter_envelope[voice], opcode->arg[0],
         opcode->arg[1], opcode->arg[2], opcode->arg[3]);
       sv.use_filter_envelope[voice] = !(opcode->arg[0] == 0 &&
         opcode->arg[1] == 0 && opcode->arg[2] == 1 &&
@@ -1635,6 +1681,9 @@ int skode_function(ands_t *s, int info) {
       if (argc == 0) { wave_dir(voice, -1); } else { wave_dir(voice, x); } break;
     case ATOM4('B---'): // wave-loop bool
       if (argc == 0) { wave_loop(voice, -1); } else { wave_loop(voice, x); } break;
+    case ATOM4('BC--'): // bounded one-shot loop count
+      if (argc && x_valid) wave_loop_count(voice, x);
+      break;
     case ATOM4('c---'): // phase-distortion algo distortion
       if (argc == 0) {
         cz_set(voice, 0, .5);
@@ -1674,7 +1723,7 @@ int skode_function(ands_t *s, int info) {
         float d = arg[1];
         float s = arg[2];
         float r = arg[3];
-        envelope_init_e(&sv.filter_envelope[voice], a, d, s, r);
+        envelope_configure_e(&sv.filter_envelope[voice], a, d, s, r);
         sv.use_filter_envelope[voice] = !(a==0 && d==0 && s==1 && r==0);
       }
       break;
@@ -1927,17 +1976,17 @@ int skode_function(ands_t *s, int info) {
         event_program_t program;
         if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
           break;
-        uint64_t qt = SAMPLE_COUNT_GET();
-        double t = (tempo_step_seconds_get() * 4.0f);
-        uint64_t dt;
-        if (!skode_seconds_to_samples(t * arg[1], &dt)) break;
         int tag = 0;
         if (argc > 2) skode_double_to_int(arg[2], &tag);
-        for (int i=0; i<x; i++) {
-          if (skode_queue_program(&program, ctx->voice, qt, tag) != 0) break;
-          qt = skode_u64_add(qt, dt);
-        }
+        double seconds = tempo_step_seconds_get() * 4.0f * arg[1];
+        skode_queue_repeated(&program, ctx->voice, x, seconds, tag);
       } break;
+    case ATOM4('eRR-'): // repeat-external-macro-tempo macro count beats [tag]
+      skode_repeat_macro(ctx, arg, argc, 1);
+      break;
+    case ATOM4('eR--'): // repeat-external-macro macro count seconds [tag]
+      skode_repeat_macro(ctx, arg, argc, 0);
+      break;
     case ATOM4('DO?-'): // conditional-string-if-gt-zero number [tag]
       if (argc && x>0) {
         event_program_t program;
@@ -1954,15 +2003,9 @@ int skode_function(ands_t *s, int info) {
         event_program_t program;
         if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
           break;
-        uint64_t qt = SAMPLE_COUNT_GET();
-        uint64_t dt;
-        if (!skode_seconds_to_samples(arg[1], &dt)) break;
         int tag = 0;
         if (argc > 2) skode_double_to_int(arg[2], &tag);
-        for (int i=0; i<x; i++) {
-          if (skode_queue_program(&program, ctx->voice, qt, tag) != 0) break;
-          qt = skode_u64_add(qt, dt);
-        }
+        skode_queue_repeated(&program, ctx->voice, x, arg[1], tag);
       } break;
     case ATOM4('s---'): // volume-smooth bool
       if (argc) {

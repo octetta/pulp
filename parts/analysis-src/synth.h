@@ -84,6 +84,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose);
 int voice_trigger(int voice);
 int wave_default(int voice);
 int wave_loop(int voice, int state);
+int wave_loop_count(int voice, int count);
 int voice_copy(int v, int n);
 float midi2hz(float f);
 int voice_set(int n, int *old_voice);
@@ -100,7 +101,9 @@ void synth_voice_bench(int voice);
 void normalize_preserve_zero(float *data, int length);
 
 void envelope_init_e(envelope_t *e, float a, float d, float s, float r);
+void envelope_configure_e(envelope_t *e, float a, float d, float s, float r);
 void envelope_trigger_e(envelope_t *e, float f);
+void envelope_release_e_at(envelope_t *e, uint64_t current_sample);
 void envelope_release_e(envelope_t *e);
 float envelope_step_e(envelope_t *e, uint64_t current_sample);
 

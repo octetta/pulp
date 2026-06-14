@@ -129,7 +129,7 @@ static void ignore_queued_event(const event_t *event) {
 static void test_voice_core_commands(void) {
   const char *test = "voice core commands";
   skode_t ctx = new_ctx();
-  consume(test, &ctx, "v3 w1 f220 a-6 p0.5 m1 b1 B1");
+  consume(test, &ctx, "v3 w1 f220 a-6 p0.5 m1 b1 BC3");
 
   expect_int(test, ctx.voice, 3, "ctx.voice");
   expect_int(test, sv.wave_table_index[3], 1, "wave_table_index");
@@ -141,6 +141,7 @@ static void test_voice_core_commands(void) {
   expect_int(test, sv.disconnect[3], 1, "disconnect");
   expect_int(test, sv.direction[3], 1, "direction");
   expect_int(test, sv.loop_enabled[3], 1, "loop_enabled");
+  expect_int(test, sv.loop_count[3], 3, "loop_count");
 }
 
 static void test_invalid_voice_does_not_move_selection(void) {
@@ -214,6 +215,221 @@ static void test_trigger_delay_lifecycle(void) {
   expect_u64(test, sv.link_trig_samp[1], 0, "disabled link_trig_samp");
 
   consume(test, &ctx, "v0 H999 l1");
+}
+
+static void test_envelope_configuration_is_deferred(void) {
+  const char *test = "deferred envelope configuration";
+  if (!skode_opcode_supported(SKODE_OP_ENVELOPE) ||
+      !skode_opcode_supported(SKODE_OP_FILTER_ENVELOPE)) {
+    return;
+  }
+
+  skode_t ctx = new_ctx();
+  char before[2048];
+  char after[2048];
+  uint64_t saved_sample_count = SAMPLE_COUNT_GET();
+
+  consume(test, &ctx, "v0 t.1,.2,.3,.4 ft.5,.6,.7,.8 l.75");
+  voice_format(0, before, sizeof(before), 1);
+  if (strstr(before, "amp_env_active:1") == NULL ||
+      strstr(before, "amp_env_runtime:4410,8820,0.3,17640") == NULL ||
+      strstr(before, "filter_env_active:1") == NULL ||
+      strstr(before, "filter_env_runtime:22050,26460,0.7,35280") == NULL) {
+    fail(test, "initial runtime envelope snapshot mismatch");
+  }
+
+  consume(test, &ctx, "t1,2,.9,4 ft0,0,1,0");
+  voice_format(0, after, sizeof(after), 1);
+  if (strstr(after, "t1,2,0.9,4") == NULL ||
+      strstr(after, "ft 0 0 1 0") == NULL ||
+      strstr(after, "amp_env_active:1") == NULL ||
+      strstr(after, "amp_env_runtime:4410,8820,0.3,17640") == NULL ||
+      strstr(after, "filter_env_active:1") == NULL ||
+      strstr(after, "filter_env_runtime:22050,26460,0.7,35280") == NULL) {
+    fail(test, "configuration disturbed active envelope");
+  }
+
+  SAMPLE_COUNT_PUT(saved_sample_count + 10);
+  consume(test, &ctx, "l0");
+  voice_format(0, after, sizeof(after), 1);
+  char expected_release[80];
+  snprintf(expected_release, sizeof(expected_release), "filter_env_release:%llu",
+           (unsigned long long)(saved_sample_count + 10));
+  if (strstr(after, expected_release) == NULL) {
+    fail(test, "disabled filter envelope did not receive release");
+  }
+
+  consume(test, &ctx, "l1");
+  voice_format(0, after, sizeof(after), 1);
+  if (strstr(after, "amp_env_runtime:44100,88200,0.9,176400") == NULL) {
+    fail(test, "new amplitude envelope was not applied on retrigger");
+  }
+
+  SAMPLE_COUNT_PUT(saved_sample_count);
+  wave_reset(0);
+}
+
+static void test_envelope_future_timestamps(void) {
+  const char *test = "envelope future timestamps";
+  if (!skode_opcode_supported(SKODE_OP_ENVELOPE)) return;
+
+  envelope_t envelope;
+  envelope_init_e(&envelope, .5f, .5f, 0.0f, .5f);
+  envelope.is_active = 1;
+  envelope.velocity = 1.0f;
+  envelope.sample_start = 1024;
+  envelope.sample_release = UINT64_MAX;
+
+  expect_float(test, envelope_step_e(&envelope, 1000), 0.0f, 0.0f,
+               "future trigger remains at attack start");
+
+  envelope_init_e(&envelope, 0.0f, 0.0f, 1.0f, .5f);
+  envelope.is_active = 1;
+  envelope.velocity = 1.0f;
+  envelope.current_amplitude = 0.75f;
+  envelope.amplitude_at_release = 0.75f;
+  envelope.sample_start = 0;
+  envelope.sample_release = 1024;
+  expect_float(test, envelope_step_e(&envelope, 1000), 0.75f, 0.0001f,
+               "future release remains at release start");
+}
+
+static void configure_loop_test_voice(int voice, int direction) {
+  static float table[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+  wave_reset(voice);
+  sv.table[voice] = table;
+  sv.table_size[voice] = 8;
+  sv.table_rate[voice] = MAIN_SAMPLE_RATE;
+  sv.table_size_rate[voice] = 8.0f / MAIN_SAMPLE_RATE;
+  sv.loop_start[voice] = 2;
+  sv.loop_end[voice] = 5;
+  sv.loop_start_f[voice] = 2.0f;
+  sv.loop_end_f[voice] = 5.0f;
+  sv.loop_length[voice] = 3;
+  sv.loop_valid[voice] = 1;
+  sv.one_shot[voice] = 1;
+  sv.direction[voice] = direction;
+  sv.interpolate[voice] = 0;
+  sv.finished[voice] = 1;
+}
+
+static void test_bounded_one_shot_loops(void) {
+  const char *test = "bounded one-shot loops";
+  skode_t ctx = new_ctx();
+  const int voice = 5;
+  event_program_t program;
+
+  expect_int(test, skode_compile_program("v5 BC4", &program),
+             SKODE_COMPILE_OK, "compile BC program");
+  expect_int(test, skode_execute_program(&program, 0, SAMPLE_COUNT_GET(), 0),
+             0, "execute BC program");
+  expect_int(test, sv.loop_count[voice], 4, "scheduled BC count");
+
+  configure_loop_test_voice(voice, 0);
+  consume(test, &ctx, "v5 BC2 l1");
+  expect_int(test, sv.loop_enabled[voice], 1, "BC enables looping");
+  expect_int(test, sv.loop_count[voice], 2, "configured loop count");
+  expect_int(test, sv.loop_remaining[voice], 2, "triggered loop count");
+  consume(test, &ctx, "BC0");
+  expect_int(test, sv.loop_count[voice], 0, "updated next loop count");
+  expect_int(test, sv.loop_bounded[voice], 1, "active bounded snapshot");
+
+  for (int i = 0; i < 5; i++) osc_next(voice, 1.0f);
+  expect_float(test, sv.phase[voice], 2.0f, 0.0001f, "first wrap phase");
+  expect_int(test, sv.loop_remaining[voice], 1, "first wrap remaining");
+
+  for (int i = 0; i < 3; i++) osc_next(voice, 1.0f);
+  expect_float(test, sv.phase[voice], 2.0f, 0.0001f, "second wrap phase");
+  expect_int(test, sv.loop_remaining[voice], 0, "second wrap remaining");
+
+  for (int i = 0; i < 3; i++) osc_next(voice, 1.0f);
+  expect_float(test, sv.phase[voice], 5.0f, 0.0001f, "loop exit phase");
+  expect_int(test, sv.loop_active[voice], 0, "loop exhausted");
+  expect_int(test, sv.loop_ended[voice], 1, "loop exhaustion event");
+  expect_int(test, sv.finished[voice], 0, "tail remains active");
+
+  osc_next(voice, 1.0f);
+  osc_next(voice, 1.0f);
+  osc_next(voice, 1.0f);
+  expect_int(test, sv.finished[voice], 1, "tail completion");
+
+  consume(test, &ctx, "BC0 l1");
+  sv.phase[voice] = 4.0f;
+  consume(test, &ctx, "l0");
+  expect_int(test, sv.loop_stop_requested[voice], 1, "release stop request");
+  osc_next(voice, 1.0f);
+  expect_int(test, sv.loop_active[voice], 0, "release loop exit");
+  expect_float(test, sv.phase[voice], 5.0f, 0.0001f, "release exit phase");
+
+  configure_loop_test_voice(voice, 1);
+  consume(test, &ctx, "BC1 l1");
+  sv.phase[voice] = 2.0f;
+  osc_next(voice, 1.0f);
+  expect_float(test, sv.phase[voice], 4.0f, 0.0001f,
+               "backward wrap phase");
+  expect_int(test, sv.loop_remaining[voice], 0, "backward wrap remaining");
+  sv.phase[voice] = 2.0f;
+  osc_next(voice, 1.0f);
+  expect_float(test, sv.phase[voice], 1.0f, 0.0001f,
+               "backward exit phase");
+  expect_int(test, sv.loop_active[voice], 0, "backward loop exhausted");
+
+  configure_loop_test_voice(voice, 0);
+  consume(test, &ctx, "BC1 l1");
+  osc_next(voice, 10.0f);
+  expect_float(test, sv.phase[voice], 7.0f, 0.0001f,
+               "multi-boundary exit phase");
+  expect_int(test, sv.loop_remaining[voice], 0,
+             "multi-boundary remaining");
+  expect_int(test, sv.loop_active[voice], 0, "multi-boundary loop exhausted");
+
+  wave_loop_count(voice, 3);
+  voice_copy(voice, 4);
+  expect_int(test, sv.loop_count[4], 3, "copied loop count");
+  wave_reset(4);
+  expect_int(test, sv.loop_count[4], 0, "reset loop count");
+
+  wave_reset(voice);
+}
+
+static void test_bounded_loop_releases_envelopes(void) {
+  const char *test = "bounded loop envelope release";
+  if (!skode_opcode_supported(SKODE_OP_ENVELOPE) ||
+      !skode_opcode_supported(SKODE_OP_FILTER_ENVELOPE)) {
+    return;
+  }
+
+  skode_t ctx = new_ctx();
+  const int voice = 6;
+  const uint64_t saved_sample_count = SAMPLE_COUNT_GET();
+  float output[AUDIO_CHANNELS] = {0};
+  char formatted[2048];
+
+  configure_loop_test_voice(voice, 0);
+  consume(test, &ctx,
+          "v6 a0 BC1 t0,0,1,.5 ft0,0,1,.5 fd100 l1");
+  sv.phase[voice] = 4.0f;
+  sv.phase_inc[voice] = 1.0f;
+  sv.loop_remaining[voice] = 0;
+  SAMPLE_COUNT_PUT(saved_sample_count + 100);
+  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+
+  voice_format(voice, formatted, sizeof(formatted), 1);
+  char expected_amp_release[80];
+  char expected_filter_release[80];
+  snprintf(expected_amp_release, sizeof(expected_amp_release),
+           "amp_env_release:%llu",
+           (unsigned long long)(saved_sample_count + 100));
+  snprintf(expected_filter_release, sizeof(expected_filter_release),
+           "filter_env_release:%llu",
+           (unsigned long long)(saved_sample_count + 100));
+  if (strstr(formatted, expected_amp_release) == NULL ||
+      strstr(formatted, expected_filter_release) == NULL) {
+    fail(test, "loop exhaustion did not release active envelopes");
+  }
+
+  SAMPLE_COUNT_PUT(saved_sample_count);
+  wave_reset(voice);
 }
 
 static void test_opcode_events(void) {
@@ -625,6 +841,7 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"A1,.5,0", SKODE_OP_AMP_MOD},
     {"b1", SKODE_OP_WAVE_DIRECTION},
     {"B1", SKODE_OP_WAVE_LOOP},
+    {"BC3", SKODE_OP_WAVE_LOOP_COUNT},
     {"c1,.5", SKODE_OP_PHASE_DISTORTION},
     {"C1,.5", SKODE_OP_PHASE_MOD},
     {"f220", SKODE_OP_FREQ},
@@ -853,6 +1070,10 @@ int main(void) {
   test_data_array_logging();
   test_midi_and_links();
   test_trigger_delay_lifecycle();
+  test_envelope_configuration_is_deferred();
+  test_envelope_future_timestamps();
+  test_bounded_one_shot_loops();
+  test_bounded_loop_releases_envelopes();
   test_opcode_events();
   test_909_sequence_programs();
   test_scalar_voice_opcode_inventory();

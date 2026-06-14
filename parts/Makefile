@@ -7,6 +7,7 @@ EM_CACHE ?= /tmp/pulp-em-cache
 ZIG_ENV = cmake -E env ZIG_LOCAL_CACHE_DIR=$(ZIG_LOCAL_CACHE_DIR) ZIG_GLOBAL_CACHE_DIR=$(ZIG_GLOBAL_CACHE_DIR)
 EM_ENV = env EM_CACHE=$(EM_CACHE)
 MAXED_KIT_OPTS = KSYNTH=1 ADSR=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1
+BUILD_TYPE ?= Release
 WASM_KIT_OPTS = KSYNTH=1 SEQ=1 ADSR=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SMOOTHER=1
 ANALYSIS_BUILD_DIR ?= build_analysis
 ANALYSIS_SRC_DIR ?= analysis-src
@@ -26,7 +27,8 @@ ANALYSIS_GENERATED = \
 all: native # pi
 
 maxed:
-	cmake -B build_maxed -S . -DKIT_OPTS="$(MAXED_KIT_OPTS)"
+	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+		-DKIT_OPTS="$(MAXED_KIT_OPTS)"
 	cmake --build build_maxed
 
 analysis-src:
@@ -58,7 +60,7 @@ wasm:
 	cp wasm-assets/serve-wasm.sh ../doc
 
 native:
-	cmake -B build_native -S .
+	cmake -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 	cmake --build build_native --target kit_tool
 	cmake --build build_native
 
@@ -79,6 +81,7 @@ warn-maxed:
 
 pi: native
 	$(ZIG_ENV) cmake -B build_pi -S . \
+		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf" \
 		-DUSE_EXTERNAL_KIT=ON \
 		-DKIT_TOOL_PATH=$(shell pwd)/build_native/kit_tool

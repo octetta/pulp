@@ -89,9 +89,10 @@ their named build option is enabled.
 | `A` | `[voice, depth [, offset]]` | `SKODE_OP_AMP_MOD` | `amp_mod_set()`; fewer than two args disable AM | `AM` |
 | `b` | `[direction]` | `SKODE_OP_WAVE_DIRECTION` | `wave_dir()`; no argument toggles | base |
 | `B` | `[loop]` | `SKODE_OP_WAVE_LOOP` | `wave_loop()`; no argument toggles | base |
+| `BC` | `count` | `SKODE_OP_WAVE_LOOP_COUNT` | Sets bounded one-shot loop repeats; `0` means unlimited | base |
 | `c` | `[mode [, depth]]` | `SKODE_OP_PHASE_DISTORTION` | `cz_set()` | `PD` |
 | `C` | `[voice, depth]` | `SKODE_OP_PHASE_MOD` | `cmod_set()`; fewer than two args disable modulation | `PD` |
-| `ft` | `attack, decay, sustain, release` | `SKODE_OP_FILTER_ENVELOPE` | `envelope_init_e()` on the filter envelope | `FILT`, `FADSR` |
+| `ft` | `attack, decay, sustain, release` | `SKODE_OP_FILTER_ENVELOPE` | Configures the filter envelope for its next trigger | `FILT`, `FADSR` |
 | `fd` | `depth` | `SKODE_OP_FILTER_ENVELOPE_DEPTH` | Sets `sv.filter_env_depth` | `FILT`, `FADSR` |
 | `F` | `[voice, depth [, offset]]` | `SKODE_OP_FREQ_MOD` | `freq_mod_set()`; zero or one arg disables FM | `FM` |
 | `FF` | `mode` | `SKODE_OP_FREQ_MOD_MODE` | Sets `sv.freq_mod_mode` | `FM` |
@@ -111,7 +112,7 @@ their named build option is enabled.
 | `r` | `track` | `SKODE_OP_RECORD_TRACK` | `synth_record_track_set()` | `RECORD` |
 | `s` | `amount` | `SKODE_OP_SMOOTHER` | Enables or disables amplitude smoothing | `SMOOTHER` |
 | `S` | `voice` | `SKODE_OP_VOICE_RESET` | `wave_reset()` | base |
-| `t` | `attack, decay, sustain, release` | `SKODE_OP_ENVELOPE` | `envelope_set()` | `ADSR` |
+| `t` | `attack, decay, sustain, release` | `SKODE_OP_ENVELOPE` | Configures the amplitude envelope for its next trigger | `ADSR` |
 | `T` | none | `SKODE_OP_TRIGGER` | Calls `envelope_velocity(..., 1)` on the voice and velocity links | base |
 | `w` | `wave [, interpolate [, one-shot]]` | `SKODE_OP_WAVE` | `wave_set()` and optional voice flags | base |
 | `>` | `destination-voice` | `SKODE_OP_VOICE_COPY` | `voice_copy(current, destination)` | base |
@@ -127,6 +128,21 @@ configured by `G`.
 
 `l` applies velocity immediately or schedules it using the voice's trigger
 delay. It also propagates velocity to voices configured by `H`.
+
+`b`, `B`, `BC`, and `l` have separate playback responsibilities. `b` selects
+direction, `B` configures wrapping, and `BC` configures a bounded number of
+one-shot wraps. Zero is unlimited; a positive count means repeats after the
+initial loop traversal, so `BC1` permits one wrap and two traversals. Positive
+`l` or `T` snapshots the `BC` bound for the new note. `B` remains an immediate
+runtime switch. `l0` releases the envelopes immediately and requests departure
+at the next loop boundary.
+
+At trigger time, `osc_trigger()` initializes `loop_active`, `loop_bounded`, and
+`loop_remaining`. `osc_next()` consumes wraps in either direction, including
+multiple boundaries crossed by one phase increment. A requested or natural
+exit raises `loop_ended`; the render loop consumes that event to release active
+amplitude and filter envelopes at the exact sample while playback continues
+through the one-shot tail.
 
 `c` phase-distortion modes are:
 

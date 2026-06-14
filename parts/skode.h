@@ -62,6 +62,7 @@ typedef enum {
   SKODE_OP_WAVE_DEFAULT,
   SKODE_OP_VARIABLE_SET,
   SKODE_OP_RING_MOD,
+  SKODE_OP_WAVE_LOOP_COUNT,
 } skode_opcode_t;
 
 typedef enum {

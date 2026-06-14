@@ -12,7 +12,7 @@
   (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(b) << 16) | \
    ((uint32_t)(uint8_t)(c) << 8) | (uint32_t)(uint8_t)(d))
 
-_Static_assert(SKODE_OP_RING_MOD <= UINT8_MAX,
+_Static_assert(SKODE_OP_WAVE_LOOP_COUNT <= UINT8_MAX,
   "Skode opcodes must fit in opcode_event_t.code");
 _Static_assert(SEQ_PROGRAM_OP_MAX <= UINT8_MAX,
   "Compiled program length must fit in event_program_t.count");
@@ -28,6 +28,7 @@ const char *skode_opcode_name(uint8_t opcode) {
     "MIDI_DETUNE", "PAN_MOD", "QUANTIZE", "FILTER_RESONANCE",
     "RECORD_TRACK", "SMOOTHER", "VOICE_RESET", "ENVELOPE", "TRIGGER",
     "WAVE", "VOICE_COPY", "WAVE_DEFAULT", "VARIABLE_SET", "RING_MOD",
+    "WAVE_LOOP_COUNT",
   };
   return opcode < sizeof(names) / sizeof(names[0]) ?
     names[opcode] : "UNKNOWN";
@@ -205,6 +206,8 @@ static int skode_compile_callback(ands_t *s, int info) {
       opcode = SKODE_OP_WAVE_DIRECTION; min_argc = 0; max_argc = 1; break;
     case SKODE_ATOM('B', '-', '-', '-'):
       opcode = SKODE_OP_WAVE_LOOP; min_argc = 0; max_argc = 1; break;
+    case SKODE_ATOM('B', 'C', '-', '-'):
+      opcode = SKODE_OP_WAVE_LOOP_COUNT; min_argc = max_argc = 1; break;
     case SKODE_ATOM('c', '-', '-', '-'):
       opcode = SKODE_OP_PHASE_DISTORTION; min_argc = 0; max_argc = 2; break;
     case SKODE_ATOM('C', '-', '-', '-'):

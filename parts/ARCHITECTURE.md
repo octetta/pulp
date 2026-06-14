@@ -356,6 +356,39 @@ Adopters adding high-volume automation should preserve the established
 real-time rules and consider adding bounded command transport instead of
 performing arbitrary cross-thread writes.
 
+#### One-Shot Loop State
+
+Wave direction, loop configuration, and note lifecycle are separate:
+
+- `b` controls the sign of oscillator travel.
+- `B` controls whether loop-boundary wrapping is configured.
+- `BC` sets a configured wrap bound; zero means unlimited. A positive count is
+  the number of repeats after the initial traversal, so `BC1` produces two
+  traversals of the loop region.
+- Positive `l` and `T` retrigger a one-shot, initialize runtime looping from
+  `B`, and snapshot the configured `BC` bound. `l0` releases envelopes
+  immediately and requests departure at the next boundary.
+
+The voice arrays distinguish persistent configuration from active-note state.
+`loop_enabled` and `loop_count` are configuration. `loop_active`,
+`loop_bounded`, `loop_remaining`, and `loop_stop_requested` belong to the
+current trigger. A `BC` edit does not retroactively change the bounded-loop
+count already in progress. `B` is intentionally immediate: `wave_loop()`
+updates both configured and active looping.
+
+`osc_next()` selects the relevant boundary from the actual phase-step
+direction. It accounts for more than one wrap when a large phase increment
+crosses several loop lengths. A requested exit or exhausted bound disables
+runtime looping and emits `loop_ended`; the render loop consumes that event at
+the same sample and releases active amplitude and filter envelopes. Oscillator
+playback then continues into the one-shot tail and sets `finished` only at the
+physical wave boundary.
+
+Envelope configuration follows the same snapshot principle. `t` and `ft`
+update parameters for the next trigger, while an envelope already in progress
+continues using the durations and sustain level captured by its last `l` or
+`T`.
+
 ### Recording
 
 Files:
@@ -467,6 +500,8 @@ Tests live in `tests/` and are registered in `CMakeLists.txt`:
 - `audio_command_tests.c` covers audio-device command routing.
 - `recording_tests.c` covers recording when `RECORD` is enabled.
 - the CMake smoke test checks generated build artifacts and feature output.
+- `synth_callback_bench.c` is an opt-in timing diagnostic for average and
+  worst synthesis callback cost and measured deadline overruns.
 
 For a new command, add tests at the lowest useful layer. Parser syntax belongs
 in the ANDS tests; command behavior and opcode compilation belong in Skode

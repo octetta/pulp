@@ -5,6 +5,11 @@ project(mini-skred)
 set(KIT_OPTS "" CACHE STRING "Extra flags for the kit tool")
 separate_arguments(KIT_OPTS_LIST NATIVE_COMMAND "${KIT_OPTS}")
 list(FIND KIT_OPTS_LIST "RECORD=1" RECORD_FEATURE_INDEX)
+list(FIND KIT_OPTS_LIST "SCOPE=1" SCOPE_FEATURE_INDEX)
+list(FIND KIT_OPTS_LIST "ADSR=1" ADSR_FEATURE_INDEX)
+if(NOT SCOPE_FEATURE_INDEX EQUAL -1 AND WIN32)
+    message(FATAL_ERROR "SCOPE=1 currently requires POSIX shared memory")
+endif()
 option(USE_EXTERNAL_KIT "Use an existing native kit_tool binary" OFF)
 set(KIT_TOOL_PATH "" CACHE FILEPATH "Path to a prebuilt native kit_tool")
 
@@ -60,6 +65,10 @@ set(API_KIT_MODULES
 
 if(NOT RECORD_FEATURE_INDEX EQUAL -1)
     list(APPEND API_KIT_MODULES recorder)
+endif()
+
+if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
+    list(APPEND API_PLAIN_SOURCES scope-ipc.c)
 endif()
 
 set(API_GEN_SOURCES "")
@@ -160,6 +169,9 @@ add_test(
 
 add_executable(skode_state_tests tests/skode_state_tests.c)
 target_link_libraries(skode_state_tests PRIVATE api)
+if(NOT ADSR_FEATURE_INDEX EQUAL -1)
+  target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_ADSR=1)
+endif()
 
 add_test(
   NAME skode.command-state
@@ -197,5 +209,18 @@ if(NOT RECORD_FEATURE_INDEX EQUAL -1)
   add_test(
     NAME recording.track-routing
     COMMAND recording_tests
+  )
+endif()
+
+if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
+  add_executable(scope_reader scope-reader.c)
+  target_link_libraries(scope_reader PRIVATE api)
+
+  add_executable(scope_ipc_tests tests/scope_ipc_tests.c)
+  target_link_libraries(scope_ipc_tests PRIVATE api)
+
+  add_test(
+    NAME scope.shared-memory-publication
+    COMMAND scope_ipc_tests
   )
 endif()

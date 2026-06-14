@@ -24,6 +24,9 @@
 @if(RECORD)
 #include "recorder.h"
 @endif
+@if(SCOPE)
+#include "scope-ipc.h"
+@endif
 
 int skode_puts(skode_t *ctx, const char *s) {
   if (!ctx || !s || ctx->log_enable == 0) return 0;
@@ -778,14 +781,6 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
 }
 
 
-// this is a mess i need to clean up
-
-@if(SCOPE)
-#include "scope-shared.h"
-extern int scope_enable;
-extern scope_buffer_t *scope;
-@endif
-
 @if(SEQ)
 void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
   if (pattern_pointer < 0 || pattern_pointer >= PATTERNS_MAX) return;
@@ -866,15 +861,6 @@ void downsample_block_average_min_max(
 void downsample_block_average(const float *source, int source_len, float *dest, int dest_len) {
   downsample_block_average_min_max(source, source_len, dest, dest_len, NULL, NULL);
 }
-
-#if 0
-void scope_wave_update(const float *table, int size) {
-  new_scope->wave_len = 0;
-  downsample_block_average_min_max(table, size, new_scope->wave_data, SCOPE_WAVE_WIDTH, new_scope->wave_min, new_scope->wave_max);
-  new_scope->wave_len = SCOPE_WAVE_WIDTH;
-}
-#endif
-
 
 #include <stdio.h>
 
@@ -1174,12 +1160,6 @@ int wavetable_show(skode_t *ctx, int n) {
       stats.min, stats.max, stats.peak, stats.rms, stats.dc, stats.zero_crossings);
     if (stats.clipped) ctx->printf(ctx, " clip %d", stats.clipped);
     ctx->puts(ctx, "");
-    @if(SCOPE)
-    if (scope_enable) {
-      downsample_block_average_min_max(table, size, scope->wave_data, SCOPE_WAVE_WIDTH, scope->wave_min, scope->wave_max);
-      scope->wave_len = SCOPE_WAVE_WIDTH;
-    }
-    @endif
   }
   return 0;
 }
@@ -2227,7 +2207,7 @@ int skode_function(ands_t *s, int info) {
       if (argc) { mmf_set_res(voice, arg[0]); }
       break;
     @endif
-    @if(RECORD)
+    @if(RECORD || SCOPE)
     case ATOM4('r---'): // additional recording track, 0=none, 1..4=stem
       if (argc) synth_record_track_set(voice, x);
       break;
@@ -2333,9 +2313,6 @@ int skode_function(ands_t *s, int info) {
         if (argc > 2) {
           if (skode_double_to_int(arg[2], &n)) sv.one_shot[voice] = n != 0;
         }
-        @if(SCOPE)
-        if (scope_enable) sprintf(scope->wave_text, "w%d", x);
-        @endif
       }
       break;
     case ATOM4('=d--'): // assign a variable from an element of the d array =d var d-index
@@ -2506,9 +2483,6 @@ int skode_function(ands_t *s, int info) {
             }
           }
         }
-        @if(SCOPE)
-        if (scope_enable) sprintf(scope->wave_text, "w%d", x);
-        @endif
       } else if (argc == 0) {
         int c = 0;
         ctx->printf(ctx, "# MAX %d\n", WAVE_TABLE_MAX);
@@ -2516,9 +2490,6 @@ int skode_function(ands_t *s, int info) {
           wavetable_show(ctx, i);
           c++;
         }
-        @if(SCOPE)
-        if (scope_enable) sprintf(scope->wave_text, "%d waves loaded", c);
-        @endif
       }
       break;
     @if(SEQ)
@@ -2669,6 +2640,60 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('/q--'): // quit
       ctx->quit = -1;
       return 0;
+    @if(SCOPE)
+    case ATOM4('/sg-'): // start shared-memory scope publication
+      {
+        const char *name = ands_string_fresh(ctx->parse)
+          ? ands_string(ctx->parse) : SKRED_SCOPE_DEFAULT_NAME;
+        uint32_t channel_mask = SKRED_SCOPE_ALL_CHANNELS;
+        double buffer_seconds = SKRED_SCOPE_DEFAULT_SECONDS;
+        int mask = 0;
+        if (!name || name[0] == '\0') name = SKRED_SCOPE_DEFAULT_NAME;
+        if (argc > 0) {
+          if (!skode_double_to_int(arg[0], &mask) || mask <= 0 ||
+              (uint32_t)mask > SKRED_SCOPE_ALL_CHANNELS) {
+            ctx->printf(ctx, "# /sg channel mask must be 1..%u\n",
+                        SKRED_SCOPE_ALL_CHANNELS);
+            break;
+          }
+          channel_mask = (uint32_t)mask;
+        }
+        if (argc > 1) buffer_seconds = arg[1];
+        if (!isfinite(buffer_seconds) || buffer_seconds <= 0.0) {
+          ctx->printf(ctx, "# /sg buffer seconds must be > 0\n");
+        } else if (scope_ipc_start(name, channel_mask,
+                                   buffer_seconds) == 0) {
+          skred_scope_status_t status;
+          scope_ipc_status(&status);
+          ctx->printf(ctx,
+            "# scope [%s] channels=%u mask=%u capacity=%u frames\n",
+            status.name, status.channel_count, status.channel_mask,
+            status.capacity_frames);
+        } else {
+          ctx->printf(ctx, "# scope start failed [%s]\n", name);
+        }
+      }
+      break;
+    case ATOM4('/ss-'): // stop shared-memory scope publication
+      scope_ipc_stop();
+      ctx->printf(ctx, "# scope stopped\n");
+      break;
+    case ATOM4('/s?-'): // shared-memory scope status
+      {
+        skred_scope_status_t status;
+        scope_ipc_status(&status);
+        if (status.active) {
+          ctx->printf(ctx,
+            "# scope state=publishing name=[%s] rate=%d channels=%d mask=%u capacity=%u frames=%llu\n",
+            status.name, status.sample_rate, status.channel_count,
+            status.channel_mask, status.capacity_frames,
+            (unsigned long long)status.write_frame);
+        } else {
+          ctx->printf(ctx, "# scope state=stopped\n");
+        }
+      }
+      break;
+    @endif
     @if(RECORD)
     case ATOM4('/rg-'): // start multitrack file recording
       {

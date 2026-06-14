@@ -18,6 +18,7 @@
 #include "udp.h"
 #include "kse.h"
 #include "recorder.h"
+#include "scope-ipc.h"
 
 #define ONE_FRAME_MAX (64 * 1024)
 
@@ -40,7 +41,11 @@ static void pattern_cb(int pattern, const event_program_t *program) {
 }
 
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
+  synth_record_bus_t *capture_bus = NULL;
   synth_record_bus_t *record_bus = recorder_begin_block((int)frame_count);
+  if (record_bus) capture_bus = record_bus;
+  synth_record_bus_t *scope_bus = scope_ipc_begin_block((int)frame_count);
+  if (!capture_bus && scope_bus) capture_bus = scope_bus;
   uint64_t block_end = SAMPLE_COUNT_GET() + (uint64_t)frame_count;
   int offset = 0;
   while (offset < (int)frame_count) {
@@ -65,16 +70,18 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
     float *segment_input = input ? (float *)input +
       ((size_t)offset * pDevice->capture.channels) : NULL;
     synth_record_bus_t segment_bus;
-    synth_record_bus_t *segment_record_bus = NULL;
-    if (record_bus) {
-      segment_bus = *record_bus;
+    synth_record_bus_t *segment_capture_bus = NULL;
+    if (capture_bus) {
+      segment_bus = *capture_bus;
       segment_bus.frames += (size_t)offset * segment_bus.channels;
-      segment_record_bus = &segment_bus;
+      segment_capture_bus = &segment_bus;
     }
     synth(segment_output, segment_input, segment_frames,
-          (int)pDevice->playback.channels, segment_record_bus);
+          (int)pDevice->playback.channels, segment_capture_bus);
     offset += segment_frames;
   }
+  if (scope_bus && capture_bus)
+    scope_ipc_publish(capture_bus->frames, (int)frame_count);
   recorder_end_block((int)frame_count);
 }
 
@@ -421,6 +428,7 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
 
   kse_start();
   if (recorder_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
+  if (scope_ipc_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
 
   if (ensure_context_initialized() != 0) return -1;
   engine_started = 1;
@@ -450,6 +458,7 @@ void skred_stop(void) {
   skred_audio_disconnect();
   engine_started = 0;
   recorder_uninit();
+  scope_ipc_uninit();
   if (context_initialized) {
     ma_context_uninit(&synth_context);
     context_initialized = 0;
@@ -478,6 +487,15 @@ uint64_t skred_record_dropped_frames(void) {
   return recorder_dropped_frames();
 }
 
+int skred_scope_start(const char *name, uint32_t channel_mask,
+                      double buffer_seconds) {
+  return scope_ipc_start(name, channel_mask, buffer_seconds);
+}
+
+int skred_scope_stop(void) {
+  return scope_ipc_stop();
+}
+
 static char _features_[65536] = {0};
 #define CAT(x) {strcat(_features_, #x);strcat(_features_," ");}
 char *skred_features(void) {
@@ -496,6 +514,7 @@ CAT(SMOOTHER)
 CAT(UDP)
 CAT(KSYNTH)
 CAT(RECORD)
+CAT(SCOPE)
 return _features_;
 }
 

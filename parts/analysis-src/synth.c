@@ -1160,8 +1160,6 @@ int wave_set(int voice, int wave) {
   if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
   if (wave >= 0 && wave < WAVE_TABLE_MAX) {
     osc_set_wave_table_index(voice, wave);
-    // AUGGGHHHH... i love the scope, but this needs fixing in a better way...
-    // if (scope_enable) scope_wave_update(sv.table[voice], sv.table_size[voice]);
   } else return 100; // <-- more LAZY!!! ERR_INVALID_WAVE;
   return 0;
 }
@@ -1398,7 +1396,6 @@ int wave_default(int voice) {
   sv.freq[voice] = g;
   sv.note[voice] = (float)sv.midi_note[voice];
   osc_set_freq(voice, g);
-  // FIX FIX FIX scope_wave_update(sv.table[voice], sv.table_size[voice]);
   return 0;
 }
 

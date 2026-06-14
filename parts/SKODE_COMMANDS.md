@@ -322,11 +322,15 @@ Ksynth commands require the `KSYNTH` feature and are immediate-only.
 | `[filename] /rg [max-seconds]` | string | Start multitrack recording | `recorder_start()` |
 | `/rs` | none | Stop multitrack recording | `recorder_stop()` |
 | `/r?` | none | Show multitrack recorder status | recorder status functions |
+| `[name] /sg [channel-mask[,buffer-seconds]]` | string and numeric | Start shared-memory audio publication | `scope_ipc_start()` |
+| `/ss` | none | Stop and unlink shared-memory publication | `scope_ipc_stop()` |
+| `/s?` | none | Show shared-memory publication status | scope IPC status functions |
 | `[filename] /cat` | string | Print a text file | `fopen()`, `fgets()` |
 | `[directory] /cd` | string | Change working directory | `chdir()` |
 | `/ls [type]` | optional numeric | List files; `0=.sk`, `1=.wav`, `2=.mp3`, `3=.ks` | `opendir()`, `readdir()` |
 
-Multitrack commands require the `RECORD` feature.
+Multitrack file commands require `RECORD`. Shared-memory publication commands
+require `SCOPE`. The `r` stem-routing command is available with either feature.
 
 ## Diagnostics and Runtime Control
 
@@ -369,6 +373,7 @@ features are enabled. Important command features include:
 | `PANMOD` | `P` |
 | `PD` | `c`, `C` |
 | `RECORD` | `r`, `/rg`, `/rs`, `/r?` |
+| `SCOPE` | `r`, `/sg`, `/ss`, `/s?` |
 | `SAH` | `h` |
 | `SEQ` | timing, queue, and pattern commands |
 | `SMOOTHER` | `s` |

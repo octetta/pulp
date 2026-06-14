@@ -26,6 +26,9 @@
 @if(RECORD)
 #include "recorder.h"
 @endif
+@if(SCOPE)
+#include "scope-ipc.h"
+@endif
 
 #define ONE_FRAME_MAX (64 * 1024)
 
@@ -50,8 +53,16 @@ static void pattern_cb(int pattern, const event_program_t *program) {
 @endif
 
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
+  @if(RECORD || SCOPE)
+  synth_record_bus_t *capture_bus = NULL;
+  @endif
   @if(RECORD)
   synth_record_bus_t *record_bus = recorder_begin_block((int)frame_count);
+  if (record_bus) capture_bus = record_bus;
+  @endif
+  @if(SCOPE)
+  synth_record_bus_t *scope_bus = scope_ipc_begin_block((int)frame_count);
+  if (!capture_bus && scope_bus) capture_bus = scope_bus;
   @endif
   @if(SEQ)
   uint64_t block_end = SAMPLE_COUNT_GET() + (uint64_t)frame_count;
@@ -77,16 +88,16 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
       ((size_t)offset * pDevice->playback.channels);
     float *segment_input = input ? (float *)input +
       ((size_t)offset * pDevice->capture.channels) : NULL;
-    @if(RECORD)
+    @if(RECORD || SCOPE)
     synth_record_bus_t segment_bus;
-    synth_record_bus_t *segment_record_bus = NULL;
-    if (record_bus) {
-      segment_bus = *record_bus;
+    synth_record_bus_t *segment_capture_bus = NULL;
+    if (capture_bus) {
+      segment_bus = *capture_bus;
       segment_bus.frames += (size_t)offset * segment_bus.channels;
-      segment_record_bus = &segment_bus;
+      segment_capture_bus = &segment_bus;
     }
     synth(segment_output, segment_input, segment_frames,
-          (int)pDevice->playback.channels, segment_record_bus);
+          (int)pDevice->playback.channels, segment_capture_bus);
     @else
     synth(segment_output, segment_input, segment_frames,
           (int)pDevice->playback.channels, pDevice->pUserData);
@@ -94,13 +105,17 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
     offset += segment_frames;
   }
   @else
-  @if(RECORD)
+  @if(RECORD || SCOPE)
   synth((float *)output, (float *)input, (int)frame_count,
-        (int)pDevice->playback.channels, record_bus);
+        (int)pDevice->playback.channels, capture_bus);
   @else
   synth((float *)output, (float *)input, (int)frame_count,
         (int)pDevice->playback.channels, pDevice->pUserData);
   @endif
+  @endif
+  @if(SCOPE)
+  if (scope_bus && capture_bus)
+    scope_ipc_publish(capture_bus->frames, (int)frame_count);
   @endif
   @if(RECORD)
   recorder_end_block((int)frame_count);
@@ -463,6 +478,9 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   @if(RECORD)
   if (recorder_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
   @endif
+  @if(SCOPE)
+  if (scope_ipc_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
+  @endif
 
   if (ensure_context_initialized() != 0) return -1;
   engine_started = 1;
@@ -497,6 +515,9 @@ void skred_stop(void) {
   engine_started = 0;
   @if(RECORD)
   recorder_uninit();
+  @endif
+  @if(SCOPE)
+  scope_ipc_uninit();
   @endif
   if (context_initialized) {
     ma_context_uninit(&synth_context);
@@ -545,6 +566,26 @@ uint64_t skred_record_dropped_frames(void) {
   return recorder_dropped_frames();
   @else
   return 0;
+  @endif
+}
+
+int skred_scope_start(const char *name, uint32_t channel_mask,
+                      double buffer_seconds) {
+  @if(SCOPE)
+  return scope_ipc_start(name, channel_mask, buffer_seconds);
+  @else
+  (void)name;
+  (void)channel_mask;
+  (void)buffer_seconds;
+  return -1;
+  @endif
+}
+
+int skred_scope_stop(void) {
+  @if(SCOPE)
+  return scope_ipc_stop();
+  @else
+  return -1;
   @endif
 }
 
@@ -598,6 +639,9 @@ CAT(KSYNTH)
 @endif
 @if(RECORD)
 CAT(RECORD)
+@endif
+@if(SCOPE)
+CAT(SCOPE)
 @endif
 return _features_;
 }

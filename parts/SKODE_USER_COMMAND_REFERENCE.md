@@ -477,7 +477,90 @@ immediately on the control thread.
 | `[filename] /rg [max-seconds]` | Output filename and optional limit | Starts multitrack WAV recording. Requires `RECORD`. |
 | `/rs` | None | Stops multitrack recording. Requires `RECORD`. |
 | `/r?` | None | Displays multitrack recorder status. Requires `RECORD`. |
-| `r track` | `0` none, `1` through `4` stem | Routes the selected voice into a multitrack stem. Requires `RECORD`. |
+| `r track` | `0` none, `1` through `4` stem | Routes the selected voice into a multitrack stem. Requires `RECORD` or `SCOPE`. |
+| `[name] /sg [channel-mask[,buffer-seconds]]` | Shared-memory name, channel bit mask, ring duration | Starts live publication of the ten-channel master/stem bus. Defaults to `skred-scope`, all channels, and one second. Requires `SCOPE`. |
+| `/ss` | None | Stops publication and unlinks the shared-memory name. Existing mappings remain readable and report inactive. Requires `SCOPE`. |
+| `/s?` | None | Displays scope name, format, mask, capacity, and absolute frame counter. Requires `SCOPE`. |
+
+Scope channel-mask bits follow the file layout: bits `0` and `1` are master
+left/right, bits `2` and `3` are stem 1, through bits `8` and `9` for stem 4.
+For example, mask `3` publishes master L/R and mask `15` advertises master plus
+stem 1. The shared ring remains ten-channel interleaved float data; the mask
+tells consumers which channels were requested for display.
+
+### Multichannel WAV Walkthrough
+
+Build and launch Mini-Skred with recording support:
+
+```sh
+cd parts
+make maxed
+./build_maxed/mini-skred
+```
+
+Configure two voices, assign them to stereo stems, and start recording:
+
+```text
+v0 r1 w0 f440 a-6 t.01,.2,.7,.3
+v1 r2 w1 f660 a-9 t.01,.2,.6,.3
+[take.wav]/rg
+v0 l1
+v1 l1
+/r?
+/rs
+```
+
+`/rs` drains the writer queue and finalizes the WAV header before returning.
+The output is a 44.1 kHz, 32-bit float, ten-channel WAV in this order:
+
+| Channel | Signal |
+| --- | --- |
+| 0, 1 | Master left, right |
+| 2, 3 | Stem 1 left, right |
+| 4, 5 | Stem 2 left, right |
+| 6, 7 | Stem 3 left, right |
+| 8, 9 | Stem 4 left, right |
+
+Every audible voice is present in the master. `r1` through `r4` additionally
+route the selected voice into a stem; `r0` removes that extra route. To stop
+automatically after five seconds, use `[take.wav]/rg5`.
+
+### Shared-Memory Scope Walkthrough
+
+Start the default one-second, all-channel publisher in Mini-Skred:
+
+```text
+/sg
+/s?
+```
+
+In another terminal, run the bundled consumer:
+
+```sh
+cd parts
+./build_maxed/scope_reader skred-scope 2048
+```
+
+The final argument is the number of newest frames copied for each display
+update. The example reader prints peak and RMS measurements; a graphical
+consumer can use `scope_ipc_reader_latest()` from `scope-ipc.h` and draw the
+same frames.
+
+To publish only master L/R with a 250 ms ring:
+
+```text
+[my-scope]/sg3,.25
+```
+
+Then connect with:
+
+```sh
+./build_maxed/scope_reader my-scope 2048
+```
+
+Use `/ss` to mark the mapping inactive and unlink its name. An already-mapped
+reader can observe the inactive flag and close cleanly. Scope publication and
+multichannel WAV recording can be active simultaneously.
 
 ## Inspection and Runtime Control
 
@@ -699,6 +782,7 @@ Some commands exist only when their build feature is enabled:
 | `PANMOD` | `P` |
 | `PD` | `c`, `C` |
 | `RECORD` | `r`, `/rg`, `/rs`, `/r?` |
+| `SCOPE` | `r`, `/sg`, `/ss`, `/s?` |
 | `SAH` | `h` |
 | `SEQ` | Timing, event, and pattern commands |
 | `SMOOTHER` | `s` |

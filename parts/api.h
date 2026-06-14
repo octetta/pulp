@@ -23,6 +23,11 @@ int skred_record_state(void);
 uint64_t skred_record_frames_written(void);
 uint64_t skred_record_dropped_frames(void);
 
+// SCOPE feature: publishes the 10-channel render bus through shared memory.
+int skred_scope_start(const char *name, uint32_t channel_mask,
+                      double buffer_seconds);
+int skred_scope_stop(void);
+
 // list of included features
 char *skred_features(void);
 

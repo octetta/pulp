@@ -185,20 +185,20 @@ Files:
 
 `api.h` is the preferred integration boundary. `api.c.kit` owns the singleton
 engine, miniaudio context, active device, command context, optional UDP
-service, and optional recorder.
+service, recorder, and shared-memory scope publisher.
 
 The miniaudio callback performs this order:
 
-1. Prepare an optional recording bus.
+1. Prepare an optional ten-channel capture bus for recording or scope output.
 2. Run due queued events and pattern steps with `seq()`.
 3. Ask the sequencer for the next event or tempo-tick sample in the block.
 4. Render up to that boundary with `synth()`.
 5. Repeat sequencing and rendering for each boundary in the block.
-6. Submit the complete recording block without writing files on the audio thread.
+6. Submit the complete block to the recorder and/or scope publisher.
 
 Most callbacks still call `synth()` once. A callback is split only when a
 queued event or pattern clock tick falls inside it. Output, capture input, and
-recording pointers are advanced for each segment, while the absolute synth
+capture-bus pointers are advanced for each segment, while the absolute synth
 sample counter remains the timing authority. Integer-sample queued events are
 exact; fractional tempo boundaries are rounded forward to the next sample, so
 normal sequencing error is less than one sample. Audio-device buffering and
@@ -404,6 +404,46 @@ This separation is important: disk I/O and encoder work do not occur in the
 audio callback. If the ring cannot accept data, recording reports dropped
 frames rather than waiting.
 
+The file is 44.1 kHz interleaved 32-bit float WAV. Channels `0..1` are master
+left/right, followed by four stereo stem pairs in channels `2..9`. Voice
+command `r1` through `r4` adds that voice to the corresponding stem while
+leaving it in the master; `r0` removes the stem route. `[filename]/rg` starts,
+`/r?` reports progress, and `/rs` drains and finalizes the encoder.
+
+### Shared-Memory Scope
+
+Files:
+
+- `scope-ipc.c`
+- `scope-ipc.h`
+- `scope-reader.c`
+
+With `SCOPE=1`, the same ten-channel master/stem bus can be published to a
+versioned POSIX shared-memory overwrite ring. The producer writes full-rate
+interleaved floats and atomically advances an absolute frame counter. A
+seqlock-style publication counter lets readers reject a partial or overwritten
+snapshot and retry.
+
+The audio callback never waits for a reader. If scope lifecycle work briefly
+owns the publisher lock, that callback simply skips scope publication. Stop
+and restart operations run outside the real-time path and wait for an
+in-progress publication before unmapping.
+
+The bundled `scope_reader` is a renderer-independent consumer example:
+
+```sh
+./build_maxed/scope_reader skred-scope 2048
+```
+
+It reports peak and RMS values for enabled channels. A Raylib oscilloscope can
+use the same reader API, select the newest window, trigger on a zero crossing,
+and draw at display frequency.
+
+`RECORD` and `SCOPE` share one rendered capture bus when both are active.
+Rendering and stem mixing therefore happen once per callback; the completed
+block is submitted independently to the WAV ring and shared-memory ring.
+Either feature can also be built and used without the other.
+
 ### UDP Control
 
 Files:
@@ -499,6 +539,8 @@ Tests live in `tests/` and are registered in `CMakeLists.txt`:
 - `skqueue_tests.c` stresses concurrent event publication.
 - `audio_command_tests.c` covers audio-device command routing.
 - `recording_tests.c` covers recording when `RECORD` is enabled.
+- `scope_ipc_tests.c` covers cross-process reads, wraparound, restart
+  generations, and Skode scope commands when `SCOPE` is enabled.
 - the CMake smoke test checks generated build artifacts and feature output.
 - `synth_callback_bench.c` is an opt-in timing diagnostic for average and
   worst synthesis callback cost and measured deadline overruns.

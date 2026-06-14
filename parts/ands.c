@@ -134,6 +134,7 @@ typedef struct ands_s {
     buffer_t string[STRING_BUF_MOD];
     int string_idx;
     int string_read_idx;
+    int string_fresh;
     buffer_t atom;
     buffer_t defer;
     
@@ -236,6 +237,7 @@ static void action_finish_atom(ands_t *s) {
         if (s->fn(s, FUNCTION) == 0) {
             s->arg_len = 0;  // Clear args
         }
+        s->string_fresh = 0;
         atom_reset(s);
     }
 
@@ -263,6 +265,7 @@ static void action_chunk_end(ands_t *s) {
     if (s->atom_num != ATOM_NIL) {
         if (s->trace) printf("# left-over ATOM\n");
         s->fn(s, FUNCTION);
+        s->string_fresh = 0;
         atom_reset(s);
     }
 
@@ -350,6 +353,7 @@ int ands_consume(ands_t *s, char *line) {
                 if (IS_STRING_END(*ptr)) {
                     // Flip buffers: reading from current, writing to next
                     s->string_read_idx = s->string_idx;
+                    s->string_fresh = 1;
                     s->fn(s, GOT_STRING);
                     s->string_idx = (s->string_idx + 1) % STRING_BUF_MOD;
                     s->state = START;
@@ -541,6 +545,7 @@ int ands_arg_var(ands_t *s, int n) {
 void *ands_user(ands_t *s) { return s->user; }
 char *ands_string(ands_t *s) { return buffer_str(&s->string[s->string_read_idx]); }
 int ands_string_len(ands_t *s) { return s->string[s->string_read_idx].len; }
+int ands_string_fresh(ands_t *s) { return s->string_fresh; }
 void ands_chunk_mode(ands_t *s, int mode) { s->mode = mode; }
 int ands_chunk_mode_get(ands_t *s) { return s->mode; }
 void ands_trace_set(ands_t *s, int n) { s->trace = n; }

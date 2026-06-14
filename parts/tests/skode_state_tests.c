@@ -270,6 +270,7 @@ static void test_envelope_configuration_is_deferred(void) {
 }
 
 static void test_envelope_future_timestamps(void) {
+#ifdef SKRED_TEST_ADSR
   const char *test = "envelope future timestamps";
   if (!skode_opcode_supported(SKODE_OP_ENVELOPE)) return;
 
@@ -292,6 +293,7 @@ static void test_envelope_future_timestamps(void) {
   envelope.sample_release = 1024;
   expect_float(test, envelope_step_e(&envelope, 1000), 0.75f, 0.0001f,
                "future release remains at release start");
+#endif
 }
 
 static void configure_loop_test_voice(int voice, int direction) {

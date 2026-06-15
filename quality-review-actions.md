@@ -4,12 +4,13 @@ Recorded June 6, 2026.
 
 ## Status Update
 
-Reviewed against the implementation on June 11, 2026.
+Reviewed against the implementation on June 15, 2026.
 
-- **Still open:** `ks_eval()` result ownership.
+- **Resolved:** `ks_eval()` result ownership.
 - **Resolved:** event queue publication ordering; covered by
   `skqueue_tests.c`.
-- **Still open:** deterministic Ksynth and UDP worker shutdown.
+- **Still open:** deterministic UDP worker shutdown; Ksynth shutdown is
+  resolved.
 - **Partially resolved:** `ands_free()` now frees the parser object and
   `ands_new()` checks allocation failures, but `skode_t` still has no explicit
   destructor and UDP context cleanup remains unfinished.
@@ -21,18 +22,16 @@ Line references below describe the June 6 snapshot and may have moved.
 
 ## Critical
 
-### Fix `ks_eval` result ownership - Open
+### Fix `ks_eval` result ownership - Resolved
 
-- `ks_eval()` returns a pointer into its arena after resetting that arena.
-- `kse.c` retains and later reads this invalid pointer.
-- Define an explicit ownership contract for evaluation results, then copy or
-  promote the result before resetting the arena.
-- Add tests covering scalar and array results across multiple evaluations.
+- `ks_eval()` now promotes its result to an owned allocation before resetting
+  the evaluation arena.
+- Callers release owned results with `k_free()`.
+- Bridge tests cover retained array results across subsequent evaluations.
 
 Relevant code:
 
-- `parts/ksynth.c:893`
-- `parts/ksynth.c:899`
+- `parts/vendor/ksynth/ksynth.c`
 - `parts/kse.c:82`
 
 ## High
@@ -49,14 +48,12 @@ Relevant code:
 - `parts/skqueue.c:87`
 - `parts/skqueue.c:130`
 
-### Make worker shutdown deterministic - Open
+### Make worker shutdown deterministic - Partially Resolved
 
-- The k-synth and UDP workers are detached and are not joined during shutdown.
-- Their running flags are shared between threads without atomic access or a
-  mutex.
-- Use synchronized stop state, wake blocked workers, join them, and destroy
-  thread resources before returning.
-- Test repeated start/stop cycles and shutdown while work is pending.
+- The Ksynth worker now drains its owned job queue, joins during shutdown,
+  and destroys its synchronization resources. Repeated start/stop is covered.
+- The UDP worker remains detached and still needs synchronized stop state,
+  wakeup, joining, and repeated start/stop coverage.
 
 Relevant code:
 

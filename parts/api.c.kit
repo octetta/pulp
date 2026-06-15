@@ -473,7 +473,7 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   @endif
 
   @if(KSYNTH)
-  kse_start();
+  if (kse_start() != 0) return -1;
   @endif
   @if(RECORD)
   if (recorder_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;

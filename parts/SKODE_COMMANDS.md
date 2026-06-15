@@ -307,15 +307,28 @@ Skode has `SKODE_EXTRA_MAX` (128) external string buffers of 256 bytes each.
 | `kw> [timeout-ms]` | optional numeric | Wait and copy result to parser data | `skode_ks_result_to_data()` |
 | `k?` | none | Print latest Ksynth result | `kse_result_copy()` |
 | `k>d` | none | Copy latest Ksynth result to parser data | `skode_ks_result_to_data()` |
+| `d>k variable` | numeric `0..25` | Copy parser data to Ksynth `A..Z` | `kse_bind_vector()` |
+| `w>k wave,variable` | numeric | Copy a wavetable directly to Ksynth `A..Z` | `kse_bind_vector()` |
 
 Ksynth commands require the `KSYNTH` feature and are immediate-only.
+Each vector is limited to one million elements, and pending Ksynth jobs share
+a 64 MiB queue-payload budget. Submissions fail cleanly when either limit is
+exceeded.
+
+`d>k` and `w>k` enqueue owned copies, so the parser data or wavetable may be
+changed after submission without altering the queued input. Jobs from one
+writer execute in FIFO order. `kw>` waits for the latest submitted job and
+then copies the latest numeric result into parser data. Wavetable metadata,
+including rate, looping, and one-shot state, is not part of the transferred
+Ksynth vector. The worker has one shared `ks_ctx`, so persistent variables
+`A..Z` are engine-wide rather than owned by an individual `skode_t`.
 
 ## Files, Samples, and Recording
 
 | Command | Arguments or string | Behavior | Main function |
 | --- | --- | --- | --- |
 | `/l file-number[,verbose]` | numeric | Load a numbered `.sk` file | `skode_load()` |
-| `[filename] /ws wave[,channel]` | string | Load an audio file by name | `wave_load_string()` |
+| `[filename] /ws wave[,channel]` | string | Load an audio file into a writable wave slot | `wave_load_string()` |
 | `/w file-number[,wave[,channel]]` | numeric | Load a numbered audio file | `wave_load()` |
 | `<r seconds`, `^r seconds` | numeric | Record audio into the sample buffer | `skode_sample_go()` |
 | `>r number` | numeric | Normalize sample buffer and write `out-N.wav` | miniaudio encoder API |
@@ -369,7 +382,7 @@ features are enabled. Important command features include:
 | `FILT` | `J`, `K`, `Q` |
 | `FM` | `F`, `FF` |
 | `GLISS` | `g` |
-| `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d` |
+| `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
 | `PANMOD` | `P` |
 | `PD` | `c`, `C` |
 | `RECORD` | `r`, `/rg`, `/rs`, `/r?` |

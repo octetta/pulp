@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <setjmp.h>
 #include <fenv.h>
+#include <limits.h>
 #include "ksynth.h"
 
 /* --- Thread-Local Tracking for Signal Handling --- */
@@ -117,6 +118,7 @@ void ks_clear_vars(ks_ctx *ctx) {
 void ks_destroy(ks_ctx *ctx) {
     if (!ctx) return;
     ks_clear_vars(ctx);
+    free(ctx->eval_code);
     free(ctx->arena_base);
     free(ctx);
 }
@@ -165,12 +167,14 @@ K k_new_perm(ks_ctx *ctx, int n) {
     return x;
 }
 
-/* k_free: arena objects are owned by the arena — this is a no-op for them.
-   Perm objects (vars[]) are freed directly via free() in ks_clear_vars.
-   We keep this function so call sites don't need to change. */
+/* k_free: arena objects are owned by the arena. Objects outside the arena
+   were allocated by k_new_perm and are owned by the caller. */
 void k_free(ks_ctx *ctx, K x) {
-    (void)ctx; (void)x;
-    /* no-op: arena objects reset in bulk; perm objects freed by ks_clear_vars */
+    if (!ctx || !x) return;
+    uintptr_t p = (uintptr_t)x;
+    uintptr_t begin = (uintptr_t)ctx->arena_base;
+    uintptr_t end = (uintptr_t)ctx->arena_end;
+    if (p < begin || p >= end) free(x);
 }
 
 K k_view(ks_ctx *ctx, int n, double *ptr) {
@@ -183,13 +187,27 @@ K k_view(ks_ctx *ctx, int n, double *ptr) {
 }
 
 void bind_scalar(ks_ctx *ctx, char name, double val) {
-    if (name < 'A' || name > 'Z') return;
+    (void)ks_bind_vector(ctx, name, &val, 1);
+}
+
+ks_status ks_bind_vector(ks_ctx *ctx, char name, const double *values,
+                         size_t length) {
+    if (!ctx || name < 'A' || name > 'Z' ||
+        (length > 0 && !values) || length > 1000000 || length > INT_MAX) {
+        if (ctx) ctx->last_status = KS_ERR_INVALID_ARGS;
+        return KS_ERR_INVALID_ARGS;
+    }
+
+    K x = k_new_perm(ctx, (int)length);
+    if (!x) return KS_ERR_OOM;
+    if (length) memcpy(x->f, values, length * sizeof(double));
+
     int i = name - 'A';
-    K x = k_new_perm(ctx, 1);
-    if (!x) return; /* OOM — leave existing var untouched */
-    x->f[0] = val;
-    if (ctx->vars[i]) free(ctx->vars[i]);
+    K old = ctx->vars[i];
     ctx->vars[i] = x;
+    k_free(ctx, old);
+    ctx->last_status = KS_OK;
+    return KS_OK;
 }
 
 /* k_get returns an arena-allocated copy of the var's value.
@@ -860,6 +878,25 @@ K e(ks_ctx *ctx, char **s) {
 
 /* --- Public API --- */
 
+static K k_clone_owned(ks_ctx *ctx, K source) {
+    if (!source) return NULL;
+    if (k_is_func(source)) {
+        int len = (int)strlen((char *)source->f) + 1;
+        int ndoubles = (len + (int)sizeof(double) - 1) / (int)sizeof(double);
+        K copy = k_new_perm(ctx, ndoubles);
+        if (!copy) return NULL;
+        copy->n = -1;
+        memcpy(copy->f, source->f, (size_t)len);
+        return copy;
+    }
+    K copy = k_new_perm(ctx, source->n);
+    if (!copy) return NULL;
+    if (source->n > 0) {
+        memcpy(copy->f, source->f, (size_t)source->n * sizeof(double));
+    }
+    return copy;
+}
+
 K ks_eval(ks_ctx *ctx, const char *code, size_t len) {
     if (!ctx || !code) return NULL;
 
@@ -883,17 +920,19 @@ K ks_eval(ks_ctx *ctx, const char *code, size_t len) {
     /* sigsetjmp with savemask=1 saves the current signal mask so that
        siglongjmp can restore it, unblocking the signal after recovery. */
     if (sigsetjmp(ctx->recover, 1) == 0) {
-        char *buf = malloc(len + 1);
-        if (!buf) {
+        ctx->eval_code = malloc(len + 1);
+        if (!ctx->eval_code) {
             ctx->last_status = KS_ERR_OOM;
         } else {
-            memcpy(buf, code, len);
-            buf[len] = '\0';
-            char *p_code = buf;
+            memcpy(ctx->eval_code, code, len);
+            ctx->eval_code[len] = '\0';
+            char *p_code = ctx->eval_code;
             result = e(ctx, &p_code);
-            free(buf);
+            if (result) result = k_clone_owned(ctx, result);
         }
     }
+    free(ctx->eval_code);
+    ctx->eval_code = NULL;
     /* Both the success and longjmp paths fall through here.
        Reset the arena — all temporaries are gone. */
     ctx->arena_ptr  = arena_checkpoint;
@@ -904,10 +943,8 @@ K ks_eval(ks_ctx *ctx, const char *code, size_t len) {
     signal(SIGILL,  old_ill);
     current_ks_ctx = NULL;
 
-    /* result pointed into the arena which we just reset — it's invalid.
-       Callers that need the value must have stored it in a var (A:) or
-       the wrapper layer must copy it before this return. For the REPL
-       use-case the wrappers do exactly that. */
+    /* The returned object is an owned copy. The caller releases it with
+       k_free(); all evaluator intermediates were reclaimed above. */
     return result;
 }
 

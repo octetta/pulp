@@ -7,6 +7,7 @@ separate_arguments(KIT_OPTS_LIST NATIVE_COMMAND "${KIT_OPTS}")
 list(FIND KIT_OPTS_LIST "RECORD=1" RECORD_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "SCOPE=1" SCOPE_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "ADSR=1" ADSR_FEATURE_INDEX)
+list(FIND KIT_OPTS_LIST "KSYNTH=1" KSYNTH_FEATURE_INDEX)
 if(NOT SCOPE_FEATURE_INDEX EQUAL -1 AND WIN32)
     message(FATAL_ERROR "SCOPE=1 currently requires POSIX shared memory")
 endif()
@@ -49,7 +50,7 @@ set(API_PLAIN_SOURCES
     skode-event.c
     skqueue.c
     udp.c
-    ksynth.c
+    vendor/ksynth/ksynth.c
     ks_chan.c
     kse.c
 )
@@ -169,6 +170,8 @@ add_test(
 
 add_executable(skode_state_tests tests/skode_state_tests.c)
 target_link_libraries(skode_state_tests PRIVATE api)
+target_compile_definitions(skode_state_tests PRIVATE
+  SKRED_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 if(NOT ADSR_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_ADSR=1)
 endif()
@@ -192,6 +195,17 @@ target_link_libraries(audio_command_tests PRIVATE api)
 add_test(
   NAME audio.command-routing
   COMMAND audio_command_tests
+)
+
+add_executable(ksynth_bridge_tests tests/ksynth_bridge_tests.c)
+target_link_libraries(ksynth_bridge_tests PRIVATE api)
+if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
+  target_compile_definitions(ksynth_bridge_tests PRIVATE SKRED_TEST_KSYNTH=1)
+endif()
+
+add_test(
+  NAME ksynth.array-bridge
+  COMMAND ksynth_bridge_tests
 )
 
 add_executable(render_equivalence_probe EXCLUDE_FROM_ALL

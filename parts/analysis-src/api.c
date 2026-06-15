@@ -426,7 +426,7 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
     if (r != udp_port) udp_port = 0;
   }
 
-  kse_start();
+  if (kse_start() != 0) return -1;
   if (recorder_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
   if (scope_ipc_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
 

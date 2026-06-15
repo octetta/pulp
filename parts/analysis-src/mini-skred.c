@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "uedit.h"
+#include "vendor/uedit/uedit.h"
 
 void usage(void) {
   printf("# skred\n");

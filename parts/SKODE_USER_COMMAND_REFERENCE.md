@@ -459,7 +459,7 @@ immediately on the control thread.
 
 | Command | Parameters | Effect |
 | --- | --- | --- |
-| `[filename] /ws wave[,channel]` | File name, destination wave, channel | Loads an audio file into a wavetable slot. |
+| `[filename] /ws wave[,channel]` | File name, writable destination wave, channel | Loads an audio file into the requested wavetable slot. Slots occupied by read-only built-in waves or active voices are rejected. |
 | `/w file[,wave[,channel]]` | Numbered file and optional destination | Loads a numbered audio file. |
 | `w>d wave` | Wave index | Copies wavetable samples into the parser data array. |
 | `w>r wave` | Wave index | Copies wavetable samples into the temporary recording buffer. |
@@ -599,6 +599,96 @@ multichannel WAV recording can be active simultaneously.
 | `kw> [timeout-ms]` | Optional timeout | Waits and copies the result into parser data. |
 | `k?` | None | Displays the latest Ksynth result. |
 | `k>d` | None | Copies the latest Ksynth result into parser data. |
+| `d>k variable` | Variable `0` through `25` | Copies parser data into Ksynth variable `A` through `Z`. |
+| `w>k wave,variable` | Wave index and variable `0` through `25` | Copies a wavetable directly into Ksynth variable `A` through `Z`. |
+
+Ksynth bindings and evaluations share one ordered asynchronous queue. For
+example, `(1 2 3) d>k0 [A,A] ks kw>` binds `A` before evaluating the
+concatenation. Sample-rate and loop metadata are not copied with array values;
+provide the desired rate when loading returned parser data with `/d`.
+Vectors are limited to one million elements. Pending Ksynth jobs share a
+64 MiB payload budget; a command reports failure rather than retaining
+unbounded queued copies.
+
+### Processing Wavetables with Ksynth
+
+Variables are numbered in Skode and named in Ksynth:
+
+```text
+0 = A
+1 = B
+...
+25 = Z
+```
+
+Bindings and evaluations are asynchronous but ordered. `kw>` waits for the
+latest operation and copies its result into the current Skode data array.
+Ksynth variables `A` through `Z` belong to the engine's single worker context
+and are shared by all Skode command contexts. Coordinate variable use when
+local, UDP, or other controllers operate concurrently.
+
+**Transform parser data and load the result into a wavetable:**
+
+```text
+(0 .5 1 .5 0) d>k0
+[i A] ks
+kw>1000
+/d300,44100
+```
+
+This binds the data array to `A`, reverses it with Ksynth's monadic `i`, waits
+up to 1000 milliseconds, and loads the result into wavetable 300 at 44100 Hz.
+
+**Transform a wavetable directly:**
+
+```text
+w>k10,0
+[w A] ks
+kw>1000
+/d300,44100
+```
+
+This copies wave 10 into `A`, peak-normalizes it with Ksynth's monadic `w`,
+and stores the result in wave 300. `w>k` avoids changing the current Skode
+data array during import.
+
+**Concatenate two built-in wavetables into a periodic waveform:**
+
+```text
+w>k10,0
+w>k11,1
+[A,B] ks
+kw>1000
+/d300,44100,0
+v0 w300,1,0
+```
+
+Built-in waves 10 and 11 each contain 4096 samples. The comma concatenates
+`A` and `B` into one 8192-sample cycle. `/d300,44100,0` stores it as a
+periodic wavetable, and `w300,1,0` selects it with interpolation enabled and
+one-shot playback disabled. The oscillator wraps from the end of wave 11 back
+to the beginning of wave 10.
+
+**Concatenate two wavetables into a one-shot waveform:**
+
+```text
+w>k10,0
+w>k11,1
+[A,B] ks
+kw>1000
+/d301,44100,1
+v0 w301,1,1
+```
+
+This creates the same 8192-sample sequence but stores it in wave 301 as a
+one-shot. `w301,1,1` selects it with interpolation enabled and one-shot
+playback enabled, so a trigger reads wave 10 followed by wave 11 and then
+stops at the end instead of wrapping. Use another `/d` rate when the source
+material is not 44100 Hz.
+
+`kw` waits without copying a result. `k>d` copies the latest completed result
+without waiting. Prefer `kw>` when the next command immediately consumes the
+new array.
 
 ## Example Sounds
 
@@ -778,7 +868,7 @@ Some commands exist only when their build feature is enabled:
 | `FILT` and `FADSR` | `ft`, `fd` |
 | `FM` | `F`, `FF` |
 | `GLISS` | `g` |
-| `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d` |
+| `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
 | `PANMOD` | `P` |
 | `PD` | `c`, `C` |
 | `RECORD` | `r`, `/rg`, `/rs`, `/r?` |

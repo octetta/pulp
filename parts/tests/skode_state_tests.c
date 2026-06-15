@@ -182,6 +182,20 @@ static void test_data_array_logging(void) {
   }
 }
 
+static void test_named_wave_destination(void) {
+  const char *test = "named wave destination";
+  skode_t ctx = new_ctx();
+  char command[512];
+  snprintf(command, sizeof(command), "[%s/wav/11.wav] /ws200",
+           SKRED_TEST_SOURCE_DIR);
+  consume(test, &ctx, command);
+
+  if (!sw.data[200]) fail(test, "wave 200 was not populated");
+  if (sw.size[200] <= 0) fail(test, "wave 200 has no samples");
+  if (sw.name[200][0] == '\0') fail(test, "wave 200 label is empty");
+  expect_int(test, sw.readonly[200], 0, "wave 200 readonly");
+}
+
 static void test_midi_and_links(void) {
   const char *test = "midi and links";
   skode_t ctx = new_ctx();
@@ -1070,6 +1084,7 @@ int main(void) {
   test_invalid_voice_does_not_move_selection();
   test_text_and_show_logging();
   test_data_array_logging();
+  test_named_wave_destination();
   test_midi_and_links();
   test_trigger_delay_lifecycle();
   test_envelope_configuration_is_deferred();

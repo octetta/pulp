@@ -432,8 +432,34 @@ int skode_ks_result_to_data(skode_t *ctx, int writer) {
     for (int i=0; i<(int)len; i++) g[i] = f[i];
     ands_data_len_set(ctx->parse, (int)len);
   }
+  int copied = f && len;
   kse_result_free(f);
-  return (f && len) ? 1 : 0;
+  return copied;
+}
+
+uint64_t skode_ks_bind_values(skode_t *ctx, int writer, int variable,
+                              const double *values, size_t len) {
+  if (variable < 0 || variable >= 26) {
+    ctx->printf(ctx, "# invalid ksynth variable %d (expected 0..25)\n",
+                variable);
+    return 0;
+  }
+  if (!values || len == 0) {
+    ctx->printf(ctx, "# no data to bind\n");
+    return 0;
+  }
+  if (len > 1000000) {
+    ctx->printf(ctx, "# ksynth vector too large: %zu\n", len);
+    return 0;
+  }
+  uint64_t seq = kse_bind_vector(writer, (char)('A' + variable), values, len);
+  if (!seq) {
+    ctx->printf(ctx, "# ksynth bind queue full or allocation failed\n");
+    return 0;
+  }
+  ctx->ks_wait_writer = writer;
+  ctx->ks_wait_seq = seq;
+  return seq;
 }
 
 void ksynth_loader(skode_t *ctx, FILE *in, int writer, int verbose) {
@@ -632,7 +658,10 @@ int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offse
 int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int normalize) {
   (void)normalize;
   if (ctx == NULL) return 100; // fix todo
-  if (wave_index < EXT_SAMPLE_000 || wave_index >= EXT_SAMPLE_999) return -1;
+  if (!skode_wave_valid(wave_index)) {
+    ctx->printf(ctx, "# invalid slot %d\n", wave_index);
+    return -1;
+  }
   if (sw.readonly[wave_index] == 1) {
     ctx->printf(ctx, "# cannot write to w%d r/o\n", wave_index);
     return -1;
@@ -695,7 +724,10 @@ int wave_try_open_number(int file_num, char *name, int len) {
 int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize) {
   (void)normalize;
   if (ctx == NULL) return 100; // fix todo
-  if (wave_index < EXT_SAMPLE_000 || wave_index >= EXT_SAMPLE_999) return -1;
+  if (!skode_wave_valid(wave_index)) {
+    ctx->printf(ctx, "# invalid slot %d\n", wave_index);
+    return -1;
+  }
   if (sw.readonly[wave_index] == 1) {
     ctx->printf(ctx, "# cannot write to w%d r/o\n", wave_index);
     return -1;
@@ -2082,6 +2114,40 @@ int skode_function(ands_t *s, int info) {
         } else {
           ctx->printf(ctx, "NO!\n");
         }
+      }
+      break;
+    case ATOM4('d>k-'): // data-to-ksynth-variable
+      if (argc) {
+        int variable;
+        if (skode_double_to_int(arg[0], &variable)) {
+          skode_ks_bind_values(ctx, 0, variable, ands_data(ctx->parse),
+                               (size_t)ands_data_len(ctx->parse));
+        }
+      }
+      break;
+    case ATOM4('w>k-'): // wavetable-to-ksynth-variable
+      if (argc > 1) {
+        int wave;
+        int variable;
+        if (!skode_double_to_int(arg[0], &wave) ||
+            !skode_double_to_int(arg[1], &variable) ||
+            !skode_wave_valid(wave) || !sw.data[wave] || sw.size[wave] <= 0) {
+          ctx->printf(ctx, "# invalid wavetable for w>k\n");
+          break;
+        }
+        size_t len = (size_t)sw.size[wave];
+        if (len > 1000000 || len > SIZE_MAX / sizeof(double)) {
+          ctx->printf(ctx, "# ksynth vector too large: %zu\n", len);
+          break;
+        }
+        double *values = malloc(len * sizeof(double));
+        if (!values) {
+          ctx->printf(ctx, "# allocation failed\n");
+          break;
+        }
+        for (size_t i = 0; i < len; i++) values[i] = sw.data[wave][i];
+        skode_ks_bind_values(ctx, 0, variable, values, len);
+        free(values);
       }
       break;
     case ATOM4('w>d-'): // wave-to-data

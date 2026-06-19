@@ -73,8 +73,12 @@ typedef enum {
 } skode_compile_result_t;
 
 #define SKODE_LOG_MAX (4096)
+#define SKODE_LOG_LINES (64)
+#define SKODE_LOG_LINE_MAX (256)
 #define SKODE_EXTRA_MAX (128)
 #define SKODE_COMPILE_DEPTH_MAX (16)
+#define SKODE_STRING_SLOT_MAX (16)
+#define SKODE_STRING_SLOT_LEN (256)
 
 typedef struct skode_s {
   int voice;
@@ -93,6 +97,13 @@ typedef struct skode_s {
   char log[SKODE_LOG_MAX + 1024];
   int log_max;
   int log_len;
+  char log_ring[SKODE_LOG_LINES][SKODE_LOG_LINE_MAX];
+  int log_head;
+  int log_count;
+  int log_dropped;
+  char log_pending[SKODE_LOG_LINE_MAX];
+  int log_pending_len;
+  char string_slot[SKODE_STRING_SLOT_MAX][SKODE_STRING_SLOT_LEN];
   int flag;
   struct ks_ctx *ks;
   void *ks_result;

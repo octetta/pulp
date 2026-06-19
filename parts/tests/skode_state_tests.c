@@ -1011,6 +1011,27 @@ static void test_parameter_and_buffer_safety(void) {
     }
   }
 
+  guarded.ctx.log[0] = '\0';
+  guarded.ctx.log_len = 0;
+  guarded.ctx.log_enable = 1;
+  skode_printf(&guarded.ctx, "alpha ");
+  skode_printf(&guarded.ctx, "beta\n");
+  if (strstr(guarded.ctx.log, "alpha beta") == NULL) {
+    fail(test, "fragmented printf did not form one log line");
+  }
+
+  guarded.ctx.log[0] = '\0';
+  guarded.ctx.log_len = 0;
+  guarded.ctx.log_enable = 1;
+  for (int i = 0; i < SKODE_LOG_LINES + 5; i++) {
+    skode_printf(&guarded.ctx, "line-%02d\n", i);
+  }
+  if (strstr(guarded.ctx.log, "line-00") != NULL ||
+      strstr(guarded.ctx.log, "line-68") == NULL ||
+      strstr(guarded.ctx.log, "# log dropped 5 lines") == NULL) {
+    fail(test, "ring log overflow did not keep recent lines");
+  }
+
   skode_t ctx = new_ctx();
   consume(test, &ctx, "wait");
   consume(test, &ctx, "100000000 >");
@@ -1053,7 +1074,7 @@ static void test_ands_macro_commands(void) {
   skode_t ctx = new_ctx();
   ctx.log_enable = 1;
 
-  consume(test, &ctx, "[ar]: t @0 0 @1 0 ; [zz]: f @0 ;");
+  consume(test, &ctx, "[ar]: t $$0 0 $$1 0 ; [zz]: f $$0 ;");
   expect_int(test, ands_macro_count(ctx.parse), 2, "macro count after define");
 
   ctx.log[0] = '\0';
@@ -1068,6 +1089,49 @@ static void test_ands_macro_commands(void) {
 
   consume(test, &ctx, "/m!");
   expect_int(test, ands_macro_count(ctx.parse), 0, "macro count after clear");
+}
+
+static void test_control_composition_primitives(void) {
+  const char *test = "control composition primitives";
+  skode_t ctx = new_ctx();
+  ctx.log_enable = 1;
+
+  consume(test, &ctx, "0 5 swap v");
+  expect_int(test, ctx.voice, 5, "swap feeds next command");
+  consume(test, &ctx, "7 3 drop v");
+  expect_int(test, ctx.voice, 3, "drop feeds next command");
+  consume(test, &ctx, "4 2 over v");
+  expect_int(test, ctx.voice, 2, "over feeds next command");
+  consume(test, &ctx, "1 6 7 rot v");
+  expect_int(test, ctx.voice, 6, "rot feeds next command");
+  consume(test, &ctx, "5 dup v");
+  expect_int(test, ctx.voice, 5, "dup feeds next command");
+  consume(test, &ctx, "2 clr v");
+  expect_int(test, ctx.voice, 5, "clr leaves next command without args");
+
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "[alpha] 0 s> [beta] ?s");
+  if (!strstr(ctx.log, "# [beta]")) fail(test, "parser string baseline missing");
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "0 <s ?s");
+  if (!strstr(ctx.log, "# [alpha]")) fail(test, "local string slot restore failed");
+
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "[slot-@0-@1] 3 4 s% ?s");
+  if (!strstr(ctx.log, "# [slot-3-4]")) fail(test, "runtime string format failed");
+
+  consume(test, &ctx, "0 3 4 a= a");
+  expect_float(test, sv.user_amp[ctx.voice], 7.0f, 0.0001f,
+               "arithmetic return feeds amp");
+  consume(test, &ctx, "11 6 = a");
+  expect_float(test, sv.user_amp[ctx.voice], 6.0f, 0.0001f,
+               "register set return feeds amp");
+  consume(test, &ctx, "(11 12) 1 d@ a");
+  expect_float(test, sv.user_amp[ctx.voice], 12.0f, 0.0001f,
+               "data read return feeds amp");
 }
 
 static void test_tempo_and_pattern_reset_limits(void) {
@@ -1187,6 +1251,7 @@ int main(void) {
   test_parameter_and_buffer_safety();
   test_context_modes();
   test_ands_macro_commands();
+  test_control_composition_primitives();
   test_tempo_and_pattern_reset_limits();
   test_sample_accurate_sequence_boundaries();
   test_silent_voice_fast_path();

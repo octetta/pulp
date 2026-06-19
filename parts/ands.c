@@ -235,7 +235,7 @@ static int expand_buf_append(buffer_t *b, const char *text) {
 }
 
 static int ands_macro_valid_name(const char *name, int len) {
-    if (len <= 0 || len >= MACRO_NAME_LEN) return 0;
+    if (len <= 0 || len > MACRO_NAME_LEN - 1) return 0;
     for (int i = 0; i < len; i++) {
         if (!IS_ATOM(name[i])) return 0;
     }
@@ -303,8 +303,15 @@ static int ands_macro_arg_count(const char *body) {
     int highest = -1;
 
     for (const char *p = body; *p; p++) {
-        if (*p == '@' && isdigit((unsigned char)p[1])) {
-            int n = p[1] - '0';
+        int n = -1;
+        if (p[0] == '$' && p[1] == '$' && isdigit((unsigned char)p[2])) {
+            n = p[2] - '0';
+            p += 2;
+        } else if (*p == '@' && isdigit((unsigned char)p[1])) {
+            n = p[1] - '0';
+            p++;
+        }
+        if (n >= 0) {
             if (n < MACRO_ARGS_MAX && n > highest) highest = n;
         }
     }
@@ -359,6 +366,7 @@ static int ands_try_parse_macro_definition(ands_t *s, char **ptr, char *end) {
     if (name_end >= end || *name_end != ']') return 0;
 
     name_len = (int)(name_end - name_start);
+    if (name_len >= MACRO_NAME_LEN) name_len = MACRO_NAME_LEN - 1;
     if (!ands_macro_valid_name(name_start, name_len)) return 0;
 
     p = ands_skip_separators(name_end + 1, end);
@@ -421,7 +429,11 @@ static int ands_expand_macro(ands_t *s, int macro_idx, char args[][MACRO_BODY_LE
     if (!expanded.data) return 0;
 
     for (char *p = body; ok && *p; p++) {
-        if (*p == '@' && isdigit((unsigned char)p[1])) {
+        if (p[0] == '$' && p[1] == '$' && isdigit((unsigned char)p[2])) {
+            int arg_idx = p[2] - '0';
+            if (arg_idx < num_args) ok = expand_buf_append(&expanded, args[arg_idx]);
+            p += 2;
+        } else if (*p == '@' && isdigit((unsigned char)p[1])) {
             int arg_idx = p[1] - '0';
             if (arg_idx < num_args) ok = expand_buf_append(&expanded, args[arg_idx]);
             p++;
@@ -967,6 +979,45 @@ double ands_arg_swap(ands_t *s) {
     return 0;
 }
 
+static void ands_arg_insert_front(ands_t *s, double value, int var) {
+    if (!s || s->arg_len >= s->arg_cap) return;
+    for (int i = s->arg_len; i > 0; i--) {
+        s->arg[i] = s->arg[i - 1];
+        s->arg_var[i] = s->arg_var[i - 1];
+    }
+    s->arg[0] = value;
+    s->arg_var[0] = var;
+    s->arg_len++;
+}
+
+double ands_arg_dup(ands_t *s) {
+    if (s && s->arg_len > 0) {
+        ands_arg_insert_front(s, s->arg[0], s->arg_var[0]);
+    }
+    return 0;
+}
+
+double ands_arg_over(ands_t *s) {
+    if (s && s->arg_len > 1) {
+        ands_arg_insert_front(s, s->arg[1], s->arg_var[1]);
+    }
+    return 0;
+}
+
+double ands_arg_rot(ands_t *s) {
+    if (s && s->arg_len > 2) {
+        double t = s->arg[0];
+        int tv = s->arg_var[0];
+        s->arg[0] = s->arg[1];
+        s->arg_var[0] = s->arg_var[1];
+        s->arg[1] = s->arg[2];
+        s->arg_var[1] = s->arg_var[2];
+        s->arg[2] = t;
+        s->arg_var[2] = tv;
+    }
+    return 0;
+}
+
 double ands_arg_push_many(ands_t *s, double *a, int n) {
     for (int i = 0; i < n && s->arg_len < s->arg_cap; i++) {
         s->arg[s->arg_len] = a[i];
@@ -1008,16 +1059,21 @@ void ands_global_to_local(ands_t *s, int n) {
 #define STRING_PTR(s) s->string[s->string_idx % STRING_BUF_MOD].data
 
 char *ands_string_from_external(ands_t *s, char *src, int len) {
+  char *dst;
   if (!s || !src) return NULL;
   if (len < 0) len = 0;
   if (len >= STRING_BUF_LEN) len = STRING_BUF_LEN - 1;
-  memcpy(STRING_PTR(s), src, (size_t)len);
-  STRING_PTR(s)[len] = '\0';
-  return STRING_PTR(s);
+  dst = STRING_PTR(s);
+  memcpy(dst, src, (size_t)len);
+  dst[len] = '\0';
+  s->string_read_idx = s->string_idx;
+  s->string_fresh = 1;
+  s->string_idx = (s->string_idx + 1) % STRING_BUF_MOD;
+  return dst;
 }
 
 char *ands_string_to_external(ands_t *s, char *dst, int len) {
   if (!s || !dst || len <= 0) return dst;
-  snprintf(dst, (size_t)len, "%s", STRING_PTR(s));
+  snprintf(dst, (size_t)len, "%s", buffer_str(&s->string[s->string_read_idx]));
   return dst;
 }

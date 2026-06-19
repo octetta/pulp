@@ -284,6 +284,12 @@ amplitude, and `2` is frequency.
 
 | Command | Arguments | Behavior | Main function |
 | --- | --- | --- | --- |
+| `dup` | numeric stack | Duplicate the first pending argument for the next atom | `ands_arg_dup()` |
+| `drop` | numeric stack | Drop the first pending argument for the next atom | `ands_arg_drop()` |
+| `swap` | numeric stack | Swap the first two pending arguments for the next atom | `ands_arg_swap()` |
+| `over` | numeric stack | Copy the second pending argument to the front | `ands_arg_over()` |
+| `rot` | numeric stack | Rotate the first three pending arguments left | `ands_arg_rot()` |
+| `clr` | numeric stack | Clear pending arguments before the next atom | `ands_arg_clear()` |
 | `D` | `[capacity]` | Show or increase parser data capacity | `ands_data_cap()`, `ands_data_resize()` |
 | `/D` | `[capacity]` | Resize data and print capacity details | `ands_data_resize()` |
 | `?d` | none | Print parser data | `skode_double_dump()` |
@@ -299,6 +305,79 @@ amplitude, and `2` is frequency.
 
 The two meanings of `=` share syntax. `=N,value` is also accepted by the
 scheduled opcode compiler and writes the global register array when executed.
+The immediate read/math forms `d@`, `W@`, `v@`, `=`, `*=`, `/=`, `a=`, and
+`s=` also return their result as the next command's pending first argument
+when they are followed by another atom in the same chunk.
+
+### Macro and Composition Examples
+
+ANDS macros are parser-local shortcuts. Define them with `[name] : body ;`.
+Names use the same four-character atom width as commands; longer definition
+names are silently truncated to four characters. Macro arguments are written
+as `$$0`..`$$7`; the older `@0`..`@7` form is still accepted for compatibility.
+Plain `$0` keeps its normal meaning as an ANDS local/global variable reference
+after the macro expands.
+
+```skode
+[ar] : t $$0 0 $$1 0 ;
+ar 0.01 0.4
+```
+
+The example above expands to `t 0.01 0 0.4 0`, which configures an attack /
+release-style amplitude envelope using the normal `t` command.
+
+Macros can bundle small voice recipes:
+
+```skode
+[one] : w $$0 1 1 k1 t $$1 0 $$2 $$3 ;
+one 12 0.002 1 0.08
+```
+
+That selects wave `12`, enables interpolation and one-shot playback, enables
+timed ASR mode, and configures the envelope. Macro definitions can be inspected
+and removed from the current parser context:
+
+```skode
+?m
+[one] /m
+/m!
+```
+
+Read commands can feed later commands in the same chunk. The return value is
+left as the next command's first pending argument:
+
+```skode
+1 v@ a       # read selected voice amplitude and feed it to a
+0 3 4 a= a  # store 3+4 in $0, then feed 7 to a
+(2 5 8) 1 d@ f
+```
+
+The stack helpers rearrange pending numeric arguments before the next atom:
+
+```skode
+0 5 swap v  # v receives 5 instead of 0
+7 3 drop v  # v receives 3
+4 2 over v  # v receives 2, with the copied value at the front
+1 6 7 rot v # v receives 6
+```
+
+Context-local string slots are useful scratch pads that do not use the global
+external string buffers:
+
+```skode
+[lead voice] 0 s>
+[temporary] vt
+0 <s vt
+s?
+```
+
+Runtime string formatting replaces `@0`..`@7` in the current parser string
+with numeric arguments:
+
+```skode
+[take-@0.wav] 12 s% /rg 10
+[voice @0 wave @1] 3 14 s% vt
+```
 
 ## String Buffers and Ksynth
 
@@ -309,6 +388,10 @@ Skode has `SKODE_EXTRA_MAX` (128) external string buffers of 256 bytes each.
 | `[text] e> index` | string | Copy parser string to external buffer | `skode_copy_string()` |
 | `<e index` | numeric | Copy external buffer to parser string | `ands_string_from_external()` |
 | `e? [index]` | optional numeric | Show one or all non-empty buffers | direct buffer inspection |
+| `[text] s> index` | string | Copy parser string to a context-local string slot | `ctx->string_slot[]` |
+| `<s index` | numeric | Copy a context-local string slot to parser string | `ands_string_from_external()` |
+| `s? [index]` | optional numeric | Show one or all non-empty context-local string slots | direct slot inspection |
+| `[template] s% args...` | string and numeric | Replace `@0`..`@7` in parser string with numeric args | `skode_format_string_args()` |
 | `e! index` | literal numeric | Compile and inline a macro buffer; schedulable | `skode_extra_copy()`, `skode_compile_program()` |
 | `eR index,count,seconds[,tag]` | numeric | Repeat a compiled macro snapshot using seconds | `skode_repeat_macro()` |
 | `eRR index,count,beats[,tag]` | numeric | Repeat a compiled macro snapshot using tempo | `skode_repeat_macro()` |

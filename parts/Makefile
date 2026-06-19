@@ -1,11 +1,13 @@
 # A simple "Top-Level" Makefile to manage the CMake complexity
-.PHONY: all clean native pi test warn warn-maxed maxed wasm analysis-src analysis-check
+.PHONY: all clean native pi test warn warn-maxed maxed wasm analysis-src analysis-check libs native-libs maxed-libs dist-api
 
 ZIG_LOCAL_CACHE_DIR ?= /tmp/pulp-zig-local-cache
 ZIG_GLOBAL_CACHE_DIR ?= /tmp/pulp-zig-global-cache
 EM_CACHE ?= /tmp/pulp-em-cache
 ZIG_ENV = cmake -E env ZIG_LOCAL_CACHE_DIR=$(ZIG_LOCAL_CACHE_DIR) ZIG_GLOBAL_CACHE_DIR=$(ZIG_GLOBAL_CACHE_DIR)
 EM_ENV = env EM_CACHE=$(EM_CACHE)
+VERSION := $(shell cat ../VERSION)
+DIST_ROOT ?= ../dist
 MAXED_KIT_OPTS = KSYNTH=1 ADSR=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
 BUILD_TYPE ?= Release
 WASM_KIT_OPTS = KSYNTH=1 SEQ=1 ADSR=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SMOOTHER=1
@@ -30,6 +32,23 @@ maxed:
 	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-DKIT_OPTS="$(MAXED_KIT_OPTS)"
 	cmake --build build_maxed
+
+libs: native-libs
+
+native-libs:
+	cmake -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+	cmake --build build_native --target api api_shared mini-skred
+	cmake --install build_native --prefix $(DIST_ROOT)/skred-$(VERSION)-native
+
+maxed-libs:
+	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+		-DKIT_OPTS="$(MAXED_KIT_OPTS)"
+	cmake --build build_maxed --target api api_shared mini-skred
+	cmake --install build_maxed --prefix $(DIST_ROOT)/skred-$(VERSION)-maxed
+
+dist-api: maxed-libs
+	cmake -E chdir $(DIST_ROOT) cmake -E tar czf skred-$(VERSION)-maxed.tar.gz \
+		--format=gnutar skred-$(VERSION)-maxed
 
 analysis-src:
 	cmake -B $(ANALYSIS_BUILD_DIR) -S . -DKIT_OPTS="$(MAXED_KIT_OPTS)"

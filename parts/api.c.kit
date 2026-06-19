@@ -675,6 +675,22 @@ CAT(SCOPE)
 return _features_;
 }
 
+const char *skred_version(void) {
+  return SKRED_VERSION;
+}
+
+int skred_version_major(void) {
+  return SKRED_VERSION_MAJOR;
+}
+
+int skred_version_minor(void) {
+  return SKRED_VERSION_MINOR;
+}
+
+int skred_version_patch(void) {
+  return SKRED_VERSION_PATCH;
+}
+
 char *skred_log(void) {
   return w.log;
 }

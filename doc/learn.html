@@ -164,7 +164,7 @@
 <body>
 
 <div class="top-bar">
-  <h1>learn skode & skred (0.23.1)</h1>
+  <h1>learn skode & skred (<span class="skred-version">...</span>)</h1>
   <div id="status-indicator" class="status-dot"></div>
   <button id="btn-start" class="nav-btn">Start</button>
   <button id="btn-stop" class="nav-btn" disabled>Stop</button>
@@ -769,6 +769,39 @@ V=54272:POKE V+24,15:POKE V+5,8:POKE V+6,0:POKE V,214:POKE V+1,28:POKE V+4,17
   mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
   const container = document.getElementById('notebook-container');
   const templates = document.querySelectorAll('template');
+
+  function setSkredVersion(version) {
+    document.querySelectorAll('.skred-version').forEach(el => {
+      el.textContent = version;
+    });
+  }
+
+  async function setSkredVersionFallback() {
+    try {
+      const response = await fetch('../VERSION', { cache: 'no-store' });
+      if (response.ok) setSkredVersion((await response.text()).trim());
+    } catch (_) {}
+  }
+
+  function setSkredVersionFromWasm() {
+    if (typeof Module === 'undefined' || !Module._skred_version ||
+        !Module.UTF8ToString) return false;
+    const ptr = Module._skred_version();
+    if (!ptr) return false;
+    setSkredVersion(Module.UTF8ToString(ptr));
+    return true;
+  }
+
+  setSkredVersionFallback();
+  if (typeof Module !== 'undefined') {
+    const previousRuntimeInitialized = Module.onRuntimeInitialized;
+    Module.onRuntimeInitialized = function() {
+      if (typeof previousRuntimeInitialized === 'function')
+        previousRuntimeInitialized();
+      setSkredVersionFromWasm();
+    };
+    setSkredVersionFromWasm();
+  }
 
   // Render Templates
   templates.forEach(async (template) => {

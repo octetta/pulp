@@ -1,5 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
-project(mini-skred)
+
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../VERSION" PULP_VERSION)
+string(STRIP "${PULP_VERSION}" PULP_VERSION)
+string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" PULP_VERSION_MATCH "${PULP_VERSION}")
+if(NOT PULP_VERSION_MATCH)
+    message(FATAL_ERROR "VERSION must be MAJOR.MINOR.PATCH, got '${PULP_VERSION}'")
+endif()
+set(PULP_VERSION_MAJOR "${CMAKE_MATCH_1}")
+set(PULP_VERSION_MINOR "${CMAKE_MATCH_2}")
+set(PULP_VERSION_PATCH "${CMAKE_MATCH_3}")
+
+project(mini-skred VERSION "${PULP_VERSION}")
+include(GNUInstallDirs)
 
 # 1. Build the tool
 set(KIT_OPTS "" CACHE STRING "Extra flags for the kit tool")
@@ -36,6 +48,13 @@ endfunction()
 # 1.1 Define the absolute paths for the generator
 set(SYNTH_STATE_KIT "${CMAKE_CURRENT_SOURCE_DIR}/synth-state.h.kit")
 set(SYNTH_STATE_H   "${CMAKE_CURRENT_BINARY_DIR}/synth-state.h")
+set(SKRED_VERSION_H "${CMAKE_CURRENT_BINARY_DIR}/skred-version.h")
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/skred-version.h.in"
+    "${SKRED_VERSION_H}"
+    @ONLY
+)
 
 # 1.2 The Command: This is the ONLY place that runs the kit_tool for this header
 add_kit_generated_file("${SYNTH_STATE_H}" "${SYNTH_STATE_KIT}" ${KIT_TOOL_EXE})
@@ -104,9 +123,25 @@ add_library(api STATIC
 
 set_target_properties(api PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(api_shared SHARED
+  ${API_PLAIN_SOURCES}
+  ${API_GEN_SOURCES}
+  "${SYNTH_STATE_H}"
+)
+
+set_target_properties(api_shared PROPERTIES
+  OUTPUT_NAME api
+  VERSION "${PROJECT_VERSION}"
+  SOVERSION "${PROJECT_VERSION_MAJOR}"
+  POSITION_INDEPENDENT_CODE ON
+  WINDOWS_EXPORT_ALL_SYMBOLS ON
+)
+
 # 5. Include Directories for the library
 target_include_directories(api PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 target_include_directories(api PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # 6. Setup the main mini-skred executable module
 set(EXE_MOD "mini-skred")
@@ -130,6 +165,7 @@ find_library(MATH_LIB m)
 if(MATH_LIB)
     # Link to the API library (PUBLIC so mini-skred inherits the math dependency)
     target_link_libraries(api PUBLIC ${MATH_LIB})
+    target_link_libraries(api_shared PUBLIC ${MATH_LIB})
     
     # Link to the tool (only if kit.c needs it)
     if(TARGET kit_tool)
@@ -146,6 +182,19 @@ add_custom_target(check_opts
 
 # Hook the check_opts to the library so it always runs
 add_dependencies(api check_opts)
+add_dependencies(api_shared check_opts)
+
+install(TARGETS api api_shared mini-skred
+  ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+)
+
+install(FILES
+  "${CMAKE_CURRENT_SOURCE_DIR}/api.h"
+  "${SKRED_VERSION_H}"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/skred"
+)
 
 enable_testing()
 

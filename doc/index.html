@@ -286,7 +286,7 @@ Type <span class="system">'help'</span> for basic things.
         </div>
 
         <div class="status-bar">
-            <span id="engine-left">wasm-skred 0.23.1</span>
+            <span id="engine-left">wasm-skred <span class="skred-version">...</span></span>
             <span id="engine-center">log 0</span>
             <span id="engine-right">
                 <span id="engine-status">AUDIO OFF</span>
@@ -343,6 +343,39 @@ const sliderRows = Array.from(document.querySelectorAll('.slider-row'));
 
 let commandHistory = [];
 let historyIndex = -1;
+
+function setSkredVersion(version) {
+    document.querySelectorAll('.skred-version').forEach(el => {
+        el.textContent = version;
+    });
+}
+
+async function setSkredVersionFallback() {
+    try {
+        const response = await fetch('../VERSION', { cache: 'no-store' });
+        if (response.ok) setSkredVersion((await response.text()).trim());
+    } catch (_) {}
+}
+
+function setSkredVersionFromWasm() {
+    if (typeof Module === "undefined" || !Module._skred_version ||
+        !Module.UTF8ToString) return false;
+    const ptr = Module._skred_version();
+    if (!ptr) return false;
+    setSkredVersion(Module.UTF8ToString(ptr));
+    return true;
+}
+
+setSkredVersionFallback();
+if (typeof Module !== "undefined") {
+    const previousRuntimeInitialized = Module.onRuntimeInitialized;
+    Module.onRuntimeInitialized = function() {
+        if (typeof previousRuntimeInitialized === "function")
+            previousRuntimeInitialized();
+        setSkredVersionFromWasm();
+    };
+    setSkredVersionFromWasm();
+}
 
 function outputNearBottom() {
     return output.scrollHeight - output.scrollTop - output.clientHeight < 24;

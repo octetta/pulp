@@ -12,7 +12,12 @@
 #else
     #include <termios.h>
     #include <unistd.h>
-    #define GETCH() getchar()
+    static int uedit_getch(void) {
+        unsigned char ch;
+        ssize_t n = read(STDIN_FILENO, &ch, 1);
+        return n == 1 ? (int)ch : EOF;
+    }
+    #define GETCH() uedit_getch()
 #endif
 
 #define UEDIT_MAX_LINE 1024
@@ -27,15 +32,27 @@ static char uedit_h_tmp[UEDIT_MAX_LINE] = {0}; /* Saves current line during brow
 
 #ifndef _WIN32
 static struct termios uedit_orig_termios;
+static int uedit_raw_enabled = 0;
+static int uedit_atexit_registered = 0;
 static void uedit_disable_raw_mode(void) {
+    if (!uedit_raw_enabled) return;
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &uedit_orig_termios);
+    uedit_raw_enabled = 0;
 }
-static void uedit_enable_raw_mode(void) {
-    tcgetattr(STDIN_FILENO, &uedit_orig_termios);
-    atexit(uedit_disable_raw_mode);
+static int uedit_enable_raw_mode(void) {
+    if (!isatty(STDIN_FILENO)) return -1;
+    if (tcgetattr(STDIN_FILENO, &uedit_orig_termios) != 0) return -1;
+    if (!uedit_atexit_registered) {
+        atexit(uedit_disable_raw_mode);
+        uedit_atexit_registered = 1;
+    }
     struct termios raw = uedit_orig_termios;
     raw.c_lflag &= ~(ECHO | ICANON);
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+    raw.c_cc[VMIN] = 1;
+    raw.c_cc[VTIME] = 0;
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) != 0) return -1;
+    uedit_raw_enabled = 1;
+    return 0;
 }
 #else
 static DWORD uedit_orig_in_mode, uedit_orig_out_mode;
@@ -43,11 +60,13 @@ static void uedit_disable_raw_mode(void) {
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),  uedit_orig_in_mode);
     SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), uedit_orig_out_mode);
 }
-static void uedit_enable_raw_mode(void) {
+static int uedit_enable_raw_mode(void) {
     HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE), hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    GetConsoleMode(hIn, &uedit_orig_in_mode); GetConsoleMode(hOut, &uedit_orig_out_mode);
+    if (!GetConsoleMode(hIn, &uedit_orig_in_mode) ||
+        !GetConsoleMode(hOut, &uedit_orig_out_mode)) return -1;
     SetConsoleMode(hIn, uedit_orig_in_mode & ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT));
     SetConsoleMode(hOut, uedit_orig_out_mode | 0x0004);
+    return 0;
 }
 #endif
 
@@ -70,7 +89,9 @@ static void uedit_add_history(const char *line) {
     if (uedit_h_cnt > 0 && strcmp(uedit_hist[last], line) == 0) return;
 
     if (!uedit_hist[uedit_h_head]) uedit_hist[uedit_h_head] = malloc(UEDIT_MAX_LINE);
+    if (!uedit_hist[uedit_h_head]) return;
     strncpy(uedit_hist[uedit_h_head], line, UEDIT_MAX_LINE - 1);
+    uedit_hist[uedit_h_head][UEDIT_MAX_LINE - 1] = '\0';
     uedit_h_head = (uedit_h_head + 1) % uedit_h_max;
     if (uedit_h_cnt < uedit_h_max) uedit_h_cnt++;
 }
@@ -87,10 +108,18 @@ static int uedit(const char *prompt, char *buf, int max_line) {
     if (max_line <= 0) return -1;
     memset(buf, 0, max_line);
     printf("%s", prompt); fflush(stdout);
-    uedit_enable_raw_mode();
+    if (uedit_enable_raw_mode() != 0) {
+        if (!fgets(buf, max_line, stdin)) return -1;
+        len = (int)strlen(buf);
+        if (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r'))
+            buf[--len] = '\0';
+        uedit_add_history(buf);
+        return len;
+    }
 
     while (1) {
         c = GETCH();
+        if (c == EOF) { len = -1; break; }
         if      (c == CTRL_KEY('a')) cur = 0;
         else if (c == CTRL_KEY('e')) cur = len;
         else if (c == CTRL_KEY('u')) { buf[0] = '\0'; len = cur = 0; }

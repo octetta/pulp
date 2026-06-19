@@ -12,20 +12,20 @@
 int requested_seq_frames_per_callback = SEQ_FRAMES_PER_CALLBACK;
 int seq_frames_per_callback = 0;
 
-char seq_pattern[PATTERNS_MAX][SEQ_STEPS_MAX][STEP_MAX];
-event_program_t seq_program[PATTERNS_MAX][SEQ_STEPS_MAX];
-int seq_pattern_length[PATTERNS_MAX];
+char seq_pattern[PATTERNS_MAX][SEQ_STEPS_MAX][STEP_MAX] = {{{0}}};
+event_program_t seq_program[PATTERNS_MAX][SEQ_STEPS_MAX] = {{{0}}};
+int seq_pattern_length[PATTERNS_MAX] = {0};
 
 int scope_pattern_pointer = 0;
-int seq_pointer[PATTERNS_MAX];  // read-only derived value, kept for external inspection
-int seq_state[PATTERNS_MAX];
-int seq_modulo[PATTERNS_MAX];
-int seq_mute[PATTERNS_MAX];
+int seq_pointer[PATTERNS_MAX] = {0};  // read-only derived value, kept for external inspection
+int seq_state[PATTERNS_MAX] = {0};
+int seq_modulo[PATTERNS_MAX] = {0};
+int seq_mute[PATTERNS_MAX] = {0};
 static atomic_int_t seq_generation[PATTERNS_MAX];
 static simple_mutex_t seq_edit_mutex;
 static int seq_edit_mutex_ready = 0;
 
-text_t seq_text[PATTERNS_MAX];
+text_t seq_text[PATTERNS_MAX] = {{0}};
 
 // Per-pattern offset applied to the master clock when deriving step position:
 //   step = ((master_tick / modulo) - seq_offset[p]) % length

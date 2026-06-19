@@ -39,21 +39,16 @@ static int mod_voice_invalid(int voice) {
 void synth_init(int vc) {
   SAMPLE_COUNT_PUT(0);
 
+  if (synth_config.wave_table_max == 0)
+    synth_config_defaults();
+
   synth_config_set_voices(vc);
   if (verbose) printf("# vc = %d\n", vc);
 
   if (verbose) printf("# synth_config.voice_max = %d\n", synth_config.voice_max);
   if (verbose) printf("# synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
 
-  /* If nobody called synth_config_set_voices() before us, fill in defaults.
-   * voice_max == 0 means aligned_alloc(64, 0) which is UB / NULL on most
-   * platforms — the root cause of the silent segfault on startup. */
-  if (synth_config.voice_max == 0 || synth_config.wave_table_max == 0)
-    synth_config_defaults();
-
-  //synth_alloc_voices(synth_config.voice_max);
-  synth_alloc_voices(vc);
-  synth_config.voice_max = vc;
+  synth_alloc_voices(synth_config.voice_max);
   synth_alloc_waves(synth_config.wave_table_max);
 
   if (verbose) printf("# synth_config.voice_max = %d\n", synth_config.voice_max);

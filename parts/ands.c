@@ -78,6 +78,19 @@ static int ands_var_parse(char **ptr, char *end) {
 #define ATOM_NIL (0x2d2d2d2d)
 #define VAR_MAX (ANDS_VAR_MAX)
 
+#define MACRO_MAX (64)
+#define MACRO_NAME_LEN (ANDS_MACRO_NAME_LEN)
+#define MACRO_BODY_LEN (ANDS_MACRO_BODY_LEN)
+#define MACRO_ARGS_MAX (8)
+#define MACRO_EXPAND_DEPTH_MAX (8)
+
+typedef struct {
+    char name[MACRO_NAME_LEN];
+    char body[MACRO_BODY_LEN];
+    int arg_count;
+    int used;
+} macro_t;
+
 // ============================================================================
 // UNIFIED BUFFER MANAGEMENT
 // ============================================================================
@@ -174,7 +187,331 @@ typedef struct ands_s {
     
     // Trace
     int trace;
+
+    // Parser-local macro definitions
+    macro_t macros[MACRO_MAX];
 } ands_t;
+
+// ============================================================================
+// MACRO PREPROCESSOR
+// ============================================================================
+
+static int expand_buf_reserve(buffer_t *b, int extra) {
+    int need = b->len + extra + 1;
+    char *data;
+    int cap;
+
+    if (need <= b->cap) return 1;
+
+    cap = b->cap > 0 ? b->cap : 128;
+    while (cap < need) cap *= 2;
+
+    data = (char *)realloc(b->data, (size_t)cap);
+    if (!data) return 0;
+
+    b->data = data;
+    b->cap = cap;
+    return 1;
+}
+
+static int expand_buf_push(buffer_t *b, char c) {
+    if (!expand_buf_reserve(b, 1)) return 0;
+    b->data[b->len++] = c;
+    b->data[b->len] = '\0';
+    return 1;
+}
+
+static int expand_buf_append_n(buffer_t *b, const char *text, int len) {
+    if (len <= 0) return 1;
+    if (!expand_buf_reserve(b, len)) return 0;
+    memcpy(b->data + b->len, text, (size_t)len);
+    b->len += len;
+    b->data[b->len] = '\0';
+    return 1;
+}
+
+static int expand_buf_append(buffer_t *b, const char *text) {
+    return expand_buf_append_n(b, text, (int)strlen(text));
+}
+
+static int ands_macro_valid_name(const char *name, int len) {
+    if (len <= 0 || len >= MACRO_NAME_LEN) return 0;
+    for (int i = 0; i < len; i++) {
+        if (!IS_ATOM(name[i])) return 0;
+    }
+    return 1;
+}
+
+static int ands_find_macro(ands_t *s, const char *name) {
+    for (int i = 0; i < MACRO_MAX; i++) {
+        if (s->macros[i].used && strcmp(s->macros[i].name, name) == 0) return i;
+    }
+    return -1;
+}
+
+int ands_macro_count(ands_t *s) {
+    int count = 0;
+
+    if (!s) return 0;
+    for (int i = 0; i < MACRO_MAX; i++) {
+        if (s->macros[i].used) count++;
+    }
+
+    return count;
+}
+
+int ands_macro_get(ands_t *s, int index, char *name, int name_len,
+                   char *body, int body_len, int *arg_count) {
+    int seen = 0;
+
+    if (!s || index < 0) return 0;
+
+    for (int i = 0; i < MACRO_MAX; i++) {
+        if (!s->macros[i].used) continue;
+        if (seen++ != index) continue;
+
+        if (name && name_len > 0) {
+            snprintf(name, (size_t)name_len, "%s", s->macros[i].name);
+        }
+        if (body && body_len > 0) {
+            snprintf(body, (size_t)body_len, "%s", s->macros[i].body);
+        }
+        if (arg_count) *arg_count = s->macros[i].arg_count;
+        return 1;
+    }
+
+    return 0;
+}
+
+int ands_macro_remove(ands_t *s, const char *name) {
+    int idx;
+
+    if (!s || !name) return 0;
+    idx = ands_find_macro(s, name);
+    if (idx < 0) return 0;
+
+    memset(&s->macros[idx], 0, sizeof(s->macros[idx]));
+    return 1;
+}
+
+void ands_macro_clear(ands_t *s) {
+    if (!s) return;
+    memset(s->macros, 0, sizeof(s->macros));
+}
+
+static int ands_macro_arg_count(const char *body) {
+    int highest = -1;
+
+    for (const char *p = body; *p; p++) {
+        if (*p == '@' && isdigit((unsigned char)p[1])) {
+            int n = p[1] - '0';
+            if (n < MACRO_ARGS_MAX && n > highest) highest = n;
+        }
+    }
+
+    return highest + 1;
+}
+
+static int ands_store_macro(ands_t *s, const char *name, const char *body, int body_len) {
+    int idx = ands_find_macro(s, name);
+
+    if (idx < 0) {
+        for (int i = 0; i < MACRO_MAX; i++) {
+            if (!s->macros[i].used) {
+                idx = i;
+                break;
+            }
+        }
+    }
+
+    if (idx < 0) return 0;
+
+    strncpy(s->macros[idx].name, name, MACRO_NAME_LEN - 1);
+    s->macros[idx].name[MACRO_NAME_LEN - 1] = '\0';
+
+    if (body_len >= MACRO_BODY_LEN) body_len = MACRO_BODY_LEN - 1;
+    memcpy(s->macros[idx].body, body, (size_t)body_len);
+    s->macros[idx].body[body_len] = '\0';
+    s->macros[idx].arg_count = ands_macro_arg_count(s->macros[idx].body);
+    s->macros[idx].used = 1;
+    return 1;
+}
+
+static char *ands_skip_separators(char *p, char *end) {
+    while (p < end && IS_SEPARATOR(*p)) p++;
+    return p;
+}
+
+static int ands_try_parse_macro_definition(ands_t *s, char **ptr, char *end) {
+    char *p = *ptr;
+    char *name_start;
+    char *name_end;
+    char *body_start;
+    char name[MACRO_NAME_LEN];
+    int name_len;
+    int body_len;
+
+    if (p >= end || *p != '[') return 0;
+
+    name_start = p + 1;
+    name_end = name_start;
+    while (name_end < end && *name_end != ']') name_end++;
+    if (name_end >= end || *name_end != ']') return 0;
+
+    name_len = (int)(name_end - name_start);
+    if (!ands_macro_valid_name(name_start, name_len)) return 0;
+
+    p = ands_skip_separators(name_end + 1, end);
+    if (p >= end || *p != ':') return 0;
+
+    memcpy(name, name_start, (size_t)name_len);
+    name[name_len] = '\0';
+
+    body_start = p + 1;
+    p = body_start;
+    while (p < end && *p != ';') p++;
+    body_len = (int)(p - body_start);
+    ands_store_macro(s, name, body_start, body_len);
+
+    if (p < end && *p == ';') p++;
+    *ptr = p;
+    return 1;
+}
+
+static char *ands_skip_bracketed(char *p, char *end, char close) {
+    while (p < end) {
+        char c = *p++;
+        if (c == close) break;
+    }
+    return p;
+}
+
+static int ands_collect_macro_arg(char **ptr, char *end, char *arg, int arg_len) {
+    char *p = ands_skip_separators(*ptr, end);
+    char *start = p;
+    int len;
+
+    if (p >= end || IS_CHUNK_END(*p) || IS_COMMENT(*p)) return 0;
+
+    if (IS_STRING(*p)) {
+        p = ands_skip_bracketed(p + 1, end, ']');
+    } else if (IS_ARRAY(*p)) {
+        p = ands_skip_bracketed(p + 1, end, ')');
+    } else {
+        while (p < end && !IS_SEPARATOR(*p) && !IS_CHUNK_END(*p)) p++;
+    }
+
+    len = (int)(p - start);
+    if (len >= arg_len) len = arg_len - 1;
+    memcpy(arg, start, (size_t)len);
+    arg[len] = '\0';
+    *ptr = p;
+    return 1;
+}
+
+static int ands_preprocess_macros(ands_t *s, const char *input, buffer_t *out, int depth);
+
+static int ands_expand_macro(ands_t *s, int macro_idx, char args[][MACRO_BODY_LEN],
+                             int num_args, buffer_t *out, int depth) {
+    buffer_t expanded;
+    char *body = s->macros[macro_idx].body;
+    int ok = 1;
+
+    buffer_init(&expanded, MACRO_BODY_LEN);
+    if (!expanded.data) return 0;
+
+    for (char *p = body; ok && *p; p++) {
+        if (*p == '@' && isdigit((unsigned char)p[1])) {
+            int arg_idx = p[1] - '0';
+            if (arg_idx < num_args) ok = expand_buf_append(&expanded, args[arg_idx]);
+            p++;
+        } else {
+            ok = expand_buf_push(&expanded, *p);
+        }
+    }
+
+    if (ok) ok = ands_preprocess_macros(s, expanded.data, out, depth + 1);
+    buffer_free(&expanded);
+    return ok;
+}
+
+static int ands_preprocess_macros(ands_t *s, const char *input, buffer_t *out, int depth) {
+    char *ptr = (char *)input;
+    char *end = ptr + strlen(ptr);
+
+    if (depth > MACRO_EXPAND_DEPTH_MAX) return expand_buf_append(out, input);
+
+    while (ptr < end) {
+        char *start = ptr;
+
+        if (*ptr == '[' && ands_try_parse_macro_definition(s, &ptr, end)) {
+            continue;
+        }
+
+        if (IS_COMMENT(*ptr)) {
+            while (ptr < end && *ptr != '\n' && !IS_CHUNK_END(*ptr)) {
+                if (!expand_buf_push(out, *ptr++)) return 0;
+            }
+            continue;
+        }
+
+        if (IS_STRING(*ptr)) {
+            ptr = ands_skip_bracketed(ptr + 1, end, ']');
+            if (!expand_buf_append_n(out, start, (int)(ptr - start))) return 0;
+            continue;
+        }
+
+        if (IS_ARRAY(*ptr)) {
+            ptr = ands_skip_bracketed(ptr + 1, end, ')');
+            if (!expand_buf_append_n(out, start, (int)(ptr - start))) return 0;
+            continue;
+        }
+
+        if (IS_ATOM(*ptr)) {
+            char atom[MACRO_NAME_LEN];
+            char *arg_ptr;
+            char args[MACRO_ARGS_MAX][MACRO_BODY_LEN];
+            int atom_len = 0;
+            int atom_too_long = 0;
+            int idx;
+
+            while (ptr < end && IS_ATOM(*ptr)) {
+                if (atom_len < MACRO_NAME_LEN - 1) {
+                    atom[atom_len++] = *ptr;
+                } else {
+                    atom_too_long = 1;
+                }
+                ptr++;
+            }
+            atom[atom_len] = '\0';
+
+            idx = ands_find_macro(s, atom);
+            if (!atom_too_long && atom_len > 0 && atom_len < MACRO_NAME_LEN && idx >= 0) {
+                int needed = s->macros[idx].arg_count;
+                int collected = 0;
+                arg_ptr = ptr;
+
+                for (; collected < needed; collected++) {
+                    if (!ands_collect_macro_arg(&arg_ptr, end, args[collected], MACRO_BODY_LEN)) break;
+                }
+
+                if (collected == needed &&
+                    ands_expand_macro(s, idx, args, collected, out, depth)) {
+                    ptr = arg_ptr;
+                    expand_buf_push(out, ' ');
+                    continue;
+                }
+            }
+
+            if (!expand_buf_append_n(out, start, (int)(ptr - start))) return 0;
+            continue;
+        }
+
+        if (!expand_buf_push(out, *ptr++)) return 0;
+    }
+
+    return 1;
+}
 
 // ============================================================================
 // ATOM ENCODING - Simpler implementation with documentation
@@ -286,8 +623,18 @@ static void action_chunk_end(ands_t *s) {
 // ============================================================================
 
 int ands_consume(ands_t *s, char *line) {
-    char *ptr = line;
-    char *end = ptr + strlen(ptr);
+    buffer_t expanded;
+    char *parse_line = line;
+    char *ptr;
+    char *end;
+
+    buffer_init(&expanded, (int)strlen(line) + 1);
+    if (expanded.data && ands_preprocess_macros(s, line, &expanded, 0)) {
+        parse_line = expanded.data;
+    }
+
+    ptr = parse_line;
+    end = ptr + strlen(ptr);
 
     while (1) {
         if (ptr >= end) {
@@ -465,6 +812,7 @@ int ands_consume(ands_t *s, char *line) {
         action_chunk_end(s);
         s->state = START;
     }
+    buffer_free(&expanded);
     return 0;
 }
 

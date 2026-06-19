@@ -239,6 +239,117 @@ static void test_variable_provenance(void) {
     fail(test, "defer argument lost variable provenance");
 }
 
+static void test_macros_basic(void) {
+  const char *test = "macros basic";
+  recorder_t r;
+  char input[] = "[ar] : t @0 0 @1 0 ; ar 0.01 0.4";
+  run_parse(test, input, &r);
+
+  expect_len(test, &r, 2);
+  expect_event(test, &r, 0, FUNCTION, "t---");
+  expect_arg(test, &r, 0, 0, 0.01);
+  expect_arg(test, &r, 0, 1, 0);
+  expect_arg(test, &r, 0, 2, 0.4);
+  expect_arg(test, &r, 0, 3, 0);
+  expect_event(test, &r, 1, CHUNK_END, "----");
+}
+
+static void test_macros_nested_and_replace(void) {
+  const char *test = "macros nested and replace";
+  recorder_t r;
+  char input[] = "[ar]: t @0 0 @1 0 ; [aa]: f @0 ; [aa]: ar @0 .4 ; aa .01";
+  run_parse(test, input, &r);
+
+  expect_len(test, &r, 2);
+  expect_event(test, &r, 0, FUNCTION, "t---");
+  expect_arg(test, &r, 0, 0, 0.01);
+  expect_arg(test, &r, 0, 1, 0);
+  expect_arg(test, &r, 0, 2, 0.4);
+  expect_arg(test, &r, 0, 3, 0);
+  expect_event(test, &r, 1, CHUNK_END, "----");
+}
+
+static void test_macro_definitions_do_not_break_strings(void) {
+  const char *test = "macro definitions do not break strings";
+  recorder_t r;
+  char input[] = "[kick one] vt [ar]: t @0 0 ; ar 2";
+  run_parse(test, input, &r);
+
+  expect_len(test, &r, 4);
+  expect_event(test, &r, 0, GOT_STRING, "----");
+  if (strcmp(r.events[0].text, "kick one") != 0) fail(test, "string text mismatch");
+  expect_event(test, &r, 1, FUNCTION, "vt--");
+  expect_event(test, &r, 2, FUNCTION, "t---");
+  expect_arg(test, &r, 2, 0, 2);
+  expect_arg(test, &r, 2, 1, 0);
+  expect_event(test, &r, 3, CHUNK_END, "----");
+}
+
+static void test_macros_are_parser_local(void) {
+  const char *test = "macros are parser local";
+  recorder_t r;
+  ands_t *s = ands_new(record_cb, &r);
+  char define[] = "[zz]: f @0 ;";
+  char use[] = "zz 220";
+  char fresh_use[] = "zz 330";
+
+  memset(&r, 0, sizeof(r));
+  if (!s) {
+    fail(test, "ands_new returned NULL");
+    return;
+  }
+
+  ands_consume(s, define);
+  r.len = 0;
+  ands_consume(s, use);
+  ands_free(s);
+
+  expect_len(test, &r, 2);
+  expect_event(test, &r, 0, FUNCTION, "f---");
+  expect_arg(test, &r, 0, 0, 220);
+  expect_event(test, &r, 1, CHUNK_END, "----");
+
+  run_parse(test, fresh_use, &r);
+  expect_len(test, &r, 2);
+  expect_event(test, &r, 0, FUNCTION, "zz--");
+  expect_arg(test, &r, 0, 0, 330);
+  expect_event(test, &r, 1, CHUNK_END, "----");
+}
+
+static void test_macro_management_api(void) {
+  const char *test = "macro management api";
+  recorder_t r;
+  ands_t *s = ands_new(record_cb, &r);
+  char define[] = "[ar]: t @0 0 @1 0 ; [zz]: f @0 ;";
+  char name[ANDS_MACRO_NAME_LEN];
+  char body[ANDS_MACRO_BODY_LEN];
+  int arg_count = -1;
+
+  memset(&r, 0, sizeof(r));
+  if (!s) {
+    fail(test, "ands_new returned NULL");
+    return;
+  }
+
+  ands_consume(s, define);
+  expect_len(test, &r, 1);
+  if (ands_macro_count(s) != 2) fail(test, "expected two macros");
+  if (!ands_macro_get(s, 0, name, sizeof(name), body, sizeof(body), &arg_count)) {
+    fail(test, "missing macro 0");
+  } else if (name[0] == '\0' || body[0] == '\0' || arg_count < 1) {
+    fail(test, "macro 0 contents invalid");
+  }
+
+  if (!ands_macro_remove(s, "ar")) fail(test, "remove ar failed");
+  if (ands_macro_count(s) != 1) fail(test, "expected one macro after remove");
+  if (ands_macro_remove(s, "ar")) fail(test, "remove ar should not repeat");
+
+  ands_macro_clear(s);
+  if (ands_macro_count(s) != 0) fail(test, "clear failed");
+
+  ands_free(s);
+}
+
 int main(void) {
   test_compact_commands();
   test_strings_and_arrays();
@@ -246,6 +357,11 @@ int main(void) {
   test_comments_and_chunks();
   test_defer();
   test_variable_provenance();
+  test_macros_basic();
+  test_macros_nested_and_replace();
+  test_macro_definitions_do_not_break_strings();
+  test_macros_are_parser_local();
+  test_macro_management_api();
 
   if (failures) {
     fprintf(stderr, "%d ANDS parser test failure(s)\n", failures);

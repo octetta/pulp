@@ -1048,6 +1048,28 @@ static void test_context_modes(void) {
   expect_int(test, ands_chunk_mode_get(ctx.parse), 1, "chunk mode");
 }
 
+static void test_ands_macro_commands(void) {
+  const char *test = "ands macro commands";
+  skode_t ctx = new_ctx();
+  ctx.log_enable = 1;
+
+  consume(test, &ctx, "[ar]: t @0 0 @1 0 ; [zz]: f @0 ;");
+  expect_int(test, ands_macro_count(ctx.parse), 2, "macro count after define");
+
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "?m");
+  if (!strstr(ctx.log, "[ar]") || !strstr(ctx.log, "[zz]")) {
+    fail(test, "macro listing missing definitions");
+  }
+
+  consume(test, &ctx, "[ar] /m");
+  expect_int(test, ands_macro_count(ctx.parse), 1, "macro count after remove");
+
+  consume(test, &ctx, "/m!");
+  expect_int(test, ands_macro_count(ctx.parse), 0, "macro count after clear");
+}
+
 static void test_tempo_and_pattern_reset_limits(void) {
   const char *test = "tempo and pattern reset limits";
   expect_int(test, tempo_set(120.0f), 0, "set normal tempo");
@@ -1164,6 +1186,7 @@ int main(void) {
   test_scalar_voice_opcode_inventory();
   test_parameter_and_buffer_safety();
   test_context_modes();
+  test_ands_macro_commands();
   test_tempo_and_pattern_reset_limits();
   test_sample_accurate_sequence_boundaries();
   test_silent_voice_fast_path();

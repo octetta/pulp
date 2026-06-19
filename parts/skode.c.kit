@@ -2691,6 +2691,24 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('?s--'): // show-skode-string
       ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
       break;
+    case ATOM4('?m--'): // show-ands-macros
+      {
+        char name[ANDS_MACRO_NAME_LEN];
+        char body[ANDS_MACRO_BODY_LEN];
+        int arg_count = 0;
+        int count = ands_macro_count(ctx->parse);
+        if (count == 0) {
+          ctx->printf(ctx, "# macros empty\n");
+        } else {
+          for (int i = 0; i < count; i++) {
+            if (ands_macro_get(ctx->parse, i, name, sizeof(name),
+                               body, sizeof(body), &arg_count)) {
+              ctx->printf(ctx, "# [%s] :%s ; # @%d\n", name, body, arg_count);
+            }
+          }
+        }
+      }
+      break;
     @if(SEQ)
     case ATOM4('?o--'): // show compiled opcode queue or pattern
       if (argc == 0) {
@@ -2856,6 +2874,21 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('/c--'): // chunk-mode bool
       if (argc) { ands_chunk_mode(ctx->parse, x); }
       else { ctx->printf(ctx, "# /c%d\n", ands_chunk_mode_get(ctx->parse)); }
+      break;
+    case ATOM4('/m--'): // remove-ands-macro [name]
+      {
+        const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : "";
+        if (name && name[0]) {
+          int removed = ands_macro_remove(ctx->parse, name);
+          ctx->printf(ctx, "# macro [%s] %s\n", name, removed ? "removed" : "not found");
+        } else {
+          ctx->printf(ctx, "# /m requires [name]\n");
+        }
+      }
+      break;
+    case ATOM4('/m!-'): // clear-ands-macros
+      ands_macro_clear(ctx->parse);
+      ctx->printf(ctx, "# macros cleared\n");
       break;
     case ATOM4('/t--'): // trace-mode num
       if (argc == 0) x = (ctx->trace) ? 0 : 1;

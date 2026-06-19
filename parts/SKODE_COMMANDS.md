@@ -360,6 +360,9 @@ require `SCOPE`. The `r` stem-routing command is available with either feature.
 | `\` | none | Show selected voice verbosely | `voice_show()` |
 | `??`, `v??` | none | Show active voices | `voice_show_all()` |
 | `?s` | none | Show parser string | `ands_string()` |
+| `?m` | none | Show ANDS parser macros defined on this context | `ands_macro_get()` |
+| `[name] /m` | string | Remove one ANDS parser macro from this context | `ands_macro_remove()` |
+| `/m!` | none | Clear all ANDS parser macros from this context | `ands_macro_clear()` |
 | `/s [section]` | optional numeric | Show system, audio, synth, Skode, string, or benchmark state | `system_show()` and related helpers |
 | `/t [level]` | optional numeric | Toggle or set command/parser tracing | `ctx->trace`, `ands_trace_set()` |
 | `/v [level]` | optional numeric | Toggle or set verbose output | `ctx->verbose` |

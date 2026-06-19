@@ -28,10 +28,17 @@ typedef struct ands_s ands_t;
 typedef uint32_t atom_t;
 
 #define ANDS_VAR_MAX (128)
+#define ANDS_MACRO_NAME_LEN (5)
+#define ANDS_MACRO_BODY_LEN (512)
 
 ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user);
 void ands_free(ands_t *s);
 int ands_consume(ands_t *s, char *line);
+int ands_macro_count(ands_t *s);
+int ands_macro_get(ands_t *s, int index, char *name, int name_len,
+                   char *body, int body_len, int *arg_count);
+int ands_macro_remove(ands_t *s, const char *name);
+void ands_macro_clear(ands_t *s);
 uint32_t ands_atom_num(ands_t *s);
 char *ands_atom_string(ands_t *s);
 int ands_arg_len(ands_t *s);

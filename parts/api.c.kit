@@ -29,6 +29,16 @@
 
 #define ONE_FRAME_MAX (64 * 1024)
 
+static int skred_env_enabled(const char *name) {
+  const char *value = getenv(name);
+  return value && value[0] && strcmp(value, "0") != 0;
+}
+
+static void skred_startup_trace(const char *phase) {
+  if (skred_env_enabled("SKRED_TRACE_STARTUP"))
+    fprintf(stderr, "# startup: %s\n", phase);
+}
+
 @if(SEQ)
 static int pattern_voice[PATTERNS_MAX];
 static int pattern_voice_generation[PATTERNS_MAX];
@@ -446,14 +456,20 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   (void)port;
   @endif
     // 1. Initialize synth state
+  skred_startup_trace("begin");
   int req = req_audio_frames;
   int vc = voices;
   requested_synth_frames_per_callback = req;
+  skred_startup_trace("synth_init");
   synth_init(vc);
+  skred_startup_trace("wave_table_init");
   wave_table_init(0);
+  skred_startup_trace("voice_init");
   voice_init();
   @if(SEQ)
+  skred_startup_trace("seq_init");
   seq_init();
+  skred_startup_trace("tempo_set");
   tempo_set(120.0);
   memset(pattern_voice, 0, sizeof(pattern_voice));
   for (int p = 0; p < PATTERNS_MAX; p++)
@@ -462,6 +478,7 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
 
     // 2. Start UDP listening thread
   @if(UDP)
+  skred_startup_trace("udp_start");
   udp_port = port;
   if (udp_port > 0) {
     int r = udp_start(udp_port);
@@ -470,18 +487,31 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   @endif
 
   @if(RECORD)
+  skred_startup_trace("recorder_init");
   if (recorder_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
   @endif
   @if(SCOPE)
+  skred_startup_trace("scope_ipc_init");
   if (scope_ipc_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
   @endif
 
+  if (skred_env_enabled("SKRED_NO_AUDIO")) {
+    audio_copy_name(active_output, sizeof(active_output), "disabled");
+    audio_copy_name(active_input, sizeof(active_input), "disabled");
+    engine_started = 1;
+    skred_startup_trace("audio skipped");
+    return 0;
+  }
+
+  skred_startup_trace("audio_context");
   if (ensure_context_initialized() != 0) return -1;
   engine_started = 1;
+  skred_startup_trace("audio_open");
   if (audio_open_selected_device() != 0) {
     engine_started = 0;
     return -1;
   }
+  skred_startup_trace("started");
 
   return 0;
 }

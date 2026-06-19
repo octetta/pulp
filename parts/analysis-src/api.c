@@ -50,6 +50,13 @@ static void pattern_cb(int pattern, const event_program_t *program) {
 }
 
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
+  static int traced_callback = 0;
+  if (!traced_callback && skred_env_enabled("SKRED_TRACE_CALLBACK")) {
+    traced_callback = 1;
+    fprintf(stderr, "# callback: frames=%u playback_channels=%u capture_channels=%u input=%s\n",
+            frame_count, pDevice->playback.channels, pDevice->capture.channels,
+            input ? "yes" : "no");
+  }
   synth_record_bus_t *capture_bus = NULL;
   synth_record_bus_t *record_bus = recorder_begin_block((int)frame_count);
   if (record_bus) capture_bus = record_bus;

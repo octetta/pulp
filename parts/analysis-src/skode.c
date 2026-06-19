@@ -21,34 +21,138 @@
 #include "recorder.h"
 #include "scope-ipc.h"
 
-int skode_puts(skode_t *ctx, const char *s) {
-  if (!ctx || !s || ctx->log_enable == 0) return 0;
+static void skode_log_reset(skode_t *ctx) {
+  if (!ctx) return;
+  ctx->log[0] = '\0';
+  ctx->log_len = 0;
+  ctx->log_head = 0;
+  ctx->log_count = 0;
+  ctx->log_dropped = 0;
+  ctx->log_pending[0] = '\0';
+  ctx->log_pending_len = 0;
+}
+
+static void skode_log_append_snapshot(skode_t *ctx, const char *s) {
   size_t capacity = sizeof(ctx->log);
-  size_t used = strnlen(ctx->log, capacity);
-  if (used >= capacity) {
+  size_t used;
+  int written;
+
+  if (!ctx || !s || capacity == 0) return;
+  used = strnlen(ctx->log, capacity);
+  if (used >= capacity - 1) {
     ctx->log[capacity - 1] = '\0';
     ctx->log_len = (int)(capacity - 1);
-    return 0;
+    return;
   }
-  int written = snprintf(ctx->log + used, capacity - used, "%s\n", s);
+
+  written = snprintf(ctx->log + used, capacity - used, "%s", s);
   if (written > 0) ctx->log_len = (int)strnlen(ctx->log, capacity);
+}
+
+static void skode_log_snapshot(skode_t *ctx) {
+  int oldest;
+
+  if (!ctx) return;
+  ctx->log[0] = '\0';
+  ctx->log_len = 0;
+
+  if (ctx->log_dropped > 0) {
+    char dropped[64];
+    snprintf(dropped, sizeof(dropped), "# log dropped %d line%s\n",
+             ctx->log_dropped, ctx->log_dropped == 1 ? "" : "s");
+    skode_log_append_snapshot(ctx, dropped);
+  }
+
+  oldest = ctx->log_head - ctx->log_count;
+  if (oldest < 0) oldest += SKODE_LOG_LINES;
+  for (int i = 0; i < ctx->log_count; i++) {
+    int idx = (oldest + i) % SKODE_LOG_LINES;
+    skode_log_append_snapshot(ctx, ctx->log_ring[idx]);
+    skode_log_append_snapshot(ctx, "\n");
+  }
+
+  if (ctx->log_pending_len > 0) {
+    skode_log_append_snapshot(ctx, ctx->log_pending);
+  }
+}
+
+static void skode_log_push_line(skode_t *ctx, const char *line) {
+  if (!ctx || !line) return;
+  snprintf(ctx->log_ring[ctx->log_head], SKODE_LOG_LINE_MAX, "%s", line);
+  ctx->log_head = (ctx->log_head + 1) % SKODE_LOG_LINES;
+  if (ctx->log_count < SKODE_LOG_LINES) {
+    ctx->log_count++;
+  } else {
+    ctx->log_dropped++;
+  }
+}
+
+static void skode_log_flush_pending(skode_t *ctx) {
+  if (!ctx) return;
+  ctx->log_pending[ctx->log_pending_len] = '\0';
+  skode_log_push_line(ctx, ctx->log_pending);
+  ctx->log_pending[0] = '\0';
+  ctx->log_pending_len = 0;
+}
+
+static void skode_log_write(skode_t *ctx, const char *s) {
+  if (!ctx || !s || ctx->log_enable == 0) return;
+  if (ctx->log_len == 0 && ctx->log[0] == '\0' &&
+      (ctx->log_count || ctx->log_pending_len || ctx->log_dropped)) {
+    skode_log_reset(ctx);
+  }
+
+  for (const char *p = s; *p; p++) {
+    if (*p == '\n') {
+      skode_log_flush_pending(ctx);
+      continue;
+    }
+
+    if (ctx->log_pending_len >= SKODE_LOG_LINE_MAX - 1) {
+      skode_log_flush_pending(ctx);
+    }
+
+    ctx->log_pending[ctx->log_pending_len++] = *p;
+    ctx->log_pending[ctx->log_pending_len] = '\0';
+  }
+
+  skode_log_snapshot(ctx);
+}
+
+int skode_puts(skode_t *ctx, const char *s) {
+  if (!ctx || !s || ctx->log_enable == 0) return 0;
+  skode_log_write(ctx, s);
+  skode_log_flush_pending(ctx);
+  skode_log_snapshot(ctx);
   return 0;
 }
 
 int skode_printf(skode_t *ctx, const char *fmt, ...) {
+  char buf[1024];
+  va_list ap;
+  va_list count_ap;
+  int needed;
+
   if (!ctx || !fmt || ctx->log_enable == 0) return 0;
-  size_t capacity = sizeof(ctx->log);
-  size_t used = strnlen(ctx->log, capacity);
-  if (used >= capacity) {
-    ctx->log[capacity - 1] = '\0';
-    ctx->log_len = (int)(capacity - 1);
+  va_start(ap, fmt);
+  va_copy(count_ap, ap);
+  needed = vsnprintf(buf, sizeof(buf), fmt, ap);
+  va_end(ap);
+  if (needed < 0) {
+    va_end(count_ap);
     return 0;
   }
-  va_list ap;
-  va_start(ap, fmt);
-  int len = vsnprintf(ctx->log + used, capacity - used, fmt, ap);
-  va_end(ap);
-  if (len > 0) ctx->log_len = (int)strnlen(ctx->log, capacity);
+  if ((size_t)needed < sizeof(buf)) {
+    skode_log_write(ctx, buf);
+  } else {
+    char *big = (char *)malloc((size_t)needed + 1);
+    if (big) {
+      vsnprintf(big, (size_t)needed + 1, fmt, count_ap);
+      skode_log_write(ctx, big);
+      free(big);
+    }
+  }
+  va_end(count_ap);
   return 0;
 }
 
@@ -172,6 +276,41 @@ static void skode_copy_string(char *dst, size_t dst_size, const char *src) {
   if (!dst || dst_size == 0) return;
   snprintf(dst, dst_size, "%s", src ? src : "");
 }
+
+static void skode_format_string_args(char *dst, size_t dst_size,
+                                     const char *fmt, double *arg, int argc) {
+  size_t used = 0;
+
+  if (!dst || dst_size == 0) return;
+  dst[0] = '\0';
+  if (!fmt) return;
+
+  for (const char *p = fmt; *p && used + 1 < dst_size; p++) {
+    if (*p == '@' && isdigit((unsigned char)p[1])) {
+      int idx = p[1] - '0';
+      if (idx < argc) {
+        char num[32];
+        int n = snprintf(num, sizeof(num), "%.8g", arg[idx]);
+        if (n > 0) {
+          size_t copy = (size_t)n;
+          if (copy > dst_size - used - 1) copy = dst_size - used - 1;
+          memcpy(dst + used, num, copy);
+          used += copy;
+          dst[used] = '\0';
+        }
+      } else if (used + 2 < dst_size) {
+        dst[used++] = *p;
+        dst[used++] = p[1];
+        dst[used] = '\0';
+      }
+      p++;
+    } else {
+      dst[used++] = *p;
+      dst[used] = '\0';
+    }
+  }
+}
+
 #define EXTRA_PTR(n) skode_extra_ptr(n)
 #define EXTRA_INIT() { _skode_extra_invalid[0] = '\0'; for (int i=0; i<STRING_BUF_IDX_MAX; i++) EXTRA_PTR(i)[0] = '\0';}
 
@@ -1710,6 +1849,24 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('wait'): // blocking msec wait
       if (x_valid && x >= 0) sk_sleep(x);
       break;
+    case ATOM4('clr-'): // clear parser argument stack
+      ands_arg_clear(s);
+      return 1;
+    case ATOM4('drop'): // drop first parser argument
+      ands_arg_drop(s);
+      return 1;
+    case ATOM4('dup-'): // duplicate first parser argument
+      ands_arg_dup(s);
+      return 1;
+    case ATOM4('over'): // duplicate second parser argument to front
+      ands_arg_over(s);
+      return 1;
+    case ATOM4('rot-'): // rotate first three parser arguments left
+      ands_arg_rot(s);
+      return 1;
+    case ATOM4('swap'): // swap first two parser arguments
+      ands_arg_swap(s);
+      return 1;
     case ATOM4('a---'): // amp loudness
       if (argc) amp_set(voice, arg[0]);
       break;
@@ -2109,7 +2266,11 @@ int skode_function(ands_t *s, int info) {
         double *data = ands_data(ctx->parse);
         int data_len = ands_data_len(ctx->parse);
         if (x>=0 && x < data_len) {
-          ctx->printf(ctx, "# %g\n", data[x]);
+          double val = data[x];
+          ctx->printf(ctx, "# %g\n", val);
+          ands_arg_clear(s);
+          ands_arg_push(s, val);
+          return 1;
         }
       }
       break;
@@ -2406,6 +2567,35 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('?s--'): // show-skode-string
       ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
       break;
+    case ATOM4('s?--'): // show parser-local string slot [index]
+      if (argc && x_valid) {
+        if (x >= 0 && x < SKODE_STRING_SLOT_MAX)
+          ctx->printf(ctx, "# s%d [%s]\n", x, ctx->string_slot[x]);
+      } else {
+        for (int i = 0; i < SKODE_STRING_SLOT_MAX; i++) {
+          if (ctx->string_slot[i][0])
+            ctx->printf(ctx, "# s%d [%s]\n", i, ctx->string_slot[i]);
+        }
+      }
+      break;
+    case ATOM4('?m--'): // show-ands-macros
+      {
+        char name[ANDS_MACRO_NAME_LEN];
+        char body[ANDS_MACRO_BODY_LEN];
+        int arg_count = 0;
+        int count = ands_macro_count(ctx->parse);
+        if (count == 0) {
+          ctx->printf(ctx, "# macros empty\n");
+        } else {
+          for (int i = 0; i < count; i++) {
+            if (ands_macro_get(ctx->parse, i, name, sizeof(name),
+                               body, sizeof(body), &arg_count)) {
+              ctx->printf(ctx, "# [%s] :%s ; # @%d\n", name, body, arg_count);
+            }
+          }
+        }
+      }
+      break;
     case ATOM4('?o--'): // show compiled opcode queue or pattern
       if (argc == 0) {
         opcode_queue_show(ctx);
@@ -2561,6 +2751,21 @@ int skode_function(ands_t *s, int info) {
       if (argc) { ands_chunk_mode(ctx->parse, x); }
       else { ctx->printf(ctx, "# /c%d\n", ands_chunk_mode_get(ctx->parse)); }
       break;
+    case ATOM4('/m--'): // remove-ands-macro [name]
+      {
+        const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : "";
+        if (name && name[0]) {
+          int removed = ands_macro_remove(ctx->parse, name);
+          ctx->printf(ctx, "# macro [%s] %s\n", name, removed ? "removed" : "not found");
+        } else {
+          ctx->printf(ctx, "# /m requires [name]\n");
+        }
+      }
+      break;
+    case ATOM4('/m!-'): // clear-ands-macros
+      ands_macro_clear(ctx->parse);
+      ctx->printf(ctx, "# macros cleared\n");
+      break;
     case ATOM4('/t--'): // trace-mode num
       if (argc == 0) x = (ctx->trace) ? 0 : 1;
       ctx->trace = x;
@@ -2570,6 +2775,26 @@ int skode_function(ands_t *s, int info) {
       if (argc == 0) x = (ctx->verbose) ? 0 : 1;
       ctx->verbose = x;
       break;
+    case ATOM4('<s--'): // parser-local string slot to parser string
+      if (argc && x_valid && x >= 0 && x < SKODE_STRING_SLOT_MAX) {
+        ands_string_from_external(ctx->parse, ctx->string_slot[x],
+                                  strlen(ctx->string_slot[x]));
+      }
+      break;
+    case ATOM4('s>--'): // parser string to parser-local string slot
+      if (argc && x_valid && x >= 0 && x < SKODE_STRING_SLOT_MAX) {
+        skode_copy_string(ctx->string_slot[x], SKODE_STRING_SLOT_LEN,
+                          ands_string(ctx->parse));
+      }
+      break;
+    case ATOM4('s%--'): // format parser string with numeric args
+      {
+        char formatted[SKODE_STRING_SLOT_LEN];
+        skode_format_string_args(formatted, sizeof(formatted),
+                                 ands_string(ctx->parse), arg, argc);
+        ands_string_from_external(ctx->parse, formatted, strlen(formatted));
+        return 1;
+      }
     case ATOM4('<e--'): // external-string-to-skode external-index
       if (argc && skode_extra_valid(x)) {
         char macro[STRING_BUF_LEN];
@@ -2742,6 +2967,9 @@ int skode_function(ands_t *s, int info) {
             ands_set_local(ctx->parse, variable, val);
         } else if (argc) {
           ctx->printf(ctx, "# W@ %d %d -> %g\n", wave, param, val);
+          ands_arg_clear(s);
+          ands_arg_push(s, val);
+          return 1;
         }
       }
       break;
@@ -2768,28 +2996,61 @@ int skode_function(ands_t *s, int info) {
             ands_set_local(ctx->parse, y, val);
         } else if (argc) {
           ctx->printf(ctx, "# v@ %d -> %g\n", x, val);
+          ands_arg_clear(s);
+          ands_arg_push(s, val);
+          return 1;
         }
       }
       break;
     case ATOM4('*=--'):  // variable-times-equal slot val0 val1
-      if (argc > 2) ands_set_local(ctx->parse, x, arg[1] * arg[2]);
+      if (argc > 2) {
+        double val = arg[1] * arg[2];
+        ands_set_local(ctx->parse, x, val);
+        ands_arg_clear(s);
+        ands_arg_push(s, val);
+        return 1;
+      }
       break;
     case ATOM4('/=--'):  // variable-divide-equal slot val0 val1
-      if (argc > 2 && arg[2] != 0.0) ands_set_local(ctx->parse, x, arg[1] / arg[2]);
+      if (argc > 2 && arg[2] != 0.0) {
+        double val = arg[1] / arg[2];
+        ands_set_local(ctx->parse, x, val);
+        ands_arg_clear(s);
+        ands_arg_push(s, val);
+        return 1;
+      }
       break;
     case ATOM4('a=--'):  // variable-plus-equal slot val0 val1
-      if (argc > 2) ands_set_local(ctx->parse, x, arg[1] + arg[2]);
+      if (argc > 2) {
+        double val = arg[1] + arg[2];
+        ands_set_local(ctx->parse, x, val);
+        ands_arg_clear(s);
+        ands_arg_push(s, val);
+        return 1;
+      }
       break;
     case ATOM4('s=--'):  // variable-sub-equal slot val0 val1
       if (argc > 2) {
-        ands_set_local(ctx->parse, x, arg[1] - arg[2]);
+        double val = arg[1] - arg[2];
+        ands_set_local(ctx->parse, x, val);
+        ands_arg_clear(s);
+        ands_arg_push(s, val);
+        return 1;
       }
       break;
     case ATOM4('=---'):  // variable-set slot value
-      if (argc > 1) ands_set_local(ctx->parse, x, arg[1]);
+      if (argc > 1) {
+        ands_set_local(ctx->parse, x, arg[1]);
+        ands_arg_clear(s);
+        ands_arg_push(s, arg[1]);
+        return 1;
+      }
       else if (argc == 1) {
         double f = ands_get_local(ctx->parse, x);
         ctx->printf(ctx, "# $%d %g\n", x, f);
+        ands_arg_clear(s);
+        ands_arg_push(s, f);
+        return 1;
       }
       else {
         for (int i=0; i<ANDS_VAR_MAX; i++) {
@@ -2960,8 +3221,7 @@ int skode_consume(char *line, skode_t *ctx) {
     if (!ctx->parse) return -1;
     ands_set_global(ctx->parse, global_var);
   }
-  ctx->log_len = 0;
-  ctx->log[0] = '\0';
+  skode_log_reset(ctx);
   skode_ctx[skode_hash(ctx)] = ctx;
 
   int r = 0;
@@ -3003,8 +3263,7 @@ void skode_init(skode_t *ctx) {
   ctx->printf = skode_printf;
   ctx->log_enable = 0;
   ctx->log_max = SKODE_LOG_MAX;
-  ctx->log_len = 0;
-  ctx->log[0] = '\0';
+  skode_log_reset(ctx);
   ctx->ks = NULL;
   ctx->ks_result = NULL;
   ctx->udp = 0;

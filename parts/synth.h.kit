@@ -120,6 +120,7 @@ void envelope_init_e(envelope_t *e, float a, float d, float s, float r);
 void envelope_configure_e(envelope_t *e, float a, float d, float s, float r);
 void envelope_trigger_e(envelope_t *e, float f);
 void envelope_release_e_at(envelope_t *e, uint64_t current_sample);
+void envelope_schedule_release_e_at(envelope_t *e, uint64_t release_sample);
 void envelope_release_e(envelope_t *e);
 float envelope_step_e(envelope_t *e, uint64_t current_sample);
 

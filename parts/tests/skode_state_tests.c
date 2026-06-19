@@ -372,10 +372,37 @@ static void test_bounded_one_shot_loops(void) {
   consume(test, &ctx, "BC0 l1");
   sv.phase[voice] = 4.0f;
   consume(test, &ctx, "l0");
-  expect_int(test, sv.loop_stop_requested[voice], 1, "release stop request");
+  expect_int(test, sv.loop_stop_requested[voice], 0,
+             "unbounded release keeps loop running");
   osc_next(voice, 1.0f);
-  expect_int(test, sv.loop_active[voice], 0, "release loop exit");
-  expect_float(test, sv.phase[voice], 5.0f, 0.0001f, "release exit phase");
+  expect_int(test, sv.loop_active[voice], 1, "unbounded release loop active");
+  expect_float(test, sv.phase[voice], 2.0f, 0.0001f,
+               "unbounded release wraps");
+
+  consume(test, &ctx, "BC1 l1");
+  sv.phase[voice] = 4.0f;
+  consume(test, &ctx, "l0");
+  expect_int(test, sv.loop_stop_requested[voice], 1,
+             "bounded release stop request");
+  osc_next(voice, 1.0f);
+  expect_int(test, sv.loop_active[voice], 0, "bounded release loop exit");
+  expect_float(test, sv.phase[voice], 5.0f, 0.0001f,
+               "bounded release exit phase");
+
+  consume(test, &ctx, "BC1 l1");
+  sv.phase[voice] = 4.0f;
+  osc_next(voice, 1.0f);
+  expect_int(test, sv.loop_remaining[voice], 0,
+             "bounded toggle setup remaining");
+  consume(test, &ctx, "BC0 B0 B1");
+  expect_int(test, sv.loop_bounded[voice], 0,
+             "B1 refreshes unbounded loop snapshot");
+  sv.phase[voice] = 4.0f;
+  osc_next(voice, 1.0f);
+  expect_int(test, sv.loop_active[voice], 1,
+             "B1 unbounded loop stays active");
+  expect_float(test, sv.phase[voice], 2.0f, 0.0001f,
+               "B1 unbounded loop wraps");
 
   configure_loop_test_voice(voice, 1);
   consume(test, &ctx, "BC1 l1");
@@ -446,6 +473,46 @@ static void test_bounded_loop_releases_envelopes(void) {
 
   SAMPLE_COUNT_PUT(saved_sample_count);
   wave_reset(voice);
+}
+
+static void test_one_shot_asr_mode(void) {
+#ifdef SKRED_TEST_ADSR
+  const char *test = "one-shot ASR mode";
+  if (!skode_opcode_supported(SKODE_OP_ENVELOPE)) return;
+
+  skode_t ctx = new_ctx();
+  const int voice = 5;
+  const uint64_t saved_sample_count = SAMPLE_COUNT_GET();
+
+  configure_loop_test_voice(voice, 0);
+  sv.loop_enabled[voice] = 0;
+  sv.loop_active[voice] = 0;
+  sv.phase_inc[voice] = 1.0f;
+  consume(test, &ctx, "v5 k1");
+  envelope_set(voice, 0.0f, 0.0f, 1.0f, 3.0f / MAIN_SAMPLE_RATE);
+  SAMPLE_COUNT_PUT(1000);
+  envelope_velocity(voice, 1.0f);
+  expect_u64(test, sv.amp_envelope[voice].sample_release, 1005,
+             "non-looping one-shot release");
+
+  configure_loop_test_voice(voice, 0);
+  sv.phase_inc[voice] = 1.0f;
+  consume(test, &ctx, "v5 BC2 k1");
+  envelope_set(voice, 0.0f, 0.0f, 1.0f, 3.0f / MAIN_SAMPLE_RATE);
+  SAMPLE_COUNT_PUT(2000);
+  envelope_velocity(voice, 1.0f);
+  expect_u64(test, sv.amp_envelope[voice].sample_release, 2008,
+             "counted one-shot release includes loop repeats");
+
+  consume(test, &ctx, "BC0 B1");
+  SAMPLE_COUNT_PUT(3000);
+  envelope_velocity(voice, 1.0f);
+  expect_u64(test, sv.amp_envelope[voice].sample_release, UINT64_MAX,
+             "unbounded one-shot keeps held envelope");
+
+  SAMPLE_COUNT_PUT(saved_sample_count);
+  wave_reset(voice);
+#endif
 }
 
 static void test_opcode_events(void) {
@@ -1091,6 +1158,7 @@ int main(void) {
   test_envelope_future_timestamps();
   test_bounded_one_shot_loops();
   test_bounded_loop_releases_envelopes();
+  test_one_shot_asr_mode();
   test_opcode_events();
   test_909_sequence_programs();
   test_scalar_voice_opcode_inventory();

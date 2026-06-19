@@ -38,7 +38,7 @@
 typedef struct {
 
     /* --- oscillator / playback core (hot path, vectorize across voices) --- */
-    float  * restrict phase;
+    double * restrict phase;
     float  * restrict phase_inc;
     float ** restrict table;        /* per-voice pointer to wave data */
     int    * restrict table_size;

@@ -367,14 +367,17 @@ Wave direction, loop configuration, and note lifecycle are separate:
   traversals of the loop region.
 - Positive `l` and `T` retrigger a one-shot, initialize runtime looping from
   `B`, and snapshot the configured `BC` bound. `l0` releases envelopes
-  immediately and requests departure at the next boundary.
+  immediately; bounded loops request departure at the next boundary, while
+  unbounded one-shot loops keep looping under normal ADSR release behavior.
 
 The voice arrays distinguish persistent configuration from active-note state.
 `loop_enabled` and `loop_count` are configuration. `loop_active`,
 `loop_bounded`, `loop_remaining`, and `loop_stop_requested` belong to the
 current trigger. A `BC` edit does not retroactively change the bounded-loop
 count already in progress. `B` is intentionally immediate: `wave_loop()`
-updates both configured and active looping.
+updates both configured and active looping. `B0` clears active loop runtime
+state; `B1` starts a fresh active loop snapshot from the current `BC`
+configuration.
 
 `osc_next()` selects the relevant boundary from the actual phase-step
 direction. It accounts for more than one wrap when a large phase increment
@@ -388,6 +391,12 @@ Envelope configuration follows the same snapshot principle. `t` and `ft`
 update parameters for the next trigger, while an envelope already in progress
 continues using the durations and sustain level captured by its last `l` or
 `T`.
+
+Amplitude envelope mode `k1` is timed one-shot ASR. On positive `l`/`T`, finite
+one-shots compute a natural playback duration from table length, phase
+increment, and configured `BC` repeats. The amp envelope release is scheduled
+so it finishes at that natural end. Unbounded one-shot loops do not have a
+natural end, so they keep normal held ADSR behavior and release on `l0`.
 
 ### Recording
 

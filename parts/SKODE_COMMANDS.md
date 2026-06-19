@@ -134,8 +134,20 @@ direction, `B` configures wrapping, and `BC` configures a bounded number of
 one-shot wraps. Zero is unlimited; a positive count means repeats after the
 initial loop traversal, so `BC1` permits one wrap and two traversals. Positive
 `l` or `T` snapshots the `BC` bound for the new note. `B` remains an immediate
-runtime switch. `l0` releases the envelopes immediately and requests departure
-at the next loop boundary.
+runtime switch. `l0` releases the envelopes immediately. Bounded loops also
+request departure at the next loop boundary; unbounded loops keep looping under
+normal ADSR release behavior.
+
+`B0` clears active loop runtime state. `B1` immediately starts a fresh active
+loop snapshot from the current `BC` configuration, so stale counted-loop
+remaining state does not carry into a later unbounded loop.
+
+Amplitude envelope mode `k1` enables timed one-shot ASR. For non-looping
+one-shots and bounded `BC` one-shot loops, positive `l` schedules the release
+phase to finish at the natural playback end. The `t` attack, sustain, and
+release values shape the result; decay remains available but is usually not
+useful for this mode. Unbounded `BC0`/`B1` loops keep normal held ADSR behavior
+and release only on `l0`.
 
 At trigger time, `osc_trigger()` initializes `loop_active`, `loop_bounded`, and
 `loop_remaining`. `osc_next()` consumes wraps in either direction, including

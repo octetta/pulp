@@ -139,11 +139,15 @@ static void *udp_main(void *arg) {
   char line[1024];
   fd_set readfds;
   struct timeval timeout;
-  udp_state_t user[UDP_PORT_MAX];
+  udp_state_t *user = calloc(UDP_PORT_MAX, sizeof(*user));
+  if (!user) {
+    puts("# udp thread cannot allocate state");
+    CLOSE_SOCKET(sock);
+    if (udp_socket == sock) udp_socket = INVALID_SOCKET;
+    return NULL;
+  }
   for (int i = 0; i < UDP_PORT_MAX; i++) {
     skode_init(&user[i].w);
-    user[i].in_use = 0;
-    user[i].last_use = 0;
   }
   int use_counter = 0;
   while (udp_running) {
@@ -153,6 +157,7 @@ static void *udp_main(void *arg) {
     timeout.tv_usec = 0;
     int ready = select(sock+1, &readfds, NULL, NULL, &timeout);
     if (ready > 0 && FD_ISSET(sock, &readfds)) {
+      client_len = sizeof(client);
       ssize_t n = recvfrom(sock, line, sizeof(line) - 1, 0, (struct sockaddr *)&client, &client_len);
       if (n > 0) {
         line[n] = '\0';
@@ -181,6 +186,7 @@ static void *udp_main(void *arg) {
     skode_free(&user[i].w);
     user[i].in_use = 0;
   }
+  free(user);
   return NULL;
 }
 

@@ -61,6 +61,11 @@ int volume_set(float v);
 
 int synth_record_track_set(int voice, int track);
 int synth_record_track_get(int voice);
+int synth_track_volume_set(int track, float db);
+float synth_track_volume_db_get(int track);
+float synth_track_volume_linear_get(int track);
+int synth_track_name_set(int track, const char *name);
+const char *synth_track_name_get(int track);
 
 int amp_set(int v, float f);
 int pan_set(int voice, float f);

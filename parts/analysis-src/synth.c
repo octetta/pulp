@@ -30,7 +30,10 @@ atomic_uint64_t synth_sample_count;
 static int verbose = 0;
 
 int volume_set(float v);
+extern float volume_user;
+extern float volume_final;
 static int voice_invalid(int voice);
+static void synth_track_defaults(void);
 
 static int mod_voice_invalid(int voice) {
   return voice < -1 || voice >= synth_config.voice_max;
@@ -55,12 +58,36 @@ void synth_init(int vc) {
   if (verbose) printf("# synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
 
   volume_set(VOLUME_DEFAULT);
+  synth_track_defaults();
 }
 
 
 void synth_free(void) {
   synth_free_voices();
   synth_free_waves();
+}
+
+static float track_volume_db[RECORD_TRACK_COUNT];
+static float track_volume_linear[RECORD_TRACK_COUNT];
+static text_t track_name[RECORD_TRACK_COUNT];
+static int track_defaults_loaded;
+
+static int synth_track_invalid(int track) {
+  return track < 0 || track > RECORD_TRACK_MAX;
+}
+
+static void synth_track_defaults(void) {
+  for (int track = 0; track <= RECORD_TRACK_MAX; track++) {
+    track_volume_db[track] = VOLUME_DEFAULT;
+    track_volume_linear[track] = DB_TO_LINEAR(VOLUME_DEFAULT);
+    track_name[track][0] = '\0';
+  }
+  snprintf(track_name[0], TEXT_MAX, "master");
+  track_defaults_loaded = 1;
+}
+
+static void synth_track_ensure_defaults(void) {
+  if (!track_defaults_loaded) synth_track_defaults();
 }
 
 int synth_record_track_set(int voice, int track) {
@@ -75,6 +102,41 @@ int synth_record_track_set(int voice, int track) {
 int synth_record_track_get(int voice) {
   if (voice < 0 || voice >= synth_config.voice_max) return -1;
   return atomic_load_int(&sv.record_pending[voice]);
+}
+
+int synth_track_volume_set(int track, float db) {
+  if (synth_track_invalid(track) || !isfinite(db)) return -1;
+  synth_track_ensure_defaults();
+  track_volume_db[track] = db;
+  track_volume_linear[track] = DB_TO_LINEAR(db);
+  return 0;
+}
+
+float synth_track_volume_db_get(int track) {
+  if (synth_track_invalid(track)) return 0.0f;
+  synth_track_ensure_defaults();
+  if (track == 0) return volume_user;
+  return track_volume_db[track];
+}
+
+float synth_track_volume_linear_get(int track) {
+  if (synth_track_invalid(track)) return 0.0f;
+  synth_track_ensure_defaults();
+  if (track == 0) return volume_final;
+  return track_volume_linear[track];
+}
+
+int synth_track_name_set(int track, const char *name) {
+  if (synth_track_invalid(track) || !name) return -1;
+  synth_track_ensure_defaults();
+  snprintf(track_name[track], TEXT_MAX, "%s", name);
+  return 0;
+}
+
+const char *synth_track_name_get(int track) {
+  if (synth_track_invalid(track)) return "";
+  synth_track_ensure_defaults();
+  return track_name[track];
 }
 
 
@@ -929,8 +991,9 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       record_frame[1] = sample_right;
       for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
         int channel = track * AUDIO_CHANNELS;
-        record_frame[channel] = record_left[track];
-        record_frame[channel + 1] = record_right[track];
+        float track_gain = synth_track_volume_linear_get(track);
+        record_frame[channel] = record_left[track] * track_gain;
+        record_frame[channel + 1] = record_right[track] * track_gain;
       }
     }
 

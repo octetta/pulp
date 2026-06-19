@@ -110,6 +110,9 @@ their named build option is enabled.
 | `q` | `bit-depth` | `SKODE_OP_QUANTIZE` | `wave_quant()` | `CRUSH` |
 | `Q` | `resonance` | `SKODE_OP_FILTER_RESONANCE` | `mmf_set_res()` | `FILT` |
 | `r` | `track` | `SKODE_OP_RECORD_TRACK` | `synth_record_track_set()` | `RECORD` |
+| `rt` | `[name] track` | immediate | `synth_track_name_set()` | `RECORD` or `SCOPE` |
+| `rv` | `track,dB` | immediate | `synth_track_volume_set()` | `RECORD` or `SCOPE` |
+| `?r` | none | immediate | show track names, volumes, and assigned voices | `RECORD` or `SCOPE` |
 | `s` | `amount` | `SKODE_OP_SMOOTHER` | Enables or disables amplitude smoothing | `SMOOTHER` |
 | `S` | `voice` | `SKODE_OP_VOICE_RESET` | `wave_reset()` | base |
 | `t` | `attack, decay, sustain, release` | `SKODE_OP_ENVELOPE` | Configures the amplitude envelope for its next trigger | `ADSR` |
@@ -478,8 +481,8 @@ features are enabled. Important command features include:
 | `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
 | `PANMOD` | `P` |
 | `PD` | `c`, `C` |
-| `RECORD` | `r`, `/rg`, `/rs`, `/r?` |
-| `SCOPE` | `r`, `/sg`, `/ss`, `/s?` |
+| `RECORD` | `r`, `rt`, `rv`, `?r`, `/rg`, `/rs`, `/r?` |
+| `SCOPE` | `r`, `rt`, `rv`, `?r`, `/sg`, `/ss`, `/s?` |
 | `SAH` | `h` |
 | `SEQ` | timing, queue, and pattern commands |
 | `SMOOTHER` | `s` |

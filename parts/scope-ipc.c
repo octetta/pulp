@@ -13,6 +13,8 @@
 
 #include "portable_atomic.h"
 
+#define SCOPE_TRACK_VOLUME_DEFAULT (-20.0f)
+
 typedef struct {
   int initialized;
   int fd;
@@ -28,6 +30,8 @@ typedef struct {
   atomic_int_t enabled;
   simple_mutex_t lifecycle_mutex;
   char name[SKRED_SCOPE_NAME_MAX];
+  float track_volume_db[SKRED_SCOPE_TRACK_COUNT];
+  char track_name[SKRED_SCOPE_TRACK_COUNT][SKRED_SCOPE_TRACK_NAME_MAX];
 } scope_ipc_t;
 
 static scope_ipc_t scope_ipc = {.fd = -1};
@@ -35,6 +39,8 @@ static uint64_t scope_generation;
 
 static uint64_t scope_atomic_load(const volatile uint64_t *value);
 static void scope_atomic_store(volatile uint64_t *value, uint64_t next);
+static void scope_ipc_track_metadata_defaults(void);
+static void scope_ipc_refresh_track_metadata_locked(void);
 
 static void scope_ipc_stop_locked(void) {
   int expected = 0;
@@ -96,16 +102,38 @@ static size_t scope_mapping_bytes(uint32_t capacity_frames,
     (size_t)capacity_frames * channels * sizeof(float);
 }
 
+static void scope_ipc_track_metadata_defaults(void) {
+  for (int track = 0; track <= SKRED_SCOPE_TRACK_MAX; track++) {
+    scope_ipc.track_volume_db[track] = SCOPE_TRACK_VOLUME_DEFAULT;
+    scope_ipc.track_name[track][0] = '\0';
+  }
+  snprintf(scope_ipc.track_name[0], SKRED_SCOPE_TRACK_NAME_MAX, "master");
+}
+
+static void scope_ipc_refresh_track_metadata_locked(void) {
+  if (!scope_ipc.header) return;
+  scope_ipc.header->track_count = SKRED_SCOPE_TRACK_COUNT;
+  scope_ipc.header->track_name_bytes = SKRED_SCOPE_TRACK_NAME_MAX;
+  for (int track = 0; track <= SKRED_SCOPE_TRACK_MAX; track++) {
+    scope_ipc.header->track_volume_db[track] =
+      scope_ipc.track_volume_db[track];
+    snprintf(scope_ipc.header->track_name[track],
+             SKRED_SCOPE_TRACK_NAME_MAX, "%s",
+             scope_ipc.track_name[track]);
+  }
+}
+
 int scope_ipc_init(int max_block_frames, int sample_rate) {
   if (scope_ipc.initialized) return 0;
   if (max_block_frames < 1 || sample_rate < 1) return -1;
-  scope_ipc.scratch = calloc((size_t)max_block_frames * RECORD_CHANNELS,
+  scope_ipc.scratch = calloc((size_t)max_block_frames * SKRED_SCOPE_CHANNELS,
                              sizeof(float));
   if (!scope_ipc.scratch) return -1;
   scope_ipc.scratch_frames = max_block_frames;
   scope_ipc.sample_rate = sample_rate;
   scope_ipc.bus.frames = scope_ipc.scratch;
-  scope_ipc.bus.channels = RECORD_CHANNELS;
+  scope_ipc.bus.channels = SKRED_SCOPE_CHANNELS;
+  scope_ipc_track_metadata_defaults();
   simple_mutex_init(&scope_ipc.lifecycle_mutex);
   scope_ipc.initialized = 1;
   return 0;
@@ -141,7 +169,7 @@ int scope_ipc_start(const char *name, uint32_t channel_mask,
   double frames_f = buffer_seconds * scope_ipc.sample_rate;
   if (frames_f < 1.0 || frames_f > UINT32_MAX) return -1;
   uint32_t capacity = (uint32_t)frames_f;
-  size_t mapping_bytes = scope_mapping_bytes(capacity, RECORD_CHANNELS);
+  size_t mapping_bytes = scope_mapping_bytes(capacity, SKRED_SCOPE_CHANNELS);
   if (!mapping_bytes) return -1;
 
   simple_mutex_lock(&scope_ipc.lifecycle_mutex);
@@ -179,10 +207,11 @@ int scope_ipc_start(const char *name, uint32_t channel_mask,
   scope_ipc.header->version = SKRED_SCOPE_VERSION;
   scope_ipc.header->header_bytes = sizeof(*scope_ipc.header);
   scope_ipc.header->sample_rate = (uint32_t)scope_ipc.sample_rate;
-  scope_ipc.header->channel_count = RECORD_CHANNELS;
+  scope_ipc.header->channel_count = SKRED_SCOPE_CHANNELS;
   scope_ipc.header->capacity_frames = capacity;
   scope_ipc.header->channel_mask = channel_mask;
   scope_ipc.header->generation = scope_ipc.generation;
+  scope_ipc_refresh_track_metadata_locked();
   scope_atomic_store(&scope_ipc.header->sequence, 0);
   scope_atomic_store(&scope_ipc.header->write_frame, 0);
   scope_atomic_store(&scope_ipc.header->active, 1);
@@ -219,7 +248,7 @@ void scope_ipc_status(skred_scope_status_t *status) {
   simple_mutex_lock(&scope_ipc.lifecycle_mutex);
   status->active = scope_ipc_active();
   status->sample_rate = scope_ipc.sample_rate;
-  status->channel_count = RECORD_CHANNELS;
+  status->channel_count = SKRED_SCOPE_CHANNELS;
   if (scope_ipc.header) {
     status->channel_mask = scope_ipc.header->channel_mask;
     status->capacity_frames = scope_ipc.header->capacity_frames;
@@ -229,6 +258,22 @@ void scope_ipc_status(skred_scope_status_t *status) {
   }
   snprintf(status->name, sizeof(status->name), "%s", scope_ipc.name);
   simple_mutex_unlock(&scope_ipc.lifecycle_mutex);
+}
+
+int scope_ipc_track_metadata_set(int track, const char *name,
+                                 float volume_db) {
+  if (!scope_ipc.initialized) return -1;
+  if (track < 0 || track > SKRED_SCOPE_TRACK_MAX || !name ||
+      !isfinite(volume_db)) {
+    return -1;
+  }
+  simple_mutex_lock(&scope_ipc.lifecycle_mutex);
+  scope_ipc.track_volume_db[track] = volume_db;
+  snprintf(scope_ipc.track_name[track], SKRED_SCOPE_TRACK_NAME_MAX, "%s",
+           name);
+  scope_ipc_refresh_track_metadata_locked();
+  simple_mutex_unlock(&scope_ipc.lifecycle_mutex);
+  return 0;
 }
 
 synth_record_bus_t *scope_ipc_begin_block(int frame_count) {
@@ -260,9 +305,9 @@ void scope_ipc_publish(const float *frames, int frame_count) {
     uint32_t offset = (uint32_t)(write_frame % capacity);
     uint32_t count = capacity - offset;
     if (count > remaining) count = remaining;
-    memcpy(scope_ipc.frames + (size_t)offset * RECORD_CHANNELS, frames,
-           (size_t)count * RECORD_CHANNELS * sizeof(float));
-    frames += (size_t)count * RECORD_CHANNELS;
+    memcpy(scope_ipc.frames + (size_t)offset * SKRED_SCOPE_CHANNELS, frames,
+           (size_t)count * SKRED_SCOPE_CHANNELS * sizeof(float));
+    frames += (size_t)count * SKRED_SCOPE_CHANNELS;
     write_frame += count;
     remaining -= count;
   }
@@ -298,7 +343,9 @@ int scope_ipc_reader_open(skred_scope_reader_t *reader, const char *name) {
   if (reader->header->magic != SKRED_SCOPE_MAGIC ||
       reader->header->version != SKRED_SCOPE_VERSION ||
       reader->header->header_bytes != sizeof(*reader->header) ||
-      reader->header->channel_count != RECORD_CHANNELS ||
+      reader->header->channel_count != SKRED_SCOPE_CHANNELS ||
+      reader->header->track_count != SKRED_SCOPE_TRACK_COUNT ||
+      reader->header->track_name_bytes != SKRED_SCOPE_TRACK_NAME_MAX ||
       scope_mapping_bytes(reader->header->capacity_frames,
                           reader->header->channel_count) !=
         reader->mapping_bytes) {
@@ -338,11 +385,11 @@ int scope_ipc_reader_latest(const skred_scope_reader_t *reader, float *output,
     uint32_t offset = (uint32_t)(first_frame % capacity);
     uint32_t first_count = capacity - offset;
     if (first_count > count) first_count = count;
-    memcpy(output, reader->frames + (size_t)offset * RECORD_CHANNELS,
-           (size_t)first_count * RECORD_CHANNELS * sizeof(float));
+    memcpy(output, reader->frames + (size_t)offset * SKRED_SCOPE_CHANNELS,
+           (size_t)first_count * SKRED_SCOPE_CHANNELS * sizeof(float));
     if (first_count < count) {
-      memcpy(output + (size_t)first_count * RECORD_CHANNELS, reader->frames,
-             (size_t)(count - first_count) * RECORD_CHANNELS * sizeof(float));
+      memcpy(output + (size_t)first_count * SKRED_SCOPE_CHANNELS, reader->frames,
+             (size_t)(count - first_count) * SKRED_SCOPE_CHANNELS * sizeof(float));
     }
     uint64_t sequence_after = scope_atomic_load(&reader->header->sequence);
     if (sequence_before == sequence_after && !(sequence_after & 1)) {

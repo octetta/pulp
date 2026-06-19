@@ -478,6 +478,9 @@ immediately on the control thread.
 | `/rs` | None | Stops multitrack recording. Requires `RECORD`. |
 | `/r?` | None | Displays multitrack recorder status. Requires `RECORD`. |
 | `r track` | `0` none, `1` through `4` stem | Routes the selected voice into a multitrack stem. Requires `RECORD` or `SCOPE`. |
+| `[name] rt track` | String plus track number | Names record/scope stem tracks 1 through 4. |
+| `rv track,dB` | Track number plus dB | Sets the final stem level for record/scope tracks 1 through 4. Defaults to `-20 dB`. |
+| `?r` | None | Shows stem names and `#` followed by the voices assigned to each track. |
 | `[name] /sg [channel-mask[,buffer-seconds]]` | Shared-memory name, channel bit mask, ring duration | Starts live publication of the ten-channel master/stem bus. Defaults to `skred-scope`, all channels, and one second. Requires `SCOPE`. |
 | `/ss` | None | Stops publication and unlinks the shared-memory name. Existing mappings remain readable and report inactive. Requires `SCOPE`. |
 | `/s?` | None | Displays scope name, format, mask, capacity, and absolute frame counter. Requires `SCOPE`. |
@@ -487,6 +490,8 @@ left/right, bits `2` and `3` are stem 1, through bits `8` and `9` for stem 4.
 For example, mask `3` publishes master L/R and mask `15` advertises master plus
 stem 1. The shared ring remains ten-channel interleaved float data; the mask
 tells consumers which channels were requested for display.
+The shared-memory header also includes per-track names and dB levels for the
+master slot and stems 1 through 4.
 
 ### Multichannel WAV Walkthrough
 

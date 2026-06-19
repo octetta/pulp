@@ -202,6 +202,20 @@ int voice_show_all(skode_t *ctx, int voice, int verbose) {
   return 0;
 }
 
+static void record_tracks_show(skode_t *ctx) {
+  for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
+    const char *name = synth_track_name_get(track);
+    ctx->printf(ctx, "[%s] rt%d rv%d,%g #",
+      name && name[0] ? name : "",
+      track, track, synth_track_volume_db_get(track));
+    for (int voice = 0; voice < synth_config.voice_max; voice++) {
+      if (synth_record_track_get(voice) == track)
+        ctx->printf(ctx, " v%d", voice);
+    }
+    ctx->printf(ctx, "\n");
+  }
+}
+
 #define SKODE_CTX_MAX (100)
 static skode_t *skode_ctx[SKODE_CTX_MAX];
 
@@ -2152,6 +2166,20 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('r---'): // additional recording track, 0=none, 1..4=stem
       if (argc) synth_record_track_set(voice, x);
       break;
+    case ATOM4('rt--'): // track-name track
+      if (argc && x > 0 && x <= RECORD_TRACK_MAX) {
+        synth_track_name_set(x, ands_string(ctx->parse));
+        scope_ipc_track_metadata_set(x, synth_track_name_get(x),
+          synth_track_volume_db_get(x));
+      }
+      break;
+    case ATOM4('rv--'): // track-volume track dB
+      if (argc > 1 && x > 0 && x <= RECORD_TRACK_MAX) {
+        synth_track_volume_set(x, arg[1]);
+        scope_ipc_track_metadata_set(x, synth_track_name_get(x),
+          synth_track_volume_db_get(x));
+      }
+      break;
     case ATOM4('R!--'):  // remove-events tag
       if (argc) {
         int tag = x;
@@ -2227,7 +2255,11 @@ int skode_function(ands_t *s, int info) {
       if (argc) voice_set(x, &ctx->voice);
       break;
     case ATOM4('V---'): // main-volume loudness
-      if (argc) volume_set(arg[0]);
+      if (argc) {
+        volume_set(arg[0]);
+        scope_ipc_track_metadata_set(0, synth_track_name_get(0),
+          synth_track_volume_db_get(0));
+      }
       break;
     case ATOM4('vt--'): // [name] voice-text-set
       skode_copy_string(sv.text[voice], TEXT_MAX, ands_string(ctx->parse));
@@ -2564,6 +2596,8 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('v?\?-'): // show-active-voices
     case ATOM4('?\?--'): // show-active-voices
       voice_show_all(ctx, voice, ctx->verbose); break;
+    case ATOM4('?r--'): // show record/scope tracks
+      record_tracks_show(ctx); break;
     case ATOM4('?s--'): // show-skode-string
       ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
       break;

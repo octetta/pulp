@@ -16,7 +16,6 @@
 #include "skode.h"
 #include "seq.h"
 #include "udp.h"
-#include "kse.h"
 #include "recorder.h"
 #include "scope-ipc.h"
 
@@ -426,7 +425,6 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
     if (r != udp_port) udp_port = 0;
   }
 
-  if (kse_start() != 0) return -1;
   if (recorder_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
   if (scope_ipc_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
 
@@ -452,7 +450,6 @@ int skred_command(char* line) {
 
 void skred_stop(void) {
   udp_stop();
-  kse_stop();
   // turn down volume smoothly to avoid clicks
   volume_set(-90);
   skred_audio_disconnect();
@@ -463,6 +460,7 @@ void skred_stop(void) {
     ma_context_uninit(&synth_context);
     context_initialized = 0;
   }
+  skode_free(&w);
   wave_free();
   synth_free();
 }

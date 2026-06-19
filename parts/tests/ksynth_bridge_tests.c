@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include "ands.h"
-#include "kse.h"
 #include "vendor/ksynth/ksynth.h"
 
 #ifdef SKRED_TEST_KSYNTH
@@ -88,49 +87,39 @@ static void test_generic_vector_binding(void) {
   ks_destroy(ctx);
 }
 
-static void test_worker_binding_order(void) {
-  const char *test = "worker binding order";
-  const double input[] = {1, 2, 3};
-  const double want[] = {1, 2, 3, 1, 2, 3};
-
-  if (kse_start() != 0) {
-    fail(test, "kse_start failed");
-    return;
-  }
-  uint64_t bind_seq = kse_bind_vector(0, 'A', input, 3);
-  uint64_t eval_seq = kse_submit(0, "A,A", 3);
-  if (!bind_seq || !eval_seq) {
-    fail(test, "submission failed");
-  } else if (!kse_wait(0, eval_seq, 1000)) {
-    fail(test, "worker timed out");
-  } else {
-    size_t len = 0;
-    double *result = kse_result_copy(0, &len, NULL);
-    if (!result) fail(test, "result copy failed");
-    else expect_vector(test, result, len, want, 6);
-    kse_result_free(result);
-  }
-
-  for (int iteration = 0; iteration < 1000; iteration++) {
-    double changing[] = {iteration, iteration + 0.5, -iteration};
-    bind_seq = kse_bind_vector(0, 'A', changing, 3);
-    eval_seq = kse_submit(0, "i A", 3);
-    if (!bind_seq || !eval_seq || !kse_wait(0, eval_seq, 1000)) {
-      fail(test, "repeated bridge operation failed");
-      break;
-    }
-  }
-  kse_stop();
-
-  if (kse_start() != 0) fail(test, "worker restart failed");
-  else kse_stop();
-}
-
 #ifdef SKRED_TEST_KSYNTH
 static void consume(const char *test, skode_t *ctx, const char *line) {
   char buffer[256];
   snprintf(buffer, sizeof(buffer), "%s", line);
   if (skode_consume(buffer, ctx) != 0) fail(test, "skode_consume failed");
+}
+
+static void test_skode_context_isolation(void) {
+  const char *test = "skode ksynth context isolation";
+  skode_t a = SKODE_EMPTY();
+  skode_t b = SKODE_EMPTY();
+  skode_init(&a);
+  skode_init(&b);
+
+  consume(test, &a, "(1 2 3) d>k0 [A,A] ks kw>");
+  consume(test, &b, "(9) d>k0 [A,A,A] ks kw>");
+
+  const double want_a[] = {1, 2, 3, 1, 2, 3};
+  const double want_b[] = {9, 9, 9};
+  expect_vector(test, ands_data(a.parse), (size_t)ands_data_len(a.parse),
+                want_a, 6);
+  expect_vector(test, ands_data(b.parse), (size_t)ands_data_len(b.parse),
+                want_b, 3);
+
+  consume(test, &a, "[A] ks kw>");
+  expect_vector(test, ands_data(a.parse), (size_t)ands_data_len(a.parse),
+                (const double[]){1, 2, 3}, 3);
+  consume(test, &b, "[A] ks kw>");
+  expect_vector(test, ands_data(b.parse), (size_t)ands_data_len(b.parse),
+                (const double[]){9}, 1);
+
+  skode_free(&a);
+  skode_free(&b);
 }
 
 static void test_skode_wave_round_trip(void) {
@@ -141,27 +130,22 @@ static void test_skode_wave_round_trip(void) {
   voice_init();
   skode_init(&ctx);
 
-  if (kse_start() != 0) {
-    fail(test, "kse_start failed");
-  } else {
-    consume(test, &ctx, "(0 .5 -1) d>k0 [A,A] ks kw>1000");
-    const double concatenated[] = {0, 0.5, -1, 0, 0.5, -1};
-    expect_vector(test, ands_data(ctx.parse),
-                  (size_t)ands_data_len(ctx.parse), concatenated, 6);
+  consume(test, &ctx, "(0 .5 -1) d>k0 [A,A] ks kw>1000");
+  const double concatenated[] = {0, 0.5, -1, 0, 0.5, -1};
+  expect_vector(test, ands_data(ctx.parse),
+                (size_t)ands_data_len(ctx.parse), concatenated, 6);
 
-    consume(test, &ctx, "/d300,44100");
-    if (!sw.data[300] || sw.size[300] != 6) {
-      fail(test, "parser data was not loaded into wave 300");
-    }
-
-    consume(test, &ctx, "w>k300,1 [i B] ks kw>1000");
-    const double reversed[] = {-1, 0.5, 0, -1, 0.5, 0};
-    expect_vector(test, ands_data(ctx.parse),
-                  (size_t)ands_data_len(ctx.parse), reversed, 6);
-    kse_stop();
+  consume(test, &ctx, "/d300,44100");
+  if (!sw.data[300] || sw.size[300] != 6) {
+    fail(test, "parser data was not loaded into wave 300");
   }
 
-  ands_free(ctx.parse);
+  consume(test, &ctx, "w>k300,1 [i B] ks kw>1000");
+  const double reversed[] = {-1, 0.5, 0, -1, 0.5, 0};
+  expect_vector(test, ands_data(ctx.parse),
+                (size_t)ands_data_len(ctx.parse), reversed, 6);
+
+  skode_free(&ctx);
   wave_free();
   synth_free();
 }
@@ -170,8 +154,8 @@ static void test_skode_wave_round_trip(void) {
 int main(void) {
   test_owned_eval_result();
   test_generic_vector_binding();
-  test_worker_binding_order();
 #ifdef SKRED_TEST_KSYNTH
+  test_skode_context_isolation();
   test_skode_wave_round_trip();
 #endif
 

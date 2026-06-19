@@ -594,21 +594,20 @@ multichannel WAV recording can be active simultaneously.
 | `/ls [type]` | `0` `.sk`, `1` `.wav`, `2` `.mp3`, `3` `.ks` | Lists matching files in the working directory. |
 | `[file] /ks [verbose]` | Ksynth filename | Loads a named Ksynth source file. Requires `KSYNTH`. |
 | `/k file[,verbose]` | Numbered Ksynth file | Loads numbered Ksynth source. Requires `KSYNTH`. |
-| `[code] ks`, `[code] k!` | Ksynth source string | Submits source to the asynchronous Ksynth worker. |
-| `kw [timeout-ms]` | Optional timeout | Waits for the latest Ksynth request. |
-| `kw> [timeout-ms]` | Optional timeout | Waits and copies the result into parser data. |
+| `[code] ks`, `[code] k!` | Ksynth source string | Runs source in this Skode context's Ksynth evaluator. |
+| `kw [timeout-ms]` | Optional timeout | Compatibility no-op; Ksynth now runs synchronously. |
+| `kw> [timeout-ms]` | Optional timeout | Copies the latest Ksynth result into parser data. |
 | `k?` | None | Displays the latest Ksynth result. |
 | `k>d` | None | Copies the latest Ksynth result into parser data. |
 | `d>k variable` | Variable `0` through `25` | Copies parser data into Ksynth variable `A` through `Z`. |
 | `w>k wave,variable` | Wave index and variable `0` through `25` | Copies a wavetable directly into Ksynth variable `A` through `Z`. |
 
-Ksynth bindings and evaluations share one ordered asynchronous queue. For
-example, `(1 2 3) d>k0 [A,A] ks kw>` binds `A` before evaluating the
-concatenation. Sample-rate and loop metadata are not copied with array values;
-provide the desired rate when loading returned parser data with `/d`.
-Vectors are limited to one million elements. Pending Ksynth jobs share a
-64 MiB payload budget; a command reports failure rather than retaining
-unbounded queued copies.
+Each Skode command context owns its own Ksynth evaluator and persistent
+`A` through `Z` variables. For example, `(1 2 3) d>k0 [A,A] ks kw>` binds
+`A` before evaluating the concatenation; `kw` is accepted for compatibility
+but no longer waits. Sample-rate and loop metadata are not copied with array
+values; provide the desired rate when loading returned parser data with `/d`.
+Vectors are limited to one million elements.
 
 ### Processing Wavetables with Ksynth
 
@@ -621,11 +620,10 @@ Variables are numbered in Skode and named in Ksynth:
 25 = Z
 ```
 
-Bindings and evaluations are asynchronous but ordered. `kw>` waits for the
-latest operation and copies its result into the current Skode data array.
-Ksynth variables `A` through `Z` belong to the engine's single worker context
-and are shared by all Skode command contexts. Coordinate variable use when
-local, UDP, or other controllers operate concurrently.
+Bindings and evaluations run immediately in the current Skode command context.
+`kw>` copies the latest result into the current Skode data array. Ksynth
+variables `A` through `Z` belong to that context, so local input and separate
+UDP clients keep independent variables.
 
 **Transform parser data and load the result into a wavetable:**
 
@@ -686,9 +684,8 @@ playback enabled, so a trigger reads wave 10 followed by wave 11 and then
 stops at the end instead of wrapping. Use another `/d` rate when the source
 material is not 44100 Hz.
 
-`kw` waits without copying a result. `k>d` copies the latest completed result
-without waiting. Prefer `kw>` when the next command immediately consumes the
-new array.
+`kw` is kept for older scripts and does nothing. `k>d` and `kw>` both copy the
+latest completed result.
 
 ## Example Sounds
 

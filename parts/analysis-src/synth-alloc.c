@@ -99,7 +99,7 @@ void synth_alloc_voices(int voice_max) {
     int v = voice_max;   /* already VOICE_ALIGN-rounded by synth_config_set_voices */
 
     /* oscillator / playback core */
-    VALLOC(phase,            float);
+    VALLOC(phase,            double);
     VALLOC(phase_inc,        float);
     VALLOC(table,            float *);
     VALLOC(table_size,       int);

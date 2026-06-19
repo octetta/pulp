@@ -6,11 +6,8 @@ This directory contains a vendored source snapshot of Ksynth. Keep generic
 array-language, evaluator, memory-management, and embedding API changes here
 suitable for propagation to the upstream repository.
 
-PULP-specific asynchronous transport and Skode integration remain outside this
-directory in:
+PULP-specific Skode integration remains outside this directory in:
 
-- `kse.c` and `kse.h`
-- `ks_chan.c` and `ks_chan.h`
 - `skode.c.kit`
 
 ## Updating

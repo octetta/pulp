@@ -51,8 +51,6 @@ set(API_PLAIN_SOURCES
     skqueue.c
     udp.c
     vendor/ksynth/ksynth.c
-    ks_chan.c
-    kse.c
 )
 
 # 3. List your .kit modules intended ONLY for the library

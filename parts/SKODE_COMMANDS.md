@@ -314,26 +314,21 @@ Skode has `SKODE_EXTRA_MAX` (128) external string buffers of 256 bytes each.
 | `eRR index,count,beats[,tag]` | numeric | Repeat a compiled macro snapshot using tempo | `skode_repeat_macro()` |
 | `[file] /ks [verbose]` | string | Load a named Ksynth source file | `ksynth_load_name()` |
 | `/k file-number[,verbose]` | numeric | Load numbered Ksynth source | `ksynth_load()` |
-| `[code] ks`, `[code] k!` | string | Submit Ksynth source | `skode_ks_submit()` |
-| `kw [timeout-ms]` | optional numeric | Wait for the latest Ksynth request | `skode_ks_wait()` |
-| `kw> [timeout-ms]` | optional numeric | Wait and copy result to parser data | `skode_ks_result_to_data()` |
-| `k?` | none | Print latest Ksynth result | `kse_result_copy()` |
+| `[code] ks`, `[code] k!` | string | Run Ksynth source in this Skode context | `skode_ks_eval()` |
+| `kw [timeout-ms]` | optional numeric | Compatibility no-op; Ksynth now runs synchronously | parser command |
+| `kw> [timeout-ms]` | optional numeric | Copy latest Ksynth result to parser data | `skode_ks_result_to_data()` |
+| `k?` | none | Print latest Ksynth result | direct result inspection |
 | `k>d` | none | Copy latest Ksynth result to parser data | `skode_ks_result_to_data()` |
-| `d>k variable` | numeric `0..25` | Copy parser data to Ksynth `A..Z` | `kse_bind_vector()` |
-| `w>k wave,variable` | numeric | Copy a wavetable directly to Ksynth `A..Z` | `kse_bind_vector()` |
+| `d>k variable` | numeric `0..25` | Copy parser data to Ksynth `A..Z` | `ks_bind_vector()` |
+| `w>k wave,variable` | numeric | Copy a wavetable directly to Ksynth `A..Z` | `ks_bind_vector()` |
 
 Ksynth commands require the `KSYNTH` feature and are immediate-only.
-Each vector is limited to one million elements, and pending Ksynth jobs share
-a 64 MiB queue-payload budget. Submissions fail cleanly when either limit is
-exceeded.
-
-`d>k` and `w>k` enqueue owned copies, so the parser data or wavetable may be
-changed after submission without altering the queued input. Jobs from one
-writer execute in FIFO order. `kw>` waits for the latest submitted job and
-then copies the latest numeric result into parser data. Wavetable metadata,
-including rate, looping, and one-shot state, is not part of the transferred
-Ksynth vector. The worker has one shared `ks_ctx`, so persistent variables
-`A..Z` are engine-wide rather than owned by an individual `skode_t`.
+Each vector is limited to one million elements. Each Skode command context
+owns its own lazy Ksynth context and persistent `A..Z` variables; local input
+and each UDP client therefore keep independent Ksynth state. `kw` remains
+accepted for older scripts, but no longer waits for a worker. `kw>` and `k>d`
+copy the latest numeric result into parser data. Wavetable metadata, including
+rate, looping, and one-shot state, is not part of the transferred Ksynth vector.
 
 ## Files, Samples, and Recording
 

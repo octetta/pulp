@@ -85,6 +85,39 @@ typedef struct {
 
 #define UDP_PORT_MAX (127)
 
+static skode_t *udp_context_for(udp_state_t *user, struct sockaddr_in *client,
+                                int now) {
+  int base = get_connection_index(client, UDP_PORT_MAX);
+  int empty = -1;
+  for (int offset = 0; offset < UDP_PORT_MAX; offset++) {
+    int which = (base + offset) % UDP_PORT_MAX;
+    udp_state_t *slot = &user[which];
+    if (slot->in_use) {
+      if (slot->w.ip == client->sin_addr.s_addr &&
+          slot->w.port == client->sin_port) {
+        slot->last_use = now;
+        return &slot->w;
+      }
+    } else if (empty < 0) {
+      empty = which;
+    }
+  }
+
+  int which = empty >= 0 ? empty : base;
+  udp_state_t *slot = &user[which];
+  if (slot->in_use) {
+    skode_free(&slot->w);
+    skode_init(&slot->w);
+  }
+  slot->in_use = 1;
+  slot->last_use = now;
+  slot->w.udp = 1;
+  slot->w.which = which;
+  slot->w.ip = client->sin_addr.s_addr;
+  slot->w.port = client->sin_port;
+  return &slot->w;
+}
+
 static void *udp_main(void *arg) {
   (void)arg;
   if (udp_port <= 0) {
@@ -112,6 +145,7 @@ static void *udp_main(void *arg) {
     user[i].in_use = 0;
     user[i].last_use = 0;
   }
+  int use_counter = 0;
   while (udp_running) {
     FD_ZERO(&readfds);
     FD_SET(sock, &readfds);
@@ -122,18 +156,7 @@ static void *udp_main(void *arg) {
       ssize_t n = recvfrom(sock, line, sizeof(line) - 1, 0, (struct sockaddr *)&client, &client_len);
       if (n > 0) {
         line[n] = '\0';
-        // printf("# from %d\n", ntohs(client.sin_port)); // port
-        // in the future, this should get ip and port and use for
-        // context amongst multiple udp clients
-        int which = get_connection_index(&client, UDP_PORT_MAX);
-        skode_t *w = &user[which].w;
-        if (w->udp == 0) {
-          struct sockaddr_in *addr = &client;
-          w->udp = 1;
-          w->which = which;
-          w->ip = addr->sin_addr.s_addr;
-          w->port = addr->sin_port;
-        }
+        skode_t *w = udp_context_for(user, &client, ++use_counter);
         skode_consume(line, w);
         //
         if (w->log_len) {
@@ -155,7 +178,8 @@ static void *udp_main(void *arg) {
   }
   udp_socket = INVALID_SOCKET;
   for (int i = 0; i < UDP_PORT_MAX; i++) {
-    // need to free alloc-ed stuff here
+    skode_free(&user[i].w);
+    user[i].in_use = 0;
   }
   return NULL;
 }

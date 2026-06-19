@@ -18,8 +18,7 @@
 #include <dirent.h>
 
 @if(KSYNTH)
-#include "ks_chan.h"
-#include "kse.h"
+#include "vendor/ksynth/ksynth.h"
 @endif
 @if(RECORD)
 #include "recorder.h"
@@ -113,6 +112,9 @@ static skode_t *skode_ctx[SKODE_CTX_MAX];
 static char _skode_extra[STRING_BUF_IDX_MAX][STRING_BUF_LEN];
 static char _skode_extra_invalid[STRING_BUF_LEN];
 static simple_mutex_t skode_extra_mutex;
+@if(KSYNTH)
+static simple_mutex_t skode_ks_eval_mutex;
+@endif
 static atomic_int_t skode_global_state;
 static int skode_extra_valid(int n) { return n >= 0 && n < STRING_BUF_IDX_MAX; }
 static char *skode_extra_ptr(int n) {
@@ -128,6 +130,9 @@ static void skode_global_init(void) {
   int expected = 0;
   if (atomic_compare_exchange_int(&skode_global_state, &expected, 1)) {
     simple_mutex_init(&skode_extra_mutex);
+    @if(KSYNTH)
+    simple_mutex_init(&skode_ks_eval_mutex);
+    @endif
     for (int i = 0; i < SKODE_CTX_MAX; i++) skode_ctx[i] = NULL;
     _skode_extra_invalid[0] = '\0';
     for (int i = 0; i < STRING_BUF_IDX_MAX; i++) _skode_extra[i][0] = '\0';
@@ -446,41 +451,63 @@ void show_threads(skode_t *ctx) {
 }
 
 @if(KSYNTH)
-uint64_t skode_ks_submit(skode_t *ctx, int writer, char *cmd, int len) {
-  uint64_t seq = kse_submit(writer, cmd, len);
-  if (seq) {
-    ctx->ks_wait_writer = writer;
-    ctx->ks_wait_seq = seq;
+static ks_ctx *skode_ks_ctx(skode_t *ctx) {
+  if (!ctx) return NULL;
+  if (!ctx->ks) {
+    ctx->ks = ks_create(16 * 1024 * 1024, 10000000);
+    if (!ctx->ks) ctx->printf(ctx, "# ksynth context allocation failed\n");
   }
-  return seq;
+  return ctx->ks;
 }
 
-int skode_ks_wait(skode_t *ctx, int timeout_ms) {
-  if (ctx->ks_wait_seq == 0) return 0;
-  return kse_wait(ctx->ks_wait_writer, ctx->ks_wait_seq, timeout_ms);
+static void skode_ks_result_clear(skode_t *ctx) {
+  if (!ctx || !ctx->ks_result) return;
+  if (ctx->ks) k_free(ctx->ks, (K)ctx->ks_result);
+  ctx->ks_result = NULL;
 }
 
-int skode_ks_result_to_data(skode_t *ctx, int writer) {
-  size_t len = 0;
-  uint64_t seq = 0;
-  double *f = kse_result_copy(writer, &len, &seq);
-  if (f && len) {
+int skode_ks_eval(skode_t *ctx, char *cmd, int len) {
+  if (!ctx || !cmd || len < 0) return 0;
+  ks_ctx *ks = skode_ks_ctx(ctx);
+  if (!ks) return 0;
+
+  if (len >= 2 && strncmp(cmd, "\\X", 2) == 0) {
+    skode_ks_result_clear(ctx);
+    ks_clear_vars(ks);
+    return 1;
+  }
+
+  simple_mutex_lock(&skode_ks_eval_mutex);
+  K next = ks_eval(ks, cmd, (size_t)len);
+  simple_mutex_unlock(&skode_ks_eval_mutex);
+  if (ks->last_status != KS_OK) {
+    ctx->printf(ctx, "# ksynth status %d error %s\n",
+                ks->last_status, ks_strerror(ks->last_status));
+  }
+  skode_ks_result_clear(ctx);
+  ctx->ks_result = next;
+  return next != NULL;
+}
+
+int skode_ks_result_to_data(skode_t *ctx) {
+  if (!ctx || !ctx->ks_result || k_is_func((K)ctx->ks_result)) return 0;
+  K result = (K)ctx->ks_result;
+  size_t len = (size_t)result->n;
+  if (len) {
     int dlen = ands_data_cap(ctx->parse);
     if ((int)len > dlen) {
       ctx->printf(ctx, "# resize %d -> %d\n", dlen, (int)len);
       ands_data_resize(ctx->parse, (int)len);
     }
     double *g = ands_data(ctx->parse);
-    for (int i=0; i<(int)len; i++) g[i] = f[i];
+    for (int i=0; i<(int)len; i++) g[i] = result->f[i];
     ands_data_len_set(ctx->parse, (int)len);
   }
-  int copied = f && len;
-  kse_result_free(f);
-  return copied;
+  return len > 0;
 }
 
-uint64_t skode_ks_bind_values(skode_t *ctx, int writer, int variable,
-                              const double *values, size_t len) {
+int skode_ks_bind_values(skode_t *ctx, int variable,
+                         const double *values, size_t len) {
   if (variable < 0 || variable >= 26) {
     ctx->printf(ctx, "# invalid ksynth variable %d (expected 0..25)\n",
                 variable);
@@ -494,24 +521,25 @@ uint64_t skode_ks_bind_values(skode_t *ctx, int writer, int variable,
     ctx->printf(ctx, "# ksynth vector too large: %zu\n", len);
     return 0;
   }
-  uint64_t seq = kse_bind_vector(writer, (char)('A' + variable), values, len);
-  if (!seq) {
-    ctx->printf(ctx, "# ksynth bind queue full or allocation failed\n");
+  ks_ctx *ks = skode_ks_ctx(ctx);
+  if (!ks) return 0;
+  ks_status status = ks_bind_vector(ks, (char)('A' + variable), values, len);
+  if (status != KS_OK) {
+    ctx->printf(ctx, "# bind %c status %d error %s\n",
+                (char)('A' + variable), status, ks_strerror(status));
     return 0;
   }
-  ctx->ks_wait_writer = writer;
-  ctx->ks_wait_seq = seq;
-  return seq;
+  return 1;
 }
 
-void ksynth_loader(skode_t *ctx, FILE *in, int writer, int verbose) {
+void ksynth_loader(skode_t *ctx, FILE *in, int verbose) {
   if (in) {
     char line[1024];
     while (fgets(line, sizeof(line), in) != NULL) {
       size_t len = strlen(line);
-      if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
+      if (len > 0 && line[len-1] == '\n') line[--len] = '\0';
       if (verbose) ctx->printf(ctx, "  %s\n", line);
-      skode_ks_submit(ctx, writer, line, (int)len);
+      if (len > 0) skode_ks_eval(ctx, line, (int)len);
     }
     fclose(in);
   } else {
@@ -519,14 +547,14 @@ void ksynth_loader(skode_t *ctx, FILE *in, int writer, int verbose) {
   }
 }
 
-int ksynth_load_name(skode_t *ctx, int writer, char *file, int verbose) {
+int ksynth_load_name(skode_t *ctx, char *file, int verbose) {
   FILE *in = fopen(file, "r");
   int r = 0;
-  ksynth_loader(ctx, in, writer, verbose);
+  ksynth_loader(ctx, in, verbose);
   return r;
 }
 
-int ksynth_load(skode_t *ctx, int writer, int n, int verbose) {
+int ksynth_load(skode_t *ctx, int n, int verbose) {
   char file[1024];
   sprintf(file, "%d.ks", n);
   FILE *in = fopen(file, "r");
@@ -535,7 +563,7 @@ int ksynth_load(skode_t *ctx, int writer, int n, int verbose) {
     in = fopen(file, "r");
   }
   int r = 0;
-  ksynth_loader(ctx, in, writer, verbose);
+  ksynth_loader(ctx, in, verbose);
   return r;
 }
 @endif
@@ -2089,14 +2117,13 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     @if(KSYNTH)
-    #define TMP_WRITER 0
     case ATOM4('/ks-'): // ksynth-load num (verbose)
       {
         char *file = ands_string(ctx->parse);
         int verbose = 0;
         if (argc) skode_double_to_int(arg[0], &verbose);
         if (strlen(file)) {
-          ksynth_load_name(ctx, TMP_WRITER, file, verbose);
+          ksynth_load_name(ctx, file, verbose);
         }
       }
       break;
@@ -2104,7 +2131,7 @@ int skode_function(ands_t *s, int info) {
       if (argc) {
         int verbose = 0;
         if (argc > 1) skode_double_to_int(arg[1], &verbose);
-        ksynth_load(ctx, TMP_WRITER, x, verbose);
+        ksynth_load(ctx, x, verbose);
       }
       break;
     case ATOM4('ks--'): // run ksynth code in string buffer
@@ -2116,40 +2143,30 @@ int skode_function(ands_t *s, int info) {
         if (ctx->trace) {
           ctx->printf(ctx, "cmd:[%s] len:%d\n", cmd, len);
         }
-        if (len) skode_ks_submit(ctx, 0, cmd, len);
+        if (len) skode_ks_eval(ctx, cmd, len);
       }
       break;
     case ATOM4('kw--'): // wait for last ksynth request [timeout-ms]
       {
-        int timeout_ms = -1;
-        if (argc) timeout_ms = x;
-        if (!skode_ks_wait(ctx, timeout_ms)) ctx->printf(ctx, "# kw timeout\n");
+        (void)x;
       }
       break;
-    case ATOM4('kw>-'): // wait for last ksynth request, then copy result to data [timeout-ms]
+    case ATOM4('kw>-'): // compatibility: copy latest ksynth result to data
       {
-        int timeout_ms = -1;
-        if (argc) timeout_ms = x;
-        if (skode_ks_wait(ctx, timeout_ms)) {
-          skode_ks_result_to_data(ctx, ctx->ks_wait_writer);
-        } else {
-          ctx->printf(ctx, "# kw> timeout\n");
-        }
+        (void)x;
+        skode_ks_result_to_data(ctx);
       }
       break;
     case ATOM4('k?--'): // k show last results
       {
-        size_t len;
-        int writer = 0;
-        double *f = kse_result_copy(writer, &len, NULL);
-        if (len && f) skode_double_dump(ctx, f, len);
-        kse_result_free(f);
+        K result = (K)ctx->ks_result;
+        if (result && !k_is_func(result))
+          skode_double_dump(ctx, result->f, (size_t)result->n);
       }
       break;
     case ATOM4('k>d-'): // k results to d?
       {
-        int writer = 0;
-        skode_ks_result_to_data(ctx, writer);
+        skode_ks_result_to_data(ctx);
       }
       break;
     @endif
@@ -2389,7 +2406,7 @@ int skode_function(ands_t *s, int info) {
       if (argc) {
         int variable;
         if (skode_double_to_int(arg[0], &variable)) {
-          skode_ks_bind_values(ctx, 0, variable, ands_data(ctx->parse),
+          skode_ks_bind_values(ctx, variable, ands_data(ctx->parse),
                                (size_t)ands_data_len(ctx->parse));
         }
       }
@@ -2415,7 +2432,7 @@ int skode_function(ands_t *s, int info) {
           break;
         }
         for (size_t i = 0; i < len; i++) values[i] = sw.data[wave][i];
-        skode_ks_bind_values(ctx, 0, variable, values, len);
+        skode_ks_bind_values(ctx, variable, values, len);
         free(values);
       }
       break;
@@ -3295,6 +3312,28 @@ void skode_init(skode_t *ctx) {
   ctx->log_max = SKODE_LOG_MAX;
   ctx->log_len = 0;
   ctx->log[0] = '\0';
-  ctx->ks_wait_seq = 0;
-  ctx->ks_wait_writer = 0;
+  ctx->ks = NULL;
+  ctx->ks_result = NULL;
+  ctx->udp = 0;
+  ctx->which = 0;
+  ctx->ip = 0;
+  ctx->port = 0;
+}
+
+void skode_free(skode_t *ctx) {
+  if (!ctx) return;
+  if (ctx->parse) {
+    ands_free(ctx->parse);
+    ctx->parse = NULL;
+  }
+  @if(KSYNTH)
+  if (ctx->ks_result && ctx->ks) {
+    k_free(ctx->ks, (K)ctx->ks_result);
+    ctx->ks_result = NULL;
+  }
+  if (ctx->ks) {
+    ks_destroy(ctx->ks);
+    ctx->ks = NULL;
+  }
+  @endif
 }

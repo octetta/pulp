@@ -94,8 +94,8 @@ typedef struct skode_s {
   int log_max;
   int log_len;
   int flag;
-  uint64_t ks_wait_seq;
-  int ks_wait_writer;
+  struct ks_ctx *ks;
+  void *ks_result;
   //
   int udp;
   int which;
@@ -148,13 +148,14 @@ int null_printf(const char *fmt, ...);
   .log_enable = 0, \
   .log_len = 0, \
   .log_max = SKODE_LOG_MAX, \
-  .ks_wait_seq = 0, \
-  .ks_wait_writer = 0, \
+  .ks = NULL, \
+  .ks_result = NULL, \
 }
 
 //  .output = 0, 
 
 
 void skode_init(skode_t *w);
+void skode_free(skode_t *w);
 
 #endif

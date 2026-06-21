@@ -534,7 +534,8 @@ function formatSliderValue(value, step) {
     const text = `${s}`;
     const dot = text.indexOf('.');
     const places = dot >= 0 ? Math.min(8, text.length - dot - 1) : 0;
-    return n.toFixed(places).replace(/\.?0+$/, '');
+    const formatted = n.toFixed(places);
+    return formatted.includes('.') ? formatted.replace(/\.?0+$/, '') : formatted;
 }
 
 function sliderParts(row) {

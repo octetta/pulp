@@ -18,13 +18,17 @@ codebase when evaluating, embedding, or extending it.
 
 ## Architectural Overview
 
-The public embedding surface is intentionally small:
+The public embedding surface is intentionally centered on the text command API:
 
 ```c
 int skred_start(unsigned int frames, unsigned int voices, int udp_port);
 int skred_command(char *command);
 void skred_stop(void);
 ```
+
+`api.h` also exposes supporting integration functions for version and feature
+inspection, command logging, audio-device selection, and optional recording and
+shared-memory scope control.
 
 At runtime, commands follow one of two paths:
 
@@ -50,9 +54,9 @@ At runtime, commands follow one of two paths:
                                                |
                                          audio callback
                                                |
-                                  render current block,
-                                then apply due scheduled work
-                                  for the following block
+                                  apply due scheduled work,
+                                then render to the next
+                                      timing boundary
 ```
 
 Immediate commands execute while Skode text is being parsed. Scheduled
@@ -183,7 +187,10 @@ Files:
 - `api.c.kit`
 - `mini-skred.c.kit`
 
-`api.h` is the preferred integration boundary. `api.c.kit` owns the singleton
+`api.h` is the preferred integration boundary. Its core control API is
+`skred_start()`, `skred_command()`, and `skred_stop()`, with additional helpers
+for feature/version inspection, logging, audio-device management, and optional
+recording and shared-memory scope control. `api.c.kit` owns the singleton
 engine, miniaudio context, active device, command context, optional UDP
 service, recorder, and shared-memory scope publisher.
 
@@ -492,7 +499,7 @@ The project has several possible threads:
 - the application or command thread
 - the optional UDP receiver thread
 - the optional recording writer thread
-- optional Ksynth workers
+- optional synchronous Ksynth evaluation on command or UDP threads
 
 The most important rule is that the audio callback must remain bounded:
 
@@ -547,6 +554,8 @@ Tests live in `tests/` and are registered in `CMakeLists.txt`:
   sequencing, tempo limits, and state behavior.
 - `skqueue_tests.c` stresses concurrent event publication.
 - `audio_command_tests.c` covers audio-device command routing.
+- `ksynth_bridge_tests.c` covers Ksynth data and wavetable transfer when
+  `KSYNTH` is enabled.
 - `recording_tests.c` covers recording when `RECORD` is enabled.
 - `scope_ipc_tests.c` covers cross-process reads, wraparound, restart
   generations, and Skode scope commands when `SCOPE` is enabled.

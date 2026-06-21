@@ -596,6 +596,10 @@ This is the lowest-risk path. Link the `api` static library and drive it with
 This approach preserves the native command language and keeps your host
 isolated from internal state layout.
 
+See [API_INTEGRATION.md](API_INTEGRATION.md) for the generated distribution
+layout, compile/link examples, lifecycle, logging, feature, audio-device,
+recording, and scope API notes.
+
 ### Use SKRED as a Subprocess
 
 Run `mini-skred -n` and exchange line-oriented Skode over standard input and

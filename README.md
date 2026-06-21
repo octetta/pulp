@@ -16,6 +16,11 @@ See [parts/ARCHITECTURE.md](parts/ARCHITECTURE.md) for the runtime model,
 real-time boundaries, generated-source workflow, adoption options, and a guide
 to navigating the codebase.
 
+For external C/C++ hosts, see
+[parts/API_INTEGRATION.md](parts/API_INTEGRATION.md) for the generated
+distribution layout, compile/link examples, lifecycle, logging, feature, audio
+device, recording, and scope APIs.
+
 Skode documentation:
 
 - [User command reference](parts/SKODE_USER_COMMAND_REFERENCE.md)
@@ -48,7 +53,7 @@ SMOOTHER # volume change smoother
 XM     # ring modulation
 
 UDP    # receive skode on UDP
-KSYNTH # asynchronous k-synth evaluation
+KSYNTH # synchronous k-synth evaluation
 RECORD # multitrack WAV recording
 SCOPE  # shared-memory live audio publication
 BENCH  # internal benchmark measurements

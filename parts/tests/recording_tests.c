@@ -101,6 +101,70 @@ static void test_track_routing(void) {
   synth_free();
 }
 
+static void test_multichannel_device_track_routing(void) {
+  const char *test = "multichannel device track routing";
+  enum { FRAMES = 128 };
+  float output[FRAMES * RECORD_CHANNELS] = {0};
+  float recorded[FRAMES * RECORD_CHANNELS] = {0};
+  synth_record_bus_t bus = {recorded, RECORD_CHANNELS};
+
+  synth_init(8);
+  wave_table_init(0);
+  voice_init();
+
+  for (int voice = 0; voice < RECORD_TRACK_MAX; voice++) {
+    wave_set(voice, WAVE_TABLE_SINE);
+    freq_set(voice, 330.0f + (float)voice * 110.0f);
+    amp_set(voice, 0.0f);
+    pan_set(voice, voice % 2 ? 1.0f : -1.0f);
+    synth_record_track_set(voice, voice + 1);
+    envelope_velocity(voice, 1.0f);
+  }
+
+  synth(output, NULL, FRAMES, RECORD_CHANNELS, &bus);
+
+  int track_nonzero[RECORD_TRACK_COUNT] = {0};
+  for (int frame = 0; frame < FRAMES; frame++) {
+    int frame_index = frame * RECORD_CHANNELS;
+    for (int channel = 0; channel < RECORD_CHANNELS; channel++) {
+      if (output[frame_index + channel] != recorded[frame_index + channel]) {
+        fail(test, "device output does not match recorder channel layout");
+        frame = FRAMES;
+        break;
+      }
+      if (channel >= AUDIO_CHANNELS &&
+          (fabsf(output[frame_index + channel]) > 1e-7f)) {
+        int track = channel / AUDIO_CHANNELS;
+        if (track >= 1 && track <= RECORD_TRACK_MAX) {
+          track_nonzero[track] = 1;
+        }
+      }
+    }
+  }
+
+  for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
+    if (!track_nonzero[track]) {
+      char message[64];
+      snprintf(message, sizeof(message), "track %d device pair is silent", track);
+      fail(test, message);
+    }
+  }
+
+  float odd_output[FRAMES * 5] = {0};
+  synth(odd_output, NULL, FRAMES, 5, NULL);
+  int leftover_nonzero = 0;
+  for (int frame = 0; frame < FRAMES; frame++) {
+    int frame_index = frame * 5;
+    if (fabsf(odd_output[frame_index + 4]) > 1e-7f) {
+      leftover_nonzero = 1;
+      break;
+    }
+  }
+  if (leftover_nonzero) fail(test, "odd leftover channel contains audio");
+
+  synth_free();
+}
+
 static void test_sub_block_record_offsets(void) {
   const char *test = "sub-block record offsets";
   enum { FRAMES = 128, SPLIT = 37 };
@@ -320,6 +384,7 @@ static void test_skode_recording_commands(void) {
 
 int main(void) {
   test_track_routing();
+  test_multichannel_device_track_routing();
   test_sub_block_record_offsets();
   test_ring_writer();
   test_duration_limit_and_restart();

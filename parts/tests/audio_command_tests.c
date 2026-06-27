@@ -2,6 +2,8 @@
 #include <string.h>
 
 #include "api.h"
+#include "synth.h"
+#include "synth-types.h"
 
 static int failures;
 
@@ -17,17 +19,26 @@ int main(void) {
 
   expect(skred_audio_command("/a?") == 1,
          "/a? was not handled");
-  expect(strstr(skred_audio_message(), "audio=stopped") != NULL,
+  expect(strstr(skred_audio_message(), "audio: stopped") != NULL,
          "/a? did not report stopped state");
+  expect(strstr(skred_audio_message(), "channels:") != NULL,
+         "/a? did not report channel metrics");
+  expect(strstr(skred_audio_message(), "callback-frames:") != NULL,
+         "/a? did not report callback frame metrics");
+
+  synth_sample_rate_set(48000);
+  expect(strstr(skred_audio_status(), "rate: 48000") != NULL,
+         "status did not report runtime sample rate");
+  synth_sample_rate_set(SKRED_DEFAULT_SAMPLE_RATE);
 
   expect(skred_audio_command("/ain off") == 1,
          "/ain off was not accepted");
-  expect(strstr(skred_audio_message(), "requested=[off]") != NULL,
+  expect(strstr(skred_audio_message(), "requested: [off]") != NULL,
          "/ain off did not update requested state");
 
   expect(skred_audio_command("/aout default") == 1,
          "/aout default was not accepted");
-  expect(strstr(skred_audio_message(), "requested=[default]") != NULL,
+  expect(strstr(skred_audio_message(), "requested: [default]") != NULL,
          "/aout default did not update requested state");
 
   expect(skred_audio_command("/ain") < 0,

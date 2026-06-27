@@ -18,6 +18,7 @@
 #include "portable_atomic.h"
 
 atomic_uint64_t synth_sample_count;
+int synth_sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
 
 #define SAMPLE_COUNT_PUT(n) atomic_store_uint64(&synth_sample_count, n)
 #define SAMPLE_COUNT_GET() atomic_load_uint64(&synth_sample_count)
@@ -36,6 +37,16 @@ static int voice_invalid(int voice);
 @if(RECORD || SCOPE)
 static void synth_track_defaults(void);
 @endif
+
+int synth_sample_rate_set(int sample_rate) {
+  if (sample_rate < 1) sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
+  synth_sample_rate = sample_rate;
+  return synth_sample_rate;
+}
+
+int synth_sample_rate_get(void) {
+  return synth_sample_rate;
+}
 
 @if(AM || FM || PANMOD || PD)
 static int mod_voice_invalid(int voice) {
@@ -1089,9 +1100,22 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     }
     @endif
 
-    // Write to all channels
-    buffer[i * num_channels + 0] = sample_left;
-    buffer[i * num_channels + 1] = sample_right;
+    // Mirror the record/scope bus onto multichannel devices when available.
+    float *output_frame = buffer + ((size_t)i * num_channels);
+    for (int channel = 0; channel < num_channels; channel++) {
+      output_frame[channel] = 0.0f;
+    }
+    if (num_channels > 0) output_frame[0] = sample_left;
+    if (num_channels > 1) output_frame[1] = sample_right;
+    @if(RECORD || SCOPE)
+    for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
+      int channel = track * AUDIO_CHANNELS;
+      if (channel + 1 >= num_channels) break;
+      float track_gain = synth_track_volume_linear_get(track);
+      output_frame[channel] = record_left[track] * track_gain;
+      output_frame[channel + 1] = record_right[track] * track_gain;
+    }
+    @endif
   }
   @if(BENCH)
   BEN_MARK_B(bench, benchp, bencho);

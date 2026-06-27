@@ -19,6 +19,10 @@ extern int requested_synth_frames_per_callback;
 extern int synth_frames_per_callback;
 
 extern volatile uint64_t synth_sample_count;
+extern int synth_sample_rate;
+
+int synth_sample_rate_set(int sample_rate);
+int synth_sample_rate_get(void);
 
 extern float volume_user;
 extern float volume_final;

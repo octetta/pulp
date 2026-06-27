@@ -248,7 +248,7 @@ int skred_enumerate_devices(int isCapture) {
   return skred_devices(isCapture);
 }
 
-static int audio_open_selected_device(void) {
+static int audio_init_selected_device(unsigned int sample_rate) {
   ma_device_type type = selected_input.mode == SKRED_AUDIO_OFF
                           ? ma_device_type_playback : ma_device_type_duplex;
   ma_device_config config = ma_device_config_init(type);
@@ -259,10 +259,10 @@ static int audio_open_selected_device(void) {
     config.capture.pDeviceID = &selected_input.id;
   }
   config.playback.format = ma_format_f32;
-  config.playback.channels = AUDIO_CHANNELS;
+  config.playback.channels = 0;
   config.capture.format = ma_format_f32;
   config.capture.channels = AUDIO_CHANNELS;
-  config.sampleRate = MAIN_SAMPLE_RATE;
+  config.sampleRate = sample_rate;
   config.dataCallback = synth_callback;
   config.periodSizeInFrames = requested_synth_frames_per_callback;
   config.pUserData = NULL;
@@ -271,12 +271,6 @@ static int audio_open_selected_device(void) {
     return -1;
   }
   device_initialized = 1;
-  if (ma_device_start(&synth_device) != MA_SUCCESS) {
-    ma_device_uninit(&synth_device);
-    device_initialized = 0;
-    return -1;
-  }
-
   ma_device_info info;
   if (ma_device_get_info(&synth_device, ma_device_type_playback, &info) == MA_SUCCESS) {
     audio_copy_name(active_output, sizeof(active_output), info.name);
@@ -288,6 +282,18 @@ static int audio_open_selected_device(void) {
     audio_copy_name(active_input, sizeof(active_input), info.name);
   } else {
     audio_copy_name(active_input, sizeof(active_input), selected_input.name);
+  }
+  return 0;
+}
+
+static int audio_start_selected_device(void) {
+  if (!device_initialized) return -1;
+  if (ma_device_start(&synth_device) != MA_SUCCESS) {
+    ma_device_uninit(&synth_device);
+    device_initialized = 0;
+    audio_copy_name(active_output, sizeof(active_output), "stopped");
+    audio_copy_name(active_input, sizeof(active_input), "stopped");
+    return -1;
   }
   return 0;
 }
@@ -306,7 +312,8 @@ int skred_audio_reconnect(void) {
   if (!engine_started) return 0;
   if (ensure_context_initialized() != 0) return -1;
   skred_audio_disconnect();
-  return audio_open_selected_device();
+  if (audio_init_selected_device((unsigned int)MAIN_SAMPLE_RATE) != 0) return -1;
+  return audio_start_selected_device();
 }
 
 int skred_audio_select(int is_capture, int selection) {
@@ -340,11 +347,41 @@ int skred_audio_running(void) {
 }
 
 char *skred_audio_status(void) {
+  int running = skred_audio_running();
+  unsigned int output_channels = device_initialized ? synth_device.playback.channels : 0;
+  unsigned int input_channels =
+    (device_initialized && selected_input.mode != SKRED_AUDIO_OFF)
+      ? synth_device.capture.channels : 0;
+  unsigned int sample_rate = device_initialized
+    ? synth_device.sampleRate : (unsigned int)synth_sample_rate_get();
+  unsigned int output_pairs = output_channels / AUDIO_CHANNELS;
+  @if(RECORD || SCOPE)
+  unsigned int skred_pairs = RECORD_TRACK_COUNT;
+  unsigned int stem_pairs = output_pairs > 0 ? output_pairs - 1 : 0;
+  if (stem_pairs > RECORD_TRACK_MAX) stem_pairs = RECORD_TRACK_MAX;
+  @endif
   snprintf(audio_status, sizeof(audio_status),
-           "audio=%s output=[%s] requested=[%s] input=[%s] requested=[%s]",
-           skred_audio_running() ? "running" : "stopped",
+           "audio: %s\n"
+           "out: [%s]\n"
+           "  requested: [%s]\n"
+           "  channels: %u pairs: %u"
+           @if(RECORD || SCOPE)
+           " skred-pairs: %u stem-pairs: %u"
+           @endif
+           "\n"
+           "in: [%s]\n"
+           "  requested: [%s]\n"
+           "  channels: %u\n"
+           "rate: %u callback-frames: %d",
+           running ? "running" : "stopped",
            active_output, selected_output.name,
-           active_input, selected_input.name);
+           output_channels, output_pairs
+           @if(RECORD || SCOPE)
+           , skred_pairs, stem_pairs
+           @endif
+           , active_input, selected_input.name,
+           input_channels,
+           sample_rate, requested_synth_frames_per_callback);
   return audio_status;
 }
 
@@ -467,6 +504,18 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   int req = req_audio_frames;
   int vc = voices;
   requested_synth_frames_per_callback = req;
+
+  int audio_disabled = skred_env_enabled("SKRED_NO_AUDIO");
+  if (audio_disabled) {
+    synth_sample_rate_set(SKRED_DEFAULT_SAMPLE_RATE);
+  } else {
+    skred_startup_trace("audio_context");
+    if (ensure_context_initialized() != 0) return -1;
+    skred_startup_trace("audio_init");
+    if (audio_init_selected_device(0) != 0) return -1;
+    synth_sample_rate_set((int)synth_device.sampleRate);
+  }
+
   skred_startup_trace("synth_init");
   synth_init(vc);
   skred_startup_trace("wave_table_init");
@@ -495,14 +544,20 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
 
   @if(RECORD)
   skred_startup_trace("recorder_init");
-  if (recorder_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
+  if (recorder_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) {
+    if (!audio_disabled) skred_audio_disconnect();
+    return -1;
+  }
   @endif
   @if(SCOPE)
   skred_startup_trace("scope_ipc_init");
-  if (scope_ipc_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) return -1;
+  if (scope_ipc_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) {
+    if (!audio_disabled) skred_audio_disconnect();
+    return -1;
+  }
   @endif
 
-  if (skred_env_enabled("SKRED_NO_AUDIO")) {
+  if (audio_disabled) {
     audio_copy_name(active_output, sizeof(active_output), "disabled");
     audio_copy_name(active_input, sizeof(active_input), "disabled");
     engine_started = 1;
@@ -510,11 +565,9 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
     return 0;
   }
 
-  skred_startup_trace("audio_context");
-  if (ensure_context_initialized() != 0) return -1;
   engine_started = 1;
-  skred_startup_trace("audio_open");
-  if (audio_open_selected_device() != 0) {
+  skred_startup_trace("audio_start");
+  if (audio_start_selected_device() != 0) {
     engine_started = 0;
     return -1;
   }

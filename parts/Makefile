@@ -8,6 +8,16 @@ ZIG_ENV = cmake -E env ZIG_LOCAL_CACHE_DIR=$(ZIG_LOCAL_CACHE_DIR) ZIG_GLOBAL_CAC
 EM_ENV = env EM_CACHE=$(EM_CACHE)
 VERSION := $(shell cat ../VERSION)
 DIST_ROOT ?= ../dist
+HOST_OS ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
+HOST_ARCH ?= $(shell uname -m)
+MACOS_UNIVERSAL ?= 0
+MACOS_UNIVERSAL_ARCHS ?= x86_64;arm64
+DIST_PLATFORM ?= $(if $(filter 1 true yes,$(MACOS_UNIVERSAL)),macos-universal,$(HOST_OS)-$(HOST_ARCH))
+DIST_PLATFORM_ROOT ?= $(DIST_ROOT)/$(DIST_PLATFORM)
+DIST_NATIVE_PREFIX ?= $(DIST_PLATFORM_ROOT)/skred-$(VERSION)-native
+DIST_MAXED_PREFIX ?= $(DIST_PLATFORM_ROOT)/skred-$(VERSION)-maxed
+DIST_MAXED_ARCHIVE ?= skred-$(VERSION)-maxed.tar.gz
+CMAKE_PLATFORM_ARGS ?= $(if $(filter 1 true yes,$(MACOS_UNIVERSAL)),-DCMAKE_OSX_ARCHITECTURES="$(MACOS_UNIVERSAL_ARCHS)",)
 MAXED_KIT_OPTS = KSYNTH=1 ADSR=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
 BUILD_TYPE ?= Release
 WASM_KIT_OPTS = KSYNTH=1 SEQ=1 ADSR=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SMOOTHER=1
@@ -29,25 +39,25 @@ ANALYSIS_GENERATED = \
 all: native # pi
 
 maxed:
-	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS) \
 		-DKIT_OPTS="$(MAXED_KIT_OPTS)"
 	cmake --build build_maxed
 
 libs: native-libs
 
 native-libs:
-	cmake -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+	cmake -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
 	cmake --build build_native --target api api_shared mini-skred
-	cmake --install build_native --prefix $(DIST_ROOT)/skred-$(VERSION)-native
+	cmake --install build_native --prefix $(DIST_NATIVE_PREFIX)
 
 maxed-libs:
-	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS) \
 		-DKIT_OPTS="$(MAXED_KIT_OPTS)"
 	cmake --build build_maxed --target api api_shared mini-skred
-	cmake --install build_maxed --prefix $(DIST_ROOT)/skred-$(VERSION)-maxed
+	cmake --install build_maxed --prefix $(DIST_MAXED_PREFIX)
 
 dist-api: maxed-libs
-	cmake -E chdir $(DIST_ROOT) cmake -E tar czf skred-$(VERSION)-maxed.tar.gz \
+	cmake -E chdir $(DIST_PLATFORM_ROOT) cmake -E tar czf $(DIST_MAXED_ARCHIVE) \
 		--format=gnutar skred-$(VERSION)-maxed
 
 analysis-src:
@@ -79,7 +89,7 @@ wasm:
 	cp wasm-assets/serve-wasm.sh ../doc
 
 native:
-	cmake -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+	cmake -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
 	cmake --build build_native --target kit_tool
 	cmake --build build_native
 

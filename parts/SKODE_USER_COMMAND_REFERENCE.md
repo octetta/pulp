@@ -60,6 +60,7 @@ most 32 operations.
 | `L seconds` | Trigger delay; `0` disables | Delays velocity/envelope triggering for the selected voice. This is a per-voice trigger delay, distinct from queue defers. | Yes |
 | `H voice[,voice...]` | Up to four voice indices | Sends later `l` and `T` envelope triggers to the listed voices. A new `H` replaces the old link list. | Yes |
 | `s amount` | Smoothing amount; `0` disables | Smooths amplitude changes to reduce abrupt level transitions. Requires `SMOOTHER`. | Yes |
+| `vc state` | `0` or nonzero | Disables or enables synth-generated control-plane events for the selected voice. Disabled by default. Voice show commands include `vc1` only when enabled. | No |
 
 ## Wave Playback
 
@@ -375,11 +376,21 @@ remove output-device or hardware buffering latency.
 | `[commands] DO? value[,tag]` | Condition and optional tag | Queues the program once when `value` is greater than zero. |
 | `R! tag` | Integer event tag | Removes queued events carrying that tag. Already executed events are unaffected. |
 | `R!!` | None | Clears all queued events. It does not erase patterns or reset voices. |
-| `?o` | None | Displays queued compiled events. |
+| `ce id[,a,b,c]` | Integer event id and up to three numeric values | Emits a `SKRED_CONTROL_EVENT_USER` control-plane event. This command is schedulable, so defers, repeats, patterns, and macros can send host-visible markers. |
+| `?q` | None | Displays queued compiled events waiting in the sequencer queue. |
+| `?ce` | None | Polls and displays control-plane events such as voice trigger, release, finished, user, and pattern boundary notifications. |
+| `?o` | None | Compatibility alias for queued compiled events. |
 | `?o pattern[,step]` | Pattern and optional step | Displays the opcodes compiled for pattern steps. |
 | `wait ms` | Nonnegative milliseconds | Blocks the command/control thread. It does not create a musical event and should not be used for audio-rate scheduling. |
 
 Deferred and repeated programs can contain only schedulable commands.
+
+`?q` and `?ce` show different event streams. `?q` reports pending scheduled
+opcode events that have not executed yet. `?ce` consumes the control-plane
+notification ring exposed by `skred_control_event_poll()` and reports things
+the synth has already observed. `ce id[,a,b,c]` writes to that control-plane
+stream immediately or when its scheduled opcode executes; pollers see the event
+id plus up to three numeric values.
 
 ## Patterns
 
@@ -399,6 +410,7 @@ up to 128 steps, also numbered `0` through `127`.
 | `xg step`, `>x step` | Step index | Moves the selected pattern's playback pointer to a step. |
 | `% modulus` | Positive integer; minimum `1` | Makes the selected pattern advance only on every Nth quarter-beat master tick. The default is `4`, or one step per beat. Larger values run more slowly. |
 | `ym state` | `0` or nonzero | Mutes pattern execution while retaining its contents and playback state. |
+| `yc state` | `0` or nonzero | Disables or enables pattern boundary control-plane events for the selected pattern. Disabled by default. Pattern show commands include `yc1` only when enabled. |
 | `Y pattern` | Pattern index | Clears the pattern, stops it, and resets its persistent playback voice to voice `0`. |
 | `z state` | `0` stop, `1` start, `2` pause, `3` resume | Changes the selected pattern's playback state. With no argument, displays the pattern. |
 | `z?` | None | Displays the selected pattern and its steps. |
@@ -408,6 +420,10 @@ up to 128 steps, also numbered `0` through `127`.
 Pattern source text is retained for display, but playback uses the compiled
 snapshot. Editing an external macro later does not alter a pattern step that
 was already compiled from it.
+
+With `yc1`, a pattern emits `SKRED_CONTROL_EVENT_PATTERN_START` when playback
+lands on step `0`, and `SKRED_CONTROL_EVENT_PATTERN_END` when it reaches a stop
+marker or the last playable step before wrap.
 
 ## External Macros
 

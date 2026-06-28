@@ -632,6 +632,11 @@ float envelope_step_e(envelope_t *e, uint64_t current_sample) {
 
     if (e->sample_release == UINT64_MAX) {
         out = held_out;
+        if (e->sustain_level <= 0.0f &&
+            samples_since_start >= e->attack_time + e->decay_time) {
+            e->is_active = 0;
+            out = 0.0f;
+        }
     } else if (current_sample < e->sample_release) {
         out = e->amplitude_at_release < 0.0f ? held_out : e->amplitude_at_release;
     } else {
@@ -1114,6 +1119,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
       note,
       cents,
       sv.user_amp[v]);
+    if (sv.control_events[v]) APPEND(" vc1");
 
     /* --- last midi note (suppress if never set) --- */
     #if 0
@@ -1507,13 +1513,16 @@ void mmf_init(int n, float f, float resonance) {
     mmf_set_params(n, f, resonance);
 }
 
+int voice_control_events_set(int voice, int enabled);
+
 int voice_copy(int v, int n) {
   if (voice_invalid(v) || voice_invalid(n)) return SYNTH_INVALID_VOICE;
   wave_set(n, sv.wave_table_index[v]);
   amp_set(n, sv.user_amp[v]);
   freq_set(n, sv.freq[v]);
+  voice_control_events_set(n, sv.control_events[v]);
+  sv.loop_count[n] = sv.loop_count[v];
   wave_loop(n, sv.loop_enabled[v]);
-  wave_loop_count(n, sv.loop_count[v]);
   wave_dir(n, sv.direction[v]);
   sv.link_midi_0[n] = sv.link_midi_0[v];
   sv.link_midi_1[n] = sv.link_midi_1[v];
@@ -1578,6 +1587,13 @@ int voice_set(int n, int *old_voice) {
   return 0;
 }
 
+int voice_control_events_set(int voice, int enabled) {
+  if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
+  sv.control_events[voice] = enabled ? 1 : 0;
+  if (!sv.control_events[voice]) skred_control_voice_reset(voice);
+  return 0;
+}
+
 int voice_trigger(int voice) {
   if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
   osc_trigger(voice);
@@ -1617,6 +1633,7 @@ void voice_reset(int i) {
   sv.amp[i] = NEG_60_DB_AS_LINEAR;
   sv.user_amp[i] = NEG_60_DB;
   sv.use_amp_envelope[i] = 1;
+  voice_control_events_set(i, 0);
   sv.disconnect[i] = 0;
   sv.direction[i] = 0;
   sv.loop_enabled[i] = 0;

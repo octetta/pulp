@@ -1,4 +1,5 @@
 #include "skred.h"
+#include "api.h"
 #include "skode.h"
 #include "seq.h"
 #include "miniwav.h"
@@ -7,6 +8,7 @@
 #include "synth.h"
 #include "synth-state.h"
 #include "synth-config.h"
+#include "control-events.h"
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -396,6 +398,50 @@ void system_show(skode_t *ctx) {
 }
 
 
+static const char *control_event_type_name(uint32_t type) {
+  switch (type) {
+    case SKRED_CONTROL_EVENT_VOICE_TRIGGER: return "VOICE_TRIGGER";
+    case SKRED_CONTROL_EVENT_VOICE_RELEASE: return "VOICE_RELEASE";
+    case SKRED_CONTROL_EVENT_VOICE_FINISHED: return "VOICE_FINISHED";
+    case SKRED_CONTROL_EVENT_USER: return "USER";
+    case SKRED_CONTROL_EVENT_PATTERN_START: return "PATTERN_START";
+    case SKRED_CONTROL_EVENT_PATTERN_END: return "PATTERN_END";
+    default: return "UNKNOWN";
+  }
+}
+
+static void control_event_show(skode_t *ctx) {
+  skred_control_event_t events[128];
+  int count = skred_control_event_poll(events, 128);
+  if (count <= 0) {
+    ctx->puts(ctx, "# control events empty");
+    return;
+  }
+  ctx->printf(ctx, "# control events:%d dropped:%" PRIu64 "\n",
+    count, skred_control_event_dropped());
+  for (int i = 0; i < count; i++) {
+    skred_control_event_t *event = &events[i];
+    ctx->printf(ctx,
+      "# control %02d seq:%" PRIu64 " type:%s sample:%" PRIu64
+      " voice:%d pattern:%d step:%d tag:%d opcode:%s\n",
+      i,
+      event->sequence,
+      control_event_type_name(event->type),
+      event->sample,
+      event->voice,
+      event->pattern,
+      event->step,
+      event->tag,
+      skode_opcode_name((uint8_t)event->opcode));
+    if (event->type == SKRED_CONTROL_EVENT_USER) {
+      ctx->printf(ctx, "#   id:%d", event->id);
+      for (uint32_t a = 0; a < event->value_count && a < 3; a++)
+        ctx->printf(ctx, " value%u:%g", (unsigned)a, event->value[a]);
+      ctx->puts(ctx, "");
+    }
+  }
+}
+
 static void opcode_arg_show(skode_t *ctx, const opcode_event_t *opcode,
     int n) {
   if (opcode->var_mask & (1U << n)) {
@@ -419,29 +465,45 @@ static void opcode_show(skode_t *ctx, int index,
   ctx->puts(ctx, "");
 }
 
-static int opcode_queue_show_cb(int n, uint64_t timestamp, uint64_t id,
-    int tag, const event_t *event, void *user) {
-  skode_t *ctx = user;
-  uint64_t now = SAMPLE_COUNT_GET();
-  double ms = timestamp >= now ?
-    (double)(timestamp - now) * 1000.0 / MAIN_SAMPLE_RATE :
-    -(double)(now - timestamp) * 1000.0 / MAIN_SAMPLE_RATE;
-  ctx->printf(ctx, "# queue %02d id:%" PRIu64 " tag:%d at:%" PRIu64
-    " %+.3fms voice:", n, id, tag, timestamp, ms);
-  if (event->voice_var)
-    ctx->printf(ctx, "$%u", (unsigned)event->voice_var - 1);
-  else
-    ctx->printf(ctx, "%d", event->voice);
-  ctx->printf(ctx, " %s", skode_opcode_name(event->opcode.code));
-  for (int i = 0; i < event->opcode.argc; i++)
-    opcode_arg_show(ctx, &event->opcode, i);
-  ctx->puts(ctx, "");
-  return 0;
-}
-
 static void opcode_queue_show(skode_t *ctx) {
-  ctx->printf(ctx, "# opcode queue size:%d\n", seq_queued());
-  seq_foreach(opcode_queue_show_cb, ctx);
+  int total = skred_scheduled_event_count();
+  skred_scheduled_event_t events[128];
+  int count = skred_scheduled_event_snapshot(events, 128);
+  if (count < 0) {
+    ctx->puts(ctx, "# opcode queue snapshot failed");
+    return;
+  }
+  ctx->printf(ctx, "# opcode queue size:%d\n", total);
+  int shown = count < 128 ? count : 128;
+  for (int n = 0; n < shown; n++) {
+    skred_scheduled_event_t *event = &events[n];
+    uint64_t now = SAMPLE_COUNT_GET();
+    double ms = event->timestamp >= now ?
+      (double)(event->timestamp - now) * 1000.0 / MAIN_SAMPLE_RATE :
+      -(double)(now - event->timestamp) * 1000.0 / MAIN_SAMPLE_RATE;
+    ctx->printf(ctx, "# queue %02d id:%" PRIu64 " tag:%d at:%" PRIu64
+      " %+.3fms voice:", event->index, event->id, event->tag,
+      event->timestamp, ms);
+    if (event->voice_var)
+      ctx->printf(ctx, "$%u", (unsigned)event->voice_var - 1);
+    else
+      ctx->printf(ctx, "%d", event->voice);
+    opcode_event_t opcode = {
+      .code = event->opcode,
+      .argc = event->opcode_argc,
+      .mode = event->opcode_mode,
+      .var_mask = event->opcode_var_mask,
+    };
+    for (int i = 0; i < SEQ_OPCODE_ARG_MAX; i++)
+      opcode.arg[i] = event->opcode_arg[i];
+    ctx->printf(ctx, " %s", skode_opcode_name(opcode.code));
+    for (int i = 0; i < opcode.argc; i++)
+      opcode_arg_show(ctx, &opcode, i);
+    ctx->puts(ctx, "");
+  }
+  if (count > shown)
+    ctx->printf(ctx, "# queue snapshot truncated: %d shown of %d\n",
+      shown, count);
 }
 
 static void opcode_pattern_step_show(skode_t *ctx, int pattern, int step) {
@@ -962,6 +1024,7 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
         seq_modulo[pattern_pointer],
         seq_state[pattern_pointer],
         seq_mute[pattern_pointer]);
+      if (seq_control_events[pattern_pointer]) ctx->printf(ctx, " yc1");
       if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " [%s] yt", seq_text[pattern_pointer]);
       ctx->printf(ctx, "\n");
       first = 0;
@@ -1591,6 +1654,7 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_VOICE_COPY:
     case SKODE_OP_WAVE_DEFAULT:
     case SKODE_OP_VARIABLE_SET:
+    case SKODE_OP_CONTROL_EVENT:
       return 1;
     case SKODE_OP_AMP_MOD: return 1;
     case SKODE_OP_PHASE_DISTORTION:
@@ -1837,6 +1901,8 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
           x < 0 || x >= ANDS_VAR_MAX) return -1;
       global_var[x] = opcode->arg[1];
       return 0;
+    case SKODE_OP_CONTROL_EVENT:
+      return skode_emit_control_event_opcode(opcode, voice, -1, -1, -1);
     case SKODE_OP_NONE:
     case SKODE_OP_DELAY:
     case SKODE_OP_VOICE:
@@ -1923,6 +1989,16 @@ int skode_function(ands_t *s, int info) {
         if (x > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, x);
       } else {
         ctx->printf(ctx, "# D[%d]\n", ands_data_cap(ctx->parse));
+      }
+      break;
+    case ATOM4('ce--'): // control-plane user event id [value0 [value1 [value2]]]
+      if (argc > 0 && argc <= 4) {
+        opcode_event_t opcode = {
+          .code = SKODE_OP_CONTROL_EVENT,
+          .argc = (uint8_t)argc,
+        };
+        for (int i = 0; i < argc; i++) opcode.arg[i] = (float)arg[i];
+        skode_emit_control_event_opcode(&opcode, voice, -1, -1, -1);
       }
       break;
     case ATOM4('?d--'): // show-skode-data (summary)
@@ -2256,6 +2332,9 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('v---'): // voice-select voice
       if (argc) voice_set(x, &ctx->voice);
       break;
+    case ATOM4('vc--'): // voice control-plane event publication bool
+      if (argc) voice_control_events_set(voice, x != 0);
+      break;
     case ATOM4('V---'): // main-volume loudness
       if (argc) {
         volume_set(arg[0]);
@@ -2564,6 +2643,9 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('ym--'): // pattern-mute 0/1
       if (argc) seq_mute_set(ctx->pattern, x);
       break;
+    case ATOM4('yc--'): // pattern control-plane event publication bool
+      if (argc) seq_control_events_set(ctx->pattern, x);
+      break;
     case ATOM4('Y---'): // clear-pattern which
       if (argc && x >= 0 && x < PATTERNS_MAX) {
         pattern_reset(x);
@@ -2631,6 +2713,12 @@ int skode_function(ands_t *s, int info) {
           }
         }
       }
+      break;
+    case ATOM4('?ce-'): // show control-plane events
+      control_event_show(ctx);
+      break;
+    case ATOM4('?q--'): // show scheduled opcode queue
+      opcode_queue_show(ctx);
       break;
     case ATOM4('?o--'): // show compiled opcode queue or pattern
       if (argc == 0) {

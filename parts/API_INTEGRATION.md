@@ -150,6 +150,171 @@ if (log && log[0]) puts(log);
 `skred_log()` returns an internal buffer owned by SKRED. Read or copy it before
 sending more commands.
 
+## Control-Plane Events
+
+SKRED does not install host callbacks for control-plane events. An embedding
+application "subscribes" by polling the event ring exposed in `api.h`.
+
+The control-plane event stream reports things the engine observed while running,
+such as voices triggering, releasing, finishing, pattern boundaries, or explicit
+user events emitted by scheduled Skode.
+
+This is the stream a host such as ro-totem should use to mirror musical state,
+drive visuals, react to pattern markers, or service host-side macros. It is a
+notification stream, not the scheduler itself.
+
+### Enabling Event Sources
+
+Voice lifecycle notifications are per-voice opt-in. Voices default to
+publication off. Enable a voice with Skode before expecting trigger, release,
+or finished notifications from it:
+
+```c
+skred_command("v3 vc1");  /* publish control-plane events for voice 3 */
+skred_command("v4 vc0");  /* stop publishing for voice 4 */
+```
+
+Voice show commands include `vc1` when publication is enabled. Disabled
+publication is the default and is omitted from formatted voice output.
+
+Pattern boundary notifications are per-pattern opt-in. Select the pattern and
+then enable or disable boundary events:
+
+```c
+skred_command("y0 yc1");  /* publish start/end events for pattern 0 */
+skred_command("y0 yc0");  /* stop publishing pattern boundary events */
+```
+
+Pattern show commands include `yc1` when publication is enabled. Disabled
+publication is the default and is omitted from formatted pattern output.
+
+Explicit user events do not require `vc1` or `yc1`. They are emitted only when
+Skode executes a `ce id[,a,b,c]` command:
+
+```c
+skred_command("ce 100,1,2,3");      /* immediate user event */
+skred_command("[ce 200,64] x0");    /* pattern step emits a user event */
+skred_command("[ce 300] R 4,.25,9"); /* repeated user events tagged 9 */
+```
+
+Because `ce` is schedulable, defers, repeats, patterns, and external macros can
+emit host-visible markers without triggering a synth voice.
+
+### Polling
+
+```c
+skred_control_event_t events[64];
+uint64_t last_dropped = skred_control_event_dropped();
+
+for (;;) {
+    int n = skred_control_event_poll(events, 64);
+    for (int i = 0; i < n; i++) {
+        const skred_control_event_t *e = &events[i];
+        switch (e->type) {
+        case SKRED_CONTROL_EVENT_VOICE_TRIGGER:
+            /* voice e->voice began sounding at absolute sample e->sample */
+            break;
+        case SKRED_CONTROL_EVENT_VOICE_RELEASE:
+            /* voice e->voice entered release */
+            break;
+        case SKRED_CONTROL_EVENT_VOICE_FINISHED:
+            /* voice e->voice crossed back to inactive */
+            break;
+        case SKRED_CONTROL_EVENT_USER:
+            /* e->id and e->value[] came from a Skode "ce" command */
+            break;
+        case SKRED_CONTROL_EVENT_PATTERN_START:
+        case SKRED_CONTROL_EVENT_PATTERN_END:
+            /* pattern e->pattern reached a boundary at step e->step */
+            break;
+        }
+    }
+
+    uint64_t dropped = skred_control_event_dropped();
+    if (dropped != last_dropped) {
+        /* The host did not poll fast enough; rebuild any mirrored state. */
+        last_dropped = dropped;
+    }
+
+    /* Sleep, wait on your UI loop, or poll once per frame/tick. */
+}
+```
+
+`skred_control_event_poll()` is nonblocking. It copies up to `max_events` ready
+events into the caller's buffer and consumes them. The host should call it from
+its application/control loop, UI loop, or another non-audio service thread. Do
+not call it from a real-time audio callback you own, and do not do blocking UI,
+I/O, allocation-heavy work, or network sends from inside SKRED's audio callback.
+
+`skred_control_event_reset()` clears the ring and sequence counter. Use it when
+starting a new host-side subscription session or intentionally discarding old
+notifications. `skred_control_event_dropped()` returns a cumulative count of
+events that could not be published because the ring was full. The current ring
+keeps 1024 outstanding control-plane events.
+
+### Event Contract
+
+The fields in `skred_control_event_t` are intended for host-side correlation:
+
+- `type` is one of the `SKRED_CONTROL_EVENT_*` values.
+- `sample` is the absolute SKRED sample counter when the event was emitted.
+- `sequence` is a monotonically increasing control-event sequence number.
+- `voice` is the affected voice, or `-1` for events that are not voice-specific.
+- `pattern` is the pattern source, or `-1` when there is no pattern source.
+- `step` is the pattern step source, or `-1` when there is no pattern step
+  source.
+- `tag` is the optional integer tag attached when the Skode program was queued,
+  or `-1` when there is no queued source tag. Tags are also used by Skode
+  cancellation commands such as `R! tag`.
+- `opcode` identifies the compiled Skode opcode that produced the event when
+  that is meaningful. For user events this is `SKODE_OP_CONTROL_EVENT`; for
+  pattern boundary events it is `0`.
+- `id`, `value_count`, and `value[0..2]` carry the payload from user events
+  emitted by Skode `ce id[,a,b,c]`.
+
+Event type meanings:
+
+| Type | Enablement | Important fields | Meaning |
+| --- | --- | --- | --- |
+| `SKRED_CONTROL_EVENT_VOICE_TRIGGER` | Selected voice has `vc1` | `voice`, `sample`, optional `pattern`, `step`, `tag`, `opcode` | A voice began sounding. |
+| `SKRED_CONTROL_EVENT_VOICE_RELEASE` | Selected voice has `vc1` | `voice`, `sample`, optional source fields | A voice entered envelope release. |
+| `SKRED_CONTROL_EVENT_VOICE_FINISHED` | Selected voice has `vc1` | `voice`, `sample`, optional source fields | A voice became inactive after a trigger/release lifecycle. |
+| `SKRED_CONTROL_EVENT_USER` | Explicit `ce` command | `id`, `value_count`, `value[]`, `voice`, optional source fields | Skode sent a host-defined marker. |
+| `SKRED_CONTROL_EVENT_PATTERN_START` | Selected pattern has `yc1` | `pattern`, `step`, `sample` | Pattern playback landed on step `0`. |
+| `SKRED_CONTROL_EVENT_PATTERN_END` | Selected pattern has `yc1` | `pattern`, `step`, `sample` | Pattern playback reached a stop marker or the last playable step before wrap. |
+
+For human inspection in `mini-skred`, the matching Skode command is:
+
+```text
+?ce
+```
+
+Only voices with `vc1` publish lifecycle notifications to `?ce`. Only patterns
+with `yc1` publish boundary events to `?ce`. User events are explicit: a command
+such as `ce 99,1,2,3` publishes `SKRED_CONTROL_EVENT_USER` with `id == 99` and
+three numeric values.
+
+This is separate from scheduled-event queue inspection. The `?q` command and
+`skred_scheduled_event_snapshot()` show pending compiled commands that have not
+run yet. The `skred_control_event_*` API shows notifications produced by work
+that did run.
+
+### ro-totem Integration Checklist
+
+For a host that wants to react to SKRED state:
+
+1. Start SKRED with `skred_start()`.
+2. Send `vc1` for each voice whose trigger/release/finished lifecycle matters.
+3. Send `yc1` for each pattern whose start/end boundaries matter.
+4. Put `ce id[,a,b,c]` in patterns, defers, repeats, or macros for app-specific
+   markers. Treat `id` as the host-defined event selector and `value[]` as its
+   small numeric payload.
+5. Poll `skred_control_event_poll()` from the host control/UI loop. Preserve
+   `sequence` ordering, and check `skred_control_event_dropped()` after each
+   poll.
+6. If drops occur, rebuild any mirrored host state from current SKRED state and
+   continue polling.
+
 ## Version and Features
 
 The generated package installs `skred-version.h` beside `api.h` and exposes
@@ -212,6 +377,11 @@ consumer.
 `skred_command()` runs Skode parsing and immediate command work on the calling
 thread. Scheduled commands are compiled on the control thread before they reach
 the audio callback.
+
+Control-plane events are published by engine code into a bounded ring and
+serviced by host polling. Poll often enough for your event rate. If
+`skred_control_event_dropped()` increases, treat the host's mirrored state as
+lossy and refresh it from commands/status appropriate to your application.
 
 The audio callback is owned by SKRED's miniaudio device in the current public
 API. A host that already owns its audio callback should treat `api.h` as the

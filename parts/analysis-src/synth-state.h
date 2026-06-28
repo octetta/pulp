@@ -94,6 +94,7 @@ typedef struct {
     /* --- config flags --- */
     int    * restrict wave_table_index;
     int    * restrict disconnect;
+    int    * restrict control_events;
     /* 0 = master only; 1..RECORD_TRACK_MAX = additional stereo stem. */
     int    * restrict record;
     atomic_int_t * restrict record_pending;

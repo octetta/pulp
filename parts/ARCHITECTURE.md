@@ -30,6 +30,13 @@ void skred_stop(void);
 inspection, command logging, audio-device selection, and optional recording and
 shared-memory scope control.
 
+It also exposes a bounded control-plane event ring. Hosts do not register a C
+callback. They poll `skred_control_event_poll()` from their own control/UI loop
+to receive notifications such as `SKRED_CONTROL_EVENT_VOICE_TRIGGER`,
+`SKRED_CONTROL_EVENT_VOICE_RELEASE`, and
+`SKRED_CONTROL_EVENT_VOICE_FINISHED`, plus explicit Skode `ce` markers and
+opt-in pattern boundary notifications.
+
 At runtime, commands follow one of two paths:
 
 ```text
@@ -62,6 +69,36 @@ At runtime, commands follow one of two paths:
 Immediate commands execute while Skode text is being parsed. Scheduled
 commands are first converted to fixed-size `event_program_t` and `event_t`
 values. The audio callback never parses command text.
+
+### Two Kinds of Events
+
+The codebase uses "event" for two related but distinct mechanisms:
+
+- **Scheduled opcode events** are pending work for the audio engine. Skode
+  defers, repeats, and compiled pattern operations create `event_t` values in
+  the sequencer queue. These events answer "what is waiting to happen?" Hosts
+  can inspect them with `skred_scheduled_event_snapshot()` or `?q`.
+- **Control-plane events** are notifications emitted after engine behavior has
+  happened. Voice lifecycle code publishes `skred_control_event_t` records such
+  as trigger, release, and finished into a bounded ring. Patterns can opt into
+  start/end boundary notifications with `yc1`, and scheduled Skode can emit
+  explicit user notifications with `ce id[,a,b,c]`. These events answer
+  "what happened?" Hosts service them by polling
+  `skred_control_event_poll()` or, in `mini-skred`, by issuing `?ce`. Event
+  publication is opt-in per voice with `vc1`; voices default to `vc0`.
+
+This separation is intentional. Scheduled opcode events drive sound-generation
+state changes. Control-plane events let an external application mirror or react
+to selected engine state without putting callbacks, I/O, or UI work on the
+real-time audio path.
+
+For host applications, the control-plane contract is:
+
+- Voice lifecycle events are emitted only for voices enabled with `vc1`.
+- Pattern boundary events are emitted only for patterns enabled with `yc1`.
+- User events are emitted only by explicit `ce id[,a,b,c]` commands.
+- The host owns interpretation of `ce` IDs and payload values.
+- The host must poll the bounded ring and watch the dropped-event counter.
 
 ## What Is Unusual
 
@@ -190,9 +227,11 @@ Files:
 `api.h` is the preferred integration boundary. Its core control API is
 `skred_start()`, `skred_command()`, and `skred_stop()`, with additional helpers
 for feature/version inspection, logging, audio-device management, and optional
-recording and shared-memory scope control. `api.c.kit` owns the singleton
-engine, miniaudio context, active device, command context, optional UDP
-service, recorder, and shared-memory scope publisher.
+recording and shared-memory scope control. It also exposes polling APIs for
+control-plane notifications and scheduled-event queue snapshots. `api.c.kit`
+owns the singleton engine, miniaudio context, active device, command context,
+control-event ring, optional UDP service, recorder, and shared-memory scope
+publisher.
 
 The miniaudio callback performs this order:
 
@@ -212,7 +251,9 @@ normal sequencing error is less than one sample. Audio-device buffering and
 hardware latency are unchanged.
 
 `mini-skred.c.kit` is a thin example host. It supports an interactive editor,
-line-oriented subprocess operation, audio-device selection, and UDP startup.
+line-oriented subprocess operation, audio-device selection, and UDP startup. It
+also provides diagnostic service commands: `?ce` polls control-plane
+notifications, while `?q` shows pending scheduled opcode events.
 
 ### ANDS Parser
 
@@ -597,8 +638,9 @@ This approach preserves the native command language and keeps your host
 isolated from internal state layout.
 
 See [API_INTEGRATION.md](API_INTEGRATION.md) for the generated distribution
-layout, compile/link examples, lifecycle, logging, feature, audio-device,
-recording, and scope API notes.
+layout, compile/link examples, lifecycle, logging, control-plane event
+polling, `vc`/`yc`/`ce` event enablement, feature, audio-device, recording, and
+scope API notes.
 
 ### Use SKRED as a Subprocess
 

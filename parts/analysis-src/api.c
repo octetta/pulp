@@ -60,26 +60,11 @@ uint64_t skred_control_event_dropped(void) {
   return atomic_load_uint64(&control_dropped);
 }
 
-void skred_control_voice_source(int voice, int pattern, int step, int tag,
-    uint32_t opcode) {
-  if (voice < 0 || voice >= SKRED_CONTROL_VOICE_CAPACITY) return;
-  control_voice_pattern[voice] = pattern;
-  control_voice_step[voice] = step;
-  control_voice_tag[voice] = tag;
-  control_voice_opcode[voice] = opcode;
-}
-
-void skred_control_voice_event(uint32_t type, uint64_t sample, int voice) {
-  if (voice < 0 || voice >= SKRED_CONTROL_VOICE_CAPACITY) return;
-  if (type == SKRED_CONTROL_EVENT_VOICE_TRIGGER) {
-    atomic_store_int(&control_voice_playing[voice], 1);
-  } else if (type == SKRED_CONTROL_EVENT_VOICE_FINISHED) {
-    int expected = 1;
-    if (!atomic_compare_exchange_int(&control_voice_playing[voice],
-          &expected, 0)) {
-      return;
-    }
-  }
+static void skred_control_event_publish(uint32_t type, uint64_t sample,
+    int voice, int pattern, int step, int tag, uint32_t opcode, int id,
+    int value_count, const double *value) {
+  if (value_count < 0) value_count = 0;
+  if (value_count > 3) value_count = 3;
   while (1) {
     uint64_t write = atomic_load_uint64(&control_write_idx);
     uint64_t read = atomic_load_uint64(&control_read_idx);
@@ -94,17 +79,74 @@ void skred_control_voice_event(uint32_t type, uint64_t sample, int voice) {
         &control_events[write % SKRED_CONTROL_EVENT_CAPACITY];
       atomic_store_int(&slot->ready, 0);
       slot->event.type = type;
-      slot->event.opcode = control_voice_opcode[voice];
+      slot->event.opcode = opcode;
       slot->event.sample = sample;
       slot->event.sequence = atomic_fetch_add_uint64(&control_sequence, 1);
       slot->event.voice = voice;
-      slot->event.pattern = control_voice_pattern[voice];
-      slot->event.step = control_voice_step[voice];
-      slot->event.tag = control_voice_tag[voice];
+      slot->event.pattern = pattern;
+      slot->event.step = step;
+      slot->event.tag = tag;
+      slot->event.id = id;
+      slot->event.value_count = (uint32_t)value_count;
+      for (int i = 0; i < 3; i++)
+        slot->event.value[i] = i < value_count && value ? value[i] : 0.0;
       atomic_store_int(&slot->ready, 1);
       return;
     }
   }
+}
+
+void skred_control_voice_source(int voice, int pattern, int step, int tag,
+    uint32_t opcode) {
+  if (voice < 0 || voice >= SKRED_CONTROL_VOICE_CAPACITY) return;
+  control_voice_pattern[voice] = pattern;
+  control_voice_step[voice] = step;
+  control_voice_tag[voice] = tag;
+  control_voice_opcode[voice] = opcode;
+}
+
+void skred_control_voice_reset(int voice) {
+  if (voice < 0 || voice >= SKRED_CONTROL_VOICE_CAPACITY) return;
+  control_voice_pattern[voice] = -1;
+  control_voice_step[voice] = -1;
+  control_voice_tag[voice] = -1;
+  control_voice_opcode[voice] = 0;
+  atomic_store_int(&control_voice_playing[voice], 0);
+}
+
+void skred_control_voice_event(uint32_t type, uint64_t sample, int voice) {
+  if (voice < 0 || voice >= SKRED_CONTROL_VOICE_CAPACITY) return;
+  if (!sv.control_events || !sv.control_events[voice]) {
+    atomic_store_int(&control_voice_playing[voice], 0);
+    return;
+  }
+  if (type == SKRED_CONTROL_EVENT_VOICE_TRIGGER) {
+    atomic_store_int(&control_voice_playing[voice], 1);
+  } else if (type == SKRED_CONTROL_EVENT_VOICE_FINISHED) {
+    int expected = 1;
+    if (!atomic_compare_exchange_int(&control_voice_playing[voice],
+          &expected, 0)) {
+      return;
+    }
+  }
+  skred_control_event_publish(type, sample, voice, control_voice_pattern[voice],
+    control_voice_step[voice], control_voice_tag[voice],
+    control_voice_opcode[voice], 0, 0, NULL);
+}
+
+void skred_control_user_event(uint64_t sample, int voice, int pattern,
+    int step, int tag, uint32_t opcode, int id, int value_count,
+    const double *value) {
+  skred_control_event_publish(SKRED_CONTROL_EVENT_USER, sample, voice,
+    pattern, step, tag, opcode, id, value_count, value);
+}
+
+void skred_control_pattern_event(uint32_t type, uint64_t sample, int pattern,
+    int step) {
+  if (type != SKRED_CONTROL_EVENT_PATTERN_START &&
+      type != SKRED_CONTROL_EVENT_PATTERN_END) return;
+  skred_control_event_publish(type, sample, -1, pattern, step, -1, 0, 0, 0,
+    NULL);
 }
 
 int skred_control_event_poll(skred_control_event_t *events, int max_events) {
@@ -122,6 +164,56 @@ int skred_control_event_poll(skred_control_event_t *events, int max_events) {
     atomic_store_uint64(&control_read_idx, read + 1);
   }
   return count;
+}
+
+typedef struct {
+  skred_scheduled_event_t *events;
+  int max_events;
+  int count;
+} scheduled_event_snapshot_t;
+
+static int skred_scheduled_event_snapshot_cb(int n, uint64_t timestamp,
+    uint64_t id, int tag, const event_t *event, void *user) {
+  scheduled_event_snapshot_t *snapshot =
+    (scheduled_event_snapshot_t *)user;
+  if (!snapshot || !event) return 0;
+  if (snapshot->events && snapshot->count < snapshot->max_events) {
+    skred_scheduled_event_t *out = &snapshot->events[snapshot->count];
+    memset(out, 0, sizeof(*out));
+    out->index = n;
+    out->timestamp = timestamp;
+    out->id = id;
+    out->tag = tag;
+    out->voice = event->voice;
+    out->voice_var = event->voice_var;
+    out->source_valid = event->source_valid;
+    out->pattern = event->pattern;
+    out->step = event->step;
+    out->opcode = event->opcode.code;
+    out->opcode_argc = event->opcode.argc;
+    out->opcode_mode = event->opcode.mode;
+    out->opcode_var_mask = event->opcode.var_mask;
+    for (int i = 0; i < 4; i++) out->opcode_arg[i] = event->opcode.arg[i];
+  }
+  snapshot->count++;
+  return 0;
+}
+
+int skred_scheduled_event_count(void) {
+  return seq_queued();
+}
+
+int skred_scheduled_event_snapshot(skred_scheduled_event_t *events,
+    int max_events) {
+  if (max_events < 0) return -1;
+  if (max_events > 0 && !events) return -1;
+  scheduled_event_snapshot_t snapshot = {
+    .events = events,
+    .max_events = max_events,
+    .count = 0,
+  };
+  seq_foreach(skred_scheduled_event_snapshot_cb, &snapshot);
+  return snapshot.count;
 }
 
 static atomic_uint64_t perf_callbacks;
@@ -352,7 +444,12 @@ static int ensure_context_initialized(void) {
 
 typedef struct {
   ma_device_id id;
+  int is_default;
+  ma_uint32 native_data_format_count;
+  ma_uint32 preferred_channels;
+  ma_uint32 preferred_sample_rate;
   char name[SKRED_AUDIO_NAME_MAX];
+  char formats[512];
 } skred_audio_device_t;
 
 typedef struct {
@@ -383,6 +480,78 @@ static void audio_copy_name(char *dst, size_t dst_size, const char *src) {
   snprintf(dst, dst_size, "%s", src ? src : "");
 }
 
+static const char *audio_format_name(ma_format format) {
+  switch (format) {
+    case ma_format_unknown: return "any";
+    case ma_format_u8: return "u8";
+    case ma_format_s16: return "s16";
+    case ma_format_s24: return "s24";
+    case ma_format_s32: return "s32";
+    case ma_format_f32: return "f32";
+    default: return "?";
+  }
+}
+
+static void audio_copy_device_info(skred_audio_device_t *dst,
+    const ma_device_info *src) {
+  if (!dst || !src) return;
+  memset(dst, 0, sizeof(*dst));
+  dst->id = src->id;
+  dst->is_default = src->isDefault ? 1 : 0;
+  dst->native_data_format_count = src->nativeDataFormatCount;
+  audio_copy_name(dst->name, sizeof(dst->name), src->name);
+
+  size_t used = 0;
+  int count = src->nativeDataFormatCount > 64
+    ? 64 : (int)src->nativeDataFormatCount;
+  for (int i = 0; i < count && used < sizeof(dst->formats); i++) {
+    ma_uint32 channels = src->nativeDataFormats[i].channels;
+    ma_uint32 rate = src->nativeDataFormats[i].sampleRate;
+    const char *format = audio_format_name(src->nativeDataFormats[i].format);
+    if (dst->preferred_channels == 0 && channels != 0)
+      dst->preferred_channels = channels;
+    if (dst->preferred_sample_rate == 0 && rate != 0)
+      dst->preferred_sample_rate = rate;
+
+    int written = snprintf(dst->formats + used, sizeof(dst->formats) - used,
+      "%s%s/%uch/%uHz",
+      used ? " " : "", format, channels, rate);
+    if (written < 0) break;
+    if ((size_t)written >= sizeof(dst->formats) - used) {
+      used = sizeof(dst->formats);
+    } else {
+      used += (size_t)written;
+    }
+  }
+  if (dst->formats[0] == '\0')
+    snprintf(dst->formats, sizeof(dst->formats), "unknown");
+}
+
+static void audio_list_device(char *dst, size_t dst_size, size_t *used,
+    int index, const skred_audio_device_t *device) {
+  if (!dst || !used || !device || *used >= dst_size) return;
+  char channels[32];
+  char rate[32];
+  if (device->preferred_channels)
+    snprintf(channels, sizeof(channels), "%u", device->preferred_channels);
+  else
+    snprintf(channels, sizeof(channels), "unknown");
+  if (device->preferred_sample_rate)
+    snprintf(rate, sizeof(rate), "%u", device->preferred_sample_rate);
+  else
+    snprintf(rate, sizeof(rate), "unknown");
+  *used += (size_t)snprintf(dst + *used, dst_size - *used,
+    "%d%s = %s\n"
+    "  channels: %s rate: %s native-formats: %u %s\n",
+    index,
+    device->is_default ? "*" : "",
+    device->name,
+    channels,
+    rate,
+    device->native_data_format_count,
+    device->formats);
+}
+
 int skred_audio_refresh(void) {
   ma_device_info *playback_infos = NULL;
   ma_device_info *capture_infos = NULL;
@@ -398,16 +567,12 @@ int skred_audio_refresh(void) {
   n_outdev = (playback_count > SKRED_AUDIO_DEVICE_MAX)
                ? SKRED_AUDIO_DEVICE_MAX : (int)playback_count;
   for (int i = 0; i < n_outdev; i++) {
-    outdev[i].id = playback_infos[i].id;
-    audio_copy_name(outdev[i].name, sizeof(outdev[i].name),
-                    playback_infos[i].name);
+    audio_copy_device_info(&outdev[i], &playback_infos[i]);
   }
   n_indev = (capture_count > SKRED_AUDIO_DEVICE_MAX)
               ? SKRED_AUDIO_DEVICE_MAX : (int)capture_count;
   for (int i = 0; i < n_indev; i++) {
-    indev[i].id = capture_infos[i].id;
-    audio_copy_name(indev[i].name, sizeof(indev[i].name),
-                    capture_infos[i].name);
+    audio_copy_device_info(&indev[i], &capture_infos[i]);
   }
   return 0;
 }
@@ -613,9 +778,8 @@ int skred_audio_command(const char *line) {
     size_t used = (size_t)snprintf(audio_message, sizeof(audio_message),
                                    "# output devices\n");
     for (int i = 0; i < n_outdev && used < sizeof(audio_message); i++) {
-      used += (size_t)snprintf(audio_message + used,
-                               sizeof(audio_message) - used,
-                               "%d = %s\n", i, outdev[i].name);
+      audio_list_device(audio_message, sizeof(audio_message), &used,
+                        i, &outdev[i]);
     }
     if (used < sizeof(audio_message)) {
       used += (size_t)snprintf(audio_message + used,
@@ -623,9 +787,8 @@ int skred_audio_command(const char *line) {
                                "# input devices\n");
     }
     for (int i = 0; i < n_indev && used < sizeof(audio_message); i++) {
-      used += (size_t)snprintf(audio_message + used,
-                               sizeof(audio_message) - used,
-                               "%d = %s\n", i, indev[i].name);
+      audio_list_device(audio_message, sizeof(audio_message), &used,
+                        i, &indev[i]);
     }
     return 1;
   }

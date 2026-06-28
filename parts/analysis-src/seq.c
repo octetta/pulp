@@ -1,6 +1,7 @@
 #include "synth-types.h"
 #include "synth.h"
 #include "seq.h"
+#include "control-events.h"
 
 #include "skqueue.h"
 #include "portable_atomic.h"
@@ -21,6 +22,7 @@ int seq_pointer[PATTERNS_MAX] = {0};  // read-only derived value, kept for exter
 int seq_state[PATTERNS_MAX] = {0};
 int seq_modulo[PATTERNS_MAX] = {0};
 int seq_mute[PATTERNS_MAX] = {0};
+int seq_control_events[PATTERNS_MAX] = {0};
 static atomic_int_t seq_generation[PATTERNS_MAX];
 static simple_mutex_t seq_edit_mutex;
 static int seq_edit_mutex_ready = 0;
@@ -155,11 +157,23 @@ void do_pattern(uint64_t now,
 
         seq_pointer[p] = step;
 
+        if (seq_control_events[p] && step == 0)
+          skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_START, now,
+            p, step);
+
         if (seq_pattern[p][step][0] == '-') {
+          if (seq_control_events[p])
+            skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_END, now,
+              p, step);
           seq_state[p] = SEQ_STOPPED;
           seq_pointer[p] = 0;
         } else {
           if (seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);
+          if (seq_control_events[p] &&
+              (step == len - 1 || seq_pattern[p][step + 1][0] == '-')) {
+            skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_END, now,
+              p, step);
+          }
         }
       }
     }
@@ -222,6 +236,7 @@ static void pattern_reset_locked(int p) {
   seq_state[p] = SEQ_STOPPED;
   seq_modulo[p] = 4;
   seq_mute[p] = 0;
+  seq_control_events[p] = 0;
   seq_pattern_length[p] = 0;
   seq_offset[p] = 0;
   for (int s = 0; s < SEQ_STEPS_MAX; s++) {
@@ -278,6 +293,13 @@ void seq_mute_set(int pattern, int state) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return;
   seq_edit_lock();
   seq_mute[pattern] = state;
+  seq_edit_unlock();
+}
+
+void seq_control_events_set(int pattern, int state) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return;
+  seq_edit_lock();
+  seq_control_events[pattern] = state != 0;
   seq_edit_unlock();
 }
 

@@ -64,6 +64,7 @@ float tempo_step_seconds_get(void);
 
 void seq_modulo_set(int pattern, int m);
 void seq_mute_set(int pattern, int state);
+void seq_control_events_set(int pattern, int state);
 int seq_step_set(int pattern, int step, const char *source,
   const event_program_t *program);
 char *seq_step_get(int pattern, int step);
@@ -85,6 +86,7 @@ extern int seq_modulo[PATTERNS_MAX];
 extern int seq_counter[PATTERNS_MAX];
 extern int seq_state[PATTERNS_MAX];
 extern int seq_mute[PATTERNS_MAX];
+extern int seq_control_events[PATTERNS_MAX];
 extern int seq_pattern_length[PATTERNS_MAX];
 extern char seq_pattern[PATTERNS_MAX][SEQ_STEPS_MAX][STEP_MAX];
 extern event_program_t seq_program[PATTERNS_MAX][SEQ_STEPS_MAX];

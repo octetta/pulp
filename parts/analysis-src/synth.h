@@ -75,6 +75,7 @@ int amp_set(int v, float f);
 int pan_set(int voice, float f);
 int freq_set(int v, float f);
 int voice_set(int n, int *old_voice);
+int voice_control_events_set(int voice, int enabled);
 int voice_copy(int v, int n);
 int wave_set(int voice, int wave);
 int wave_mute(int voice, int state);

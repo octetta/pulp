@@ -429,6 +429,15 @@ static void test_bounded_one_shot_loops(void) {
   wave_loop_count(voice, 3);
   voice_copy(voice, 4);
   expect_int(test, sv.loop_count[4], 3, "copied loop count");
+  configure_loop_test_voice(voice, 0);
+  consume(test, &ctx, "v5 BC2 B0");
+  voice_copy(voice, 4);
+  expect_int(test, sv.loop_enabled[4], 0,
+             "copy preserves disabled one-shot loop");
+  expect_int(test, sv.loop_active[4], 0,
+             "copy preserves inactive one-shot loop");
+  expect_int(test, sv.loop_count[4], 2,
+             "copy preserves next bounded loop count");
   wave_reset(4);
   expect_int(test, sv.loop_count[4], 0, "reset loop count");
 
@@ -902,6 +911,22 @@ static void test_909_sequence_programs(void) {
              SKODE_COMPILE_OK, "compile diagnostic queue event");
   expect_int(test, skode_execute_program(&program, 0,
              SAMPLE_COUNT_GET(), 17), 0, "queue diagnostic event");
+  skred_scheduled_event_t scheduled[2];
+  expect_int(test, skred_scheduled_event_count(), 1,
+             "scheduled event API count");
+  expect_int(test, skred_scheduled_event_snapshot(scheduled, 2), 1,
+             "scheduled event API snapshot count");
+  expect_int(test, scheduled[0].tag, 17, "scheduled event API tag");
+  expect_int(test, scheduled[0].voice_var, 3,
+             "scheduled event API variable voice");
+  expect_int(test, scheduled[0].opcode, SKODE_OP_MIDI_NOTE,
+             "scheduled event API opcode");
+  expect_int(test, scheduled[0].opcode_var_mask, 1,
+             "scheduled event API variable argument mask");
+  expect_float(test, scheduled[0].opcode_arg[0], 3.0f, 0.0f,
+               "scheduled event API variable argument");
+  expect_int(test, skred_scheduled_event_snapshot(NULL, 1), -1,
+             "scheduled event API rejects null buffer");
   ctx.log[0] = '\0';
   ctx.log_len = 0;
   consume(test, &ctx, "?o");
@@ -909,6 +934,13 @@ static void test_909_sequence_programs(void) {
       strstr(ctx.log, "tag:17") == NULL ||
       strstr(ctx.log, "voice:$2 MIDI_NOTE $3") == NULL) {
     fail(test, "queued opcode diagnostic output mismatch");
+  }
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "?q");
+  if (strstr(ctx.log, "# opcode queue size:1") == NULL ||
+      strstr(ctx.log, "tag:17") == NULL) {
+    fail(test, "scheduled queue diagnostic alias mismatch");
   }
   seq_kill_all();
 }
@@ -957,6 +989,7 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"/", SKODE_OP_WAVE_DEFAULT},
     {"=0,$1", SKODE_OP_VARIABLE_SET},
     {"XM1,.5", SKODE_OP_RING_MOD},
+    {"ce7,1,2,3", SKODE_OP_CONTROL_EVENT},
   };
 
   for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
@@ -1228,11 +1261,20 @@ static void test_silent_voice_fast_path(void) {
 
 static void test_control_plane_voice_events(void) {
   const char *test = "control plane voice events";
-  skred_control_event_t events[4];
+  skred_control_event_t events[8];
   event_program_t program = {0};
   int voice = 0;
+  float output[AUDIO_CHANNELS] = {0};
+  uint64_t saved_sample_count = SAMPLE_COUNT_GET();
+  skode_t ctx = new_ctx();
+  ctx.log_enable = 1;
 
   skred_control_event_reset();
+  voice_trigger(2);
+  expect_int(test, skred_control_event_poll(events, 4), 0,
+             "voice trigger event default disabled");
+
+  consume(test, &ctx, "v2 vc1");
   voice_trigger(2);
   expect_int(test, skred_control_event_poll(events, 4), 1,
              "voice trigger event count");
@@ -1249,8 +1291,26 @@ static void test_control_plane_voice_events(void) {
   expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_VOICE_RELEASE,
              "voice release event type");
   expect_int(test, events[0].voice, 2, "voice release event voice");
+  consume(test, &ctx, "vc0");
+  voice_trigger(2);
+  expect_int(test, skred_control_event_poll(events, 4), 0,
+             "voice trigger event disabled after enable");
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "?");
+  if (strstr(ctx.log, "vc0") != NULL) {
+    fail(test, "disabled voice control event flag should be omitted");
+  }
+  consume(test, &ctx, "vc1");
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "?");
+  if (strstr(ctx.log, "vc1") == NULL) {
+    fail(test, "enabled voice control event flag missing from voice show");
+  }
 
   skred_control_event_reset();
+  consume(test, &ctx, "v3 vc1");
   expect_int(test, skode_compile_program("v3 l1", &program),
              SKODE_COMPILE_OK, "compile pattern trigger program");
   expect_int(test, skode_execute_program_state(&program, &voice,
@@ -1266,6 +1326,117 @@ static void test_control_plane_voice_events(void) {
   expect_int(test, events[0].tag, 44, "pattern trigger event tag");
   expect_int(test, (int)events[0].opcode, SKODE_OP_VELOCITY,
              "pattern trigger event opcode");
+
+  skred_control_event_reset();
+  consume(test, &ctx, "v4 vc1");
+  voice_trigger(4);
+  consume(test, &ctx, "?ce");
+  if (strstr(ctx.log, "# control events:1") == NULL ||
+      strstr(ctx.log, "type:VOICE_TRIGGER") == NULL ||
+      strstr(ctx.log, "voice:4") == NULL) {
+    fail(test, "control-plane event diagnostic output mismatch");
+  }
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "?ce");
+  if (strstr(ctx.log, "# control events empty") == NULL) {
+    fail(test, "empty control-plane event diagnostic output mismatch");
+  }
+
+  skred_control_event_reset();
+  consume(test, &ctx, "v5 ce 42,1.5,2.5");
+  expect_int(test, skred_control_event_poll(events, 8), 1,
+             "immediate user control event count");
+  expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_USER,
+             "immediate user control event type");
+  expect_int(test, events[0].voice, 5, "immediate user control event voice");
+  expect_int(test, events[0].id, 42, "immediate user control event id");
+  expect_int(test, (int)events[0].value_count, 2,
+             "immediate user control event value count");
+  expect_float(test, (float)events[0].value[0], 1.5f, 0.0f,
+               "immediate user control event value 0");
+  expect_float(test, (float)events[0].value[1], 2.5f, 0.0f,
+               "immediate user control event value 1");
+
+  skred_control_event_reset();
+  expect_int(test, skode_compile_program("ce 9,3,4,5", &program),
+             SKODE_COMPILE_OK, "compile user control event program");
+  expect_int(test, skode_execute_program_state(&program, &voice,
+             SAMPLE_COUNT_GET(), 77, 11, 6), 0,
+             "execute user control event program");
+  expect_int(test, skred_control_event_poll(events, 8), 1,
+             "pattern user control event count");
+  expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_USER,
+             "pattern user control event type");
+  expect_int(test, events[0].pattern, 11,
+             "pattern user control event pattern");
+  expect_int(test, events[0].step, 6, "pattern user control event step");
+  expect_int(test, events[0].tag, 77, "pattern user control event tag");
+  expect_int(test, events[0].id, 9, "pattern user control event id");
+  expect_int(test, (int)events[0].value_count, 3,
+             "pattern user control event value count");
+
+  skred_control_event_reset();
+  pattern_reset(14);
+  ctx.pattern = 14;
+  consume(test, &ctx, "yc1");
+  expect_int(test, seq_control_events[14], 1, "pattern events enabled");
+  expect_int(test, skode_compile_program("ce 12,8", &program),
+             SKODE_COMPILE_OK, "compile pattern event step");
+  expect_int(test, seq_step_set(14, 0, "ce 12,8", &program), 0,
+             "store pattern event step");
+  seq_modulo_set(14, 1);
+  seq_state_set(14, 1);
+  seq_rewind();
+  seq_step_goto(14, 0);
+  SAMPLE_COUNT_PUT(saved_sample_count + 5513);
+  seq(SAMPLE_COUNT_GET(), execute_queued_event, execute_pattern_program);
+  expect_int(test, skred_control_event_poll(events, 8), 3,
+             "pattern boundary event count");
+  expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_PATTERN_START,
+             "pattern start event type");
+  expect_int(test, events[0].pattern, 14, "pattern start event pattern");
+  expect_int(test, events[0].step, 0, "pattern start event step");
+  expect_int(test, (int)events[1].type, SKRED_CONTROL_EVENT_USER,
+             "pattern scheduled user event type");
+  expect_int(test, events[1].pattern, 14,
+             "pattern scheduled user event pattern");
+  expect_int(test, events[1].step, 0, "pattern scheduled user event step");
+  expect_int(test, events[1].id, 12, "pattern scheduled user event id");
+  expect_int(test, (int)events[2].type, SKRED_CONTROL_EVENT_PATTERN_END,
+             "pattern end event type");
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "z?");
+  if (strstr(ctx.log, "yc1") == NULL) {
+    fail(test, "enabled pattern control event flag missing from pattern show");
+  }
+  consume(test, &ctx, "yc0");
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "z?");
+  if (strstr(ctx.log, "yc0") != NULL || strstr(ctx.log, "yc1") != NULL) {
+    fail(test, "disabled pattern control event flag should be omitted");
+  }
+  pattern_reset(14);
+  SAMPLE_COUNT_PUT(saved_sample_count);
+
+  skred_control_event_reset();
+  voice_control_events_set(0, 1);
+  amp_set(0, 0.0f);
+  envelope_set(0, 1.0f, 1.0f, 0.0f, 0.0f);
+  envelope_velocity(0, 1.0f);
+  expect_int(test, skred_control_event_poll(events, 4), 1,
+             "finite ADSR trigger event count");
+  SAMPLE_COUNT_PUT(sv.amp_envelope[0].sample_start +
+                   (uint64_t)(2 * MAIN_SAMPLE_RATE));
+  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  expect_int(test, skred_control_event_poll(events, 4), 1,
+             "finite ADSR finished event count");
+  expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_VOICE_FINISHED,
+             "finite ADSR finished event type");
+  SAMPLE_COUNT_PUT(saved_sample_count);
+  wave_reset(0);
 }
 
 int main(void) {

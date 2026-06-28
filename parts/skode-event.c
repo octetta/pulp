@@ -13,7 +13,7 @@
   (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(b) << 16) | \
    ((uint32_t)(uint8_t)(c) << 8) | (uint32_t)(uint8_t)(d))
 
-_Static_assert(SKODE_OP_WAVE_LOOP_COUNT <= UINT8_MAX,
+_Static_assert(SKODE_OP_CONTROL_EVENT <= UINT8_MAX,
   "Skode opcodes must fit in opcode_event_t.code");
 _Static_assert(SEQ_PROGRAM_OP_MAX <= UINT8_MAX,
   "Compiled program length must fit in event_program_t.count");
@@ -29,7 +29,7 @@ const char *skode_opcode_name(uint8_t opcode) {
     "MIDI_DETUNE", "PAN_MOD", "QUANTIZE", "FILTER_RESONANCE",
     "RECORD_TRACK", "SMOOTHER", "VOICE_RESET", "ENVELOPE", "TRIGGER",
     "WAVE", "VOICE_COPY", "WAVE_DEFAULT", "VARIABLE_SET", "RING_MOD",
-    "WAVE_LOOP_COUNT",
+    "WAVE_LOOP_COUNT", "CONTROL_EVENT",
   };
   return opcode < sizeof(names) / sizeof(names[0]) ?
     names[opcode] : "UNKNOWN";
@@ -270,6 +270,9 @@ static int skode_compile_callback(ands_t *s, int info) {
     case SKODE_ATOM('X', 'M', '-', '-'):
       opcode = SKODE_OP_RING_MOD; min_argc = 1; max_argc = 2;
       break;
+    case SKODE_ATOM('c', 'e', '-', '-'):
+      opcode = SKODE_OP_CONTROL_EVENT; min_argc = 1; max_argc = 4;
+      break;
     default:
       compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
       return 0;
@@ -362,6 +365,29 @@ static int execute_opcode(const opcode_event_t *opcode, int voice) {
   return skode_execute_voice_opcode(&resolved, voice);
 }
 
+int skode_emit_control_event_opcode(const opcode_event_t *opcode, int voice,
+    int pattern, int step, int tag) {
+  if (!opcode || !event_voice_valid(voice) ||
+      opcode->code != SKODE_OP_CONTROL_EVENT ||
+      opcode->argc < 1 || opcode->argc > 4) return -1;
+  double arg[4] = {0};
+  for (int i = 0; i < opcode->argc; i++) {
+    if (opcode->var_mask & (1U << i)) {
+      int variable = (int)opcode->arg[i];
+      if (variable < 0 || variable >= ANDS_VAR_MAX) return -1;
+      arg[i] = global_var[variable];
+    } else {
+      arg[i] = opcode->arg[i];
+    }
+    if (!isfinite(arg[i])) return -1;
+  }
+  if (floor(arg[0]) != arg[0] || arg[0] < INT32_MIN || arg[0] > INT32_MAX)
+    return -1;
+  skred_control_user_event(SAMPLE_COUNT_GET(), voice, pattern, step, tag,
+    SKODE_OP_CONTROL_EVENT, (int)arg[0], opcode->argc - 1, &arg[1]);
+  return 0;
+}
+
 int skode_execute_event(const event_t *event, skode_t *ctx) {
   (void)ctx;
   if (!event) return -1;
@@ -381,6 +407,12 @@ int skode_execute_event(const event_t *event, skode_t *ctx) {
       event->opcode.code);
   else
     skred_control_voice_source(voice, -1, -1, -1, event->opcode.code);
+  if (event->opcode.code == SKODE_OP_CONTROL_EVENT) {
+    return skode_emit_control_event_opcode(&event->opcode, voice,
+      event->source_valid ? event->pattern : -1,
+      event->source_valid ? event->step : -1,
+      event->source_valid ? event->tag : -1);
+  }
   return execute_opcode(&event->opcode, voice);
 }
 

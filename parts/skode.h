@@ -63,6 +63,7 @@ typedef enum {
   SKODE_OP_VARIABLE_SET,
   SKODE_OP_RING_MOD,
   SKODE_OP_WAVE_LOOP_COUNT,
+  SKODE_OP_CONTROL_EVENT,
 } skode_opcode_t;
 
 typedef enum {
@@ -117,6 +118,8 @@ typedef struct skode_s {
 int skode_consume(char *line, skode_t *w);
 int skode_execute_event(const event_t *event, skode_t *ctx);
 int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice);
+int skode_emit_control_event_opcode(const opcode_event_t *opcode, int voice,
+  int pattern, int step, int tag);
 int skode_opcode_supported(skode_opcode_t opcode);
 const char *skode_opcode_name(uint8_t opcode);
 int skode_execute_program(const event_program_t *program, int voice,

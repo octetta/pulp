@@ -27,6 +27,13 @@
         *expected = old;
         return success;
     }
+
+    static inline int atomic_compare_exchange_uint64(atomic_uint64_t *ptr, uint64_t *expected, uint64_t desired) {
+        LONGLONG old = InterlockedCompareExchange64((LONGLONG*)ptr, (LONGLONG)desired, (LONGLONG)*expected);
+        int success = ((uint64_t)old == *expected);
+        *expected = (uint64_t)old;
+        return success;
+    }
     
     static inline int atomic_fetch_add_int(atomic_int_t *ptr, int val) {
         return InterlockedExchangeAdd((LONG*)ptr, val);
@@ -59,6 +66,11 @@
     
     static inline int atomic_compare_exchange_int(atomic_int_t *ptr, int *expected, int desired) {
         return __atomic_compare_exchange_n(ptr, expected, desired, 0, 
+                                           __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
+    }
+
+    static inline int atomic_compare_exchange_uint64(atomic_uint64_t *ptr, uint64_t *expected, uint64_t desired) {
+        return __atomic_compare_exchange_n(ptr, expected, desired, 0,
                                            __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
     }
     

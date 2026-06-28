@@ -129,7 +129,7 @@ void do_event(uint64_t now, void (*event_fn)(const event_t *event)) {
 }
 
 void do_pattern(uint64_t now,
-    void (*program_fn)(int pattern, const event_program_t *program)) {
+    void (*program_fn)(int pattern, int step, const event_program_t *program)) {
   if (!simple_mutex_trylock(&seq_edit_mutex)) return;
   // Advance the master clock from the absolute sample timeline rather than
   // callback cadence so larger buffers do not smear beat timing.
@@ -159,7 +159,7 @@ void do_pattern(uint64_t now,
           seq_state[p] = SEQ_STOPPED;
           seq_pointer[p] = 0;
         } else {
-          if (seq_mute[p] == 0) program_fn(p, &seq_program[p][step]);
+          if (seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);
         }
       }
     }
@@ -208,7 +208,8 @@ int seq_next_boundary(uint64_t now, uint64_t limit, uint64_t *boundary) {
 }
 
 void seq(uint64_t now, void (*event_fn)(const event_t *event),
-    void (*program_fn)(int pattern, const event_program_t *program)) {
+    void (*program_fn)(int pattern, int step,
+      const event_program_t *program)) {
 
   do_event(now, event_fn);
   do_pattern(now, program_fn);

@@ -16,8 +16,10 @@
 #include <stdio.h>
 
 #include "portable_atomic.h"
+#include "control-events.h"
 
 atomic_uint64_t synth_sample_count;
+int synth_sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
 
 #define SAMPLE_COUNT_PUT(n) atomic_store_uint64(&synth_sample_count, n)
 #define SAMPLE_COUNT_GET() atomic_load_uint64(&synth_sample_count)
@@ -34,6 +36,16 @@ extern float volume_user;
 extern float volume_final;
 static int voice_invalid(int voice);
 static void synth_track_defaults(void);
+
+int synth_sample_rate_set(int sample_rate) {
+  if (sample_rate < 1) sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
+  synth_sample_rate = sample_rate;
+  return synth_sample_rate;
+}
+
+int synth_sample_rate_get(void) {
+  return synth_sample_rate;
+}
 
 static int mod_voice_invalid(int voice) {
   return voice < -1 || voice >= synth_config.voice_max;
@@ -525,7 +537,6 @@ float mmf_process(int n, float input) {
     return output;
 }
 
-
 static void envelope_snapshot_config(envelope_t *e) {
     e->attack_time   = e->a * MAIN_SAMPLE_RATE;
     e->decay_time    = e->d * MAIN_SAMPLE_RATE;
@@ -836,6 +847,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
           }
         }
       }
+      int was_finished = sv.finished[n];
       char is_capture = 0;
       if (sv.wave_table_index[n] == WAVE_TABLE_NOISE_ALT) {
         if (!whiteish_ready) {
@@ -869,6 +881,12 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         sv.loop_ended[n] = 0;
         envelope_release_e_at(&sv.amp_envelope[n], current_sample);
         envelope_release_e_at(&sv.filter_envelope[n], current_sample);
+        skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE,
+          current_sample, n);
+      }
+      if (!was_finished && sv.finished[n]) {
+        skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_FINISHED,
+          current_sample, n);
       }
       }
       if (sv.sample_hold_max[n]) {
@@ -917,7 +935,12 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       float env = 1.0f;
       float mod = 1.0f;
 
+      int amp_env_was_active = sv.amp_envelope[n].is_active;
       if (sv.use_amp_envelope[n]) env = amp_envelope_step(n, current_sample);
+      if (amp_env_was_active && !sv.amp_envelope[n].is_active) {
+        skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_FINISHED,
+          current_sample, n);
+      }
 
       if (sv.amp_mod_osc[n] >= 0) {
         int m = sv.amp_mod_osc[n];
@@ -997,9 +1020,20 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       }
     }
 
-    // Write to all channels
-    buffer[i * num_channels + 0] = sample_left;
-    buffer[i * num_channels + 1] = sample_right;
+    // Mirror the record/scope bus onto multichannel devices when available.
+    float *output_frame = buffer + ((size_t)i * num_channels);
+    for (int channel = 0; channel < num_channels; channel++) {
+      output_frame[channel] = 0.0f;
+    }
+    if (num_channels > 0) output_frame[0] = sample_left;
+    if (num_channels > 1) output_frame[1] = sample_right;
+    for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
+      int channel = track * AUDIO_CHANNELS;
+      if (channel + 1 >= num_channels) break;
+      float track_gain = synth_track_volume_linear_get(track);
+      output_frame[channel] = record_left[track] * track_gain;
+      output_frame[channel + 1] = record_right[track] * track_gain;
+    }
   }
 }
 
@@ -1547,6 +1581,8 @@ int voice_set(int n, int *old_voice) {
 int voice_trigger(int voice) {
   if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
   osc_trigger(voice);
+  skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_TRIGGER,
+    SAMPLE_COUNT_GET(), voice);
   return 0;
 }
 
@@ -1668,6 +1704,8 @@ int envelope_velocity(int voice, float f) {
     if (f == 0) {
         if (sv.one_shot[voice] && sv.loop_active[voice] && sv.loop_bounded[voice])
             sv.loop_stop_requested[voice] = 1;
+        skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE,
+          SAMPLE_COUNT_GET(), voice);
         amp_envelope_release(voice);
         if (sv.filter_envelope[voice].is_active)
             envelope_release_e(&sv.filter_envelope[voice]);
@@ -1676,6 +1714,8 @@ int envelope_velocity(int voice, float f) {
         if (sv.one_shot[voice]) {
             osc_trigger(voice);
         }
+        skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_TRIGGER,
+          SAMPLE_COUNT_GET(), voice);
         amp_envelope_trigger(voice, f);
         amp_envelope_schedule_one_shot_release(voice);
         if (sv.use_filter_envelope[voice])

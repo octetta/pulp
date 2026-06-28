@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <dirent.h>
 
+char *skred_performance_status(void);
+
 #include "vendor/ksynth/ksynth.h"
 #include "recorder.h"
 #include "scope-ipc.h"
@@ -754,13 +756,13 @@ int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset) {
     sw.is_heap[wave_slot] = 1;
     sw.data[wave_slot] = table;
     sw.size[wave_slot] = len;
-    sw.rate[wave_slot] = 44100;
+    sw.rate[wave_slot] = (float)MAIN_SAMPLE_RATE;
     sw.one_shot[wave_slot] = (one_shot != 0);
     sw.loop_enabled[wave_slot] = 0;
     sw.loop_start[wave_slot] = 1;
     sw.loop_end[wave_slot] = len;
     if (offset > 0) {
-      sw.offset_hz[wave_slot] = (float)len / 44100 * 440.0f;
+      sw.offset_hz[wave_slot] = (float)len / (float)MAIN_SAMPLE_RATE * 440.0f;
       sw.midi_note[wave_slot] = 69;
     } else {
       sw.offset_hz[wave_slot] = 0.0f;
@@ -828,7 +830,7 @@ int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offse
     }
     char *name = "data";
     int channels = 1;
-    ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n", len, name, wave_slot, channels, 44100);
+    ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%g)\n", len, name, wave_slot, channels, rate);
   return 0;
 }
 
@@ -2763,12 +2765,12 @@ int skode_function(ands_t *s, int info) {
       }
       break;
                         //              x/0  1     2        3
-                        //              300  44100 one-shot offset
+                        //              300  rate one-shot offset
     case ATOM4('/d--'): // data-to-wave slot rate  one-shot offset
       {
         int wave_slot = EXT_SAMPLE_000;
         int one_shot = 0;
-        float rate = 44100.0;
+        float rate = (float)MAIN_SAMPLE_RATE;
         float offset = 0.0;
         if (argc && !skode_double_to_int(arg[0], &wave_slot)) break;
         if (argc > 1) rate = arg[1];
@@ -2948,7 +2950,7 @@ int skode_function(ands_t *s, int info) {
         if (!where) break;
         for (int i=0; i<len; i++) where[i] = sampling.where[i];
         normalize_buffer(where, len, 1);
-        config = ma_encoder_config_init(ma_encoding_format_wav, ma_format_f32, 1, 44100);
+        config = ma_encoder_config_init(ma_encoding_format_wav, ma_format_f32, 1, MAIN_SAMPLE_RATE);
         if (ma_encoder_init_file(filename, &config, &encoder) != MA_SUCCESS) {
         } else {
           ma_encoder_write_pcm_frames(&encoder, where, len, NULL);
@@ -3281,6 +3283,7 @@ int audio_show(skode_t *ctx) {
 #else
   ctx->printf(ctx, "# synth sample count %ld\n", SAMPLE_COUNT_GET());
 #endif
+  ctx->printf(ctx, "# %s\n", skred_performance_status());
   return 0;
 }
 

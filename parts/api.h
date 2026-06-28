@@ -55,6 +55,47 @@ char *skred_audio_status(void);
 int skred_audio_command(const char *line);
 char *skred_audio_message(void);
 
+typedef struct skred_performance_metrics {
+  uint64_t callbacks;
+  uint64_t frames;
+  uint64_t sample_count;
+  uint64_t callback_ns_total;
+  uint64_t callback_ns_last;
+  uint64_t callback_ns_worst;
+  uint64_t callback_budget_ns_total;
+  uint64_t callback_budget_ns_last;
+  uint64_t callback_budget_ns_worst;
+  uint64_t callback_overruns;
+  uint32_t callback_frames_last;
+  uint32_t callback_frames_worst;
+} skred_performance_metrics_t;
+
+int skred_performance_metrics(skred_performance_metrics_t *out);
+void skred_performance_reset(void);
+char *skred_performance_status(void);
+
+typedef enum {
+  SKRED_CONTROL_EVENT_NONE = 0,
+  SKRED_CONTROL_EVENT_VOICE_TRIGGER = 1,
+  SKRED_CONTROL_EVENT_VOICE_RELEASE = 2,
+  SKRED_CONTROL_EVENT_VOICE_FINISHED = 3,
+} skred_control_event_type_t;
+
+typedef struct skred_control_event {
+  uint32_t type;
+  uint32_t opcode;
+  uint64_t sample;
+  uint64_t sequence;
+  int voice;
+  int pattern;
+  int step;
+  int tag;
+} skred_control_event_t;
+
+int skred_control_event_poll(skred_control_event_t *events, int max_events);
+void skred_control_event_reset(void);
+uint64_t skred_control_event_dropped(void);
+
 // Compatibility enumeration API.
 int skred_devices(int isCapture);
 int skred_device_idx(int isCapture, int idx);

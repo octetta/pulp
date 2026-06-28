@@ -108,16 +108,19 @@ static void execute_queued_event(const event_t *event) {
   }
 }
 
-static void execute_pattern_program(int pattern, const event_program_t *program) {
+static void execute_pattern_program(int pattern, int step,
+    const event_program_t *program) {
   if (pattern < 0 || pattern >= PATTERNS_MAX ||
       skode_execute_program_state(program, &test_pattern_voice[pattern],
-        SAMPLE_COUNT_GET(), -1) != 0) {
+        SAMPLE_COUNT_GET(), -1, pattern, step) != 0) {
     fail("opcode events", "pattern program execution failed");
   }
 }
 
-static void count_pattern_program(int pattern, const event_program_t *program) {
+static void count_pattern_program(int pattern, int step,
+    const event_program_t *program) {
   (void)pattern;
+  (void)step;
   (void)program;
   pattern_callback_count++;
 }
@@ -284,9 +287,7 @@ static void test_envelope_configuration_is_deferred(void) {
 }
 
 static void test_envelope_future_timestamps(void) {
-#ifdef SKRED_TEST_ADSR
   const char *test = "envelope future timestamps";
-  if (!skode_opcode_supported(SKODE_OP_ENVELOPE)) return;
 
   envelope_t envelope;
   envelope_init_e(&envelope, .5f, .5f, 0.0f, .5f);
@@ -307,7 +308,6 @@ static void test_envelope_future_timestamps(void) {
   envelope.sample_release = 1024;
   expect_float(test, envelope_step_e(&envelope, 1000), 0.75f, 0.0001f,
                "future release remains at release start");
-#endif
 }
 
 static void configure_loop_test_voice(int voice, int direction) {
@@ -476,9 +476,7 @@ static void test_bounded_loop_releases_envelopes(void) {
 }
 
 static void test_one_shot_asr_mode(void) {
-#ifdef SKRED_TEST_ADSR
   const char *test = "one-shot ASR mode";
-  if (!skode_opcode_supported(SKODE_OP_ENVELOPE)) return;
 
   skode_t ctx = new_ctx();
   const int voice = 5;
@@ -512,7 +510,6 @@ static void test_one_shot_asr_mode(void) {
 
   SAMPLE_COUNT_PUT(saved_sample_count);
   wave_reset(voice);
-#endif
 }
 
 static void test_opcode_events(void) {
@@ -630,7 +627,7 @@ static void test_opcode_events(void) {
   consume(test, &ctx, "[v2 a-2] e>120");
   int macro_pattern_voice = 0;
   expect_int(test, skode_execute_program_state(&seq_program[11][0],
-             &macro_pattern_voice, SAMPLE_COUNT_GET(), 0), 0,
+             &macro_pattern_voice, SAMPLE_COUNT_GET(), 0, -1, -1), 0,
              "execute pattern macro snapshot");
   expect_float(test, sv.user_amp[2], -11.0f, 0.0001f,
                "pattern macro snapshot amplitude");
@@ -664,7 +661,7 @@ static void test_opcode_events(void) {
     consume(test, &ctx, "[v3 a-1] e>118");
     int dispatched_pattern_voice = 0;
     expect_int(test, skode_execute_program_state(&seq_program[10][0],
-               &dispatched_pattern_voice, SAMPLE_COUNT_GET(), 0), 0,
+               &dispatched_pattern_voice, SAMPLE_COUNT_GET(), 0, -1, -1), 0,
                "execute dispatched pattern macro");
     expect_float(test, sv.user_amp[3], -7.0f, 0.0001f,
                  "dispatched pattern macro snapshot");
@@ -778,8 +775,8 @@ static void test_opcode_events(void) {
              "store sequence follow-up");
   expect_int(test, seq_program[0][0].count, 2, "compiled sequence step");
   expect_int(test, seq_program[0][1].count, 1, "compiled follow-up step");
-  execute_pattern_program(0, &seq_program[0][0]);
-  execute_pattern_program(0, &seq_program[0][1]);
+  execute_pattern_program(0, 0, &seq_program[0][0]);
+  execute_pattern_program(0, 1, &seq_program[0][1]);
   expect_float(test, sv.user_amp[4], -8.0f, 0.0001f,
                "sequence program amp");
   expect_float(test, sv.pan[4], 0.5f, 0.0001f,
@@ -864,12 +861,14 @@ static void test_909_sequence_programs(void) {
   expect_int(test, skode_compile_program("v$2 a-9", &program),
              SKODE_COMPILE_OK, "compile variable pattern voice");
   expect_int(test, skode_execute_program_state(&program, &persistent_voice,
-             SAMPLE_COUNT_GET(), 0), 0, "execute variable pattern voice");
+             SAMPLE_COUNT_GET(), 0, -1, -1), 0,
+             "execute variable pattern voice");
   expect_int(test, persistent_voice, 6, "persistent variable pattern voice");
   expect_int(test, skode_compile_program("p-.5", &program),
              SKODE_COMPILE_OK, "compile persistent voice follow-up");
   expect_int(test, skode_execute_program_state(&program, &persistent_voice,
-             SAMPLE_COUNT_GET(), 0), 0, "execute persistent voice follow-up");
+             SAMPLE_COUNT_GET(), 0, -1, -1), 0,
+             "execute persistent voice follow-up");
   expect_float(test, sv.pan[6], -.5f, 0.0001f,
                "persistent variable voice follow-up");
 
@@ -1227,6 +1226,48 @@ static void test_silent_voice_fast_path(void) {
                "reset voice output remains zero");
 }
 
+static void test_control_plane_voice_events(void) {
+  const char *test = "control plane voice events";
+  skred_control_event_t events[4];
+  event_program_t program = {0};
+  int voice = 0;
+
+  skred_control_event_reset();
+  voice_trigger(2);
+  expect_int(test, skred_control_event_poll(events, 4), 1,
+             "voice trigger event count");
+  expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_VOICE_TRIGGER,
+             "voice trigger event type");
+  expect_int(test, events[0].voice, 2, "voice trigger event voice");
+  expect_int(test, events[0].pattern, -1, "voice trigger default pattern");
+  expect_u64(test, events[0].sample, SAMPLE_COUNT_GET(),
+             "voice trigger event sample");
+
+  envelope_velocity(2, 0.0f);
+  expect_int(test, skred_control_event_poll(events, 4), 1,
+             "voice release event count");
+  expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_VOICE_RELEASE,
+             "voice release event type");
+  expect_int(test, events[0].voice, 2, "voice release event voice");
+
+  skred_control_event_reset();
+  expect_int(test, skode_compile_program("v3 l1", &program),
+             SKODE_COMPILE_OK, "compile pattern trigger program");
+  expect_int(test, skode_execute_program_state(&program, &voice,
+             SAMPLE_COUNT_GET(), 44, 9, 5), 0,
+             "execute pattern trigger program");
+  expect_int(test, skred_control_event_poll(events, 4), 1,
+             "pattern trigger event count");
+  expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_VOICE_TRIGGER,
+             "pattern trigger event type");
+  expect_int(test, events[0].voice, 3, "pattern trigger event voice");
+  expect_int(test, events[0].pattern, 9, "pattern trigger event pattern");
+  expect_int(test, events[0].step, 5, "pattern trigger event step");
+  expect_int(test, events[0].tag, 44, "pattern trigger event tag");
+  expect_int(test, (int)events[0].opcode, SKODE_OP_VELOCITY,
+             "pattern trigger event opcode");
+}
+
 int main(void) {
   synth_init(8);
   wave_table_init(0);
@@ -1255,6 +1296,7 @@ int main(void) {
   test_tempo_and_pattern_reset_limits();
   test_sample_accurate_sequence_boundaries();
   test_silent_voice_fast_path();
+  test_control_plane_voice_events();
 
   synth_free();
 

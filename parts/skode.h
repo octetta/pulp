@@ -122,7 +122,7 @@ const char *skode_opcode_name(uint8_t opcode);
 int skode_execute_program(const event_program_t *program, int voice,
   uint64_t now, int tag);
 int skode_execute_program_state(const event_program_t *program, int *voice,
-  uint64_t now, int tag);
+  uint64_t now, int tag, int pattern, int step);
 skode_compile_result_t skode_compile_program(const char *text,
   event_program_t *program);
 int skode_extra_copy(int index, char *dst, size_t dst_size);

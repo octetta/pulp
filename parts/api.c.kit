@@ -14,6 +14,7 @@
 #include "synth-types.h"
 #include "synth.h"
 #include "skode.h"
+#include "portable_atomic.h"
 @if(SEQ)
 #include "seq.h"
 @endif
@@ -28,6 +29,224 @@
 @endif
 
 #define ONE_FRAME_MAX (64 * 1024)
+#define SKRED_CONTROL_EVENT_CAPACITY 1024
+#define SKRED_CONTROL_VOICE_CAPACITY VOICE_MAX_HARD_LIMIT
+
+typedef struct {
+  skred_control_event_t event;
+  atomic_int_t ready;
+} skred_control_event_slot_t;
+
+static skred_control_event_slot_t control_events[SKRED_CONTROL_EVENT_CAPACITY];
+static atomic_uint64_t control_write_idx;
+static atomic_uint64_t control_read_idx;
+static atomic_uint64_t control_sequence;
+static atomic_uint64_t control_dropped;
+static int control_voice_pattern[SKRED_CONTROL_VOICE_CAPACITY];
+static int control_voice_step[SKRED_CONTROL_VOICE_CAPACITY];
+static int control_voice_tag[SKRED_CONTROL_VOICE_CAPACITY];
+static uint32_t control_voice_opcode[SKRED_CONTROL_VOICE_CAPACITY];
+static atomic_int_t control_voice_playing[SKRED_CONTROL_VOICE_CAPACITY];
+
+void skred_control_event_reset(void) {
+  atomic_store_uint64(&control_write_idx, 0);
+  atomic_store_uint64(&control_read_idx, 0);
+  atomic_store_uint64(&control_sequence, 0);
+  atomic_store_uint64(&control_dropped, 0);
+  for (int i = 0; i < SKRED_CONTROL_EVENT_CAPACITY; i++)
+    atomic_store_int(&control_events[i].ready, 0);
+  for (int i = 0; i < SKRED_CONTROL_VOICE_CAPACITY; i++) {
+    control_voice_pattern[i] = -1;
+    control_voice_step[i] = -1;
+    control_voice_tag[i] = -1;
+    control_voice_opcode[i] = 0;
+    atomic_store_int(&control_voice_playing[i], 0);
+  }
+}
+
+uint64_t skred_control_event_dropped(void) {
+  return atomic_load_uint64(&control_dropped);
+}
+
+void skred_control_voice_source(int voice, int pattern, int step, int tag,
+    uint32_t opcode) {
+  if (voice < 0 || voice >= SKRED_CONTROL_VOICE_CAPACITY) return;
+  control_voice_pattern[voice] = pattern;
+  control_voice_step[voice] = step;
+  control_voice_tag[voice] = tag;
+  control_voice_opcode[voice] = opcode;
+}
+
+void skred_control_voice_event(uint32_t type, uint64_t sample, int voice) {
+  if (voice < 0 || voice >= SKRED_CONTROL_VOICE_CAPACITY) return;
+  if (type == SKRED_CONTROL_EVENT_VOICE_TRIGGER) {
+    atomic_store_int(&control_voice_playing[voice], 1);
+  } else if (type == SKRED_CONTROL_EVENT_VOICE_FINISHED) {
+    int expected = 1;
+    if (!atomic_compare_exchange_int(&control_voice_playing[voice],
+          &expected, 0)) {
+      return;
+    }
+  }
+  while (1) {
+    uint64_t write = atomic_load_uint64(&control_write_idx);
+    uint64_t read = atomic_load_uint64(&control_read_idx);
+    if (write - read >= SKRED_CONTROL_EVENT_CAPACITY) {
+      atomic_fetch_add_uint64(&control_dropped, 1);
+      return;
+    }
+    uint64_t next = write + 1;
+    uint64_t expected = write;
+    if (atomic_compare_exchange_uint64(&control_write_idx, &expected, next)) {
+      skred_control_event_slot_t *slot =
+        &control_events[write % SKRED_CONTROL_EVENT_CAPACITY];
+      atomic_store_int(&slot->ready, 0);
+      slot->event.type = type;
+      slot->event.opcode = control_voice_opcode[voice];
+      slot->event.sample = sample;
+      slot->event.sequence = atomic_fetch_add_uint64(&control_sequence, 1);
+      slot->event.voice = voice;
+      slot->event.pattern = control_voice_pattern[voice];
+      slot->event.step = control_voice_step[voice];
+      slot->event.tag = control_voice_tag[voice];
+      atomic_store_int(&slot->ready, 1);
+      return;
+    }
+  }
+}
+
+int skred_control_event_poll(skred_control_event_t *events, int max_events) {
+  if (!events || max_events <= 0) return 0;
+  int count = 0;
+  while (count < max_events) {
+    uint64_t read = atomic_load_uint64(&control_read_idx);
+    uint64_t write = atomic_load_uint64(&control_write_idx);
+    if (read >= write) break;
+    skred_control_event_slot_t *slot =
+      &control_events[read % SKRED_CONTROL_EVENT_CAPACITY];
+    if (!atomic_load_int(&slot->ready)) break;
+    events[count++] = slot->event;
+    atomic_store_int(&slot->ready, 0);
+    atomic_store_uint64(&control_read_idx, read + 1);
+  }
+  return count;
+}
+
+static atomic_uint64_t perf_callbacks;
+static atomic_uint64_t perf_frames;
+static atomic_uint64_t perf_callback_ns_total;
+static atomic_uint64_t perf_callback_ns_last;
+static atomic_uint64_t perf_callback_ns_worst;
+static atomic_uint64_t perf_callback_budget_ns_total;
+static atomic_uint64_t perf_callback_budget_ns_last;
+static atomic_uint64_t perf_callback_budget_ns_worst;
+static atomic_uint64_t perf_callback_overruns;
+static atomic_uint64_t perf_callback_frames_last;
+static atomic_uint64_t perf_callback_frames_worst;
+static char perf_status[1024];
+
+void skred_performance_reset(void) {
+  atomic_store_uint64(&perf_callbacks, 0);
+  atomic_store_uint64(&perf_frames, 0);
+  atomic_store_uint64(&perf_callback_ns_total, 0);
+  atomic_store_uint64(&perf_callback_ns_last, 0);
+  atomic_store_uint64(&perf_callback_ns_worst, 0);
+  atomic_store_uint64(&perf_callback_budget_ns_total, 0);
+  atomic_store_uint64(&perf_callback_budget_ns_last, 0);
+  atomic_store_uint64(&perf_callback_budget_ns_worst, 0);
+  atomic_store_uint64(&perf_callback_overruns, 0);
+  atomic_store_uint64(&perf_callback_frames_last, 0);
+  atomic_store_uint64(&perf_callback_frames_worst, 0);
+}
+
+int skred_performance_metrics(skred_performance_metrics_t *out) {
+  if (!out) return -1;
+  out->callbacks = atomic_load_uint64(&perf_callbacks);
+  out->frames = atomic_load_uint64(&perf_frames);
+  out->sample_count = SAMPLE_COUNT_GET();
+  out->callback_ns_total = atomic_load_uint64(&perf_callback_ns_total);
+  out->callback_ns_last = atomic_load_uint64(&perf_callback_ns_last);
+  out->callback_ns_worst = atomic_load_uint64(&perf_callback_ns_worst);
+  out->callback_budget_ns_total =
+    atomic_load_uint64(&perf_callback_budget_ns_total);
+  out->callback_budget_ns_last =
+    atomic_load_uint64(&perf_callback_budget_ns_last);
+  out->callback_budget_ns_worst =
+    atomic_load_uint64(&perf_callback_budget_ns_worst);
+  out->callback_overruns = atomic_load_uint64(&perf_callback_overruns);
+  out->callback_frames_last =
+    (uint32_t)atomic_load_uint64(&perf_callback_frames_last);
+  out->callback_frames_worst =
+    (uint32_t)atomic_load_uint64(&perf_callback_frames_worst);
+  return 0;
+}
+
+char *skred_performance_status(void) {
+  skred_performance_metrics_t m;
+  skred_performance_metrics(&m);
+  double avg_ms = m.callbacks
+    ? (double)m.callback_ns_total / (double)m.callbacks / 1000000.0 : 0.0;
+  double last_ms = (double)m.callback_ns_last / 1000000.0;
+  double worst_ms = (double)m.callback_ns_worst / 1000000.0;
+  double budget_ms = (double)m.callback_budget_ns_last / 1000000.0;
+  double worst_budget_ms = (double)m.callback_budget_ns_worst / 1000000.0;
+  double avg_load = m.callback_budget_ns_total
+    ? (double)m.callback_ns_total / (double)m.callback_budget_ns_total * 100.0
+    : 0.0;
+  double last_load = m.callback_budget_ns_last
+    ? (double)m.callback_ns_last / (double)m.callback_budget_ns_last * 100.0
+    : 0.0;
+  double worst_load = m.callback_budget_ns_worst
+    ? (double)m.callback_ns_worst / (double)m.callback_budget_ns_worst * 100.0
+    : 0.0;
+  snprintf(perf_status, sizeof(perf_status),
+           "perf:\n"
+           "  callbacks: %llu frames: %llu samples: %llu overruns: %llu\n"
+           "  callback-ms: last %.3f avg %.3f worst %.3f budget %.3f worst-budget %.3f\n"
+           "  callback-load: last %.1f%% avg %.1f%% worst %.1f%%\n"
+           "  callback-frames: last %u worst %u",
+           (unsigned long long)m.callbacks,
+           (unsigned long long)m.frames,
+           (unsigned long long)m.sample_count,
+           (unsigned long long)m.callback_overruns,
+           last_ms, avg_ms, worst_ms, budget_ms, worst_budget_ms,
+           last_load, avg_load, worst_load,
+           m.callback_frames_last, m.callback_frames_worst);
+  return perf_status;
+}
+
+static struct timespec perf_callback_begin(void) {
+  struct timespec start;
+  clock_gettime(BENCH_CLOCK, &start);
+  return start;
+}
+
+static void perf_callback_end(const struct timespec *start,
+    ma_device *device, ma_uint32 frame_count) {
+  struct timespec end;
+  clock_gettime(BENCH_CLOCK, &end);
+  uint64_t elapsed_ns = (uint64_t)ts_diff_ns(start, &end);
+  uint32_t sample_rate = device && device->sampleRate
+    ? device->sampleRate : (uint32_t)MAIN_SAMPLE_RATE;
+  uint64_t budget_ns = sample_rate
+    ? ((uint64_t)frame_count * 1000000000ULL) / sample_rate : 0;
+  uint64_t worst_ns = atomic_load_uint64(&perf_callback_ns_worst);
+
+  atomic_fetch_add_uint64(&perf_callbacks, 1);
+  atomic_fetch_add_uint64(&perf_frames, frame_count);
+  atomic_fetch_add_uint64(&perf_callback_ns_total, elapsed_ns);
+  atomic_fetch_add_uint64(&perf_callback_budget_ns_total, budget_ns);
+  atomic_store_uint64(&perf_callback_ns_last, elapsed_ns);
+  atomic_store_uint64(&perf_callback_budget_ns_last, budget_ns);
+  atomic_store_uint64(&perf_callback_frames_last, frame_count);
+  if (elapsed_ns > worst_ns) {
+    atomic_store_uint64(&perf_callback_ns_worst, elapsed_ns);
+    atomic_store_uint64(&perf_callback_budget_ns_worst, budget_ns);
+    atomic_store_uint64(&perf_callback_frames_worst, frame_count);
+  }
+  if (budget_ns > 0 && elapsed_ns > budget_ns)
+    atomic_fetch_add_uint64(&perf_callback_overruns, 1);
+}
 
 static int skred_env_enabled(const char *name) {
   const char *value = getenv(name);
@@ -47,7 +266,7 @@ static void event_cb(const event_t *event) {
   static skode_t w = SKODE_EMPTY();
   skode_execute_event(event, &w);
 }
-static void pattern_cb(int pattern, const event_program_t *program) {
+static void pattern_cb(int pattern, int step, const event_program_t *program) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return;
   int generation = seq_pattern_generation(pattern);
   if (pattern_voice_generation[pattern] != generation) {
@@ -55,11 +274,12 @@ static void pattern_cb(int pattern, const event_program_t *program) {
     pattern_voice_generation[pattern] = generation;
   }
   skode_execute_program_state(program, &pattern_voice[pattern],
-    SAMPLE_COUNT_GET(), -1);
+    SAMPLE_COUNT_GET(), -1, pattern, step);
 }
 @endif
 
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
+  struct timespec perf_start = perf_callback_begin();
   static int traced_callback = 0;
   if (!traced_callback && skred_env_enabled("SKRED_TRACE_CALLBACK")) {
     traced_callback = 1;
@@ -134,6 +354,7 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
   @if(RECORD)
   recorder_end_block((int)frame_count);
   @endif
+  perf_callback_end(&perf_start, pDevice, frame_count);
 }
 
 static skode_t w = SKODE_EMPTY();
@@ -372,7 +593,8 @@ char *skred_audio_status(void) {
            "in: [%s]\n"
            "  requested: [%s]\n"
            "  channels: %u\n"
-           "rate: %u callback-frames: %d",
+           "rate: %u callback-frames: %d\n"
+           "%s",
            running ? "running" : "stopped",
            active_output, selected_output.name,
            output_channels, output_pairs
@@ -381,7 +603,8 @@ char *skred_audio_status(void) {
            @endif
            , active_input, selected_input.name,
            input_channels,
-           sample_rate, requested_synth_frames_per_callback);
+           sample_rate, requested_synth_frames_per_callback,
+           skred_performance_status());
   return audio_status;
 }
 
@@ -504,6 +727,8 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   int req = req_audio_frames;
   int vc = voices;
   requested_synth_frames_per_callback = req;
+  skred_performance_reset();
+  skred_control_event_reset();
 
   int audio_disabled = skred_env_enabled("SKRED_NO_AUDIO");
   if (audio_disabled) {
@@ -674,9 +899,7 @@ int skred_scope_stop(void) {
 static char _features_[65536] = {0};
 #define CAT(x) {strcat(_features_, #x);strcat(_features_," ");}
 char *skred_features(void) {
-@if(ADSR)
 CAT(ADSR)
-@endif
 @if(AM)
 CAT(AM)
 @endif

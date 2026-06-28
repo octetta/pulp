@@ -18,8 +18,9 @@ set(KIT_OPTS "" CACHE STRING "Extra flags for the kit tool")
 separate_arguments(KIT_OPTS_LIST NATIVE_COMMAND "${KIT_OPTS}")
 list(FIND KIT_OPTS_LIST "RECORD=1" RECORD_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "SCOPE=1" SCOPE_FEATURE_INDEX)
-list(FIND KIT_OPTS_LIST "ADSR=1" ADSR_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "KSYNTH=1" KSYNTH_FEATURE_INDEX)
+list(APPEND KIT_OPTS_LIST "ADSR=1")
+list(REMOVE_DUPLICATES KIT_OPTS_LIST)
 if(NOT SCOPE_FEATURE_INDEX EQUAL -1 AND WIN32)
     message(FATAL_ERROR "SCOPE=1 currently requires POSIX shared memory")
 endif()
@@ -219,10 +220,6 @@ add_executable(skode_state_tests tests/skode_state_tests.c)
 target_link_libraries(skode_state_tests PRIVATE api)
 target_compile_definitions(skode_state_tests PRIVATE
   SKRED_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-if(NOT ADSR_FEATURE_INDEX EQUAL -1)
-  target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_ADSR=1)
-endif()
-
 add_test(
   NAME skode.command-state
   COMMAND skode_state_tests

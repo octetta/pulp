@@ -34,6 +34,10 @@ typedef struct {
 typedef struct {
   int voice;
   uint8_t voice_var;
+  uint8_t source_valid;
+  int pattern;
+  int step;
+  int tag;
   opcode_event_t opcode;
 } event_t;
 
@@ -47,7 +51,7 @@ typedef struct {
 } event_program_t;
 
 void seq(uint64_t now, void (*event_fn)(const event_t *event),
-  void (*program_fn)(int pattern, const event_program_t *program));
+  void (*program_fn)(int pattern, int step, const event_program_t *program));
 int seq_next_boundary(uint64_t now, uint64_t limit, uint64_t *boundary);
 void seq_init(void);
 void seq_rewind(void);

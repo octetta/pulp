@@ -25,6 +25,17 @@ int main(void) {
          "/a? did not report channel metrics");
   expect(strstr(skred_audio_message(), "callback-frames:") != NULL,
          "/a? did not report callback frame metrics");
+  expect(strstr(skred_audio_message(), "perf:") != NULL,
+         "/a? did not report performance metrics");
+
+  skred_performance_metrics_t metrics;
+  expect(skred_performance_metrics(&metrics) == 0,
+         "performance metrics API rejected output pointer");
+  expect(metrics.callbacks == 0,
+         "performance metrics should start with zero callbacks");
+  expect(skred_performance_metrics(NULL) < 0,
+         "performance metrics API accepted null output pointer");
+  skred_performance_reset();
 
   synth_sample_rate_set(48000);
   expect(strstr(skred_audio_status(), "rate: 48000") != NULL,

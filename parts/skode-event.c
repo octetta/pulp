@@ -7,6 +7,7 @@
 #include "synth-config.h"
 #include "synth-state.h"
 #include "synth.h"
+#include "control-events.h"
 
 #define SKODE_ATOM(a, b, c, d) \
   (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(b) << 16) | \
@@ -375,6 +376,11 @@ int skode_execute_event(const event_t *event, skode_t *ctx) {
     }
     voice = (int)value;
   }
+  if (event->source_valid)
+    skred_control_voice_source(voice, event->pattern, event->step, event->tag,
+      event->opcode.code);
+  else
+    skred_control_voice_source(voice, -1, -1, -1, event->opcode.code);
   return execute_opcode(&event->opcode, voice);
 }
 
@@ -403,7 +409,7 @@ static int resolve_program_arg(const opcode_event_t *opcode, int n,
 
 static int run_program(const event_program_t *program, int voice,
     uint64_t base, uint64_t now, int tag, int execute_due,
-    int *final_voice) {
+    int *final_voice, int pattern, int step) {
   if (!program || !event_voice_valid(voice)) return -1;
   if (program->count > SEQ_PROGRAM_OP_MAX) return -1;
   uint64_t when = base;
@@ -445,6 +451,10 @@ static int run_program(const event_program_t *program, int voice,
     event_t event = {
       .voice = current_voice,
       .voice_var = current_voice_var,
+      .source_valid = (pattern >= 0 || step >= 0 || tag >= 0),
+      .pattern = pattern,
+      .step = step,
+      .tag = tag,
       .opcode = op->opcode,
     };
     if (execute_due && when <= now) {
@@ -471,18 +481,19 @@ static int run_program(const event_program_t *program, int voice,
 
 int skode_queue_program(const event_program_t *program, int voice,
     uint64_t when, int tag) {
-  return run_program(program, voice, when, SAMPLE_COUNT_GET(), tag, 0, NULL);
+  return run_program(program, voice, when, SAMPLE_COUNT_GET(), tag, 0, NULL,
+    -1, -1);
 }
 
 int skode_execute_program(const event_program_t *program, int voice,
     uint64_t now, int tag) {
-  return run_program(program, voice, now, now, tag, 1, NULL);
+  return run_program(program, voice, now, now, tag, 1, NULL, -1, -1);
 }
 
 int skode_execute_program_state(const event_program_t *program, int *voice,
-    uint64_t now, int tag) {
+    uint64_t now, int tag, int pattern, int step) {
   if (!voice) return -1;
-  return run_program(program, *voice, now, now, tag, 1, voice);
+  return run_program(program, *voice, now, now, tag, 1, voice, pattern, step);
 }
 
 int skode_queue_program_deferred(const event_program_t *program, int voice,
@@ -490,5 +501,6 @@ int skode_queue_program_deferred(const event_program_t *program, int voice,
   uint64_t relative;
   if (delay_to_samples(mode, delay, &relative) != 0) return -1;
   uint64_t when = relative > UINT64_MAX - base ? UINT64_MAX : base + relative;
-  return run_program(program, voice, when, SAMPLE_COUNT_GET(), tag, 0, NULL);
+  return run_program(program, voice, when, SAMPLE_COUNT_GET(), tag, 0, NULL,
+    -1, -1);
 }

@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <dirent.h>
 
+char *skred_performance_status(void);
+
 @if(KSYNTH)
 #include "vendor/ksynth/ksynth.h"
 @endif
@@ -1449,11 +1451,9 @@ void skode_sample_go(int frames) {
 ## enabled features
 @enddoc
 
-@if(ADSR)
 @doc
 ### time-based ampltude envelope (ADSR)
 @enddoc
-@endif
 
 @if(AM)
 @doc
@@ -1756,11 +1756,9 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_FILTER_RESONANCE:
       return 1;
     @endif
-    @if(ADSR)
     case SKODE_OP_ENVELOPE_MODE:
     case SKODE_OP_ENVELOPE:
       return 1;
-    @endif
     @if(PANMOD)
     case SKODE_OP_PAN_MOD: return 1;
     @endif
@@ -1922,12 +1920,10 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
     case SKODE_OP_FILTER_FREQ:
       return opcode->argc == 1 ? mmf_set_freq(voice, opcode->arg[0]) : -1;
     @endif
-    @if(ADSR)
     case SKODE_OP_ENVELOPE_MODE:
       if (!x_valid) return -1;
       sv.amp_envelope_mode[voice] = x;
       return 0;
-    @endif
     case SKODE_OP_ENVELOPE_VELOCITY:
       return opcode->argc == 1 ?
         envelope_velocity(voice, opcode->arg[0]) : -1;
@@ -1991,11 +1987,9 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
     @endif
     case SKODE_OP_VOICE_RESET:
       return x_valid ? wave_reset(x) : -1;
-    @if(ADSR)
     case SKODE_OP_ENVELOPE:
       return opcode->argc == 4 ? envelope_set(voice, opcode->arg[0],
         opcode->arg[1], opcode->arg[2], opcode->arg[3]) : -1;
-    @endif
     case SKODE_OP_TRIGGER:
       if (opcode->argc != 0) return -1;
       envelope_velocity(voice, 1);
@@ -2343,10 +2337,8 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @endif
-    @if(ADSR)
     case ATOM4('k---'): // adsr-mode bool
       if (argc) { sv.amp_envelope_mode[voice] = x; } break;
-    @endif
     @if(UDP)
     case ATOM4('udp-'): // show-udp
       if (argc) {
@@ -2515,11 +2507,9 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('S---'): // voice-reset voice
       if (argc) wave_reset(x);
       break;
-    @if(ADSR)
     case ATOM4('t---'): // adsr-set attack decay sustain release
       if (argc > 3) envelope_set(voice, arg[0], arg[1], arg[2], arg[3]);
       break;
-    @endif
     case ATOM4('T---'): // trigger
       {
         envelope_velocity(voice, 1);
@@ -3598,6 +3588,7 @@ int audio_show(skode_t *ctx) {
 #else
   ctx->printf(ctx, "# synth sample count %ld\n", SAMPLE_COUNT_GET());
 #endif
+  ctx->printf(ctx, "# %s\n", skred_performance_status());
   return 0;
 }
 

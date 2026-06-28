@@ -130,11 +130,9 @@ typedef struct {
     int        * restrict filter_update_counter;
     @endif
 
-    @if(ADSR)
     envelope_t * restrict amp_envelope;
     int        * restrict amp_envelope_mode;
     int        * restrict use_amp_envelope;
-    @endif
 
     @if(GLISS)
     int    * restrict glissando_enable;

@@ -378,19 +378,123 @@ remove output-device or hardware buffering latency.
 | `R!!` | None | Clears all queued events. It does not erase patterns or reset voices. |
 | `ce id[,a,b,c]` | Integer event id and up to three numeric values | Emits a `SKRED_CONTROL_EVENT_USER` control-plane event. This command is schedulable, so defers, repeats, patterns, and macros can send host-visible markers. |
 | `?q` | None | Displays queued compiled events waiting in the sequencer queue. |
-| `?ce` | None | Polls and displays control-plane events such as voice trigger, release, finished, user, and pattern boundary notifications. |
+| `?ce` | None | Displays outstanding control-plane events without consuming them. |
+| `?ce!` | None | Clears outstanding control-plane events without resetting voices or patterns. |
 | `?o` | None | Compatibility alias for queued compiled events. |
 | `?o pattern[,step]` | Pattern and optional step | Displays the opcodes compiled for pattern steps. |
 | `wait ms` | Nonnegative milliseconds | Blocks the command/control thread. It does not create a musical event and should not be used for audio-rate scheduling. |
 
 Deferred and repeated programs can contain only schedulable commands.
 
-`?q` and `?ce` show different event streams. `?q` reports pending scheduled
-opcode events that have not executed yet. `?ce` consumes the control-plane
-notification ring exposed by `skred_control_event_poll()` and reports things
-the synth has already observed. `ce id[,a,b,c]` writes to that control-plane
-stream immediately or when its scheduled opcode executes; pollers see the event
-id plus up to three numeric values.
+`?q` and `?ce` show different views. `?q` reports pending scheduled opcode
+events that have not executed yet. `?ce` peeks at the control-plane
+notification ring and reports things the synth has already observed without
+clearing them. Use `?ce!` when you explicitly want to discard outstanding
+control-plane notifications. `ce id[,a,b,c]` writes to that control-plane stream
+immediately or when its scheduled opcode executes; pollers see the event id
+plus up to three numeric values.
+
+### Mini-Skred Control-Event Responder
+
+Mini-Skred can bind control-plane events to Skode commands. These are
+Mini-Skred slash commands, not engine Skode opcodes:
+
+| Command | Parameters | Effect |
+| --- | --- | --- |
+| `/cer state` | `0` or nonzero | Disables or enables the Mini-Skred control-event responder. |
+| `[command] /ceb type key` | Skode response command, numeric event type, event key | Runs `command` whenever a matching control event is received. |
+| `/ce! type key` | Numeric event type and key | Removes matching bindings. |
+| `/ce!` | None | Removes all responder bindings. |
+| `/ce?` | None | Displays responder state and bindings. |
+
+Event type numbers are the public `SKRED_CONTROL_EVENT_*` enum values:
+
+| Number | Event |
+| --- | --- |
+| `1` | `SKRED_CONTROL_EVENT_VOICE_TRIGGER` |
+| `2` | `SKRED_CONTROL_EVENT_VOICE_RELEASE` |
+| `3` | `SKRED_CONTROL_EVENT_VOICE_FINISHED` |
+| `4` | `SKRED_CONTROL_EVENT_USER` |
+| `5` | `SKRED_CONTROL_EVENT_PATTERN_START` |
+| `6` | `SKRED_CONTROL_EVENT_PATTERN_END` |
+
+`key` is the event id for `SKRED_CONTROL_EVENT_USER`, the pattern number for
+pattern events, and the voice number for voice events. Use `-1` as a wildcard
+key. Event tags do not participate in responder matching; tags are source
+metadata from queued/repeated programs and are still useful for `R! tag`
+cancellation and host-side correlation.
+
+User-event example:
+
+```text
+[v4 l1] /ceb 4 42
+[v5 l1] /ceb 4 43
+/cer 1
+ce 42
+ce 43
+```
+
+Here both bindings listen for type `4`, `SKRED_CONTROL_EVENT_USER`. The key is
+the `ce` id. `ce 42` runs `v4 l1`; `ce 43` runs `v5 l1`.
+
+Voice-event example:
+
+```text
+v0 vc1
+v1 vc1
+[v2 l1] /ceb 1 0
+[v3 l1] /ceb 1 1
+/cer 1
+v0 l1
+v1 l1
+```
+
+Type `1` is `SKRED_CONTROL_EVENT_VOICE_TRIGGER`. The key is the triggering
+voice number. Because voice `0` and voice `1` both have `vc1`, `v0 l1` emits a
+trigger event with key `0` and runs `v2 l1`; `v1 l1` emits key `1` and runs
+`v3 l1`. Voices without `vc1` do not emit lifecycle events.
+
+Pattern-event example:
+
+```text
+y0 yc1
+[ce 100] x0
+[-] x1
+y1 yc1
+[ce 200] x0
+[-] x1
+[v6 l1] /ceb 5 0
+[v7 l1] /ceb 5 1
+[v8 l1] /ceb 6 0
+[v9 l1] /ceb 6 1
+/cer 1
+```
+
+Type `5` is `SKRED_CONTROL_EVENT_PATTERN_START`; type `6` is
+`SKRED_CONTROL_EVENT_PATTERN_END`. The key is the pattern number. Pattern `0`
+start runs `v6 l1`, pattern `1` start runs `v7 l1`, pattern `0` end runs
+`v8 l1`, and pattern `1` end runs `v9 l1`. The `ce 100` and `ce 200` commands
+inside the patterns are separate user events whose responder key would be
+`100` or `200` if you bind type `4`.
+
+The responder uses the public control-event wait object, not a background
+thread. In editor mode it multiplexes keyboard input with the event notifier;
+in `-n` subprocess mode it multiplexes stdin with the event notifier on POSIX
+hosts and also services the responder after each command. Responder service
+consumes events from the same ring used by `?ce`.
+
+### Foreign C Function Calls
+
+Applications using `api.h` can bind C callbacks to `/ff0` through `/ff9`.
+Unbound slots do nothing and do not report an error.
+
+```text
+(10,20,30) [marker] /ff0 1,2,3
+```
+
+The callback receives the slot number, numeric arguments `1,2,3`, parser string
+`marker`, parser data `10,20,30`, and the current voice/pattern/step context.
+The string and data are borrowed from the parser for the duration of the call.
 
 ## Patterns
 

@@ -1,9 +1,21 @@
 #include "api.h"
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#else
+#include <sys/select.h>
+#include <unistd.h>
+#endif
 
 #include "vendor/uedit/uedit.h"
+
+static int ce_wait_fd = -1;
+static void *ce_wait_handle = NULL;
+
+static void ce_responder_poll(void *user);
 
 void usage(void) {
   printf("# skred\n");
@@ -21,6 +33,54 @@ static int handle_audio_command(const char *line) {
   const char *message = skred_audio_message();
   if (message && message[0]) printf("%s\n", message);
   return 1;
+}
+
+static int mini_run_command(const char *line) {
+  char buf[1024];
+  snprintf(buf, sizeof(buf), "%s", line);
+  if (handle_audio_command(buf)) return 0;
+  int r = skred_command(buf);
+  char *log = skred_log();
+  if (strlen(log)) printf("%s", log);
+  ce_responder_poll(NULL);
+  if (r > 0) printf("r = %d\n", r);
+  return r;
+}
+
+static void ce_responder_poll(void *user) {
+  (void)user;
+  if (skred_control_response_poll() > 0) {
+    char *log = skred_log();
+    if (strlen(log)) printf("\n%s", log);
+  }
+}
+
+static char *mini_read_line_no_editor(char *line, size_t line_size) {
+  if (!skred_control_response_enabled()) return fgets(line, (int)line_size, stdin);
+#if defined(_WIN32) || defined(_WIN64)
+  return fgets(line, (int)line_size, stdin);
+#else
+  int ce_fd = ce_wait_fd;
+  if (ce_fd < 0) return fgets(line, (int)line_size, stdin);
+  while (1) {
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+    FD_SET(ce_fd, &readfds);
+    int maxfd = ce_fd > STDIN_FILENO ? ce_fd : STDIN_FILENO;
+    int ready = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+    if (ready < 0) {
+      if (errno == EINTR) continue;
+      return NULL;
+    }
+    if (FD_ISSET(ce_fd, &readfds)) {
+      ce_responder_poll(NULL);
+      continue;
+    }
+    if (FD_ISSET(STDIN_FILENO, &readfds))
+      return fgets(line, (int)line_size, stdin);
+  }
+#endif
 }
 
 int main(int argc, char **argv) {
@@ -80,28 +140,31 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  ce_wait_fd = skred_control_event_wait_fd();
+  ce_wait_handle = skred_control_event_wait_handle();
+
   skred_logger(1);
 
   while (1) {
     char line[1024];
     char *out = NULL;
     if (useue) {
-      int r = uedit("# ", line, sizeof(line)-1);
+      int r = uedit_with_event("# ", line, sizeof(line)-1,
+        skred_control_response_enabled() ? ce_wait_fd : -1,
+        skred_control_response_enabled() ? ce_wait_handle : NULL,
+        ce_responder_poll, NULL);
       if (r == 0) continue;
       if (r < 0) break;
       out = line;
     } else {
-      out = fgets(line, sizeof(line)-1, stdin);
+      out = mini_read_line_no_editor(line, sizeof(line)-1);
       if (out == NULL) break;
       if (strlen(line) == 0) continue;
     }
-    if (handle_audio_command(out)) continue;
-    int r = skred_command(out);
-    char *log = skred_log();
-    if (strlen(log)) printf("%s", log);
+    if (strlen(out) == 0) continue;
+    int r = mini_run_command(out);
     if (r == 0) continue;
     if (r < 0) break;
-    printf("r = %d\n", r);
   }
 
   skred_stop();

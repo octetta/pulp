@@ -79,8 +79,17 @@ typedef enum {
   SKRED_CONTROL_EVENT_VOICE_TRIGGER = 1,
   SKRED_CONTROL_EVENT_VOICE_RELEASE = 2,
   SKRED_CONTROL_EVENT_VOICE_FINISHED = 3,
+  SKRED_CONTROL_EVENT_USER = 4,
+  SKRED_CONTROL_EVENT_PATTERN_START = 5,
+  SKRED_CONTROL_EVENT_PATTERN_END = 6,
 } skred_control_event_type_t;
 
+/*
+ * Control-plane notifications are consumed by polling; SKRED does not call
+ * host callbacks from its audio thread. Enable voice lifecycle events with
+ * Skode "vc1", pattern boundary events with "yc1", and emit host-defined
+ * user events with schedulable "ce id[,a,b,c]".
+ */
 typedef struct skred_control_event {
   uint32_t type;
   uint32_t opcode;
@@ -90,11 +99,62 @@ typedef struct skred_control_event {
   int pattern;
   int step;
   int tag;
+  int id;
+  uint32_t value_count;
+  double value[3];
 } skred_control_event_t;
 
+/* Copies and consumes up to max_events ready notifications. Nonblocking. */
 int skred_control_event_poll(skred_control_event_t *events, int max_events);
+/*
+ * POSIX: returns a selectable file descriptor that becomes readable when the
+ * control-event ring is non-empty. Returns -1 when unavailable.
+ */
+int skred_control_event_wait_fd(void);
+/*
+ * Windows: returns a HANDLE waitable with WaitForSingleObject or
+ * WaitForMultipleObjects. POSIX hosts receive NULL.
+ */
+void *skred_control_event_wait_handle(void);
+/*
+ * Convenience wait. timeout_ms < 0 waits forever, 0 polls, >0 waits up to
+ * that many milliseconds. Returns 1 when events should be polled, 0 on
+ * timeout, and -1 on error or unavailable notification support.
+ */
+int skred_control_event_wait(int timeout_ms);
+/* Clears queued notifications, sequence numbering, and dropped count. */
 void skred_control_event_reset(void);
+/* Cumulative count of notifications dropped because the ring was full. */
 uint64_t skred_control_event_dropped(void);
+
+int skred_control_response_bind(uint32_t type, int key, const char *command);
+int skred_control_response_remove(uint32_t type, int key);
+void skred_control_response_clear(void);
+void skred_control_response_set_enabled(int enabled);
+int skred_control_response_enabled(void);
+int skred_control_response_poll(void);
+char *skred_control_response_status(void);
+
+typedef struct skred_scheduled_event {
+  int index;
+  uint64_t timestamp;
+  uint64_t id;
+  int tag;
+  int voice;
+  uint8_t voice_var;
+  uint8_t source_valid;
+  int pattern;
+  int step;
+  uint8_t opcode;
+  uint8_t opcode_argc;
+  char opcode_mode;
+  uint8_t opcode_var_mask;
+  float opcode_arg[4];
+} skred_scheduled_event_t;
+
+int skred_scheduled_event_count(void);
+int skred_scheduled_event_snapshot(skred_scheduled_event_t *events,
+                                   int max_events);
 
 // Compatibility enumeration API.
 int skred_devices(int isCapture);

@@ -31,11 +31,14 @@ inspection, command logging, audio-device selection, and optional recording and
 shared-memory scope control.
 
 It also exposes a bounded control-plane event ring. Hosts do not register a C
-callback. They poll `skred_control_event_poll()` from their own control/UI loop
+callback. They use `skred_control_event_poll()` from their own control/UI loop
 to receive notifications such as `SKRED_CONTROL_EVENT_VOICE_TRIGGER`,
-`SKRED_CONTROL_EVENT_VOICE_RELEASE`, and
-`SKRED_CONTROL_EVENT_VOICE_FINISHED`, plus explicit Skode `ce` markers and
-opt-in pattern boundary notifications.
+`SKRED_CONTROL_EVENT_VOICE_RELEASE`, and `SKRED_CONTROL_EVENT_VOICE_FINISHED`,
+plus explicit Skode `ce` markers and opt-in pattern boundary notifications.
+Hosts that need to sleep in an event loop can multiplex on
+`skred_control_event_wait_fd()` on POSIX systems or
+`skred_control_event_wait_handle()` on Windows, then drain with
+`skred_control_event_poll()`.
 
 At runtime, commands follow one of two paths:
 
@@ -98,7 +101,16 @@ For host applications, the control-plane contract is:
 - Pattern boundary events are emitted only for patterns enabled with `yc1`.
 - User events are emitted only by explicit `ce id[,a,b,c]` commands.
 - The host owns interpretation of `ce` IDs and payload values.
-- The host must poll the bounded ring and watch the dropped-event counter.
+- The host must drain the bounded ring with `skred_control_event_poll()` and
+  watch the dropped-event counter. The fd/HANDLE APIs are only wake signals.
+- Diagnostic readers can use `skred_control_event_snapshot()` or `?ce` to
+  inspect outstanding events without consuming them; `?ce!` explicitly discards
+  outstanding control-plane events.
+- Event response bindings match on event type plus `voice`, `pattern`, or user
+  `id`; the event `tag` is provenance/cancellation metadata from scheduled
+  work, not a response key.
+- Hosts may expose application code through `/ff0` through `/ff9` foreign C
+  function bindings when Skode needs to call outside the built-in API.
 
 ## What Is Unusual
 
@@ -252,8 +264,9 @@ hardware latency are unchanged.
 
 `mini-skred.c.kit` is a thin example host. It supports an interactive editor,
 line-oriented subprocess operation, audio-device selection, and UDP startup. It
-also provides diagnostic service commands: `?ce` polls control-plane
-notifications, while `?q` shows pending scheduled opcode events.
+also provides diagnostic service commands: `?ce` snapshots control-plane
+notifications, `?ce!` clears them, and `?q` shows pending scheduled opcode
+events.
 
 ### ANDS Parser
 

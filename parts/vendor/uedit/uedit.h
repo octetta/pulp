@@ -10,6 +10,8 @@
     #include <conio.h>
     #define GETCH() _getch()
 #else
+    #include <errno.h>
+    #include <sys/select.h>
     #include <termios.h>
     #include <unistd.h>
     static int uedit_getch(void) {
@@ -22,6 +24,14 @@
 
 #define UEDIT_MAX_LINE 1024
 #define CTRL_KEY(k) ((k) & 0x1f)
+#define UEDIT_EVENT (-2)
+#if defined(__GNUC__) || defined(__clang__)
+#define UEDIT_UNUSED __attribute__((unused))
+#else
+#define UEDIT_UNUSED
+#endif
+
+typedef void (*uedit_event_cb)(void *user);
 
 /* History State */
 static char **uedit_hist = NULL;
@@ -103,7 +113,40 @@ static void uedit_refresh_line(const char *prompt, const char *buf, int cur) {
     fflush(stdout);
 }
 
-static int uedit(const char *prompt, char *buf, int max_line) {
+static int uedit_getch_event(int event_fd, void *event_handle) {
+#ifdef _WIN32
+    if (event_handle) {
+        HANDLE handles[2];
+        handles[0] = GetStdHandle(STD_INPUT_HANDLE);
+        handles[1] = (HANDLE)event_handle;
+        DWORD result = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+        if (result == WAIT_OBJECT_0 + 1) return UEDIT_EVENT;
+        if (result != WAIT_OBJECT_0) return EOF;
+    }
+    return GETCH();
+#else
+    (void)event_handle;
+    if (event_fd < 0) return GETCH();
+    while (1) {
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(STDIN_FILENO, &readfds);
+        FD_SET(event_fd, &readfds);
+        int maxfd = event_fd > STDIN_FILENO ? event_fd : STDIN_FILENO;
+        int ready = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+        if (ready < 0) {
+            if (errno == EINTR) continue;
+            return EOF;
+        }
+        if (FD_ISSET(event_fd, &readfds)) return UEDIT_EVENT;
+        if (FD_ISSET(STDIN_FILENO, &readfds)) return GETCH();
+    }
+#endif
+}
+
+static int uedit_with_event(const char *prompt, char *buf, int max_line,
+        int event_fd, void *event_handle, uedit_event_cb on_event,
+        void *event_user) {
     int len = 0, cur = 0, c, h_idx = -1;
     if (max_line <= 0) return -1;
     memset(buf, 0, max_line);
@@ -118,7 +161,12 @@ static int uedit(const char *prompt, char *buf, int max_line) {
     }
 
     while (1) {
-        c = GETCH();
+        c = uedit_getch_event(event_fd, event_handle);
+        if (c == UEDIT_EVENT) {
+            if (on_event) on_event(event_user);
+            uedit_refresh_line(prompt, buf, cur);
+            continue;
+        }
         if (c == EOF) { len = -1; break; }
         if      (c == CTRL_KEY('a')) cur = 0;
         else if (c == CTRL_KEY('e')) cur = len;
@@ -167,6 +215,10 @@ static int uedit(const char *prompt, char *buf, int max_line) {
     }
     uedit_disable_raw_mode();
     return len;
+}
+
+static UEDIT_UNUSED int uedit(const char *prompt, char *buf, int max_line) {
+    return uedit_with_event(prompt, buf, max_line, -1, NULL, NULL, NULL);
 }
 
 #endif

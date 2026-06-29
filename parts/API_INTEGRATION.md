@@ -200,7 +200,11 @@ skred_command("[ce 300] R 4,.25,9"); /* repeated user events tagged 9 */
 Because `ce` is schedulable, defers, repeats, patterns, and external macros can
 emit host-visible markers without triggering a synth voice.
 
-### Polling
+### Polling and Waitable Notification
+
+`skred_control_event_poll()` remains the only API that copies event data out of
+SKRED. Hosts can either call it periodically or use the waitable notification
+helpers to sleep until the ring becomes non-empty.
 
 ```c
 skred_control_event_t events[64];
@@ -246,11 +250,128 @@ its application/control loop, UI loop, or another non-audio service thread. Do
 not call it from a real-time audio callback you own, and do not do blocking UI,
 I/O, allocation-heavy work, or network sends from inside SKRED's audio callback.
 
+For diagnostics, `skred_control_event_snapshot(events, max_events)` copies
+ready events without consuming them. Mini-Skred exposes that as `?ce`.
+`skred_control_event_clear()` discards outstanding events without resetting the
+sequence or dropped counters; Mini-Skred exposes that as `?ce!`.
+
+For event-loop integration, SKRED exposes a coalesced wake signal:
+
+```c
+int skred_control_event_wait_fd(void);       /* POSIX select/poll fd */
+void *skred_control_event_wait_handle(void); /* Windows HANDLE */
+int skred_control_event_wait(int timeout_ms);
+```
+
+The wait object means "the control-event ring is probably non-empty; call
+`skred_control_event_poll()` now." It does not carry event data and it does not
+count events one-for-one. If multiple events arrive before the host drains the
+ring, the wait object may wake only once.
+
+On Linux and macOS, use the fd in `select()` or `poll()`:
+
+```c
+int ce_fd = skred_control_event_wait_fd();
+
+FD_ZERO(&readfds);
+FD_SET(stdin_fd, &readfds);
+FD_SET(ce_fd, &readfds);
+select(maxfd + 1, &readfds, NULL, NULL, NULL);
+
+if (FD_ISSET(ce_fd, &readfds)) {
+    skred_control_event_poll(events, 64);
+}
+```
+
+On Windows, use the HANDLE with `WaitForSingleObject()` or
+`WaitForMultipleObjects()`:
+
+```c
+HANDLE handles[2] = {
+    GetStdHandle(STD_INPUT_HANDLE),
+    skred_control_event_wait_handle()
+};
+
+DWORD r = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+if (r == WAIT_OBJECT_0 + 1) {
+    skred_control_event_poll(events, 64);
+}
+```
+
+The convenience `skred_control_event_wait(timeout_ms)` returns `1` when the
+host should poll, `0` on timeout, and `-1` when notification support is
+unavailable. Use `timeout_ms < 0` to wait forever.
+
+### Built-In Response Bindings
+
+The host may also use SKRED's built-in responder table instead of writing its
+own event dispatch loop:
+
+```c
+skred_control_response_bind(SKRED_CONTROL_EVENT_USER, 42, "v0 l1");
+skred_control_response_set_enabled(1);
+
+/* When the wait object fires, or after host commands: */
+skred_control_response_poll();
+```
+
+The equivalent Skode form uses the parser string and numeric event type:
+
+```text
+[v0 l1] /ceb 4 42
+/cer 1
+```
+
+`skred_control_response_poll()` drains the same control-event ring as
+`skred_control_event_poll()`, runs matching Skode commands, and returns the
+number of response commands executed. It is useful for hosts such as
+Mini-Skred that want event-driven command reactions without adding a separate
+dispatch table. Hosts that need custom routing should use
+`skred_control_event_poll()` directly.
+
+Response bindings dispatch by event type plus a key:
+
+| Event type | Key used by the responder |
+| --- | --- |
+| `SKRED_CONTROL_EVENT_VOICE_TRIGGER` | `event.voice` |
+| `SKRED_CONTROL_EVENT_VOICE_RELEASE` | `event.voice` |
+| `SKRED_CONTROL_EVENT_VOICE_FINISHED` | `event.voice` |
+| `SKRED_CONTROL_EVENT_USER` | `event.id` |
+| `SKRED_CONTROL_EVENT_PATTERN_START` | `event.pattern` |
+| `SKRED_CONTROL_EVENT_PATTERN_END` | `event.pattern` |
+
+Use key `-1` for a wildcard binding. Tags are not response keys. Tags are
+source metadata from scheduled or repeated work, useful for correlation and for
+cancelling queued work with commands such as `R! tag`.
+
 `skred_control_event_reset()` clears the ring and sequence counter. Use it when
 starting a new host-side subscription session or intentionally discarding old
 notifications. `skred_control_event_dropped()` returns a cumulative count of
 events that could not be published because the ring was full. The current ring
 keeps 1024 outstanding control-plane events.
+
+### Foreign C Functions
+
+Hosts can bind up to ten C callbacks and invoke them from Skode with `/ff0`
+through `/ff9`. This is intended for application-owned behavior that should
+live outside the built-in control-event responder.
+
+```c
+static int app_ff(const skred_foreign_call_t *call, void *user) {
+    /* call->index is 0..9, call->arg[0..argc-1] are numeric args. */
+    /* call->string is the current [string], call->data is current (data). */
+    /* voice/pattern/step identify the Skode context that made the call. */
+    return 0;
+}
+
+skred_foreign_function_bind(0, app_ff, app_state);
+skred_command("(10,20) [marker] /ff0 1,2,3");
+skred_foreign_function_clear(0);
+```
+
+The pointers inside `skred_foreign_call_t` are valid only while the callback is
+running; copy anything that must outlive the call. Calling an unbound `/ffN` is
+a silent no-op.
 
 ### Event Contract
 
@@ -265,7 +386,8 @@ The fields in `skred_control_event_t` are intended for host-side correlation:
   source.
 - `tag` is the optional integer tag attached when the Skode program was queued,
   or `-1` when there is no queued source tag. Tags are also used by Skode
-  cancellation commands such as `R! tag`.
+  cancellation commands such as `R! tag`. Tags are provenance, not dispatcher
+  keys for `skred_control_response_bind()`.
 - `opcode` identifies the compiled Skode opcode that produced the event when
   that is meaningful. For user events this is `SKODE_OP_CONTROL_EVENT`; for
   pattern boundary events it is `0`.
@@ -274,20 +396,22 @@ The fields in `skred_control_event_t` are intended for host-side correlation:
 
 Event type meanings:
 
-| Type | Enablement | Important fields | Meaning |
-| --- | --- | --- | --- |
-| `SKRED_CONTROL_EVENT_VOICE_TRIGGER` | Selected voice has `vc1` | `voice`, `sample`, optional `pattern`, `step`, `tag`, `opcode` | A voice began sounding. |
-| `SKRED_CONTROL_EVENT_VOICE_RELEASE` | Selected voice has `vc1` | `voice`, `sample`, optional source fields | A voice entered envelope release. |
-| `SKRED_CONTROL_EVENT_VOICE_FINISHED` | Selected voice has `vc1` | `voice`, `sample`, optional source fields | A voice became inactive after a trigger/release lifecycle. |
-| `SKRED_CONTROL_EVENT_USER` | Explicit `ce` command | `id`, `value_count`, `value[]`, `voice`, optional source fields | Skode sent a host-defined marker. |
-| `SKRED_CONTROL_EVENT_PATTERN_START` | Selected pattern has `yc1` | `pattern`, `step`, `sample` | Pattern playback landed on step `0`. |
-| `SKRED_CONTROL_EVENT_PATTERN_END` | Selected pattern has `yc1` | `pattern`, `step`, `sample` | Pattern playback reached a stop marker or the last playable step before wrap. |
+| Number | Type | Enablement | Important fields | Meaning |
+| --- | --- | --- | --- | --- |
+| `1` | `SKRED_CONTROL_EVENT_VOICE_TRIGGER` | Selected voice has `vc1` | `voice`, `sample`, optional `pattern`, `step`, `tag`, `opcode` | A voice began sounding. |
+| `2` | `SKRED_CONTROL_EVENT_VOICE_RELEASE` | Selected voice has `vc1` | `voice`, `sample`, optional source fields | A voice entered envelope release. |
+| `3` | `SKRED_CONTROL_EVENT_VOICE_FINISHED` | Selected voice has `vc1` | `voice`, `sample`, optional source fields | A voice became inactive after a trigger/release lifecycle. |
+| `4` | `SKRED_CONTROL_EVENT_USER` | Explicit `ce` command | `id`, `value_count`, `value[]`, `voice`, optional source fields | Skode sent a host-defined marker. |
+| `5` | `SKRED_CONTROL_EVENT_PATTERN_START` | Selected pattern has `yc1` | `pattern`, `step`, `sample` | Pattern playback landed on step `0`. |
+| `6` | `SKRED_CONTROL_EVENT_PATTERN_END` | Selected pattern has `yc1` | `pattern`, `step`, `sample` | Pattern playback reached a stop marker or the last playable step before wrap. |
 
 For human inspection in `mini-skred`, the matching Skode command is:
 
 ```text
 ?ce
 ```
+
+`?ce` is non-destructive. Use `?ce!` to discard outstanding control events.
 
 Only voices with `vc1` publish lifecycle notifications to `?ce`. Only patterns
 with `yc1` publish boundary events to `?ce`. User events are explicit: a command
@@ -312,7 +436,10 @@ For a host that wants to react to SKRED state:
 5. Poll `skred_control_event_poll()` from the host control/UI loop. Preserve
    `sequence` ordering, and check `skred_control_event_dropped()` after each
    poll.
-6. If drops occur, rebuild any mirrored host state from current SKRED state and
+6. Prefer `skred_control_event_wait_fd()` on Linux/macOS or
+   `skred_control_event_wait_handle()` on Windows when integrating with an
+   existing event loop.
+7. If drops occur, rebuild any mirrored host state from current SKRED state and
    continue polling.
 
 ## Version and Features

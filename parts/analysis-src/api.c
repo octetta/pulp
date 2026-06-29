@@ -2,9 +2,18 @@
 #include "synth-state.h"
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#else
+#include <fcntl.h>
+#include <sys/select.h>
+#include <unistd.h>
+#endif
 
 // Include your other internal headers here 
 // (e.g., miniaudio.h, udp.h, seq.h, etc.)
@@ -23,6 +32,10 @@
 #define ONE_FRAME_MAX (64 * 1024)
 #define SKRED_CONTROL_EVENT_CAPACITY 1024
 #define SKRED_CONTROL_VOICE_CAPACITY VOICE_MAX_HARD_LIMIT
+#define SKRED_CONTROL_RESPONSE_CAPACITY 64
+#define SKRED_CONTROL_RESPONSE_COMMAND_MAX 512
+
+static skode_t w = SKODE_EMPTY();
 
 typedef struct {
   skred_control_event_t event;
@@ -39,12 +52,115 @@ static int control_voice_step[SKRED_CONTROL_VOICE_CAPACITY];
 static int control_voice_tag[SKRED_CONTROL_VOICE_CAPACITY];
 static uint32_t control_voice_opcode[SKRED_CONTROL_VOICE_CAPACITY];
 static atomic_int_t control_voice_playing[SKRED_CONTROL_VOICE_CAPACITY];
+static atomic_int_t control_notify_ready;
+static atomic_int_t control_notify_signaled;
+#if defined(_WIN32) || defined(_WIN64)
+static HANDLE control_notify_event;
+#else
+static int control_notify_pipe[2] = {-1, -1};
+#endif
+
+typedef struct {
+  int used;
+  uint32_t type;
+  int key;
+  char command[SKRED_CONTROL_RESPONSE_COMMAND_MAX];
+} skred_control_response_binding_t;
+
+static skred_control_response_binding_t control_response[
+  SKRED_CONTROL_RESPONSE_CAPACITY];
+static atomic_int_t control_response_enabled;
+static char control_response_status[4096];
+
+typedef struct {
+  skred_foreign_function_t fn;
+  void *user;
+} skred_foreign_binding_t;
+
+static skred_foreign_binding_t foreign_function[SKRED_FOREIGN_FUNCTION_MAX];
+
+static int skred_control_event_key(const skred_control_event_t *event) {
+  if (!event) return -1;
+  switch (event->type) {
+    case SKRED_CONTROL_EVENT_USER: return event->id;
+    case SKRED_CONTROL_EVENT_PATTERN_START:
+    case SKRED_CONTROL_EVENT_PATTERN_END: return event->pattern;
+    case SKRED_CONTROL_EVENT_VOICE_TRIGGER:
+    case SKRED_CONTROL_EVENT_VOICE_RELEASE:
+    case SKRED_CONTROL_EVENT_VOICE_FINISHED: return event->voice;
+    default: return -1;
+  }
+}
+
+static int skred_control_event_notify_init(void) {
+  if (atomic_load_int(&control_notify_ready)) return 0;
+#if defined(_WIN32) || defined(_WIN64)
+  HANDLE event = CreateEventA(NULL, TRUE, FALSE, NULL);
+  if (!event) return -1;
+  control_notify_event = event;
+#else
+  int p[2];
+  if (pipe(p) != 0) return -1;
+  for (int i = 0; i < 2; i++) {
+    int flags = fcntl(p[i], F_GETFL, 0);
+    if (flags >= 0) (void)fcntl(p[i], F_SETFL, flags | O_NONBLOCK);
+  }
+  control_notify_pipe[0] = p[0];
+  control_notify_pipe[1] = p[1];
+#endif
+  atomic_store_int(&control_notify_signaled, 0);
+  atomic_store_int(&control_notify_ready, 1);
+  return 0;
+}
+
+static void skred_control_event_notify_signal(void) {
+  if (!atomic_load_int(&control_notify_ready)) return;
+  int expected = 0;
+  if (!atomic_compare_exchange_int(&control_notify_signaled, &expected, 1))
+    return;
+#if defined(_WIN32) || defined(_WIN64)
+  if (control_notify_event) (void)SetEvent(control_notify_event);
+#else
+  if (control_notify_pipe[1] >= 0) {
+    unsigned char byte = 1;
+    ssize_t written = write(control_notify_pipe[1], &byte, 1);
+    (void)written;
+  }
+#endif
+}
+
+static void skred_control_event_notify_clear(void) {
+  if (!atomic_load_int(&control_notify_ready)) return;
+#if defined(_WIN32) || defined(_WIN64)
+  if (control_notify_event) (void)ResetEvent(control_notify_event);
+#else
+  if (control_notify_pipe[0] >= 0) {
+    unsigned char buffer[64];
+    while (read(control_notify_pipe[0], buffer, sizeof(buffer)) > 0) {}
+  }
+#endif
+  atomic_store_int(&control_notify_signaled, 0);
+}
+
+static void skred_control_event_notify_refresh(void) {
+  uint64_t read = atomic_load_uint64(&control_read_idx);
+  uint64_t write = atomic_load_uint64(&control_write_idx);
+  if (read < write) {
+    skred_control_event_notify_signal();
+    return;
+  }
+  skred_control_event_notify_clear();
+  read = atomic_load_uint64(&control_read_idx);
+  write = atomic_load_uint64(&control_write_idx);
+  if (read < write) skred_control_event_notify_signal();
+}
 
 void skred_control_event_reset(void) {
   atomic_store_uint64(&control_write_idx, 0);
   atomic_store_uint64(&control_read_idx, 0);
   atomic_store_uint64(&control_sequence, 0);
   atomic_store_uint64(&control_dropped, 0);
+  skred_control_event_notify_clear();
   for (int i = 0; i < SKRED_CONTROL_EVENT_CAPACITY; i++)
     atomic_store_int(&control_events[i].ready, 0);
   for (int i = 0; i < SKRED_CONTROL_VOICE_CAPACITY; i++) {
@@ -91,6 +207,7 @@ static void skred_control_event_publish(uint32_t type, uint64_t sample,
       for (int i = 0; i < 3; i++)
         slot->event.value[i] = i < value_count && value ? value[i] : 0.0;
       atomic_store_int(&slot->ready, 1);
+      skred_control_event_notify_signal();
       return;
     }
   }
@@ -163,7 +280,226 @@ int skred_control_event_poll(skred_control_event_t *events, int max_events) {
     atomic_store_int(&slot->ready, 0);
     atomic_store_uint64(&control_read_idx, read + 1);
   }
+  skred_control_event_notify_refresh();
   return count;
+}
+
+int skred_control_event_snapshot(skred_control_event_t *events,
+    int max_events) {
+  if (max_events < 0) return -1;
+  if (max_events > 0 && !events) return -1;
+  int count = 0;
+  uint64_t read = atomic_load_uint64(&control_read_idx);
+  uint64_t write = atomic_load_uint64(&control_write_idx);
+  while (count < max_events && read + (uint64_t)count < write) {
+    skred_control_event_slot_t *slot =
+      &control_events[(read + (uint64_t)count) %
+        SKRED_CONTROL_EVENT_CAPACITY];
+    if (!atomic_load_int(&slot->ready)) break;
+    events[count] = slot->event;
+    count++;
+  }
+  return count;
+}
+
+int skred_control_event_clear(void) {
+  skred_control_event_t events[64];
+  int total = 0;
+  for (;;) {
+    int count = skred_control_event_poll(events, 64);
+    if (count <= 0) break;
+    total += count;
+  }
+  return total;
+}
+
+int skred_control_event_wait_fd(void) {
+#if defined(_WIN32) || defined(_WIN64)
+  return -1;
+#else
+  if (skred_control_event_notify_init() != 0) return -1;
+  skred_control_event_notify_refresh();
+  return control_notify_pipe[0];
+#endif
+}
+
+void *skred_control_event_wait_handle(void) {
+#if defined(_WIN32) || defined(_WIN64)
+  if (skred_control_event_notify_init() != 0) return NULL;
+  skred_control_event_notify_refresh();
+  return control_notify_event;
+#else
+  return NULL;
+#endif
+}
+
+int skred_control_event_wait(int timeout_ms) {
+  skred_control_event_notify_refresh();
+  if (atomic_load_uint64(&control_read_idx) <
+      atomic_load_uint64(&control_write_idx)) {
+    return 1;
+  }
+#if defined(_WIN32) || defined(_WIN64)
+  HANDLE event = (HANDLE)skred_control_event_wait_handle();
+  if (!event) return -1;
+  DWORD timeout = timeout_ms < 0 ? INFINITE : (DWORD)timeout_ms;
+  DWORD result = WaitForSingleObject(event, timeout);
+  if (result == WAIT_OBJECT_0) return 1;
+  if (result == WAIT_TIMEOUT) return 0;
+  return -1;
+#else
+  int fd = skred_control_event_wait_fd();
+  if (fd < 0) return -1;
+  fd_set readfds;
+  FD_ZERO(&readfds);
+  FD_SET(fd, &readfds);
+  struct timeval tv;
+  struct timeval *tvp = NULL;
+  if (timeout_ms >= 0) {
+    tv.tv_sec = timeout_ms / 1000;
+    tv.tv_usec = (timeout_ms % 1000) * 1000;
+    tvp = &tv;
+  }
+  int ready;
+  do {
+    ready = select(fd + 1, &readfds, NULL, NULL, tvp);
+  } while (ready < 0 && errno == EINTR);
+  if (ready > 0 && FD_ISSET(fd, &readfds)) return 1;
+  if (ready == 0) return 0;
+  return -1;
+#endif
+}
+
+int skred_control_response_bind(uint32_t type, int key,
+    const char *command) {
+  if (!command || command[0] == '\0') return -1;
+  int slot = -1;
+  for (int i = 0; i < SKRED_CONTROL_RESPONSE_CAPACITY; i++) {
+    if (control_response[i].used &&
+        control_response[i].type == type &&
+        control_response[i].key == key) {
+      slot = i;
+      break;
+    }
+    if (slot < 0 && !control_response[i].used) slot = i;
+  }
+  if (slot < 0) return -1;
+  control_response[slot].used = 1;
+  control_response[slot].type = type;
+  control_response[slot].key = key;
+  snprintf(control_response[slot].command,
+    sizeof(control_response[slot].command), "%s", command);
+  return 0;
+}
+
+int skred_control_response_remove(uint32_t type, int key) {
+  int removed = 0;
+  for (int i = 0; i < SKRED_CONTROL_RESPONSE_CAPACITY; i++) {
+    if (!control_response[i].used || control_response[i].type != type)
+      continue;
+    if (control_response[i].key != key) continue;
+    control_response[i].used = 0;
+    removed++;
+  }
+  return removed;
+}
+
+void skred_control_response_clear(void) {
+  memset(control_response, 0, sizeof(control_response));
+}
+
+void skred_control_response_set_enabled(int enabled) {
+  atomic_store_int(&control_response_enabled, enabled != 0);
+  if (enabled) {
+    (void)skred_control_event_wait_fd();
+    (void)skred_control_event_wait_handle();
+  }
+}
+
+int skred_control_response_enabled(void) {
+  return atomic_load_int(&control_response_enabled);
+}
+
+int skred_control_response_poll(void) {
+  if (!skred_control_response_enabled()) return 0;
+  skred_control_event_t events[64];
+  int executed = 0;
+  int total = 0;
+  while (total < 256) {
+    int count = skred_control_event_poll(events, 64);
+    if (count <= 0) break;
+    total += count;
+    for (int e = 0; e < count; e++) {
+      int key = skred_control_event_key(&events[e]);
+      for (int i = 0; i < SKRED_CONTROL_RESPONSE_CAPACITY; i++) {
+        skred_control_response_binding_t *binding = &control_response[i];
+        if (!binding->used || binding->type != events[e].type) continue;
+        if (binding->key != -1 && binding->key != key) continue;
+        char command[SKRED_CONTROL_RESPONSE_COMMAND_MAX];
+        snprintf(command, sizeof(command), "%s", binding->command);
+        int saved_voice = w.voice;
+        int saved_pattern = w.pattern;
+        int saved_step = w.step;
+        if (skred_command(command) >= 0) executed++;
+        w.voice = saved_voice;
+        w.pattern = saved_pattern;
+        w.step = saved_step;
+      }
+    }
+  }
+  return executed;
+}
+
+char *skred_control_response_status(void) {
+  char *ptr = control_response_status;
+  size_t left = sizeof(control_response_status);
+  int written = snprintf(ptr, left, "# ce responder %s\n",
+    skred_control_response_enabled() ? "on" : "off");
+  if (written < 0) {
+    control_response_status[0] = '\0';
+    return control_response_status;
+  }
+  if ((size_t)written >= left) return control_response_status;
+  ptr += written;
+  left -= (size_t)written;
+  for (int i = 0; i < SKRED_CONTROL_RESPONSE_CAPACITY; i++) {
+    if (!control_response[i].used) continue;
+    if (control_response[i].key < 0) {
+      written = snprintf(ptr, left, "# [%s] /ceb %u *\n",
+        control_response[i].command, control_response[i].type);
+    } else {
+      written = snprintf(ptr, left, "# [%s] /ceb %u %d\n",
+        control_response[i].command, control_response[i].type,
+        control_response[i].key);
+    }
+    if (written < 0) break;
+    if ((size_t)written >= left) break;
+    ptr += written;
+    left -= (size_t)written;
+  }
+  return control_response_status;
+}
+
+int skred_foreign_function_bind(int index, skred_foreign_function_t fn,
+    void *user) {
+  if (index < 0 || index >= SKRED_FOREIGN_FUNCTION_MAX) return -1;
+  foreign_function[index].fn = fn;
+  foreign_function[index].user = user;
+  return 0;
+}
+
+void skred_foreign_function_clear(int index) {
+  if (index < 0 || index >= SKRED_FOREIGN_FUNCTION_MAX) return;
+  foreign_function[index].fn = NULL;
+  foreign_function[index].user = NULL;
+}
+
+int skred_foreign_function_call(const skred_foreign_call_t *call) {
+  if (!call || call->index < 0 ||
+      call->index >= SKRED_FOREIGN_FUNCTION_MAX) return -1;
+  skred_foreign_function_t fn = foreign_function[call->index].fn;
+  if (!fn) return 0;
+  return fn(call, foreign_function[call->index].user);
 }
 
 typedef struct {
@@ -413,8 +749,6 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
   recorder_end_block((int)frame_count);
   perf_callback_end(&perf_start, pDevice, frame_count);
 }
-
-static skode_t w = SKODE_EMPTY();
 
 // Audio context and device state
 static ma_context synth_context;

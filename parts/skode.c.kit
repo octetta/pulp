@@ -455,15 +455,18 @@ static const char *control_event_type_name(uint32_t type) {
   }
 }
 
-static void control_event_show(skode_t *ctx) {
+static void control_event_show(skode_t *ctx, int consume) {
   skred_control_event_t events[128];
-  int count = skred_control_event_poll(events, 128);
+  int count = consume ?
+    skred_control_event_poll(events, 128) :
+    skred_control_event_snapshot(events, 128);
   if (count <= 0) {
     ctx->puts(ctx, "# control events empty");
     return;
   }
-  ctx->printf(ctx, "# control events:%d dropped:%" PRIu64 "\n",
-    count, skred_control_event_dropped());
+  ctx->printf(ctx, "# control events:%d dropped:%" PRIu64 "%s\n",
+    count, skred_control_event_dropped(),
+    consume ? "" : " snapshot");
   for (int i = 0; i < count; i++) {
     skred_control_event_t *event = &events[i];
     ctx->printf(ctx,
@@ -1848,6 +1851,23 @@ static int skode_opcode_int(const opcode_event_t *opcode, int n, int *value) {
     skode_double_to_int(opcode->arg[n], value);
 }
 
+static int skode_foreign_function(skode_t *ctx, int index,
+    const double *arg, int argc) {
+  if (!ctx || !ctx->parse) return -1;
+  skred_foreign_call_t call = {
+    .index = index,
+    .argc = argc,
+    .arg = arg,
+    .string = ands_string(ctx->parse),
+    .data = ands_data(ctx->parse),
+    .data_len = ands_data_len(ctx->parse),
+    .voice = ctx->voice,
+    .pattern = ctx->pattern,
+    .step = ctx->step,
+  };
+  return skred_foreign_function_call(&call);
+}
+
 static void skode_opcode_links(const opcode_event_t *opcode,
     float *link0, float *link1, float *link2, float *link3) {
   int links[4] = {-1, -1, -1, -1};
@@ -2993,8 +3013,12 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
-    case ATOM4('?ce-'): // show control-plane events
-      control_event_show(ctx);
+    case ATOM4('?ce-'): // show control-plane event snapshot
+      control_event_show(ctx, 0);
+      break;
+    case ATOM4('?ce!'): // clear outstanding control-plane events
+      ctx->printf(ctx, "# control events cleared:%d\n",
+        skred_control_event_clear());
       break;
     @if(SEQ)
     case ATOM4('?q--'): // show scheduled opcode queue
@@ -3161,6 +3185,22 @@ int skode_function(ands_t *s, int info) {
       if (argc) { ctx->flag = x; }
       else { ctx->printf(ctx, "# /f%d\n", ctx->flag); }
       break;
+    case ATOM4('/ff0'):
+    case ATOM4('/ff1'):
+    case ATOM4('/ff2'):
+    case ATOM4('/ff3'):
+    case ATOM4('/ff4'):
+    case ATOM4('/ff5'):
+    case ATOM4('/ff6'):
+    case ATOM4('/ff7'):
+    case ATOM4('/ff8'):
+    case ATOM4('/ff9'):
+      {
+        const char *atom = ands_atom_string(ctx->parse);
+        int index = atom[3] - '0';
+        (void)skode_foreign_function(ctx, index, arg, argc);
+      }
+      break;
     case ATOM4('/c--'): // chunk-mode bool
       if (argc) { ands_chunk_mode(ctx->parse, x); }
       else { ctx->printf(ctx, "# /c%d\n", ands_chunk_mode_get(ctx->parse)); }
@@ -3188,6 +3228,40 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('/v--'): // verbose-mode num
       if (argc == 0) x = (ctx->verbose) ? 0 : 1;
       ctx->verbose = x;
+      break;
+    case ATOM4('/cer'): // control-event responder bool
+      if (argc && x_valid) skred_control_response_set_enabled(x != 0);
+      ctx->printf(ctx, "%s", skred_control_response_status());
+      break;
+    case ATOM4('/ce?'): // control-event responder status
+      ctx->printf(ctx, "%s", skred_control_response_status());
+      break;
+    case ATOM4('/ce!'): // control-event responder remove/clear
+      if (argc == 0) {
+        skred_control_response_clear();
+        ctx->printf(ctx, "# ce bindings cleared\n");
+      } else if (argc > 1 && x_valid) {
+        int key;
+        if (skode_double_to_int(arg[1], &key)) {
+          int removed = skred_control_response_remove((uint32_t)x, key);
+          ctx->printf(ctx, "# ce bindings removed %d\n", removed);
+        }
+      }
+      break;
+    case ATOM4('/ceb'): // bind parser string to control event type key
+      if (argc > 1 && x_valid && ands_string_len(ctx->parse) > 0) {
+        int key;
+        if (skode_double_to_int(arg[1], &key) &&
+            skred_control_response_bind((uint32_t)x, key,
+              ands_string(ctx->parse)) == 0) {
+          ctx->printf(ctx, "# ce bound %d,%d -> %s\n", x, key,
+            ands_string(ctx->parse));
+        } else {
+          ctx->printf(ctx, "# ce binding failed\n");
+        }
+      } else {
+        ctx->printf(ctx, "# usage: [skode-command] /ceb type key\n");
+      }
       break;
     case ATOM4('<s--'): // parser-local string slot to parser string
       if (argc && x_valid && x >= 0 && x < SKODE_STRING_SLOT_MAX) {

@@ -106,10 +106,66 @@ typedef struct skred_control_event {
 
 /* Copies and consumes up to max_events ready notifications. Nonblocking. */
 int skred_control_event_poll(skred_control_event_t *events, int max_events);
+/* Copies up to max_events ready notifications without consuming them. */
+int skred_control_event_snapshot(skred_control_event_t *events,
+                                 int max_events);
+/* Consumes and discards outstanding notifications without resetting counters. */
+int skred_control_event_clear(void);
+/*
+ * POSIX: returns a selectable file descriptor that becomes readable when the
+ * control-event ring is non-empty. Returns -1 when unavailable.
+ */
+int skred_control_event_wait_fd(void);
+/*
+ * Windows: returns a HANDLE waitable with WaitForSingleObject or
+ * WaitForMultipleObjects. POSIX hosts receive NULL.
+ */
+void *skred_control_event_wait_handle(void);
+/*
+ * Convenience wait. timeout_ms < 0 waits forever, 0 polls, >0 waits up to
+ * that many milliseconds. Returns 1 when events should be polled, 0 on
+ * timeout, and -1 on error or unavailable notification support.
+ */
+int skred_control_event_wait(int timeout_ms);
 /* Clears queued notifications, sequence numbering, and dropped count. */
 void skred_control_event_reset(void);
 /* Cumulative count of notifications dropped because the ring was full. */
 uint64_t skred_control_event_dropped(void);
+
+int skred_control_response_bind(uint32_t type, int key, const char *command);
+int skred_control_response_remove(uint32_t type, int key);
+void skred_control_response_clear(void);
+void skred_control_response_set_enabled(int enabled);
+int skred_control_response_enabled(void);
+int skred_control_response_poll(void);
+char *skred_control_response_status(void);
+
+#define SKRED_FOREIGN_FUNCTION_MAX 10
+
+typedef struct skred_foreign_call {
+  int index;
+  int argc;
+  const double *arg;
+  const char *string;
+  const double *data;
+  int data_len;
+  int voice;
+  int pattern;
+  int step;
+} skred_foreign_call_t;
+
+/*
+ * Foreign functions are host-provided C callbacks invoked by Skode /ff0
+ * through /ff9. The call pointers are valid only for the callback duration.
+ * Unbound slots are silent no-ops.
+ */
+typedef int (*skred_foreign_function_t)(const skred_foreign_call_t *call,
+                                        void *user);
+
+int skred_foreign_function_bind(int index, skred_foreign_function_t fn,
+                                void *user);
+void skred_foreign_function_clear(int index);
+int skred_foreign_function_call(const skred_foreign_call_t *call);
 
 typedef struct skred_scheduled_event {
   int index;

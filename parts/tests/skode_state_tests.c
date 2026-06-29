@@ -5,6 +5,7 @@
 
 #include "ands.h"
 #include "api.h"
+#include "control-events.h"
 #include "skode.h"
 #include "seq.h"
 #include "synth.h"
@@ -101,6 +102,11 @@ static int capture_repeat(int unused, uint64_t timestamp, uint64_t id, int tag,
 static skode_t *queued_event_ctx;
 static int test_pattern_voice[PATTERNS_MAX];
 static int pattern_callback_count;
+static int foreign_call_count;
+static skred_foreign_call_t foreign_last_call;
+static double foreign_arg[8];
+static double foreign_data[8];
+static char foreign_string[128];
 
 static void execute_queued_event(const event_t *event) {
   if (skode_execute_event(event, queued_event_ctx) != 0) {
@@ -123,6 +129,20 @@ static void count_pattern_program(int pattern, int step,
   (void)step;
   (void)program;
   pattern_callback_count++;
+}
+
+static int capture_foreign_call(const skred_foreign_call_t *call, void *user) {
+  (void)user;
+  foreign_call_count++;
+  foreign_last_call = *call;
+  for (int i = 0; i < call->argc && i < 8; i++) foreign_arg[i] = call->arg[i];
+  for (int i = 0; i < call->data_len && i < 8; i++) foreign_data[i] = call->data[i];
+  snprintf(foreign_string, sizeof(foreign_string), "%s",
+           call->string ? call->string : "");
+  foreign_last_call.arg = foreign_arg;
+  foreign_last_call.data = foreign_data;
+  foreign_last_call.string = foreign_string;
+  return 0;
 }
 
 static void ignore_queued_event(const event_t *event) {
@@ -1270,6 +1290,40 @@ static void test_control_plane_voice_events(void) {
   ctx.log_enable = 1;
 
   skred_control_event_reset();
+  #if defined(_WIN32) || defined(_WIN64)
+  if (skred_control_event_wait_handle() == NULL) {
+    fail(test, "control event wait handle unavailable");
+  }
+  #else
+  if (skred_control_event_wait_fd() < 0) {
+    fail(test, "control event wait fd unavailable");
+  }
+  #endif
+  expect_int(test, skred_control_event_wait(0), 0,
+             "empty control event wait");
+  skred_control_user_event(SAMPLE_COUNT_GET(), -1, -1, -1, -1,
+                           SKODE_OP_CONTROL_EVENT, 123, 0, NULL);
+  expect_int(test, skred_control_event_wait(0), 1,
+             "published control event wait");
+  expect_int(test, skred_control_event_snapshot(events, 8), 1,
+             "control event snapshot count");
+  expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_USER,
+             "control event snapshot type");
+  expect_int(test, skred_control_event_snapshot(NULL, 1), -1,
+             "control event snapshot rejects null buffer");
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "?ce");
+  if (strstr(ctx.log, "# control events:1") == NULL ||
+      strstr(ctx.log, "snapshot") == NULL) {
+    fail(test, "control-plane event snapshot diagnostic output mismatch");
+  }
+  expect_int(test, skred_control_event_clear(), 1,
+             "control event clear count");
+  expect_int(test, skred_control_event_wait(0), 0,
+             "cleared control event wait");
+
+  skred_control_event_reset();
   voice_trigger(2);
   expect_int(test, skred_control_event_poll(events, 4), 0,
              "voice trigger event default disabled");
@@ -1339,9 +1393,52 @@ static void test_control_plane_voice_events(void) {
   ctx.log[0] = '\0';
   ctx.log_len = 0;
   consume(test, &ctx, "?ce");
-  if (strstr(ctx.log, "# control events empty") == NULL) {
-    fail(test, "empty control-plane event diagnostic output mismatch");
+  if (strstr(ctx.log, "# control events:1") == NULL ||
+      strstr(ctx.log, "type:VOICE_TRIGGER") == NULL ||
+      strstr(ctx.log, "voice:4") == NULL) {
+    fail(test, "non-consuming control-plane event diagnostic mismatch");
   }
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "?ce!");
+  if (strstr(ctx.log, "# control events cleared:1") == NULL) {
+    fail(test, "control-plane event clear diagnostic output mismatch");
+  }
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "?ce");
+  if (strstr(ctx.log, "# control events empty") == NULL) {
+    fail(test, "empty control-plane event after clear mismatch");
+  }
+
+  foreign_call_count = 0;
+  memset(&foreign_last_call, 0, sizeof(foreign_last_call));
+  skred_foreign_function_clear(3);
+  consume(test, &ctx, "[quiet] /ff3 1,2");
+  expect_int(test, foreign_call_count, 0, "unbound foreign function no-op");
+  expect_int(test, skred_foreign_function_bind(3, capture_foreign_call, NULL),
+             0, "bind foreign function");
+  ctx.voice = 6;
+  ctx.pattern = 7;
+  ctx.step = 8;
+  consume(test, &ctx, "(4,5,6) [hello] /ff3 1.5,2.5");
+  expect_int(test, foreign_call_count, 1, "foreign function call count");
+  expect_int(test, foreign_last_call.index, 3, "foreign function index");
+  expect_int(test, foreign_last_call.argc, 2, "foreign function argc");
+  expect_float(test, (float)foreign_last_call.arg[0], 1.5f, 0.0f,
+               "foreign function arg0");
+  expect_float(test, (float)foreign_last_call.arg[1], 2.5f, 0.0f,
+               "foreign function arg1");
+  if (strcmp(foreign_last_call.string, "hello") != 0) {
+    fail(test, "foreign function string mismatch");
+  }
+  expect_int(test, foreign_last_call.data_len, 3, "foreign function data len");
+  expect_float(test, (float)foreign_last_call.data[0], 4.0f, 0.0f,
+               "foreign function data0");
+  expect_int(test, foreign_last_call.voice, 6, "foreign function voice");
+  expect_int(test, foreign_last_call.pattern, 7, "foreign function pattern");
+  expect_int(test, foreign_last_call.step, 8, "foreign function step");
+  skred_foreign_function_clear(3);
 
   skred_control_event_reset();
   consume(test, &ctx, "v5 ce 42,1.5,2.5");

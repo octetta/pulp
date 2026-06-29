@@ -369,6 +369,8 @@ skred_command("(10,20) [marker] /ff0 1,2,3");
 skred_foreign_function_clear(0);
 ```
 
+The digit in `/ff0` through `/ff9` selects the callback slot. It is not included
+in `call->arg`; in the example above, `argc == 3` and `arg[]` is `1, 2, 3`.
 The pointers inside `skred_foreign_call_t` are valid only while the callback is
 running; copy anything that must outlive the call. Calling an unbound `/ffN` is
 a silent no-op.

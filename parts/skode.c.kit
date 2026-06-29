@@ -3185,20 +3185,13 @@ int skode_function(ands_t *s, int info) {
       if (argc) { ctx->flag = x; }
       else { ctx->printf(ctx, "# /f%d\n", ctx->flag); }
       break;
-    case ATOM4('/ff0'):
-    case ATOM4('/ff1'):
-    case ATOM4('/ff2'):
-    case ATOM4('/ff3'):
-    case ATOM4('/ff4'):
-    case ATOM4('/ff5'):
-    case ATOM4('/ff6'):
-    case ATOM4('/ff7'):
-    case ATOM4('/ff8'):
-    case ATOM4('/ff9'):
+    case ATOM4('/ff-'): // foreign C function slot arg...
       {
-        const char *atom = ands_atom_string(ctx->parse);
-        int index = atom[3] - '0';
-        (void)skode_foreign_function(ctx, index, arg, argc);
+        if (!argc) break;
+        int index;
+        if (!skode_double_to_int(arg[0], &index) ||
+            index < 0 || index >= SKRED_FOREIGN_FUNCTION_MAX) break;
+        (void)skode_foreign_function(ctx, index, arg + 1, argc - 1);
       }
       break;
     case ATOM4('/c--'): // chunk-mode bool

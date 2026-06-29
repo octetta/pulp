@@ -494,7 +494,9 @@ Unbound slots do nothing and do not report an error.
 
 The callback receives the slot number, numeric arguments `1,2,3`, parser string
 `marker`, parser data `10,20,30`, and the current voice/pattern/step context.
-The string and data are borrowed from the parser for the duration of the call.
+The slot digit is not part of the numeric argument list; `/ff3 10,20` calls slot
+`3` with two callback arguments, `10` and `20`. The string and data are borrowed
+from the parser for the duration of the call.
 
 ## Patterns
 

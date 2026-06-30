@@ -27,6 +27,10 @@ y0
 [v6 l1] /ceb 3 5
 [v7 n33 l1] /ceb 3 6
 
+[v9 l1] /ceb 4 100
+
+ce 100
+
 
 /cer 1 # turn on event bindings
 

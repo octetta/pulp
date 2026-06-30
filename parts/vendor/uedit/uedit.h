@@ -8,28 +8,49 @@
 #ifdef _WIN32
     #include <windows.h>
     #include <conio.h>
-    #define GETCH() _getch()
 #else
     #include <errno.h>
     #include <sys/select.h>
     #include <termios.h>
     #include <unistd.h>
-    static int uedit_getch(void) {
-        unsigned char ch;
-        ssize_t n = read(STDIN_FILENO, &ch, 1);
-        return n == 1 ? (int)ch : EOF;
-    }
-    #define GETCH() uedit_getch()
 #endif
 
 #define UEDIT_MAX_LINE 1024
 #define CTRL_KEY(k) ((k) & 0x1f)
 #define UEDIT_EVENT (-2)
+#define UEDIT_KEY_LEFT (-10)
+#define UEDIT_KEY_RIGHT (-11)
+#define UEDIT_KEY_UP (-12)
+#define UEDIT_KEY_DOWN (-13)
 #if defined(__GNUC__) || defined(__clang__)
 #define UEDIT_UNUSED __attribute__((unused))
 #else
 #define UEDIT_UNUSED
 #endif
+
+#ifdef _WIN32
+static int uedit_getch(void) {
+    int ch = _getch();
+    if (ch == 0 || ch == 224) {
+        ch = _getch();
+        switch (ch) {
+            case 75: return UEDIT_KEY_LEFT;
+            case 77: return UEDIT_KEY_RIGHT;
+            case 72: return UEDIT_KEY_UP;
+            case 80: return UEDIT_KEY_DOWN;
+            default: return EOF;
+        }
+    }
+    return ch;
+}
+#else
+static int uedit_getch(void) {
+    unsigned char ch;
+    ssize_t n = read(STDIN_FILENO, &ch, 1);
+    return n == 1 ? (int)ch : EOF;
+}
+#endif
+#define GETCH() uedit_getch()
 
 typedef void (*uedit_event_cb)(void *user);
 
@@ -66,16 +87,26 @@ static int uedit_enable_raw_mode(void) {
 }
 #else
 static DWORD uedit_orig_in_mode, uedit_orig_out_mode;
+static int uedit_raw_enabled = 0;
+static int uedit_atexit_registered = 0;
 static void uedit_disable_raw_mode(void) {
+    if (!uedit_raw_enabled) return;
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),  uedit_orig_in_mode);
     SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), uedit_orig_out_mode);
+    uedit_raw_enabled = 0;
 }
 static int uedit_enable_raw_mode(void) {
     HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE), hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hIn == INVALID_HANDLE_VALUE || hOut == INVALID_HANDLE_VALUE) return -1;
     if (!GetConsoleMode(hIn, &uedit_orig_in_mode) ||
         !GetConsoleMode(hOut, &uedit_orig_out_mode)) return -1;
+    if (!uedit_atexit_registered) {
+        atexit(uedit_disable_raw_mode);
+        uedit_atexit_registered = 1;
+    }
     SetConsoleMode(hIn, uedit_orig_in_mode & ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT));
     SetConsoleMode(hOut, uedit_orig_out_mode | 0x0004);
+    uedit_raw_enabled = 1;
     return 0;
 }
 #endif
@@ -106,10 +137,25 @@ static void uedit_add_history(const char *line) {
     if (uedit_h_cnt < uedit_h_max) uedit_h_cnt++;
 }
 
+static void uedit_cursor_visible(int visible) {
+#ifdef _WIN32
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO info;
+    if (hOut != INVALID_HANDLE_VALUE && GetConsoleCursorInfo(hOut, &info)) {
+        info.bVisible = visible ? TRUE : FALSE;
+        SetConsoleCursorInfo(hOut, &info);
+        return;
+    }
+#endif
+    printf("%s", visible ? "\033[?25h" : "\033[?25l");
+}
+
 static void uedit_refresh_line(const char *prompt, const char *buf, int cur) {
+    uedit_cursor_visible(0);
     printf("\r\033[K%s%s\r", prompt, buf);
     int col = (int)strlen(prompt) + cur;
     if (col > 0) printf("\033[%dC", col);
+    uedit_cursor_visible(1);
     fflush(stdout);
 }
 
@@ -182,6 +228,22 @@ static int uedit_with_event(const char *prompt, char *buf, int max_line,
                 memmove(&buf[cur - 1], &buf[cur], len - cur);
                 len--; cur--; buf[len] = '\0';
             }
+        } else if (c == UEDIT_KEY_LEFT) {
+            if (cur > 0) cur--;
+        } else if (c == UEDIT_KEY_RIGHT) {
+            if (cur < len) cur++;
+        } else if (c == UEDIT_KEY_UP || c == UEDIT_KEY_DOWN) {
+            if (h_idx == -1) strncpy(uedit_h_tmp, buf, UEDIT_MAX_LINE - 1);
+            if (c == UEDIT_KEY_UP) { if (h_idx < uedit_h_cnt - 1) h_idx++; }
+            else { if (h_idx > -1) h_idx--; }
+
+            if (h_idx == -1) strncpy(buf, uedit_h_tmp, max_line - 1);
+            else {
+                int pos = (uedit_h_head - 1 - h_idx + uedit_h_max) % uedit_h_max;
+                strncpy(buf, uedit_hist[pos], max_line - 1);
+            }
+            buf[max_line - 1] = '\0';
+            len = (int)strlen(buf); cur = len;
         } else if (c == 27) {
             c = GETCH();
             if (c == '[') {

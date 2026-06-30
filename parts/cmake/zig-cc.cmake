@@ -1,8 +1,16 @@
 find_program(ZIG_EXECUTABLE zig REQUIRED)
 
+set(ZIG_TARGET "" CACHE STRING "Optional Zig target triple, for example x86_64-windows-gnu")
+if(ZIG_TARGET MATCHES "windows")
+  set(CMAKE_SYSTEM_NAME Windows)
+endif()
+
 set(CMAKE_C_COMPILER "${ZIG_EXECUTABLE}" CACHE FILEPATH "Zig executable")
 set(CMAKE_C_COMPILER_ARG1 "cc" CACHE STRING "Zig C compiler subcommand")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+if(ZIG_TARGET)
+  set(CMAKE_C_FLAGS_INIT "-target ${ZIG_TARGET}")
+endif()
 
 set(CMAKE_AR "${ZIG_EXECUTABLE}" CACHE FILEPATH "Zig executable")
 set(CMAKE_RANLIB "${ZIG_EXECUTABLE}" CACHE FILEPATH "Zig executable")
@@ -11,3 +19,5 @@ set(CMAKE_C_ARCHIVE_CREATE
     "<CMAKE_AR> ar qc <TARGET> <LINK_FLAGS> <OBJECTS>")
 set(CMAKE_C_ARCHIVE_FINISH
     "<CMAKE_RANLIB> ranlib <TARGET>")
+set(CMAKE_C_CREATE_STATIC_LIBRARY
+    "<CMAKE_AR> ar qc <TARGET> <LINK_FLAGS> <OBJECTS>")

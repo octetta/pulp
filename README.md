@@ -106,7 +106,8 @@ cmake --build --preset windows-zig-maxed
 ```
 
 `windows-zig-maxed` enables the portable maxed features but intentionally omits
-`SCOPE=1`, because the current scope transport uses POSIX shared memory.
+`KSYNTH=1` and `SCOPE=1`: Ksynth currently uses POSIX `sigjmp_buf`, and the
+scope transport uses POSIX shared memory.
 
 If Zig reports cache or filesystem permission errors, point its caches at a
 writable directory before configuring:
@@ -124,6 +125,57 @@ cmake -G Ninja -B build_windows_zig -S . `
   -DCMAKE_BUILD_TYPE=Release
 cmake --build build_windows_zig
 ```
+
+### Cross-Build Windows From Linux
+
+Zig can also build the Windows executable from Linux without a Windows SDK.
+Because SKRED generates C sources with `kit_tool`, first build a native Linux
+`kit_tool`, then run the Windows cross preset:
+
+```sh
+cd parts
+cmake --preset ninja-release
+cmake --build --preset ninja-release --target kit_tool
+
+cmake --preset cross-windows-zig-ninja
+cmake --build --preset cross-windows-zig-ninja --target mini-skred
+file build_cross_windows_zig/mini-skred.exe
+```
+
+For the portable feature-rich cross-build:
+
+```sh
+make -C parts cross-windows-zig-maxed
+```
+
+The same `KSYNTH=1` and `SCOPE=1` exclusions apply to the Windows cross maxed
+preset.
+
+If generated `.kit` outputs look stale, use the refresh target. It removes the
+generated C files inside the cross-build directory before rebuilding:
+
+```sh
+make -C parts cross-windows-zig-maxed-refresh
+```
+
+To keep the Windows executable in a stable repo-local directory, run:
+
+```sh
+make -C parts mini-skred-windows
+```
+
+This writes `parts/out/windows-x86_64/mini-skred.exe`; `parts/out/` is ignored
+by Git.
+
+To build a Windows API distribution from Linux:
+
+```sh
+make -C parts dist-api-windows
+```
+
+This installs the Windows headers, static library, DLL/import library, and
+`mini-skred.exe` under `dist/windows-x86_64/skred-<version>-maxed/`, then
+creates `dist/windows-x86_64/skred-<version>-maxed.zip`.
 
 ## Multichannel WAV and Scope
 

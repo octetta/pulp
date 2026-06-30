@@ -16,6 +16,7 @@ cd parts
 make native-libs     # default feature set
 make maxed-libs      # MAXED_KIT_OPTS feature set
 make dist-api        # archive the maxed package
+make dist-api-windows # cross-build and zip the Windows maxed package
 ```
 
 The installed tree looks like:
@@ -28,6 +29,19 @@ dist/skred-0.23.1-maxed/
   lib*/libapi.a
   lib*/libapi.so.0.23.1
   lib/libapi.0.23.1.dylib
+```
+
+The Linux-hosted Windows cross package is written under
+`dist/windows-x86_64/skred-<version>-maxed/` and archived as
+`dist/windows-x86_64/skred-<version>-maxed.zip`. It includes:
+
+```text
+bin/mini-skred.exe
+bin/libapi.dll
+include/skred/api.h
+include/skred/skred-version.h
+lib/libapi.a
+lib/libapi.dll.a
 ```
 
 Use the `native` package for the default feature set, or the `maxed` package

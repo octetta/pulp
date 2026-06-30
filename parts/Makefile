@@ -1,5 +1,5 @@
 # A simple "Top-Level" Makefile to manage the CMake complexity
-.PHONY: all clean native pi test warn warn-maxed maxed wasm analysis-src analysis-check libs native-libs maxed-libs dist-api
+.PHONY: all clean native pi test warn warn-maxed maxed wasm analysis-src analysis-check libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-kit cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows
 
 ZIG_LOCAL_CACHE_DIR ?= /tmp/pulp-zig-local-cache
 ZIG_GLOBAL_CACHE_DIR ?= /tmp/pulp-zig-global-cache
@@ -17,6 +17,11 @@ DIST_PLATFORM_ROOT ?= $(DIST_ROOT)/$(DIST_PLATFORM)
 DIST_NATIVE_PREFIX ?= $(DIST_PLATFORM_ROOT)/skred-$(VERSION)-native
 DIST_MAXED_PREFIX ?= $(DIST_PLATFORM_ROOT)/skred-$(VERSION)-maxed
 DIST_MAXED_ARCHIVE ?= skred-$(VERSION)-maxed.tar.gz
+WINDOWS_DIST_PLATFORM ?= windows-x86_64
+DIST_WINDOWS_PLATFORM_ROOT ?= $(DIST_ROOT)/$(WINDOWS_DIST_PLATFORM)
+DIST_WINDOWS_PREFIX ?= $(DIST_WINDOWS_PLATFORM_ROOT)/skred-$(VERSION)-maxed
+DIST_WINDOWS_ARCHIVE ?= skred-$(VERSION)-maxed.zip
+WINDOWS_ARTIFACT_DIR ?= out/$(WINDOWS_DIST_PLATFORM)
 CMAKE_PLATFORM_ARGS ?= $(if $(filter 1 true yes,$(MACOS_UNIVERSAL)),-DCMAKE_OSX_ARCHITECTURES="$(MACOS_UNIVERSAL_ARCHS)",)
 MAXED_KIT_OPTS = KSYNTH=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
 BUILD_TYPE ?= Release
@@ -59,6 +64,38 @@ maxed-libs:
 dist-api: maxed-libs
 	cmake -E chdir $(DIST_PLATFORM_ROOT) cmake -E tar czf $(DIST_MAXED_ARCHIVE) \
 		--format=gnutar skred-$(VERSION)-maxed
+
+generated-sources: native
+	cmake --build build_native --target generated-sources
+
+clean-generated: native
+	cmake --build build_native --target clean-generated
+
+cross-windows-kit:
+	cmake --preset ninja-release
+	cmake --build --preset ninja-release --target kit_tool
+
+cross-windows-zig-maxed: cross-windows-kit
+	$(ZIG_ENV) cmake --preset cross-windows-zig-maxed
+	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target mini-skred
+
+cross-windows-zig-maxed-refresh: cross-windows-kit
+	$(ZIG_ENV) cmake --preset cross-windows-zig-maxed
+	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target clean-generated
+	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target mini-skred
+
+mini-skred-windows: cross-windows-zig-maxed
+	cmake -E make_directory $(WINDOWS_ARTIFACT_DIR)
+	cmake -E copy_if_different build_cross_windows_zig_maxed/mini-skred.exe $(WINDOWS_ARTIFACT_DIR)/mini-skred.exe
+
+windows-cross-libs: cross-windows-kit
+	$(ZIG_ENV) cmake --preset cross-windows-zig-maxed
+	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target api api_shared mini-skred
+	cmake --install build_cross_windows_zig_maxed --prefix $(DIST_WINDOWS_PREFIX)
+
+dist-api-windows: windows-cross-libs
+	cmake -E chdir $(DIST_WINDOWS_PLATFORM_ROOT) cmake -E tar cf $(DIST_WINDOWS_ARCHIVE) \
+		--format=zip skred-$(VERSION)-maxed
 
 analysis-src:
 	cmake -B $(ANALYSIS_BUILD_DIR) -S . -DKIT_OPTS="$(MAXED_KIT_OPTS)"

@@ -2,8 +2,6 @@
 
 #ifndef _WIN32
 #include <pthread.h>
-#else
-#include "portable_win.h"
 #endif
 
 #include <stdint.h>
@@ -11,6 +9,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include "portable_win.h"
 typedef int socklen_t;
 #define CLOSE_SOCKET closesocket
 #else

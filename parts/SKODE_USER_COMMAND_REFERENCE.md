@@ -715,6 +715,13 @@ multichannel WAV recording can be active simultaneously.
 | `I value` | Numeric value | Reserved event-logging stub. It currently has no effect. |
 | `/q` | None | Requests exit from the interactive shell. |
 
+`W` reports the selected renderer as `display braille` or `display ascii`.
+It uses the compact Unicode Braille plotter on Linux and macOS. Windows
+console hosts default to an ASCII plot because common `cmd.exe` and PowerShell
+fonts render Braille cells poorly. Set `SKRED_WAVE_DISPLAY=braille` to force
+the Unicode renderer, or `SKRED_WAVE_DISPLAY=ascii` to force the portable
+ASCII renderer on any platform.
+
 ## File and Ksynth Utilities
 
 | Command | Parameters | Effect |

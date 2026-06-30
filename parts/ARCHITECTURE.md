@@ -609,8 +609,19 @@ cmake --preset windows-zig-ninja
 cmake --build --preset windows-zig-ninja
 ```
 
-Use `windows-zig-maxed` for the portable maxed feature set. It omits `SCOPE=1`
-because scope publication currently depends on POSIX shared memory.
+Use `windows-zig-maxed` for the portable maxed feature set. It omits
+`KSYNTH=1` and `SCOPE=1` because those paths currently depend on POSIX APIs.
+
+Linux hosts can also cross-build a Windows executable with Zig. Build the
+native generator first, then configure the Windows target:
+
+```sh
+cd parts
+cmake --preset ninja-release
+cmake --build --preset ninja-release --target kit_tool
+cmake --preset cross-windows-zig-ninja
+cmake --build --preset cross-windows-zig-ninja --target mini-skred
+```
 
 When changing feature-gated code, test both a minimal build and a build where
 the feature is enabled. A symbol that is valid in the maximum build may be

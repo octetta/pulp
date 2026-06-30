@@ -13,11 +13,20 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <limits.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <unistd.h>
 #include <dirent.h>
+
+#if defined(_WIN32) || defined(WIN32) || defined(__WIN32__) || defined(__WIN32) || defined(__WINDOWS__)
+#define SKODE_WINDOWS_BUILD 1
+#else
+#define SKODE_WINDOWS_BUILD 0
+#endif
 
 char *skred_performance_status(void);
 
@@ -1162,11 +1171,170 @@ static void print_wave_stats(skode_t *ctx, const char *label, float *data, int n
     ctx->puts(ctx, "");
 }
 
+static int skode_env_eq(const char *a, const char *b) {
+    if (!a || !b) return 0;
+    while (*a && *b) {
+        if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) return 0;
+        a++;
+        b++;
+    }
+    return *a == '\0' && *b == '\0';
+}
+
+static int skode_wave_display_use_braille(void) {
+    const char *mode = getenv("SKRED_WAVE_DISPLAY");
+    if (mode && mode[0]) {
+        if (skode_env_eq(mode, "braille") ||
+            skode_env_eq(mode, "unicode") ||
+            skode_env_eq(mode, "utf8") ||
+            skode_env_eq(mode, "1")) {
+            return 1;
+        }
+        if (skode_env_eq(mode, "ascii") ||
+            skode_env_eq(mode, "plain") ||
+            skode_env_eq(mode, "0")) {
+            return 0;
+        }
+    }
+#if SKODE_WINDOWS_BUILD
+    return 0;
+#else
+    return 1;
+#endif
+}
+
+static const char *skode_wave_display_name(void) {
+    return skode_wave_display_use_braille() ? "braille" : "ascii";
+}
+
+static int wave_y_from_value(float value, float max_abs, int rows) {
+    int y = (int)((value / max_abs + 1.0f) * 0.5f * (float)(rows - 1));
+    if (y < 0) y = 0;
+    if (y >= rows) y = rows - 1;
+    return y;
+}
+
+static int wave_ascii_points(float *data, int n, int width, int rows, int *y_coords, int *y_peak_min, int *y_peak_max) {
+    if (!data || n <= 0 || width <= 0 || rows <= 0) return 0;
+
+    float max_abs = 0.01f;
+    for (int i = 0; i < n; i++) {
+        float val = fabsf(data[i]);
+        if (val > max_abs) max_abs = val;
+    }
+
+    for (int x = 0; x < width; x++) {
+        float val = data[0];
+        if (n > 1 && width > 1) {
+            float data_pos = (float)x * (float)(n - 1) / (float)(width - 1);
+            int idx = (int)data_pos;
+            float fract = data_pos - (float)idx;
+            val = data[idx];
+            if (idx < n - 1) val = data[idx] * (1.0f - fract) + data[idx + 1] * fract;
+        }
+        y_coords[x] = wave_y_from_value(val, max_abs, rows);
+
+        int start = (int)((long long)x * n / width);
+        int end = (int)((long long)(x + 1) * n / width);
+        if (end <= start) end = start + 1;
+        if (end > n) end = n;
+        float bucket_min = data[start];
+        float bucket_max = data[start];
+        for (int i = start + 1; i < end; i++) {
+            if (data[i] < bucket_min) bucket_min = data[i];
+            if (data[i] > bucket_max) bucket_max = data[i];
+        }
+        y_peak_min[x] = wave_y_from_value(bucket_min, max_abs, rows);
+        y_peak_max[x] = wave_y_from_value(bucket_max, max_abs, rows);
+    }
+    return 1;
+}
+
+static void print_audio_ascii_wave(skode_t *ctx, float *data, int n, int width_chars, int height_chars, int offset, int trim, int labeled) {
+    if (!data || n <= 0 || width_chars <= 0 || height_chars <= 0) return;
+
+    int width = width_chars;
+    int rows = height_chars * 2;
+    if (rows < 1) rows = 1;
+    int zero_y = (rows - 1) / 2;
+
+    int *y_coords = (int *)malloc(width * sizeof(int));
+    int *y_peak_min = (int *)malloc(width * sizeof(int));
+    int *y_peak_max = (int *)malloc(width * sizeof(int));
+    if (!y_coords || !y_peak_min || !y_peak_max) {
+        free(y_coords);
+        free(y_peak_min);
+        free(y_peak_max);
+        return;
+    }
+    if (!wave_ascii_points(data, n, width, rows, y_coords, y_peak_min, y_peak_max)) {
+        free(y_coords);
+        free(y_peak_min);
+        free(y_peak_max);
+        return;
+    }
+
+    for (int y = rows - 1; y >= 0; y--) {
+        ctx->printf(ctx, ":");
+        for (int x = 0; x < width; x++) {
+            int y_curr = y_coords[x];
+            int y_prev = (x > 0) ? y_coords[x - 1] : y_curr;
+            int lo = (y_curr < y_prev) ? y_curr : y_prev;
+            int hi = (y_curr > y_prev) ? y_curr : y_prev;
+            char ch = ' ';
+
+            if (y >= lo && y <= hi) ch = '*';
+            if (abs(y_peak_min[x] - y_curr) >= WAVE_PEAK_ACCENT_MIN_DELTA && y == y_peak_min[x] && ch == ' ') ch = ':';
+            if (abs(y_peak_max[x] - y_curr) >= WAVE_PEAK_ACCENT_MIN_DELTA && y == y_peak_max[x] && ch == ' ') ch = ':';
+            if (y == zero_y && ch == ' ') ch = '-';
+
+            ctx->printf(ctx, "%c", ch);
+        }
+        ctx->printf(ctx, ":\n");
+    }
+
+    if (labeled) {
+        int col_offset = 0;
+        int col_trim = width - 1;
+        if (n > 1) {
+            col_offset = (int)((float)offset * (float)(width - 1) / (float)(n - 1));
+            col_trim = (int)((float)trim * (float)(width - 1) / (float)(n - 1));
+        }
+        if (col_offset < 0) col_offset = 0;
+        if (col_offset >= width) col_offset = width - 1;
+        if (col_trim < 0) col_trim = 0;
+        if (col_trim >= width) col_trim = width - 1;
+        if (col_trim < col_offset) {
+            int tmp = col_trim;
+            col_trim = col_offset;
+            col_offset = tmp;
+        }
+
+        ctx->printf(ctx, "^");
+        for (int x = 0; x < width; x++) {
+            char ch = ' ';
+            if (x >= col_offset && x <= col_trim) ch = '=';
+            if (x == col_offset) ch = '[';
+            if (x == col_trim) ch = ']';
+            ctx->printf(ctx, "%c", ch);
+        }
+        ctx->printf(ctx, "^\n");
+    }
+
+    free(y_coords);
+    free(y_peak_min);
+    free(y_peak_max);
+}
+
 /**
  * Prints a connected audio waveform using Braille patterns.
  * Draws a single connected trace.
  */
 void print_audio_braille_connected(skode_t *ctx, float *data, int n, int width_chars, int height_chars) {
+    if (!skode_wave_display_use_braille()) {
+        print_audio_ascii_wave(ctx, data, n, width_chars, height_chars, 0, n - 1, 0);
+        return;
+    }
     if (!data || n <= 0 || width_chars <= 0 || height_chars <= 0) return;
 
     float max_abs = 0.01f;
@@ -1260,6 +1428,10 @@ void print_audio_braille_connected(skode_t *ctx, float *data, int n, int width_c
 #include <math.h>
 
 void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_chars, int height_chars, int offset, int trim) {
+    if (!skode_wave_display_use_braille()) {
+        print_audio_ascii_wave(ctx, data, n, width_chars, height_chars, offset, trim, 1);
+        return;
+    }
     if (!data || n <= 0 || width_chars <= 0 || height_chars <= 0) return;
 
     float max_abs = 0.01f;
@@ -1386,6 +1558,7 @@ int wavetable_show(skode_t *ctx, int n) {
     else ctx->printf(ctx, " R/W");
     ctx->printf(ctx, " ref#%d", refcount);
     ctx->printf(ctx, " [%s]", sw.name[n]);
+    ctx->printf(ctx, " display %s", skode_wave_display_name());
     ctx->puts(ctx, "");
     ctx->printf(ctx,
       "# min %+0.3f max %+0.3f peak %0.3f rms %0.3f dc %+0.4f zc %d",

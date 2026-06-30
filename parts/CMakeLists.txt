@@ -70,7 +70,6 @@ set(API_PLAIN_SOURCES
     skode-event.c
     skqueue.c
     udp.c
-    vendor/ksynth/ksynth.c
 )
 
 # 3. List your .kit modules intended ONLY for the library
@@ -88,6 +87,10 @@ endif()
 
 if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
     list(APPEND API_PLAIN_SOURCES scope-ipc.c)
+endif()
+
+if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
+    list(APPEND API_PLAIN_SOURCES vendor/ksynth/ksynth.c)
 endif()
 
 set(API_GEN_SOURCES "")
@@ -156,6 +159,21 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${EXE_MOD}.c.kit")
     list(APPEND EXE_GEN_SOURCES "${OUT_C}")
 endif()
 
+set(ALL_KIT_GENERATED_SOURCES
+  ${API_GEN_SOURCES}
+  ${EXE_GEN_SOURCES}
+  "${SYNTH_STATE_H}"
+)
+
+add_custom_target(generated-sources
+  DEPENDS ${ALL_KIT_GENERATED_SOURCES}
+)
+
+add_custom_target(clean-generated
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${ALL_KIT_GENERATED_SOURCES}
+  VERBATIM
+)
+
 # Final App: Build executable and link to the library
 add_executable(mini-skred ${EXE_GEN_SOURCES})
 target_link_libraries(mini-skred PRIVATE api)
@@ -172,6 +190,11 @@ if(MATH_LIB)
     if(TARGET kit_tool)
         target_link_libraries(kit_tool PRIVATE ${MATH_LIB})
     endif()
+endif()
+
+if(WIN32)
+    target_link_libraries(api PUBLIC ws2_32 ole32 uuid user32 advapi32 winmm)
+    target_link_libraries(api_shared PUBLIC ws2_32 ole32 uuid user32 advapi32 winmm)
 endif()
 
 add_custom_target(check_opts

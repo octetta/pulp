@@ -40,11 +40,40 @@
     {
       "name": "windows-zig-maxed",
       "displayName": "Windows Zig Maxed",
-      "description": "Windows Zig/Ninja build with all portable features. SCOPE is omitted because it currently requires POSIX shared memory.",
+      "description": "Windows Zig/Ninja build with portable features. KSYNTH and SCOPE are omitted because they currently require POSIX APIs.",
       "inherits": "windows-zig-ninja",
       "binaryDir": "${sourceDir}/build_windows_zig_maxed",
       "cacheVariables": {
-        "KIT_OPTS": "KSYNTH=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1"
+        "KIT_OPTS": "AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1"
+      }
+    },
+    {
+      "name": "cross-windows-zig-ninja",
+      "displayName": "Cross Windows Zig Ninja",
+      "description": "Linux-hosted Windows cross-build using Ninja, Zig, and a native kit_tool from build_ninja.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build_cross_windows_zig",
+      "toolchainFile": "${sourceDir}/cmake/zig-cc.cmake",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ZIG_TARGET": "x86_64-windows-gnu",
+        "USE_EXTERNAL_KIT": "ON",
+        "KIT_TOOL_PATH": "${sourceDir}/build_ninja/kit_tool"
+      }
+    },
+    {
+      "name": "cross-windows-zig-maxed",
+      "displayName": "Cross Windows Zig Maxed",
+      "description": "Linux-hosted Windows cross-build with portable features. KSYNTH and SCOPE are omitted because they currently require POSIX APIs.",
+      "inherits": "cross-windows-zig-ninja",
+      "binaryDir": "${sourceDir}/build_cross_windows_zig_maxed",
+      "cacheVariables": {
+        "KIT_OPTS": "AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1"
       }
     }
   ],
@@ -73,6 +102,24 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
+      }
+    },
+    {
+      "name": "cross-windows-zig-ninja",
+      "configurePreset": "cross-windows-zig-ninja",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "cross-windows-zig-maxed",
+      "configurePreset": "cross-windows-zig-maxed",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
       }
     }
   ],
@@ -110,6 +157,30 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cross-windows-zig-ninja",
+      "configurePreset": "cross-windows-zig-ninja",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cross-windows-zig-maxed",
+      "configurePreset": "cross-windows-zig-maxed",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
       },
       "output": {
         "outputOnFailure": true

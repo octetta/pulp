@@ -84,6 +84,47 @@ cmake --build build_native
 ./build_native/mini-skred
 ```
 
+### Windows Without NMake
+
+On Windows, the easiest build path is CMake's Ninja generator with Zig's C
+compiler. This avoids NMake and does not require Visual Studio Build Tools.
+Install `zig`, `cmake`, and `ninja`, make sure they are on `PATH`, then run:
+
+```powershell
+cd parts
+cmake --preset windows-zig-ninja
+cmake --build --preset windows-zig-ninja
+.\build_windows_zig\mini-skred.exe
+```
+
+For a feature-rich Windows build, use the Windows maxed preset:
+
+```powershell
+cmake --preset windows-zig-maxed
+cmake --build --preset windows-zig-maxed
+.\build_windows_zig_maxed\mini-skred.exe
+```
+
+`windows-zig-maxed` enables the portable maxed features but intentionally omits
+`SCOPE=1`, because the current scope transport uses POSIX shared memory.
+
+If Zig reports cache or filesystem permission errors, point its caches at a
+writable directory before configuring:
+
+```powershell
+$env:ZIG_LOCAL_CACHE_DIR = "$env:TEMP\pulp-zig-local-cache"
+$env:ZIG_GLOBAL_CACHE_DIR = "$env:TEMP\pulp-zig-global-cache"
+```
+
+If your CMake is too old for presets, the equivalent manual command is:
+
+```powershell
+cmake -G Ninja -B build_windows_zig -S . `
+  -DCMAKE_TOOLCHAIN_FILE=cmake/zig-cc.cmake `
+  -DCMAKE_BUILD_TYPE=Release
+cmake --build build_windows_zig
+```
+
 ## Multichannel WAV and Scope
 
 The `maxed` build enables both `RECORD` and `SCOPE`:

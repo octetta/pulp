@@ -601,6 +601,17 @@ cmake -B build_native -S . \
 cmake --build build_native
 ```
 
+On Windows, prefer the Ninja/Zig presets instead of CMake's NMake generator:
+
+```powershell
+cd parts
+cmake --preset windows-zig-ninja
+cmake --build --preset windows-zig-ninja
+```
+
+Use `windows-zig-maxed` for the portable maxed feature set. It omits `SCOPE=1`
+because scope publication currently depends on POSIX shared memory.
+
 When changing feature-gated code, test both a minimal build and a build where
 the feature is enabled. A symbol that is valid in the maximum build may be
 unused or absent in the default build.

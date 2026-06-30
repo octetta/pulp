@@ -10,7 +10,7 @@ set(PULP_VERSION_MAJOR "${CMAKE_MATCH_1}")
 set(PULP_VERSION_MINOR "${CMAKE_MATCH_2}")
 set(PULP_VERSION_PATCH "${CMAKE_MATCH_3}")
 
-project(mini-skred VERSION "${PULP_VERSION}")
+project(mini-skred VERSION "${PULP_VERSION}" LANGUAGES C)
 include(GNUInstallDirs)
 
 # 1. Build the tool

@@ -1,0 +1,119 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "ninja-release",
+      "displayName": "Ninja Release",
+      "description": "Portable release build using the Ninja generator and the default host compiler.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build_ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "ninja-maxed",
+      "displayName": "Ninja Maxed",
+      "description": "Ninja release build with the canonical maxed feature set. SCOPE requires POSIX.",
+      "inherits": "ninja-release",
+      "binaryDir": "${sourceDir}/build_ninja_maxed",
+      "cacheVariables": {
+        "KIT_OPTS": "KSYNTH=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1"
+      }
+    },
+    {
+      "name": "windows-zig-ninja",
+      "displayName": "Windows Zig Ninja",
+      "description": "Windows-native build using Ninja and zig cc, avoiding NMake and Visual Studio Build Tools.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build_windows_zig",
+      "toolchainFile": "${sourceDir}/cmake/zig-cc.cmake",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-zig-maxed",
+      "displayName": "Windows Zig Maxed",
+      "description": "Windows Zig/Ninja build with all portable features. SCOPE is omitted because it currently requires POSIX shared memory.",
+      "inherits": "windows-zig-ninja",
+      "binaryDir": "${sourceDir}/build_windows_zig_maxed",
+      "cacheVariables": {
+        "KIT_OPTS": "KSYNTH=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ninja-release",
+      "configurePreset": "ninja-release"
+    },
+    {
+      "name": "ninja-maxed",
+      "configurePreset": "ninja-maxed"
+    },
+    {
+      "name": "windows-zig-ninja",
+      "configurePreset": "windows-zig-ninja",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-zig-maxed",
+      "configurePreset": "windows-zig-maxed",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "ninja-release",
+      "configurePreset": "ninja-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ninja-maxed",
+      "configurePreset": "ninja-maxed",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-zig-ninja",
+      "configurePreset": "windows-zig-ninja",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-zig-maxed",
+      "configurePreset": "windows-zig-maxed",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

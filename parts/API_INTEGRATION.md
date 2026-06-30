@@ -150,6 +150,27 @@ if (log && log[0]) puts(log);
 `skred_log()` returns an internal buffer owned by SKRED. Read or copy it before
 sending more commands.
 
+## Runtime Health
+
+`skred_thread_status()` returns a human-readable snapshot of SKRED-owned
+service health. It reports audio callback load and overruns, control-event
+dispatcher wake/dispatch counters, UDP packet/command counters when UDP is
+included, and recorder/scope state when those features are included.
+
+```c
+puts(skred_thread_status());
+```
+
+The same snapshot is available from Skode:
+
+```text
+/th?
+```
+
+The output is portable service accounting rather than OS thread CPU
+accounting. It is intended for host diagnostics, status panels, and quick
+health checks from mini-skred or embedded applications.
+
 ## Control-Plane Events
 
 SKRED does not install host callbacks for control-plane events. An embedding
@@ -310,9 +331,8 @@ own event dispatch loop:
 ```c
 skred_control_response_bind(SKRED_CONTROL_EVENT_USER, 42, "v0 l1");
 skred_control_response_set_enabled(1);
-
-/* When the wait object fires, or after host commands: */
-skred_control_response_poll();
+/* ... later, before tearing down the host/engine: */
+skred_control_dispatch_stop();
 ```
 
 The equivalent Skode form uses the parser string and numeric event type:
@@ -322,12 +342,21 @@ The equivalent Skode form uses the parser string and numeric event type:
 /cer 1
 ```
 
-`skred_control_response_poll()` drains the same control-event ring as
-`skred_control_event_poll()`, runs matching Skode commands, and returns the
-number of response commands executed. It is useful for hosts such as
-Mini-Skred that want event-driven command reactions without adding a separate
-dispatch table. Hosts that need custom routing should use
-`skred_control_event_poll()` directly.
+`skred_control_response_set_enabled(1)`, or the Skode command `/cer 1`, starts
+SKRED's API-level control dispatcher thread. The dispatcher sleeps on the same
+waitable control-event notification described above, drains the ring when it
+wakes, and runs matching Skode response commands from a dedicated Skode
+context. `/cer 0`, `skred_control_response_set_enabled(0)`, or
+`skred_control_dispatch_stop()` stops that thread. `skred_stop()` also stops it
+before freeing engine state.
+
+For hosts that want to integrate the same responder table into an existing
+service thread, `skred_control_dispatch_pump(max_events)` performs one
+nonblocking dispatch pass and returns the number of response commands executed.
+`skred_control_response_poll()` remains as a compatibility alias for
+`skred_control_dispatch_pump(256)`. Both consume events from the same ring used
+by `skred_control_event_poll()`, so a host should choose either custom polling
+or built-in dispatch for a given subscription path.
 
 Response bindings dispatch by event type plus a key:
 
@@ -349,6 +378,10 @@ starting a new host-side subscription session or intentionally discarding old
 notifications. `skred_control_event_dropped()` returns a cumulative count of
 events that could not be published because the ring was full. The current ring
 keeps 1024 outstanding control-plane events.
+
+Mini-Skred does not parse or dispatch control responses itself. Commands such
+as `/ceb`, `/cer`, `/ce?`, and `/ce!` are ordinary Skode slash commands handled
+by the Skode parser, and mini-skred simply submits text with `skred_command()`.
 
 ### Foreign C Functions
 

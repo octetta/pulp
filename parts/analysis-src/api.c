@@ -9,8 +9,10 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
+#include "portable_win.h"
 #else
 #include <fcntl.h>
+#include <pthread.h>
 #include <sys/select.h>
 #include <unistd.h>
 #endif
@@ -70,7 +72,26 @@ typedef struct {
 static skred_control_response_binding_t control_response[
   SKRED_CONTROL_RESPONSE_CAPACITY];
 static atomic_int_t control_response_enabled;
+static atomic_int_t control_dispatch_stop_requested;
+static atomic_int_t control_dispatch_running;
+static pthread_t control_dispatch_thread;
+#if defined(_WIN32) || defined(_WIN64)
+static DWORD control_dispatch_thread_id;
+#endif
+static int control_dispatch_thread_started;
+static int control_dispatch_mutex_ready;
+static simple_mutex_t control_dispatch_state_mutex;
+static simple_mutex_t control_response_mutex;
+static simple_mutex_t control_dispatch_exec_mutex;
 static char control_response_status[4096];
+static skode_t control_dispatch_ctx = SKODE_EMPTY();
+static atomic_uint64_t control_dispatch_wakes;
+static atomic_uint64_t control_dispatch_pumps;
+static atomic_uint64_t control_dispatch_events;
+static atomic_uint64_t control_dispatch_commands;
+static atomic_uint64_t control_dispatch_ns_total;
+static atomic_uint64_t control_dispatch_ns_last;
+static atomic_uint64_t control_dispatch_ns_worst;
 
 typedef struct {
   skred_foreign_function_t fn;
@@ -90,6 +111,35 @@ static int skred_control_event_key(const skred_control_event_t *event) {
     case SKRED_CONTROL_EVENT_VOICE_FINISHED: return event->voice;
     default: return -1;
   }
+}
+
+static void skred_control_dispatch_init(void) {
+  if (control_dispatch_mutex_ready) return;
+  simple_mutex_init(&control_dispatch_state_mutex);
+  simple_mutex_init(&control_response_mutex);
+  simple_mutex_init(&control_dispatch_exec_mutex);
+  control_dispatch_mutex_ready = 1;
+}
+
+static int skred_control_dispatch_is_current_thread(void) {
+#if defined(_WIN32) || defined(_WIN64)
+  DWORD current = GetCurrentThreadId();
+  return control_dispatch_thread_id != 0 &&
+    current == control_dispatch_thread_id;
+#else
+  if (!control_dispatch_thread_started) return 0;
+  return pthread_equal(pthread_self(), control_dispatch_thread);
+#endif
+}
+
+static void skred_control_dispatch_metrics_reset(void) {
+  atomic_store_uint64(&control_dispatch_wakes, 0);
+  atomic_store_uint64(&control_dispatch_pumps, 0);
+  atomic_store_uint64(&control_dispatch_events, 0);
+  atomic_store_uint64(&control_dispatch_commands, 0);
+  atomic_store_uint64(&control_dispatch_ns_total, 0);
+  atomic_store_uint64(&control_dispatch_ns_last, 0);
+  atomic_store_uint64(&control_dispatch_ns_worst, 0);
 }
 
 static int skred_control_event_notify_init(void) {
@@ -373,6 +423,8 @@ int skred_control_event_wait(int timeout_ms) {
 int skred_control_response_bind(uint32_t type, int key,
     const char *command) {
   if (!command || command[0] == '\0') return -1;
+  skred_control_dispatch_init();
+  simple_mutex_lock(&control_response_mutex);
   int slot = -1;
   for (int i = 0; i < SKRED_CONTROL_RESPONSE_CAPACITY; i++) {
     if (control_response[i].used &&
@@ -383,16 +435,22 @@ int skred_control_response_bind(uint32_t type, int key,
     }
     if (slot < 0 && !control_response[i].used) slot = i;
   }
-  if (slot < 0) return -1;
+  if (slot < 0) {
+    simple_mutex_unlock(&control_response_mutex);
+    return -1;
+  }
   control_response[slot].used = 1;
   control_response[slot].type = type;
   control_response[slot].key = key;
   snprintf(control_response[slot].command,
     sizeof(control_response[slot].command), "%s", command);
+  simple_mutex_unlock(&control_response_mutex);
   return 0;
 }
 
 int skred_control_response_remove(uint32_t type, int key) {
+  skred_control_dispatch_init();
+  simple_mutex_lock(&control_response_mutex);
   int removed = 0;
   for (int i = 0; i < SKRED_CONTROL_RESPONSE_CAPACITY; i++) {
     if (!control_response[i].used || control_response[i].type != type)
@@ -401,60 +459,162 @@ int skred_control_response_remove(uint32_t type, int key) {
     control_response[i].used = 0;
     removed++;
   }
+  simple_mutex_unlock(&control_response_mutex);
   return removed;
 }
 
 void skred_control_response_clear(void) {
+  skred_control_dispatch_init();
+  simple_mutex_lock(&control_response_mutex);
   memset(control_response, 0, sizeof(control_response));
+  simple_mutex_unlock(&control_response_mutex);
 }
 
 void skred_control_response_set_enabled(int enabled) {
-  atomic_store_int(&control_response_enabled, enabled != 0);
-  if (enabled) {
-    (void)skred_control_event_wait_fd();
-    (void)skred_control_event_wait_handle();
-  }
+  if (enabled) (void)skred_control_dispatch_start();
+  else skred_control_dispatch_stop();
 }
 
 int skred_control_response_enabled(void) {
   return atomic_load_int(&control_response_enabled);
 }
 
-int skred_control_response_poll(void) {
+int skred_control_dispatch_pump(int max_events) {
   if (!skred_control_response_enabled()) return 0;
+  if (max_events <= 0) max_events = 256;
+  if (max_events > 1024) max_events = 1024;
+  skred_control_dispatch_init();
+  struct timespec dispatch_start;
+  clock_gettime(BENCH_CLOCK, &dispatch_start);
+  simple_mutex_lock(&control_dispatch_exec_mutex);
   skred_control_event_t events[64];
+  char commands[SKRED_CONTROL_RESPONSE_CAPACITY]
+    [SKRED_CONTROL_RESPONSE_COMMAND_MAX];
   int executed = 0;
   int total = 0;
-  while (total < 256) {
-    int count = skred_control_event_poll(events, 64);
+  while (total < max_events) {
+    int request = max_events - total;
+    if (request > 64) request = 64;
+    int count = skred_control_event_poll(events, request);
     if (count <= 0) break;
     total += count;
     for (int e = 0; e < count; e++) {
       int key = skred_control_event_key(&events[e]);
+      int command_count = 0;
+      simple_mutex_lock(&control_response_mutex);
       for (int i = 0; i < SKRED_CONTROL_RESPONSE_CAPACITY; i++) {
         skred_control_response_binding_t *binding = &control_response[i];
         if (!binding->used || binding->type != events[e].type) continue;
         if (binding->key != -1 && binding->key != key) continue;
-        char command[SKRED_CONTROL_RESPONSE_COMMAND_MAX];
-        snprintf(command, sizeof(command), "%s", binding->command);
-        int saved_voice = w.voice;
-        int saved_pattern = w.pattern;
-        int saved_step = w.step;
-        if (skred_command(command) >= 0) executed++;
-        w.voice = saved_voice;
-        w.pattern = saved_pattern;
-        w.step = saved_step;
+        snprintf(commands[command_count], sizeof(commands[command_count]),
+          "%s", binding->command);
+        command_count++;
+      }
+      simple_mutex_unlock(&control_response_mutex);
+      for (int i = 0; i < command_count; i++) {
+        if (skode_consume(commands[i], &control_dispatch_ctx) >= 0)
+          executed++;
       }
     }
   }
+  simple_mutex_unlock(&control_dispatch_exec_mutex);
+  struct timespec dispatch_end;
+  clock_gettime(BENCH_CLOCK, &dispatch_end);
+  uint64_t elapsed_ns = (uint64_t)ts_diff_ns(&dispatch_start, &dispatch_end);
+  uint64_t worst_ns = atomic_load_uint64(&control_dispatch_ns_worst);
+  atomic_fetch_add_uint64(&control_dispatch_pumps, 1);
+  atomic_fetch_add_uint64(&control_dispatch_events, (uint64_t)total);
+  atomic_fetch_add_uint64(&control_dispatch_commands, (uint64_t)executed);
+  atomic_fetch_add_uint64(&control_dispatch_ns_total, elapsed_ns);
+  atomic_store_uint64(&control_dispatch_ns_last, elapsed_ns);
+  if (elapsed_ns > worst_ns)
+    atomic_store_uint64(&control_dispatch_ns_worst, elapsed_ns);
   return executed;
 }
 
+int skred_control_response_poll(void) {
+  return skred_control_dispatch_pump(256);
+}
+
+static void *skred_control_dispatch_thread_main(void *user) {
+  (void)user;
+#if defined(_WIN32) || defined(_WIN64)
+  control_dispatch_thread_id = GetCurrentThreadId();
+#endif
+  atomic_store_int(&control_dispatch_running, 1);
+  while (!atomic_load_int(&control_dispatch_stop_requested)) {
+    int ready = skred_control_event_wait(-1);
+    if (atomic_load_int(&control_dispatch_stop_requested)) break;
+    if (ready > 0) {
+      atomic_fetch_add_uint64(&control_dispatch_wakes, 1);
+      (void)skred_control_dispatch_pump(256);
+    }
+    else if (ready < 0) break;
+  }
+  atomic_store_int(&control_dispatch_running, 0);
+#if defined(_WIN32) || defined(_WIN64)
+  control_dispatch_thread_id = 0;
+#endif
+  return NULL;
+}
+
+int skred_control_dispatch_start(void) {
+  skred_control_dispatch_init();
+  simple_mutex_lock(&control_dispatch_state_mutex);
+  atomic_store_int(&control_response_enabled, 1);
+  atomic_store_int(&control_dispatch_stop_requested, 0);
+  (void)skred_control_event_wait_fd();
+  (void)skred_control_event_wait_handle();
+  if (control_dispatch_thread_started) {
+    simple_mutex_unlock(&control_dispatch_state_mutex);
+    return 0;
+  }
+  atomic_store_int(&control_dispatch_running, 1);
+  if (pthread_create(&control_dispatch_thread, NULL,
+      skred_control_dispatch_thread_main, NULL) != 0) {
+    atomic_store_int(&control_response_enabled, 0);
+    atomic_store_int(&control_dispatch_running, 0);
+    simple_mutex_unlock(&control_dispatch_state_mutex);
+    return -1;
+  }
+  control_dispatch_thread_started = 1;
+  simple_mutex_unlock(&control_dispatch_state_mutex);
+  return 0;
+}
+
+void skred_control_dispatch_stop(void) {
+  skred_control_dispatch_init();
+  simple_mutex_lock(&control_dispatch_state_mutex);
+  atomic_store_int(&control_response_enabled, 0);
+  atomic_store_int(&control_dispatch_stop_requested, 1);
+  skred_control_event_notify_signal();
+  if (control_dispatch_thread_started) {
+    pthread_t thread = control_dispatch_thread;
+    if (skred_control_dispatch_is_current_thread()) {
+      control_dispatch_thread_started = 0;
+      (void)pthread_detach(thread);
+      simple_mutex_unlock(&control_dispatch_state_mutex);
+      return;
+    }
+    control_dispatch_thread_started = 0;
+    simple_mutex_unlock(&control_dispatch_state_mutex);
+    (void)pthread_join(thread, NULL);
+    return;
+  }
+  simple_mutex_unlock(&control_dispatch_state_mutex);
+}
+
+int skred_control_dispatch_running(void) {
+  return atomic_load_int(&control_dispatch_running);
+}
+
 char *skred_control_response_status(void) {
+  skred_control_dispatch_init();
   char *ptr = control_response_status;
   size_t left = sizeof(control_response_status);
-  int written = snprintf(ptr, left, "# ce responder %s\n",
-    skred_control_response_enabled() ? "on" : "off");
+  int written = snprintf(ptr, left, "# ce dispatcher %s running:%d\n",
+    skred_control_response_enabled() ? "on" : "off",
+    skred_control_dispatch_running());
   if (written < 0) {
     control_response_status[0] = '\0';
     return control_response_status;
@@ -462,6 +622,7 @@ char *skred_control_response_status(void) {
   if ((size_t)written >= left) return control_response_status;
   ptr += written;
   left -= (size_t)written;
+  simple_mutex_lock(&control_response_mutex);
   for (int i = 0; i < SKRED_CONTROL_RESPONSE_CAPACITY; i++) {
     if (!control_response[i].used) continue;
     if (control_response[i].key < 0) {
@@ -477,6 +638,7 @@ char *skred_control_response_status(void) {
     ptr += written;
     left -= (size_t)written;
   }
+  simple_mutex_unlock(&control_response_mutex);
   return control_response_status;
 }
 
@@ -564,6 +726,7 @@ static atomic_uint64_t perf_callback_overruns;
 static atomic_uint64_t perf_callback_frames_last;
 static atomic_uint64_t perf_callback_frames_worst;
 static char perf_status[1024];
+static char thread_status[4096];
 
 void skred_performance_reset(void) {
   atomic_store_uint64(&perf_callbacks, 0);
@@ -633,6 +796,108 @@ char *skred_performance_status(void) {
            last_load, avg_load, worst_load,
            m.callback_frames_last, m.callback_frames_worst);
   return perf_status;
+}
+
+static const char *skred_recorder_state_name(int state) {
+  switch (state) {
+    case RECORDER_STOPPED: return "stopped";
+    case RECORDER_RECORDING: return "recording";
+    case RECORDER_STOPPING: return "stopping";
+    case RECORDER_ERROR: return "error";
+    default: return "unavailable";
+  }
+}
+
+char *skred_thread_status(void) {
+  skred_performance_metrics_t m;
+  skred_performance_metrics(&m);
+  double last_load = m.callback_budget_ns_last
+    ? (double)m.callback_ns_last / (double)m.callback_budget_ns_last * 100.0
+    : 0.0;
+  double avg_load = m.callback_budget_ns_total
+    ? (double)m.callback_ns_total / (double)m.callback_budget_ns_total * 100.0
+    : 0.0;
+  double worst_load = m.callback_budget_ns_worst
+    ? (double)m.callback_ns_worst / (double)m.callback_budget_ns_worst * 100.0
+    : 0.0;
+  uint64_t dispatch_pumps = atomic_load_uint64(&control_dispatch_pumps);
+  uint64_t dispatch_last_ns =
+    atomic_load_uint64(&control_dispatch_ns_last);
+  uint64_t dispatch_total_ns =
+    atomic_load_uint64(&control_dispatch_ns_total);
+  uint64_t dispatch_worst_ns =
+    atomic_load_uint64(&control_dispatch_ns_worst);
+  double dispatch_last_ms = (double)dispatch_last_ns / 1000000.0;
+  double dispatch_avg_ms = dispatch_pumps
+    ? (double)dispatch_total_ns / (double)dispatch_pumps / 1000000.0 : 0.0;
+  double dispatch_worst_ms = (double)dispatch_worst_ns / 1000000.0;
+  char *ptr = thread_status;
+  size_t left = sizeof(thread_status);
+  int written = snprintf(ptr, left,
+    "# threads:\n"
+    "#   audio: %s callbacks:%llu load:last %.1f%% avg %.1f%% worst %.1f%% overruns:%llu\n"
+    "#   control-ce: %s enabled:%d wakes:%llu pumps:%llu events:%llu commands:%llu dispatch-ms:last %.3f avg %.3f worst %.3f dropped:%llu",
+    skred_audio_running() ? "running" : "stopped",
+    (unsigned long long)m.callbacks,
+    last_load, avg_load, worst_load,
+    (unsigned long long)m.callback_overruns,
+    skred_control_dispatch_running() ? "running" : "stopped",
+    skred_control_response_enabled(),
+    (unsigned long long)atomic_load_uint64(&control_dispatch_wakes),
+    (unsigned long long)dispatch_pumps,
+    (unsigned long long)atomic_load_uint64(&control_dispatch_events),
+    (unsigned long long)atomic_load_uint64(&control_dispatch_commands),
+    dispatch_last_ms, dispatch_avg_ms, dispatch_worst_ms,
+    (unsigned long long)skred_control_event_dropped());
+  if (written < 0) {
+    thread_status[0] = '\0';
+    return thread_status;
+  }
+  if ((size_t)written >= left) return thread_status;
+  ptr += written;
+  left -= (size_t)written;
+
+  skred_udp_metrics_t udp;
+  if (udp_metrics(&udp) == 0) {
+    written = snprintf(ptr, left,
+      "\n#   udp: %s port:%d packets:%llu commands:%llu errors:%llu",
+      udp.running ? "running" : (udp.port > 0 ? "stopped" : "off"),
+      udp.port,
+      (unsigned long long)udp.packets,
+      (unsigned long long)udp.commands,
+      (unsigned long long)udp.errors);
+    if (written < 0) return thread_status;
+    if ((size_t)written >= left) return thread_status;
+    ptr += written;
+    left -= (size_t)written;
+  }
+
+  int recorder = recorder_state();
+  written = snprintf(ptr, left,
+    "\n#   recorder: %s frames:%llu dropped:%llu",
+    skred_recorder_state_name(recorder),
+    (unsigned long long)recorder_frames_written(),
+    (unsigned long long)recorder_dropped_frames());
+  if (written < 0) return thread_status;
+  if ((size_t)written >= left) return thread_status;
+  ptr += written;
+  left -= (size_t)written;
+
+  skred_scope_status_t scope;
+  scope_ipc_status(&scope);
+  written = snprintf(ptr, left,
+    "\n#   scope: %s name:%s write-frame:%llu capacity:%u",
+    scope.active ? "active" : "inactive",
+    scope.name,
+    (unsigned long long)scope.write_frame,
+    scope.capacity_frames);
+  if (written < 0) return thread_status;
+  if ((size_t)written >= left) return thread_status;
+  ptr += written;
+  left -= (size_t)written;
+
+  snprintf(ptr, left, "\n");
+  return thread_status;
 }
 
 static struct timespec perf_callback_begin(void) {
@@ -1179,6 +1444,7 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   int vc = voices;
   requested_synth_frames_per_callback = req;
   skred_performance_reset();
+  skred_control_dispatch_metrics_reset();
   skred_control_event_reset();
 
   int audio_disabled = skred_env_enabled("SKRED_NO_AUDIO");
@@ -1255,6 +1521,7 @@ int skred_command(char* line) {
 }
 
 void skred_stop(void) {
+  skred_control_dispatch_stop();
   udp_stop();
   // turn down volume smoothly to avoid clicks
   volume_set(-90);
@@ -1266,6 +1533,7 @@ void skred_stop(void) {
     ma_context_uninit(&synth_context);
     context_initialized = 0;
   }
+  skode_free(&control_dispatch_ctx);
   skode_free(&w);
   wave_free();
   synth_free();

@@ -2939,6 +2939,9 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('/ce?'): // control-event responder status
       ctx->printf(ctx, "%s", skred_control_response_status());
       break;
+    case ATOM4('/th?'): // skred service/thread health
+      ctx->printf(ctx, "%s", skred_thread_status());
+      break;
     case ATOM4('/ce!'): // control-event responder remove/clear
       if (argc == 0) {
         skred_control_response_clear();

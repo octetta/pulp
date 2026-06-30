@@ -2,6 +2,8 @@
 
 #ifndef _WIN32
 #include <pthread.h>
+#else
+#include "portable_win.h"
 #endif
 
 #include <stdint.h>
@@ -26,6 +28,7 @@ typedef int socklen_t;
 #include "skode.h"
 #include "udp.h"
 #include "util.h"
+#include "portable_atomic.h"
 
 // Simple hash function for UDP address/port to array index
 static int get_connection_index(struct sockaddr_in *addr, int array_size) {
@@ -44,6 +47,10 @@ static int get_connection_index(struct sockaddr_in *addr, int array_size) {
 static int udp_port = 0;
 static int udp_running = 1;
 static SOCKET udp_socket = INVALID_SOCKET;
+static atomic_int_t udp_thread_active;
+static atomic_uint64_t udp_packets;
+static atomic_uint64_t udp_commands;
+static atomic_uint64_t udp_errors;
 
 static pthread_t udp_thread_handle;
 static pthread_attr_t udp_attr;
@@ -123,9 +130,12 @@ static void *udp_main(void *arg) {
   if (udp_port <= 0) {
     return NULL;
   }
+  atomic_store_int(&udp_thread_active, 1);
   int sock = udp_open(udp_port);
   if (sock < 0) {
     puts("# udp thread cannot run");
+    atomic_fetch_add_uint64(&udp_errors, 1);
+    atomic_store_int(&udp_thread_active, 0);
     return NULL;
   }
   udp_socket = sock;
@@ -142,8 +152,10 @@ static void *udp_main(void *arg) {
   udp_state_t *user = calloc(UDP_PORT_MAX, sizeof(*user));
   if (!user) {
     puts("# udp thread cannot allocate state");
+    atomic_fetch_add_uint64(&udp_errors, 1);
     CLOSE_SOCKET(sock);
     if (udp_socket == sock) udp_socket = INVALID_SOCKET;
+    atomic_store_int(&udp_thread_active, 0);
     return NULL;
   }
   for (int i = 0; i < UDP_PORT_MAX; i++) {
@@ -160,9 +172,13 @@ static void *udp_main(void *arg) {
       client_len = sizeof(client);
       ssize_t n = recvfrom(sock, line, sizeof(line) - 1, 0, (struct sockaddr *)&client, &client_len);
       if (n > 0) {
+        atomic_fetch_add_uint64(&udp_packets, 1);
         line[n] = '\0';
         skode_t *w = udp_context_for(user, &client, ++use_counter);
-        skode_consume(line, w);
+        if (skode_consume(line, w) >= 0)
+          atomic_fetch_add_uint64(&udp_commands, 1);
+        else
+          atomic_fetch_add_uint64(&udp_errors, 1);
         //
         if (w->log_len) {
           sendto(sock, w->log, w->log_len, 0, (struct sockaddr *)&client, client_len);
@@ -175,6 +191,7 @@ static void *udp_main(void *arg) {
       // timeout
     } else {
       if (!udp_running) break;
+      atomic_fetch_add_uint64(&udp_errors, 1);
       perror("# select");
     }
   }
@@ -187,6 +204,7 @@ static void *udp_main(void *arg) {
     user[i].in_use = 0;
   }
   free(user);
+  atomic_store_int(&udp_thread_active, 0);
   return NULL;
 }
 
@@ -194,6 +212,9 @@ int udp_start(int port) {
   if (port == 0) return 0;
   udp_port = port;
   udp_running = 1;
+  atomic_store_uint64(&udp_packets, 0);
+  atomic_store_uint64(&udp_commands, 0);
+  atomic_store_uint64(&udp_errors, 0);
   pthread_attr_init(&udp_attr);
   pthread_attr_setstacksize(&udp_attr, 2 * 1024 * 1024);
   pthread_create(&udp_thread_handle, &udp_attr, udp_main, NULL);
@@ -214,6 +235,16 @@ void udp_stop(void) {
 
 int udp_info(void) {
   return udp_port;
+}
+
+int udp_metrics(skred_udp_metrics_t *out) {
+  if (!out) return -1;
+  out->port = udp_port;
+  out->running = atomic_load_int(&udp_thread_active);
+  out->packets = atomic_load_uint64(&udp_packets);
+  out->commands = atomic_load_uint64(&udp_commands);
+  out->errors = atomic_load_uint64(&udp_errors);
+  return 0;
 }
 
 //

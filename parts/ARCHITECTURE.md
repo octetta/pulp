@@ -27,8 +27,8 @@ void skred_stop(void);
 ```
 
 `api.h` also exposes supporting integration functions for version and feature
-inspection, command logging, audio-device selection, and optional recording and
-shared-memory scope control.
+inspection, command logging, audio-device selection, runtime service health,
+and optional recording and shared-memory scope control.
 
 It also exposes a bounded control-plane event ring. Hosts do not register a C
 callback. They use `skred_control_event_poll()` from their own control/UI loop
@@ -38,7 +38,10 @@ plus explicit Skode `ce` markers and opt-in pattern boundary notifications.
 Hosts that need to sleep in an event loop can multiplex on
 `skred_control_event_wait_fd()` on POSIX systems or
 `skred_control_event_wait_handle()` on Windows, then drain with
-`skred_control_event_poll()`.
+`skred_control_event_poll()`. Hosts can also use the built-in response
+dispatcher: `/ceb` binds an event to a Skode command, and `/cer 1` starts an
+API-level dispatcher thread that sleeps on the same wait object and runs
+matching responses outside the audio callback.
 
 At runtime, commands follow one of two paths:
 
@@ -103,6 +106,9 @@ For host applications, the control-plane contract is:
 - The host owns interpretation of `ce` IDs and payload values.
 - The host must drain the bounded ring with `skred_control_event_poll()` and
   watch the dropped-event counter. The fd/HANDLE APIs are only wake signals.
+- Built-in response bindings may be serviced by SKRED's dispatcher thread with
+  `/cer 1` or `skred_control_dispatch_start()`, or manually by calling
+  `skred_control_dispatch_pump()` from a host service loop.
 - Diagnostic readers can use `skred_control_event_snapshot()` or `?ce` to
   inspect outstanding events without consuming them; `?ce!` explicitly discards
   outstanding control-plane events.

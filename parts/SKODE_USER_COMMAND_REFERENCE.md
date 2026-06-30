@@ -394,14 +394,14 @@ control-plane notifications. `ce id[,a,b,c]` writes to that control-plane stream
 immediately or when its scheduled opcode executes; pollers see the event id
 plus up to three numeric values.
 
-### Mini-Skred Control-Event Responder
+### Control-Event Response Dispatcher
 
-Mini-Skred can bind control-plane events to Skode commands. These are
-Mini-Skred slash commands, not engine Skode opcodes:
+Skode can bind control-plane events to Skode commands. These are parser slash
+commands handled by Skode itself, not ad-hoc mini-skred syntax:
 
 | Command | Parameters | Effect |
 | --- | --- | --- |
-| `/cer state` | `0` or nonzero | Disables or enables the Mini-Skred control-event responder. |
+| `/cer state` | `0` or nonzero | Stops or starts the API control-event dispatcher thread. |
 | `[command] /ceb type key` | Skode response command, numeric event type, event key | Runs `command` whenever a matching control event is received. |
 | `/ce! type key` | Numeric event type and key | Removes matching bindings. |
 | `/ce!` | None | Removes all responder bindings. |
@@ -477,11 +477,14 @@ start runs `v6 l1`, pattern `1` start runs `v7 l1`, pattern `0` end runs
 inside the patterns are separate user events whose responder key would be
 `100` or `200` if you bind type `4`.
 
-The responder uses the public control-event wait object, not a background
-thread. In editor mode it multiplexes keyboard input with the event notifier;
-in `-n` subprocess mode it multiplexes stdin with the event notifier on POSIX
-hosts and also services the responder after each command. Responder service
-consumes events from the same ring used by `?ce`.
+`/cer 1` starts SKRED's API-level dispatcher thread. That thread sleeps on the
+public control-event wait object, drains events when woken, and runs matching
+Skode commands from a dedicated Skode context. `/cer 0` stops it, and
+`skred_stop()` stops it during engine teardown. Mini-Skred does not implement a
+separate parser or responder loop; it submits these commands through
+`skred_command()` like any other Skode text. Dispatcher service consumes events
+from the same ring inspected by `?ce`, so use `?ce` before enabling the
+dispatcher when you want to see pending events non-destructively.
 
 ### Foreign C Function Calls
 
@@ -701,6 +704,7 @@ multichannel WAV recording can be active simultaneously.
 | `v@ param[,register]` | Property and optional destination | Reads selected voice wave (`0`), amplitude (`1`), or frequency (`2`). |
 | `?s` | None | Displays the current parser string. |
 | `/s [section]` | Optional section number | Displays runtime, audio, synth, Skode, string, or benchmark state. |
+| `/th?` | None | Displays SKRED service/thread health: audio callback load, control-event dispatcher counters, UDP activity, recorder state, and scope publication state. |
 | `/t [level]` | Optional trace level | Toggles or sets command and parser tracing. |
 | `/v [level]` | Optional verbosity level | Toggles or sets verbose output. |
 | `/c [state]` | Optional state | Displays or sets parser chunk mode. |

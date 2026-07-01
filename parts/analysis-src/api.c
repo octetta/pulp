@@ -75,6 +75,9 @@ static atomic_int_t control_response_enabled;
 static atomic_int_t control_dispatch_stop_requested;
 static atomic_int_t control_dispatch_running;
 static pthread_t control_dispatch_thread;
+#if defined(__EMSCRIPTEN__)
+static int control_dispatch_thread_detached;
+#endif
 #if defined(_WIN32) || defined(_WIN64)
 static DWORD control_dispatch_thread_id;
 #endif
@@ -555,6 +558,13 @@ static void *skred_control_dispatch_thread_main(void *user) {
 #if defined(_WIN32) || defined(_WIN64)
   control_dispatch_thread_id = 0;
 #endif
+#if defined(__EMSCRIPTEN__)
+  skred_control_dispatch_init();
+  simple_mutex_lock(&control_dispatch_state_mutex);
+  control_dispatch_thread_started = 0;
+  control_dispatch_thread_detached = 0;
+  simple_mutex_unlock(&control_dispatch_state_mutex);
+#endif
   return NULL;
 }
 
@@ -566,8 +576,18 @@ int skred_control_dispatch_start(void) {
   (void)skred_control_event_wait_fd();
   (void)skred_control_event_wait_handle();
   if (control_dispatch_thread_started) {
+#if defined(__EMSCRIPTEN__)
+    if (!skred_control_dispatch_running()) {
+      control_dispatch_thread_started = 0;
+      control_dispatch_thread_detached = 0;
+    } else {
+      simple_mutex_unlock(&control_dispatch_state_mutex);
+      return 0;
+    }
+#else
     simple_mutex_unlock(&control_dispatch_state_mutex);
     return 0;
+#endif
   }
   atomic_store_int(&control_dispatch_running, 1);
   if (pthread_create(&control_dispatch_thread, NULL,
@@ -578,6 +598,9 @@ int skred_control_dispatch_start(void) {
     return -1;
   }
   control_dispatch_thread_started = 1;
+#if defined(__EMSCRIPTEN__)
+  control_dispatch_thread_detached = 0;
+#endif
   simple_mutex_unlock(&control_dispatch_state_mutex);
   return 0;
 }
@@ -592,14 +615,26 @@ void skred_control_dispatch_stop(void) {
     pthread_t thread = control_dispatch_thread;
     if (skred_control_dispatch_is_current_thread()) {
       control_dispatch_thread_started = 0;
+#if defined(__EMSCRIPTEN__)
+      control_dispatch_thread_detached = 0;
+#endif
       (void)pthread_detach(thread);
       simple_mutex_unlock(&control_dispatch_state_mutex);
       return;
     }
+#if defined(__EMSCRIPTEN__)
+    if (!control_dispatch_thread_detached) {
+      (void)pthread_detach(thread);
+      control_dispatch_thread_detached = 1;
+    }
+    simple_mutex_unlock(&control_dispatch_state_mutex);
+    return;
+#else
     control_dispatch_thread_started = 0;
     simple_mutex_unlock(&control_dispatch_state_mutex);
     (void)pthread_join(thread, NULL);
     return;
+#endif
   }
   simple_mutex_unlock(&control_dispatch_state_mutex);
 }

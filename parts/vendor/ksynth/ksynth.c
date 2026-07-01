@@ -2,15 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <signal.h>
 #include <setjmp.h>
-#include <fenv.h>
-#include <limits.h>
 #include "ksynth.h"
-
-/* --- Thread-Local Tracking for Signal Handling --- */
-
-static KS_TLS ks_ctx *current_ks_ctx = NULL;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -33,43 +26,13 @@ const char* ks_strerror(ks_status status) {
     }
 }
 
-/* --- Sandboxing & Signal Handling ---
- *
- * Because ksynth evaluates raw strings in real-time, it relies on hardware
- * page faults (SIGSEGV) and floating point exceptions (SIGFPE) to catch
- * runaway operations. `siglongjmp` (not standard `longjmp`) is explicitly
- * used to ensure the kernel unblocks the caught signal so it can fire
- * again on future evaluations.
- */
-
-static void ks_handle_signal(int sig) {
-    if (!current_ks_ctx) return;
-
-    switch (sig) {
-        case SIGSEGV: current_ks_ctx->last_status = KS_ERR_SIGSEGV; break;
-        case SIGFPE:  current_ks_ctx->last_status = KS_ERR_SIGFPE;  break;
-        case SIGILL:  current_ks_ctx->last_status = KS_ERR_SIGILL;  break;
-        default:      current_ks_ctx->last_status = KS_ERR_INTERNAL; break;
-    }
-
-    /* Clear any pending FP exceptions before leaving the signal frame.
-       Without this, siglongjmp on SIGFPE re-triggers the exception
-       immediately on x86 because the FPU status word isn't reset. */
-    feclearexcept(FE_ALL_EXCEPT);
-
-    /* siglongjmp (not longjmp) restores the signal mask saved by sigsetjmp,
-       unblocking the signal so it can fire again on a future fault rather
-       than being permanently masked for this thread. */
-    siglongjmp(current_ks_ctx->recover, 1);
-}
-
 /* --- Gas Helper --- */
 
 #define GAS_CHECK(ctx, n) do { \
     (ctx)->gas_used += (n); \
     if ((ctx)->gas_limit > 0 && (ctx)->gas_used > (ctx)->gas_limit) { \
         (ctx)->last_status = KS_ERR_GAS; \
-        siglongjmp((ctx)->recover, 1); \
+        longjmp((ctx)->recover, 1); \
     } \
 } while(0)
 
@@ -108,7 +71,7 @@ ks_ctx* ks_create(size_t mem_limit, long long gas_limit) {
 void ks_clear_vars(ks_ctx *ctx) {
     if (!ctx) return;
     for (int i = 0; i < 26; i++) {
-        if (ctx->vars[i]) { free(ctx->vars[i]); ctx->vars[i] = NULL; }
+        if (ctx->vars[i]) { k_free(ctx, ctx->vars[i]); ctx->vars[i] = NULL; }
     }
     /* args[] are arena-allocated; just null them out — the arena
        reset in ks_eval handles their memory. */
@@ -118,7 +81,6 @@ void ks_clear_vars(ks_ctx *ctx) {
 void ks_destroy(ks_ctx *ctx) {
     if (!ctx) return;
     ks_clear_vars(ctx);
-    free(ctx->eval_code);
     free(ctx->arena_base);
     free(ctx);
 }
@@ -137,7 +99,7 @@ K k_new(ks_ctx *ctx, int n) {
 
     if (ctx->arena_ptr + sz > ctx->arena_end) {
         ctx->last_status = KS_ERR_OOM;
-        siglongjmp(ctx->recover, 1);
+        longjmp(ctx->recover, 1);
     }
 
     K x = (K)ctx->arena_ptr;
@@ -154,12 +116,10 @@ K k_new_perm(ks_ctx *ctx, int n) {
     K x = malloc(sz);
     if (!x) {
         /* k_new_perm is called both inside ks_eval (from the assignment
-           operator) and outside it (from bind_scalar). longjmp-ing to
+           operator) and outside it (from bind_scalar). longjmping to
            ctx->recover when called outside eval is UB — recover hasn't
-           been initialised by sigsetjmp yet. Return NULL instead and let
-           the call site handle it. Inside eval the caller (atom) will
-           immediately dereference the result; that SIGSEGV will be caught
-           cleanly by the signal handler. */
+           been initialised by setjmp yet. Return NULL instead and let
+           the call site handle it. */
         ctx->last_status = KS_ERR_OOM;
         return NULL;
     }
@@ -167,14 +127,19 @@ K k_new_perm(ks_ctx *ctx, int n) {
     return x;
 }
 
-/* k_free: arena objects are owned by the arena. Objects outside the arena
-   were allocated by k_new_perm and are owned by the caller. */
+static int k_is_arena_owned(ks_ctx *ctx, K x) {
+    return ctx && x &&
+           (char *)x >= ctx->arena_base &&
+           (char *)x <  ctx->arena_end;
+}
+
+/* k_free: arena objects are owned by the arena, so this is a no-op for them.
+   Persistent objects still use refcounts so external users (audio voices,
+   embedders) can hold a variable buffer after its var slot is overwritten. */
 void k_free(ks_ctx *ctx, K x) {
-    if (!ctx || !x) return;
-    uintptr_t p = (uintptr_t)x;
-    uintptr_t begin = (uintptr_t)ctx->arena_base;
-    uintptr_t end = (uintptr_t)ctx->arena_end;
-    if (p < begin || p >= end) free(x);
+    if (!x) return;
+    if (k_is_arena_owned(ctx, x)) return;
+    if (--x->r <= 0) free(x);
 }
 
 K k_view(ks_ctx *ctx, int n, double *ptr) {
@@ -193,7 +158,7 @@ void bind_scalar(ks_ctx *ctx, char name, double val) {
 ks_status ks_bind_vector(ks_ctx *ctx, char name, const double *values,
                          size_t length) {
     if (!ctx || name < 'A' || name > 'Z' ||
-        (length > 0 && !values) || length > 1000000 || length > INT_MAX) {
+        (length > 0 && !values) || length > 1000000) {
         if (ctx) ctx->last_status = KS_ERR_INVALID_ARGS;
         return KS_ERR_INVALID_ARGS;
     }
@@ -378,7 +343,7 @@ K mo(ks_ctx *ctx, char c, K b) {
 
     if (c == '!') {
         int n = (int)b->f[0]; k_free(ctx, b);
-        if (n < 0 || n > 1000000) { ctx->last_status = KS_ERR_INVALID_ARGS; siglongjmp(ctx->recover, 1); }
+        if (n < 0 || n > 1000000) { ctx->last_status = KS_ERR_INVALID_ARGS; longjmp(ctx->recover, 1); }
         GAS_CHECK(ctx, n);
         x = k_new(ctx, n);
         for (int j = 0; j < n; j++) x->f[j] = (double)j;
@@ -667,7 +632,7 @@ K dy(ks_ctx *ctx, char c, K a, K b) {
 
     if (c == '#') {
         int n = (int)a->f[0];
-        if (n < 0 || n > 1000000) { ctx->last_status = KS_ERR_INVALID_ARGS; k_free(ctx, a); k_free(ctx, b); siglongjmp(ctx->recover, 1); }
+        if (n < 0 || n > 1000000) { ctx->last_status = KS_ERR_INVALID_ARGS; k_free(ctx, a); k_free(ctx, b); longjmp(ctx->recover, 1); }
         GAS_CHECK(ctx, n);
         x = k_new(ctx, n);
         if (b->n > 0) for (int i = 0; i < n; i++) x->f[i] = b->f[i % b->n];
@@ -814,13 +779,15 @@ K atom(ks_ctx *ctx, char **s) {
                 int len = strlen((char*)x->f) + 1;
                 int ndoubles = (len + sizeof(double) - 1) / sizeof(double);
                 perm = k_new_perm(ctx, ndoubles);
+                if (!perm) longjmp(ctx->recover, 1);
                 perm->n = -1;
                 memcpy(perm->f, x->f, len);
             } else {
                 perm = k_new_perm(ctx, x->n);
+                if (!perm) longjmp(ctx->recover, 1);
                 memcpy(perm->f, x->f, x->n * sizeof(double));
             }
-            if (ctx->vars[i]) free(ctx->vars[i]);
+            if (ctx->vars[i]) k_free(ctx, ctx->vars[i]);
             ctx->vars[i] = perm;
         }
         /* Return x as-is (arena lifetime, caller frees via k_free no-op). */
@@ -889,6 +856,7 @@ static K k_clone_owned(ks_ctx *ctx, K source) {
         memcpy(copy->f, source->f, (size_t)len);
         return copy;
     }
+
     K copy = k_new_perm(ctx, source->n);
     if (!copy) return NULL;
     if (source->n > 0) {
@@ -900,7 +868,6 @@ static K k_clone_owned(ks_ctx *ctx, K source) {
 K ks_eval(ks_ctx *ctx, const char *code, size_t len) {
     if (!ctx || !code) return NULL;
 
-    current_ks_ctx = ctx;
     ctx->last_status = KS_OK;
     ctx->gas_used = 0;
 
@@ -908,40 +875,25 @@ K ks_eval(ks_ctx *ctx, const char *code, size_t len) {
        reclaiming all temporaries allocated during this eval in one shot. */
     char *arena_checkpoint = ctx->arena_ptr;
 
-    void (*old_segv)(int) = signal(SIGSEGV, ks_handle_signal);
-    void (*old_fpe)(int)  = signal(SIGFPE,  ks_handle_signal);
-    void (*old_ill)(int)  = signal(SIGILL,  ks_handle_signal);
-
-    /* Clear any stale FP exception flags before entering eval so a
-       pre-existing flag doesn't immediately re-trigger SIGFPE. */
-    feclearexcept(FE_ALL_EXCEPT);
+    char *buf = malloc(len + 1);
+    if (!buf) {
+        ctx->last_status = KS_ERR_OOM;
+    } else {
+        memcpy(buf, code, len);
+        buf[len] = '\0';
+    }
 
     K result = NULL;
-    /* sigsetjmp with savemask=1 saves the current signal mask so that
-       siglongjmp can restore it, unblocking the signal after recovery. */
-    if (sigsetjmp(ctx->recover, 1) == 0) {
-        ctx->eval_code = malloc(len + 1);
-        if (!ctx->eval_code) {
-            ctx->last_status = KS_ERR_OOM;
-        } else {
-            memcpy(ctx->eval_code, code, len);
-            ctx->eval_code[len] = '\0';
-            char *p_code = ctx->eval_code;
-            result = e(ctx, &p_code);
-            if (result) result = k_clone_owned(ctx, result);
-        }
+    if (buf && setjmp(ctx->recover) == 0) {
+        char *p_code = buf;
+        result = e(ctx, &p_code);
+        if (result) result = k_clone_owned(ctx, result);
     }
-    free(ctx->eval_code);
-    ctx->eval_code = NULL;
+    free(buf);
     /* Both the success and longjmp paths fall through here.
        Reset the arena — all temporaries are gone. */
     ctx->arena_ptr  = arena_checkpoint;
     ctx->args[0]    = ctx->args[1] = NULL; /* were arena ptrs, now dangling */
-
-    signal(SIGSEGV, old_segv);
-    signal(SIGFPE,  old_fpe);
-    signal(SIGILL,  old_ill);
-    current_ks_ctx = NULL;
 
     /* The returned object is an owned copy. The caller releases it with
        k_free(); all evaluator intermediates were reclaimed above. */

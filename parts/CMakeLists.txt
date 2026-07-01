@@ -268,6 +268,8 @@ add_executable(ksynth_bridge_tests tests/ksynth_bridge_tests.c)
 target_link_libraries(ksynth_bridge_tests PRIVATE api)
 if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(ksynth_bridge_tests PRIVATE SKRED_TEST_KSYNTH=1)
+else()
+  target_sources(ksynth_bridge_tests PRIVATE vendor/ksynth/ksynth.c)
 endif()
 
 add_test(

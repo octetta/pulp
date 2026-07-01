@@ -22,23 +22,14 @@
 #include <setjmp.h>
 #include <stdint.h>
 
-/* Cross-platform Thread Local Storage */
-#if defined(_MSC_VER)
-  #define KS_TLS __declspec(thread)
-#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-  #define KS_TLS _Thread_local
-#else
-  #define KS_TLS __thread
-#endif
-
 typedef enum {
     KS_OK = 0,
     KS_ERR_SYNTAX,       /* Malformed ksynth code */
     KS_ERR_OOM,          /* Memory budget exceeded */
     KS_ERR_GAS,          /* Execution time (gas) limit reached */
-    KS_ERR_SIGSEGV,      /* Caught segmentation fault */
-    KS_ERR_SIGFPE,       /* Caught floating point exception */
-    KS_ERR_SIGILL,       /* Caught illegal instruction */
+    KS_ERR_SIGSEGV,      /* Reserved: hardware faults are not caught */
+    KS_ERR_SIGFPE,       /* Reserved: hardware faults are not caught */
+    KS_ERR_SIGILL,       /* Reserved: hardware faults are not caught */
     KS_ERR_INVALID_ARGS, /* Invalid function arguments */
     KS_ERR_INTERNAL      /* Unexpected internal error */
 } ks_status;
@@ -59,10 +50,9 @@ typedef struct ks_ctx {
     long long gas_limit; /* Max operations allowed for evaluation */
     long long gas_used;  /* Current operations consumed */
 
-    sigjmp_buf recover;  /* For sandboxing escape — sigjmp_buf restores signal mask */
+    jmp_buf recover;     /* Eval-local escape for explicit checked errors */
     ks_status last_status;
     char last_err_msg[256];
-    char *eval_code;     /* owned source copy, including during signal recovery */
 } ks_ctx;
 
 /* Context Lifecycle */
@@ -70,25 +60,7 @@ ks_ctx* ks_create(size_t mem_limit, long long gas_limit);
 void ks_destroy(ks_ctx *ctx);
 void ks_clear_vars(ks_ctx *ctx);
 
-/* Evaluation API
- *
- * ks_eval returns a heap-owned K on success. The result remains valid across
- * later evaluations and must be released with k_free(ctx, result).
- *
- * ks_bind_vector copies caller-owned values into persistent variable A-Z.
- * The caller may reuse or free values after the function returns. Existing
- * variable contents are preserved if allocation fails.
- *
- * Example:
- *   double wave[] = {0.0, 0.5, -0.5, 0.0};
- *   if (ks_bind_vector(ctx, 'A', wave, 4) == KS_OK) {
- *       K result = ks_eval(ctx, "A,A", 3);
- *       if (result) {
- *           use_samples(result->f, result->n);
- *           k_free(ctx, result);
- *       }
- *   }
- */
+/* Evaluation API */
 K ks_eval(ks_ctx *ctx, const char *code, size_t len);
 const char* ks_strerror(ks_status status);
 ks_status ks_bind_vector(ks_ctx *ctx, char name, const double *values,
@@ -96,8 +68,8 @@ ks_status ks_bind_vector(ks_ctx *ctx, char name, const double *values,
 
 /* Internal-ish K Lifecycle */
 K k_new(ks_ctx *ctx, int n);       /* arena-allocated (eval lifetime) */
-K k_new_perm(ks_ctx *ctx, int n);  /* malloc'd; caller owns the returned object */
-void k_free(ks_ctx *ctx, K x);     /* no-op for arena objects; frees owned objects */
+K k_new_perm(ks_ctx *ctx, int n);  /* malloc'd (persists across evals, e.g. vars) */
+void k_free(ks_ctx *ctx, K x);     /* no-op for arena objects; refcount-free for perm objects */
 
 /* Function support */
 K k_func(ks_ctx *ctx, char *body);

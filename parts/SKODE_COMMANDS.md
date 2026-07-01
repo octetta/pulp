@@ -430,9 +430,9 @@ rate, looping, and one-shot state, is not part of the transferred Ksynth vector.
 | `[name] /sg [channel-mask[,buffer-seconds]]` | string and numeric | Start shared-memory audio publication | `scope_ipc_start()` |
 | `/ss` | none | Stop and unlink shared-memory publication | `scope_ipc_stop()` |
 | `/s?` | none | Show shared-memory publication status | scope IPC status functions |
-| `[filename] /cat` | string | Print a text file | `fopen()`, `fgets()` |
-| `[directory] /cd` | string | Change working directory | `chdir()` |
-| `/ls [type]` | optional numeric | List files; `0=.sk`, `1=.wav`, `2=.mp3`, `3=.ks` | `opendir()`, `readdir()` |
+| `[filename] %cat` | string | Print a text file | `fopen()`, `fgets()` |
+| `[directory] %cd` | string | Change working directory | `chdir()` |
+| `%ls [type]` | optional numeric | List files; `0=.sk`, `1=.wav`, `2=.mp3`, `3=.ks` | `opendir()`, `readdir()` |
 
 Multitrack file commands require `RECORD`. Shared-memory publication commands
 require `SCOPE`. The `r` stem-routing command is available with either feature.

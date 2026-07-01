@@ -723,9 +723,9 @@ ASCII renderer on any platform.
 | Command | Parameters | Effect |
 | --- | --- | --- |
 | `/l file[,verbose]` | Numbered Skode file | Loads and executes a `.sk` file. |
-| `[filename] /cat` | String | Prints a text file. |
-| `[directory] /cd` | String | Changes the process working directory. |
-| `/ls [type]` | `0` `.sk`, `1` `.wav`, `2` `.mp3`, `3` `.ks` | Lists matching files in the working directory. |
+| `[filename] %cat` | String | Prints a text file. |
+| `[directory] %cd` | String | Changes the process working directory. |
+| `%ls [type]` | `0` `.sk`, `1` `.wav`, `2` `.mp3`, `3` `.ks` | Lists matching files in the working directory. |
 | `[file] /ks [verbose]` | Ksynth filename | Loads a named Ksynth source file. Requires `KSYNTH`. |
 | `/k file[,verbose]` | Numbered Ksynth file | Loads numbered Ksynth source. Requires `KSYNTH`. |
 | `[code] ks`, `[code] k!` | Ksynth source string | Runs source in this Skode context's Ksynth evaluator. |

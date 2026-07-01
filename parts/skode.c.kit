@@ -3729,7 +3729,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('/wex'): // wave-expand wave
       if (argc && x >= 200 && x <=999) wave_table_dynamic_expand(x);
       break;
-    case ATOM4('/cat'): // print a text file
+    case ATOM4('%cat'): // print a text file
       if (strlen(ands_string(ctx->parse))) {
         FILE *in = fopen(ands_string(ctx->parse), "rt");
         if (in) {
@@ -3753,13 +3753,13 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
-    case ATOM4('/cd-'): // change directory
-      ctx->printf(ctx, "# [%s] /cd\n", ands_string(ctx->parse));
+    case ATOM4('%cd-'): // change directory
+      ctx->printf(ctx, "# [%s] %cd\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
         chdir(ands_string(ctx->parse));
       }
       break;
-    case ATOM4('/ls-'): // list directory (match-type)
+    case ATOM4('%ls-'): // list directory (match-type)
       {
       /*
           types

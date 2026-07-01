@@ -48,8 +48,6 @@ void *ands_user(ands_t *s);
 char *ands_string(ands_t *s);
 int ands_string_len(ands_t *s);
 int ands_string_fresh(ands_t *s);
-void ands_chunk_mode(ands_t *s, int mode);
-int ands_chunk_mode_get(ands_t *s);
 double ands_defer_num(ands_t *s);
 int ands_defer_var(ands_t *s);
 char *ands_defer_string(ands_t *s);

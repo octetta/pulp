@@ -22,9 +22,8 @@ text in the parser's string buffer:
 [v0 n60 l1] R4,.25
 ```
 
-`$N` reads register `N`. Immediate commands use the current parser's local
-registers. Compiled patterns and events use the shared global register bank,
-and read it when the command executes rather than when it is compiled:
+`$N` reads shared register `N`. Compiled patterns and events read registers
+when the command executes rather than when it is compiled:
 
 ```text
 =0,60 v0 n$0 l1
@@ -562,20 +561,18 @@ the repeat count.
 
 | Command | Parameters | Effect | Schedulable |
 | --- | --- | --- | --- |
-| `=N,value` | Register index and value | Immediately writes local register `N`. In a compiled program it instead writes shared global register `N` when the opcode executes. | Yes |
+| `=N,value` | Register index and value | Writes shared register `N`. In a compiled program, the write happens when the opcode executes. | Yes |
 | `=N` | Register index | Displays a register in the immediate command interface. | No |
 | `=` | None | Displays registers in the immediate command interface. | No |
-| `*=N,a,b` | Register and operands | Stores `a * b` in a local register. | No |
+| `*=N,a,b` | Register and operands | Stores `a * b` in a shared register. | No |
 | `/=N,a,b` | Register and operands | Stores `a / b` when `b` is nonzero. | No |
 | `a=N,a,b` | Register and operands | Stores `a + b`. | No |
 | `s=N,a,b` | Register and operands | Stores `a - b`. | No |
-| `l>g N` | Register index | Copies a local register into the shared global register bank. | No |
-| `g>l N` | Register index | Copies a global register into the current parser's local bank. | No |
 | `(values...)` | Numeric list | Replaces the parser's data array. | No |
 | `D [capacity]`, `/D [capacity]` | Optional element capacity | Displays or enlarges the parser data allocation. | No |
 | `?d` | None | Displays the current data array. | No |
 | `d@ index` | Data index | Displays one data value. | No |
-| `=d register,index` | Register and data index | Copies a data value into a local register. | No |
+| `=d register,index` | Register and data index | Copies a data value into a shared register. | No |
 
 ## Samples, Waves, and Recording
 
@@ -707,7 +704,6 @@ multichannel WAV recording can be active simultaneously.
 | `/th?` | None | Displays SKRED service/thread health: audio callback load, control-event dispatcher counters, UDP activity, recorder state, and scope publication state. |
 | `/t [level]` | Optional trace level | Toggles or sets command and parser tracing. |
 | `/v [level]` | Optional verbosity level | Toggles or sets verbose output. |
-| `/c [state]` | Optional state | Displays or sets parser chunk mode. |
 | `/f [value]` | Optional value | Displays or sets the current context flag. |
 | `log state` | `0` or nonzero | Disables or enables command-context log capture. |
 | `udp value` | Any numeric argument | Displays the current UDP context endpoint. Requires `UDP`. |
@@ -983,11 +979,11 @@ R!7
 Use registers to change a compiled pattern without rebuilding it:
 
 ```text
-=0,60 l>g0
+=0,60
 y1
 [v0 n$0 l1] xa
 z1
-=0,67 l>g0
+=0,67
 ```
 
 ## Feature-Gated Commands

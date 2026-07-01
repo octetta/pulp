@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "ands.h"
 #include "api.h"
@@ -1113,18 +1114,18 @@ static void test_parameter_and_buffer_safety(void) {
 static void test_context_modes(void) {
   const char *test = "context modes";
   skode_t ctx = new_ctx();
-  consume(test, &ctx, "/v1 /t1 /f7 /c1");
+  consume(test, &ctx, "/v1 /t1 /f7");
 
   expect_int(test, ctx.verbose, 1, "verbose");
   expect_int(test, ctx.trace, 1, "trace");
   expect_int(test, ctx.flag, 7, "flag");
-  expect_int(test, ands_chunk_mode_get(ctx.parse), 1, "chunk mode");
 }
 
 static void test_ands_macro_commands(void) {
   const char *test = "ands macro commands";
   skode_t ctx = new_ctx();
   ctx.log_enable = 1;
+  ands_macro_clear(ctx.parse);
 
   consume(test, &ctx, "[ar]: t $$0 0 $$1 0 ; [zz]: f $$0 ;");
   expect_int(test, ands_macro_count(ctx.parse), 2, "macro count after define");
@@ -1141,6 +1142,52 @@ static void test_ands_macro_commands(void) {
 
   consume(test, &ctx, "/m!");
   expect_int(test, ands_macro_count(ctx.parse), 0, "macro count after clear");
+  ands_macro_clear(ctx.parse);
+}
+
+static void test_load_installs_global_macros_and_registers(void) {
+  const char *test = "load installs global macros and registers";
+  char cwd[1024];
+  char filename[64];
+  int patch = 910000 + (int)(getpid() % 80000);
+  FILE *file;
+  skode_t ctx = new_ctx();
+
+  if (!getcwd(cwd, sizeof(cwd))) {
+    fail(test, "getcwd failed");
+    return;
+  }
+  if (chdir("/tmp") != 0) {
+    fail(test, "chdir /tmp failed");
+    return;
+  }
+
+  snprintf(filename, sizeof(filename), "%d.sk", patch);
+  file = fopen(filename, "w");
+  if (!file) {
+    fail(test, "could not create temporary patch file");
+    chdir(cwd);
+    return;
+  }
+  fputs("[zz]: f $$0 ;\n=12,34\n", file);
+  fclose(file);
+
+  ands_macro_clear(ctx.parse);
+  global_var[12] = 0.0;
+
+  if (skode_load(&ctx, ctx.voice, patch, 0) != 0) {
+    fail(test, "skode_load failed");
+  } else {
+    consume(test, &ctx, "zz 123");
+    expect_float(test, sv.freq[0], 123.0f, 0.0001f,
+                 "macro loaded through /l");
+    expect_float(test, (float)global_var[12], 34.0f, 0.0001f,
+                 "register set through /l");
+  }
+
+  remove(filename);
+  chdir(cwd);
+  ands_macro_clear(ctx.parse);
 }
 
 static void test_control_composition_primitives(void) {
@@ -1560,6 +1607,7 @@ int main(void) {
   test_parameter_and_buffer_safety();
   test_context_modes();
   test_ands_macro_commands();
+  test_load_installs_global_macros_and_registers();
   test_control_composition_primitives();
   test_tempo_and_pattern_reset_limits();
   test_sample_accurate_sequence_boundaries();

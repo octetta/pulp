@@ -173,7 +173,8 @@ typedef struct ands_s {
     // Parser state
     int state;
     
-    // Variables
+    // Register storage. Parser-local storage is retained only as a fallback
+    // for standalone ANDS users that do not install a shared register bank.
     double local_var[VAR_MAX];
     double *global_var;
     double *global_save;
@@ -182,15 +183,12 @@ typedef struct ands_s {
     int (*fn)(struct ands_s *s, int info);
     void *user;
     
-    // Mode
-    int mode;
-    
     // Trace
     int trace;
 
-    // Parser-local macro definitions
-    macro_t macros[MACRO_MAX];
 } ands_t;
+
+static macro_t global_macros[MACRO_MAX];
 
 // ============================================================================
 // MACRO PREPROCESSOR
@@ -242,9 +240,10 @@ static int ands_macro_valid_name(const char *name, int len) {
     return 1;
 }
 
-static int ands_find_macro(ands_t *s, const char *name) {
+static int ands_find_macro(const char *name) {
     for (int i = 0; i < MACRO_MAX; i++) {
-        if (s->macros[i].used && strcmp(s->macros[i].name, name) == 0) return i;
+        if (global_macros[i].used &&
+            strcmp(global_macros[i].name, name) == 0) return i;
     }
     return -1;
 }
@@ -252,9 +251,9 @@ static int ands_find_macro(ands_t *s, const char *name) {
 int ands_macro_count(ands_t *s) {
     int count = 0;
 
-    if (!s) return 0;
+    (void)s;
     for (int i = 0; i < MACRO_MAX; i++) {
-        if (s->macros[i].used) count++;
+        if (global_macros[i].used) count++;
     }
 
     return count;
@@ -264,19 +263,20 @@ int ands_macro_get(ands_t *s, int index, char *name, int name_len,
                    char *body, int body_len, int *arg_count) {
     int seen = 0;
 
-    if (!s || index < 0) return 0;
+    (void)s;
+    if (index < 0) return 0;
 
     for (int i = 0; i < MACRO_MAX; i++) {
-        if (!s->macros[i].used) continue;
+        if (!global_macros[i].used) continue;
         if (seen++ != index) continue;
 
         if (name && name_len > 0) {
-            snprintf(name, (size_t)name_len, "%s", s->macros[i].name);
+            snprintf(name, (size_t)name_len, "%s", global_macros[i].name);
         }
         if (body && body_len > 0) {
-            snprintf(body, (size_t)body_len, "%s", s->macros[i].body);
+            snprintf(body, (size_t)body_len, "%s", global_macros[i].body);
         }
-        if (arg_count) *arg_count = s->macros[i].arg_count;
+        if (arg_count) *arg_count = global_macros[i].arg_count;
         return 1;
     }
 
@@ -286,17 +286,18 @@ int ands_macro_get(ands_t *s, int index, char *name, int name_len,
 int ands_macro_remove(ands_t *s, const char *name) {
     int idx;
 
-    if (!s || !name) return 0;
-    idx = ands_find_macro(s, name);
+    (void)s;
+    if (!name) return 0;
+    idx = ands_find_macro(name);
     if (idx < 0) return 0;
 
-    memset(&s->macros[idx], 0, sizeof(s->macros[idx]));
+    memset(&global_macros[idx], 0, sizeof(global_macros[idx]));
     return 1;
 }
 
 void ands_macro_clear(ands_t *s) {
-    if (!s) return;
-    memset(s->macros, 0, sizeof(s->macros));
+    (void)s;
+    memset(global_macros, 0, sizeof(global_macros));
 }
 
 static int ands_macro_arg_count(const char *body) {
@@ -320,11 +321,14 @@ static int ands_macro_arg_count(const char *body) {
 }
 
 static int ands_store_macro(ands_t *s, const char *name, const char *body, int body_len) {
-    int idx = ands_find_macro(s, name);
+    int idx;
+
+    (void)s;
+    idx = ands_find_macro(name);
 
     if (idx < 0) {
         for (int i = 0; i < MACRO_MAX; i++) {
-            if (!s->macros[i].used) {
+            if (!global_macros[i].used) {
                 idx = i;
                 break;
             }
@@ -333,14 +337,14 @@ static int ands_store_macro(ands_t *s, const char *name, const char *body, int b
 
     if (idx < 0) return 0;
 
-    strncpy(s->macros[idx].name, name, MACRO_NAME_LEN - 1);
-    s->macros[idx].name[MACRO_NAME_LEN - 1] = '\0';
+    strncpy(global_macros[idx].name, name, MACRO_NAME_LEN - 1);
+    global_macros[idx].name[MACRO_NAME_LEN - 1] = '\0';
 
     if (body_len >= MACRO_BODY_LEN) body_len = MACRO_BODY_LEN - 1;
-    memcpy(s->macros[idx].body, body, (size_t)body_len);
-    s->macros[idx].body[body_len] = '\0';
-    s->macros[idx].arg_count = ands_macro_arg_count(s->macros[idx].body);
-    s->macros[idx].used = 1;
+    memcpy(global_macros[idx].body, body, (size_t)body_len);
+    global_macros[idx].body[body_len] = '\0';
+    global_macros[idx].arg_count = ands_macro_arg_count(global_macros[idx].body);
+    global_macros[idx].used = 1;
     return 1;
 }
 
@@ -422,7 +426,7 @@ static int ands_preprocess_macros(ands_t *s, const char *input, buffer_t *out, i
 static int ands_expand_macro(ands_t *s, int macro_idx, char args[][MACRO_BODY_LEN],
                              int num_args, buffer_t *out, int depth) {
     buffer_t expanded;
-    char *body = s->macros[macro_idx].body;
+    char *body = global_macros[macro_idx].body;
     int ok = 1;
 
     buffer_init(&expanded, MACRO_BODY_LEN);
@@ -497,9 +501,9 @@ static int ands_preprocess_macros(ands_t *s, const char *input, buffer_t *out, i
             }
             atom[atom_len] = '\0';
 
-            idx = ands_find_macro(s, atom);
+            idx = ands_find_macro(atom);
             if (!atom_too_long && atom_len > 0 && atom_len < MACRO_NAME_LEN && idx >= 0) {
-                int needed = s->macros[idx].arg_count;
+                int needed = global_macros[idx].arg_count;
                 int collected = 0;
                 arg_ptr = ptr;
 
@@ -820,10 +824,8 @@ int ands_consume(ands_t *s, char *line) {
         ptr++;
     }
 
-    if (s->mode == 0) {
-        action_chunk_end(s);
-        s->state = START;
-    }
+    action_chunk_end(s);
+    s->state = START;
     buffer_free(&expanded);
     return 0;
 }
@@ -874,7 +876,6 @@ ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user) {
     s->user = user;
 
     s->state = START;
-    s->mode = 0;
     s->trace = 0;
 
     return s;
@@ -906,8 +907,6 @@ void *ands_user(ands_t *s) { return s->user; }
 char *ands_string(ands_t *s) { return buffer_str(&s->string[s->string_read_idx]); }
 int ands_string_len(ands_t *s) { return s->string[s->string_read_idx].len; }
 int ands_string_fresh(ands_t *s) { return s->string_fresh; }
-void ands_chunk_mode(ands_t *s, int mode) { s->mode = mode; }
-int ands_chunk_mode_get(ands_t *s) { return s->mode; }
 void ands_trace_set(ands_t *s, int n) { s->trace = n; }
 double ands_defer_num(ands_t *s) { return s->defer_num; }
 int ands_defer_var(ands_t *s) { return s->defer_var; }
@@ -1041,19 +1040,19 @@ void ands_set_local(ands_t *s, int n, double x) {
 }
 
 void ands_set_global(ands_t *s, double *p) { s->global_var = p; s->global_save = p; }
-void ands_use_local(ands_t *s) { s->global_var = s->local_var; }
-void ands_use_global(ands_t *s) { s->global_var = s->global_save; }
+void ands_use_local(ands_t *s) { (void)s; }
+void ands_use_global(ands_t *s) {
+    if (s && s->global_save) s->global_var = s->global_save;
+}
 
 void ands_local_to_global(ands_t *s, int n) {
-    if (n >= 0 && n < VAR_MAX) {
-        s->global_var[n] = s->local_var[n];
-    }
+    (void)s;
+    (void)n;
 }
 
 void ands_global_to_local(ands_t *s, int n) {
-    if (n >= 0 && n < VAR_MAX) {
-        s->local_var[n] = s->global_var[n];
-    }
+    (void)s;
+    (void)n;
 }
 
 #define STRING_PTR(s) s->string[s->string_idx % STRING_BUF_MOD].data

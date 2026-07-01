@@ -265,8 +265,8 @@ schedulable.
 | `[name] vt` | string | Set selected voice label | `sv.text[]` |
 | `[name] wt wave` | string, numeric | Set wavetable label | `sw.name[]` |
 | `W` | `[wave [, end-or-width [, height]]]` | Show wavetable or recording data | `wavetable_show()`, waveform display helpers |
-| `W@` | `wave,param[,register]` | Read wave size, rate, or duration | `sw.size[]`, `sw.rate[]`, `ands_set_local()` |
-| `v@` | `param[,register]` | Read selected voice wave, amplitude, or frequency | `sv` fields, `ands_set_local()` |
+| `W@` | `wave,param[,register]` | Read wave size, rate, or duration | `sw.size[]`, `sw.rate[]`, register write |
+| `v@` | `param[,register]` | Read selected voice wave, amplitude, or frequency | `sv` fields, register write |
 | `w>d` | `wave` | Copy wavetable samples to parser data | `sw`, `ands_data_resize()` |
 | `w>r` | `wave` | Copy wavetable samples to recording buffer | `skode_sample_alloc()` |
 | `d>r` | none | Copy parser data to recording buffer | `skode_sample_alloc()` |
@@ -297,29 +297,28 @@ amplitude, and `2` is frequency.
 | `/D` | `[capacity]` | Resize data and print capacity details | `ands_data_resize()` |
 | `?d` | none | Print parser data | `skode_double_dump()` |
 | `d@` | `index` | Print one data element | `ands_data()` |
-| `=d` | `register,index` | Copy a data element to a local register | `ands_set_local()` |
-| `=` | `[register [, value]]` | Set, inspect, or list registers | `ands_set_local()`, `ands_get_local()` |
-| `*=` | `register,a,b` | Store `a * b` | `ands_set_local()` |
-| `/=` | `register,a,b` | Store `a / b` when `b != 0` | `ands_set_local()` |
-| `a=` | `register,a,b` | Store `a + b` | `ands_set_local()` |
-| `s=` | `register,a,b` | Store `a - b` | `ands_set_local()` |
-| `l>g` | `register` | Copy local register to global register | `ands_local_to_global()` |
-| `g>l` | `register` | Copy global register to local register | `ands_global_to_local()` |
+| `=d` | `register,index` | Copy a data element to a shared register | register write |
+| `=` | `[register [, value]]` | Set, inspect, or list shared registers | register read/write |
+| `*=` | `register,a,b` | Store `a * b` | register write |
+| `/=` | `register,a,b` | Store `a / b` when `b != 0` | register write |
+| `a=` | `register,a,b` | Store `a + b` | register write |
+| `s=` | `register,a,b` | Store `a - b` | register write |
 
 The two meanings of `=` share syntax. `=N,value` is also accepted by the
-scheduled opcode compiler and writes the global register array when executed.
+scheduled opcode compiler and writes the shared register array when executed.
 The immediate read/math forms `d@`, `W@`, `v@`, `=`, `*=`, `/=`, `a=`, and
 `s=` also return their result as the next command's pending first argument
 when they are followed by another atom in the same chunk.
 
 ### Macro and Composition Examples
 
-ANDS macros are parser-local shortcuts. Define them with `[name] : body ;`.
+ANDS macros are global shortcuts. Define them with `[name] : body ;`.
 Names use the same four-character atom width as commands; longer definition
 names are silently truncated to four characters. Macro arguments are written
 as `$$0`..`$$7`; the older `@0`..`@7` form is still accepted for compatibility.
-Plain `$0` keeps its normal meaning as an ANDS local/global variable reference
-after the macro expands.
+Plain `$0` keeps its normal meaning as a shared register reference after the
+macro expands. Because macros are global, scripts loaded with `/l` can define
+macros for later interactive use.
 
 ```skode
 [ar] : t $$0 0 $$1 0 ;
@@ -446,13 +445,12 @@ require `SCOPE`. The `r` stem-routing command is available with either feature.
 | `\` | none | Show selected voice verbosely | `voice_show()` |
 | `??`, `v??` | none | Show active voices | `voice_show_all()` |
 | `?s` | none | Show parser string | `ands_string()` |
-| `?m` | none | Show ANDS parser macros defined on this context | `ands_macro_get()` |
-| `[name] /m` | string | Remove one ANDS parser macro from this context | `ands_macro_remove()` |
-| `/m!` | none | Clear all ANDS parser macros from this context | `ands_macro_clear()` |
+| `?m` | none | Show global ANDS macros | `ands_macro_get()` |
+| `[name] /m` | string | Remove one global ANDS macro | `ands_macro_remove()` |
+| `/m!` | none | Clear all global ANDS macros | `ands_macro_clear()` |
 | `/s [section]` | optional numeric | Show system, audio, synth, Skode, string, or benchmark state | `system_show()` and related helpers |
 | `/t [level]` | optional numeric | Toggle or set command/parser tracing | `ctx->trace`, `ands_trace_set()` |
 | `/v [level]` | optional numeric | Toggle or set verbose output | `ctx->verbose` |
-| `/c [state]` | optional numeric | Show or set parser chunk mode | `ands_chunk_mode()` |
 | `/f [value]` | optional numeric | Show or set context flag | `ctx->flag` |
 | `log state` | numeric | Enable or disable context log capture | `ctx->log_enable` |
 | `udp value` | numeric | Show UDP endpoint information | context fields; `UDP` feature |

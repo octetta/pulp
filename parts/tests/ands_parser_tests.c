@@ -243,6 +243,7 @@ static void test_macros_basic(void) {
   const char *test = "macros basic";
   recorder_t r;
   char input[] = "[ar] : t $$0 0 $$1 0 ; ar 0.01 0.4";
+  ands_macro_clear(NULL);
   run_parse(test, input, &r);
 
   expect_len(test, &r, 2);
@@ -258,6 +259,7 @@ static void test_macros_legacy_at_arguments(void) {
   const char *test = "macros legacy at arguments";
   recorder_t r;
   char input[] = "[ar] : t @0 0 @1 0 ; ar 0.01 0.4";
+  ands_macro_clear(NULL);
   run_parse(test, input, &r);
 
   expect_len(test, &r, 2);
@@ -273,6 +275,7 @@ static void test_macro_names_truncate_to_atom_width(void) {
   const char *test = "macro names truncate to atom width";
   recorder_t r;
   char input[] = "[attack]: t $$0 0 $$1 0 ; atta 0.02 0.5";
+  ands_macro_clear(NULL);
   run_parse(test, input, &r);
 
   expect_len(test, &r, 2);
@@ -288,6 +291,7 @@ static void test_macros_nested_and_replace(void) {
   const char *test = "macros nested and replace";
   recorder_t r;
   char input[] = "[ar]: t $$0 0 $$1 0 ; [aa]: f $$0 ; [aa]: ar $$0 .4 ; aa .01";
+  ands_macro_clear(NULL);
   run_parse(test, input, &r);
 
   expect_len(test, &r, 2);
@@ -303,6 +307,7 @@ static void test_macro_definitions_do_not_break_strings(void) {
   const char *test = "macro definitions do not break strings";
   recorder_t r;
   char input[] = "[kick one] vt [ar]: t $$0 0 ; ar 2";
+  ands_macro_clear(NULL);
   run_parse(test, input, &r);
 
   expect_len(test, &r, 4);
@@ -315,8 +320,8 @@ static void test_macro_definitions_do_not_break_strings(void) {
   expect_event(test, &r, 3, CHUNK_END, "----");
 }
 
-static void test_macros_are_parser_local(void) {
-  const char *test = "macros are parser local";
+static void test_macros_are_global(void) {
+  const char *test = "macros are global";
   recorder_t r;
   ands_t *s = ands_new(record_cb, &r);
   char define[] = "[zz]: f $$0 ;";
@@ -324,6 +329,7 @@ static void test_macros_are_parser_local(void) {
   char fresh_use[] = "zz 330";
 
   memset(&r, 0, sizeof(r));
+  ands_macro_clear(NULL);
   if (!s) {
     fail(test, "ands_new returned NULL");
     return;
@@ -341,9 +347,10 @@ static void test_macros_are_parser_local(void) {
 
   run_parse(test, fresh_use, &r);
   expect_len(test, &r, 2);
-  expect_event(test, &r, 0, FUNCTION, "zz--");
+  expect_event(test, &r, 0, FUNCTION, "f---");
   expect_arg(test, &r, 0, 0, 330);
   expect_event(test, &r, 1, CHUNK_END, "----");
+  ands_macro_clear(NULL);
 }
 
 static void test_macro_management_api(void) {
@@ -356,6 +363,7 @@ static void test_macro_management_api(void) {
   int arg_count = -1;
 
   memset(&r, 0, sizeof(r));
+  ands_macro_clear(NULL);
   if (!s) {
     fail(test, "ands_new returned NULL");
     return;
@@ -386,6 +394,7 @@ static void test_macro_management_api(void) {
   }
 
   ands_free(s);
+  ands_macro_clear(NULL);
 }
 
 int main(void) {
@@ -400,7 +409,7 @@ int main(void) {
   test_macro_names_truncate_to_atom_width();
   test_macros_nested_and_replace();
   test_macro_definitions_do_not_break_strings();
-  test_macros_are_parser_local();
+  test_macros_are_global();
   test_macro_management_api();
 
   if (failures) {

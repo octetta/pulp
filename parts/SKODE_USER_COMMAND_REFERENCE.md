@@ -55,8 +55,8 @@ most 32 operations.
 | `p pan` | Stereo position from `-1` to `1` | Moves the voice across the stereo field. `-1` is left, `0` is center, and `1` is right. | Yes |
 | `ds bus,amount` | Bus `1..4`, send `0..1` or `0..15` | Sends the selected voice's mono signal to one delay bus when the voice is centered with no pan modulation. `ds amount` remains accepted as bus `1`. | No |
 | `DL bus,coarse,fine,feedback,modfreq,moddepth,level` | DW-style delay parameters | Sets one mono-send/stereo-return delay bus on the main output. Bus range is `1..4`; parameter ranges are `0..7`, `0..15`, `0..15`, `0..31`, `0..31`, `0..15`. | No |
-| `DL? [bus]` | Optional bus `1..4` | Displays one delay bus, or all four buses when no bus is supplied. | No |
-| `GS` | None | Displays global synth status: master volume, tempo, sample rate, voice/wave limits, and all delay buses. | No |
+| `DL? [bus]` | Optional bus `1..4` | Displays one delay bus, or all four buses, as copy/pasteable `DL...` commands. | No |
+| `GS [full]` | Optional boolean | Displays copy/pasteable global synth state and the build version. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. | No |
 | `m state` | `0` or nonzero | Mutes or unmutes oscillator output without deleting the voice settings. | Yes |
 | `l velocity` | Envelope velocity | Triggers or updates the voice envelope with the supplied velocity. It also affects voices linked with `H`. | Yes |
 | `T` | None | Retriggers the selected voice at velocity `1`, including velocity-linked voices. | Yes |
@@ -103,9 +103,18 @@ v2 p0 ds3,6 l1
 # This voice is panned, so its delay send is intentionally ignored.
 v3 p.5 ds1,15 l1
 
-# Show every global delay bus along with master volume and tempo.
+# Show copy/pasteable version, master volume, tempo, and delay bus commands.
 GS
+
+# Show a larger text snapshot for saving to a `.sk` file.
+GS1
 ```
+
+`GS1` includes pasteable global settings, macros, labels for user-loaded
+wavetables, record/scope track routing when available, active voice
+definitions, and sequencer patterns. Wavetable sample data is not embedded;
+the snapshot includes a
+comment to make that limitation visible in saved files.
 
 ### Direction, Looping, and Triggering
 
@@ -731,8 +740,8 @@ multichannel WAV recording can be active simultaneously.
 | `W [wave[,end-or-width[,height]]]` | Optional display parameters | Displays one wavetable, recording data, or all loaded waves. |
 | `W@ wave,param[,register]` | Wave, property, optional destination | Reads wave sample count (`0`), sample rate (`1`), or duration (`2`). |
 | `v@ param[,register]` | Property and optional destination | Reads selected voice wave (`0`), amplitude (`1`), or frequency (`2`). |
-| `DL? [bus]` | Optional bus `1..4` | Displays one delay bus, or all four buses when no bus is supplied. |
-| `GS` | None | Displays master volume, tempo, synth limits, and all delay bus settings. |
+| `DL? [bus]` | Optional bus `1..4` | Displays one delay bus, or all four buses, as copy/pasteable `DL...` commands. |
+| `GS [full]` | Optional boolean | Displays copy/pasteable version, master volume, tempo, and delay bus commands. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. |
 | `?s` | None | Displays the current parser string. |
 | `/s [section]` | Optional section number | Displays runtime, audio, synth, Skode, string, or benchmark state. |
 | `/th?` | None | Displays SKRED service/thread health: audio callback load, control-event dispatcher counters, UDP activity, recorder state, and scope publication state. |

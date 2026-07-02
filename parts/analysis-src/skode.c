@@ -406,17 +406,59 @@ void system_show(skode_t *ctx) {
   ctx->printf(ctx, "# udp_port %d\n", udp_info());
 }
 
-void global_status_show(skode_t *ctx) {
+static void skode_macros_show(skode_t *ctx, int pasteable) {
+  char name[ANDS_MACRO_NAME_LEN];
+  char body[ANDS_MACRO_BODY_LEN];
+  int arg_count = 0;
+  int count = ands_macro_count(ctx->parse);
+  if (count == 0) {
+    if (!pasteable) ctx->printf(ctx, "# macros empty\n");
+  } else {
+    for (int i = 0; i < count; i++) {
+      if (ands_macro_get(ctx->parse, i, name, sizeof(name),
+                         body, sizeof(body), &arg_count)) {
+        if (pasteable) {
+          ctx->printf(ctx, "[%s] :%s ;\n", name, body);
+        } else {
+          ctx->printf(ctx, "# [%s] :%s ; # @%d\n", name, body, arg_count);
+        }
+      }
+    }
+  }
+}
+
+static void wave_labels_show(skode_t *ctx) {
+  for (int wave = 0; wave < WAVE_TABLE_MAX; wave++) {
+    if (sw.data[wave] && sw.size[wave] > 0 &&
+        !sw.readonly[wave] && sw.name[wave][0] != '\0')
+      ctx->printf(ctx, "[%s] wt%d\n", sw.name[wave], wave);
+  }
+}
+
+void pattern_show(skode_t *ctx, int pattern_pointer, int verbose);
+
+void global_status_show(skode_t *ctx, int full) {
   skode_t wprime;
   if (ctx == NULL) {
     ctx = &wprime;
     skode_init(ctx);
   }
-  ctx->printf(ctx, "# V %g dB\n", volume_get());
-  ctx->printf(ctx, "# M %g bpm\n", tempo_bpm_get());
+  ctx->printf(ctx, "# skred_version %s\n", skred_version());
+  ctx->printf(ctx, "V%g\n", volume_get());
+  ctx->printf(ctx, "M%g\n", tempo_bpm_get());
   ctx->printf(ctx, "# sample_rate %d voices %d waves %d\n",
     synth_sample_rate_get(), synth_config.voice_max, synth_config.wave_table_max);
   ctx->printf(ctx, "%s", delay_format());
+  if (!full) return;
+
+  ctx->printf(ctx, "# skred_text_state 1\n");
+  ctx->printf(ctx, "# wavetable sample data is not embedded in this text snapshot\n");
+  skode_macros_show(ctx, 1);
+  wave_labels_show(ctx);
+  record_tracks_show(ctx);
+  voice_show_all(ctx, ctx->voice, 0);
+  for (int pattern = 0; pattern < PATTERNS_MAX; pattern++)
+    pattern_show(ctx, pattern, 1);
 }
 
 
@@ -2475,7 +2517,7 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('GS--'): // show global synth status
-      global_status_show(ctx);
+      global_status_show(ctx, argc > 0 && arg[0] > 0.0);
       break;
     case ATOM4('P---'): // pan-mod voice depth
       if (argc < 2) {
@@ -2952,22 +2994,7 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('?m--'): // show-ands-macros
-      {
-        char name[ANDS_MACRO_NAME_LEN];
-        char body[ANDS_MACRO_BODY_LEN];
-        int arg_count = 0;
-        int count = ands_macro_count(ctx->parse);
-        if (count == 0) {
-          ctx->printf(ctx, "# macros empty\n");
-        } else {
-          for (int i = 0; i < count; i++) {
-            if (ands_macro_get(ctx->parse, i, name, sizeof(name),
-                               body, sizeof(body), &arg_count)) {
-              ctx->printf(ctx, "# [%s] :%s ; # @%d\n", name, body, arg_count);
-            }
-          }
-        }
-      }
+      skode_macros_show(ctx, 0);
       break;
     case ATOM4('?ce-'): // show control-plane event snapshot
       control_event_show(ctx, 0);

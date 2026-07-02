@@ -1215,10 +1215,17 @@ static void test_global_delay_send_requires_center_pan(void) {
 
   ctx.log_enable = 1;
   consume(test, &ctx, "GS");
-  expect_substr(test, ctx.log, "# V ", "global status master volume");
-  expect_substr(test, ctx.log, "# M ", "global status tempo");
-  expect_substr(test, ctx.log, "# DL1 ", "global status delay bus 1");
-  expect_substr(test, ctx.log, "# DL4 ", "global status delay bus 4");
+  expect_substr(test, ctx.log, "# skred_version ", "global status version");
+  expect_substr(test, ctx.log, "V", "global status master volume");
+  expect_substr(test, ctx.log, "M", "global status tempo");
+  expect_substr(test, ctx.log, "DL1,", "global status delay bus 1");
+  expect_substr(test, ctx.log, "DL4,", "global status delay bus 4");
+
+  consume(test, &ctx, "DL?2");
+  expect_substr(test, ctx.log, "DL2,0,0,0,0,0,15",
+                "delay query is pasteable");
+
+  consume(test, &ctx, "GS1");
 }
 
 static void test_ands_macro_commands(void) {

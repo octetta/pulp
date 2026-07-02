@@ -374,9 +374,9 @@ void delay_clear(void) {
 static void delay_format_bus(char *out, size_t out_size, int index) {
   delay_bus_t *bus = &delay_bus[index];
   snprintf(out, out_size,
-    "# DL%d stereo=1 active=%d coarse=%d fine=%d feedback=%d mod_freq=%d mod_depth=%d level=%d time=%.3fms\n",
-    index + 1, bus->active, bus->coarse, bus->fine, bus->feedback,
-    bus->mod_freq, bus->mod_depth, bus->level, delay_base_ms(bus));
+    "DL%d,%d,%d,%d,%d,%d,%d\n",
+    index + 1, bus->coarse, bus->fine, bus->feedback, bus->mod_freq,
+    bus->mod_depth, bus->level);
 }
 
 const char *delay_bus_format(int bus_number) {

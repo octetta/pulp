@@ -44,6 +44,15 @@ static void expect_u64(const char *test, uint64_t got, uint64_t want, const char
   }
 }
 
+static void expect_substr(const char *test, const char *haystack,
+                          const char *needle, const char *label) {
+  if (!haystack || !needle || !strstr(haystack, needle)) {
+    char msg[160];
+    snprintf(msg, sizeof(msg), "%s missing [%s]", label, needle ? needle : "");
+    fail(test, msg);
+  }
+}
+
 static skode_t new_ctx(void) {
   skode_t ctx = SKODE_EMPTY();
   skode_init(&ctx);
@@ -1121,6 +1130,97 @@ static void test_context_modes(void) {
   expect_int(test, ctx.flag, 7, "flag");
 }
 
+static int buffer_channel_nonzero(const float *buffer, int frames,
+                                  int channels, int channel) {
+  for (int i = 0; i < frames; i++) {
+    float value = buffer[(i * channels) + channel];
+    if (fabsf(value) > 0.000001f) return 1;
+  }
+  return 0;
+}
+
+static int buffer_channels_differ(const float *buffer, int frames, int channels) {
+  for (int i = 0; i < frames; i++) {
+    float left = buffer[(i * channels)];
+    float right = buffer[(i * channels) + 1];
+    if (fabsf(left - right) > 0.000001f) return 1;
+  }
+  return 0;
+}
+
+static void configure_delay_test_voice(int voice, int bus, float pan) {
+  static float table[2] = {1.0f, 1.0f};
+  sv.table[voice] = table;
+  sv.table_size[voice] = 2;
+  sv.table_rate[voice] = (float)MAIN_SAMPLE_RATE;
+  sv.table_size_rate[voice] = 2.0f / (float)MAIN_SAMPLE_RATE;
+  sv.one_shot[voice] = 0;
+  sv.finished[voice] = 0;
+  sv.phase_inc[voice] = 0.0f;
+  sv.amp[voice] = 1.0f;
+  sv.user_amp[voice] = 0.0f;
+  sv.use_amp_envelope[voice] = 0;
+  pan_set(voice, pan);
+  sv.pan_left[voice] = 0.0f;
+  sv.pan_right[voice] = 0.0f;
+  delay_send_set(voice, bus, 15.0f);
+}
+
+static void test_global_delay_send_requires_center_pan(void) {
+  const char *test = "global delay send requires center pan";
+  enum { frames = 1024, channels = 2 };
+  float buffer[frames * channels];
+  skode_t ctx = new_ctx();
+  int coarse = -1, fine = -1, feedback = -1;
+  int mod_freq = -1, mod_depth = -1, level = -1;
+
+  consume(test, &ctx, "DL2,0,0,0,0,0,15 ds2,15");
+  delay_params_get(2, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+  expect_int(test, coarse, 0, "delay coarse command");
+  expect_int(test, fine, 0, "delay fine command");
+  expect_int(test, feedback, 0, "delay feedback command");
+  expect_int(test, mod_freq, 0, "delay mod freq command");
+  expect_int(test, mod_depth, 0, "delay mod depth command");
+  expect_int(test, level, 15, "delay level command");
+  expect_int(test, sv.delay_bus[ctx.voice], 1, "delay send bus command");
+  expect_float(test, sv.delay_send[ctx.voice], 1.0f, 0.0001f,
+               "delay send command");
+
+  voice_init();
+  delay_params_set(2, 0, 0, 0, 0, 0, 15);
+  delay_clear();
+  configure_delay_test_voice(0, 2, 0.0f);
+  memset(buffer, 0, sizeof(buffer));
+  synth(buffer, NULL, frames, channels, NULL);
+  expect_int(test, buffer_channel_nonzero(buffer, frames, channels, 0), 1,
+             "centered voice feeds delay");
+
+  voice_init();
+  delay_params_set(2, 0, 0, 0, 0, 0, 15);
+  delay_clear();
+  configure_delay_test_voice(0, 2, 1.0f);
+  memset(buffer, 0, sizeof(buffer));
+  synth(buffer, NULL, frames, channels, NULL);
+  expect_int(test, buffer_channel_nonzero(buffer, frames, channels, 0), 0,
+             "panned voice does not feed delay");
+
+  voice_init();
+  delay_params_set(3, 0, 0, 0, 0, 31, 15);
+  delay_clear();
+  configure_delay_test_voice(0, 3, 0.0f);
+  memset(buffer, 0, sizeof(buffer));
+  synth(buffer, NULL, frames, channels, NULL);
+  expect_int(test, buffer_channels_differ(buffer, frames, channels), 1,
+             "modulated delay returns stereo");
+
+  ctx.log_enable = 1;
+  consume(test, &ctx, "GS");
+  expect_substr(test, ctx.log, "# V ", "global status master volume");
+  expect_substr(test, ctx.log, "# M ", "global status tempo");
+  expect_substr(test, ctx.log, "# DL1 ", "global status delay bus 1");
+  expect_substr(test, ctx.log, "# DL4 ", "global status delay bus 4");
+}
+
 static void test_ands_macro_commands(void) {
   const char *test = "ands macro commands";
   skode_t ctx = new_ctx();
@@ -1606,6 +1706,7 @@ int main(void) {
   test_scalar_voice_opcode_inventory();
   test_parameter_and_buffer_safety();
   test_context_modes();
+  test_global_delay_send_requires_center_pan();
   test_ands_macro_commands();
   test_load_installs_global_macros_and_registers();
   test_control_composition_primitives();

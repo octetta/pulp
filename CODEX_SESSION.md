@@ -91,3 +91,37 @@ fixing the wasm control-plane `/cer 0` hang path.
   wasm, and maxed parser/state/ksynth/audio tests.
 - Note: `make` and `make native` both use `parts/build_native`; do not run
   them concurrently.
+
+### 2026-07-02 - Global DW-Style Delay
+
+- Added a global fixed-size main L/R delay bus with DW-8000-like controls:
+  coarse, fine, feedback, mod frequency, mod depth, and level.
+- Added per-voice `ds` delay send. Sends use the voice's post-amp mono signal
+  before pan, but only feed the delay when the voice is centered (`p0`) and
+  pan modulation is disabled.
+- The delay path is mono-send/stereo-return: modulation intensity spreads the
+  L/R taps, and modulation frequency animates that stereo spread.
+- Internally the code is shaped as `delay_bus[0]` so more independent delay
+  buses can be added later without changing existing `DL` patches.
+- Added Skode commands: `DL coarse,fine,feedback,modfreq,moddepth,level`,
+  `DL?`, and `ds amount`.
+- Added synth API helpers: `delay_send_set()`, `delay_params_set()`,
+  `delay_params_get()`, `delay_clear()`, and `delay_format()`.
+- Verified: `make`, `make native`, `make wasm`, `make maxed`; native, wasm,
+  and maxed parser/state/ksynth/audio tests.
+
+### 2026-07-02 - Four Delay Buses
+
+- Expanded the DW-style delay from one bus to four independent buses labeled
+  `1` through `4`.
+- Updated commands to `DL bus,coarse,fine,feedback,modfreq,moddepth,level`,
+  `ds bus,amount`, `DL? [bus]`, and `GS`.
+- Kept compatibility for one-argument `ds amount`, which now targets bus `1`.
+- Each voice can select one delay bus; delay sends still require centered
+  pan and no pan modulation.
+- Delay buses skip audio processing while idle, then remain active long enough
+  for delay memory/tails to drain after receiving input.
+- Updated Skode command docs and examples, plus regression tests for bus
+  selection, centered-pan gating, stereo return, and `GS` output.
+- Verified: `make`, `make native`, `make maxed`, `make wasm`; native, maxed,
+  and wasm build-directory `ctest --output-on-failure`.

@@ -1,0 +1,40 @@
+| DL coarse,fine,feedback,modfreq,moddepth,level
+| DW-style delay parameters
+| Sets delay bus 0, a mono-send/stereo-return effect on the main output.
+Ranges are
+  coarse 0..7
+    fine 0..15
+feedback 0..15
+modfreq  0..31
+moddepth 0..31
+   level 0..15
+
+
+| Parameter Number | Parameter Name | Range | Description |
+| :--- | :--- | :--- | :--- |
+| **71** | Delay Time (Coarse) | 0 – 7 | Sets the base coarse time window/range for the delay. |
+| **72** | Delay Factor (Fine) | 0 – 15 | Acts as a fine-tuning multiplier (x0.5 to x1.0) applied to the coarse time. Combined with Par. 71, it delivers a total range of roughly 4ms to 512ms. |
+| **73** | Feedback | 0 – 15 | Controls the number of repeats (regeneration). High values stop just short of hard runaway self-oscillation. |
+| **74** | Modulation Frequency | 0 – 31 | Adjusts the speed of the delay's dedicated internal LFO (up to approx. 10Hz). |
+| **75** | Modulation Intensity | 0 – 31 | Controls the depth/width of the delay time sweep, essential for creating chorus or flanging effects. |
+| **76** | Effect Level | 0 – 15 | Sets the wet/dry mix balance of the delayed signal against the dry synth tone. |
+
+
+*   **71: Delay Time (Coarse)** [Range: 0 – 7]  
+    Sets the base coarse time window/range for the delay line.
+*   **72: Delay Factor (Fine)** [Range: 0 – 15]  
+    Acts as a fine-tuning multiplier (from x0.5 to x1.0) applied
+    to the coarse time. Combined with Parameter 71, this provides
+    a total range of roughly 4ms to 512ms.
+*   **73: Feedback** [Range: 0 – 15]  
+    Controls the number of repeats (regeneration). High values stop
+    just short of hard runaway self-oscillation.
+*   **74: Modulation Frequency** [Range: 0 – 31]  
+    Adjusts the speed of the delay's dedicated internal LFO
+    (up to approximately 10Hz).
+*   **75: Modulation Intensity** [Range: 0 – 31]  
+    Controls the depth/width of the delay time sweep, which is
+    essential for dialed-in chorus or flanging effects.
+*   **76: Effect Level** [Range: 0 – 15]  
+    Sets the wet/dry mix balance of the delayed signal against the
+    dry synth tone.

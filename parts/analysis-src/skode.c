@@ -406,6 +406,19 @@ void system_show(skode_t *ctx) {
   ctx->printf(ctx, "# udp_port %d\n", udp_info());
 }
 
+void global_status_show(skode_t *ctx) {
+  skode_t wprime;
+  if (ctx == NULL) {
+    ctx = &wprime;
+    skode_init(ctx);
+  }
+  ctx->printf(ctx, "# V %g dB\n", volume_get());
+  ctx->printf(ctx, "# M %g bpm\n", tempo_bpm_get());
+  ctx->printf(ctx, "# sample_rate %d voices %d waves %d\n",
+    synth_sample_rate_get(), synth_config.voice_max, synth_config.wave_table_max);
+  ctx->printf(ctx, "%s", delay_format());
+}
+
 
 static const char *control_event_type_name(uint32_t type) {
   switch (type) {
@@ -2428,6 +2441,42 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('p---'): // pan value
       if (argc) pan_set(voice, arg[0]);
       break;
+    case ATOM4('ds--'): // delay-send bus amount; active only for centered, unmodulated voices
+      if (argc == 1) {
+        delay_send_set(voice, 1, arg[0]);
+      } else if (argc > 1) {
+        int bus = 1;
+        skode_double_to_int(arg[0], &bus);
+        delay_send_set(voice, bus, arg[1]);
+      }
+      break;
+    case ATOM4('DL--'): // delay params bus coarse fine feedback mod-freq mod-depth level
+      {
+        int bus = 1;
+        int coarse, fine, feedback, mod_freq, mod_depth, level;
+        if (argc > 0) skode_double_to_int(arg[0], &bus);
+        delay_params_get(bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+        if (argc > 1) skode_double_to_int(arg[1], &coarse);
+        if (argc > 2) skode_double_to_int(arg[2], &fine);
+        if (argc > 3) skode_double_to_int(arg[3], &feedback);
+        if (argc > 4) skode_double_to_int(arg[4], &mod_freq);
+        if (argc > 5) skode_double_to_int(arg[5], &mod_depth);
+        if (argc > 6) skode_double_to_int(arg[6], &level);
+        delay_params_set(bus, coarse, fine, feedback, mod_freq, mod_depth, level);
+      }
+      break;
+    case ATOM4('DL?-'): // show global delay params
+      if (argc) {
+        int bus = 1;
+        skode_double_to_int(arg[0], &bus);
+        ctx->printf(ctx, "%s", delay_bus_format(bus));
+      } else {
+        ctx->printf(ctx, "%s", delay_format());
+      }
+      break;
+    case ATOM4('GS--'): // show global synth status
+      global_status_show(ctx);
+      break;
     case ATOM4('P---'): // pan-mod voice depth
       if (argc < 2) {
         pan_mod_set(voice, -1, 0, 0);
@@ -3432,7 +3481,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('/wex'): // wave-expand wave
       if (argc && x >= 200 && x <=999) wave_table_dynamic_expand(x);
       break;
-    case ATOM4('/cat'): // print a text file
+    case ATOM4('%cat'): // print a text file
       if (strlen(ands_string(ctx->parse))) {
         FILE *in = fopen(ands_string(ctx->parse), "rt");
         if (in) {
@@ -3456,13 +3505,13 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
-    case ATOM4('/cd-'): // change directory
-      ctx->printf(ctx, "# [%s] /cd\n", ands_string(ctx->parse));
+    case ATOM4('%cd-'): // change directory
+      ctx->printf(ctx, "# [%s] %cd\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
         chdir(ands_string(ctx->parse));
       }
       break;
-    case ATOM4('/ls-'): // list directory (match-type)
+    case ATOM4('%ls-'): // list directory (match-type)
       {
       /*
           types

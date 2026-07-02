@@ -28,10 +28,29 @@ int synth_sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
 #define VOLUME_DEFAULT (-20.0f)
 #define DB_TO_LINEAR(v) powf(10.f, (v) / 20.0f)
 #define SYNTH_INVALID_VOICE (100)
+#define DELAY_MAX_FRAMES (65536)
+#define DELAY_BUS_COUNT (4)
+
+typedef struct {
+  float buffer[DELAY_MAX_FRAMES];
+  int write;
+  int active;
+  int idle_frames;
+  float lfo_phase;
+  int coarse;
+  int fine;
+  int feedback;
+  int mod_freq;
+  int mod_depth;
+  int level;
+} delay_bus_t;
+
+static delay_bus_t delay_bus[DELAY_BUS_COUNT];
 
 static int verbose = 0;
 
 int volume_set(float v);
+float volume_get(void);
 extern float volume_user;
 extern float volume_final;
 static int voice_invalid(int voice);
@@ -74,6 +93,7 @@ void synth_init(int vc) {
   if (verbose) printf("# synth_config.wave_table_max = %d\n", synth_config.wave_table_max);
 
   volume_set(VOLUME_DEFAULT);
+  memset(delay_bus, 0, sizeof(delay_bus));
   @if(RECORD || SCOPE)
   synth_track_defaults();
   @endif
@@ -172,10 +192,231 @@ float volume_smoother_smoothing = 0.002f;
 float volume_threshold = 0.05f;
 float volume_smoother_higher_smoothing = 0.3f;
 
+static float clampf(float value, float min_value, float max_value) {
+  if (value < min_value) return min_value;
+  if (value > max_value) return max_value;
+  return value;
+}
+
+static int clampi(int value, int min_value, int max_value) {
+  if (value < min_value) return min_value;
+  if (value > max_value) return max_value;
+  return value;
+}
+
+static float delay_12bit_clip(float x) {
+  x = clampf(x, -1.0f, 1.0f);
+  return roundf(x * 2047.0f) * (1.0f / 2047.0f);
+}
+
+static int delay_bus_index(int bus) {
+  if (bus < 1 || bus > DELAY_BUS_COUNT) return -1;
+  return bus - 1;
+}
+
+static float delay_base_ms(const delay_bus_t *bus) {
+  int coarse = bus->coarse;
+  int fine = bus->fine;
+  float base_ms;
+  float fine_factor;
+
+  if (coarse < 0) coarse = 0;
+  if (coarse > 7) coarse = 7;
+  base_ms = 8.0f * (float)(1 << (coarse > 6 ? 6 : coarse));
+  fine_factor = 0.5f + ((float)fine / 15.0f) * 0.5f;
+  return base_ms * fine_factor;
+}
+
+static float delay_feedback_gain(const delay_bus_t *bus) {
+  return ((float)bus->feedback / 15.0f) * 0.82f;
+}
+
+static float delay_lfo_hz(const delay_bus_t *bus) {
+  return ((float)bus->mod_freq / 31.0f) * 10.0f;
+}
+
+static float delay_mod_depth_frames(const delay_bus_t *bus) {
+  float depth = (float)bus->mod_depth / 31.0f;
+  float base_frames = delay_base_ms(bus) * (float)MAIN_SAMPLE_RATE * 0.001f;
+  return base_frames * depth * 0.25f;
+}
+
+static float delay_stereo_offset_frames(const delay_bus_t *bus) {
+  float depth = (float)bus->mod_depth / 31.0f;
+  return (2.0f + depth * 8.0f) * (float)MAIN_SAMPLE_RATE * 0.001f;
+}
+
+static float delay_read(const delay_bus_t *bus, float delay_frames) {
+  if (delay_frames < 1.0f) delay_frames = 1.0f;
+  if (delay_frames > (float)(DELAY_MAX_FRAMES - 2))
+    delay_frames = (float)(DELAY_MAX_FRAMES - 2);
+
+  float read = (float)bus->write - delay_frames;
+  while (read < 0.0f) read += (float)DELAY_MAX_FRAMES;
+  int i0 = (int)read;
+  int i1 = i0 + 1;
+  if (i1 >= DELAY_MAX_FRAMES) i1 = 0;
+  float frac = read - (float)i0;
+  return bus->buffer[i0] + frac * (bus->buffer[i1] - bus->buffer[i0]);
+}
+
+static void delay_process(delay_bus_t *bus, float input, float *left, float *right) {
+  float base_frames = delay_base_ms(bus) * (float)MAIN_SAMPLE_RATE * 0.001f;
+  float lfo = 0.0f;
+  float mod_frames;
+  float delayed_left;
+  float delayed_right;
+  float delayed_feedback;
+  float write_sample;
+  float wet;
+  float stereo_offset = 0.0f;
+
+  if (bus->mod_depth > 0) {
+    lfo = sinf(bus->lfo_phase);
+    if (bus->mod_freq > 0) {
+      bus->lfo_phase += 2.0f * (float)M_PI *
+        delay_lfo_hz(bus) / (float)MAIN_SAMPLE_RATE;
+      if (bus->lfo_phase >= 2.0f * (float)M_PI)
+        bus->lfo_phase -= 2.0f * (float)M_PI;
+    }
+    stereo_offset = delay_stereo_offset_frames(bus);
+  }
+
+  mod_frames = lfo * delay_mod_depth_frames(bus);
+  delayed_left = delay_read(bus, base_frames + mod_frames);
+  delayed_right = delay_read(bus, base_frames - mod_frames + stereo_offset);
+  delayed_feedback = (delayed_left + delayed_right) * 0.5f;
+  write_sample = delay_12bit_clip(input + delayed_feedback * delay_feedback_gain(bus));
+  bus->buffer[bus->write] = write_sample;
+  bus->write++;
+  if (bus->write >= DELAY_MAX_FRAMES) bus->write = 0;
+
+  wet = (float)bus->level / 15.0f;
+  if (left) *left = delayed_left * wet;
+  if (right) *right = delayed_right * wet;
+
+  if (fabsf(input) + fabsf(delayed_left) + fabsf(delayed_right) +
+      fabsf(write_sample) > 0.0000001f) {
+    bus->active = 1;
+    bus->idle_frames = 0;
+  } else if (bus->idle_frames >= DELAY_MAX_FRAMES) {
+    bus->active = 0;
+  } else {
+    bus->idle_frames++;
+  }
+}
+
+static int delay_voice_can_send(int voice) {
+  if (voice_invalid(voice)) return 0;
+  if (fabsf(sv.pan[voice]) > 0.0001f) return 0;
+  @if(PANMOD)
+  if (sv.pan_mod_osc[voice] >= 0) return 0;
+  @endif
+  return 1;
+}
+
+int delay_send_set(int voice, int bus, float amount) {
+  int index = delay_bus_index(bus);
+  if (voice_invalid(voice) || index < 0 || !isfinite(amount))
+    return SYNTH_INVALID_VOICE;
+  if (amount > 1.0f) amount /= 15.0f;
+  sv.delay_bus[voice] = index;
+  sv.delay_send[voice] = clampf(amount, 0.0f, 1.0f);
+  if (sv.delay_send[voice] <= 0.0f) sv.delay_bus[voice] = -1;
+  return 0;
+}
+
+int delay_params_set(int bus_number, int coarse, int fine, int feedback, int mod_freq,
+                     int mod_depth, int level) {
+  int index = delay_bus_index(bus_number);
+  if (index < 0) return SYNTH_INVALID_VOICE;
+  delay_bus_t *bus = &delay_bus[index];
+  bus->coarse = clampi(coarse, 0, 7);
+  bus->fine = clampi(fine, 0, 15);
+  bus->feedback = clampi(feedback, 0, 15);
+  bus->mod_freq = clampi(mod_freq, 0, 31);
+  bus->mod_depth = clampi(mod_depth, 0, 31);
+  bus->level = clampi(level, 0, 15);
+  return 0;
+}
+
+void delay_params_get(int bus_number, int *coarse, int *fine, int *feedback, int *mod_freq,
+                      int *mod_depth, int *level) {
+  int index = delay_bus_index(bus_number);
+  if (index < 0) {
+    if (coarse) *coarse = 0;
+    if (fine) *fine = 0;
+    if (feedback) *feedback = 0;
+    if (mod_freq) *mod_freq = 0;
+    if (mod_depth) *mod_depth = 0;
+    if (level) *level = 0;
+    return;
+  }
+  delay_bus_t *bus = &delay_bus[index];
+  if (coarse) *coarse = bus->coarse;
+  if (fine) *fine = bus->fine;
+  if (feedback) *feedback = bus->feedback;
+  if (mod_freq) *mod_freq = bus->mod_freq;
+  if (mod_depth) *mod_depth = bus->mod_depth;
+  if (level) *level = bus->level;
+}
+
+void delay_clear(void) {
+  for (int i = 0; i < DELAY_BUS_COUNT; i++) {
+    memset(delay_bus[i].buffer, 0, sizeof(delay_bus[i].buffer));
+    delay_bus[i].write = 0;
+    delay_bus[i].active = 0;
+    delay_bus[i].idle_frames = 0;
+    delay_bus[i].lfo_phase = 0.0f;
+  }
+}
+
+static void delay_format_bus(char *out, size_t out_size, int index) {
+  delay_bus_t *bus = &delay_bus[index];
+  snprintf(out, out_size,
+    "# DL%d stereo=1 active=%d coarse=%d fine=%d feedback=%d mod_freq=%d mod_depth=%d level=%d time=%.3fms\n",
+    index + 1, bus->active, bus->coarse, bus->fine, bus->feedback,
+    bus->mod_freq, bus->mod_depth, bus->level, delay_base_ms(bus));
+}
+
+const char *delay_bus_format(int bus_number) {
+  static char out[160];
+  int index = delay_bus_index(bus_number);
+  if (index < 0) {
+    snprintf(out, sizeof(out), "# DL invalid bus=%d range=1..%d\n",
+             bus_number, DELAY_BUS_COUNT);
+  } else {
+    delay_format_bus(out, sizeof(out), index);
+  }
+  return out;
+}
+
+const char *delay_format(void) {
+  static char out[640];
+  size_t used = 0;
+  out[0] = '\0';
+  for (int i = 0; i < DELAY_BUS_COUNT; i++) {
+    char line[160];
+    delay_format_bus(line, sizeof(line), i);
+    int wrote = snprintf(out + used, sizeof(out) - used, "%s", line);
+    if (wrote < 0) break;
+    if ((size_t)wrote >= sizeof(out) - used) {
+      used = sizeof(out) - 1;
+      break;
+    }
+    used += (size_t)wrote;
+  }
+  return out;
+}
+
 int volume_set(float v) {
   volume_user = v;
   volume_final = DB_TO_LINEAR(v);
   return 0;
+}
+
+float volume_get(void) {
+  return volume_user;
 }
 
 void audio_rng_init(uint64_t *rng, uint64_t seed);
@@ -857,6 +1098,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     uint64_t current_sample = callback_sample + (uint64_t)i;
     float sample_left = 0.0f;
     float sample_right = 0.0f;
+    float delay_input[DELAY_BUS_COUNT] = {0};
     @if(RECORD || SCOPE)
     float record_left[RECORD_TRACK_COUNT] = {0};
     float record_right[RECORD_TRACK_COUNT] = {0};
@@ -1041,6 +1283,11 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       }
 
       if (sv.disconnect[n] == 0) {
+        if (sv.delay_send[n] > 0.0f && delay_voice_can_send(n)) {
+          int bus = sv.delay_bus[n];
+          if (bus >= 0 && bus < DELAY_BUS_COUNT)
+            delay_input[bus] += sv.sample[n] * sv.delay_send[n];
+        }
         float left  = sv.sample[n];
         float right = sv.sample[n];
         // accumulate samples
@@ -1063,6 +1310,18 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
           record_right[track] += right;
         }
         @endif
+      }
+    }
+
+    for (int bus = 0; bus < DELAY_BUS_COUNT; bus++) {
+      if (delay_input[bus] != 0.0f) delay_bus[bus].active = 1;
+      if (!delay_bus[bus].active) continue;
+      float delay_left = 0.0f;
+      float delay_right = 0.0f;
+      delay_process(&delay_bus[bus], delay_input[bus], &delay_left, &delay_right);
+      if (delay_bus[bus].level > 0) {
+        sample_left += delay_left;
+        sample_right += delay_right;
       }
     }
 
@@ -1270,6 +1529,13 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || (sv.pan_mod_osc[v] >= 0 && sv.pan_mod_depth[v] != 0.0f))
         APPEND(" P%d,%g,%g", sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
     @endif
+
+    if (verbose || sv.delay_send[v] > 0.0f) {
+        if (sv.delay_bus[v] >= 0)
+            APPEND(" ds%d,%g", sv.delay_bus[v] + 1, sv.delay_send[v]);
+        else
+            APPEND(" ds0,0");
+    }
 
     @if(FILT)
     if (verbose || sv.filter_mode[v])
@@ -1678,6 +1944,8 @@ int voice_copy(int v, int n) {
   sv.link_trig_samp[n] = sv.link_trig_samp[v];
   //
   pan_set(n, sv.pan[v]);
+  if (sv.delay_bus[v] >= 0)
+    delay_send_set(n, sv.delay_bus[v] + 1, sv.delay_send[v]);
   @if(AM)
   amp_mod_set(n, sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
   @endif
@@ -1827,6 +2095,8 @@ void voice_reset(int i) {
   sv.pan[i] = 0;
   sv.pan_left[i] = 0.5f;
   sv.pan_right[i] = 0.5f;
+  sv.delay_bus[i] = -1;
+  sv.delay_send[i] = 0.0f;
   // pan smoothing?
   @if(AM)
   sv.amp_mod_osc[i] = -1;

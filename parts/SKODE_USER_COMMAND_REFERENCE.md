@@ -53,9 +53,9 @@ most 32 operations.
 | `a dB` | Amplitude in decibels | Sets voice loudness. Values closer to `0` are louder; negative values attenuate. | Yes |
 | `V dB` | Master amplitude in decibels | Changes the final output level for the entire synth, not just the selected voice. | No |
 | `p pan` | Stereo position from `-1` to `1` | Moves the voice across the stereo field. `-1` is left, `0` is center, and `1` is right. | Yes |
-| `ds bus,amount` | Bus `1..4`, send `0..1` or `0..15` | Sends the selected voice's mono signal to one delay bus when the voice is centered with no pan modulation. `ds amount` remains accepted as bus `1`. | No |
-| `DL bus,coarse,fine,feedback,modfreq,moddepth,level` | DW-style delay parameters | Sets one mono-send/stereo-return delay bus on the main output. Bus range is `1..4`; parameter ranges are `0..7`, `0..15`, `0..15`, `0..31`, `0..31`, `0..15`. | No |
-| `DL? [bus]` | Optional bus `1..4` | Displays one delay bus, or all four buses, as copy/pasteable `DL...` commands. | No |
+| `ds amount` | Send `0..1` or `0..15` | Sends the selected voice's mono signal to the delay owned by its record/scope track. The voice must be routed with `r1`..`r4`, centered with `p0`, and have no pan modulation. | No |
+| `DL track,coarse,fine,feedback,modfreq,moddepth,level` | Track `1..4`, DW-style delay parameters | Sets the mono-send/stereo-return delay attached to one record/scope track. Parameter ranges are `0..7`, `0..15`, `0..15`, `0..31`, `0..31`, `0..15`. | No |
+| `DL? [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. | No |
 | `GS [full]` | Optional boolean | Displays copy/pasteable global synth state and the build version. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. | No |
 | `m state` | `0` or nonzero | Mutes or unmutes oscillator output without deleting the voice settings. | Yes |
 | `l velocity` | Envelope velocity | Triggers or updates the voice envelope with the supplied velocity. It also affects voices linked with `H`. | Yes |
@@ -80,30 +80,36 @@ most 32 operations.
 | `[name] wt wave` | String and wave index | Gives a wavetable a display label. It does not alter sound. | No |
 
 Delay sends tap the selected voice after its oscillator, filter, envelope, and
-amplitude, but before pan. A send is active only while the voice is centered
-with `p0` and has no pan modulation. There are four independent delay buses,
-labeled `1` through `4`; each voice can choose one bus with `ds`. Buses with no
-incoming send are skipped by the audio callback until a voice feeds them, so
-unused buses have little to no CPU cost. Modulation intensity spreads the left
-and right delay taps, and modulation frequency animates that stereo spread.
+amplitude, but before pan. The record/scope route owns the delay identity:
+`r1` sends to track delay `1`, `r2` sends to track delay `2`, and so on through
+`r4`. `ds` sets only the send amount for the selected voice. A send is active
+only while the voice is routed to `r1`..`r4`, centered with `p0`, and has no pan
+modulation. Track delay returns are added both to the main stereo mix and to
+the matching record/scope stem. Track delays with no incoming send are skipped
+by the audio callback until a voice feeds them, so unused delays have little to
+no CPU cost. Modulation intensity spreads the left and right delay taps, and
+modulation frequency animates that stereo spread.
 
 ```skode
-# Bus 1: short, bright slapback. Voice 0 sends at full amount.
+# Track 1: short, bright slapback. Voice 0 sends at full amount.
 DL1,0,8,3,0,0,12
-v0 p0 ds1,15 l1
+v0 r1 p0 ds15 l1
 
-# Bus 2: longer modulated stereo delay. Voice 1 sends at half amount.
+# Track 2: longer modulated stereo delay. Voice 1 sends at half amount.
 DL2,4,12,8,10,20,11
-v1 p0 ds2,.5 l1
+v1 r2 p0 ds.5 l1
 
-# Bus 3: darker repeat bed with no modulation.
+# Track 3: darker repeat bed with no modulation.
 DL3,5,4,10,0,0,8
-v2 p0 ds3,6 l1
+v2 r3 p0 ds6 l1
 
-# This voice is panned, so its delay send is intentionally ignored.
-v3 p.5 ds1,15 l1
+# This voice is panned, so its track delay send is intentionally ignored.
+v3 r1 p.5 ds15 l1
 
-# Show copy/pasteable version, master volume, tempo, and delay bus commands.
+# This voice has no record/scope track, so ds has no track delay to feed.
+v4 r0 p0 ds15 l1
+
+# Show copy/pasteable version, master volume, tempo, and track delay commands.
 GS
 
 # Show a larger text snapshot for saving to a `.sk` file.
@@ -740,8 +746,8 @@ multichannel WAV recording can be active simultaneously.
 | `W [wave[,end-or-width[,height]]]` | Optional display parameters | Displays one wavetable, recording data, or all loaded waves. |
 | `W@ wave,param[,register]` | Wave, property, optional destination | Reads wave sample count (`0`), sample rate (`1`), or duration (`2`). |
 | `v@ param[,register]` | Property and optional destination | Reads selected voice wave (`0`), amplitude (`1`), or frequency (`2`). |
-| `DL? [bus]` | Optional bus `1..4` | Displays one delay bus, or all four buses, as copy/pasteable `DL...` commands. |
-| `GS [full]` | Optional boolean | Displays copy/pasteable version, master volume, tempo, and delay bus commands. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. |
+| `DL? [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. |
+| `GS [full]` | Optional boolean | Displays copy/pasteable version, master volume, tempo, and track delay commands. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. |
 | `?s` | None | Displays the current parser string. |
 | `/s [section]` | Optional section number | Displays runtime, audio, synth, Skode, string, or benchmark state. |
 | `/th?` | None | Displays SKRED service/thread health: audio callback load, control-event dispatcher counters, UDP activity, recorder state, and scope publication state. |

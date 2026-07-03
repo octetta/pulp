@@ -243,6 +243,9 @@ add_executable(skode_state_tests tests/skode_state_tests.c)
 target_link_libraries(skode_state_tests PRIVATE api)
 target_compile_definitions(skode_state_tests PRIVATE
   SKRED_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+if(NOT RECORD_FEATURE_INDEX EQUAL -1 OR NOT SCOPE_FEATURE_INDEX EQUAL -1)
+  target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_RECORD_SCOPE=1)
+endif()
 add_test(
   NAME skode.command-state
   COMMAND skode_state_tests

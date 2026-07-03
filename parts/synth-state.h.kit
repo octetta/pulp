@@ -67,7 +67,6 @@ typedef struct {
     float  * restrict pan;
     float  * restrict pan_left;
     float  * restrict pan_right;
-    int    * restrict delay_bus;
     float  * restrict delay_send;
 
     /* --- per-voice output sample --- */

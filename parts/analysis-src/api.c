@@ -1352,6 +1352,7 @@ char *skred_audio_status(void) {
            "  requested: [%s]\n"
            "  channels: %u\n"
            "rate: %u callback-frames: %d\n"
+           "%s"
            "%s",
            running ? "running" : "stopped",
            active_output, selected_output.name,
@@ -1360,6 +1361,7 @@ char *skred_audio_status(void) {
            , active_input, selected_input.name,
            input_channels,
            sample_rate, requested_synth_frames_per_callback,
+           delay_status(),
            skred_performance_status());
   return audio_status;
 }

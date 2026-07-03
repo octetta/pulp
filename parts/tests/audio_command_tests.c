@@ -25,6 +25,8 @@ int main(void) {
          "/a? did not report channel metrics");
   expect(strstr(skred_audio_message(), "callback-frames:") != NULL,
          "/a? did not report callback frame metrics");
+  expect(strstr(skred_audio_message(), "delay:") != NULL,
+         "/a? did not report delay status");
   expect(strstr(skred_audio_message(), "perf:") != NULL,
          "/a? did not report performance metrics");
 

@@ -1148,7 +1148,8 @@ static int buffer_channels_differ(const float *buffer, int frames, int channels)
   return 0;
 }
 
-static void configure_delay_test_voice(int voice, int bus, float pan) {
+#ifdef SKRED_TEST_RECORD_SCOPE
+static void configure_delay_test_voice(int voice, int track, float pan) {
   static float table[2] = {1.0f, 1.0f};
   sv.table[voice] = table;
   sv.table_size[voice] = 2;
@@ -1163,18 +1164,19 @@ static void configure_delay_test_voice(int voice, int bus, float pan) {
   pan_set(voice, pan);
   sv.pan_left[voice] = 0.0f;
   sv.pan_right[voice] = 0.0f;
-  delay_send_set(voice, bus, 15.0f);
+  synth_record_track_set(voice, track);
+  delay_send_set(voice, 15.0f);
 }
 
-static void test_global_delay_send_requires_center_pan(void) {
-  const char *test = "global delay send requires center pan";
+static void test_track_delay_send_requires_route_and_center_pan(void) {
+  const char *test = "track delay send requires route and center pan";
   enum { frames = 1024, channels = 2 };
   float buffer[frames * channels];
   skode_t ctx = new_ctx();
   int coarse = -1, fine = -1, feedback = -1;
   int mod_freq = -1, mod_depth = -1, level = -1;
 
-  consume(test, &ctx, "DL2,0,0,0,0,0,15 ds2,15");
+  consume(test, &ctx, "r2 DL2,0,0,0,0,0,15 ds15");
   delay_params_get(2, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
   expect_int(test, coarse, 0, "delay coarse command");
   expect_int(test, fine, 0, "delay fine command");
@@ -1182,7 +1184,7 @@ static void test_global_delay_send_requires_center_pan(void) {
   expect_int(test, mod_freq, 0, "delay mod freq command");
   expect_int(test, mod_depth, 0, "delay mod depth command");
   expect_int(test, level, 15, "delay level command");
-  expect_int(test, sv.delay_bus[ctx.voice], 1, "delay send bus command");
+  expect_int(test, synth_record_track_get(ctx.voice), 2, "record track command");
   expect_float(test, sv.delay_send[ctx.voice], 1.0f, 0.0001f,
                "delay send command");
 
@@ -1194,6 +1196,15 @@ static void test_global_delay_send_requires_center_pan(void) {
   synth(buffer, NULL, frames, channels, NULL);
   expect_int(test, buffer_channel_nonzero(buffer, frames, channels, 0), 1,
              "centered voice feeds delay");
+
+  voice_init();
+  delay_params_set(2, 0, 0, 0, 0, 0, 15);
+  delay_clear();
+  configure_delay_test_voice(0, 0, 0.0f);
+  memset(buffer, 0, sizeof(buffer));
+  synth(buffer, NULL, frames, channels, NULL);
+  expect_int(test, buffer_channel_nonzero(buffer, frames, channels, 0), 0,
+             "unrouted voice does not feed track delay");
 
   voice_init();
   delay_params_set(2, 0, 0, 0, 0, 0, 15);
@@ -1213,6 +1224,19 @@ static void test_global_delay_send_requires_center_pan(void) {
   expect_int(test, buffer_channels_differ(buffer, frames, channels), 1,
              "modulated delay returns stereo");
 
+  voice_init();
+  delay_params_set(2, 0, 0, 0, 0, 0, 15);
+  delay_clear();
+  configure_delay_test_voice(0, 2, 0.0f);
+  float record_frames[frames * RECORD_CHANNELS];
+  synth_record_bus_t record_bus = {record_frames, RECORD_CHANNELS};
+  memset(buffer, 0, sizeof(buffer));
+  memset(record_frames, 0, sizeof(record_frames));
+  synth(buffer, NULL, frames, channels, &record_bus);
+  expect_int(test, buffer_channel_nonzero(record_frames, frames,
+             RECORD_CHANNELS, 4), 1,
+             "track delay return is included in matching stem");
+
   ctx.log_enable = 1;
   consume(test, &ctx, "GS");
   expect_substr(test, ctx.log, "# skred_version ", "global status version");
@@ -1227,6 +1251,7 @@ static void test_global_delay_send_requires_center_pan(void) {
 
   consume(test, &ctx, "GS1");
 }
+#endif
 
 static void test_ands_macro_commands(void) {
   const char *test = "ands macro commands";
@@ -1713,7 +1738,9 @@ int main(void) {
   test_scalar_voice_opcode_inventory();
   test_parameter_and_buffer_safety();
   test_context_modes();
-  test_global_delay_send_requires_center_pan();
+#ifdef SKRED_TEST_RECORD_SCOPE
+  test_track_delay_send_requires_route_and_center_pan();
+#endif
   test_ands_macro_commands();
   test_load_installs_global_macros_and_registers();
   test_control_composition_primitives();

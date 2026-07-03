@@ -267,10 +267,10 @@ schedulable.
 | `W` | `[wave [, end-or-width [, height]]]` | Show wavetable or recording data | `wavetable_show()`, waveform display helpers |
 | `W@` | `wave,param[,register]` | Read wave size, rate, or duration | `sw.size[]`, `sw.rate[]`, register write |
 | `v@` | `param[,register]` | Read selected voice wave, amplitude, or frequency | `sv` fields, register write |
-| `ds` | `bus,amount` | Set selected voice send to delay bus `1..4`; effective only when `p0` and pan modulation is off. One-argument `ds amount` uses bus `1`. | `delay_send_set()` |
-| `DL` | `bus,coarse,fine,feedback,modfreq,moddepth,level` | Set one of four DW-style mono-send/stereo-return delays on the main L/R bus | `delay_params_set()` |
-| `DL?` | `[bus]` | Show one delay bus or all four delay buses as copy/pasteable `DL...` commands | `delay_format()`, `delay_bus_format()` |
-| `GS` | `[full]` | Show copy/pasteable version, master volume, tempo, and delay buses; `full > 0` adds a larger text snapshot | `global_status_show()` |
+| `ds` | `amount` | Set selected voice send amount to the delay owned by its `r1`..`r4` record/scope track; effective only when `p0` and pan modulation is off | `delay_send_set()` |
+| `DL` | `track,coarse,fine,feedback,modfreq,moddepth,level` | Set the DW-style mono-send/stereo-return delay attached to record/scope track `1..4` | `delay_params_set()` |
+| `DL?` | `[track]` | Show one track delay or all four track delays as copy/pasteable `DL...` commands | `delay_format()`, `delay_bus_format()` |
+| `GS` | `[full]` | Show copy/pasteable version, master volume, tempo, and track delays; `full > 0` adds a larger text snapshot | `global_status_show()` |
 | `w>d` | `wave` | Copy wavetable samples to parser data | `sw`, `ands_data_resize()` |
 | `w>r` | `wave` | Copy wavetable samples to recording buffer | `skode_sample_alloc()` |
 | `d>r` | none | Copy parser data to recording buffer | `skode_sample_alloc()` |
@@ -452,7 +452,7 @@ require `SCOPE`. The `r` stem-routing command is available with either feature.
 | `?m` | none | Show global ANDS macros | `ands_macro_get()` |
 | `[name] /m` | string | Remove one global ANDS macro | `ands_macro_remove()` |
 | `/m!` | none | Clear all global ANDS macros | `ands_macro_clear()` |
-| `GS` | `[full]` | Show copy/pasteable version, master volume, tempo, and delay bus commands; `full > 0` adds a larger text snapshot | `global_status_show()` |
+| `GS` | `[full]` | Show copy/pasteable version, master volume, tempo, and track delay commands; `full > 0` adds a larger text snapshot | `global_status_show()` |
 | `/s [section]` | optional numeric | Show system, audio, synth, Skode, string, or benchmark state | `system_show()` and related helpers |
 | `/t [level]` | optional numeric | Toggle or set command/parser tracing | `ctx->trace`, `ands_trace_set()` |
 | `/v [level]` | optional numeric | Toggle or set verbose output | `ctx->verbose` |

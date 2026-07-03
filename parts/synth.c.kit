@@ -315,14 +315,11 @@ static int delay_voice_can_send(int voice) {
   return 1;
 }
 
-int delay_send_set(int voice, int bus, float amount) {
-  int index = delay_bus_index(bus);
-  if (voice_invalid(voice) || index < 0 || !isfinite(amount))
+int delay_send_set(int voice, float amount) {
+  if (voice_invalid(voice) || !isfinite(amount))
     return SYNTH_INVALID_VOICE;
   if (amount > 1.0f) amount /= 15.0f;
-  sv.delay_bus[voice] = index;
   sv.delay_send[voice] = clampf(amount, 0.0f, 1.0f);
-  if (sv.delay_send[voice] <= 0.0f) sv.delay_bus[voice] = -1;
   return 0;
 }
 
@@ -406,6 +403,33 @@ const char *delay_format(void) {
     }
     used += (size_t)wrote;
   }
+  return out;
+}
+
+const char *delay_status(void) {
+  static char out[96];
+  int active = 0;
+  int sends = 0;
+  int eligible = 0;
+
+  for (int i = 0; i < DELAY_BUS_COUNT; i++) {
+    if (delay_bus[i].active) active++;
+  }
+
+  for (int voice = 0; voice < synth_config.voice_max; voice++) {
+    if (sv.delay_send[voice] <= 0.0f) continue;
+    sends++;
+    @if(RECORD || SCOPE)
+    int track = atomic_load_int(&sv.record_pending[voice]);
+    if (track >= 1 && track <= RECORD_TRACK_MAX &&
+        delay_voice_can_send(voice)) {
+      eligible++;
+    }
+    @endif
+  }
+
+  snprintf(out, sizeof(out), "delay: active %d/%d sends:%d eligible:%d\n",
+           active, DELAY_BUS_COUNT, sends, eligible);
   return out;
 }
 
@@ -1284,7 +1308,12 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
 
       if (sv.disconnect[n] == 0) {
         if (sv.delay_send[n] > 0.0f && delay_voice_can_send(n)) {
-          int bus = sv.delay_bus[n];
+          int bus = -1;
+          @if(RECORD || SCOPE)
+          int delay_track = sv.record[n];
+          if (delay_track >= 1 && delay_track <= RECORD_TRACK_MAX)
+            bus = delay_track - 1;
+          @endif
           if (bus >= 0 && bus < DELAY_BUS_COUNT)
             delay_input[bus] += sv.sample[n] * sv.delay_send[n];
         }
@@ -1322,6 +1351,13 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       if (delay_bus[bus].level > 0) {
         sample_left += delay_left;
         sample_right += delay_right;
+        @if(RECORD || SCOPE)
+        int track = bus + 1;
+        if (track <= RECORD_TRACK_MAX) {
+          record_left[track] += delay_left;
+          record_right[track] += delay_right;
+        }
+        @endif
       }
     }
 
@@ -1530,12 +1566,8 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" P%d,%g,%g", sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
     @endif
 
-    if (verbose || sv.delay_send[v] > 0.0f) {
-        if (sv.delay_bus[v] >= 0)
-            APPEND(" ds%d,%g", sv.delay_bus[v] + 1, sv.delay_send[v]);
-        else
-            APPEND(" ds0,0");
-    }
+    if (verbose || sv.delay_send[v] > 0.0f)
+        APPEND(" ds%g", sv.delay_send[v]);
 
     @if(FILT)
     if (verbose || sv.filter_mode[v])
@@ -1944,8 +1976,7 @@ int voice_copy(int v, int n) {
   sv.link_trig_samp[n] = sv.link_trig_samp[v];
   //
   pan_set(n, sv.pan[v]);
-  if (sv.delay_bus[v] >= 0)
-    delay_send_set(n, sv.delay_bus[v] + 1, sv.delay_send[v]);
+  delay_send_set(n, sv.delay_send[v]);
   @if(AM)
   amp_mod_set(n, sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
   @endif
@@ -2095,7 +2126,6 @@ void voice_reset(int i) {
   sv.pan[i] = 0;
   sv.pan_left[i] = 0.5f;
   sv.pan_right[i] = 0.5f;
-  sv.delay_bus[i] = -1;
   sv.delay_send[i] = 0.0f;
   // pan smoothing?
   @if(AM)

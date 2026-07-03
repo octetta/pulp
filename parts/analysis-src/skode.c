@@ -2483,16 +2483,10 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('p---'): // pan value
       if (argc) pan_set(voice, arg[0]);
       break;
-    case ATOM4('ds--'): // delay-send bus amount; active only for centered, unmodulated voices
-      if (argc == 1) {
-        delay_send_set(voice, 1, arg[0]);
-      } else if (argc > 1) {
-        int bus = 1;
-        skode_double_to_int(arg[0], &bus);
-        delay_send_set(voice, bus, arg[1]);
-      }
+    case ATOM4('ds--'): // track-delay send amount; active only for routed, centered, unmodulated voices
+      if (argc) delay_send_set(voice, arg[0]);
       break;
-    case ATOM4('DL--'): // delay params bus coarse fine feedback mod-freq mod-depth level
+    case ATOM4('DL--'): // track-delay params track coarse fine feedback mod-freq mod-depth level
       {
         int bus = 1;
         int coarse, fine, feedback, mod_freq, mod_depth, level;
@@ -2507,7 +2501,7 @@ int skode_function(ands_t *s, int info) {
         delay_params_set(bus, coarse, fine, feedback, mod_freq, mod_depth, level);
       }
       break;
-    case ATOM4('DL?-'): // show global delay params
+    case ATOM4('DL?-'): // show track delay params
       if (argc) {
         int bus = 1;
         skode_double_to_int(arg[0], &bus);

@@ -82,7 +82,7 @@ const char *synth_track_name_get(int track);
 
 int amp_set(int v, float f);
 int pan_set(int voice, float f);
-int delay_send_set(int voice, int bus, float amount);
+int delay_send_set(int voice, float amount);
 int delay_params_set(int bus, int coarse, int fine, int feedback, int mod_freq,
                      int mod_depth, int level);
 void delay_params_get(int bus, int *coarse, int *fine, int *feedback, int *mod_freq,
@@ -90,6 +90,7 @@ void delay_params_get(int bus, int *coarse, int *fine, int *feedback, int *mod_f
 void delay_clear(void);
 const char *delay_bus_format(int bus);
 const char *delay_format(void);
+const char *delay_status(void);
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user);
 int freq_set(int v, float f);
 int voice_set(int n, int *old_voice);

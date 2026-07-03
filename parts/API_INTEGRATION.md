@@ -523,11 +523,18 @@ device and `-2` disables capture.
 
 The helper `skred_audio_command()` accepts the same audio-device commands used
 by `mini-skred`, and `skred_audio_message()` returns the latest status string.
+`skred_audio_status()` and `/a?` include a cheap delay summary showing active
+delay lines, configured sends, and sends currently eligible to feed a routed
+track delay.
 
 ## Recording and Scope
 
 When built with `RECORD=1`, SKRED can write a 10-channel float WAV: stereo
-master plus four stereo stems.
+master plus four stereo stems. Voices routed with `r1`..`r4` contribute to the
+matching stem while remaining in the master mix. Each stem also owns a delay
+line; `ds amount` feeds the selected voice into the delay for its current
+record/scope track, and the wet return is present in both the master and that
+stem.
 
 ```c
 skred_command("v0 r1");                    /* route voice 0 to stem 1 */

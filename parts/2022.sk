@@ -1,0 +1,21 @@
+M100
+[sk/drums-chh.ks]/ks kw k>d d>r /r400
+[sk/drums-kick.ks]/ks kw k>d d>r /r401
+[sk/drums-snare.ks]/ks kw k>d d>r /r402
+DL1,2,15,15,31,15,15
+DL2,0,0,3,0,31,15
+DL3,5,4,10,0,0,8
+DL4,0,0,0,0,31,15
+v3 w400 n75 a5 ds1 r4 [ohh] vt
+v4 w401 f440 a15 ds0.5 r1 [kick-0] vt # *
+v5 w402 f440 a20 ds1 r2 [snare] vt
+y1 [ohh] yt
+[v3 l1 +.25 v3 l1 +.25 v3 l1 +.25 v3 l1] x0
+y2 [kick] yt
+[+.5 v4 l1 +.25 v4l.5] x0
+[+.25 v4 l1] x1
+[v4 l1 +.25 v4 l1] x2
+[v4l1] x3
+y3 [snare] yt
+[#] x0
+[v5 l1] x1

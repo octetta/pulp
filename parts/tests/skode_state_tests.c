@@ -402,13 +402,26 @@ static void test_bounded_one_shot_loops(void) {
   consume(test, &ctx, "BC0 l1");
   sv.phase[voice] = 4.0f;
   consume(test, &ctx, "l0");
-  expect_int(test, sv.loop_stop_requested[voice], 0,
-             "unbounded release keeps loop running");
+  expect_int(test, sv.loop_stop_requested[voice], 1,
+             "unbounded release stop request");
   osc_next(voice, 1.0f);
-  expect_int(test, sv.loop_active[voice], 1, "unbounded release loop active");
-  expect_float(test, sv.phase[voice], 2.0f, 0.0001f,
-               "unbounded release wraps");
+  expect_int(test, sv.loop_active[voice], 0, "unbounded release loop exit");
+  expect_float(test, sv.phase[voice], 5.0f, 0.0001f,
+               "unbounded release exit phase");
 
+  configure_loop_test_voice(voice, 1);
+  consume(test, &ctx, "BC0 l1");
+  sv.phase[voice] = 2.0f;
+  consume(test, &ctx, "l0");
+  expect_int(test, sv.loop_stop_requested[voice], 1,
+             "backward unbounded release stop request");
+  osc_next(voice, 1.0f);
+  expect_int(test, sv.loop_active[voice], 0,
+             "backward unbounded release loop exit");
+  expect_float(test, sv.phase[voice], 1.0f, 0.0001f,
+               "backward unbounded release exit phase");
+
+  configure_loop_test_voice(voice, 0);
   consume(test, &ctx, "BC1 l1");
   sv.phase[voice] = 4.0f;
   consume(test, &ctx, "l0");
@@ -472,6 +485,183 @@ static void test_bounded_one_shot_loops(void) {
   expect_int(test, sv.loop_count[4], 0, "reset loop count");
 
   wave_reset(voice);
+}
+
+static void test_wave_loop_points(void) {
+  const char *test = "wave loop points";
+  static float wave_data[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  char formatted[512];
+  skode_t ctx = new_ctx();
+  const int wave = 300;
+  const int voice = 6;
+
+  sw.data[wave] = wave_data;
+  sw.size[wave] = 10;
+  sw.rate[wave] = MAIN_SAMPLE_RATE;
+  sw.one_shot[wave] = 1;
+  sw.loop_enabled[wave] = 1;
+  sw.loop_start[wave] = 0;
+  sw.loop_end[wave] = 10;
+  sw.readonly[wave] = 0;
+  sw.is_heap[wave] = 0;
+
+  consume(test, &ctx, "v6 w300");
+  expect_int(test, sv.loop_start[voice], 0, "initial voice loop start");
+  expect_int(test, sv.loop_end[voice], 10, "initial voice loop end");
+  expect_int(test, sv.loop_override[voice], 0, "initial voice loop override");
+
+  consume(test, &ctx, "WL300,3,8");
+  expect_int(test, sw.loop_start[wave], 3, "wave loop start");
+  expect_int(test, sw.loop_end[wave], 8, "wave loop end");
+  expect_int(test, sv.loop_start[voice], 3, "voice loop start updated");
+  expect_int(test, sv.loop_end[voice], 8, "voice loop end updated");
+  expect_int(test, sv.loop_valid[voice], 1, "voice loop valid");
+  expect_int(test, sv.loop_length[voice], 5, "voice loop length");
+
+  consume(test, &ctx, "W@300,3");
+  expect_float(test, (float)ands_arg(ctx.parse)[0], 3.0f, 0.0001f,
+               "W@ loop start");
+  consume(test, &ctx, "W@300,4");
+  expect_float(test, (float)ands_arg(ctx.parse)[0], 8.0f, 0.0001f,
+               "W@ loop end");
+
+  consume(test, &ctx, "WL300,8,3");
+  expect_int(test, sw.loop_start[wave], 3, "invalid WL keeps start");
+  expect_int(test, sw.loop_end[wave], 8, "invalid WL keeps end");
+
+  ctx.log_enable = 1;
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "GS1");
+  expect_substr(test, ctx.log, "WL300,3,8",
+                "GS1 includes wave loop points");
+  ctx.log_enable = 0;
+
+  ctx.log_enable = 1;
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "W300,8,2");
+  expect_substr(test, ctx.log, "one-shot 1",
+                "wave display includes one-shot state");
+  expect_substr(test, ctx.log, "loop 3..8 |5|",
+                "wave display includes loop points");
+  expect_substr(test, ctx.log, "# loop marker [3..8)",
+                "wave display includes loop marker legend");
+  expect_substr(test, ctx.log, "baseline",
+                "wave display includes baseline duration");
+  ctx.log_enable = 0;
+
+  extern synth_sample_t sampling;
+  static float rec_data[10] = {0, 0, 1, 2, 3, 4, 5, 0, 0, 0};
+  sampling.where = rec_data;
+  sampling.len = 10;
+  sampling.capacity = 10;
+  sampling.offset = 2;
+  sampling.trim = 3;
+  ctx.log_enable = 1;
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "W-,8,2");
+  expect_substr(test, ctx.log, "# found start 2 end 7 |5|",
+                "record display includes found start/end");
+  expect_substr(test, ctx.log, "+offset 2 -trim 3 = |5|",
+                "record display keeps offset/trim summary");
+  ctx.log_enable = 0;
+  sampling.where = NULL;
+  sampling.len = 0;
+  sampling.capacity = 0;
+  sampling.offset = 0;
+  sampling.trim = 0;
+
+  consume(test, &ctx, "VL2,7");
+  expect_int(test, sv.loop_start[voice], 2, "voice loop override start");
+  expect_int(test, sv.loop_end[voice], 7, "voice loop override end");
+  expect_int(test, sv.loop_override[voice], 1, "voice loop override enabled");
+  consume(test, &ctx, "B1 BC0 l1");
+  expect_int(test, sv.loop_active[voice], 1, "VL trigger loop active");
+  for (int i = 0; i < 7; i++) osc_next(voice, 1.0f);
+  expect_float(test, sv.phase[voice], 2.0f, 0.0001f,
+               "VL affects l1 loop wrap");
+  consume(test, &ctx, "l0");
+  for (int i = 0; i < 5; i++) osc_next(voice, 1.0f);
+  expect_float(test, sv.phase[voice], 7.0f, 0.0001f,
+               "VL release exits at override end");
+  expect_int(test, sv.loop_active[voice], 0,
+             "VL release clears active loop");
+  sv.finished[voice] = 1;
+  sv.loop_active[voice] = 0;
+  sv.loop_stop_requested[voice] = 0;
+  voice_format(voice, formatted, sizeof(formatted), 0);
+  if (strstr(formatted, "VL2,7") == NULL)
+    fail(test, "voice loop override missing from voice format");
+
+  consume(test, &ctx, "WL300,4,9");
+  expect_int(test, sw.loop_start[wave], 4, "updated wave loop start");
+  expect_int(test, sw.loop_end[wave], 9, "updated wave loop end");
+  expect_int(test, sv.loop_start[voice], 2, "WL preserves override start");
+  expect_int(test, sv.loop_end[voice], 7, "WL preserves override end");
+
+  voice_copy(voice, 7);
+  expect_int(test, sv.loop_start[7], 2, "copy preserves override start");
+  expect_int(test, sv.loop_end[7], 7, "copy preserves override end");
+  expect_int(test, sv.loop_override[7], 1, "copy preserves override flag");
+
+  consume(test, &ctx, "VL");
+  expect_int(test, sv.loop_start[voice], 4, "VL reset start");
+  expect_int(test, sv.loop_end[voice], 9, "VL reset end");
+  expect_int(test, sv.loop_override[voice], 0, "VL reset override flag");
+
+  consume(test, &ctx, "WL300,1,6");
+  expect_int(test, sv.loop_start[voice], 1, "WL updates reset voice start");
+  expect_int(test, sv.loop_end[voice], 6, "WL updates reset voice end");
+
+  consume(test, &ctx, "VL7,2");
+  expect_int(test, sv.loop_start[voice], 1, "invalid VL keeps start");
+  expect_int(test, sv.loop_end[voice], 6, "invalid VL keeps end");
+
+  consume(test, &ctx, "VL5");
+  expect_int(test, sv.loop_start[voice], 1, "partial VL keeps start");
+  expect_int(test, sv.loop_end[voice], 6, "partial VL keeps end");
+
+  wave_reset(voice);
+  wave_reset(7);
+  sw.data[wave] = NULL;
+  sw.size[wave] = 0;
+}
+
+static void test_record_find_trim_command(void) {
+  const char *test = "record find trim";
+  static float rec_data[16] = {
+    0.0f, 0.0002f, 0.02f, 0.0001f, 0.0f,
+    0.12f, 0.13f, 0.14f, 0.15f,
+    0.0002f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
+  };
+  skode_t ctx = new_ctx();
+  extern synth_sample_t sampling;
+
+  sampling.where = rec_data;
+  sampling.len = 16;
+  sampling.capacity = 16;
+  sampling.offset = 0;
+  sampling.trim = 0;
+
+  consume(test, &ctx, "w<>");
+  expect_int(test, sampling.offset, 5,
+             "default trim ignores noise and one-sample spike");
+  expect_int(test, sampling.trim, 6,
+             "default trim finds trailing silence");
+
+  sampling.offset = 0;
+  sampling.trim = 0;
+  consume(test, &ctx, "w<>.001,.001,1");
+  expect_int(test, sampling.offset, 4, "margin expands found start");
+  expect_int(test, sampling.trim, 6, "margin keeps zero-crossed end");
+
+  sampling.where = NULL;
+  sampling.len = 0;
+  sampling.capacity = 0;
+  sampling.offset = 0;
+  sampling.trim = 0;
 }
 
 static void test_bounded_loop_releases_envelopes(void) {
@@ -1731,6 +1921,8 @@ int main(void) {
   test_envelope_configuration_is_deferred();
   test_envelope_future_timestamps();
   test_bounded_one_shot_loops();
+  test_wave_loop_points();
+  test_record_find_trim_command();
   test_bounded_loop_releases_envelopes();
   test_one_shot_asr_mode();
   test_opcode_events();

@@ -434,8 +434,16 @@ Wave direction, loop configuration, and note lifecycle are separate:
   traversals of the loop region.
 - Positive `l` and `T` retrigger a one-shot, initialize runtime looping from
   `B`, and snapshot the configured `BC` bound. `l0` releases envelopes
-  immediately; bounded loops request departure at the next boundary, while
-  unbounded one-shot loops keep looping under normal ADSR release behavior.
+  immediately and asks any active one-shot loop, bounded or unbounded, to leave
+  the loop at the next boundary in the current playback direction.
+
+For one-shots, loop points do not change the trigger origin. Forward triggers
+start at physical sample `0`, play the pre-loop segment, wrap from `loop_end`
+to `loop_start`, and repeat the loop region according to `B`/`BC`. Backward
+triggers start at the physical last sample, play down to `loop_start`, wrap to
+`loop_end`, and repeat in reverse. `l0` and exhausted bounded loops disable
+runtime looping at that same directional boundary, then playback continues
+toward the physical end in the current direction.
 
 The voice arrays distinguish persistent configuration from active-note state.
 `loop_enabled` and `loop_count` are configuration. `loop_active`,
@@ -445,6 +453,15 @@ count already in progress. `B` is intentionally immediate: `wave_loop()`
 updates both configured and active looping. `B0` clears active loop runtime
 state; `B1` starts a fresh active loop snapshot from the current `BC`
 configuration.
+
+Loop points are layered. The wave owns default `loop_start` and `loop_end`
+metadata, changed by `WL wave,start,end`. Selecting a wave with `w` copies those
+defaults into the voice. `VL start,end` then marks the selected voice as
+overridden and replaces its local loop points; plain `VL` clears that override
+and reapplies the current wave defaults. Later `WL` changes update voices that
+still follow the wave defaults and leave overridden voices alone. `loop_start`
+is inclusive, `loop_end` is the exclusive boundary, and `loop_end` may equal the
+physical sample count.
 
 `osc_next()` selects the relevant boundary from the actual phase-step
 direction. It accounts for more than one wrap when a large phase increment
@@ -463,7 +480,8 @@ Amplitude envelope mode `k1` is timed one-shot ASR. On positive `l`/`T`, finite
 one-shots compute a natural playback duration from table length, phase
 increment, and configured `BC` repeats. The amp envelope release is scheduled
 so it finishes at that natural end. Unbounded one-shot loops do not have a
-natural end, so they keep normal held ADSR behavior and release on `l0`.
+natural end, so they keep normal held ADSR behavior until `l0`; that release
+then exits the loop in the current direction and plays the remaining wave tail.
 
 ### Recording
 

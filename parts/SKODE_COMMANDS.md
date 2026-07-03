@@ -90,6 +90,8 @@ their named build option is enabled.
 | `b` | `[direction]` | `SKODE_OP_WAVE_DIRECTION` | `wave_dir()`; no argument toggles | base |
 | `B` | `[loop]` | `SKODE_OP_WAVE_LOOP` | `wave_loop()`; no argument toggles | base |
 | `BC` | `count` | `SKODE_OP_WAVE_LOOP_COUNT` | Sets bounded one-shot loop repeats; `0` means unlimited | base |
+| `WL` | `wave,start,end` | immediate | `wave_loop_points_set()` | base |
+| `VL` | `[start,end]` | immediate | `voice_loop_points_set()` or `voice_loop_points_reset()` | base |
 | `c` | `[mode [, depth]]` | `SKODE_OP_PHASE_DISTORTION` | `cz_set()` | `PD` |
 | `C` | `[voice, depth]` | `SKODE_OP_PHASE_MOD` | `cmod_set()`; fewer than two args disable modulation | `PD` |
 | `ft` | `attack, decay, sustain, release` | `SKODE_OP_FILTER_ENVELOPE` | Configures the filter envelope for its next trigger | `FILT`, `FADSR` |
@@ -137,20 +139,39 @@ direction, `B` configures wrapping, and `BC` configures a bounded number of
 one-shot wraps. Zero is unlimited; a positive count means repeats after the
 initial loop traversal, so `BC1` permits one wrap and two traversals. Positive
 `l` or `T` snapshots the `BC` bound for the new note. `B` remains an immediate
-runtime switch. `l0` releases the envelopes immediately. Bounded loops also
-request departure at the next loop boundary; unbounded loops keep looping under
-normal ADSR release behavior.
+runtime switch. `l0` releases the envelopes immediately and asks any active
+one-shot loop, bounded or unbounded, to leave the loop at the next boundary in
+the current playback direction.
+
+One-shot loop entry always includes the pre-loop segment. Forward playback
+starts at physical sample `0`, plays to `loop_end`, then wraps to `loop_start`.
+Backward playback starts at the physical last sample, plays to `loop_start`,
+then wraps to `loop_end`. `l0` and `BC` exhaustion leave the loop at that same
+directional boundary and play the remaining physical tail.
 
 `B0` clears active loop runtime state. `B1` immediately starts a fresh active
 loop snapshot from the current `BC` configuration, so stale counted-loop
 remaining state does not carry into a later unbounded loop.
+
+`WL wave,start,end` sets the loop boundaries stored on the wave itself.
+`start` is inclusive, `end` is exclusive, and `end` may equal the wave sample
+count. Voices already using that wave receive the updated loop points unless
+they have a voice-level override.
+
+`VL start,end` overrides loop points on the selected voice after its `w`
+assignment. `VL` with no arguments clears the override and reapplies the
+current wave's `WL` defaults. Voice display emits `VLstart,end` only for voices
+with active overrides, so saved voice lines stay compact but pasteable. `VL`
+does not enable looping; the voice still needs `B1` or `BC count` for those
+points to affect `l1` playback.
 
 Amplitude envelope mode `k1` enables timed one-shot ASR. For non-looping
 one-shots and bounded `BC` one-shot loops, positive `l` schedules the release
 phase to finish at the natural playback end. The `t` attack, sustain, and
 release values shape the result; decay remains available but is usually not
 useful for this mode. Unbounded `BC0`/`B1` loops keep normal held ADSR behavior
-and release only on `l0`.
+until `l0`, then exit the loop in the current direction and play the remaining
+wave tail.
 
 At trigger time, `osc_trigger()` initializes `loop_active`, `loop_bounded`, and
 `loop_remaining`. `osc_next()` consumes wraps in either direction, including
@@ -264,8 +285,8 @@ schedulable.
 | `V` | `dB` | Set main output volume | `volume_set()` |
 | `[name] vt` | string | Set selected voice label | `sv.text[]` |
 | `[name] wt wave` | string, numeric | Set wavetable label | `sw.name[]` |
-| `W` | `[wave [, end-or-width [, height]]]` | Show wavetable or recording data | `wavetable_show()`, waveform display helpers |
-| `W@` | `wave,param[,register]` | Read wave size, rate, or duration | `sw.size[]`, `sw.rate[]`, register write |
+| `W` | `[wave [, end-or-width [, height]]]` | Show wavetable or recording data, including loop metadata and one-shot baseline duration for single-wave displays | `wavetable_show()`, waveform display helpers |
+| `W@` | `wave,param[,register]` | Read wave size, rate, duration, loop start, or loop end | `sw`, register write |
 | `v@` | `param[,register]` | Read selected voice wave, amplitude, or frequency | `sv` fields, register write |
 | `ds` | `amount` | Set selected voice send amount to the delay owned by its `r1`..`r4` record/scope track; effective only when `p0` and pan modulation is off | `delay_send_set()` |
 | `DL` | `track,coarse,fine,feedback,modfreq,moddepth,level` | Set the DW-style mono-send/stereo-return delay attached to record/scope track `1..4` | `delay_params_set()` |
@@ -278,14 +299,18 @@ schedulable.
 | `w@` | none | Reset recording offset and trim | recording-buffer state |
 | `w>` | `[samples]` | Move recording start offset | `sampling.offset` |
 | `w<` | `[samples]` | Increase or decrease end trim | `sampling.trim` |
-| `w<>` | `[threshold [, headroom]]` | Find recording trim points | `record_find_trim()` |
+| `w<>` | `[threshold [, end-threshold [, margin-samples]]]` | Find recording trim points using a default `0.001` silence threshold, four consecutive audible samples, and optional sample margin | `record_find_trim()` |
 | `/r` | `[slot [, one-shot [, offset]]]` | Load recording buffer into a wave slot | `rec_load()` |
 | `/d` | `[slot [, rate [, one-shot [, offset]]]]` | Load parser data into a wave slot | `data_load()` |
 | `/wex` | `wave` | Expand a dynamic wave slot in the 200-999 range | `wave_table_dynamic_expand()` |
 
-For `W@`, parameter `0` is sample count, `1` is sample rate, and `2` is
-duration (`size / rate`). For `v@`, parameter `0` is wave index, `1` is user
-amplitude, and `2` is frequency.
+For `W@`, parameter `0` is sample count, `1` is sample rate, `2` is duration
+(`size / rate`), `3` is loop start, and `4` is loop end. For `v@`, parameter
+`0` is wave index, `1` is user amplitude, and `2` is frequency.
+
+Single-wave `W` output prints a labeled marker row under the waveform using
+the same `[loop_start..loop_end)` convention as `WL`; the header includes the
+baseline duration at the wave's stored playback rate and the loop duration.
 
 ## Data and Register Commands
 

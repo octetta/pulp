@@ -74,6 +74,8 @@ most 32 operations.
 | `b [direction]` | `0` forward, `1` backward; no argument toggles | Changes the direction used to read the selected wave. | Yes |
 | `B [loop]` | `0` off, `1` on; no argument toggles | Controls whether wave playback wraps at its end. This is most noticeable with sampled or one-shot waves. | Yes |
 | `BC count` | Nonnegative integer; `0` means unlimited | Enables looping and limits a one-shot voice to `count` wraps after its first pass through the loop. The configured count is captured on `l` or `T`; changing it does not alter a note already playing. | Yes |
+| `WL wave,start,end` | Wave index and sample boundaries | Sets the wave's loop start and end boundary. `start` is inclusive, `end` is exclusive, and `end` may equal the wave sample count. | No |
+| `VL start,end` | Sample boundaries on the selected voice | Overrides the selected voice's loop points after `w` has assigned a wave. `VL` with no arguments resets the voice to the current wave's `WL` defaults. | No |
 | `q bits` | Integer bit-depth control | Quantizes the waveform and adds bit-crusher distortion. Requires `CRUSH`. | Yes |
 | `h phases` | Integer hold length | Holds oscillator values for multiple phases, producing stepped or sample-and-hold distortion. Requires `SAH`. | Yes |
 | `[name] vt` | String | Gives the selected voice a display label. It does not alter sound. | No |
@@ -116,11 +118,11 @@ GS
 GS1
 ```
 
-`GS1` includes pasteable global settings, macros, labels for user-loaded
-wavetables, record/scope track routing when available, active voice
-definitions, and sequencer patterns. Wavetable sample data is not embedded;
-the snapshot includes a
-comment to make that limitation visible in saved files.
+`GS1` includes pasteable global settings, macros, labels and `WL` loop metadata
+for user-loaded wavetables, record/scope track routing when available, active
+voice definitions, and sequencer patterns. Wavetable sample data is not
+embedded; the snapshot includes a comment to make that limitation visible in
+saved files.
 
 ### Direction, Looping, and Triggering
 
@@ -139,14 +141,32 @@ comment to make that limitation visible in saved files.
   runtime looping from `B`, snapshots the current `BC` bound, resets the
   remaining wrap count, and triggers its envelopes. Changing `BC` during
   playback affects the next trigger; changing `B` affects the current one.
+  Forward one-shot playback starts at physical sample `0`, reaches the loop end
+  boundary, then wraps back to the loop start. Backward playback starts at the
+  physical last sample, reaches the loop start boundary, then wraps back to the
+  loop end.
 - `l0` releases active envelopes immediately. For a looping one-shot it also
   requests a clean loop exit: playback leaves the loop when it next reaches
   the boundary selected by `b`, then continues through any remaining wave tail.
+  Forward playback exits at the loop end boundary and continues toward the
+  physical wave end; backward playback exits at the loop start boundary and
+  continues toward the physical wave beginning.
+
+Loop points are layered. `WL wave,start,end` stores defaults on the wavetable,
+`w` copies those defaults into the selected voice, and `VL start,end` overrides
+the selected voice after the wave assignment. A later `WL` update follows
+voices that still use the wave defaults, but leaves voices with `VL` overrides
+alone. Plain `VL` clears the override and copies the current wave defaults
+back into the voice. `VL` only changes the region; use `B1` or `BC count` to
+enable looping before `l1`.
 
 When a positive `BC` count is exhausted without `l0`, the oscillator leaves the
 loop at that boundary and automatically releases the active amplitude and
 filter envelopes. Ordinary cyclic wavetables can still use `b` and `B`, but
 bounded loop completion and one-shot retriggering apply only to one-shots.
+For forward playback, loop exhaustion exits at `loop_end` and continues toward
+the physical sample end; for backward playback, exhaustion exits at
+`loop_start` and continues toward sample `0`.
 
 ```text
 v0 w300 b0 BC1 t.01,.1,.8,.3 l1
@@ -637,7 +657,7 @@ immediately on the control thread.
 | `/d [slot[,rate[,one-shot[,offset]]]]` | Wave destination and options | Loads parser data into a wavetable at the requested sample rate. |
 | `w> [samples]` | Start offset adjustment | Moves the temporary recording's start point. |
 | `w< [samples]` | End trim adjustment | Changes how many samples are removed from the recording end. |
-| `w<> [threshold[,headroom]]` | Detection threshold and margin | Finds useful start and end trim points from signal level. |
+| `w<> [threshold[,end-threshold[,margin-samples]]]` | Detection thresholds and optional sample margin | Finds useful start and end trim points from signal level. Defaults to a small silence threshold of `0.001`. |
 | `w!` | None | Applies current recording offsets and trims. |
 | `w@` | None | Resets recording offsets and trims. |
 | `/wex wave` | Dynamic wave index `200` through `999` | Expands storage for a dynamic wavetable slot. |
@@ -743,8 +763,8 @@ multichannel WAV recording can be active simultaneously.
 | `?`, `v?` | None | Displays the selected voice. |
 | `\` | None | Displays the selected voice with additional detail. |
 | `??`, `v??` | None | Displays active voices. |
-| `W [wave[,end-or-width[,height]]]` | Optional display parameters | Displays one wavetable, recording data, or all loaded waves. |
-| `W@ wave,param[,register]` | Wave, property, optional destination | Reads wave sample count (`0`), sample rate (`1`), or duration (`2`). |
+| `W [wave[,end-or-width[,height]]]` | Optional display parameters | Displays one wavetable, recording data, or all loaded waves. A single-wave display includes sample count, baseline duration, one-shot state, loop points, loop duration, stats, and a loop marker row under the waveform. |
+| `W@ wave,param[,register]` | Wave, property, optional destination | Reads wave sample count (`0`), sample rate (`1`), duration (`2`), loop start (`3`), or loop end (`4`). |
 | `v@ param[,register]` | Property and optional destination | Reads selected voice wave (`0`), amplitude (`1`), or frequency (`2`). |
 | `DL? [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. |
 | `GS [full]` | Optional boolean | Displays copy/pasteable version, master volume, tempo, and track delay commands. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. |
@@ -766,6 +786,16 @@ console hosts default to an ASCII plot because common `cmd.exe` and PowerShell
 fonts render Braille cells poorly. Set `SKRED_WAVE_DISPLAY=braille` to force
 the Unicode renderer, or `SKRED_WAVE_DISPLAY=ascii` to force the portable
 ASCII renderer on any platform.
+
+For a single wavetable, the marker row beneath the waveform spans
+`[loop_start..loop_end)`, matching the `WL` convention: start is inclusive and
+end is exclusive.
+
+`w<>` scans the temporary recording buffer for four consecutive samples above
+the start/end silence thresholds, then moves to a nearby zero crossing. The
+optional third argument expands the found region by that many samples before
+the zero-crossing search. With no arguments, tiny nonzero recorder residue
+below `0.001` is treated as silence.
 
 ## File and Ksynth Utilities
 

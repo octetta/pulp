@@ -447,9 +447,12 @@ static void skode_macros_show(skode_t *ctx, int pasteable) {
 
 static void wave_labels_show(skode_t *ctx) {
   for (int wave = 0; wave < WAVE_TABLE_MAX; wave++) {
-    if (sw.data[wave] && sw.size[wave] > 0 &&
-        !sw.readonly[wave] && sw.name[wave][0] != '\0')
+    if (!sw.data[wave] || sw.size[wave] <= 0 || sw.readonly[wave])
+      continue;
+    if (sw.name[wave][0] != '\0')
       ctx->printf(ctx, "[%s] wt%d\n", sw.name[wave], wave);
+    ctx->printf(ctx, "WL%d,%d,%d\n",
+      wave, sw.loop_start[wave], sw.loop_end[wave]);
   }
 }
 
@@ -1230,6 +1233,8 @@ void downsample_block_average(const float *source, int source_len, float *dest, 
 #define WAVE_DISPLAY_MIN_HEIGHT 2
 #define WAVE_DISPLAY_MAX_HEIGHT 40
 #define WAVE_PEAK_ACCENT_MIN_DELTA 2
+#define RECORD_TRIM_DEFAULT_THRESHOLD 0.001f
+#define RECORD_TRIM_CONSECUTIVE_SAMPLES 4
 
 typedef struct {
     float min;
@@ -1284,6 +1289,50 @@ static void print_wave_stats(skode_t *ctx, const char *label, float *data, int n
         label, n, ms, s.min, s.max, s.peak, s.rms, s.dc, s.zero_crossings);
     if (s.clipped) ctx->printf(ctx, " clip %d", s.clipped);
     ctx->puts(ctx, "");
+}
+
+static float wave_samples_to_ms(int samples, float rate) {
+    if (samples <= 0 || rate <= 0.0f) return 0.0f;
+    return (float)samples / rate * 1000.0f;
+}
+
+static int wave_boundary_col(int boundary, int n, int width) {
+    if (width <= 1 || n <= 0) return 0;
+    if (boundary < 0) boundary = 0;
+    if (boundary > n) boundary = n;
+    return (int)(((long long)boundary * (long long)(width - 1) + (n / 2)) / n);
+}
+
+static void print_wave_marker_row(skode_t *ctx, int n, int width, int start, int end) {
+    if (!ctx || n <= 0 || width <= 0) return;
+    if (start < 0) start = 0;
+    if (end < 0) end = 0;
+    if (start > n) start = n;
+    if (end > n) end = n;
+    if (end < start) {
+        int tmp = end;
+        end = start;
+        start = tmp;
+    }
+
+    int col_start = wave_boundary_col(start, n, width);
+    int col_end = wave_boundary_col(end, n, width);
+    if (col_end < col_start) {
+        int tmp = col_end;
+        col_end = col_start;
+        col_start = tmp;
+    }
+
+    ctx->printf(ctx, "^");
+    for (int x = 0; x < width; x++) {
+        char ch = ' ';
+        if (x >= col_start && x <= col_end) ch = '=';
+        if (x == col_start) ch = '[';
+        if (x == col_end) ch = ']';
+        if (col_start == col_end && x == col_start) ch = '|';
+        ctx->printf(ctx, "%c", ch);
+    }
+    ctx->printf(ctx, "^\n");
 }
 
 static int skode_env_eq(const char *a, const char *b) {
@@ -1409,31 +1458,7 @@ static void print_audio_ascii_wave(skode_t *ctx, float *data, int n, int width_c
     }
 
     if (labeled) {
-        int col_offset = 0;
-        int col_trim = width - 1;
-        if (n > 1) {
-            col_offset = (int)((float)offset * (float)(width - 1) / (float)(n - 1));
-            col_trim = (int)((float)trim * (float)(width - 1) / (float)(n - 1));
-        }
-        if (col_offset < 0) col_offset = 0;
-        if (col_offset >= width) col_offset = width - 1;
-        if (col_trim < 0) col_trim = 0;
-        if (col_trim >= width) col_trim = width - 1;
-        if (col_trim < col_offset) {
-            int tmp = col_trim;
-            col_trim = col_offset;
-            col_offset = tmp;
-        }
-
-        ctx->printf(ctx, "^");
-        for (int x = 0; x < width; x++) {
-            char ch = ' ';
-            if (x >= col_offset && x <= col_trim) ch = '=';
-            if (x == col_offset) ch = '[';
-            if (x == col_trim) ch = ']';
-            ctx->printf(ctx, "%c", ch);
-        }
-        ctx->printf(ctx, "^\n");
+        print_wave_marker_row(ctx, n, width, offset, trim);
     }
 
     free(y_coords);
@@ -1630,28 +1655,7 @@ void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_cha
         ctx->printf(ctx, ":\n");
     }
 
-    // 2. Draw the Marker row (Offset and Trim)
-    // Map indices to dot positions
-    int dot_offset = 0;
-    int dot_trim = total_dots_x - 1;
-    if (n > 1) {
-        dot_offset = (int)((float)offset * (total_dots_x - 1) / (n - 1));
-        dot_trim   = (int)((float)trim   * (total_dots_x - 1) / (n - 1));
-    }
-
-    ctx->printf(ctx, "^");
-    for (int c = 0; c < width_chars; c++) {
-        int pattern = 0;
-        for (int dx = 0; dx < 2; dx++) {
-            int x = c * 2 + dx;
-            // Use Dot 1 (0x01) and Dot 4 (0x08) as markers on the top of the char
-            if (x >= dot_offset && x <= dot_trim) {
-                pattern |= (dx == 0) ? 0x01 : 0x08;
-            }
-        }
-        ctx->printf(ctx, "%c%c%c", 0xE2, 0xA0 | (pattern >> 6), 0x80 | (pattern & 0x3F));
-    }
-    ctx->printf(ctx, "^\n");
+    print_wave_marker_row(ctx, n, width_chars, offset, trim);
 
     free(y_coords);
     free(y_peak_min);
@@ -1663,18 +1667,26 @@ int wavetable_show(skode_t *ctx, int n) {
     int readonly = sw.readonly[n];
     int refcount = sw.refcount[n];
     int size = sw.size[n];
+    int loop_start = sw.loop_start[n];
+    int loop_end = sw.loop_end[n];
+    if (loop_start < 0) loop_start = 0;
+    if (loop_end < loop_start) loop_end = loop_start;
+    if (loop_end > size) loop_end = size;
+    int loop_len = loop_end - loop_start;
+    float rate = sw.rate[n] > 0.0f ? sw.rate[n] : (float)MAIN_SAMPLE_RATE;
     wave_stats_t stats = wave_stats(sw.data[n], size);
-    ctx->printf(ctx, "# w%-3d %d samples @", n, size);
-    ctx->printf(ctx, " %gHz (+%gHz) MIDI %g",
-      sw.rate[n],
-      sw.offset_hz[n],
-      sw.midi_note[n]);
+    ctx->printf(ctx, "# w%-3d |%d| %gms",
+      n, size, wave_samples_to_ms(size, rate));
     if (readonly) ctx->printf(ctx, " R/O");
     else ctx->printf(ctx, " R/W");
     ctx->printf(ctx, " ref#%d", refcount);
     ctx->printf(ctx, " [%s]", sw.name[n]);
-    ctx->printf(ctx, " display %s", skode_wave_display_name());
     ctx->puts(ctx, "");
+    ctx->printf(ctx, "# playback rate %gHz offset %+gHz MIDI %g one-shot %d\n",
+      sw.rate[n], sw.offset_hz[n], sw.midi_note[n], sw.one_shot[n]);
+    ctx->printf(ctx, "# loop %d..%d |%d| %gms\n",
+      loop_start, loop_end, loop_len, wave_samples_to_ms(loop_len, rate));
+    ctx->printf(ctx, "# display %s\n", skode_wave_display_name());
     ctx->printf(ctx,
       "# min %+0.3f max %+0.3f peak %0.3f rms %0.3f dc %+0.4f zc %d",
       stats.min, stats.max, stats.peak, stats.rms, stats.dc, stats.zero_crossings);
@@ -1867,39 +1879,46 @@ void normalize_buffer(float* pSamples, ma_uint32 frameCount, ma_uint32 channels)
     }
 }
 
-void record_find_trim(int argc, float arg0, float arg1) {
+static int record_trim_run_above(int start, int count, float threshold) {
+  if (start < 0 || count <= 0 || start + count > sampling.len) return 0;
+  for (int i = 0; i < count; i++) {
+    if (fabsf(sampling.where[start + i]) <= threshold) return 0;
+  }
+  return 1;
+}
+
+void record_find_trim(int argc, float arg0, float arg1, int margin) {
   if (!sampling.where || sampling.len <= 0 ||
       sampling.len > sampling.capacity) {
     return;
   }
   int lead0 = -1;
   int trail0 = -1;
-  float zero = 0.0;
-  float threshold = 0.0;
-  float tleft = 0.0;
-  float tright = 0.0;
-  if (argc) {
-    threshold = fabs(arg0);
-    tleft = threshold;
-    tright = threshold;
-    if (argc > 1) tright = arg1;
+  float tleft = RECORD_TRIM_DEFAULT_THRESHOLD;
+  float tright = RECORD_TRIM_DEFAULT_THRESHOLD;
+  int run = RECORD_TRIM_CONSECUTIVE_SAMPLES;
+  if (run > sampling.len) run = sampling.len;
+  if (argc > 0 && isfinite(arg0)) {
+    tleft = fabsf(arg0);
+    tright = tleft;
   }
-  #define INSIDE(v,t,r) (fabs((v)-(t))<=(r))
+  if (argc > 1 && isfinite(arg1)) tright = fabsf(arg1);
+  if (margin < 0) margin = 0;
 
   // 1. Find the first audible sample index
   int first_audible = -1;
-  for (int i = 0; i < sampling.len; i++) {
-    if (!INSIDE(sampling.where[i], zero, tleft)) {
+  for (int i = 0; i <= sampling.len - run; i++) {
+    if (record_trim_run_above(i, run, tleft)) {
       first_audible = i;
       break;
     }
   }
 
-  // Look backward into the silence to find the closest zero-crossing point
   if (first_audible > 0) {
-    lead0 = first_audible;
+    lead0 = first_audible - margin;
+    if (lead0 < 0) lead0 = 0;
+    // Look backward into silence/margin to find the closest zero crossing.
     while (lead0 > 0) {
-      // Check for an exact zero or a sign change between adjacent samples
       if (sampling.where[lead0] == 0.0 || (sampling.where[lead0] * sampling.where[lead0 - 1] <= 0.0)) {
         break;
       }
@@ -1911,18 +1930,18 @@ void record_find_trim(int argc, float arg0, float arg1) {
 
   // 2. Find the last audible sample index
   int last_audible = -1;
-  for (int i = sampling.len - 1; i >= 0; i--) {
-    if (!INSIDE(sampling.where[i], zero, tright)) {
-      last_audible = i;
+  for (int i = sampling.len - run; i >= 0; i--) {
+    if (record_trim_run_above(i, run, tright)) {
+      last_audible = i + run - 1;
       break;
     }
   }
 
-  // Look forward into the trailing silence to find the closest zero-crossing point
   if (last_audible >= 0 && last_audible < sampling.len - 1) {
-    int end_idx = last_audible;
+    int end_idx = last_audible + margin;
+    if (end_idx >= sampling.len) end_idx = sampling.len - 1;
+    // Look forward into silence/margin to find the closest zero crossing.
     while (end_idx < sampling.len - 1) {
-      // Check for an exact zero or a sign change between adjacent samples
       if (sampling.where[end_idx] == 0.0 || (sampling.where[end_idx] * sampling.where[end_idx + 1] <= 0.0)) {
         break;
       }
@@ -2905,6 +2924,26 @@ int skode_function(ands_t *s, int info) {
         skode_copy_string(sw.name[x], WAVE_NAME_MAX, ands_string(ctx->parse));
       }
       break;
+    case ATOM4('WL--'): // wave-loop-points wave start end
+      if (argc > 2 && x_valid && skode_wave_valid(x)) {
+        int start, end;
+        if (skode_double_to_int(arg[1], &start) &&
+            skode_double_to_int(arg[2], &end)) {
+          wave_loop_points_set(x, start, end);
+        }
+      }
+      break;
+    case ATOM4('VL--'): // voice-loop-points start end; no args resets from wave
+      if (argc >= 2) {
+        int start, end;
+        if (skode_double_to_int(arg[0], &start) &&
+            skode_double_to_int(arg[1], &end)) {
+          voice_loop_points_set(voice, start, end);
+        }
+      } else if (argc == 0) {
+        voice_loop_points_reset(voice);
+      }
+      break;
     case ATOM4('w---'): // wave-select which-wave interpolate? one-shot?
       if (argc) {
         wave_set(voice, x);
@@ -3073,9 +3112,11 @@ int skode_function(ands_t *s, int info) {
       {
         float arg0 = -1;
         float arg1 = -1;
+        int margin = 0;
         if (argc > 0) arg0 = arg[0];
         if (argc > 1) arg1 = arg[1];
-        record_find_trim(argc, arg0, arg1);
+        if (argc > 2) skode_double_to_int(arg[2], &margin);
+        record_find_trim(argc, arg0, arg1, margin);
       }
       break;
     case ATOM4('W---'): // wave-show which-wave
@@ -3101,9 +3142,14 @@ int skode_function(ands_t *s, int info) {
           h = wave_display_dim(arg[2], h, WAVE_DISPLAY_MIN_HEIGHT, WAVE_DISPLAY_MAX_HEIGHT);
         }
         if (!show_record_buffer && skode_wave_valid(x)) {
-          if (m == 0) {
+        if (m == 0) {
             wavetable_show(ctx, x);
-            print_audio_braille_connected(ctx, sw.data[x], sw.size[x], w, h);
+            print_audio_braille_labeled(ctx, sw.data[x], sw.size[x], w, h,
+              sw.loop_start[x], sw.loop_end[x]);
+            ctx->printf(ctx, "# loop marker [%d..%d) one-shot %d baseline %gms\n",
+              sw.loop_start[x], sw.loop_end[x], sw.one_shot[x],
+              wave_samples_to_ms(sw.size[x],
+                sw.rate[x] > 0.0f ? sw.rate[x] : (float)MAIN_SAMPLE_RATE));
           } else {
             for (int i=x; i<=m; i++) {
               wavetable_show(ctx, i);
@@ -3123,6 +3169,9 @@ int skode_function(ands_t *s, int info) {
               print_wave_stats(ctx, "recording", sampling.where, sampling.len, (float)MAIN_SAMPLE_RATE);
               print_audio_braille_labeled(ctx, sampling.where, sampling.len, w, h, sampling.offset, sampling.len - sampling.trim);
               int len = sampling.len - sampling.offset - sampling.trim;
+              ctx->printf(ctx,"# found start %d end %d |%d| %gms\n",
+                sampling.offset, sampling.len - sampling.trim, len,
+                SAMPLES_TO_MSEC(len));
               ctx->printf(ctx,"+offset %d -trim %d = |%d| %gms\n",
                 sampling.offset, sampling.trim, len,
                 SAMPLES_TO_MSEC(len));
@@ -3695,6 +3744,12 @@ int skode_function(ands_t *s, int info) {
             break;
           case 2: // wavetable size / rate
             val = (float)sw.size[wave] / sw.rate[wave];
+            break;
+          case 3: // loop start boundary
+            val = sw.loop_start[wave];
+            break;
+          case 4: // loop end boundary
+            val = sw.loop_end[wave];
             break;
           default:
             argc = 0; // hack to do-nothing on unknown parameter

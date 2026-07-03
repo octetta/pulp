@@ -60,6 +60,7 @@ typedef struct {
     float  * restrict loop_end_f;
     int    * restrict loop_valid;
     int    * restrict loop_length;
+    int    * restrict loop_override;
 
     /* --- amplitude / pan (hot path) --- */
     float  * restrict amp;

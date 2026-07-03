@@ -143,3 +143,59 @@ fixing the wasm control-plane `/cer 0` hang path.
   lines, configured sends, and currently eligible routed sends.
 - Verified: `make native`, `ctest --test-dir build_native --output-on-failure`,
   `make maxed`, `ctest --test-dir build_maxed --output-on-failure`.
+
+### 2026-07-03 - One-Shot Wave Loop Points
+
+- Added wave-level loop point metadata command `WL wave,start,end`.
+  `start` is inclusive, `end` is the exclusive loop boundary, and `end` may
+  equal the wave sample count.
+- Extended `W@` parameters: `3` reads loop start and `4` reads loop end.
+- Updated one-shot release semantics: `l0` now asks any active one-shot loop,
+  bounded or unbounded, to leave the loop at the next boundary in the current
+  playback direction, then continue toward the physical wave end or beginning.
+- Updated Skode docs and architecture notes; added regression coverage for
+  `WL`, `W@` loop metadata, forward release exit, and backward release exit.
+- Verified: `make native`, `ctest --test-dir build_native --output-on-failure`,
+  `make maxed`, `ctest --test-dir build_maxed --output-on-failure`.
+
+### 2026-07-03 - Voice Loop Overrides
+
+- Added `VL start,end` for per-voice loop point overrides after a wavetable is
+  assigned. Plain `VL` resets the selected voice back to its current wave's
+  `WL` defaults.
+- `w` clears voice loop overrides by copying wave defaults, while later `WL`
+  edits update only voices that are still following those defaults.
+- Voice display emits pasteable `VLstart,end` only when an override is active.
+  `GS1` now emits `WL` metadata for user-loaded waves so wave defaults and
+  voice overrides can be reconstructed together.
+- Confirmed with regression coverage that `VL` affects `l1` playback once
+  looping is enabled with `B1`/`BC`; documented that `VL` does not enable
+  looping by itself.
+- Clarified the one-shot lifecycle: triggers begin at the physical wave edge,
+  enter the loop at the first directional loop boundary, and release or
+  bounded-loop exhaustion exits toward the physical tail.
+- Verified: `make native`, `ctest --test-dir build_native --output-on-failure`,
+  `make maxed`, `ctest --test-dir build_maxed --output-on-failure` from
+  `parts/`.
+
+### 2026-07-03 - Wave Display Loop Markers
+
+- Improved single-wavetable `W` display headers to show sample count, baseline
+  duration at the wave rate, one-shot state, loop points, and loop duration.
+- Single-wave waveform output now uses the labeled display path so loop points
+  are drawn as a marker row under the waveform in both ASCII and Braille modes.
+- Updated command docs for the `[loop_start..loop_end)` marker convention.
+- Verified: `make native`, `ctest --test-dir build_native --output-on-failure`,
+  `make maxed`, `ctest --test-dir build_maxed --output-on-failure` from
+  `parts/`.
+
+### 2026-07-03 - Recording Auto-Trim
+
+- Improved `w<>` recording auto-trim: default silence threshold is now `0.001`
+  instead of exact zero, detection requires a short run of consecutive audible
+  samples, and an optional third argument adds sample margin before the nearest
+  zero-crossing search.
+- Updated docs to describe `w<> [threshold[,end-threshold[,margin-samples]]]`.
+- Verified: `make native`, `ctest --test-dir build_native --output-on-failure`,
+  `make maxed`, `ctest --test-dir build_maxed --output-on-failure` from
+  `parts/`.

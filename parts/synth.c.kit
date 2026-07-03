@@ -730,6 +730,7 @@ void osc_set_wave_table_index(int voice, int wave) {
     sv.table_size_rate[voice] = (float)sv.table_size[voice] / MAIN_SAMPLE_RATE;
     sv.table[voice] = sw.data[wave];
     sv.one_shot[voice] = sw.one_shot[wave];
+    sv.loop_override[voice] = 0;
     sv.loop_start[voice] = sw.loop_start[wave];
     sv.loop_enabled[voice] = sw.loop_enabled[wave];
     sv.loop_active[voice] = sv.loop_enabled[voice];
@@ -759,6 +760,55 @@ void osc_set_wave_table_index(int voice, int wave) {
       osc_set_freq(voice, sv.freq[voice]);
     }
   }
+}
+
+static void voice_loop_points_apply(int voice, int start, int end) {
+  sv.loop_start[voice] = start;
+  sv.loop_end[voice] = end;
+  sv.loop_start_f[voice] = (float)start;
+  sv.loop_end_f[voice] = (float)end;
+  if (end > start) {
+    sv.loop_valid[voice] = 1;
+    sv.loop_length[voice] = end - start;
+  } else {
+    sv.loop_valid[voice] = 0;
+    sv.loop_length[voice] = sv.table_size[voice];
+  }
+}
+
+int voice_loop_points_set(int voice, int start, int end) {
+  if (voice_invalid(voice) || sv.table_size[voice] < 2 ||
+      start < 0 || end <= start || end > sv.table_size[voice]) {
+    return SYNTH_INVALID_VOICE;
+  }
+  voice_loop_points_apply(voice, start, end);
+  sv.loop_override[voice] = 1;
+  return 0;
+}
+
+int voice_loop_points_reset(int voice) {
+  if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
+  int wave = sv.wave_table_index[voice];
+  if (wave < 0 || wave >= WAVE_TABLE_MAX || !sw.data[wave])
+    return SYNTH_INVALID_VOICE;
+  voice_loop_points_apply(voice, sw.loop_start[wave], sw.loop_end[wave]);
+  sv.loop_override[voice] = 0;
+  return 0;
+}
+
+int wave_loop_points_set(int wave, int start, int end) {
+  if (wave < 0 || wave >= WAVE_TABLE_MAX || !sw.data[wave] ||
+      sw.size[wave] < 2 || start < 0 || end <= start ||
+      end > sw.size[wave]) {
+    return -1;
+  }
+  sw.loop_start[wave] = start;
+  sw.loop_end[wave] = end;
+  for (int voice = 0; voice < synth_config.voice_max; voice++) {
+    if (sv.wave_table_index[voice] == wave && !sv.loop_override[voice])
+      voice_loop_points_apply(voice, start, end);
+  }
+  return 0;
 }
 
 void osc_trigger(int voice) {
@@ -1556,6 +1606,8 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" B%d", sv.loop_enabled[v]);
     if (verbose || sv.loop_count[v])
         APPEND(" BC%d", sv.loop_count[v]);
+    if (sv.loop_override[v])
+        APPEND(" VL%d,%d", sv.loop_start[v], sv.loop_end[v]);
 
     /* --- pan (suppress if centre) --- */
     if (verbose || sv.pan[v] != 0.0f)
@@ -1659,6 +1711,8 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" loop_active:%d loop_bounded:%d loop_remaining:%d loop_stop:%d",
             sv.loop_active[v], sv.loop_bounded[v], sv.loop_remaining[v],
             sv.loop_stop_requested[v]);
+        APPEND(" loop_points:%d..%d loop_override:%d",
+            sv.loop_start[v], sv.loop_end[v], sv.loop_override[v]);
         @if(SMOOTHER)
         APPEND(" smoother_gain:%g", sv.smoother_gain[v]);
         @endif
@@ -1961,6 +2015,8 @@ int voice_copy(int v, int n) {
   sv.loop_count[n] = sv.loop_count[v];
   wave_loop(n, sv.loop_enabled[v]);
   wave_dir(n, sv.direction[v]);
+  if (sv.loop_override[v])
+    voice_loop_points_set(n, sv.loop_start[v], sv.loop_end[v]);
   sv.link_midi_0[n] = sv.link_midi_0[v];
   sv.link_midi_1[n] = sv.link_midi_1[v];
   sv.link_midi_2[n] = sv.link_midi_2[v];
@@ -2103,6 +2159,7 @@ void voice_reset(int i) {
   sv.loop_active[i] = 0;
   sv.loop_stop_requested[i] = 0;
   sv.loop_ended[i] = 0;
+  sv.loop_override[i] = 0;
   sv.amp_envelope_mode[i] = 0; // exp
   sv.amp_envelope[i].is_active = 0;
   envelope_init(i, 0.0f, 0.0f, 1.0f, 0.0f);
@@ -2202,7 +2259,7 @@ int wave_reset(int voice) {
 int envelope_velocity(int voice, float f) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
     if (f == 0) {
-        if (sv.one_shot[voice] && sv.loop_active[voice] && sv.loop_bounded[voice])
+        if (sv.one_shot[voice] && sv.loop_active[voice])
             sv.loop_stop_requested[voice] = 1;
         skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE,
           SAMPLE_COUNT_GET(), voice);

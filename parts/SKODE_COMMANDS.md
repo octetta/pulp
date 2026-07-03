@@ -449,6 +449,7 @@ rate, looping, and one-shot state, is not part of the transferred Ksynth vector.
 | Command | Arguments or string | Behavior | Main function |
 | --- | --- | --- | --- |
 | `/l file-number[,verbose]` | numeric | Load a numbered `.sk` file | `skode_load()` |
+| `[filename] /ls [verbose]` | string | Load a named Skode file; bare names also fall back to `sk/filename` | `skode_load_name()` |
 | `[filename] /ws wave[,channel]` | string | Load an audio file into a writable wave slot | `wave_load_string()` |
 | `/w file-number[,wave[,channel]]` | numeric | Load a numbered audio file | `wave_load()` |
 | `<r seconds`, `^r seconds` | numeric | Record audio into the sample buffer | `skode_sample_go()` |

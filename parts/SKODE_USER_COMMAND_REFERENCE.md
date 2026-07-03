@@ -802,6 +802,7 @@ below `0.001` is treated as silence.
 | Command | Parameters | Effect |
 | --- | --- | --- |
 | `/l file[,verbose]` | Numbered Skode file | Loads and executes a `.sk` file. |
+| `[filename] /ls [verbose]` | Skode filename | Loads and executes a named Skode file. The literal filename is tried first; bare names also fall back to `sk/filename`. |
 | `[filename] %cat` | String | Prints a text file. |
 | `[directory] %cd` | String | Changes the process working directory. |
 | `%ls [type]` | `0` `.sk`, `1` `.wav`, `2` `.mp3`, `3` `.ks` | Lists matching files in the working directory. |

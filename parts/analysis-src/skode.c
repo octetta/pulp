@@ -808,20 +808,8 @@ int ksynth_load(skode_t *ctx, int n, int verbose) {
   return r;
 }
 
-int skode_load(skode_t *ctx, int voice, int n, int verbose) {
-  (void)voice;
-  skode_t caller_storage = SKODE_EMPTY();
-  if (ctx == NULL) {
-    ctx = &caller_storage;
-    skode_init(ctx);
-  }
-  char file[1024];
-  sprintf(file, "%d.sk", n);
-  FILE *in = fopen(file, "r");
-  if (in == NULL) {
-    sprintf(file, "sk/%d.sk", n);
-    in = fopen(file, "r");
-  }
+static int skode_load_stream(skode_t *ctx, FILE *in, const char *label,
+    int verbose) {
   int r = 0;
   if (in) {
     skode_t loader = SKODE_EMPTY();
@@ -836,18 +824,55 @@ int skode_load(skode_t *ctx, int voice, int n, int verbose) {
       r = skode_consume(line, &loader);
       if (loader.log_len > 0) ctx->printf(ctx, "%s", loader.log);
       if (r != 0) {
-        ctx->printf(ctx, "# error in patch %d.sk:%d status=%d\n",
-          n, line_no, r);
+        ctx->printf(ctx, "# error in patch %s:%d status=%d\n",
+          label ? label : "(unknown)", line_no, r);
         break;
       }
     }
     skode_free(&loader);
     fclose(in);
   } else {
-    ctx->printf(ctx, "# cannot load %d.sk\n", n);
+    ctx->printf(ctx, "# cannot load %s\n", label ? label : "(null)");
     r = -1;
   }
   return r;
+}
+
+int skode_load_name(skode_t *ctx, const char *name, int verbose) {
+  skode_t caller_storage = SKODE_EMPTY();
+  if (ctx == NULL) {
+    ctx = &caller_storage;
+    skode_init(ctx);
+  }
+  if (!name || name[0] == '\0') {
+    ctx->printf(ctx, "# cannot load empty filename\n");
+    return -1;
+  }
+  char file[1024];
+  snprintf(file, sizeof(file), "%s", name);
+  FILE *in = fopen(file, "r");
+  if (in == NULL && !strchr(name, '/') && !strchr(name, '\\')) {
+    snprintf(file, sizeof(file), "sk/%s", name);
+    in = fopen(file, "r");
+  }
+  return skode_load_stream(ctx, in, file, verbose);
+}
+
+int skode_load(skode_t *ctx, int voice, int n, int verbose) {
+  (void)voice;
+  skode_t caller_storage = SKODE_EMPTY();
+  if (ctx == NULL) {
+    ctx = &caller_storage;
+    skode_init(ctx);
+  }
+  char file[1024];
+  sprintf(file, "%d.sk", n);
+  FILE *in = fopen(file, "r");
+  if (in == NULL) {
+    sprintf(file, "sk/%d.sk", n);
+    in = fopen(file, "r");
+  }
+  return skode_load_stream(ctx, in, file, verbose);
 }
 
 extern synth_sample_t sampling;
@@ -3357,6 +3382,15 @@ int skode_function(ands_t *s, int info) {
         int verbose = 0;
         if (argc > 1) skode_double_to_int(arg[1], &verbose);
         skode_load(ctx, voice, x, verbose);
+      }
+      break;
+    case ATOM4('/ls-'): // skode-load-string filename
+      if (strlen(ands_string(ctx->parse))) {
+        int verbose = 0;
+        if (argc > 0) skode_double_to_int(arg[0], &verbose);
+        skode_load_name(ctx, ands_string(ctx->parse), verbose);
+      } else {
+        ctx->printf(ctx, "# /ls requires [filename]\n");
       }
       break;
     case ATOM4('/ws-'): // wave-load-string wave channel

@@ -1471,6 +1471,8 @@ static void test_load_installs_global_macros_and_registers(void) {
   const char *test = "load installs global macros and registers";
   char cwd[1024];
   char filename[64];
+  char named_filename[96];
+  char command[160];
   int patch = 910000 + (int)(getpid() % 80000);
   FILE *file;
   skode_t ctx = new_ctx();
@@ -1507,7 +1509,26 @@ static void test_load_installs_global_macros_and_registers(void) {
                  "register set through /l");
   }
 
+  snprintf(named_filename, sizeof(named_filename), "named-load-%d.sk",
+           (int)getpid());
+  file = fopen(named_filename, "w");
+  if (!file) {
+    fail(test, "could not create named temporary patch file");
+  } else {
+    fputs("[yy]: f $$0 ;\n=13,56\n", file);
+    fclose(file);
+    global_var[13] = 0.0;
+    snprintf(command, sizeof(command), "[%s] /ls", named_filename);
+    consume(test, &ctx, command);
+    consume(test, &ctx, "yy 234");
+    expect_float(test, sv.freq[0], 234.0f, 0.0001f,
+                 "macro loaded through /ls");
+    expect_float(test, (float)global_var[13], 56.0f, 0.0001f,
+                 "register set through /ls");
+  }
+
   remove(filename);
+  remove(named_filename);
   chdir(cwd);
   ands_macro_clear(ctx.parse);
 }

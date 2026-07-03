@@ -344,16 +344,104 @@ void handle_for(char *line, FILE *in, const char *fname, int *lnum) {
 static int doc_enabled = 0;
 static char *doc_path = NULL;
 static FILE *doc_file = NULL;
+static int doc_count = 0;
+
+static void doc_escape(FILE *out, const char *s) {
+    for (const unsigned char *p = (const unsigned char *)s; *p; p++) {
+        switch (*p) {
+            case '\\': fputs("\\\\", out); break;
+            case '"': fputs("\\\"", out); break;
+            case '\n': fputs("\\n", out); break;
+            case '\r': break;
+            case '\t': fputs("\\t", out); break;
+            default:
+                if (*p < 32 || *p > 126) fprintf(out, "\\x%02x", *p);
+                else fputc(*p, out);
+                break;
+        }
+    }
+}
+
+static void doc_symbol_from_key(char *dst, size_t dst_size, const char *key) {
+    size_t j = 0;
+    if (dst_size == 0) return;
+    for (size_t i = 0; key && key[i] && j + 1 < dst_size; i++) {
+        unsigned char c = (unsigned char)key[i];
+        if (isalnum(c) || c == '_') {
+            dst[j++] = (char)c;
+        } else {
+            if (j + 4 >= dst_size) break;
+            snprintf(dst + j, dst_size - j, "_%02x", c);
+            j += 3;
+        }
+    }
+    if (j == 0 || isdigit((unsigned char)dst[0])) {
+        if (j + 5 < dst_size) {
+            memmove(dst + 4, dst, j + 1);
+            memcpy(dst, "doc_", 4);
+            j += 4;
+        }
+    }
+    dst[j] = '\0';
+}
+
+static void doc_write_prologue(FILE *out) {
+    fputs("#ifndef KIT_DOC_BEGIN\n", out);
+    fputs("#define KIT_DOC_BEGIN(symbol, key, file, line)\n", out);
+    fputs("#endif\n", out);
+    fputs("#ifndef KIT_DOC_LINE\n", out);
+    fputs("#define KIT_DOC_LINE(symbol, text)\n", out);
+    fputs("#endif\n", out);
+    fputs("#ifndef KIT_DOC_END\n", out);
+    fputs("#define KIT_DOC_END(symbol)\n", out);
+    fputs("#endif\n\n", out);
+}
 
 void handle_doc(char *line, FILE *in, const char *fname, int *lnum) {
-    (void)line;
-    (void)fname;
+    char key[256];
+    char symbol[256];
+    int start_line = *lnum;
+    char *open = strchr(line, '(');
+    char *close = open ? strchr(open + 1, ')') : NULL;
+    if (open && close && close > open + 1) {
+        size_t len = (size_t)(close - open - 1);
+        if (len >= sizeof(key)) len = sizeof(key) - 1;
+        memcpy(key, open + 1, len);
+        key[len] = '\0';
+        trim(key);
+    } else {
+        snprintf(key, sizeof(key), "doc.%d", doc_count);
+    }
+    doc_symbol_from_key(symbol, sizeof(symbol), key);
+
+    int emit_doc = doc_enabled && doc_file && current_emit();
+    if (emit_doc) {
+        fprintf(doc_file, "KIT_DOC_BEGIN(%s, \"", symbol);
+        doc_escape(doc_file, key);
+        fputs("\", \"", doc_file);
+        doc_escape(doc_file, fname);
+        fprintf(doc_file, "\", %d)\n", start_line);
+    }
+
     char buf[4096];
+    int found_end = 0;
     while (fgets(buf, sizeof(buf), in)) {
         (*lnum)++;
-        if (strstr(buf, KENDDOC)) break;
-        if (doc_enabled && doc_file && current_emit()) fprintf(doc_file, "%s", buf);
+        if (strstr(buf, KENDDOC)) {
+            found_end = 1;
+            break;
+        }
+        if (emit_doc) {
+            fprintf(doc_file, "KIT_DOC_LINE(%s, \"", symbol);
+            doc_escape(doc_file, buf);
+            fputs("\")\n", doc_file);
+        }
     }
+    if (!found_end) kit_error(fname, start_line, "Unterminated " KDOC " block (missing " KENDDOC ")");
+    if (emit_doc) {
+        fprintf(doc_file, "KIT_DOC_END(%s)\n\n", symbol);
+    }
+    doc_count++;
 }
 
 void process_line(char *line, FILE *in, const char *fname, int *lnum) {
@@ -450,6 +538,7 @@ int main(int argc, char **argv) {
               fprintf(stderr, "cannot open %s for --doc\n", doc_path);
               return 1;
             }
+            doc_write_prologue(doc_file);
             doc_enabled = 1;
         } else {
             char *eq = strchr(argv[i], '=');

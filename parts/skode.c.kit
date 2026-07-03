@@ -2421,27 +2421,67 @@ int skode_function(ands_t *s, int info) {
     ctx->puts(ctx, "");
   }
   switch (atom) {
+    @doc(command.wait)
+    name: wait
+    category: parser
+    summary: blocking msec wait
+    @enddoc
     case ATOM4('wait'): // blocking msec wait
       if (x_valid && x >= 0) sk_sleep(x);
       break;
+    @doc(command.clr)
+    name: clr
+    category: parser
+    summary: clear parser argument stack
+    @enddoc
     case ATOM4('clr-'): // clear parser argument stack
       ands_arg_clear(s);
       return 1;
+    @doc(command.drop)
+    name: drop
+    category: parser
+    summary: drop first parser argument
+    @enddoc
     case ATOM4('drop'): // drop first parser argument
       ands_arg_drop(s);
       return 1;
+    @doc(command.dup)
+    name: dup
+    category: parser
+    summary: duplicate first parser argument
+    @enddoc
     case ATOM4('dup-'): // duplicate first parser argument
       ands_arg_dup(s);
       return 1;
+    @doc(command.over)
+    name: over
+    category: parser
+    summary: duplicate second parser argument to front
+    @enddoc
     case ATOM4('over'): // duplicate second parser argument to front
       ands_arg_over(s);
       return 1;
+    @doc(command.rot)
+    name: rot
+    category: parser
+    summary: rotate first three parser arguments left
+    @enddoc
     case ATOM4('rot-'): // rotate first three parser arguments left
       ands_arg_rot(s);
       return 1;
+    @doc(command.swap)
+    name: swap
+    category: parser
+    summary: swap first two parser arguments
+    @enddoc
     case ATOM4('swap'): // swap first two parser arguments
       ands_arg_swap(s);
       return 1;
+    @doc(command.a)
+    name: a
+    category: voice
+    summary: amp loudness
+    @enddoc
     case ATOM4('a---'): // amp loudness
 @doc
 
@@ -2451,6 +2491,11 @@ int skode_function(ands_t *s, int info) {
       if (argc) amp_set(voice, arg[0]);
       break;
     @if(AM)
+    @doc(command.A)
+    name: A
+    category: modulation
+    summary: AM voice depth
+    @enddoc
     case ATOM4('A---'): // AM voice depth
 @doc
 
@@ -2466,6 +2511,11 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @endif
+    @doc(command.b)
+    name: b
+    category: wave
+    summary: wave-direction bool
+    @enddoc
     case ATOM4('b---'): // wave-direction bool
 @doc
 
@@ -2473,6 +2523,11 @@ int skode_function(ands_t *s, int info) {
 
 @enddoc
       if (argc == 0) { wave_dir(voice, -1); } else { wave_dir(voice, x); } break;
+    @doc(command.B)
+    name: B
+    category: wave
+    summary: wave-loop bool
+    @enddoc
     case ATOM4('B---'): // wave-loop bool
 @doc
 
@@ -2480,6 +2535,11 @@ int skode_function(ands_t *s, int info) {
 
 @enddoc
       if (argc == 0) { wave_loop(voice, -1); } else { wave_loop(voice, x); } break;
+    @doc(command.BC)
+    name: BC
+    category: wave
+    summary: bounded one-shot loop count
+    @enddoc
     case ATOM4('BC--'): // bounded one-shot loop count
 @doc
 
@@ -2489,6 +2549,11 @@ int skode_function(ands_t *s, int info) {
       if (argc && x_valid) wave_loop_count(voice, x);
       break;
     @if(PD)
+    @doc(command.c)
+    name: c
+    category: modulation
+    summary: phase-distortion algo distortion
+    @enddoc
     case ATOM4('c---'): // phase-distortion algo distortion
 @doc
 
@@ -2511,6 +2576,11 @@ int skode_function(ands_t *s, int info) {
         cz_set(voice, x, arg[1]);
       }
       break;
+    @doc(command.C)
+    name: C
+    category: modulation
+    summary: PD-mod voice depth
+    @enddoc
     case ATOM4('C---'): // PD-mod voice depth
       if (argc < 2) {
         cmod_set(voice, -1, 0);
@@ -2519,6 +2589,11 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @endif
+    @doc(command.D)
+    name: D
+    category: data
+    summary: data-size
+    @enddoc
     case ATOM4('D---'): // data-size
       if (argc) {
         if (x > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, x);
@@ -2526,6 +2601,11 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "# D[%d]\n", ands_data_cap(ctx->parse));
       }
       break;
+    @doc(command.ce)
+    name: ce
+    category: events
+    summary: control-plane user event id [value0 [value1 [value2]]]
+    @enddoc
     case ATOM4('ce--'): // control-plane user event id [value0 [value1 [value2]]]
       if (argc > 0 && argc <= 4) {
         opcode_event_t opcode = {
@@ -2536,6 +2616,11 @@ int skode_function(ands_t *s, int info) {
         skode_emit_control_event_opcode(&opcode, voice, -1, -1, -1);
       }
       break;
+    @doc(command.?d)
+    name: ?d
+    category: data
+    summary: show-skode-data (summary)
+    @enddoc
     case ATOM4('?d--'): // show-skode-data (summary)
       {
         double *data = ands_data(ctx->parse);
@@ -2543,10 +2628,20 @@ int skode_function(ands_t *s, int info) {
         skode_double_dump(ctx, data, data_len);
       }
       break;
+    @doc(command.f)
+    name: f
+    category: voice
+    summary: freq hz
+    @enddoc
     case ATOM4('f---'): // freq hz
       if (argc) freq_set(voice, arg[0]);
       break;
     @if(FILT && FADSR)
+    @doc(command.ft)
+    name: ft
+    category: filter
+    summary: filter-adsr A D S R
+    @enddoc
     case ATOM4('ft--'): // filter-adsr A D S R
       if (argc == 4) {
         float a = arg[0];
@@ -2557,11 +2652,21 @@ int skode_function(ands_t *s, int info) {
         sv.use_filter_envelope[voice] = !(a==0 && d==0 && s==1 && r==0);
       }
       break;
+    @doc(command.fd)
+    name: fd
+    category: filter
+    summary: filter-adsr depth
+    @enddoc
     case ATOM4('fd--'): // filter-adsr depth
       if (argc) sv.filter_env_depth[voice] = arg[0];
       break;
     @endif
     @if(FM)
+    @doc(command.F)
+    name: F
+    category: modulation
+    summary: FM voice depth
+    @enddoc
     case ATOM4('F---'): // FM voice depth
       if (argc <= 1) {
         freq_mod_set(voice, -1, 0, 0);
@@ -2571,11 +2676,21 @@ int skode_function(ands_t *s, int info) {
         freq_mod_set(voice, x, arg[1], a);
       }
       break;
+    @doc(command.FF)
+    name: FF
+    category: modulation
+    summary: FM mode
+    @enddoc
     case ATOM4('FF--'): // FM mode
       if (argc) sv.freq_mod_mode[voice] = x;
       break;
     @endif
     @if(GLISS)
+    @doc(command.g)
+    name: g
+    category: modulation
+    summary: glissando speed
+    @enddoc
     case ATOM4('g---'): // glissando speed
       if (argc) {
         if (arg[0] <= 0) {
@@ -2588,6 +2703,11 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @endif
+    @doc(command.G)
+    name: G
+    category: modulation
+    summary: link-midi voice [voice]
+    @enddoc
     case ATOM4('G---'): // link-midi voice [voice]
       if (argc) {
         int links[4] = {-1, -1, -1, -1};
@@ -2603,9 +2723,19 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @if(SAH)
+    @doc(command.h)
+    name: h
+    category: wave
+    summary: sample-hold phase-count
+    @enddoc
     case ATOM4('h---'): // sample-hold phase-count
       if (argc) { sv.sample_hold_max[voice] = x; } break;
     @endif
+    @doc(command.H)
+    name: H
+    category: modulation
+    summary: link-velo voice [voice [voice [voice]]]
+    @enddoc
     case ATOM4('H---'): // link-velo voice [voice [voice [voice]]]
       if (argc) {
         int links[4] = {-1, -1, -1, -1};
@@ -2621,6 +2751,11 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     // TODO re-allocate the data/array buffer with the arg
+    @doc(command./D)
+    name: /D
+    category: data
+    summary: resize-data count
+    @enddoc
     case ATOM4('/D--'): // resize-data count
       if (argc) {
         // free and re-allocate...
@@ -2631,8 +2766,18 @@ int skode_function(ands_t *s, int info) {
         ands_data_cap(ctx->parse),
         ands_data_len(ctx->parse));
       break;
+    @doc(command.I)
+    name: I
+    category: runtime
+    summary: log-event bool
+    @enddoc
     case ATOM4('I---'): // log-event bool
       if (argc) {} break; // TODO en/dis-able send timestamp wire to the event logger
+    @doc(command.L)
+    name: L
+    category: modulation
+    summary: link-trigger-delay seconds
+    @enddoc
     case ATOM4('L---'): // link-trigger-delay seconds
       if (argc) {
         double seconds = arg[0];
@@ -2648,6 +2793,11 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @if(FILT)
+    @doc(command.J)
+    name: J
+    category: filter
+    summary: filter-mode selector
+    @enddoc
     case ATOM4('J---'): // filter-mode selector
       if (argc) {
         sv.filter_mode[voice] = x;
@@ -2656,11 +2806,21 @@ int skode_function(ands_t *s, int info) {
           sv.filter_res[voice]);
       }
       break;
+    @doc(command.K)
+    name: K
+    category: filter
+    summary: filter-cutoff freq
+    @enddoc
     case ATOM4('K---'): // filter-cutoff freq
       if (argc) { mmf_set_freq(voice, arg[0]); }
       break;
     @endif
     @if(KSYNTH)
+    @doc(command./ks)
+    name: /ks
+    category: ksynth
+    summary: ksynth-load num (verbose)
+    @enddoc
     case ATOM4('/ks-'): // ksynth-load num (verbose)
       {
         char *file = ands_string(ctx->parse);
@@ -2671,6 +2831,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command./k)
+    name: /k
+    category: ksynth
+    summary: ksynth-load num (verbose)
+    @enddoc
     case ATOM4('/k--'): // ksynth-load num (verbose)
       if (argc) {
         int verbose = 0;
@@ -2678,7 +2843,17 @@ int skode_function(ands_t *s, int info) {
         ksynth_load(ctx, x, verbose);
       }
       break;
+    @doc(command.ks)
+    name: ks
+    category: ksynth
+    summary: run ksynth code in string buffer
+    @enddoc
     case ATOM4('ks--'): // run ksynth code in string buffer
+    @doc(command.k!)
+    name: k!
+    category: ksynth
+    summary: run ksynth code in string buffer
+    @enddoc
     case ATOM4('k!--'): // run ksynth code in string buffer
       {
         int len = 0;
@@ -2690,17 +2865,32 @@ int skode_function(ands_t *s, int info) {
         if (len) skode_ks_eval(ctx, cmd, len);
       }
       break;
+    @doc(command.kw)
+    name: kw
+    category: ksynth
+    summary: wait for last ksynth request [timeout-ms]
+    @enddoc
     case ATOM4('kw--'): // wait for last ksynth request [timeout-ms]
       {
         (void)x;
       }
       break;
+    @doc(command.kw>)
+    name: kw>
+    category: ksynth
+    summary: compatibility: copy latest ksynth result to data
+    @enddoc
     case ATOM4('kw>-'): // compatibility: copy latest ksynth result to data
       {
         (void)x;
         skode_ks_result_to_data(ctx);
       }
       break;
+    @doc(command.k?)
+    name: k?
+    category: ksynth
+    summary: k show last results
+    @enddoc
     case ATOM4('k?--'): // k show last results
       {
         K result = (K)ctx->ks_result;
@@ -2708,29 +2898,59 @@ int skode_function(ands_t *s, int info) {
           skode_double_dump(ctx, result->f, (size_t)result->n);
       }
       break;
+    @doc(command.k>d)
+    name: k>d
+    category: ksynth
+    summary: k results to d?
+    @enddoc
     case ATOM4('k>d-'): // k results to d?
       {
         skode_ks_result_to_data(ctx);
       }
       break;
     @endif
+    @doc(command.k)
+    name: k
+    category: misc
+    summary: adsr-mode bool
+    @enddoc
     case ATOM4('k---'): // adsr-mode bool
       if (argc) { sv.amp_envelope_mode[voice] = x; } break;
     @if(UDP)
+    @doc(command.udp)
+    name: udp
+    category: runtime
+    summary: show-udp
+    @enddoc
     case ATOM4('udp-'): // show-udp
       if (argc) {
         ctx->printf(ctx, "# udp [%d] %d/%d\n", ctx->which, ctx->ip, ctx->port);
       }
       break;
     @endif
+    @doc(command.log)
+    name: log
+    category: runtime
+    summary: log-enable bool
+    @enddoc
     case ATOM4('log-'): // log-enable bool
       if (argc) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }
       }
       break;
+    @doc(command.___l)
+    name: ___l
+    category: voice
+    summary: delayed velocity amount (doesn't propogate)
+    @enddoc
     case ATOM4('___l'): // delayed velocity amount (doesn't propogate)
       if (argc && isfinite(arg[0])) envelope_velocity(voice, arg[0]);
       break;
+    @doc(command.l)
+    name: l
+    category: voice
+    summary: velocity amount
+    @enddoc
     case ATOM4('l---'): // velocity amount
       if (argc) {
         uint64_t now = SAMPLE_COUNT_GET();
@@ -2746,16 +2966,31 @@ int skode_function(ands_t *s, int info) {
         if (d >= 0) skode_envelope_velocity(d, vel, now);
       }
       break;
+    @doc(command.m)
+    name: m
+    category: voice
+    summary: mute-audio bool
+    @enddoc
     case ATOM4('m---'): // mute-audio bool
       if (argc) { wave_mute(voice, x); }
       break;
     @if(SEQ)
+    @doc(command.M)
+    name: M
+    category: sequencer
+    summary: tempo bpm
+    @enddoc
     case ATOM4('M---'): // tempo bpm
       if (argc && tempo_set(arg[0]) != 0)
         ctx->printf(ctx, "# tempo must be between %g and %g BPM\n",
           (double)SEQ_TEMPO_MIN_BPM, (double)SEQ_TEMPO_MAX_BPM);
       break;
     @endif
+    @doc(command.n)
+    name: n
+    category: voice
+    summary: midi-freq note-number (cents)
+    @enddoc
     case ATOM4('n---'): // midi-freq note-number (cents)
       if (argc) {
         float note = arg[0];
@@ -2764,6 +2999,11 @@ int skode_function(ands_t *s, int info) {
         skode_midi_note(voice, note, cents);
       }
       break;
+    @doc(command.N)
+    name: N
+    category: voice
+    summary: detune-midi key cents
+    @enddoc
     case ATOM4('N---'): // detune-midi key cents
       if (argc) {
         if (isnan(arg[0])) {
@@ -2774,12 +3014,27 @@ int skode_function(ands_t *s, int info) {
         if (argc > 1) sv.midi_cents[voice] = arg[1];
       }
       break;
+    @doc(command.p)
+    name: p
+    category: voice
+    summary: pan value
+    @enddoc
     case ATOM4('p---'): // pan value
       if (argc) pan_set(voice, arg[0]);
       break;
+    @doc(command.ds)
+    name: ds
+    category: modulation
+    summary: track-delay send amount; active only for routed, centered, unmodulated voices
+    @enddoc
     case ATOM4('ds--'): // track-delay send amount; active only for routed, centered, unmodulated voices
       if (argc) delay_send_set(voice, arg[0]);
       break;
+    @doc(command.DL)
+    name: DL
+    category: modulation
+    summary: track-delay params track coarse fine feedback mod-freq mod-depth level
+    @enddoc
     case ATOM4('DL--'): // track-delay params track coarse fine feedback mod-freq mod-depth level
       {
         int bus = 1;
@@ -2795,6 +3050,11 @@ int skode_function(ands_t *s, int info) {
         delay_params_set(bus, coarse, fine, feedback, mod_freq, mod_depth, level);
       }
       break;
+    @doc(command.DL?)
+    name: DL?
+    category: modulation
+    summary: show track delay params
+    @enddoc
     case ATOM4('DL?-'): // show track delay params
       if (argc) {
         int bus = 1;
@@ -2804,10 +3064,20 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "%s", delay_format());
       }
       break;
+    @doc(command.GS)
+    name: GS
+    category: voice
+    summary: show global synth status
+    @enddoc
     case ATOM4('GS--'): // show global synth status
       global_status_show(ctx, argc > 0 && arg[0] > 0.0);
       break;
     @if(PANMOD)
+    @doc(command.P)
+    name: P
+    category: modulation
+    summary: pan-mod voice depth
+    @enddoc
     case ATOM4('P---'): // pan-mod voice depth
       if (argc < 2) {
         pan_mod_set(voice, -1, 0, 0);
@@ -2819,19 +3089,39 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     @if(CRUSH)
+    @doc(command.q)
+    name: q
+    category: wave
+    summary: bit-crush bit-depth
+    @enddoc
     case ATOM4('q---'):  // bit-crush bit-depth
       if (argc) { wave_quant(voice, x); }
       break;
     @endif
     @if(FILT)
+    @doc(command.Q)
+    name: Q
+    category: filter
+    summary: filter resonance
+    @enddoc
     case ATOM4('Q---'):
       if (argc) { mmf_set_res(voice, arg[0]); }
       break;
     @endif
     @if(RECORD || SCOPE)
+    @doc(command.r)
+    name: r
+    category: recording
+    summary: additional recording track, 0=none, 1..4=stem
+    @enddoc
     case ATOM4('r---'): // additional recording track, 0=none, 1..4=stem
       if (argc) synth_record_track_set(voice, x);
       break;
+    @doc(command.rt)
+    name: rt
+    category: recording
+    summary: track-name track
+    @enddoc
     case ATOM4('rt--'): // track-name track
       if (argc && x > 0 && x <= RECORD_TRACK_MAX) {
         synth_track_name_set(x, ands_string(ctx->parse));
@@ -2841,6 +3131,11 @@ int skode_function(ands_t *s, int info) {
         @endif
       }
       break;
+    @doc(command.rv)
+    name: rv
+    category: recording
+    summary: track-volume track dB
+    @enddoc
     case ATOM4('rv--'): // track-volume track dB
       if (argc > 1 && x > 0 && x <= RECORD_TRACK_MAX) {
         synth_track_volume_set(x, arg[1]);
@@ -2852,15 +3147,30 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     @if(SEQ)
+    @doc(command.R!)
+    name: R!
+    category: sequencer
+    summary: remove-events tag
+    @enddoc
     case ATOM4('R!--'):  // remove-events tag
       if (argc) {
         int tag = x;
         seq_kill_by_tag(tag);
       }
       break;
+    @doc(command.R!!)
+    name: R!!
+    category: sequencer
+    summary: remove all queued events
+    @enddoc
     case ATOM4('R!!-'):
       seq_kill_all();
       break;
+    @doc(command.RR)
+    name: RR
+    category: sequencer
+    summary: repeat-string-tempo count delay [tag]
+    @enddoc
     case ATOM4('RR--'): // repeat-string-tempo count delay [tag]
       if (argc > 1 && x_valid && x > 0 && x <= QUEUE_SIZE &&
           isfinite(arg[1]) && arg[1] >= 0.0) {
@@ -2872,12 +3182,27 @@ int skode_function(ands_t *s, int info) {
         double seconds = tempo_step_seconds_get() * 4.0f * arg[1];
         skode_queue_repeated(&program, ctx->voice, x, seconds, tag);
       } break;
+    @doc(command.eRR)
+    name: eRR
+    category: sequencer
+    summary: repeat-external-macro-tempo macro count beats [tag]
+    @enddoc
     case ATOM4('eRR-'): // repeat-external-macro-tempo macro count beats [tag]
       skode_repeat_macro(ctx, arg, argc, 1);
       break;
+    @doc(command.eR)
+    name: eR
+    category: sequencer
+    summary: repeat-external-macro macro count seconds [tag]
+    @enddoc
     case ATOM4('eR--'): // repeat-external-macro macro count seconds [tag]
       skode_repeat_macro(ctx, arg, argc, 0);
       break;
+    @doc(command.DO?)
+    name: DO?
+    category: sequencer
+    summary: conditional-string-if-gt-zero number [tag]
+    @enddoc
     case ATOM4('DO?-'): // conditional-string-if-gt-zero number [tag]
       if (argc && x>0) {
         event_program_t program;
@@ -2888,6 +3213,11 @@ int skode_function(ands_t *s, int info) {
         uint64_t qt = SAMPLE_COUNT_GET();
         skode_queue_program(&program, ctx->voice, qt, tag);
       } break;
+    @doc(command.R)
+    name: R
+    category: sequencer
+    summary: repeat-string count delay [tag]
+    @enddoc
     case ATOM4('R---'): // repeat-string count delay [tag]
       if (argc > 1 && x_valid && x > 0 && x <= QUEUE_SIZE &&
           isfinite(arg[1]) && arg[1] >= 0.0) {
@@ -2900,6 +3230,11 @@ int skode_function(ands_t *s, int info) {
       } break;
     @endif
     @if(SMOOTHER)
+    @doc(command.s)
+    name: s
+    category: modulation
+    summary: volume-smooth bool
+    @enddoc
     case ATOM4('s---'): // volume-smooth bool
       if (argc) {
         if (arg[0] <= 0) {
@@ -2911,12 +3246,27 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @endif
+    @doc(command.S)
+    name: S
+    category: voice
+    summary: voice-reset voice
+    @enddoc
     case ATOM4('S---'): // voice-reset voice
       if (argc) wave_reset(x);
       break;
+    @doc(command.t)
+    name: t
+    category: voice
+    summary: adsr-set attack decay sustain release
+    @enddoc
     case ATOM4('t---'): // adsr-set attack decay sustain release
       if (argc > 3) envelope_set(voice, arg[0], arg[1], arg[2], arg[3]);
       break;
+    @doc(command.T)
+    name: T
+    category: voice
+    summary: trigger
+    @enddoc
     case ATOM4('T---'): // trigger
       {
         envelope_velocity(voice, 1);
@@ -2926,12 +3276,27 @@ int skode_function(ands_t *s, int info) {
         if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1);
       }
       break;
+    @doc(command.v)
+    name: v
+    category: voice
+    summary: voice-select voice
+    @enddoc
     case ATOM4('v---'): // voice-select voice
       if (argc) voice_set(x, &ctx->voice);
       break;
+    @doc(command.vc)
+    name: vc
+    category: voice
+    summary: voice control-plane event publication bool
+    @enddoc
     case ATOM4('vc--'): // voice control-plane event publication bool
       if (argc) voice_control_events_set(voice, x != 0);
       break;
+    @doc(command.V)
+    name: V
+    category: voice
+    summary: main-volume loudness
+    @enddoc
     case ATOM4('V---'): // main-volume loudness
       if (argc) {
         volume_set(arg[0]);
@@ -2941,14 +3306,29 @@ int skode_function(ands_t *s, int info) {
         @endif
       }
       break;
+    @doc(command.vt)
+    name: vt
+    category: voice
+    summary: [name] voice-text-set
+    @enddoc
     case ATOM4('vt--'): // [name] voice-text-set
       skode_copy_string(sv.text[voice], TEXT_MAX, ands_string(ctx->parse));
       break;
+    @doc(command.wt)
+    name: wt
+    category: misc
+    summary: [name] wave-text-set wave-number
+    @enddoc
     case ATOM4('wt--'): // [name] wave-text-set wave-number
       if (argc && x >= 0 && x < WAVE_TABLE_MAX) {
         skode_copy_string(sw.name[x], WAVE_NAME_MAX, ands_string(ctx->parse));
       }
       break;
+    @doc(command.WL)
+    name: WL
+    category: wave
+    summary: wave-loop-points wave start end
+    @enddoc
     case ATOM4('WL--'): // wave-loop-points wave start end
       if (argc > 2 && x_valid && skode_wave_valid(x)) {
         int start, end;
@@ -2958,6 +3338,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.VL)
+    name: VL
+    category: wave
+    summary: voice-loop-points start end; no args resets from wave
+    @enddoc
     case ATOM4('VL--'): // voice-loop-points start end; no args resets from wave
       if (argc >= 2) {
         int start, end;
@@ -2969,6 +3354,11 @@ int skode_function(ands_t *s, int info) {
         voice_loop_points_reset(voice);
       }
       break;
+    @doc(command.w)
+    name: w
+    category: wave
+    summary: wave-select which-wave interpolate? one-shot?
+    @enddoc
     case ATOM4('w---'): // wave-select which-wave interpolate? one-shot?
       if (argc) {
         wave_set(voice, x);
@@ -2981,6 +3371,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.=d)
+    name: =d
+    category: data
+    summary: assign a variable from an element of the d array =d var d-index
+    @enddoc
     case ATOM4('=d--'): // assign a variable from an element of the d array =d var d-index
       if (argc > 1 && x_valid) {
         int y;
@@ -2993,6 +3388,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.d@)
+    name: d@
+    category: data
+    summary: show an element from d array
+    @enddoc
     case ATOM4('d@--'): // show an element from d array
       if (argc) {
         double *data = ands_data(ctx->parse);
@@ -3006,6 +3406,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.d>r)
+    name: d>r
+    category: data
+    summary: data-to-rec
+    @enddoc
     case ATOM4('d>r-'): // data-to-rec
       {
         double *data = ands_data(ctx->parse);
@@ -3027,6 +3432,11 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @if(KSYNTH)
+    @doc(command.d>k)
+    name: d>k
+    category: ksynth
+    summary: data-to-ksynth-variable
+    @enddoc
     case ATOM4('d>k-'): // data-to-ksynth-variable
       if (argc) {
         int variable;
@@ -3036,6 +3446,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.w>k)
+    name: w>k
+    category: ksynth
+    summary: wavetable-to-ksynth-variable
+    @enddoc
     case ATOM4('w>k-'): // wavetable-to-ksynth-variable
       if (argc > 1) {
         int wave;
@@ -3062,6 +3477,11 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @endif
+    @doc(command.w>d)
+    name: w>d
+    category: wave
+    summary: wave-to-data
+    @enddoc
     case ATOM4('w>d-'): // wave-to-data
       if (x_valid && skode_wave_valid(x) && sw.data[x] && sw.size[x] > 0) {
         if (sw.size[x] > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, sw.size[x]);
@@ -3071,6 +3491,11 @@ int skode_function(ands_t *s, int info) {
         ands_data_len_set(ctx->parse, sw.size[x]);
       }
       break;
+    @doc(command.w>r)
+    name: w>r
+    category: wave
+    summary: wave-to-rec
+    @enddoc
     case ATOM4('w>r-'): // wave-to-rec
       if (x_valid && skode_wave_valid(x) && sw.data[x] && sw.size[x] > 0) {
         int valid = 1;
@@ -3090,6 +3515,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.w!)
+    name: w!
+    category: wave
+    summary: wave-lock
+    @enddoc
     case ATOM4('w!--'): // wave-lock
       {
         if (!sampling.where || sampling.offset < 0 || sampling.trim < 0 ||
@@ -3107,10 +3537,20 @@ int skode_function(ands_t *s, int info) {
         sampling.offset = 0;
       }
       break;
+    @doc(command.w@)
+    name: w@
+    category: wave
+    summary: wave-nudge-reset
+    @enddoc
     case ATOM4('w@--'): // wave-nudge-reset
       sampling.offset = 0;
       sampling.trim = 0;
       break;
+    @doc(command.w>)
+    name: w>
+    category: wave
+    summary: wave-nudge-start
+    @enddoc
     case ATOM4('w>--'): // wave-nudge-start
       if (argc == 0) x = 1;
       if (argc == 0 || x_valid) {
@@ -3122,6 +3562,11 @@ int skode_function(ands_t *s, int info) {
           sampling.trim = sampling.len - sampling.offset;
       }
       break;
+    @doc(command.w<)
+    name: w<
+    category: wave
+    summary: wave-nudge-len
+    @enddoc
     case ATOM4('w<--'): // wave-nudge-len
       if (argc == 0) x = 1;
       if (argc == 0 || x_valid) {
@@ -3133,6 +3578,11 @@ int skode_function(ands_t *s, int info) {
         sampling.trim = (int)next;
       }
       break;
+    @doc(command.w<>)
+    name: w<>
+    category: wave
+    summary: wave-auto-trim
+    @enddoc
     case ATOM4('w<>-'): // wave-auto-trim
       {
         float arg0 = -1;
@@ -3144,6 +3594,11 @@ int skode_function(ands_t *s, int info) {
         record_find_trim(argc, arg0, arg1, margin);
       }
       break;
+    @doc(command.W)
+    name: W
+    category: wave
+    summary: wave-show which-wave
+    @enddoc
     case ATOM4('W---'): // wave-show which-wave
       if (argc) {
         int w = WAVE_DISPLAY_DEFAULT_WIDTH;
@@ -3212,10 +3667,25 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.xg)
+    name: xg
+    category: sequencer
+    summary: goto-step #
+    @enddoc
     case ATOM4('xg--'): // goto-step #
+    @doc(command.>x)
+    name: >x
+    category: sequencer
+    summary: goto-step #
+    @enddoc
     case ATOM4('>x--'): // goto-step #
       seq_step_goto(ctx->pattern, x);
       break;
+    @doc(command.xa)
+    name: xa
+    category: sequencer
+    summary: append step
+    @enddoc
     case ATOM4('xa--'): // append step
       {
         const char *source = ands_string(ctx->parse);
@@ -3230,6 +3700,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.<x)
+    name: <x
+    category: sequencer
+    summary: (pattern) step-string-to-skode step-number
+    @enddoc
     case ATOM4('<x--'): // (pattern) step-string-to-skode step-number
       if (arg == 0) {
       } else {
@@ -3239,6 +3714,11 @@ int skode_function(ands_t *s, int info) {
         seq_edit_unlock();
       }
       break;
+    @doc(command.x)
+    name: x
+    category: sequencer
+    summary: set-step-string step
+    @enddoc
     case ATOM4('x---'): // set-step-string step
       if (argc) {
         if (isnan(arg[0]) || !x_valid || x < 0) {
@@ -3262,12 +3742,22 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.y)
+    name: y
+    category: sequencer
+    summary: select-pattern which
+    @enddoc
     case ATOM4('y---'): // select-pattern which
       if (argc && x >= 0 && x < PATTERNS_MAX) {
         ctx->pattern = x;
         scope_pattern_pointer = x;
       }
       break;
+    @doc(command.yt)
+    name: yt
+    category: sequencer
+    summary: {note} pattern-text
+    @enddoc
     case ATOM4('yt--'): // {note} pattern-text
       if (ctx->pattern >= 0 && ctx->pattern < PATTERNS_MAX) {
         seq_edit_lock();
@@ -3275,25 +3765,55 @@ int skode_function(ands_t *s, int info) {
         seq_edit_unlock();
       }
       break;
+    @doc(command.ym)
+    name: ym
+    category: sequencer
+    summary: pattern-mute 0/1
+    @enddoc
     case ATOM4('ym--'): // pattern-mute 0/1
       if (argc) seq_mute_set(ctx->pattern, x);
       break;
+    @doc(command.yc)
+    name: yc
+    category: sequencer
+    summary: pattern control-plane event publication bool
+    @enddoc
     case ATOM4('yc--'): // pattern control-plane event publication bool
       if (argc) seq_control_events_set(ctx->pattern, x);
       break;
+    @doc(command.Y)
+    name: Y
+    category: sequencer
+    summary: clear-pattern which
+    @enddoc
     case ATOM4('Y---'): // clear-pattern which
       if (argc && x >= 0 && x < PATTERNS_MAX) {
         pattern_reset(x);
       }
       break;
+    @doc(command.z)
+    name: z
+    category: sequencer
+    summary: one-pattern-play-mode bool
+    @enddoc
     case ATOM4('z---'): // one-pattern-play-mode bool
       if (argc) {
         seq_state_set(ctx->pattern, x);
       } else pattern_show(ctx, ctx->pattern, 1);
       break;
+    @doc(command.z?)
+    name: z?
+    category: sequencer
+    summary: one-pattern-play-mode bool
+    @enddoc
     case ATOM4('z?--'): // one-pattern-play-mode bool
       pattern_show(ctx, ctx->pattern, 1);
       break;
+    @doc(command.Z)
+    name: Z
+    category: sequencer
+    summary: all-pattern-play-mode bool
+    @enddoc
     case ATOM4('Z---'): // all-pattern-play-mode bool
       if (argc) {
         seq_state_all(x);
@@ -3302,12 +3822,27 @@ int skode_function(ands_t *s, int info) {
         for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p, 0);
       }
       break;
+    @doc(command.z??)
+    name: z??
+    category: sequencer
+    summary: show all patterns
+    @enddoc
     case ATOM4('z?\?-'): // show all patterns
+    @doc(command.Z?)
+    name: Z?
+    category: sequencer
+    summary: show all patterns
+    @enddoc
     case ATOM4('Z?--'): // show all patterns
       ctx->printf(ctx, "M%g\n", tempo_bpm_get());
       for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p, 1);
       break;
     @if(XM)
+    @doc(command.XM)
+    name: XM
+    category: modulation
+    summary: ring modulation osc amount
+    @enddoc
     case ATOM4('XM--'): // ring modulation osc amount
       if (argc) {
         sv.ring_osc[voice] = x_valid && skode_voice_valid(x) ? x : -1;
@@ -3316,21 +3851,61 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @endif
+    @doc(command.v?)
+    name: v?
+    category: voice
+    summary: show-voice
+    @enddoc
     case ATOM4('v?--'): // show-voice
+    @doc(command.?)
+    name: ?
+    category: voice
+    summary: show-voice
+    @enddoc
     case ATOM4('?---'): // show-voice
       voice_show(ctx, voice, ' ', ctx->verbose); break;
+    @doc(command.backslash)
+    name: \
+    category: voice
+    summary: verbose-show-voice
+    @enddoc
     case ATOM4('\\---'): // verbose-show-voice
       voice_show(ctx, voice, ' ', 1); break;
+    @doc(command.v??)
+    name: v??
+    category: voice
+    summary: show-active-voices
+    @enddoc
     case ATOM4('v?\?-'): // show-active-voices
+    @doc(command.??)
+    name: ??
+    category: voice
+    summary: show-active-voices
+    @enddoc
     case ATOM4('?\?--'): // show-active-voices
       voice_show_all(ctx, voice, ctx->verbose); break;
     @if(RECORD || SCOPE)
+    @doc(command.?r)
+    name: ?r
+    category: recording
+    summary: show record/scope tracks
+    @enddoc
     case ATOM4('?r--'): // show record/scope tracks
       record_tracks_show(ctx); break;
     @endif
+    @doc(command.?s)
+    name: ?s
+    category: misc
+    summary: show-skode-string
+    @enddoc
     case ATOM4('?s--'): // show-skode-string
       ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
       break;
+    @doc(command.s?)
+    name: s?
+    category: macros
+    summary: show parser-local string slot [index]
+    @enddoc
     case ATOM4('s?--'): // show parser-local string slot [index]
       if (argc && x_valid) {
         if (x >= 0 && x < SKODE_STRING_SLOT_MAX)
@@ -3342,20 +3917,45 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.?m)
+    name: ?m
+    category: macros
+    summary: show-ands-macros
+    @enddoc
     case ATOM4('?m--'): // show-ands-macros
       skode_macros_show(ctx, 0);
       break;
+    @doc(command.?ce)
+    name: ?ce
+    category: events
+    summary: show control-plane event snapshot
+    @enddoc
     case ATOM4('?ce-'): // show control-plane event snapshot
       control_event_show(ctx, 0);
       break;
+    @doc(command.?ce!)
+    name: ?ce!
+    category: events
+    summary: clear outstanding control-plane events
+    @enddoc
     case ATOM4('?ce!'): // clear outstanding control-plane events
       ctx->printf(ctx, "# control events cleared:%d\n",
         skred_control_event_clear());
       break;
     @if(SEQ)
+    @doc(command.?q)
+    name: ?q
+    category: sequencer
+    summary: show scheduled opcode queue
+    @enddoc
     case ATOM4('?q--'): // show scheduled opcode queue
       opcode_queue_show(ctx);
       break;
+    @doc(command.?o)
+    name: ?o
+    category: sequencer
+    summary: show compiled opcode queue or pattern
+    @enddoc
     case ATOM4('?o--'): // show compiled opcode queue or pattern
       if (argc == 0) {
         opcode_queue_show(ctx);
@@ -3376,14 +3976,29 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     @if(BENCH)
+    @doc(command./m_)
+    name: /m_
+    category: runtime
+    summary: benchmark voice
+    @enddoc
     case ATOM4('/m_-'): // benchmark voice
       synth_voice_bench(voice);
       break;
     @endif
+    @doc(command./q)
+    name: /q
+    category: runtime
+    summary: quit
+    @enddoc
     case ATOM4('/q--'): // quit
       ctx->quit = -1;
       return 0;
     @if(SCOPE)
+    @doc(command./sg)
+    name: /sg
+    category: scope
+    summary: start shared-memory scope publication
+    @enddoc
     case ATOM4('/sg-'): // start shared-memory scope publication
       {
         const char *name = ands_string_fresh(ctx->parse)
@@ -3417,10 +4032,20 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command./ss)
+    name: /ss
+    category: scope
+    summary: stop shared-memory scope publication
+    @enddoc
     case ATOM4('/ss-'): // stop shared-memory scope publication
       scope_ipc_stop();
       ctx->printf(ctx, "# scope stopped\n");
       break;
+    @doc(command./s?)
+    name: /s?
+    category: scope
+    summary: shared-memory scope status
+    @enddoc
     case ATOM4('/s?-'): // shared-memory scope status
       {
         skred_scope_status_t status;
@@ -3438,6 +4063,11 @@ int skode_function(ands_t *s, int info) {
       break;
     @endif
     @if(RECORD)
+    @doc(command./rg)
+    name: /rg
+    category: recording
+    summary: start multitrack file recording
+    @enddoc
     case ATOM4('/rg-'): // start multitrack file recording
       {
         const char *filename = ands_string(ctx->parse);
@@ -3458,6 +4088,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command./rs)
+    name: /rs
+    category: recording
+    summary: stop multitrack file recording
+    @enddoc
     case ATOM4('/rs-'): // stop multitrack file recording
       if (recorder_stop() == 0) {
         ctx->printf(ctx, "# recording stopped\n");
@@ -3465,6 +4100,11 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "# recording stop failed\n");
       }
       break;
+    @doc(command./r?)
+    name: /r?
+    category: recording
+    summary: multitrack file recording status
+    @enddoc
     case ATOM4('/r?-'): // multitrack file recording status
       {
         const char *state = "unknown";
@@ -3481,6 +4121,11 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     @endif
+    @doc(command./r)
+    name: /r
+    category: recording
+    summary: sample-to-wave slot one_shot offset
+    @enddoc
     case ATOM4('/r--'): // sample-to-wave slot one_shot offset
       {
         int wave_slot = EXT_SAMPLE_000;
@@ -3494,6 +4139,11 @@ int skode_function(ands_t *s, int info) {
       break;
                         //              x/0  1     2        3
                         //              300  rate one-shot offset
+    @doc(command./d)
+    name: /d
+    category: data
+    summary: data-to-wave slot rate  one-shot offset
+    @enddoc
     case ATOM4('/d--'): // data-to-wave slot rate  one-shot offset
       {
         int wave_slot = EXT_SAMPLE_000;
@@ -3507,10 +4157,20 @@ int skode_function(ands_t *s, int info) {
         data_load(ctx, wave_slot, one_shot, rate, offset);
       }
       break;
+    @doc(command./f)
+    name: /f
+    category: runtime
+    summary: flag-mode num
+    @enddoc
     case ATOM4('/f--'): // flag-mode num
       if (argc) { ctx->flag = x; }
       else { ctx->printf(ctx, "# /f%d\n", ctx->flag); }
       break;
+    @doc(command./ff)
+    name: /ff
+    category: runtime
+    summary: foreign C function slot arg...
+    @enddoc
     case ATOM4('/ff-'): // foreign C function slot arg...
       {
         if (!argc) break;
@@ -3520,6 +4180,11 @@ int skode_function(ands_t *s, int info) {
         (void)skode_foreign_function(ctx, index, arg + 1, argc - 1);
       }
       break;
+    @doc(command./m)
+    name: /m
+    category: macros
+    summary: remove-ands-macro [name]
+    @enddoc
     case ATOM4('/m--'): // remove-ands-macro [name]
       {
         const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : "";
@@ -3531,29 +4196,64 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command./m!)
+    name: /m!
+    category: macros
+    summary: clear-ands-macros
+    @enddoc
     case ATOM4('/m!-'): // clear-ands-macros
       ands_macro_clear(ctx->parse);
       ctx->printf(ctx, "# macros cleared\n");
       break;
+    @doc(command./t)
+    name: /t
+    category: runtime
+    summary: trace-mode num
+    @enddoc
     case ATOM4('/t--'): // trace-mode num
       if (argc == 0) x = (ctx->trace) ? 0 : 1;
       ctx->trace = x;
       ands_trace_set(s, x > 1);
       break;
+    @doc(command./v)
+    name: /v
+    category: runtime
+    summary: verbose-mode num
+    @enddoc
     case ATOM4('/v--'): // verbose-mode num
       if (argc == 0) x = (ctx->verbose) ? 0 : 1;
       ctx->verbose = x;
       break;
+    @doc(command./cer)
+    name: /cer
+    category: events
+    summary: control-event responder bool
+    @enddoc
     case ATOM4('/cer'): // control-event responder bool
       if (argc && x_valid) skred_control_response_set_enabled(x != 0);
       ctx->printf(ctx, "%s", skred_control_response_status());
       break;
+    @doc(command./ce?)
+    name: /ce?
+    category: events
+    summary: control-event responder status
+    @enddoc
     case ATOM4('/ce?'): // control-event responder status
       ctx->printf(ctx, "%s", skred_control_response_status());
       break;
+    @doc(command./th?)
+    name: /th?
+    category: runtime
+    summary: skred service/thread health
+    @enddoc
     case ATOM4('/th?'): // skred service/thread health
       ctx->printf(ctx, "%s", skred_thread_status());
       break;
+    @doc(command./ce!)
+    name: /ce!
+    category: events
+    summary: control-event responder remove/clear
+    @enddoc
     case ATOM4('/ce!'): // control-event responder remove/clear
       if (argc == 0) {
         skred_control_response_clear();
@@ -3566,6 +4266,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command./ceb)
+    name: /ceb
+    category: events
+    summary: bind parser string to control event type key
+    @enddoc
     case ATOM4('/ceb'): // bind parser string to control event type key
       if (argc > 1 && x_valid && ands_string_len(ctx->parse) > 0) {
         int key;
@@ -3581,18 +4286,33 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "# usage: [skode-command] /ceb type key\n");
       }
       break;
+    @doc(command.<s)
+    name: <s
+    category: macros
+    summary: parser-local string slot to parser string
+    @enddoc
     case ATOM4('<s--'): // parser-local string slot to parser string
       if (argc && x_valid && x >= 0 && x < SKODE_STRING_SLOT_MAX) {
         ands_string_from_external(ctx->parse, ctx->string_slot[x],
                                   strlen(ctx->string_slot[x]));
       }
       break;
+    @doc(command.s>)
+    name: s>
+    category: macros
+    summary: parser string to parser-local string slot
+    @enddoc
     case ATOM4('s>--'): // parser string to parser-local string slot
       if (argc && x_valid && x >= 0 && x < SKODE_STRING_SLOT_MAX) {
         skode_copy_string(ctx->string_slot[x], SKODE_STRING_SLOT_LEN,
                           ands_string(ctx->parse));
       }
       break;
+    @doc(command.s%)
+    name: s%
+    category: macros
+    summary: format parser string with numeric args
+    @enddoc
     case ATOM4('s%--'): // format parser string with numeric args
       {
         char formatted[SKODE_STRING_SLOT_LEN];
@@ -3601,6 +4321,11 @@ int skode_function(ands_t *s, int info) {
         ands_string_from_external(ctx->parse, formatted, strlen(formatted));
         return 1;
       }
+    @doc(command.<e)
+    name: <e
+    category: macros
+    summary: external-string-to-skode external-index
+    @enddoc
     case ATOM4('<e--'): // external-string-to-skode external-index
       if (argc && skode_extra_valid(x)) {
         char macro[STRING_BUF_LEN];
@@ -3608,6 +4333,11 @@ int skode_function(ands_t *s, int info) {
           ands_string_from_external(ctx->parse, macro, strlen(macro));
       }
       break;
+    @doc(command.e>)
+    name: e>
+    category: macros
+    summary: skode-string-to-external external-index
+    @enddoc
     case ATOM4('e>--'): // skode-string-to-external external-index
       if (argc && skode_extra_valid(x)) {
         char *s = ands_string(ctx->parse);
@@ -3616,6 +4346,11 @@ int skode_function(ands_t *s, int info) {
         simple_mutex_unlock(&skode_extra_mutex);
       }
       break;
+    @doc(command.e!)
+    name: e!
+    category: macros
+    summary: execute-string num
+    @enddoc
     case ATOM4('e!--'): // execute-string num
       {
         char macro[STRING_BUF_LEN] = "";
@@ -3634,6 +4369,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.e?)
+    name: e?
+    category: macros
+    summary: show-execute-string [num]
+    @enddoc
     case ATOM4('e?--'): // show-execute-string [num]
       simple_mutex_lock(&skode_extra_mutex);
       if (argc) {
@@ -3646,6 +4386,11 @@ int skode_function(ands_t *s, int info) {
       }
       simple_mutex_unlock(&skode_extra_mutex);
       break;
+    @doc(command./s)
+    name: /s
+    category: runtime
+    summary: system-show num
+    @enddoc
     case ATOM4('/s--'): // system-show num
       {
         if (argc == 0) {
@@ -3674,6 +4419,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command./l)
+    name: /l
+    category: files
+    summary: skode-load num
+    @enddoc
     case ATOM4('/l--'): // skode-load num
       if (argc) {
         int verbose = 0;
@@ -3681,6 +4431,11 @@ int skode_function(ands_t *s, int info) {
         skode_load(ctx, voice, x, verbose);
       }
       break;
+    @doc(command./ls)
+    name: /ls
+    category: files
+    summary: skode-load-string filename
+    @enddoc
     case ATOM4('/ls-'): // skode-load-string filename
       if (strlen(ands_string(ctx->parse))) {
         int verbose = 0;
@@ -3690,6 +4445,11 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "# /ls requires [filename]\n");
       }
       break;
+    @doc(command./ws)
+    name: /ws
+    category: files
+    summary: wave-load-string wave channel
+    @enddoc
     case ATOM4('/ws-'): // wave-load-string wave channel
       ctx->printf(ctx, "# [%s] /ws\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
@@ -3706,6 +4466,11 @@ int skode_function(ands_t *s, int info) {
         wave_load_string(ctx, file_name, wave_slot, ch, 1);
       }
       break;
+    @doc(command./w)
+    name: /w
+    category: files
+    summary: wave-load num wave channel
+    @enddoc
     case ATOM4('/w--'): // wave-load num wave channel
       {
         int file_num = 0;
@@ -3722,6 +4487,11 @@ int skode_function(ands_t *s, int info) {
         if (argc) wave_load(ctx, file_num, wave_slot, ch, 1);
       }
       break;
+    @doc(command.>r)
+    name: >r
+    category: recording
+    summary: record to file
+    @enddoc
     case ATOM4('>r--'): // record to file
       if (x_valid && sampling.where && sampling.len > 0) {
         char filename[64];
@@ -3743,7 +4513,17 @@ int skode_function(ands_t *s, int info) {
         free(where);
       }
       break;
+    @doc(command.^r)
+    name: ^r
+    category: recording
+    summary: record duration ... markdown/html doesn't like <
+    @enddoc
     case ATOM4('^r--'): // record duration ... markdown/html doesn't like <
+    @doc(command.<r)
+    name: <r
+    category: recording
+    summary: record duration
+    @enddoc
     case ATOM4('<r--'): // record duration
       if (argc && isfinite(arg[0]) && arg[0] > 0.0 &&
           arg[0] <= (double)(INT_MAX - 4096) / MAIN_SAMPLE_RATE) {
@@ -3752,17 +4532,37 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "skode_sample -> %d %d %d\n", sampling.busy, sampling.go, sampling.frames);
       }
       break;
+    @doc(command.>)
+    name: >
+    category: voice
+    summary: copy-voice dest-voice
+    @enddoc
     case ATOM4('>---'): // copy-voice dest-voice
       if (x_valid && skode_voice_valid(x)) voice_copy(voice, x);
       break;
+    @doc(command./)
+    name: /
+    category: wave
+    summary: default-wave voice
+    @enddoc
     case ATOM4('/---'): // default-wave voice
       wave_default(voice);
       break;
     @if(SEQ)
+    @doc(command.%)
+    name: %
+    category: sequencer
+    summary: pattern-modulus num
+    @enddoc
     case ATOM4('%---'): // pattern-modulus num
       if (argc) seq_modulo_set(ctx->pattern, x);
       break;
     @endif
+    @doc(command.W@)
+    name: W@
+    category: data
+    summary: get a wavetable parameter to a variable
+    @enddoc
     case ATOM4('W@--'):  // get a wavetable parameter to a variable
       if (argc > 1 && x_valid && skode_wave_valid(x)) {
         int wave = x;
@@ -3801,6 +4601,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.v@)
+    name: v@
+    category: data
+    summary: get a voice parameter to a variable
+    @enddoc
     case ATOM4('v@--'):  // get a voice parameter to a variable
       if (argc) {
         double val = 0.0;
@@ -3830,6 +4635,11 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.*=)
+    name: *=
+    category: data
+    summary: variable-times-equal slot val0 val1
+    @enddoc
     case ATOM4('*=--'):  // variable-times-equal slot val0 val1
       if (argc > 2) {
         double val = arg[1] * arg[2];
@@ -3839,6 +4649,11 @@ int skode_function(ands_t *s, int info) {
         return 1;
       }
       break;
+    @doc(command./=)
+    name: /=
+    category: data
+    summary: variable-divide-equal slot val0 val1
+    @enddoc
     case ATOM4('/=--'):  // variable-divide-equal slot val0 val1
       if (argc > 2 && arg[2] != 0.0) {
         double val = arg[1] / arg[2];
@@ -3848,6 +4663,11 @@ int skode_function(ands_t *s, int info) {
         return 1;
       }
       break;
+    @doc(command.a=)
+    name: a=
+    category: data
+    summary: variable-plus-equal slot val0 val1
+    @enddoc
     case ATOM4('a=--'):  // variable-plus-equal slot val0 val1
       if (argc > 2) {
         double val = arg[1] + arg[2];
@@ -3857,6 +4677,11 @@ int skode_function(ands_t *s, int info) {
         return 1;
       }
       break;
+    @doc(command.s=)
+    name: s=
+    category: data
+    summary: variable-sub-equal slot val0 val1
+    @enddoc
     case ATOM4('s=--'):  // variable-sub-equal slot val0 val1
       if (argc > 2) {
         double val = arg[1] - arg[2];
@@ -3866,6 +4691,11 @@ int skode_function(ands_t *s, int info) {
         return 1;
       }
       break;
+    @doc(command.=)
+    name: =
+    category: data
+    summary: variable-set slot value
+    @enddoc
     case ATOM4('=---'):  // variable-set slot value
       if (argc > 1) {
         ands_set_local(ctx->parse, x, arg[1]);
@@ -3887,9 +4717,19 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command./wex)
+    name: /wex
+    category: wave
+    summary: wave-expand wave
+    @enddoc
     case ATOM4('/wex'): // wave-expand wave
       if (argc && x >= 200 && x <=999) wave_table_dynamic_expand(x);
       break;
+    @doc(command.%cat)
+    name: %cat
+    category: files
+    summary: print a text file
+    @enddoc
     case ATOM4('%cat'): // print a text file
       if (strlen(ands_string(ctx->parse))) {
         FILE *in = fopen(ands_string(ctx->parse), "rt");
@@ -3914,12 +4754,22 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.%cd)
+    name: %cd
+    category: files
+    summary: change directory
+    @enddoc
     case ATOM4('%cd-'): // change directory
       ctx->printf(ctx, "# [%s] %cd\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
         chdir(ands_string(ctx->parse));
       }
       break;
+    @doc(command.%ls)
+    name: %ls
+    category: files
+    summary: list directory (match-type)
+    @enddoc
     case ATOM4('%ls-'): // list directory (match-type)
       {
       /*

@@ -125,3 +125,21 @@ fixing the wasm control-plane `/cer 0` hang path.
   selection, centered-pan gating, stereo return, and `GS` output.
 - Verified: `make`, `make native`, `make maxed`, `make wasm`; native, maxed,
   and wasm build-directory `ctest --output-on-failure`.
+
+### 2026-07-03 - Track-Aligned Delay Routing Design
+
+- Decided the four delay lines should align with record/scope tracks rather
+  than remain separately selected per voice.
+- Intended model: `r1`..`r4` selects the stem and its associated delay,
+  `ds amount` controls only the voice's send amount, and `DL track,...`
+  configures the delay attached to that track.
+- Delay returns should remain in the main mix and also be included in the
+  matching record/scope stem.
+- Implemented the track-aligned model in `synth.c.kit`, `skode.c.kit`, and
+  generated analysis sources: removed per-voice delay-bus state, made `ds`
+  set only amount, derive the active delay from `r1`..`r4`, and add wet returns
+  to the matching stem.
+- Added a cheap `/a?` delay status line via `delay_status()`: active delay
+  lines, configured sends, and currently eligible routed sends.
+- Verified: `make native`, `ctest --test-dir build_native --output-on-failure`,
+  `make maxed`, `ctest --test-dir build_maxed --output-on-failure`.

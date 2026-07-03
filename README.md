@@ -210,6 +210,11 @@ v1 l1
 8 stem 4 L    9 stem 4 R
 ```
 
+Stems `1` through `4` also own track-aligned delay lines. `r1` through `r4`
+select the stem and delay identity for a voice; `ds amount` sets how much of
+that voice feeds the selected track delay. Delay returns are heard in the
+master mix and included in the matching recording/scope stem.
+
 For live scope publication, enter:
 
 ```text

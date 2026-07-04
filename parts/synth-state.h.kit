@@ -53,6 +53,7 @@ typedef struct {
     int    * restrict loop_remaining;      /* wraps left for the active note */
     int    * restrict loop_active;         /* runtime loop state */
     int    * restrict loop_stop_requested; /* leave loop at next boundary */
+    int    * restrict loop_release_tail;   /* l0 exits sample loop into tail */
     int    * restrict loop_ended;           /* boundary event for envelopes */
     int    * restrict loop_start;
     int    * restrict loop_end;

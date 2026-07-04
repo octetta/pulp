@@ -114,6 +114,7 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(loop_remaining,   int);
     VALLOC(loop_active,      int);
     VALLOC(loop_stop_requested, int);
+    VALLOC(loop_release_tail, int);
     VALLOC(loop_ended,       int);
     VALLOC(loop_start,       int);
     VALLOC(loop_end,         int);
@@ -249,7 +250,7 @@ void synth_free_voices(void) {
     VFREE(finished);         VFREE(direction);       VFREE(loop_enabled);
     VFREE(loop_count);       VFREE(loop_bounded);    VFREE(loop_remaining);
     VFREE(loop_active);
-    VFREE(loop_stop_requested); VFREE(loop_ended);
+    VFREE(loop_stop_requested); VFREE(loop_release_tail); VFREE(loop_ended);
     VFREE(loop_start);       VFREE(loop_end);        VFREE(loop_start_f);
     VFREE(loop_end_f);       VFREE(loop_valid);      VFREE(loop_length);
     VFREE(loop_override);

@@ -14,6 +14,9 @@
 
 static int failures = 0;
 
+extern int wave_load_string(skode_t *ctx, char *name, int wave_index,
+                            int ch, int normalize);
+
 static void fail(const char *test, const char *msg) {
   fprintf(stderr, "FAIL %s: %s\n", test, msg);
   failures++;
@@ -68,6 +71,82 @@ static void consume(const char *test, skode_t *ctx, const char *line) {
     snprintf(msg, sizeof(msg), "skode_consume returned %d for [%s]", r, line);
     fail(test, msg);
   }
+}
+
+static void reset_log(skode_t *ctx) {
+  ctx->log[0] = '\0';
+  ctx->log_len = 0;
+  ctx->log_head = 0;
+  ctx->log_count = 0;
+  ctx->log_dropped = 0;
+  ctx->log_pending[0] = '\0';
+  ctx->log_pending_len = 0;
+}
+
+static void write_u16le(FILE *f, unsigned value) {
+  fputc((int)(value & 0xffu), f);
+  fputc((int)((value >> 8) & 0xffu), f);
+}
+
+static void write_u32le(FILE *f, uint32_t value) {
+  fputc((int)(value & 0xffu), f);
+  fputc((int)((value >> 8) & 0xffu), f);
+  fputc((int)((value >> 16) & 0xffu), f);
+  fputc((int)((value >> 24) & 0xffu), f);
+}
+
+static void write_tag(FILE *f, const char *tag) {
+  fwrite(tag, 1, 4, f);
+}
+
+static int write_smpl_test_wav(const char *path, uint32_t frames,
+                               uint32_t loop_start, uint32_t loop_end,
+                               uint32_t loop_type, uint32_t play_count) {
+  const uint32_t data_bytes = frames * 2;
+  const uint32_t smpl_bytes = 36 + 24;
+  const uint32_t riff_size = 4 + (8 + 16) + (8 + data_bytes) + (8 + smpl_bytes);
+  FILE *f = fopen(path, "wb");
+  if (!f) return -1;
+
+  write_tag(f, "RIFF");
+  write_u32le(f, riff_size);
+  write_tag(f, "WAVE");
+
+  write_tag(f, "fmt ");
+  write_u32le(f, 16);
+  write_u16le(f, 1);
+  write_u16le(f, 1);
+  write_u32le(f, MAIN_SAMPLE_RATE);
+  write_u32le(f, MAIN_SAMPLE_RATE * 2);
+  write_u16le(f, 2);
+  write_u16le(f, 16);
+
+  write_tag(f, "data");
+  write_u32le(f, data_bytes);
+  for (uint32_t i = 0; i < frames; i++) {
+    write_u16le(f, (unsigned)(i * 1000u));
+  }
+
+  write_tag(f, "smpl");
+  write_u32le(f, smpl_bytes);
+  write_u32le(f, 0);
+  write_u32le(f, 0);
+  write_u32le(f, 1000000000u / MAIN_SAMPLE_RATE);
+  write_u32le(f, 69);
+  write_u32le(f, 0);
+  write_u32le(f, 0);
+  write_u32le(f, 0);
+  write_u32le(f, 1);
+  write_u32le(f, 0);
+  write_u32le(f, 0);
+  write_u32le(f, loop_type);
+  write_u32le(f, loop_start);
+  write_u32le(f, loop_end);
+  write_u32le(f, 0);
+  write_u32le(f, play_count);
+
+  if (fclose(f) != 0) return -1;
+  return 0;
 }
 
 typedef struct {
@@ -213,6 +292,36 @@ static void test_data_array_logging(void) {
   if (strstr(ctx.log, "( 1 2.5 -3 )") == NULL) {
     fail(test, "expected ?d output in log");
   }
+}
+
+static void test_command_help(void) {
+  const char *test = "command help";
+  skode_t ctx = new_ctx();
+  ctx.log_enable = 1;
+
+  consume(test, &ctx, "/h");
+  expect_substr(test, ctx.log, "# help categories", "help categories");
+  expect_substr(test, ctx.log, "parser", "help parser category");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "/h 1");
+  expect_substr(test, ctx.log, "# help parser", "numeric category help");
+  expect_substr(test, ctx.log, "wait", "numeric category command");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "/h 1,1");
+  expect_substr(test, ctx.log, "# help wait", "numeric command help");
+  expect_substr(test, ctx.log, "blocking msec wait", "numeric command summary");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[files] /h");
+  expect_substr(test, ctx.log, "# help files", "string category help");
+  expect_substr(test, ctx.log, "/ls", "string category command");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[/ls] /h");
+  expect_substr(test, ctx.log, "# help /ls", "string command help");
+  expect_substr(test, ctx.log, "skode-load-string filename", "string command summary");
 }
 
 static void test_named_wave_destination(void) {
@@ -393,6 +502,8 @@ static void test_bounded_one_shot_loops(void) {
   expect_int(test, sv.loop_active[voice], 0, "loop exhausted");
   expect_int(test, sv.loop_ended[voice], 1, "loop exhaustion event");
   expect_int(test, sv.finished[voice], 0, "tail remains active");
+  expect_int(test, sv.loop_release_tail[voice], 1,
+             "bounded loop exits into sample tail");
 
   osc_next(voice, 1.0f);
   osc_next(voice, 1.0f);
@@ -404,10 +515,18 @@ static void test_bounded_one_shot_loops(void) {
   consume(test, &ctx, "l0");
   expect_int(test, sv.loop_stop_requested[voice], 1,
              "unbounded release stop request");
+  expect_u64(test, sv.amp_envelope[voice].sample_release, UINT64_MAX,
+             "one-shot loop release keeps amp envelope held");
   osc_next(voice, 1.0f);
   expect_int(test, sv.loop_active[voice], 0, "unbounded release loop exit");
   expect_float(test, sv.phase[voice], 5.0f, 0.0001f,
                "unbounded release exit phase");
+  expect_int(test, sv.finished[voice], 0,
+             "unbounded release tail remains active");
+  expect_float(test, amp_envelope_step(voice, SAMPLE_COUNT_GET()), 1.0f,
+               0.0001f, "unbounded release tail remains audible");
+  expect_u64(test, sv.amp_envelope[voice].sample_release, UINT64_MAX,
+             "loop exit keeps amp envelope held for tail");
 
   configure_loop_test_voice(voice, 1);
   consume(test, &ctx, "BC0 l1");
@@ -629,6 +748,43 @@ static void test_wave_loop_points(void) {
   sw.size[wave] = 0;
 }
 
+static void test_wave_load_smpl_loop(void) {
+  const char *test = "wave load smpl loop";
+  char path[128];
+  skode_t ctx = new_ctx();
+  const int wave = 301;
+
+  snprintf(path, sizeof(path), "/tmp/skode_smpl_loop_%ld.wav", (long)getpid());
+  if (write_smpl_test_wav(path, 10, 2, 7, 0, 3) != 0) {
+    fail(test, "could not write test wav");
+    return;
+  }
+
+  ctx.log_enable = 1;
+  if (wave_load_string(&ctx, path, wave, -1, 1) != 0) {
+    fail(test, "wave_load_string failed");
+    unlink(path);
+    return;
+  }
+
+  expect_int(test, sw.size[wave], 10, "loaded frame count");
+  expect_int(test, sw.loop_enabled[wave], 1, "smpl enables wave loop");
+  expect_int(test, sw.loop_start[wave], 2, "smpl loop start");
+  expect_int(test, sw.loop_end[wave], 8, "smpl loop end is exclusive");
+  expect_float(test, sw.direction[wave], 0.0f, 0.0001f, "smpl forward direction");
+  expect_substr(test, ctx.log, "# smpl loop 2..8 type:0 play:3",
+                "smpl load log");
+
+  consume(test, &ctx, "v2 w301");
+  expect_int(test, sv.loop_enabled[2], 1, "voice inherits smpl loop enabled");
+  expect_int(test, sv.loop_start[2], 2, "voice inherits smpl loop start");
+  expect_int(test, sv.loop_end[2], 8, "voice inherits smpl loop end");
+
+  wave_reset(2);
+  wave_free_one(wave);
+  unlink(path);
+}
+
 static void test_record_find_trim_command(void) {
   const char *test = "record find trim";
   static float rec_data[16] = {
@@ -664,8 +820,8 @@ static void test_record_find_trim_command(void) {
   sampling.trim = 0;
 }
 
-static void test_bounded_loop_releases_envelopes(void) {
-  const char *test = "bounded loop envelope release";
+static void test_bounded_loop_preserves_tail_envelopes(void) {
+  const char *test = "bounded loop tail envelopes";
   if (!skode_opcode_supported(SKODE_OP_ENVELOPE) ||
       !skode_opcode_supported(SKODE_OP_FILTER_ENVELOPE)) {
     return;
@@ -687,18 +843,11 @@ static void test_bounded_loop_releases_envelopes(void) {
   synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
 
   voice_format(voice, formatted, sizeof(formatted), 1);
-  char expected_amp_release[80];
-  char expected_filter_release[80];
-  snprintf(expected_amp_release, sizeof(expected_amp_release),
-           "amp_env_release:%llu",
-           (unsigned long long)(saved_sample_count + 100));
-  snprintf(expected_filter_release, sizeof(expected_filter_release),
-           "filter_env_release:%llu",
-           (unsigned long long)(saved_sample_count + 100));
-  if (strstr(formatted, expected_amp_release) == NULL ||
-      strstr(formatted, expected_filter_release) == NULL) {
-    fail(test, "loop exhaustion did not release active envelopes");
+  if (strstr(formatted, "amp_env_release:18446744073709551615") == NULL ||
+      strstr(formatted, "filter_env_release:18446744073709551615") == NULL) {
+    fail(test, "loop exhaustion released envelopes before sample tail");
   }
+  expect_int(test, sv.finished[voice], 0, "bounded loop tail remains active");
 
   SAMPLE_COUNT_PUT(saved_sample_count);
   wave_reset(voice);
@@ -1936,6 +2085,7 @@ int main(void) {
   test_invalid_voice_does_not_move_selection();
   test_text_and_show_logging();
   test_data_array_logging();
+  test_command_help();
   test_named_wave_destination();
   test_midi_and_links();
   test_trigger_delay_lifecycle();
@@ -1943,8 +2093,9 @@ int main(void) {
   test_envelope_future_timestamps();
   test_bounded_one_shot_loops();
   test_wave_loop_points();
+  test_wave_load_smpl_loop();
   test_record_find_trim_command();
-  test_bounded_loop_releases_envelopes();
+  test_bounded_loop_preserves_tail_envelopes();
   test_one_shot_asr_mode();
   test_opcode_events();
   test_909_sequence_programs();

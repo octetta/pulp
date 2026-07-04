@@ -65,6 +65,88 @@ float *mw_free(float *f) {
     return NULL;
 }
 
+static uint32_t mw_le_u32(const unsigned char *p) {
+  return ((uint32_t)p[0]) |
+         ((uint32_t)p[1] << 8) |
+         ((uint32_t)p[2] << 16) |
+         ((uint32_t)p[3] << 24);
+}
+
+int mw_get_smpl_loop(const char *name, int frames, mw_smpl_loop_t *loop) {
+  FILE *in;
+  unsigned char riff[12];
+
+  if (!loop) return 0;
+  memset(loop, 0, sizeof(*loop));
+  if (!name || frames <= 0) return 0;
+
+  in = fopen(name, "rb");
+  if (!in) return 0;
+
+  if (fread(riff, 1, sizeof(riff), in) != sizeof(riff) ||
+      memcmp(riff, "RIFF", 4) != 0 ||
+      memcmp(riff + 8, "WAVE", 4) != 0) {
+    fclose(in);
+    return 0;
+  }
+
+  for (;;) {
+    unsigned char chunk[8];
+    uint32_t chunk_size;
+    long data_start;
+    long next_chunk;
+
+    if (fread(chunk, 1, sizeof(chunk), in) != sizeof(chunk)) break;
+    chunk_size = mw_le_u32(chunk + 4);
+    data_start = ftell(in);
+    if (data_start < 0) break;
+    next_chunk = data_start + (long)chunk_size + (long)(chunk_size & 1u);
+
+    if (memcmp(chunk, "smpl", 4) == 0) {
+      unsigned char header[36];
+      unsigned char sample_loop[24];
+      uint32_t sample_loop_count;
+      uint32_t type;
+      uint32_t start;
+      uint32_t end;
+      uint32_t play_count;
+      int end_exclusive;
+
+      if (chunk_size < sizeof(header) + sizeof(sample_loop)) break;
+      if (fread(header, 1, sizeof(header), in) != sizeof(header)) break;
+      sample_loop_count = mw_le_u32(header + 28);
+      if (sample_loop_count == 0) break;
+      if (fread(sample_loop, 1, sizeof(sample_loop), in) != sizeof(sample_loop)) break;
+
+      type = mw_le_u32(sample_loop + 4);
+      start = mw_le_u32(sample_loop + 8);
+      end = mw_le_u32(sample_loop + 12);
+      play_count = mw_le_u32(sample_loop + 20);
+
+      if (start >= (uint32_t)frames || end < start) break;
+      if (end >= (uint32_t)frames) {
+        end_exclusive = frames;
+      } else {
+        end_exclusive = (int)end + 1;
+      }
+      if (end_exclusive <= (int)start) break;
+
+      loop->found = 1;
+      loop->start = (int)start;
+      loop->end = end_exclusive;
+      loop->type = (int)type;
+      loop->play_count = (int)play_count;
+      fclose(in);
+      return 1;
+    }
+
+    if (fseek(in, next_chunk, SEEK_SET) != 0) break;
+  }
+
+  fclose(in);
+  return 0;
+}
+
 #include "miniaudio.h"
 
 float _mw_safe[] = {0,0};

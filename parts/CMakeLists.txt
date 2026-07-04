@@ -100,7 +100,21 @@ foreach(MOD ${API_KIT_MODULES})
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit")
         message(STATUS "DEBUG: Module (C) ${MOD} using KIT_OPTS: ${KIT_OPTS}")
         set(OUT_C "${CMAKE_CURRENT_BINARY_DIR}/${MOD}.c")
-        add_kit_generated_file("${OUT_C}" "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" ${KIT_TOOL_EXE} "${SYNTH_STATE_H}")
+        if(MOD STREQUAL "skode")
+          set(SKODE_DOC_INC "${CMAKE_CURRENT_BINARY_DIR}/skode-doc.inc")
+          add_custom_command(
+              OUTPUT "${OUT_C}" "${SKODE_DOC_INC}"
+              COMMAND "${KIT_TOOL_EXE}" ${KIT_OPTS_LIST}
+                --input "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit"
+                --output "${OUT_C}"
+                --doc "${SKODE_DOC_INC}"
+              DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" ${KIT_TOOL_EXE} "${SYNTH_STATE_H}"
+              VERBATIM
+          )
+          set_property(SOURCE "${SKODE_DOC_INC}" PROPERTY GENERATED TRUE)
+        else()
+          add_kit_generated_file("${OUT_C}" "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" ${KIT_TOOL_EXE} "${SYNTH_STATE_H}")
+        endif()
         set_property(SOURCE "${OUT_C}" PROPERTY GENERATED TRUE)
         if(MOD STREQUAL "skode")
           set_source_files_properties("${OUT_C}" PROPERTIES COMPILE_FLAGS "-Wno-multichar")

@@ -1,5 +1,6 @@
 #ifndef _MINIWAV_H_
 #define _MINIWAV_H_
+#include <stdio.h>
 #include <stdint.h>
 
 typedef struct {
@@ -44,10 +45,19 @@ typedef struct {
     // } SampleLoop;
 } sampler_t;
 
+typedef struct {
+    int found;
+    int start;
+    int end;
+    int type;
+    int play_count;
+} mw_smpl_loop_t;
+
 FILE *mw_header(char *name, wav_t *wav);
 
 float *mw_get(char *name, int *frames_out, wav_t *w, int ch);
 float *mw_get_str(char *name, int *frames_out, wav_t *w, int ch, char *out, int len);
+int mw_get_smpl_loop(const char *name, int frames, mw_smpl_loop_t *loop);
 
 float *mw_free(float *f);
 

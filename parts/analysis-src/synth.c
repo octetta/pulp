@@ -611,6 +611,7 @@ float osc_next(int voice, float phase_inc) {
             if (wraps < crossings) {
                 sv.loop_active[voice] = 0;
                 sv.loop_stop_requested[voice] = 0;
+                sv.loop_release_tail[voice] = 1;
                 sv.loop_ended[voice] = 1;
                 if (phase >= (double)table_size) {
                     phase = (double)table_size - 1e-6;
@@ -641,6 +642,7 @@ float osc_next(int voice, float phase_inc) {
             if (wraps < crossings) {
                 sv.loop_active[voice] = 0;
                 sv.loop_stop_requested[voice] = 0;
+                sv.loop_release_tail[voice] = 1;
                 sv.loop_ended[voice] = 1;
                 if (phase < 0.0f) {
                     phase = 0.0f;
@@ -719,6 +721,7 @@ void osc_set_wave_table_index(int voice, int wave) {
     sv.loop_bounded[voice] = sv.loop_count[voice] > 0;
     sv.loop_remaining[voice] = sv.loop_count[voice];
     sv.loop_stop_requested[voice] = 0;
+    sv.loop_release_tail[voice] = 0;
     sv.loop_ended[voice] = 0;
     sv.loop_end[voice] = sw.loop_end[wave];
     sv.midi_note[voice] = sw.midi_note[wave];
@@ -799,6 +802,7 @@ void osc_trigger(int voice) {
     sv.loop_bounded[voice] = sv.loop_count[voice] > 0;
     sv.loop_remaining[voice] = sv.loop_count[voice];
     sv.loop_stop_requested[voice] = 0;
+    sv.loop_release_tail[voice] = 0;
     sv.loop_ended[voice] = 0;
 
     if (sv.one_shot[voice]) {
@@ -1195,9 +1199,13 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
           f = osc_next(n, sv.phase_inc[n]);
         }
       if (sv.loop_ended[n]) {
+        int release_tail = sv.one_shot[n] && sv.loop_release_tail[n];
         sv.loop_ended[n] = 0;
-        envelope_release_e_at(&sv.amp_envelope[n], current_sample);
-        envelope_release_e_at(&sv.filter_envelope[n], current_sample);
+        if (!release_tail)
+          envelope_release_e_at(&sv.amp_envelope[n], current_sample);
+        if (!release_tail)
+          envelope_release_e_at(&sv.filter_envelope[n], current_sample);
+        sv.loop_release_tail[n] = 0;
         skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE,
           current_sample, n);
       }
@@ -1732,6 +1740,7 @@ int wave_loop(int voice, int state) {
   sv.loop_enabled[voice] = state;
   sv.loop_active[voice] = state;
   sv.loop_stop_requested[voice] = 0;
+  sv.loop_release_tail[voice] = 0;
   sv.loop_ended[voice] = 0;
   if (state) {
     sv.loop_bounded[voice] = sv.loop_count[voice] > 0;
@@ -1989,6 +1998,7 @@ void voice_reset(int i) {
   sv.loop_remaining[i] = 0;
   sv.loop_active[i] = 0;
   sv.loop_stop_requested[i] = 0;
+  sv.loop_release_tail[i] = 0;
   sv.loop_ended[i] = 0;
   sv.loop_override[i] = 0;
   sv.amp_envelope_mode[i] = 0; // exp
@@ -2068,12 +2078,16 @@ int wave_reset(int voice) {
 int envelope_velocity(int voice, float f) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
     if (f == 0) {
-        if (sv.one_shot[voice] && sv.loop_active[voice])
+        int one_shot_loop_release = sv.one_shot[voice] && sv.loop_active[voice];
+        if (one_shot_loop_release) {
             sv.loop_stop_requested[voice] = 1;
+            sv.loop_release_tail[voice] = 1;
+        }
         skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE,
           SAMPLE_COUNT_GET(), voice);
-        amp_envelope_release(voice);
-        if (sv.filter_envelope[voice].is_active)
+        if (!one_shot_loop_release)
+            amp_envelope_release(voice);
+        if (!one_shot_loop_release && sv.filter_envelope[voice].is_active)
             envelope_release_e(&sv.filter_envelope[voice]);
     } else {
         sv.use_amp_envelope[voice] = 1;

@@ -288,6 +288,237 @@ static int skode_double_to_int(double value, int *out) {
   return 1;
 }
 
+typedef struct {
+  const char *key;
+  const char *file;
+  int line;
+  const char *text;
+} skode_doc_entry_t;
+
+static const skode_doc_entry_t skode_doc_entries[] = {
+#define KIT_DOC_BEGIN(symbol, key, file, line) { key, file, line, ""
+#define KIT_DOC_LINE(symbol, text) text
+#define KIT_DOC_END(symbol) },
+#if defined(__has_include)
+#if __has_include("skode-doc.inc")
+#include "skode-doc.inc"
+#endif
+#endif
+#undef KIT_DOC_BEGIN
+#undef KIT_DOC_LINE
+#undef KIT_DOC_END
+  { NULL, NULL, 0, NULL }
+};
+
+#define SKODE_HELP_FIELD_MAX 96
+#define SKODE_HELP_CATEGORY_MAX 64
+
+static const char *skode_help_ltrim(const char *s) {
+  while (s && *s && isspace((unsigned char)*s)) s++;
+  return s ? s : "";
+}
+
+static void skode_help_copy_trimmed(char *dst, size_t dst_size,
+                                    const char *src, size_t len) {
+  size_t start = 0;
+  if (!dst || dst_size == 0) return;
+  if (!src) {
+    dst[0] = '\0';
+    return;
+  }
+  while (start < len && isspace((unsigned char)src[start])) start++;
+  while (len > start && isspace((unsigned char)src[len - 1])) len--;
+  len -= start;
+  if (len >= dst_size) len = dst_size - 1;
+  memcpy(dst, src + start, len);
+  dst[len] = '\0';
+}
+
+static int skode_help_field(const skode_doc_entry_t *doc, const char *field,
+                            char *out, size_t out_size) {
+  const char *p;
+  size_t field_len;
+  if (!doc || !doc->text || !field || !out || out_size == 0) return 0;
+  out[0] = '\0';
+  field_len = strlen(field);
+  for (p = doc->text; *p;) {
+    const char *line = skode_help_ltrim(p);
+    const char *end = strchr(line, '\n');
+    size_t len = end ? (size_t)(end - line) : strlen(line);
+    if (len > field_len && strncmp(line, field, field_len) == 0 &&
+        line[field_len] == ':') {
+      skode_help_copy_trimmed(out, out_size, line + field_len + 1,
+                              len - field_len - 1);
+      return out[0] != '\0';
+    }
+    p = end ? end + 1 : line + len;
+  }
+  return 0;
+}
+
+static int skode_help_is_command_doc(const skode_doc_entry_t *doc) {
+  return doc && doc->key && strncmp(doc->key, "command.", 8) == 0;
+}
+
+static int skode_help_category_index(char categories[][SKODE_HELP_FIELD_MAX],
+                                     int count, const char *category) {
+  for (int i = 0; i < count; i++) {
+    if (strcmp(categories[i], category) == 0) return i;
+  }
+  return -1;
+}
+
+static int skode_help_categories(char categories[][SKODE_HELP_FIELD_MAX],
+                                 int max_categories) {
+  int count = 0;
+  for (int i = 0; skode_doc_entries[i].key; i++) {
+    char category[SKODE_HELP_FIELD_MAX];
+    if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
+    if (!skode_help_field(&skode_doc_entries[i], "category", category,
+                          sizeof(category))) continue;
+    if (skode_help_category_index(categories, count, category) >= 0) continue;
+    if (count >= max_categories) break;
+    snprintf(categories[count], SKODE_HELP_FIELD_MAX, "%s", category);
+    count++;
+  }
+  return count;
+}
+
+static const skode_doc_entry_t *skode_help_doc_for_category_command(
+    const char *category, int command_number) {
+  int n = 0;
+  if (!category || command_number <= 0) return NULL;
+  for (int i = 0; skode_doc_entries[i].key; i++) {
+    char doc_category[SKODE_HELP_FIELD_MAX];
+    if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
+    if (!skode_help_field(&skode_doc_entries[i], "category", doc_category,
+                          sizeof(doc_category))) continue;
+    if (strcmp(doc_category, category) != 0) continue;
+    n++;
+    if (n == command_number) return &skode_doc_entries[i];
+  }
+  return NULL;
+}
+
+static void skode_help_show_doc(skode_t *ctx, const skode_doc_entry_t *doc) {
+  char name[SKODE_HELP_FIELD_MAX] = "";
+  char category[SKODE_HELP_FIELD_MAX] = "";
+  char summary[SKODE_HELP_FIELD_MAX] = "";
+  if (!ctx) return;
+  if (!doc) {
+    ctx->puts(ctx, "# help command not found");
+    return;
+  }
+  skode_help_field(doc, "name", name, sizeof(name));
+  skode_help_field(doc, "category", category, sizeof(category));
+  skode_help_field(doc, "summary", summary, sizeof(summary));
+  ctx->printf(ctx, "# help %s", name[0] ? name : doc->key);
+  if (category[0]) ctx->printf(ctx, " [%s]", category);
+  ctx->puts(ctx, "");
+  if (summary[0]) ctx->printf(ctx, "#   %s\n", summary);
+  if (doc->file) ctx->printf(ctx, "#   %s:%d\n", doc->file, doc->line);
+}
+
+static void skode_help_show_categories(skode_t *ctx) {
+  char categories[SKODE_HELP_CATEGORY_MAX][SKODE_HELP_FIELD_MAX];
+  int count = skode_help_categories(categories, SKODE_HELP_CATEGORY_MAX);
+  ctx->puts(ctx, "# help categories");
+  for (int i = 0; i < count; i++) {
+    ctx->printf(ctx, "# %d %s\n", i + 1, categories[i]);
+  }
+  if (count == 0) ctx->puts(ctx, "# no embedded command docs");
+}
+
+static void skode_help_show_category(skode_t *ctx, int category_number) {
+  char categories[SKODE_HELP_CATEGORY_MAX][SKODE_HELP_FIELD_MAX];
+  int count = skode_help_categories(categories, SKODE_HELP_CATEGORY_MAX);
+  const char *category;
+  int command_number = 0;
+  if (category_number <= 0 || category_number > count) {
+    ctx->printf(ctx, "# help category %d not found\n", category_number);
+    return;
+  }
+  category = categories[category_number - 1];
+  ctx->printf(ctx, "# help %s\n", category);
+  for (int i = 0; skode_doc_entries[i].key; i++) {
+    char doc_category[SKODE_HELP_FIELD_MAX];
+    char name[SKODE_HELP_FIELD_MAX] = "";
+    char summary[SKODE_HELP_FIELD_MAX] = "";
+    if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
+    if (!skode_help_field(&skode_doc_entries[i], "category", doc_category,
+                          sizeof(doc_category))) continue;
+    if (strcmp(doc_category, category) != 0) continue;
+    command_number++;
+    skode_help_field(&skode_doc_entries[i], "name", name, sizeof(name));
+    skode_help_field(&skode_doc_entries[i], "summary", summary, sizeof(summary));
+    ctx->printf(ctx, "# %d %s", command_number, name[0] ? name : skode_doc_entries[i].key);
+    if (summary[0]) ctx->printf(ctx, " - %s", summary);
+    ctx->puts(ctx, "");
+  }
+}
+
+static void skode_help_lookup_string(skode_t *ctx, const char *query) {
+  const skode_doc_entry_t *category_match = NULL;
+  if (!query || !query[0]) {
+    skode_help_show_categories(ctx);
+    return;
+  }
+  for (int i = 0; skode_doc_entries[i].key; i++) {
+    char name[SKODE_HELP_FIELD_MAX] = "";
+    char category[SKODE_HELP_FIELD_MAX] = "";
+    if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
+    skode_help_field(&skode_doc_entries[i], "name", name, sizeof(name));
+    skode_help_field(&skode_doc_entries[i], "category", category, sizeof(category));
+    if (strcmp(skode_doc_entries[i].key, query) == 0 ||
+        (name[0] && strcmp(name, query) == 0)) {
+      skode_help_show_doc(ctx, &skode_doc_entries[i]);
+      return;
+    }
+    if (!category_match && category[0] && strcmp(category, query) == 0) {
+      category_match = &skode_doc_entries[i];
+    }
+  }
+  if (category_match) {
+    char categories[SKODE_HELP_CATEGORY_MAX][SKODE_HELP_FIELD_MAX];
+    char category[SKODE_HELP_FIELD_MAX] = "";
+    int count = skode_help_categories(categories, SKODE_HELP_CATEGORY_MAX);
+    skode_help_field(category_match, "category", category, sizeof(category));
+    for (int i = 0; i < count; i++) {
+      if (strcmp(categories[i], category) == 0) {
+        skode_help_show_category(ctx, i + 1);
+        return;
+      }
+    }
+  }
+  ctx->printf(ctx, "# help [%s] not found\n", query);
+}
+
+static void skode_help(skode_t *ctx, double *arg, int argc) {
+  int category_number = 0;
+  int command_number = 0;
+  char categories[SKODE_HELP_CATEGORY_MAX][SKODE_HELP_FIELD_MAX];
+  int category_count;
+  if (ands_string_fresh(ctx->parse) && strlen(ands_string(ctx->parse)) > 0) {
+    skode_help_lookup_string(ctx, ands_string(ctx->parse));
+    return;
+  }
+  if (argc == 0 || !skode_double_to_int(arg[0], &category_number)) {
+    skode_help_show_categories(ctx);
+    return;
+  }
+  if (argc == 1 || !skode_double_to_int(arg[1], &command_number)) {
+    skode_help_show_category(ctx, category_number);
+    return;
+  }
+  category_count = skode_help_categories(categories, SKODE_HELP_CATEGORY_MAX);
+  if (category_number <= 0 || category_number > category_count) {
+    ctx->printf(ctx, "# help category %d not found\n", category_number);
+    return;
+  }
+  skode_help_show_doc(ctx, skode_help_doc_for_category_command(
+    categories[category_number - 1], command_number));
+}
+
 static int skode_seconds_to_samples(double seconds, uint64_t *out) {
   if (!out || !isfinite(seconds) || seconds < 0.0) return 0;
   long double samples = (long double)seconds * (long double)MAIN_SAMPLE_RATE;
@@ -1000,6 +1231,18 @@ int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offse
   return 0;
 }
 
+static void wave_load_apply_smpl_loop(skode_t *ctx, const char *name,
+                                      int wave_index, int len) {
+  mw_smpl_loop_t loop;
+  if (!mw_get_smpl_loop(name, len, &loop)) return;
+  sw.loop_enabled[wave_index] = 1;
+  sw.loop_start[wave_index] = loop.start;
+  sw.loop_end[wave_index] = loop.end;
+  sw.direction[wave_index] = loop.type == 2 ? 1.0f : 0.0f;
+  ctx->printf(ctx, "# smpl loop %d..%d type:%d play:%d\n",
+    loop.start, loop.end, loop.type, loop.play_count);
+}
+
 int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int normalize) {
   (void)normalize;
   if (ctx == NULL) return 100; // fix todo
@@ -1040,8 +1283,10 @@ int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int norma
     sw.loop_enabled[wave_index] = 0;
     sw.loop_start[wave_index] = 1;
     sw.loop_end[wave_index] = len;
+    sw.direction[wave_index] = 0.0f;
     sw.midi_note[wave_index] = 69;
     sw.offset_hz[wave_index] = (float)len / (float)wav.SamplesRate * 440.0f;
+    wave_load_apply_smpl_loop(ctx, name, wave_index, len);
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
       len, name, wave_index, wav.Channels, wav.SamplesRate);
     normalize_preserve_zero(table, len);
@@ -1105,8 +1350,10 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
     sw.loop_enabled[wave_index] = 0;
     sw.loop_start[wave_index] = 1;
     sw.loop_end[wave_index] = len;
+    sw.direction[wave_index] = 0.0f;
     sw.midi_note[wave_index] = 69;
     sw.offset_hz[wave_index] = (float)len / (float)wav.SamplesRate * 440.0f;
+    wave_load_apply_smpl_loop(ctx, name, wave_index, len);
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
       len, name, wave_index, wav.Channels, wav.SamplesRate);
     normalize_preserve_zero(table, len);
@@ -3376,6 +3623,9 @@ int skode_function(ands_t *s, int info) {
           }
         }
       }
+      break;
+    case ATOM4('/h--'): // show command help
+      skode_help(ctx, arg, argc);
       break;
     case ATOM4('/l--'): // skode-load num
       if (argc) {

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skred – Embedded Sound & Pattern Engine</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-color: #fcfcfc;
@@ -43,18 +44,12 @@
             margin: 0;
         }
 
-        a {
-            color: var(--link-color);
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
 
         .video-wrapper {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            padding-bottom: 56.25%;
             height: 0;
             overflow: hidden;
             margin: 30px 0;
@@ -64,33 +59,22 @@
 
         .video-wrapper iframe {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
+            top: 0; left: 0; width: 100%; height: 100%; border: 0;
         }
 
-        section {
-            margin-top: 30px;
-        }
-
-        h2 {
+        /* Styling for the Markdown generated content */
+        #content h2 {
             font-size: 1.3rem;
             font-weight: 600;
+            margin-top: 30px;
             margin-bottom: 15px;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 5px;
         }
 
-        ul {
-            padding-left: 20px;
-            margin: 0;
-        }
-
-        li {
-            margin-bottom: 10px;
-        }
+        #content ul { padding-left: 20px; margin: 0; }
+        #content li { margin-bottom: 10px; }
+        #content strong { font-weight: 600; }
 
         footer {
             margin-top: 50px;
@@ -110,30 +94,36 @@
     </header>
 
     <main>
-        <!-- Demonstration Video -->
         <div class="video-wrapper">
-<iframe 
-    src="https://www.youtube-nocookie.com/embed/ZQMo596OA1w" 
-    title="Skred Engine Demo Walkthrough" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-    allowfullscreen>
-</iframe>
+            <iframe 
+                src="https://www.youtube-nocookie.com/embed/ZQMo596OA1w" 
+                title="Skred Engine Demo Walkthrough" 
+                crossorigin="anonymous"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
         </div>
 
-        <!-- Technical Details -->
-        <section>
-            <h2>About the Demo</h2>
-            <ul>
-                <li><strong>Multi-Track Sequencing:</strong> Features a drum pattern layout where each individual patch resides on a separate track, running independent delay configurations.</li>
-                <li><strong>Sample Asset Handling:</strong> Track 3 demonstrates sample playback by loading an alto flute WAV file and respecting its embedded loop tags.</li>
-                <li><strong>Architecture & Design:</strong> You can read about the engine's core goals, implementation criteria, and technical comparisons directly in the <a href="https://github.com/octetta/pulp/blob/main/parts/COMPARISONS.md" target="_blank" rel="noopener">PULP Documentation Repository</a>.</li>
-            </ul>
-        </section>
+        <div id="content"></div>
     </main>
 
     <footer>
         <p>Skred is open source under the MIT License.</p>
     </footer>
 
+    <script type="text/markdown" id="markdown-source">
+## About the Demo
+
+* **Multi-Track Sequencing:** Features a drum pattern layout where each individual patch resides on a separate track, running independent delay configurations.
+* **Sample Asset Handling:** Track 3 demonstrates sample playback by loading an alto flute WAV file and respecting its embedded loop tags.
+* **Architecture & Design:** You can read about the engine's core goals, implementation criteria, and technical comparisons directly in the [PULP Documentation Repository](https://github.com/octetta/pulp/blob/main/parts/COMPARISONS.md).
+
+Feel free to refine this section further in your editor.
+    </script>
+
+    <script>
+        document.getElementById('content').innerHTML = 
+            marked.parse(document.getElementById('markdown-source').style.display = 'none', document.getElementById('markdown-source').textContent);
+    </script>
 </body>
 </html>

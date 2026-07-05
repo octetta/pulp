@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skred – Embedded Sound & Pattern Engine</title>
+    <style>
+        :root {
+            --bg-color: #fcfcfc;
+            --text-color: #222222;
+            --text-muted: #555555;
+            --border-color: #dddddd;
+            --link-color: #0066cc;
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-stack);
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            max-width: 680px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            margin: 30px 0;
+            background: #000;
+            border-radius: 4px;
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        section {
+            margin-top: 30px;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        footer {
+            margin-top: 50px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Skred</h1>
+        <p class="subtitle">A minimalist sound engine, pattern engine, and live coding environment for wavetable and sample-based audio synthesis.</p>
+    </header>
+
+    <main>
+        <!-- Demonstration Video -->
+        <div class="video-wrapper">
+            <iframe 
+                src="https://www.youtube.com/embed/ZQMo596OA1w" 
+                title="Skred Engine Demo Walkthrough" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        </div>
+
+        <!-- Technical Details -->
+        <section>
+            <h2>About the Demo</h2>
+            <ul>
+                <li><strong>Multi-Track Sequencing:</strong> Features a drum pattern layout where each individual patch resides on a separate track, running independent delay configurations.</li>
+                <li><strong>Sample Asset Handling:</strong> Track 3 demonstrates sample playback by loading an alto flute WAV file and respecting its embedded loop tags.</li>
+                <li><strong>Architecture & Design:</strong> You can read about the engine's core goals, implementation criteria, and technical comparisons directly in the <a href="https://github.com/octetta/pulp/blob/main/parts/COMPARISONS.md" target="_blank" rel="noopener">PULP Documentation Repository</a>.</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>Skred is open source under the MIT License.</p>
+    </footer>
+
+</body>
+</html>

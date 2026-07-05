@@ -64,6 +64,7 @@ typedef enum {
   SKODE_OP_RING_MOD,
   SKODE_OP_WAVE_LOOP_COUNT,
   SKODE_OP_CONTROL_EVENT,
+  SKODE_OP_DELAY_PARAMS,
 } skode_opcode_t;
 
 typedef enum {

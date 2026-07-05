@@ -401,6 +401,11 @@ function browserYield() {
     return new Promise(resolve => requestAnimationFrame(resolve));
 }
 
+function wasmHeapU8() {
+    return typeof Module !== "undefined" ?
+        (Module.HEAPU8 || globalThis.HEAPU8) : null;
+}
+
 function parseSkodeLoadCommand(cmd) {
     const token = cmd.trim().split(/\s+/)[0] || "";
     const debug = token.toLowerCase().startsWith("/jl");
@@ -413,7 +418,84 @@ function parseSkodeLoadCommand(cmd) {
     return { fileId, verbose, debug };
 }
 
-async function loadSkodeFileFromBrowser(cmd) {
+function parseNamedSkodeLoadCommand(cmd) {
+    const match = cmd.trim().match(/^\[([^\]]+)\]\s*\/ls(?:\s+(-?\d+))?\s*$/i);
+    if (!match) return null;
+    const path = match[1].trim();
+    if (!path || path.toLowerCase().startsWith("file:")) return null;
+    return { path, verbose: Number(match[2] || 0) !== 0 };
+}
+
+function readMountedSkodeFile(path) {
+    const heap = wasmHeapU8();
+    if (typeof Module === "undefined" || !Module._malloc || !Module._free ||
+        !Module._skred_vfs_read_file || !Module._skred_vfs_free_file ||
+        !Module.ccall || !heap) {
+        return null;
+    }
+
+    const dataOut = Module._malloc(4);
+    const sizeOut = Module._malloc(4);
+    if (!dataOut || !sizeOut) {
+        if (dataOut) Module._free(dataOut);
+        if (sizeOut) Module._free(sizeOut);
+        return null;
+    }
+
+    let dataPtr = 0;
+    try {
+        const words = new Uint32Array(heap.buffer);
+        words[dataOut >> 2] = 0;
+        words[sizeOut >> 2] = 0;
+        const ok = Module.ccall(
+            'skred_vfs_read_file',
+            'number',
+            ['string', 'number', 'number'],
+            [path, dataOut, sizeOut]
+        );
+        if (!ok) return null;
+        const freshWords = new Uint32Array(wasmHeapU8().buffer);
+        dataPtr = freshWords[dataOut >> 2];
+        const size = freshWords[sizeOut >> 2];
+        if (!dataPtr) return null;
+        const freshHeap = wasmHeapU8();
+        return new TextDecoder().decode(freshHeap.slice(dataPtr, dataPtr + size));
+    } finally {
+        if (dataPtr) Module._skred_vfs_free_file(dataPtr);
+        Module._free(dataOut);
+        Module._free(sizeOut);
+    }
+}
+
+function readNamedSkodeText(path) {
+    let text = readMountedSkodeFile(path);
+    if (text !== null || path.includes("/") || path.includes("\\")) return text;
+    return readMountedSkodeFile(`sk/${path}`);
+}
+
+async function feedSkodeTextFromBrowser(path, text, verbose) {
+    const lines = text.split(/\r?\n/);
+    printToTerminal(`# js-load ${path} (${lines.length} lines)`, "system");
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        if (verbose)
+            printToTerminal(`${String(i + 1).padStart(3, "0")}: ${line}`, "dim");
+        await browserYield();
+        try {
+            Module.ccall('skred_command', null, ['string'], [line]);
+        } catch (e) {
+            printToTerminal(`# exception on ${i + 1}: ${e}`, "error");
+            return;
+        }
+        const log = skredLogString();
+        if (log !== "") printToTerminal(log, 'info');
+        await browserYield();
+    }
+    printToTerminal(`# js-load ${path} done`, "system");
+}
+
+async function loadSkodeNumberFromBrowser(cmd) {
     if (!running) {
         printToTerminal("Error: Engine must be 'boot'ed first.", "error");
         return;
@@ -431,25 +513,25 @@ async function loadSkodeFileFromBrowser(cmd) {
         printToTerminal(`Error: could not read ${path}`, "error");
         return;
     }
-    const lines = text.split(/\r?\n/);
-    printToTerminal(`# js-load ${path} (${lines.length} lines)`, "system");
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        if (request.verbose)
-            printToTerminal(`${String(i + 1).padStart(3, "0")}: ${line}`, "dim");
-        await browserYield();
-        try {
-            Module.ccall('skred_command', null, ['string'], [line]);
-        } catch (e) {
-            printToTerminal(`# exception on ${i + 1}: ${e}`, "error");
-            return;
-        }
-        const log = skredLogString();
-        if (log !== "") printToTerminal(log, 'info');
-        await browserYield();
+    await feedSkodeTextFromBrowser(path, text, request.verbose);
+}
+
+async function loadNamedSkodeFileFromBrowser(cmd) {
+    if (!running) {
+        printToTerminal("Error: Engine must be 'boot'ed first.", "error");
+        return;
     }
-    printToTerminal(`# js-load ${path} done`, "system");
+    const request = parseNamedSkodeLoadCommand(cmd);
+    if (!request) {
+        sendSkredCommand(cmd);
+        return;
+    }
+    const text = readNamedSkodeText(request.path);
+    if (text === null) {
+        printToTerminal(`Error: could not read ${request.path}`, "error");
+        return;
+    }
+    await feedSkodeTextFromBrowser(request.path, text, request.verbose);
 }
 
 cmdInput.addEventListener('keydown', (e) => {
@@ -502,8 +584,13 @@ function processCommand(cmd) {
         return;
     }
 
-    if (action.startsWith('/jl')) {
-        loadSkodeFileFromBrowser(cmd);
+    if (action.startsWith('/jl') || action === '/l' || /^\/l\d+(?:,.*)?$/.test(action)) {
+        loadSkodeNumberFromBrowser(cmd);
+        return;
+    }
+
+    if (/^\[[^\]]+\]\s*\/ls(?:\s+-?\d+)?\s*$/i.test(cmd.trim())) {
+        loadNamedSkodeFileFromBrowser(cmd);
         return;
     }
 
@@ -751,8 +838,9 @@ async function addWavViaDialog() {
 }
 
 async function mountZipViaDialog() {
+    const heapU8 = wasmHeapU8();
     if (typeof Module === "undefined" || !Module._malloc ||
-        !Module._free || !Module.HEAPU8 ||
+        !Module._free || !heapU8 ||
         !Module._skred_vfs_mount_zip_memory) {
         printToTerminal("Error: zip mount support is not ready.", "error");
         return;
@@ -773,7 +861,7 @@ async function mountZipViaDialog() {
             const bytes = new Uint8Array(await file.arrayBuffer());
             ptr = Module._malloc(bytes.length);
             if (!ptr) throw new Error("malloc failed");
-            Module.HEAPU8.set(bytes, ptr);
+            heapU8.set(bytes, ptr);
 
             const ok = Module.ccall(
                 'skred_vfs_mount_zip_memory',

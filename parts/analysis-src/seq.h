@@ -17,7 +17,7 @@ enum {
 
 #define QUEUE_SIZE (2048) // the actual queue max depth
 
-#define SEQ_OPCODE_ARG_MAX (4)
+#define SEQ_OPCODE_ARG_MAX (8)
 #define SEQ_PROGRAM_OP_MAX (32)
 #define SEQ_TEMPO_MIN_BPM (1.0f)
 #define SEQ_TEMPO_MAX_BPM (960.0f)

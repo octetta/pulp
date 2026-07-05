@@ -1402,6 +1402,7 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"=0,$1", SKODE_OP_VARIABLE_SET},
     {"XM1,.5", SKODE_OP_RING_MOD},
     {"ce7,1,2,3", SKODE_OP_CONTROL_EVENT},
+    {"DL1,2,3,4,5,6,7", SKODE_OP_DELAY_PARAMS},
   };
 
   for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
@@ -1632,6 +1633,30 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   consume(test, &ctx, "DL?2");
   expect_substr(test, ctx.log, "DL2,0,0,0,0,0,15",
                 "delay query is pasteable");
+
+  delay_params_set(2, 1, 2, 3, 4, 5, 6);
+  consume(test, &ctx, "DL2,-,12,-,20,-,10");
+  delay_params_get(2, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+  expect_int(test, coarse, 1, "delay dash keeps coarse");
+  expect_int(test, fine, 12, "delay updates fine");
+  expect_int(test, feedback, 3, "delay dash keeps feedback");
+  expect_int(test, mod_freq, 20, "delay updates mod freq");
+  expect_int(test, mod_depth, 5, "delay dash keeps mod depth");
+  expect_int(test, level, 10, "delay updates level");
+
+  event_program_t program;
+  delay_params_set(2, 1, 2, 3, 4, 5, 6);
+  expect_int(test, skode_compile_program("DL2,-,11,-,21,-,9", &program),
+             SKODE_COMPILE_OK, "compile delay bus params");
+  expect_int(test, skode_execute_program(&program, ctx.voice,
+             SAMPLE_COUNT_GET(), 0), 0, "execute delay bus params");
+  delay_params_get(2, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+  expect_int(test, coarse, 1, "delay opcode dash keeps coarse");
+  expect_int(test, fine, 11, "delay opcode updates fine");
+  expect_int(test, feedback, 3, "delay opcode dash keeps feedback");
+  expect_int(test, mod_freq, 21, "delay opcode updates mod freq");
+  expect_int(test, mod_depth, 5, "delay opcode dash keeps mod depth");
+  expect_int(test, level, 9, "delay opcode updates level");
 
   consume(test, &ctx, "GS1");
 }

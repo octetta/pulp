@@ -96,17 +96,16 @@ static int skode_asset_read(const char *path, skode_asset_kind_t kind,
   if (!fallback_dir) return 0;
 
   snprintf(candidate, sizeof(candidate), "%s/%s", fallback_dir, path);
-  if (skred_vfs_mode() != SKRED_VFS_DISK) {
-    char vfs_candidate[1024];
-    snprintf(vfs_candidate, sizeof(vfs_candidate), "/%s", candidate);
-    if (skode_asset_try_read(vfs_candidate, 0, data, size,
-        resolved, resolved_size)) {
-      if (resolved && resolved_size > 0)
-        snprintf(resolved, resolved_size, "%s", candidate);
-      return 1;
-    }
-  } else if (skode_asset_try_read(candidate, 0, data, size,
+  if (skode_asset_try_read(candidate, 0, data, size,
       resolved, resolved_size)) {
+    return 1;
+  }
+  char vfs_candidate[1024];
+  snprintf(vfs_candidate, sizeof(vfs_candidate), "/%s", candidate);
+  if (skode_asset_try_read(vfs_candidate, 0, data, size,
+      resolved, resolved_size)) {
+    if (resolved && resolved_size > 0)
+      snprintf(resolved, resolved_size, "%s", candidate);
     return 1;
   }
   if (skode_asset_try_read(candidate, 1, data, size, resolved, resolved_size))
@@ -2470,6 +2469,7 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_WAVE_DEFAULT:
     case SKODE_OP_VARIABLE_SET:
     case SKODE_OP_CONTROL_EVENT:
+    case SKODE_OP_DELAY_PARAMS:
       return 1;
     @if(AM)
     case SKODE_OP_AMP_MOD: return 1;
@@ -2567,7 +2567,8 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       opcode->argc > SEQ_OPCODE_ARG_MAX || opcode->var_mask != 0) return -1;
   uint8_t default_mask =
     opcode->code == SKODE_OP_MIDI_NOTE ||
-    opcode->code == SKODE_OP_MIDI_DETUNE ? 1U : 0U;
+    opcode->code == SKODE_OP_MIDI_DETUNE ? 1U :
+    opcode->code == SKODE_OP_DELAY_PARAMS ? 0x7eU : 0U;
   if (((uint8_t)opcode->mode & ~default_mask) != 0) return -1;
   for (int i = 0; i < opcode->argc; i++) {
     if (!isfinite(opcode->arg[i]) &&
@@ -2784,6 +2785,29 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return 0;
     case SKODE_OP_CONTROL_EVENT:
       return skode_emit_control_event_opcode(opcode, voice, -1, -1, -1);
+    case SKODE_OP_DELAY_PARAMS:
+      {
+        int bus = 1;
+        int coarse, fine, feedback, mod_freq, mod_depth, level;
+        if (opcode->argc < 1 || opcode->argc > 7 ||
+            !skode_opcode_int(opcode, 0, &bus)) return -1;
+        delay_params_get(bus, &coarse, &fine, &feedback, &mod_freq,
+          &mod_depth, &level);
+        if (opcode->argc > 1 && isfinite(opcode->arg[1]) &&
+            !skode_opcode_int(opcode, 1, &coarse)) return -1;
+        if (opcode->argc > 2 && isfinite(opcode->arg[2]) &&
+            !skode_opcode_int(opcode, 2, &fine)) return -1;
+        if (opcode->argc > 3 && isfinite(opcode->arg[3]) &&
+            !skode_opcode_int(opcode, 3, &feedback)) return -1;
+        if (opcode->argc > 4 && isfinite(opcode->arg[4]) &&
+            !skode_opcode_int(opcode, 4, &mod_freq)) return -1;
+        if (opcode->argc > 5 && isfinite(opcode->arg[5]) &&
+            !skode_opcode_int(opcode, 5, &mod_depth)) return -1;
+        if (opcode->argc > 6 && isfinite(opcode->arg[6]) &&
+            !skode_opcode_int(opcode, 6, &level)) return -1;
+        return delay_params_set(bus, coarse, fine, feedback, mod_freq,
+          mod_depth, level);
+      }
     @if(XM)
     case SKODE_OP_RING_MOD:
       if (opcode->argc < 1 || opcode->argc > 2) return -1;
@@ -3438,12 +3462,12 @@ int skode_function(ands_t *s, int info) {
         int coarse, fine, feedback, mod_freq, mod_depth, level;
         if (argc > 0) skode_double_to_int(arg[0], &bus);
         delay_params_get(bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
-        if (argc > 1) skode_double_to_int(arg[1], &coarse);
-        if (argc > 2) skode_double_to_int(arg[2], &fine);
-        if (argc > 3) skode_double_to_int(arg[3], &feedback);
-        if (argc > 4) skode_double_to_int(arg[4], &mod_freq);
-        if (argc > 5) skode_double_to_int(arg[5], &mod_depth);
-        if (argc > 6) skode_double_to_int(arg[6], &level);
+        if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &coarse);
+        if (argc > 2 && isfinite(arg[2])) skode_double_to_int(arg[2], &fine);
+        if (argc > 3 && isfinite(arg[3])) skode_double_to_int(arg[3], &feedback);
+        if (argc > 4 && isfinite(arg[4])) skode_double_to_int(arg[4], &mod_freq);
+        if (argc > 5 && isfinite(arg[5])) skode_double_to_int(arg[5], &mod_depth);
+        if (argc > 6 && isfinite(arg[6])) skode_double_to_int(arg[6], &level);
         delay_params_set(bus, coarse, fine, feedback, mod_freq, mod_depth, level);
       }
       break;

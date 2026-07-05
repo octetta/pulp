@@ -57,7 +57,11 @@ FILE *mw_header(char *name, wav_t *wav);
 
 float *mw_get(char *name, int *frames_out, wav_t *w, int ch);
 float *mw_get_str(char *name, int *frames_out, wav_t *w, int ch, char *out, int len);
+float *mw_get_mem(const void *data, size_t data_size, const char *label,
+                  int *frames_out, wav_t *w, int ch, char *out, int len);
 int mw_get_smpl_loop(const char *name, int frames, mw_smpl_loop_t *loop);
+int mw_get_smpl_loop_mem(const void *data, size_t data_size, int frames,
+                         mw_smpl_loop_t *loop);
 
 float *mw_free(float *f);
 

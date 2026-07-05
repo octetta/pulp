@@ -21,6 +21,7 @@
 
 #include <unistd.h>
 #include <dirent.h>
+#include "exp-vfs/skred_vfs.h"
 
 #if defined(_WIN32) || defined(WIN32) || defined(__WIN32__) || defined(__WIN32) || defined(__WINDOWS__)
 #define SKODE_WINDOWS_BUILD 1
@@ -1004,53 +1005,76 @@ int skode_ks_bind_values(skode_t *ctx, int variable,
   return 1;
 }
 
-void ksynth_loader(skode_t *ctx, FILE *in, int verbose) {
-  if (in) {
+void ksynth_loader(skode_t *ctx, const char *text, size_t text_len,
+    const char *label, int verbose) {
+  size_t pos = 0;
+  (void)label;
+  while (pos < text_len) {
     char line[1024];
-    while (fgets(line, sizeof(line), in) != NULL) {
-      size_t len = strlen(line);
-      if (len > 0 && line[len-1] == '\n') line[--len] = '\0';
-      if (verbose) ctx->printf(ctx, "  %s\n", line);
-      if (len > 0) skode_ks_eval(ctx, line, (int)len);
-    }
-    fclose(in);
-  } else {
-    puts("NNNNOOOO");
+    size_t start = pos;
+    size_t len;
+    while (pos < text_len && text[pos] != '\n' && text[pos] != '\r') pos++;
+    len = pos - start;
+    while (pos < text_len && (text[pos] == '\n' || text[pos] == '\r')) pos++;
+    if (len >= sizeof(line)) len = sizeof(line) - 1;
+    memcpy(line, text + start, len);
+    line[len] = '\0';
+    if (verbose) ctx->printf(ctx, "  %s\n", line);
+    if (len > 0) skode_ks_eval(ctx, line, (int)len);
   }
 }
 
 int ksynth_load_name(skode_t *ctx, char *file, int verbose) {
-  FILE *in = fopen(file, "r");
+  void *data = NULL;
+  size_t size = 0;
   int r = 0;
-  ksynth_loader(ctx, in, verbose);
+  if (!skred_vfs_read_file(file, &data, &size)) {
+    ctx->printf(ctx, "# cannot load %s\n", file ? file : "(null)");
+    return -1;
+  }
+  ksynth_loader(ctx, (const char *)data, size, file, verbose);
+  skred_vfs_free_file(data);
   return r;
 }
 
 int ksynth_load(skode_t *ctx, int n, int verbose) {
   char file[1024];
+  void *data = NULL;
+  size_t size = 0;
   sprintf(file, "%d.ks", n);
-  FILE *in = fopen(file, "r");
-  if (in == NULL) {
+  if (!skred_vfs_read_file(file, &data, &size)) {
     sprintf(file, "sk/%d.ks", n);
-    in = fopen(file, "r");
+    if (!skred_vfs_read_file(file, &data, &size)) {
+      ctx->printf(ctx, "# cannot load %d.ks or sk/%d.ks\n", n, n);
+      return -1;
+    }
   }
   int r = 0;
-  ksynth_loader(ctx, in, verbose);
+  ksynth_loader(ctx, (const char *)data, size, file, verbose);
+  skred_vfs_free_file(data);
   return r;
 }
 
-static int skode_load_stream(skode_t *ctx, FILE *in, const char *label,
+static int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
+    const char *label,
     int verbose) {
   int r = 0;
-  if (in) {
-    skode_t loader = SKODE_EMPTY();
-    skode_init(&loader);
+  skode_t loader = SKODE_EMPTY();
+  skode_init(&loader);
+  if (text) {
     char line[1024];
     int line_no = 0;
-    while (fgets(line, sizeof(line), in) != NULL) {
+    size_t pos = 0;
+    while (pos < text_len) {
+      size_t start = pos;
+      size_t len;
       line_no++;
-      size_t len = strlen(line);
-      if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
+      while (pos < text_len && text[pos] != '\n' && text[pos] != '\r') pos++;
+      len = pos - start;
+      while (pos < text_len && (text[pos] == '\n' || text[pos] == '\r')) pos++;
+      if (len >= sizeof(line)) len = sizeof(line) - 1;
+      memcpy(line, text + start, len);
+      line[len] = '\0';
       if (verbose) ctx->printf(ctx, "  %s\n", line);
       r = skode_consume(line, &loader);
       if (loader.log_len > 0) ctx->printf(ctx, "%s", loader.log);
@@ -1060,12 +1084,11 @@ static int skode_load_stream(skode_t *ctx, FILE *in, const char *label,
         break;
       }
     }
-    skode_free(&loader);
-    fclose(in);
   } else {
     ctx->printf(ctx, "# cannot load %s\n", label ? label : "(null)");
     r = -1;
   }
+  skode_free(&loader);
   return r;
 }
 
@@ -1080,13 +1103,17 @@ int skode_load_name(skode_t *ctx, const char *name, int verbose) {
     return -1;
   }
   char file[1024];
+  void *data = NULL;
+  size_t size = 0;
   snprintf(file, sizeof(file), "%s", name);
-  FILE *in = fopen(file, "r");
-  if (in == NULL && !strchr(name, '/') && !strchr(name, '\\')) {
+  if (!skred_vfs_read_file(file, &data, &size) &&
+      !strchr(name, '/') && !strchr(name, '\\')) {
     snprintf(file, sizeof(file), "sk/%s", name);
-    in = fopen(file, "r");
+    skred_vfs_read_file(file, &data, &size);
   }
-  return skode_load_stream(ctx, in, file, verbose);
+  int r = skode_load_buffer(ctx, (const char *)data, size, file, verbose);
+  skred_vfs_free_file(data);
+  return r;
 }
 
 int skode_load(skode_t *ctx, int voice, int n, int verbose) {
@@ -1097,13 +1124,16 @@ int skode_load(skode_t *ctx, int voice, int n, int verbose) {
     skode_init(ctx);
   }
   char file[1024];
+  void *data = NULL;
+  size_t size = 0;
   sprintf(file, "%d.sk", n);
-  FILE *in = fopen(file, "r");
-  if (in == NULL) {
+  if (!skred_vfs_read_file(file, &data, &size)) {
     sprintf(file, "sk/%d.sk", n);
-    in = fopen(file, "r");
+    skred_vfs_read_file(file, &data, &size);
   }
-  return skode_load_stream(ctx, in, file, verbose);
+  int r = skode_load_buffer(ctx, (const char *)data, size, file, verbose);
+  skred_vfs_free_file(data);
+  return r;
 }
 
 extern synth_sample_t sampling;
@@ -1232,9 +1262,10 @@ int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offse
 }
 
 static void wave_load_apply_smpl_loop(skode_t *ctx, const char *name,
+                                      const void *data, size_t data_size,
                                       int wave_index, int len) {
   mw_smpl_loop_t loop;
-  if (!mw_get_smpl_loop(name, len, &loop)) return;
+  if (!mw_get_smpl_loop_mem(data, data_size, len, &loop)) return;
   sw.loop_enabled[wave_index] = 1;
   sw.loop_start[wave_index] = loop.start;
   sw.loop_end[wave_index] = loop.end;
@@ -1260,18 +1291,19 @@ int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int norma
   } else {
     wave_free_one(wave_index);
   }
-  FILE *in = fopen(name, "r");
-  if (in) fclose(in);
-  else {
+  void *data = NULL;
+  size_t data_size = 0;
+  if (!skred_vfs_read_file(name, &data, &data_size)) {
     ctx->printf(ctx, "# cannot open %s\n", name);
     return -1;
   }
   wav_t wav;
   int len;
   char out[4096];
-  float *table = mw_get_str(name, &len, &wav, ch, out, sizeof(out));
+  float *table = mw_get_mem(data, data_size, name, &len, &wav, ch, out, sizeof(out));
   if (table == NULL) {
     ctx->printf(ctx, "# can not read %s\n", name);
+    skred_vfs_free_file(data);
     return -1;
   } else {
     skode_copy_string(sw.name[wave_index], WAVE_NAME_MAX, name);
@@ -1286,28 +1318,30 @@ int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int norma
     sw.direction[wave_index] = 0.0f;
     sw.midi_note[wave_index] = 69;
     sw.offset_hz[wave_index] = (float)len / (float)wav.SamplesRate * 440.0f;
-    wave_load_apply_smpl_loop(ctx, name, wave_index, len);
+    wave_load_apply_smpl_loop(ctx, name, data, data_size, wave_index, len);
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
       len, name, wave_index, wav.Channels, wav.SamplesRate);
     normalize_preserve_zero(table, len);
   }
+  skred_vfs_free_file(data);
   return 0;
 }
 
 int wave_try_open_number(int file_num, char *name, int len) {
-  FILE *in = NULL;
+  void *data = NULL;
+  size_t size = 0;
   snprintf(name, len, "%d.wav", file_num);
-  in = fopen(name, "r");
-  if (in) { fclose(in); return 0; }
+  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
   snprintf(name, len, "%d.mp3", file_num);
-  in = fopen(name, "r");
-  if (in) { fclose(in); return 0; }
+  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
+  snprintf(name, len, "%d.flac", file_num);
+  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
   snprintf(name, len, "wav/%d.wav", file_num);
-  in = fopen(name, "r");
-  if (in) { fclose(in); return 0; }
+  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
   snprintf(name, len, "wav/%d.mp3", file_num);
-  in = fopen(name, "r");
-  if (in) { fclose(in); return 0; }
+  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
+  snprintf(name, len, "wav/%d.flac", file_num);
+  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
   return -1;
 }
 
@@ -1333,12 +1367,19 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
     ctx->printf(ctx, "# cannot open %d.wav or wav/%d.wav\n", file_num, file_num);
     return -1;
   }
+  void *data = NULL;
+  size_t data_size = 0;
+  if (!skred_vfs_read_file(name, &data, &data_size)) {
+    ctx->printf(ctx, "# cannot open %s\n", name);
+    return -1;
+  }
   wav_t wav;
   int len;
   char out[4096];
-  float *table = mw_get_str(name, &len, &wav, ch, out, sizeof(out));
+  float *table = mw_get_mem(data, data_size, name, &len, &wav, ch, out, sizeof(out));
   if (table == NULL) {
     ctx->printf(ctx, "# can not read %s\n", name);
+    skred_vfs_free_file(data);
     return -1;
   } else {
     skode_copy_string(sw.name[wave_index], WAVE_NAME_MAX, name);
@@ -1353,11 +1394,12 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
     sw.direction[wave_index] = 0.0f;
     sw.midi_note[wave_index] = 69;
     sw.offset_hz[wave_index] = (float)len / (float)wav.SamplesRate * 440.0f;
-    wave_load_apply_smpl_loop(ctx, name, wave_index, len);
+    wave_load_apply_smpl_loop(ctx, name, data, data_size, wave_index, len);
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
       len, name, wave_index, wav.Channels, wav.SamplesRate);
     normalize_preserve_zero(table, len);
   }
+  skred_vfs_free_file(data);
   return 0;
 }
 
@@ -3841,35 +3883,59 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('/wex'): // wave-expand wave
       if (argc && x >= 200 && x <=999) wave_table_dynamic_expand(x);
       break;
+    case ATOM4('%z--'): // mount zip-or-directory asset root
+      if (strlen(ands_string(ctx->parse))) {
+        if (skred_vfs_mount(ands_string(ctx->parse)))
+          ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
+        else
+          ctx->printf(ctx, "# cannot mount %s\n", ands_string(ctx->parse));
+      } else {
+        ctx->printf(ctx, "# %%z requires [zip-or-directory]\n");
+      }
+      break;
+    case ATOM4('%zu-'): // unmount zip asset root
+      skred_vfs_unmount();
+      ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
+      break;
+    case ATOM4('%pwd'): // show vfs working directory
+      ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
+      break;
     case ATOM4('%cat'): // print a text file
       if (strlen(ands_string(ctx->parse))) {
-        FILE *in = fopen(ands_string(ctx->parse), "rt");
-        if (in) {
-          char line[1024];
-          while (fgets(line, sizeof(line), in)) {
-            char *p = line;
-            while (*p) {
-              if (*p == '\n' || *p == '\n') {
-                *p = '\0';
+        void *data = NULL;
+        size_t size = 0;
+        if (skred_vfs_read_file(ands_string(ctx->parse), &data, &size)) {
+          const char *text = (const char *)data;
+          size_t pos = 0;
+          while (pos < size) {
+            char line[1024];
+            size_t start = pos;
+            size_t len;
+            while (pos < size && text[pos] != '\n' && text[pos] != '\r') pos++;
+            len = pos - start;
+            while (pos < size && (text[pos] == '\n' || text[pos] == '\r')) pos++;
+            if (len >= sizeof(line)) len = sizeof(line) - 1;
+            memcpy(line, text + start, len);
+            line[len] = '\0';
+            for (size_t i = 0; i < len; i++) {
+              if (!isprint((unsigned char)line[i]) && line[i] != '\t') {
+                line[i] = '\0';
                 break;
               }
-              if (!isprint(*p)) {
-                *p = '\0';
-                break;
-              }
-              p++;
             }
             ctx->printf(ctx, "%s\n", line);
           }
-          fclose(in);
+          skred_vfs_free_file(data);
         }
       }
       break;
     case ATOM4('%cd-'): // change directory
-      ctx->printf(ctx, "# [%s] %cd\n", ands_string(ctx->parse));
+      ctx->printf(ctx, "# [%s] %%cd\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
-        chdir(ands_string(ctx->parse));
+        if (!skred_chdir(ands_string(ctx->parse)))
+          ctx->printf(ctx, "# cannot cd %s\n", ands_string(ctx->parse));
       }
+      ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
       break;
     case ATOM4('%ls-'): // list directory (match-type)
       {
@@ -3882,10 +3948,10 @@ int skode_function(ands_t *s, int info) {
       */
       int p = -1;
       if (argc) p = x;
-      struct dirent *entry;
-      DIR *dp = opendir(".");
+      SkredDirent *entry;
+      SkredDir *dp = skred_opendir(".");
         if (dp) {
-          while ((entry = readdir(dp))) {
+          while ((entry = skred_readdir(dp))) {
             char *name = entry->d_name;
             int f = 0;
             switch (p) {
@@ -3905,10 +3971,14 @@ int skode_function(ands_t *s, int info) {
               case 3:
                 f = (strstr(name, ".ks") != NULL);
                 break;
+              case 4:
+                f = (strstr(name, ".flac") != NULL);
+                break;
             }
-            if (f) ctx->printf(ctx, "# [%s]\n", name);
+            if (f) ctx->printf(ctx, "# [%s%s]\n", name,
+              entry->is_directory ? "/" : "");
           }
-          closedir(dp);
+          skred_closedir(dp);
         }
       }
       break;

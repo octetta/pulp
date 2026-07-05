@@ -1,23 +1,31 @@
 #include "skred_vfs.h"
-#include "miniz.h"
+#include "miniz_zip.h"
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 typedef enum {
     VFS_MODE_DISK,
-    VFS_MODE_ZIP
+    VFS_MODE_ZIP,
+    VFS_MODE_ZIP_MEMORY
 } VfsMode;
 
 typedef struct {
     VfsMode mode;
-    char base_path[256];
+    char base_path[1024];
     mz_zip_archive archive;
-    char cwd[512]; 
+    char cwd[512];
+    unsigned char *zip_mem;
+    size_t zip_mem_size;
 } VfsState;
 
-static VfsState g_vfs = { .mode = VFS_MODE_DISK };
+static VfsState g_vfs = {
+    .mode = VFS_MODE_DISK,
+    .base_path = ".",
+    .cwd = ""
+};
 
 struct SkredFile {
     VfsMode mode;
@@ -43,6 +51,8 @@ struct SkredDir {
             unsigned int total_files;
             char filter_prefix[256];
             size_t prefix_len;
+            char seen[256][256];
+            unsigned int seen_count;
         } zip;
     } handle;
     SkredDirent entry;
@@ -55,6 +65,36 @@ static bool vfs_is_zip(const char *path) {
     return (ext && strcmp(ext, ".zip") == 0);
 }
 
+static void vfs_disk_root(char *out, size_t out_len, const char *path) {
+    if (!path || path[0] == '\0') path = ".";
+    if (path[0] == '/') {
+        snprintf(out, out_len, "%s", path);
+        return;
+    }
+    char cwd[1024];
+    if (!getcwd(cwd, sizeof(cwd))) {
+        snprintf(out, out_len, "%s", path);
+        return;
+    }
+    if (strcmp(path, ".") == 0) snprintf(out, out_len, "%s", cwd);
+    else snprintf(out, out_len, "%s/%s", cwd, path);
+}
+
+static void vfs_clear_archive(void) {
+    if (g_vfs.mode == VFS_MODE_ZIP || g_vfs.mode == VFS_MODE_ZIP_MEMORY) {
+        if (g_vfs.archive.m_zip_mode == MZ_ZIP_MODE_WRITING) {
+            mz_zip_writer_finalize_archive(&g_vfs.archive);
+            mz_zip_writer_end(&g_vfs.archive);
+        } else if (g_vfs.archive.m_zip_mode == MZ_ZIP_MODE_READING) {
+            mz_zip_reader_end(&g_vfs.archive);
+        }
+    }
+    memset(&g_vfs.archive, 0, sizeof(g_vfs.archive));
+    free(g_vfs.zip_mem);
+    g_vfs.zip_mem = NULL;
+    g_vfs.zip_mem_size = 0;
+}
+
 // Lexically resolves . and .. without touching the physical filesystem
 static void vfs_resolve_path(const char *cwd, const char *input, char *output, size_t out_len) {
     char temp[1024];
@@ -62,11 +102,13 @@ static void vfs_resolve_path(const char *cwd, const char *input, char *output, s
     // Absolute paths (relative to VFS root) vs Relative paths
     if (input[0] == '/') {
         strncpy(temp, input, sizeof(temp));
+        temp[sizeof(temp) - 1] = '\0';
     } else {
         if (strlen(cwd) > 0) {
             snprintf(temp, sizeof(temp), "%s/%s", cwd, input);
         } else {
             strncpy(temp, input, sizeof(temp));
+            temp[sizeof(temp) - 1] = '\0';
         }
     }
 
@@ -107,7 +149,7 @@ static bool zip_dir_exists(const char* prefix) {
     
     int total = mz_zip_reader_get_num_files(&g_vfs.archive);
     for(int i = 0; i < total; i++) {
-        mz_zip_file_stat stat;
+        mz_zip_archive_file_stat stat;
         if (mz_zip_reader_file_stat(&g_vfs.archive, i, &stat)) {
             if (strncmp(stat.m_filename, search_prefix, strlen(search_prefix)) == 0) {
                 return true;
@@ -120,38 +162,101 @@ static bool zip_dir_exists(const char* prefix) {
 /* --- Lifecycle --- */
 
 bool skred_vfs_init(const char *path) {
-    strncpy(g_vfs.base_path, path, sizeof(g_vfs.base_path) - 1);
-    memset(&g_vfs.archive, 0, sizeof(g_vfs.archive));
+    return skred_vfs_mount(path);
+}
+
+bool skred_vfs_mount(const char *path) {
+    char root[1024];
+    if (!path || path[0] == '\0') path = ".";
+    skred_vfs_shutdown();
     g_vfs.cwd[0] = '\0'; // Start at VFS root
 
     if (vfs_is_zip(path)) {
+        vfs_disk_root(root, sizeof(root), path);
+        strncpy(g_vfs.base_path, root, sizeof(g_vfs.base_path) - 1);
+        g_vfs.base_path[sizeof(g_vfs.base_path) - 1] = '\0';
         if (!mz_zip_reader_init_file(&g_vfs.archive, path, 0)) {
-            if (!mz_zip_writer_init_file(&g_vfs.archive, path, 0)) {
-                return false;
-            }
+            memset(&g_vfs.archive, 0, sizeof(g_vfs.archive));
+            g_vfs.mode = VFS_MODE_DISK;
+            vfs_disk_root(g_vfs.base_path, sizeof(g_vfs.base_path), ".");
+            return false;
         }
         g_vfs.mode = VFS_MODE_ZIP;
     } else {
+        vfs_disk_root(g_vfs.base_path, sizeof(g_vfs.base_path), path);
         g_vfs.mode = VFS_MODE_DISK;
     }
     return true;
 }
 
-void skred_vfs_shutdown(void) {
-    if (g_vfs.mode == VFS_MODE_ZIP) {
-        if (g_vfs.archive.m_zip_mode == MZ_ZIP_MODE_WRITING) {
-            mz_zip_writer_finalize_archive(&g_vfs.archive);
-            mz_zip_writer_end(&g_vfs.archive);
-        } else {
-            mz_zip_reader_end(&g_vfs.archive);
-        }
+bool skred_vfs_mount_zip_memory(const void *data, size_t size, const char *label) {
+    skred_vfs_shutdown();
+    if (!data || size == 0) return false;
+    g_vfs.zip_mem = malloc(size);
+    if (!g_vfs.zip_mem) return false;
+    memcpy(g_vfs.zip_mem, data, size);
+    g_vfs.zip_mem_size = size;
+    if (!mz_zip_reader_init_mem(&g_vfs.archive, g_vfs.zip_mem, g_vfs.zip_mem_size, 0)) {
+        vfs_clear_archive();
+        g_vfs.mode = VFS_MODE_DISK;
+        vfs_disk_root(g_vfs.base_path, sizeof(g_vfs.base_path), ".");
+        return false;
     }
+    snprintf(g_vfs.base_path, sizeof(g_vfs.base_path), "%s",
+             label && label[0] ? label : "(memory.zip)");
+    g_vfs.cwd[0] = '\0';
+    g_vfs.mode = VFS_MODE_ZIP_MEMORY;
+    return true;
+}
+
+void skred_vfs_shutdown(void) {
+    vfs_clear_archive();
+    if (g_vfs.mode != VFS_MODE_DISK) {
+        g_vfs.mode = VFS_MODE_DISK;
+        g_vfs.cwd[0] = '\0';
+        vfs_disk_root(g_vfs.base_path, sizeof(g_vfs.base_path), ".");
+    }
+}
+
+void skred_vfs_unmount(void) {
+    skred_vfs_shutdown();
+    g_vfs.mode = VFS_MODE_DISK;
+    g_vfs.cwd[0] = '\0';
+    vfs_disk_root(g_vfs.base_path, sizeof(g_vfs.base_path), ".");
+}
+
+skred_vfs_mode_t skred_vfs_mode(void) {
+    if (g_vfs.mode == VFS_MODE_ZIP) return SKRED_VFS_ZIP;
+    if (g_vfs.mode == VFS_MODE_ZIP_MEMORY) return SKRED_VFS_ZIP_MEMORY;
+    return SKRED_VFS_DISK;
+}
+
+const char* skred_vfs_root(void) {
+    return g_vfs.base_path;
+}
+
+const char* skred_vfs_status(void) {
+    static char out[1600];
+    const char *mode = "disk";
+    if (g_vfs.mode == VFS_MODE_ZIP) mode = "zip";
+    else if (g_vfs.mode == VFS_MODE_ZIP_MEMORY) mode = "zip-memory";
+    snprintf(out, sizeof(out), "%s:%s:/%s",
+             mode, g_vfs.base_path, g_vfs.cwd[0] ? g_vfs.cwd : "");
+    return out;
 }
 
 /* --- Environment State --- */
 
 bool skred_chdir(const char *path) {
     char target_path[512];
+    if (g_vfs.mode == VFS_MODE_DISK && path && path[0] == '/') {
+        DIR *d = opendir(path);
+        if (!d) return false;
+        closedir(d);
+        snprintf(g_vfs.base_path, sizeof(g_vfs.base_path), "%s", path);
+        g_vfs.cwd[0] = '\0';
+        return true;
+    }
     vfs_resolve_path(g_vfs.cwd, path, target_path, sizeof(target_path));
 
     if (strlen(target_path) == 0 || strcmp(target_path, "/") == 0) {
@@ -161,17 +266,20 @@ bool skred_chdir(const char *path) {
 
     if (g_vfs.mode == VFS_MODE_DISK) {
         char full[1024];
-        snprintf(full, sizeof(full), "%s/%s", g_vfs.base_path, target_path);
+        if (target_path[0]) snprintf(full, sizeof(full), "%s/%s", g_vfs.base_path, target_path);
+        else snprintf(full, sizeof(full), "%s", g_vfs.base_path);
         DIR *d = opendir(full);
         if (d) {
             closedir(d);
             strncpy(g_vfs.cwd, target_path, sizeof(g_vfs.cwd) - 1);
+            g_vfs.cwd[sizeof(g_vfs.cwd) - 1] = '\0';
             return true;
         }
         return false;
     } else {
         if (zip_dir_exists(target_path)) {
             strncpy(g_vfs.cwd, target_path, sizeof(g_vfs.cwd) - 1);
+            g_vfs.cwd[sizeof(g_vfs.cwd) - 1] = '\0';
             return true;
         }
         return false;
@@ -188,13 +296,21 @@ SkredFile* skred_fopen(const char *filepath, const char *mode) {
     SkredFile *file = calloc(1, sizeof(SkredFile));
     if (!file) return NULL;
 
-    vfs_resolve_path(g_vfs.cwd, filepath, file->resolved_path, sizeof(file->resolved_path));
     file->mode = g_vfs.mode;
     file->is_writing = (strchr(mode, 'w') || strchr(mode, 'a'));
 
     if (file->mode == VFS_MODE_DISK) {
         char full_path[1024];
-        snprintf(full_path, sizeof(full_path), "%s/%s", g_vfs.base_path, file->resolved_path);
+        if (filepath && filepath[0] == '/') {
+            snprintf(file->resolved_path, sizeof(file->resolved_path), "%s", filepath);
+            snprintf(full_path, sizeof(full_path), "%s", filepath);
+        } else {
+            vfs_resolve_path(g_vfs.cwd, filepath, file->resolved_path, sizeof(file->resolved_path));
+            if (file->resolved_path[0])
+            snprintf(full_path, sizeof(full_path), "%s/%s", g_vfs.base_path, file->resolved_path);
+            else
+                snprintf(full_path, sizeof(full_path), "%s", g_vfs.base_path);
+        }
         file->handle.disk_file = fopen(full_path, mode);
         if (!file->handle.disk_file) {
             free(file);
@@ -202,6 +318,7 @@ SkredFile* skred_fopen(const char *filepath, const char *mode) {
         }
     } 
     else {
+        vfs_resolve_path(g_vfs.cwd, filepath, file->resolved_path, sizeof(file->resolved_path));
         if (file->is_writing) {
             file->handle.mem.capacity = 1024;
             file->handle.mem.buffer = malloc(file->handle.mem.capacity);
@@ -217,6 +334,7 @@ SkredFile* skred_fopen(const char *filepath, const char *mode) {
 
             size_t size;
             file->handle.mem.buffer = mz_zip_reader_extract_to_heap(&g_vfs.archive, idx, &size, 0);
+            if (!file->handle.mem.buffer) { free(file); return NULL; }
             file->handle.mem.size = size;
             file->handle.mem.cursor = 0;
         }
@@ -277,7 +395,7 @@ long skred_ftell(SkredFile *stream) {
 
 int skred_fclose(SkredFile *stream) {
     if (stream->mode == VFS_MODE_DISK) {
-        fclose(stream->handle.disk_file);
+        if (stream->handle.disk_file) fclose(stream->handle.disk_file);
     } else {
         if (stream->is_writing) {
             mz_zip_writer_add_mem(&g_vfs.archive, stream->resolved_path, stream->handle.mem.buffer, stream->handle.mem.size, MZ_DEFAULT_COMPRESSION);
@@ -299,7 +417,8 @@ SkredDir* skred_opendir(const char *dirpath) {
 
     if (dir->mode == VFS_MODE_DISK) {
         char path[1024];
-        snprintf(path, sizeof(path), "%s/%s", g_vfs.base_path, target_path);
+        if (target_path[0]) snprintf(path, sizeof(path), "%s/%s", g_vfs.base_path, target_path);
+        else snprintf(path, sizeof(path), "%s", g_vfs.base_path);
         dir->handle.disk_dir = opendir(path);
         if (!dir->handle.disk_dir) { free(dir); return NULL; }
     } else {
@@ -317,12 +436,13 @@ SkredDirent* skred_readdir(SkredDir *dirp) {
         struct dirent *d = readdir(dirp->handle.disk_dir);
         if (!d) return NULL;
         strncpy(dirp->entry.d_name, d->d_name, 255);
+        dirp->entry.d_name[255] = '\0';
         dirp->entry.is_directory = (d->d_type == DT_DIR);
         return &dirp->entry;
     }
 
     while (dirp->handle.zip.current_index < dirp->handle.zip.total_files) {
-        mz_zip_file_stat stat;
+        mz_zip_archive_file_stat stat;
         if (!mz_zip_reader_file_stat(&g_vfs.archive, dirp->handle.zip.current_index++, &stat)) {
             continue;
         }
@@ -336,14 +456,29 @@ SkredDirent* skred_readdir(SkredDir *dirp) {
 
         const char *slash = strchr(rel, '/');
         if (slash) {
-            if (*(slash + 1) != '\0') continue; // Deeper nested file
-            dirp->entry.is_directory = true;
             size_t len = slash - rel;
+            if (len >= sizeof(dirp->entry.d_name)) len = sizeof(dirp->entry.d_name) - 1;
+            int seen = 0;
+            for (unsigned int i = 0; i < dirp->handle.zip.seen_count; i++) {
+                if (strncmp(dirp->handle.zip.seen[i], rel, len) == 0 &&
+                    dirp->handle.zip.seen[i][len] == '\0') {
+                    seen = 1;
+                    break;
+                }
+            }
+            if (seen) continue;
+            if (dirp->handle.zip.seen_count < 256) {
+                memcpy(dirp->handle.zip.seen[dirp->handle.zip.seen_count], rel, len);
+                dirp->handle.zip.seen[dirp->handle.zip.seen_count][len] = '\0';
+                dirp->handle.zip.seen_count++;
+            }
+            dirp->entry.is_directory = true;
             strncpy(dirp->entry.d_name, rel, len);
             dirp->entry.d_name[len] = '\0';
         } else {
             dirp->entry.is_directory = stat.m_is_directory;
             strncpy(dirp->entry.d_name, rel, 255);
+            dirp->entry.d_name[255] = '\0';
         }
         return &dirp->entry;
     }
@@ -354,4 +489,40 @@ int skred_closedir(SkredDir *dirp) {
     if (dirp->mode == VFS_MODE_DISK) closedir(dirp->handle.disk_dir);
     free(dirp);
     return 0;
+}
+
+bool skred_vfs_read_file(const char *filepath, void **data, size_t *size) {
+    if (!data || !size) return false;
+    *data = NULL;
+    *size = 0;
+    SkredFile *f = skred_fopen(filepath, "rb");
+    if (!f) return false;
+    if (skred_fseek(f, 0, SEEK_END) != 0) {
+        skred_fclose(f);
+        return false;
+    }
+    long len = skred_ftell(f);
+    if (len < 0 || skred_fseek(f, 0, SEEK_SET) != 0) {
+        skred_fclose(f);
+        return false;
+    }
+    unsigned char *buf = malloc((size_t)len + 1);
+    if (!buf) {
+        skred_fclose(f);
+        return false;
+    }
+    size_t got = skred_fread(buf, 1, (size_t)len, f);
+    skred_fclose(f);
+    if (got != (size_t)len) {
+        free(buf);
+        return false;
+    }
+    buf[len] = '\0';
+    *data = buf;
+    *size = (size_t)len;
+    return true;
+}
+
+void skred_vfs_free_file(void *data) {
+    free(data);
 }

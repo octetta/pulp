@@ -147,9 +147,97 @@ int mw_get_smpl_loop(const char *name, int frames, mw_smpl_loop_t *loop) {
   return 0;
 }
 
+int mw_get_smpl_loop_mem(const void *data, size_t data_size, int frames,
+                         mw_smpl_loop_t *loop) {
+  const unsigned char *bytes = (const unsigned char *)data;
+  size_t pos = 12;
+
+  if (!loop) return 0;
+  memset(loop, 0, sizeof(*loop));
+  if (!bytes || data_size < 12 || frames <= 0) return 0;
+  if (memcmp(bytes, "RIFF", 4) != 0 || memcmp(bytes + 8, "WAVE", 4) != 0)
+    return 0;
+
+  while (pos + 8 <= data_size) {
+    const unsigned char *chunk = bytes + pos;
+    uint32_t chunk_size = mw_le_u32(chunk + 4);
+    size_t data_start = pos + 8;
+    size_t next_chunk = data_start + (size_t)chunk_size + (size_t)(chunk_size & 1u);
+
+    if (next_chunk < data_start || data_start > data_size) break;
+
+    if (memcmp(chunk, "smpl", 4) == 0) {
+      const unsigned char *header;
+      const unsigned char *sample_loop;
+      uint32_t sample_loop_count;
+      uint32_t type;
+      uint32_t start;
+      uint32_t end;
+      uint32_t play_count;
+      int end_exclusive;
+
+      if (chunk_size < 60 || data_start + 60 > data_size) break;
+      header = bytes + data_start;
+      sample_loop_count = mw_le_u32(header + 28);
+      if (sample_loop_count == 0) break;
+      sample_loop = header + 36;
+
+      type = mw_le_u32(sample_loop + 4);
+      start = mw_le_u32(sample_loop + 8);
+      end = mw_le_u32(sample_loop + 12);
+      play_count = mw_le_u32(sample_loop + 20);
+
+      if (start >= (uint32_t)frames || end < start) break;
+      end_exclusive = end >= (uint32_t)frames ? frames : (int)end + 1;
+      if (end_exclusive <= (int)start) break;
+
+      loop->found = 1;
+      loop->start = (int)start;
+      loop->end = end_exclusive;
+      loop->type = (int)type;
+      loop->play_count = (int)play_count;
+      return 1;
+    }
+
+    if (next_chunk <= pos) break;
+    pos = next_chunk;
+  }
+
+  return 0;
+}
+
 #include "miniaudio.h"
 
 float _mw_safe[] = {0,0};
+
+static float *mw_decode(ma_decoder *decoder, const char *label,
+                        int *frames_out, wav_t *w, int ch,
+                        char *out, int len, float *pSamples,
+                        ma_uint64 frameCount) {
+  ma_uint64 j = 0;
+  if (out != NULL && len > 0) {
+    snprintf(out, len, "Loaded %llu frames / %d channels / %d sample rate\n",
+      frameCount,
+      decoder->outputChannels,
+      decoder->outputSampleRate);
+  }
+  if (ch >= (int)decoder->outputChannels) ch = (int)decoder->outputChannels - 1;
+  for (ma_uint64 i = 0; i < frameCount * decoder->outputChannels; i += decoder->outputChannels) {
+    if (ch == -1) {
+      float a = 0;
+      for (ma_uint32 k = 0; k < decoder->outputChannels; k++) a += pSamples[i + k];
+      pSamples[j] = a / (float)decoder->outputChannels;
+    } else {
+      pSamples[j] = pSamples[i + ch];
+    }
+    j++;
+  }
+  (void)label;
+  w->SamplesRate = decoder->outputSampleRate;
+  w->Channels = decoder->outputChannels;
+  *frames_out = (int)frameCount;
+  return pSamples;
+}
 
 float *mw_get_str(char *filename, int *frames_out, wav_t *w, int ch, char *out, int len) {
   ma_result result;
@@ -183,21 +271,42 @@ float *mw_get_str(char *filename, int *frames_out, wav_t *w, int ch, char *out, 
     *frames_out = 0;
     return NULL;
   }
-  ma_uint64 j = 0;
-  if (ch >= (int)decoder.outputChannels) ch = (int)decoder.outputChannels - 1;
-  for (ma_uint64 i = 0; i < frameCount * decoder.outputChannels; i += decoder.outputChannels) {
-    if (ch == -1) {
-      float a = 0;
-      for (ma_uint32 k = 0; k < decoder.outputChannels; k++) a += pSamples[i + k];
-      pSamples[j] = a / (float)decoder.outputChannels;
-    } else {
-      pSamples[j] = pSamples[i + ch];
+  pSamples = mw_decode(&decoder, filename, frames_out, w, ch, out, len,
+                       pSamples, frameCount);
+  ma_decoder_uninit(&decoder);
+  return pSamples;
+}
+
+float *mw_get_mem(const void *data, size_t data_size, const char *label,
+                  int *frames_out, wav_t *w, int ch, char *out, int len) {
+  ma_result result;
+  ma_decoder decoder;
+  ma_decoder_config decoderConfig;
+  float* pSamples = NULL;
+  ma_uint64 frameCount = 0;
+
+  decoderConfig = ma_decoder_config_init(ma_format_f32, 0, 0);
+  result = ma_decoder_init_memory(data, data_size, &decoderConfig, &decoder);
+  if (result != MA_SUCCESS) {
+    if (out != NULL && len > 0) {
+      snprintf(out, len, "Could not load memory file: %s\n",
+               label ? label : "(memory)");
     }
-    j++;
+    *frames_out = 0;
+    return NULL;
   }
-  w->SamplesRate = decoder.outputSampleRate;
-  w->Channels = decoder.outputChannels;
-  *frames_out = (int)frameCount;
+
+  result = ma_decode_memory(data, data_size, &decoderConfig, &frameCount,
+                            (void**)&pSamples);
+  if (result != MA_SUCCESS) {
+    ma_decoder_uninit(&decoder);
+    *frames_out = 0;
+    return NULL;
+  }
+
+  pSamples = mw_decode(&decoder, label, frames_out, w, ch, out, len,
+                       pSamples, frameCount);
+  ma_decoder_uninit(&decoder);
   return pSamples;
 }
 

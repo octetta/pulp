@@ -11,6 +11,7 @@
 #include "seq.h"
 #include "synth.h"
 #include "synth-state.h"
+#include "miniz_zip.h"
 
 static int failures = 0;
 
@@ -147,6 +148,36 @@ static int write_smpl_test_wav(const char *path, uint32_t frames,
 
   if (fclose(f) != 0) return -1;
   return 0;
+}
+
+static void *read_whole_file(const char *path, size_t *size) {
+  FILE *f = fopen(path, "rb");
+  void *data = NULL;
+  long len;
+  if (size) *size = 0;
+  if (!f) return NULL;
+  if (fseek(f, 0, SEEK_END) != 0) {
+    fclose(f);
+    return NULL;
+  }
+  len = ftell(f);
+  if (len < 0 || fseek(f, 0, SEEK_SET) != 0) {
+    fclose(f);
+    return NULL;
+  }
+  data = malloc((size_t)len);
+  if (!data) {
+    fclose(f);
+    return NULL;
+  }
+  if (fread(data, 1, (size_t)len, f) != (size_t)len) {
+    free(data);
+    data = NULL;
+  } else if (size) {
+    *size = (size_t)len;
+  }
+  fclose(f);
+  return data;
 }
 
 typedef struct {
@@ -1684,6 +1715,115 @@ static void test_load_installs_global_macros_and_registers(void) {
   ands_macro_clear(ctx.parse);
 }
 
+static void test_vfs_zip_loads_skode_and_wave_assets(void) {
+  const char *test = "vfs zip loads skode and wave assets";
+  char cwd[1024];
+  char zipname[96];
+  char wavname[96];
+  char command[180];
+  void *wav_data = NULL;
+  size_t wav_size = 0;
+  int slot = 350;
+  skode_t ctx = new_ctx();
+
+  if (!getcwd(cwd, sizeof(cwd))) {
+    fail(test, "getcwd failed");
+    return;
+  }
+  if (chdir("/tmp") != 0) {
+    fail(test, "chdir /tmp failed");
+    return;
+  }
+  skred_vfs_unmount();
+
+  snprintf(zipname, sizeof(zipname), "skred-vfs-%d.zip", (int)getpid());
+  snprintf(wavname, sizeof(wavname), "skred-vfs-%d.wav", (int)getpid());
+  remove(zipname);
+  remove(wavname);
+
+  if (write_smpl_test_wav(wavname, 10, 2, 6, 0, 0) != 0) {
+    fail(test, "could not create temporary wav");
+    chdir(cwd);
+    return;
+  }
+  wav_data = read_whole_file(wavname, &wav_size);
+  if (!wav_data) {
+    fail(test, "could not read temporary wav");
+    remove(wavname);
+    chdir(cwd);
+    return;
+  }
+
+  const char *patch = "[zx]: f $$0 ;\n=14,78\n";
+  const char *note = "hello from zip\n";
+  const char *ks = "\\ comment only\n";
+  if (!mz_zip_add_mem_to_archive_file_in_place(zipname, "patches/ziptest.sk",
+        patch, strlen(patch), NULL, 0, MZ_DEFAULT_COMPRESSION) ||
+      !mz_zip_add_mem_to_archive_file_in_place(zipname, "text/readme.txt",
+        note, strlen(note), NULL, 0, MZ_DEFAULT_COMPRESSION) ||
+      !mz_zip_add_mem_to_archive_file_in_place(zipname, "ks/test.ks",
+        ks, strlen(ks), NULL, 0, MZ_DEFAULT_COMPRESSION) ||
+      !mz_zip_add_mem_to_archive_file_in_place(zipname, "samples/zip.wav",
+        wav_data, wav_size, NULL, 0, MZ_DEFAULT_COMPRESSION)) {
+    fail(test, "could not create zip fixture");
+    free(wav_data);
+    remove(zipname);
+    remove(wavname);
+    chdir(cwd);
+    return;
+  }
+  free(wav_data);
+
+  ctx.log_enable = 1;
+  snprintf(command, sizeof(command), "[%s] %%z", zipname);
+  consume(test, &ctx, command);
+  expect_substr(test, ctx.log, "# vfs zip:", "zip mount status");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "%pwd");
+  expect_substr(test, ctx.log, "# vfs zip:", "zip pwd status");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[patches] %cd");
+  consume(test, &ctx, "%ls");
+  expect_substr(test, ctx.log, "[ziptest.sk]", "zip ls skode file");
+
+  ands_macro_clear(ctx.parse);
+  global_var[14] = 0.0;
+  consume(test, &ctx, "[ziptest.sk] /ls");
+  consume(test, &ctx, "zx 345");
+  expect_float(test, sv.freq[0], 345.0f, 0.0001f,
+               "macro loaded from zip");
+  expect_float(test, (float)global_var[14], 78.0f, 0.0001f,
+               "register set from zip");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[../text/readme.txt] %cat");
+  expect_substr(test, ctx.log, "hello from zip", "zip cat text");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[../ks] %cd");
+  consume(test, &ctx, "%ls 3");
+  expect_substr(test, ctx.log, "[test.ks]", "zip ls ks file");
+
+  snprintf(command, sizeof(command), "[../samples/zip.wav] /ws%d", slot);
+  consume(test, &ctx, command);
+  expect_int(test, sw.size[slot], 10, "zip wav frame count");
+  expect_int(test, sw.loop_enabled[slot], 1, "zip wav smpl loop enabled");
+  expect_int(test, sw.loop_start[slot], 2, "zip wav loop start");
+  expect_int(test, sw.loop_end[slot], 7, "zip wav loop end");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "%zu");
+  expect_substr(test, ctx.log, "# vfs disk:", "zip unmount status");
+
+  skred_vfs_unmount();
+  ands_macro_clear(ctx.parse);
+  remove(zipname);
+  remove(wavname);
+  chdir(cwd);
+}
+
 static void test_control_composition_primitives(void) {
   const char *test = "control composition primitives";
   skode_t ctx = new_ctx();
@@ -2109,6 +2249,7 @@ int main(void) {
 #endif
   test_ands_macro_commands();
   test_load_installs_global_macros_and_registers();
+  test_vfs_zip_loads_skode_and_wave_assets();
   test_control_composition_primitives();
   test_tempo_and_pattern_reset_limits();
   test_sample_accurate_sequence_boundaries();

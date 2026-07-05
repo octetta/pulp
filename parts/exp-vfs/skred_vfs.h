@@ -56,6 +56,7 @@ int          skred_closedir(SkredDir *dirp);
 /* --- Whole-file helpers --- */
 
 bool skred_vfs_read_file(const char *filepath, void **data, size_t *size);
+bool skred_vfs_read_real_file(const char *filepath, void **data, size_t *size);
 void skred_vfs_free_file(void *data);
 
 #endif // SKRED_VFS_H

@@ -313,6 +313,8 @@ function usage() {
   printToTerminal("learn # open skode tutorial");
   printToTerminal("ksynth # open k-synth tool");
   printToTerminal("load # select a wav file");
+  printToTerminal("zip # select and mount a zip asset bundle");
+  printToTerminal("unzip # unmount zip asset bundle");
   printToTerminal(`v(0..${nvoices}) # select voice`);
   printToTerminal("w(0..999)     # select waveform");
   printToTerminal("a(-90..10)    # set amplitide (dB)");
@@ -556,6 +558,12 @@ function processCommand(cmd) {
             }
             addWavViaDialog();
             break;
+        case 'zip':
+            mountZipViaDialog();
+            break;
+        case 'unzip':
+            unmountZipBundle();
+            break;
         case 'clear': output.innerHTML = ''; break;
         case 'learn':
           window.open('https://octetta.github.io/pulp/doc/learn.html', "_blank");
@@ -740,6 +748,67 @@ async function addWavViaDialog() {
         }
     };
     input.click();
+}
+
+async function mountZipViaDialog() {
+    if (typeof Module === "undefined" || !Module._malloc ||
+        !Module._free || !Module.HEAPU8 ||
+        !Module._skred_vfs_mount_zip_memory) {
+        printToTerminal("Error: zip mount support is not ready.", "error");
+        return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.zip,application/zip,application/x-zip-compressed';
+    input.multiple = false;
+
+    input.onchange = async (e) => {
+        const files = e.target.files;
+        if (!files.length) return;
+        const file = files[0];
+        let ptr = 0;
+
+        try {
+            const bytes = new Uint8Array(await file.arrayBuffer());
+            ptr = Module._malloc(bytes.length);
+            if (!ptr) throw new Error("malloc failed");
+            Module.HEAPU8.set(bytes, ptr);
+
+            const ok = Module.ccall(
+                'skred_vfs_mount_zip_memory',
+                'number',
+                ['number', 'number', 'string'],
+                [ptr, bytes.length, file.name]
+            );
+            if (!ok) {
+                printToTerminal(`# cannot mount ${file.name}`, "error");
+                return;
+            }
+            const statusPtr = Module._skred_vfs_status();
+            const status = statusPtr ? Module.UTF8ToString(statusPtr) : file.name;
+            printToTerminal(`# vfs ${status}`, "system");
+            centerSpan.innerText = `%z ${file.name}`;
+        } catch (err) {
+            console.error(`Failed to mount ${file.name}:`, err);
+            printToTerminal(`# zip mount failed: ${file.name}`, "error");
+        } finally {
+            if (ptr) Module._free(ptr);
+        }
+    };
+    input.click();
+}
+
+function unmountZipBundle() {
+    if (typeof Module === "undefined" || !Module._skred_vfs_unmount) {
+        printToTerminal("Error: zip mount support is not ready.", "error");
+        return;
+    }
+    Module._skred_vfs_unmount();
+    const statusPtr = Module._skred_vfs_status ? Module._skred_vfs_status() : 0;
+    const status = statusPtr ? Module.UTF8ToString(statusPtr) : "disk";
+    printToTerminal(`# vfs ${status}`, "system");
+    centerSpan.innerText = "%zu";
 }
 </script>
 </body>

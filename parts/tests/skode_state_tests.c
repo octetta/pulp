@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "ands.h"
@@ -1720,11 +1721,17 @@ static void test_vfs_zip_loads_skode_and_wave_assets(void) {
   char cwd[1024];
   char zipname[96];
   char wavname[96];
+  char realname[96];
+  char ksdir[32] = "ks";
+  char skdir[32] = "sk";
+  char wavdir[32] = "wav";
   char command[180];
   void *wav_data = NULL;
   size_t wav_size = 0;
   int slot = 350;
+  int fallback_slot = 351;
   skode_t ctx = new_ctx();
+  FILE *file;
 
   if (!getcwd(cwd, sizeof(cwd))) {
     fail(test, "getcwd failed");
@@ -1738,8 +1745,13 @@ static void test_vfs_zip_loads_skode_and_wave_assets(void) {
 
   snprintf(zipname, sizeof(zipname), "skred-vfs-%d.zip", (int)getpid());
   snprintf(wavname, sizeof(wavname), "skred-vfs-%d.wav", (int)getpid());
+  snprintf(realname, sizeof(realname), "real-load-%d.sk", (int)getpid());
   remove(zipname);
   remove(wavname);
+  remove(realname);
+  mkdir(ksdir, 0777);
+  mkdir(skdir, 0777);
+  mkdir(wavdir, 0777);
 
   if (write_smpl_test_wav(wavname, 10, 2, 6, 0, 0) != 0) {
     fail(test, "could not create temporary wav");
@@ -1797,6 +1809,37 @@ static void test_vfs_zip_loads_skode_and_wave_assets(void) {
   expect_float(test, (float)global_var[14], 78.0f, 0.0001f,
                "register set from zip");
 
+  file = fopen(realname, "w");
+  if (!file) {
+    fail(test, "could not create real fallback skode file");
+  } else {
+    fputs("[zr]: f $$0 ;\n=15,91\n", file);
+    fclose(file);
+    global_var[15] = 0.0;
+    snprintf(command, sizeof(command), "[file:%s] /ls", realname);
+    consume(test, &ctx, command);
+    consume(test, &ctx, "zr 456");
+    expect_float(test, sv.freq[0], 456.0f, 0.0001f,
+                 "macro loaded from real file while zip mounted");
+    expect_float(test, (float)global_var[15], 91.0f, 0.0001f,
+                 "register set from real file while zip mounted");
+  }
+
+  file = fopen("sk/fallback.sk", "w");
+  if (!file) {
+    fail(test, "could not create sk fallback file");
+  } else {
+    fputs("[zf]: f $$0 ;\n=16,92\n", file);
+    fclose(file);
+    global_var[16] = 0.0;
+    consume(test, &ctx, "[fallback.sk] /ls");
+    consume(test, &ctx, "zf 567");
+    expect_float(test, sv.freq[0], 567.0f, 0.0001f,
+                 "macro loaded from sk fallback");
+    expect_float(test, (float)global_var[16], 92.0f, 0.0001f,
+                 "register set from sk fallback");
+  }
+
   reset_log(&ctx);
   consume(test, &ctx, "[../text/readme.txt] %cat");
   expect_substr(test, ctx.log, "hello from zip", "zip cat text");
@@ -1806,12 +1849,31 @@ static void test_vfs_zip_loads_skode_and_wave_assets(void) {
   consume(test, &ctx, "%ls 3");
   expect_substr(test, ctx.log, "[test.ks]", "zip ls ks file");
 
+  file = fopen("ks/fallback.ks", "w");
+  if (!file) {
+    fail(test, "could not create ks fallback file");
+  } else {
+    fputs("\\ comment only\n", file);
+    fclose(file);
+    consume(test, &ctx, "[fallback.ks] /ks");
+  }
+
   snprintf(command, sizeof(command), "[../samples/zip.wav] /ws%d", slot);
   consume(test, &ctx, command);
   expect_int(test, sw.size[slot], 10, "zip wav frame count");
   expect_int(test, sw.loop_enabled[slot], 1, "zip wav smpl loop enabled");
   expect_int(test, sw.loop_start[slot], 2, "zip wav loop start");
   expect_int(test, sw.loop_end[slot], 7, "zip wav loop end");
+
+  if (write_smpl_test_wav("wav/fallback.wav", 10, 3, 5, 0, 0) != 0) {
+    fail(test, "could not create wav fallback file");
+  } else {
+    snprintf(command, sizeof(command), "[fallback.wav] /ws%d", fallback_slot);
+    consume(test, &ctx, command);
+    expect_int(test, sw.size[fallback_slot], 10, "wav fallback frame count");
+    expect_int(test, sw.loop_start[fallback_slot], 3, "wav fallback loop start");
+    expect_int(test, sw.loop_end[fallback_slot], 6, "wav fallback loop end");
+  }
 
   reset_log(&ctx);
   consume(test, &ctx, "%zu");
@@ -1821,6 +1883,10 @@ static void test_vfs_zip_loads_skode_and_wave_assets(void) {
   ands_macro_clear(ctx.parse);
   remove(zipname);
   remove(wavname);
+  remove(realname);
+  remove("sk/fallback.sk");
+  remove("ks/fallback.ks");
+  remove("wav/fallback.wav");
   chdir(cwd);
 }
 

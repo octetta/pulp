@@ -523,6 +523,44 @@ bool skred_vfs_read_file(const char *filepath, void **data, size_t *size) {
     return true;
 }
 
+bool skred_vfs_read_real_file(const char *filepath, void **data, size_t *size) {
+    FILE *f;
+    long len;
+    unsigned char *buf;
+
+    if (!data || !size) return false;
+    *data = NULL;
+    *size = 0;
+    if (!filepath || filepath[0] == '\0') return false;
+
+    f = fopen(filepath, "rb");
+    if (!f) return false;
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return false;
+    }
+    len = ftell(f);
+    if (len < 0 || fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f);
+        return false;
+    }
+    buf = malloc((size_t)len + 1);
+    if (!buf) {
+        fclose(f);
+        return false;
+    }
+    if (fread(buf, 1, (size_t)len, f) != (size_t)len) {
+        free(buf);
+        fclose(f);
+        return false;
+    }
+    fclose(f);
+    buf[len] = '\0';
+    *data = buf;
+    *size = (size_t)len;
+    return true;
+}
+
 void skred_vfs_free_file(void *data) {
     free(data);
 }

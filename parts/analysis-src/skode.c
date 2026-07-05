@@ -31,6 +31,89 @@
 
 char *skred_performance_status(void);
 
+typedef enum {
+  SKODE_ASSET_ANY = 0,
+  SKODE_ASSET_SKODE,
+  SKODE_ASSET_WAVE,
+  SKODE_ASSET_KSYNTH
+} skode_asset_kind_t;
+
+static int skode_path_has_dir(const char *path) {
+  return path && (strchr(path, '/') || strchr(path, '\\'));
+}
+
+static int skode_asset_try_read(const char *path, int real_only,
+    void **data, size_t *size, char *resolved, size_t resolved_size) {
+  if (!path || path[0] == '\0') return 0;
+  if (real_only) {
+    if (!skred_vfs_read_real_file(path, data, size)) return 0;
+  } else {
+    if (!skred_vfs_read_file(path, data, size)) return 0;
+  }
+  if (resolved && resolved_size > 0) {
+    snprintf(resolved, resolved_size, "%s", path);
+  }
+  return 1;
+}
+
+static int skode_asset_read(const char *path, skode_asset_kind_t kind,
+    void **data, size_t *size, char *resolved, size_t resolved_size) {
+  char candidate[1024];
+  int has_dir;
+  const char *fallback_dir = NULL;
+
+  if (!data || !size) return 0;
+  *data = NULL;
+  *size = 0;
+  if (resolved && resolved_size > 0) resolved[0] = '\0';
+  if (!path || path[0] == '\0') return 0;
+
+  /*
+   * Search order:
+   *   mounted VFS, real cwd, type-specific dir in mounted VFS, then
+   *   type-specific real subdir.
+   * A file: prefix bypasses the mounted zip and reads the real filesystem.
+   */
+  if (strncmp(path, "file:", 5) == 0) {
+    return skode_asset_try_read(path + 5, 1, data, size,
+      resolved, resolved_size);
+  }
+
+  has_dir = skode_path_has_dir(path);
+  if (skode_asset_try_read(path, 0, data, size, resolved, resolved_size))
+    return 1;
+  if (skode_asset_try_read(path, 1, data, size, resolved, resolved_size))
+    return 1;
+
+  if (has_dir) return 0;
+
+  switch (kind) {
+    case SKODE_ASSET_SKODE: fallback_dir = "sk"; break;
+    case SKODE_ASSET_WAVE: fallback_dir = "wav"; break;
+    case SKODE_ASSET_KSYNTH: fallback_dir = "ks"; break;
+    default: break;
+  }
+  if (!fallback_dir) return 0;
+
+  snprintf(candidate, sizeof(candidate), "%s/%s", fallback_dir, path);
+  if (skred_vfs_mode() != SKRED_VFS_DISK) {
+    char vfs_candidate[1024];
+    snprintf(vfs_candidate, sizeof(vfs_candidate), "/%s", candidate);
+    if (skode_asset_try_read(vfs_candidate, 0, data, size,
+        resolved, resolved_size)) {
+      if (resolved && resolved_size > 0)
+        snprintf(resolved, resolved_size, "%s", candidate);
+      return 1;
+    }
+  } else if (skode_asset_try_read(candidate, 0, data, size,
+      resolved, resolved_size)) {
+    return 1;
+  }
+  if (skode_asset_try_read(candidate, 1, data, size, resolved, resolved_size))
+    return 1;
+  return 0;
+}
+
 #include "vendor/ksynth/ksynth.h"
 #include "recorder.h"
 #include "scope-ipc.h"
@@ -1027,30 +1110,31 @@ void ksynth_loader(skode_t *ctx, const char *text, size_t text_len,
 int ksynth_load_name(skode_t *ctx, char *file, int verbose) {
   void *data = NULL;
   size_t size = 0;
+  char resolved[1024];
   int r = 0;
-  if (!skred_vfs_read_file(file, &data, &size)) {
+  if (!skode_asset_read(file, SKODE_ASSET_KSYNTH, &data, &size,
+      resolved, sizeof(resolved))) {
     ctx->printf(ctx, "# cannot load %s\n", file ? file : "(null)");
     return -1;
   }
-  ksynth_loader(ctx, (const char *)data, size, file, verbose);
+  ksynth_loader(ctx, (const char *)data, size, resolved, verbose);
   skred_vfs_free_file(data);
   return r;
 }
 
 int ksynth_load(skode_t *ctx, int n, int verbose) {
   char file[1024];
+  char resolved[1024];
   void *data = NULL;
   size_t size = 0;
   sprintf(file, "%d.ks", n);
-  if (!skred_vfs_read_file(file, &data, &size)) {
-    sprintf(file, "sk/%d.ks", n);
-    if (!skred_vfs_read_file(file, &data, &size)) {
-      ctx->printf(ctx, "# cannot load %d.ks or sk/%d.ks\n", n, n);
-      return -1;
-    }
+  if (!skode_asset_read(file, SKODE_ASSET_KSYNTH, &data, &size,
+      resolved, sizeof(resolved))) {
+    ctx->printf(ctx, "# cannot load %d.ks or ks/%d.ks\n", n, n);
+    return -1;
   }
   int r = 0;
-  ksynth_loader(ctx, (const char *)data, size, file, verbose);
+  ksynth_loader(ctx, (const char *)data, size, resolved, verbose);
   skred_vfs_free_file(data);
   return r;
 }
@@ -1103,15 +1187,14 @@ int skode_load_name(skode_t *ctx, const char *name, int verbose) {
     return -1;
   }
   char file[1024];
+  char resolved[1024];
   void *data = NULL;
   size_t size = 0;
   snprintf(file, sizeof(file), "%s", name);
-  if (!skred_vfs_read_file(file, &data, &size) &&
-      !strchr(name, '/') && !strchr(name, '\\')) {
-    snprintf(file, sizeof(file), "sk/%s", name);
-    skred_vfs_read_file(file, &data, &size);
-  }
-  int r = skode_load_buffer(ctx, (const char *)data, size, file, verbose);
+  skode_asset_read(file, SKODE_ASSET_SKODE, &data, &size,
+    resolved, sizeof(resolved));
+  int r = skode_load_buffer(ctx, (const char *)data, size,
+    resolved[0] ? resolved : file, verbose);
   skred_vfs_free_file(data);
   return r;
 }
@@ -1124,14 +1207,14 @@ int skode_load(skode_t *ctx, int voice, int n, int verbose) {
     skode_init(ctx);
   }
   char file[1024];
+  char resolved[1024];
   void *data = NULL;
   size_t size = 0;
   sprintf(file, "%d.sk", n);
-  if (!skred_vfs_read_file(file, &data, &size)) {
-    sprintf(file, "sk/%d.sk", n);
-    skred_vfs_read_file(file, &data, &size);
-  }
-  int r = skode_load_buffer(ctx, (const char *)data, size, file, verbose);
+  skode_asset_read(file, SKODE_ASSET_SKODE, &data, &size,
+    resolved, sizeof(resolved));
+  int r = skode_load_buffer(ctx, (const char *)data, size,
+    resolved[0] ? resolved : file, verbose);
   skred_vfs_free_file(data);
   return r;
 }
@@ -1293,20 +1376,22 @@ int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int norma
   }
   void *data = NULL;
   size_t data_size = 0;
-  if (!skred_vfs_read_file(name, &data, &data_size)) {
+  char resolved[1024];
+  if (!skode_asset_read(name, SKODE_ASSET_WAVE, &data, &data_size,
+      resolved, sizeof(resolved))) {
     ctx->printf(ctx, "# cannot open %s\n", name);
     return -1;
   }
   wav_t wav;
   int len;
   char out[4096];
-  float *table = mw_get_mem(data, data_size, name, &len, &wav, ch, out, sizeof(out));
+  float *table = mw_get_mem(data, data_size, resolved, &len, &wav, ch, out, sizeof(out));
   if (table == NULL) {
-    ctx->printf(ctx, "# can not read %s\n", name);
+    ctx->printf(ctx, "# can not read %s\n", resolved);
     skred_vfs_free_file(data);
     return -1;
   } else {
-    skode_copy_string(sw.name[wave_index], WAVE_NAME_MAX, name);
+    skode_copy_string(sw.name[wave_index], WAVE_NAME_MAX, resolved);
     sw.is_heap[wave_index] = 1;
     sw.data[wave_index] = table;
     sw.size[wave_index] = len;
@@ -1318,9 +1403,9 @@ int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int norma
     sw.direction[wave_index] = 0.0f;
     sw.midi_note[wave_index] = 69;
     sw.offset_hz[wave_index] = (float)len / (float)wav.SamplesRate * 440.0f;
-    wave_load_apply_smpl_loop(ctx, name, data, data_size, wave_index, len);
+    wave_load_apply_smpl_loop(ctx, resolved, data, data_size, wave_index, len);
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
-      len, name, wave_index, wav.Channels, wav.SamplesRate);
+      len, resolved, wave_index, wav.Channels, wav.SamplesRate);
     normalize_preserve_zero(table, len);
   }
   skred_vfs_free_file(data);
@@ -1330,18 +1415,25 @@ int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int norma
 int wave_try_open_number(int file_num, char *name, int len) {
   void *data = NULL;
   size_t size = 0;
+  char resolved[1024];
   snprintf(name, len, "%d.wav", file_num);
-  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
+  if (skode_asset_read(name, SKODE_ASSET_WAVE, &data, &size, resolved, sizeof(resolved))) {
+    snprintf(name, len, "%s", resolved);
+    skred_vfs_free_file(data);
+    return 0;
+  }
   snprintf(name, len, "%d.mp3", file_num);
-  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
+  if (skode_asset_read(name, SKODE_ASSET_WAVE, &data, &size, resolved, sizeof(resolved))) {
+    snprintf(name, len, "%s", resolved);
+    skred_vfs_free_file(data);
+    return 0;
+  }
   snprintf(name, len, "%d.flac", file_num);
-  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
-  snprintf(name, len, "wav/%d.wav", file_num);
-  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
-  snprintf(name, len, "wav/%d.mp3", file_num);
-  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
-  snprintf(name, len, "wav/%d.flac", file_num);
-  if (skred_vfs_read_file(name, &data, &size)) { skred_vfs_free_file(data); return 0; }
+  if (skode_asset_read(name, SKODE_ASSET_WAVE, &data, &size, resolved, sizeof(resolved))) {
+    snprintf(name, len, "%s", resolved);
+    skred_vfs_free_file(data);
+    return 0;
+  }
   return -1;
 }
 
@@ -1369,20 +1461,22 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
   }
   void *data = NULL;
   size_t data_size = 0;
-  if (!skred_vfs_read_file(name, &data, &data_size)) {
+  char resolved[1024];
+  if (!skode_asset_read(name, SKODE_ASSET_WAVE, &data, &data_size,
+      resolved, sizeof(resolved))) {
     ctx->printf(ctx, "# cannot open %s\n", name);
     return -1;
   }
   wav_t wav;
   int len;
   char out[4096];
-  float *table = mw_get_mem(data, data_size, name, &len, &wav, ch, out, sizeof(out));
+  float *table = mw_get_mem(data, data_size, resolved, &len, &wav, ch, out, sizeof(out));
   if (table == NULL) {
-    ctx->printf(ctx, "# can not read %s\n", name);
+    ctx->printf(ctx, "# can not read %s\n", resolved);
     skred_vfs_free_file(data);
     return -1;
   } else {
-    skode_copy_string(sw.name[wave_index], WAVE_NAME_MAX, name);
+    skode_copy_string(sw.name[wave_index], WAVE_NAME_MAX, resolved);
     sw.is_heap[wave_index] = 1;
     sw.data[wave_index] = table;
     sw.size[wave_index] = len;
@@ -1394,9 +1488,9 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
     sw.direction[wave_index] = 0.0f;
     sw.midi_note[wave_index] = 69;
     sw.offset_hz[wave_index] = (float)len / (float)wav.SamplesRate * 440.0f;
-    wave_load_apply_smpl_loop(ctx, name, data, data_size, wave_index, len);
+    wave_load_apply_smpl_loop(ctx, resolved, data, data_size, wave_index, len);
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
-      len, name, wave_index, wav.Channels, wav.SamplesRate);
+      len, resolved, wave_index, wav.Channels, wav.SamplesRate);
     normalize_preserve_zero(table, len);
   }
   skred_vfs_free_file(data);
@@ -1957,6 +2051,20 @@ int wavetable_show(skode_t *ctx, int n) {
     ctx->puts(ctx, "");
   }
   return 0;
+}
+
+static void wavetable_waveform_show(skode_t *ctx, int wave, int width, int height,
+                                    int loop_start, int loop_end,
+                                    const char *label) {
+  if (!skode_wave_valid(wave) || !sw.data[wave] || sw.size[wave] <= 0) return;
+  wavetable_show(ctx, wave);
+  if (label && label[0]) ctx->printf(ctx, "# %s\n", label);
+  print_audio_braille_labeled(ctx, sw.data[wave], sw.size[wave], width, height,
+    loop_start, loop_end);
+  ctx->printf(ctx, "# loop marker [%d..%d) one-shot %d baseline %gms\n",
+    loop_start, loop_end, sw.one_shot[wave],
+    wave_samples_to_ms(sw.size[wave],
+      sw.rate[wave] > 0.0f ? sw.rate[wave] : (float)MAIN_SAMPLE_RATE));
 }
 
 void wave_table_dynamic_expand(int n) {
@@ -2990,6 +3098,37 @@ int skode_function(ands_t *s, int info) {
         voice_loop_points_reset(voice);
       }
       break;
+    case ATOM4('VW--'): // voice-wave-show [voice] [width height]
+      {
+        int target_voice = voice;
+        int w = WAVE_DISPLAY_DEFAULT_WIDTH;
+        int h = WAVE_DISPLAY_DEFAULT_HEIGHT;
+        if (argc == 1) {
+          int parsed_voice;
+          if (skode_double_to_int(arg[0], &parsed_voice)) target_voice = parsed_voice;
+        } else if (argc == 2) {
+          w = wave_display_dim(arg[0], w, WAVE_DISPLAY_MIN_WIDTH, WAVE_DISPLAY_MAX_WIDTH);
+          h = wave_display_dim(arg[1], h, WAVE_DISPLAY_MIN_HEIGHT, WAVE_DISPLAY_MAX_HEIGHT);
+        } else if (argc >= 3) {
+          int parsed_voice;
+          if (skode_double_to_int(arg[0], &parsed_voice)) target_voice = parsed_voice;
+          w = wave_display_dim(arg[1], w, WAVE_DISPLAY_MIN_WIDTH, WAVE_DISPLAY_MAX_WIDTH);
+          h = wave_display_dim(arg[2], h, WAVE_DISPLAY_MIN_HEIGHT, WAVE_DISPLAY_MAX_HEIGHT);
+        }
+        if (target_voice >= 0 && target_voice < synth_config.voice_max) {
+          int wave = sv.wave_table_index[target_voice];
+          if (skode_wave_valid(wave)) {
+            char label[96];
+            snprintf(label, sizeof(label),
+              "voice %d wave %d voice-loop [%d..%d) override %d",
+              target_voice, wave, sv.loop_start[target_voice],
+              sv.loop_end[target_voice], sv.loop_override[target_voice]);
+            wavetable_waveform_show(ctx, wave, w, h,
+              sv.loop_start[target_voice], sv.loop_end[target_voice], label);
+          }
+        }
+      }
+      break;
     case ATOM4('w---'): // wave-select which-wave interpolate? one-shot?
       if (argc) {
         wave_set(voice, x);
@@ -3187,13 +3326,8 @@ int skode_function(ands_t *s, int info) {
         }
         if (!show_record_buffer && skode_wave_valid(x)) {
         if (m == 0) {
-            wavetable_show(ctx, x);
-            print_audio_braille_labeled(ctx, sw.data[x], sw.size[x], w, h,
-              sw.loop_start[x], sw.loop_end[x]);
-            ctx->printf(ctx, "# loop marker [%d..%d) one-shot %d baseline %gms\n",
-              sw.loop_start[x], sw.loop_end[x], sw.one_shot[x],
-              wave_samples_to_ms(sw.size[x],
-                sw.rate[x] > 0.0f ? sw.rate[x] : (float)MAIN_SAMPLE_RATE));
+            wavetable_waveform_show(ctx, x, w, h, sw.loop_start[x],
+              sw.loop_end[x], NULL);
           } else {
             for (int i=x; i<=m; i++) {
               wavetable_show(ctx, i);
@@ -3904,7 +4038,9 @@ int skode_function(ands_t *s, int info) {
       if (strlen(ands_string(ctx->parse))) {
         void *data = NULL;
         size_t size = 0;
-        if (skred_vfs_read_file(ands_string(ctx->parse), &data, &size)) {
+        char resolved[1024];
+        if (skode_asset_read(ands_string(ctx->parse), SKODE_ASSET_ANY,
+            &data, &size, resolved, sizeof(resolved))) {
           const char *text = (const char *)data;
           size_t pos = 0;
           while (pos < size) {

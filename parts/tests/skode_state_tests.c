@@ -728,6 +728,17 @@ static void test_wave_loop_points(void) {
   expect_int(test, sv.loop_start[voice], 2, "voice loop override start");
   expect_int(test, sv.loop_end[voice], 7, "voice loop override end");
   expect_int(test, sv.loop_override[voice], 1, "voice loop override enabled");
+
+  ctx.log_enable = 1;
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "VW8,2");
+  expect_substr(test, ctx.log, "voice 6 wave 300",
+                "VW shows current voice and wave");
+  expect_substr(test, ctx.log, "# loop marker [2..7)",
+                "VW uses voice loop override markers");
+  ctx.log_enable = 0;
+
   consume(test, &ctx, "B1 BC0 l1");
   expect_int(test, sv.loop_active[voice], 1, "VL trigger loop active");
   for (int i = 0; i < 7; i++) osc_next(voice, 1.0f);

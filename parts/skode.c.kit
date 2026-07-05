@@ -2104,6 +2104,20 @@ int wavetable_show(skode_t *ctx, int n) {
   return 0;
 }
 
+static void wavetable_waveform_show(skode_t *ctx, int wave, int width, int height,
+                                    int loop_start, int loop_end,
+                                    const char *label) {
+  if (!skode_wave_valid(wave) || !sw.data[wave] || sw.size[wave] <= 0) return;
+  wavetable_show(ctx, wave);
+  if (label && label[0]) ctx->printf(ctx, "# %s\n", label);
+  print_audio_braille_labeled(ctx, sw.data[wave], sw.size[wave], width, height,
+    loop_start, loop_end);
+  ctx->printf(ctx, "# loop marker [%d..%d) one-shot %d baseline %gms\n",
+    loop_start, loop_end, sw.one_shot[wave],
+    wave_samples_to_ms(sw.size[wave],
+      sw.rate[wave] > 0.0f ? sw.rate[wave] : (float)MAIN_SAMPLE_RATE));
+}
+
 void wave_table_dynamic_expand(int n) {
   float fbig = 0.0;
   float fsmall = 0.0;
@@ -3737,6 +3751,42 @@ int skode_function(ands_t *s, int info) {
         voice_loop_points_reset(voice);
       }
       break;
+    @doc(command.VW)
+    name: VW
+    category: wave
+    summary: voice-wave-show [voice] [width height]
+    @enddoc
+    case ATOM4('VW--'): // voice-wave-show [voice] [width height]
+      {
+        int target_voice = voice;
+        int w = WAVE_DISPLAY_DEFAULT_WIDTH;
+        int h = WAVE_DISPLAY_DEFAULT_HEIGHT;
+        if (argc == 1) {
+          int parsed_voice;
+          if (skode_double_to_int(arg[0], &parsed_voice)) target_voice = parsed_voice;
+        } else if (argc == 2) {
+          w = wave_display_dim(arg[0], w, WAVE_DISPLAY_MIN_WIDTH, WAVE_DISPLAY_MAX_WIDTH);
+          h = wave_display_dim(arg[1], h, WAVE_DISPLAY_MIN_HEIGHT, WAVE_DISPLAY_MAX_HEIGHT);
+        } else if (argc >= 3) {
+          int parsed_voice;
+          if (skode_double_to_int(arg[0], &parsed_voice)) target_voice = parsed_voice;
+          w = wave_display_dim(arg[1], w, WAVE_DISPLAY_MIN_WIDTH, WAVE_DISPLAY_MAX_WIDTH);
+          h = wave_display_dim(arg[2], h, WAVE_DISPLAY_MIN_HEIGHT, WAVE_DISPLAY_MAX_HEIGHT);
+        }
+        if (target_voice >= 0 && target_voice < synth_config.voice_max) {
+          int wave = sv.wave_table_index[target_voice];
+          if (skode_wave_valid(wave)) {
+            char label[96];
+            snprintf(label, sizeof(label),
+              "voice %d wave %d voice-loop [%d..%d) override %d",
+              target_voice, wave, sv.loop_start[target_voice],
+              sv.loop_end[target_voice], sv.loop_override[target_voice]);
+            wavetable_waveform_show(ctx, wave, w, h,
+              sv.loop_start[target_voice], sv.loop_end[target_voice], label);
+          }
+        }
+      }
+      break;
     @doc(command.w)
     name: w
     category: wave
@@ -4006,13 +4056,8 @@ int skode_function(ands_t *s, int info) {
         }
         if (!show_record_buffer && skode_wave_valid(x)) {
         if (m == 0) {
-            wavetable_show(ctx, x);
-            print_audio_braille_labeled(ctx, sw.data[x], sw.size[x], w, h,
-              sw.loop_start[x], sw.loop_end[x]);
-            ctx->printf(ctx, "# loop marker [%d..%d) one-shot %d baseline %gms\n",
-              sw.loop_start[x], sw.loop_end[x], sw.one_shot[x],
-              wave_samples_to_ms(sw.size[x],
-                sw.rate[x] > 0.0f ? sw.rate[x] : (float)MAIN_SAMPLE_RATE));
+            wavetable_waveform_show(ctx, x, w, h, sw.loop_start[x],
+              sw.loop_end[x], NULL);
           } else {
             for (int i=x; i<=m; i++) {
               wavetable_show(ctx, i);

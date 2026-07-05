@@ -137,8 +137,9 @@
     </script>
 
     <script>
+        document.getElementById('markdown-source').style.display = 'none';
         document.getElementById('content').innerHTML = 
-            marked.parse(document.getElementById('markdown-source').style.display = 'none', document.getElementById('markdown-source').textContent);
+        marked.parse(document.getElementById('markdown-source').textContent);
     </script>
 </body>
 </html>

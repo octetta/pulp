@@ -100,22 +100,34 @@
     </header>
 
     <main>
-        <div class="video-wrapper">
+    
+    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000;">
+    
+    <iframe
+      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+      src="https://www.youtube.com/embed/ZQMo596OA1w"
+      title="YouTube video player"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin"
+      credentialless
+      sandbox="allow-scripts allow-same-origin allow-popups"
+      allowfullscreen>
+    </iframe>
 
+    </div>
 
-<iframe width="560" height="315" 
-        src="https://www.youtube.com/embed/ZQMo596OA1w" 
-        title="Skred SMPL feature walkthru" 
-        frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-        referrerpolicy="strict-origin-when-cross-origin" 
-        allowfullscreen>
-</iframe>
+      <a href="https://www.youtube.com/watch?v=ZQMo596OA1w" target="_blank">
+      <img src="https://img.youtube.com/vi/ZQMo596OA1w/maxresdefault.jpg" 
+         alt="Watch the video" 
+         style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+      </a>
+      <p style="text-align: center;"><strong>Click to watch on YouTube if my iframe is broken</strong></p>
 
-        </div>
+      <div id="content"></div>
 
-        <div id="content"></div>
     </main>
+
 
     <footer>
         <p>Skred is open source under the MIT License.</p>

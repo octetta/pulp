@@ -199,3 +199,33 @@ fixing the wasm control-plane `/cer 0` hang path.
 - Verified: `make native`, `ctest --test-dir build_native --output-on-failure`,
   `make maxed`, `ctest --test-dir build_maxed --output-on-failure` from
   `parts/`.
+
+### 2026-07-05 - Skred VFS Zip Loading and ro-totem Notes
+
+- Added Skred VFS/ZIP support under `parts/exp-vfs/` and exposed it through
+  `skred/api.h`: mount disk/zip, mount in-memory zip, unmount, cwd/list/read
+  helpers, and whole-file read helpers.
+- Skode file-loading commands now route through the VFS/search layer. The search
+  order is mounted VFS, current real directory, then type-specific `sk`, `wav`,
+  and `ks` directories as appropriate. The `file:` prefix forces real filesystem
+  access while a ZIP is mounted.
+- Added compact Skode filesystem commands: `[bundle.zip] %z`, `%zu`, `%pwd`,
+  with `%cd`, `%ls`, and `%cat` using the VFS view.
+- Updated wasm support so `doc/index.html` can upload and mount a ZIP asset
+  bundle with `zip`, then unmount with `unzip`; `parts/wasm-assets/mkwasm`
+  exports `_malloc`, `_free`, and the VFS entry points.
+- Refreshed `doc/skred_api.js` and `doc/skred_api.wasm` from the wasm build.
+- Reviewed `/home/stewartj/book/ro-totem` for adoption. Best first use there is
+  to mount accepted project ZIPs and keep `waves/name.wav` and `files/name`
+  paths instead of extracting to a temp directory. Real user-selected files
+  should use `file:/absolute/path` when a project ZIP is mounted.
+- Added `/home/stewartj/book/ro-totem/SKRED_VFS_NOTES.md` with future adoption
+  notes. That repo has the note as an untracked file unless it is committed
+  separately.
+- Important cross-repo caution: updated Skred static libraries include miniz/zip
+  symbols, while ro-totem currently also compiles `vendor/miniz/miniz.c`. Check
+  for duplicate or ambiguous `mz_*`/`tinfl_*`/`tdefl_*` symbols when updating
+  ro-totem's vendored Skred.
+- Verified during this stretch: maxed and wasm `skode_state_tests`, plus wasm
+  API relink via `parts/wasm-assets/mkwasm`. The wasm link still emits expected
+  Emscripten pthread/memory-growth warnings.

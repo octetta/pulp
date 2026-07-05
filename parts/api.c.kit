@@ -1401,7 +1401,7 @@ char *skred_audio_status(void) {
   unsigned int sample_rate = device_initialized
     ? synth_device.sampleRate : (unsigned int)synth_sample_rate_get();
   unsigned int output_pairs = output_channels / AUDIO_CHANNELS;
-  @if(RECORD || SCOPE)
+  @if(RECORD || SCOPE || TRACKS)
   unsigned int skred_pairs = RECORD_TRACK_COUNT;
   unsigned int stem_pairs = output_pairs > 0 ? output_pairs - 1 : 0;
   if (stem_pairs > RECORD_TRACK_MAX) stem_pairs = RECORD_TRACK_MAX;
@@ -1411,7 +1411,7 @@ char *skred_audio_status(void) {
            "out: [%s]\n"
            "  requested: [%s]\n"
            "  channels: %u pairs: %u"
-           @if(RECORD || SCOPE)
+           @if(RECORD || SCOPE || TRACKS)
            " skred-pairs: %u stem-pairs: %u"
            @endif
            "\n"
@@ -1424,7 +1424,7 @@ char *skred_audio_status(void) {
            running ? "running" : "stopped",
            active_output, selected_output.name,
            output_channels, output_pairs
-           @if(RECORD || SCOPE)
+           @if(RECORD || SCOPE || TRACKS)
            , skred_pairs, stem_pairs
            @endif
            , active_input, selected_input.name,

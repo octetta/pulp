@@ -2819,7 +2819,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('Q---'):
       if (argc) { mmf_set_res(voice, arg[0]); }
       break;
-    case ATOM4('r---'): // additional recording track, 0=none, 1..4=stem
+    case ATOM4('r---'): // route voice to track, 0=master only, 1..4=track/delay bus
       if (argc) synth_record_track_set(voice, x);
       break;
     case ATOM4('rt--'): // track-name track
@@ -3292,7 +3292,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('v?\?-'): // show-active-voices
     case ATOM4('?\?--'): // show-active-voices
       voice_show_all(ctx, voice, ctx->verbose); break;
-    case ATOM4('?r--'): // show record/scope tracks
+    case ATOM4('?r--'): // show track routing
       record_tracks_show(ctx); break;
     case ATOM4('?s--'): // show-skode-string
       ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));

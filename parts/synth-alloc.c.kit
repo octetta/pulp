@@ -159,7 +159,7 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(wave_table_index, int);
     VALLOC(disconnect,       int);
     VALLOC(control_events,   int);
-    @if(RECORD || SCOPE)
+    @if(RECORD || SCOPE || TRACKS)
     VALLOC(record,           int);
     VALLOC(record_pending,   atomic_int_t);
     @endif
@@ -271,7 +271,7 @@ void synth_free_voices(void) {
     VFREE(link_trig);
     VFREE(link_trig_samp);
     VFREE(wave_table_index); VFREE(disconnect);      VFREE(control_events);
-    @if(RECORD || SCOPE)
+    @if(RECORD || SCOPE || TRACKS)
     VFREE(record);
     free((void *)sv.record_pending);
     sv.record_pending = NULL;

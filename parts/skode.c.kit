@@ -221,7 +221,7 @@ int voice_show_all(skode_t *ctx, int voice, int verbose) {
   return 0;
 }
 
-@if(RECORD || SCOPE)
+@if(RECORD || SCOPE || TRACKS)
 static void record_tracks_show(skode_t *ctx) {
   for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
     const char *name = synth_track_name_get(track);
@@ -707,7 +707,7 @@ void global_status_show(skode_t *ctx, int full) {
   ctx->printf(ctx, "# wavetable sample data is not embedded in this text snapshot\n");
   skode_macros_show(ctx, 1);
   wave_labels_show(ctx);
-  @if(RECORD || SCOPE)
+  @if(RECORD || SCOPE || TRACKS)
   record_tracks_show(ctx);
   @endif
   voice_show_all(ctx, ctx->voice, 0);
@@ -2360,7 +2360,7 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     @if(CRUSH)
     case SKODE_OP_QUANTIZE: return 1;
     @endif
-    @if(RECORD)
+    @if(RECORD || SCOPE || TRACKS)
     case SKODE_OP_RECORD_TRACK: return 1;
     @endif
     @if(SMOOTHER)
@@ -2582,7 +2582,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
     case SKODE_OP_FILTER_RESONANCE:
       return opcode->argc == 1 ? mmf_set_res(voice, opcode->arg[0]) : -1;
     @endif
-    @if(RECORD)
+    @if(RECORD || SCOPE || TRACKS)
     case SKODE_OP_RECORD_TRACK:
       return x_valid ? synth_record_track_set(voice, x) : -1;
     @endif
@@ -3355,18 +3355,18 @@ int skode_function(ands_t *s, int info) {
       if (argc) { mmf_set_res(voice, arg[0]); }
       break;
     @endif
-    @if(RECORD || SCOPE)
+    @if(RECORD || SCOPE || TRACKS)
     @doc(command.r)
     name: r
-    category: recording
-    summary: additional recording track, 0=none, 1..4=stem
+    category: routing
+    summary: route voice to track, 0=master only, 1..4=track/delay bus
     @enddoc
-    case ATOM4('r---'): // additional recording track, 0=none, 1..4=stem
+    case ATOM4('r---'): // route voice to track, 0=master only, 1..4=track/delay bus
       if (argc) synth_record_track_set(voice, x);
       break;
     @doc(command.rt)
     name: rt
-    category: recording
+    category: routing
     summary: track-name track
     @enddoc
     case ATOM4('rt--'): // track-name track
@@ -3380,7 +3380,7 @@ int skode_function(ands_t *s, int info) {
       break;
     @doc(command.rv)
     name: rv
-    category: recording
+    category: routing
     summary: track-volume track dB
     @enddoc
     case ATOM4('rv--'): // track-volume track dB
@@ -4131,13 +4131,13 @@ int skode_function(ands_t *s, int info) {
     @enddoc
     case ATOM4('?\?--'): // show-active-voices
       voice_show_all(ctx, voice, ctx->verbose); break;
-    @if(RECORD || SCOPE)
+    @if(RECORD || SCOPE || TRACKS)
     @doc(command.?r)
     name: ?r
-    category: recording
-    summary: show record/scope tracks
+    category: routing
+    summary: show track routing
     @enddoc
-    case ATOM4('?r--'): // show record/scope tracks
+    case ATOM4('?r--'): // show track routing
       record_tracks_show(ctx); break;
     @endif
     @doc(command.?s)

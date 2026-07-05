@@ -54,7 +54,7 @@ float volume_get(void);
 extern float volume_user;
 extern float volume_final;
 static int voice_invalid(int voice);
-@if(RECORD || SCOPE)
+@if(RECORD || SCOPE || TRACKS)
 static void synth_track_defaults(void);
 @endif
 
@@ -94,7 +94,7 @@ void synth_init(int vc) {
 
   volume_set(VOLUME_DEFAULT);
   memset(delay_bus, 0, sizeof(delay_bus));
-  @if(RECORD || SCOPE)
+  @if(RECORD || SCOPE || TRACKS)
   synth_track_defaults();
   @endif
 }
@@ -105,7 +105,7 @@ void synth_free(void) {
   synth_free_waves();
 }
 
-@if(RECORD || SCOPE)
+@if(RECORD || SCOPE || TRACKS)
 static float track_volume_db[RECORD_TRACK_COUNT];
 static float track_volume_linear[RECORD_TRACK_COUNT];
 static text_t track_name[RECORD_TRACK_COUNT];
@@ -419,7 +419,7 @@ const char *delay_status(void) {
   for (int voice = 0; voice < synth_config.voice_max; voice++) {
     if (sv.delay_send[voice] <= 0.0f) continue;
     sends++;
-    @if(RECORD || SCOPE)
+    @if(RECORD || SCOPE || TRACKS)
     int track = atomic_load_int(&sv.record_pending[voice]);
     if (track >= 1 && track <= RECORD_TRACK_MAX &&
         delay_voice_can_send(voice)) {
@@ -1147,7 +1147,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
   (void)user;
   @endif
   const int nvoices = synth_voice_count();
-  @if(RECORD || SCOPE)
+  @if(RECORD || SCOPE || TRACKS)
   for (int n = 0; n < nvoices; n++) {
     sv.record[n] = atomic_load_int(&sv.record_pending[n]);
   }
@@ -1177,7 +1177,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     float sample_left = 0.0f;
     float sample_right = 0.0f;
     float delay_input[DELAY_BUS_COUNT] = {0};
-    @if(RECORD || SCOPE)
+    @if(RECORD || SCOPE || TRACKS)
     float record_left[RECORD_TRACK_COUNT] = {0};
     float record_right[RECORD_TRACK_COUNT] = {0};
     @endif
@@ -1367,7 +1367,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       if (sv.disconnect[n] == 0) {
         if (sv.delay_send[n] > 0.0f && delay_voice_can_send(n)) {
           int bus = -1;
-          @if(RECORD || SCOPE)
+          @if(RECORD || SCOPE || TRACKS)
           int delay_track = sv.record[n];
           if (delay_track >= 1 && delay_track <= RECORD_TRACK_MAX)
             bus = delay_track - 1;
@@ -1390,7 +1390,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
         right *= sv.pan_right[n];
         sample_left  += left;
         sample_right += right;
-        @if(RECORD || SCOPE)
+        @if(RECORD || SCOPE || TRACKS)
         int track = sv.record[n];
         if (track >= 1 && track <= RECORD_TRACK_MAX) {
           record_left[track] += left;
@@ -1409,7 +1409,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       if (delay_bus[bus].level > 0) {
         sample_left += delay_left;
         sample_right += delay_right;
-        @if(RECORD || SCOPE)
+        @if(RECORD || SCOPE || TRACKS)
         int track = bus + 1;
         if (track <= RECORD_TRACK_MAX) {
           record_left[track] += delay_left;
@@ -1465,7 +1465,7 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     }
     if (num_channels > 0) output_frame[0] = sample_left;
     if (num_channels > 1) output_frame[1] = sample_right;
-    @if(RECORD || SCOPE)
+    @if(RECORD || SCOPE || TRACKS)
     for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
       int channel = track * AUDIO_CHANNELS;
       if (channel + 1 >= num_channels) break;
@@ -1677,7 +1677,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     /* --- mix / record flags (suppress if default) --- */
     if (verbose || sv.disconnect[v])
         APPEND(" m%d", sv.disconnect[v]);
-    @if(RECORD || SCOPE)
+    @if(RECORD || SCOPE || TRACKS)
     int record_track = synth_record_track_get(v);
     if (verbose || record_track)
         APPEND(" r%d", record_track);
@@ -2242,7 +2242,7 @@ void voice_reset(int i) {
   sv.glissando_speed[i] = 1.0f;
   sv.glissando_target[i] = 0.0f; // sv.freq[i]; // maybe 0.0f???
   @endif
-  @if(RECORD || SCOPE)
+  @if(RECORD || SCOPE || TRACKS)
   sv.record[i] = 0;
   atomic_store_int(&sv.record_pending[i], 0);
   @endif

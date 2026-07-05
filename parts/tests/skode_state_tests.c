@@ -1487,7 +1487,7 @@ static int buffer_channels_differ(const float *buffer, int frames, int channels)
   return 0;
 }
 
-#ifdef SKRED_TEST_RECORD_SCOPE
+#ifdef SKRED_TEST_TRACKS
 static void configure_delay_test_voice(int voice, int track, float pan) {
   static float table[2] = {1.0f, 1.0f};
   sv.table[voice] = table;
@@ -1567,6 +1567,7 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   delay_params_set(2, 0, 0, 0, 0, 0, 15);
   delay_clear();
   configure_delay_test_voice(0, 2, 0.0f);
+#ifdef SKRED_TEST_RECORD_SCOPE
   float record_frames[frames * RECORD_CHANNELS];
   synth_record_bus_t record_bus = {record_frames, RECORD_CHANNELS};
   memset(buffer, 0, sizeof(buffer));
@@ -1575,6 +1576,7 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   expect_int(test, buffer_channel_nonzero(record_frames, frames,
              RECORD_CHANNELS, 4), 1,
              "track delay return is included in matching stem");
+#endif
 
   ctx.log_enable = 1;
   consume(test, &ctx, "GS");
@@ -2102,7 +2104,7 @@ int main(void) {
   test_scalar_voice_opcode_inventory();
   test_parameter_and_buffer_safety();
   test_context_modes();
-#ifdef SKRED_TEST_RECORD_SCOPE
+#ifdef SKRED_TEST_TRACKS
   test_track_delay_send_requires_route_and_center_pan();
 #endif
   test_ands_macro_commands();

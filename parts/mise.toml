@@ -1,6 +1,7 @@
 [tools]
 cmake = "latest"
 emsdk = "latest"
+ninja = "latest"
 rg = "latest"
 rust = "latest"
 zig = "0.13"

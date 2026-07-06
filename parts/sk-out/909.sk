@@ -78,9 +78,9 @@ y11 %4 [bass-variations] yt
 
 /w24,500
 
-[sk/drums-chh.ks]/ks kw k>d d>r /r400
-[sk/drums-kick.ks]/ks kw k>d d>r /r401
-[sk/drums-snare.ks]/ks kw k>d d>r /r402
+[sk/drums-chh.ks]/ks k>d d>r /r400
+[sk/drums-kick.ks]/ks k>d d>r /r401
+[sk/drums-snare.ks]/ks k>d d>r /r402
 
 v0 a10 w11 n33 a0 J2 K100 Q10 F1,100 P15,1 t 0.1 1 0 0 [whale-sfx] vt
 v1 w2 f1 a0 m1 l1            [mod-whale] vt

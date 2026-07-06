@@ -40,11 +40,11 @@
     {
       "name": "windows-zig-maxed",
       "displayName": "Windows Zig Maxed",
-      "description": "Windows Zig/Ninja build with portable features. KSYNTH and SCOPE are omitted because they currently require POSIX APIs.",
+      "description": "Windows Zig/Ninja build with portable features. SCOPE is omitted because they currently require POSIX APIs.",
       "inherits": "windows-zig-ninja",
       "binaryDir": "${sourceDir}/build_windows_zig_maxed",
       "cacheVariables": {
-        "KIT_OPTS": "AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1"
+        "KIT_OPTS": "KSYNTH=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1"
       }
     },
     {
@@ -69,11 +69,11 @@
     {
       "name": "cross-windows-zig-maxed",
       "displayName": "Cross Windows Zig Maxed",
-      "description": "Linux-hosted Windows cross-build with portable features. KSYNTH and SCOPE are omitted because they currently require POSIX APIs.",
+      "description": "Linux-hosted Windows cross-build with portable features. SCOPE is omitted because they currently require POSIX APIs.",
       "inherits": "cross-windows-zig-ninja",
       "binaryDir": "${sourceDir}/build_cross_windows_zig_maxed",
       "cacheVariables": {
-        "KIT_OPTS": "AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1"
+        "KIT_OPTS": "KSYNTH=1 AM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1"
       }
     }
   ],

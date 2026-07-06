@@ -154,4 +154,4 @@ pi: native
 	$(ZIG_ENV) cmake --build build_pi
 
 clean:
-	rm -rf build_native build_pi build_warn build_warn_maxed build_maxed build_wasm build_pi_check build
+	rm -rf build_native build_pi build_warn build_warn_maxed build_maxed build_wasm build_pi_check build build_cross_windows_zig_maxed

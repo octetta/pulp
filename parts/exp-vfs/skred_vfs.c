@@ -437,7 +437,14 @@ SkredDirent* skred_readdir(SkredDir *dirp) {
         if (!d) return NULL;
         strncpy(dirp->entry.d_name, d->d_name, 255);
         dirp->entry.d_name[255] = '\0';
+#ifdef _WIN32
+        struct stat path_stat;
+        if (stat(dirp->entry.d_name, &path_stat) == 0) {
+            dirp->entry.is_directory = S_ISDIR(path_stat.st_mode);
+        }
+#else
         dirp->entry.is_directory = (d->d_type == DT_DIR);
+#endif
         return &dirp->entry;
     }
 

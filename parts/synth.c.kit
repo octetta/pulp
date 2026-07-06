@@ -2268,6 +2268,18 @@ int wave_reset(int voice) {
 
 int envelope_velocity(int voice, float f) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
+    if (f < 0 && sv.one_shot[voice]) {
+        sv.loop_stop_requested[voice] = 0;
+        sv.loop_release_tail[voice] = 0;
+        sv.amp_envelope[voice].is_active = 0;
+        @if(FADSR)
+        sv.filter_envelope[voice].is_active = 0;
+        @endif
+        sv.finished[voice] = 1;
+        skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE,
+          SAMPLE_COUNT_GET(), voice);
+        return 0;
+    }
     if (f == 0) {
         int one_shot_loop_release = sv.one_shot[voice] && sv.loop_active[voice];
         if (one_shot_loop_release) {

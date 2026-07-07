@@ -63,6 +63,12 @@ typedef struct {
     int    * restrict loop_length;
     int    * restrict loop_override;
 
+    int    * restrict wave_range_start;
+    int    * restrict wave_range_end;
+    float  * restrict wave_range_start_f;
+    float  * restrict wave_range_end_f;
+    int    * restrict wave_range_override;
+
     /* --- amplitude / pan (hot path) --- */
     float  * restrict amp;
     float  * restrict user_amp;

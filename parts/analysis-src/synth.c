@@ -577,11 +577,10 @@ float osc_next(int voice, float phase_inc) {
     }
 
     // Get loop boundaries (precomputed if available)
-    const double loop_start = loop_active && sv.loop_valid[voice]
-        ? (double)sv.loop_start_f[voice] : 0.0;
-    const double loop_end = loop_active && sv.loop_valid[voice]
-        ? (double)sv.loop_end_f[voice] : (double)table_size;
-    const double loop_length = loop_end - loop_start;
+    const bool valid_loop = loop_active && sv.loop_valid[voice];
+    const double loop_start = valid_loop ? (double)sv.loop_start_f[voice] : 0.0;
+    const double loop_end = valid_loop ? (double)sv.loop_end_f[voice] : (double)table_size;
+    const double loop_length = valid_loop ? (double)sv.loop_length[voice] : (double)table_size;
 
     // Wrap phase
     if (!one_shot) {
@@ -679,8 +678,7 @@ float osc_next(int voice, float phase_inc) {
         float frac = (float)(final_phase - (double)idx);
 
         int next_idx = idx + 1;
-        //if (next_idx >= table_size) next_idx = 0;  // Wrap for seamless loops
-        if (next_idx >= table_size) next_idx = sv.one_shot[voice] ? table_size - 1 : 0;
+        if (next_idx >= table_size) next_idx = one_shot ? table_size - 1 : 0;
 
         float sample1 = sv.table[voice][idx];
         float sample2 = sv.table[voice][next_idx];
@@ -745,6 +743,30 @@ void osc_set_wave_table_index(int voice, int wave) {
       osc_set_freq(voice, sv.freq[voice]);
     }
   }
+}
+
+static void voice_wave_range_apply(int voice, int start, int end) {
+  sv.wave_range_start[voice] = start;
+  sv.wave_range_end[voice]   = end;
+  sv.wave_range_start_f[voice] = (float)start;
+  sv.wave_range_end_f[voice]   = (float)end;
+}
+
+int voice_wave_range_set(int voice, int start, int end) {
+    if (voice_invalid(voice) || sv.table_size[voice] < 2 ||
+        start < 0 || end <= start || end > sv.table_size[voice]) {
+        return SYNTH_INVALID_VOICE;
+    }
+    voice_wave_range_apply(voice, start, end);
+    sv.wave_range_override[voice] = 1;
+    return 0;
+}
+
+int voice_wave_range_reset(int voice) {
+    if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
+    voice_wave_range_apply(voice, 0, sv.table_size[voice]);
+    sv.wave_range_override[voice] = 0;
+    return 0;
 }
 
 static void voice_loop_points_apply(int voice, int start, int end) {
@@ -992,11 +1014,18 @@ static uint64_t one_shot_natural_frames(int voice) {
     bool loop_bounded = loop_active && sv.loop_bounded[voice] != 0;
     int remaining = loop_bounded ? sv.loop_remaining[voice] : 0;
     double phase = sv.phase[voice];
+
+    bool valid_loop = loop_active && sv.loop_valid[voice];
+    double loop_start  = valid_loop ? (double)sv.loop_start_f[voice] : 0.0;
+    double loop_end    = valid_loop ? (double)sv.loop_end_f[voice]   : (double)sv.table_size[voice];
+    double loop_length = valid_loop ? (double)sv.loop_length[voice]  : (double)sv.table_size[voice];
+    #if 0
     double loop_start = loop_active && sv.loop_valid[voice]
         ? (double)sv.loop_start_f[voice] : 0.0;
     double loop_end = loop_active && sv.loop_valid[voice]
         ? (double)sv.loop_end_f[voice] : (double)sv.table_size[voice];
     double loop_length = loop_end - loop_start;
+    #endif
 
     if (!isfinite(phase) || !isfinite(loop_start) || !isfinite(loop_end) ||
         !isfinite(loop_length) || loop_length <= 0.0)
@@ -2077,6 +2106,16 @@ int wave_reset(int voice) {
 
 int envelope_velocity(int voice, float f) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
+    if (f < 0 && sv.one_shot[voice]) {
+        sv.loop_stop_requested[voice] = 0;
+        sv.loop_release_tail[voice] = 0;
+        sv.amp_envelope[voice].is_active = 0;
+        sv.filter_envelope[voice].is_active = 0;
+        sv.finished[voice] = 1;
+        skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE,
+          SAMPLE_COUNT_GET(), voice);
+        return 0;
+    }
     if (f == 0) {
         int one_shot_loop_release = sv.one_shot[voice] && sv.loop_active[voice];
         if (one_shot_loop_release) {

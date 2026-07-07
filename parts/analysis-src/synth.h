@@ -107,6 +107,8 @@ int wave_default(int voice);
 int wave_loop(int voice, int state);
 int wave_loop_count(int voice, int count);
 int wave_loop_points_set(int wave, int start, int end);
+int voice_wave_range_set(int voice, int start, int end);
+int voice_wave_range_reset(int voice);
 int voice_loop_points_set(int voice, int start, int end);
 int voice_loop_points_reset(int voice);
 int voice_copy(int v, int n);

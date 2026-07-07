@@ -3111,6 +3111,17 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    case ATOM4('VS--'): // voice-set-points start end; no args resets from wave
+      if (argc >= 2) {
+        int start, end;
+        if (skode_double_to_int(arg[0], &start) &&
+            skode_double_to_int(arg[1], &end)) {
+          voice_wave_range_set(voice, start, end);
+        }
+      } else if (argc == 0) {
+        voice_wave_range_reset(voice);
+      }
+      break;
     case ATOM4('VL--'): // voice-loop-points start end; no args resets from wave
       if (argc >= 2) {
         int start, end;

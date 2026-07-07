@@ -2093,7 +2093,6 @@ int wavetable_show(skode_t *ctx, int n) {
       sw.rate[n], sw.offset_hz[n], sw.midi_note[n], sw.one_shot[n]);
     ctx->printf(ctx, "# loop %d..%d |%d| %gms\n",
       loop_start, loop_end, loop_len, wave_samples_to_ms(loop_len, rate));
-    ctx->printf(ctx, "# display %s\n", skode_wave_display_name());
     ctx->printf(ctx,
       "# min %+0.3f max %+0.3f peak %0.3f rms %0.3f dc %+0.4f zc %d",
       stats.min, stats.max, stats.peak, stats.rms, stats.dc, stats.zero_crossings);
@@ -2817,6 +2816,20 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         opcode->argc > 1 ? opcode->arg[1] : 0;
       return 0;
     @endif
+    case SKODE_OP_WAVE_RANGE_SET:
+      if (opcode->argc != 2) return -1;
+      voice_wave_range_set(voice, opcode->arg[0], opcode->arg[1]);
+      return 0;
+    case SKODE_OP_WAVE_RANGE_RESET:
+      voice_wave_range_reset(voice);
+      return 0;
+    case SKODE_OP_WAVE_LOOP_SET:
+      if (opcode->argc != 2) return -1;
+      voice_loop_points_set(voice, opcode->arg[0], opcode->arg[1]);
+      return 0;
+    case SKODE_OP_WAVE_LOOP_RESET:
+      voice_loop_points_reset(voice);
+      return 0;
     case SKODE_OP_NONE:
     case SKODE_OP_DELAY:
     case SKODE_OP_VOICE:
@@ -3769,10 +3782,10 @@ int skode_function(ands_t *s, int info) {
         int start, end;
         if (skode_double_to_int(arg[0], &start) &&
             skode_double_to_int(arg[1], &end)) {
-          voice_set_points_set(voice, start, end);
+          voice_wave_range_set(voice, start, end);
         }
       } else if (argc == 0) {
-        voice_set_points_reset(voice);
+        voice_wave_range_reset(voice);
       }
       break;
     @doc(command.VL)
@@ -3816,6 +3829,7 @@ int skode_function(ands_t *s, int info) {
         if (target_voice >= 0 && target_voice < synth_config.voice_max) {
           int wave = sv.wave_table_index[target_voice];
           if (skode_wave_valid(wave)) {
+            ctx->printf(ctx, "# wave [%d..%d)\n", sv.wave_range_start[target_voice], sv.wave_range_end[target_voice]);
             char label[96];
             snprintf(label, sizeof(label),
               "voice %d wave %d voice-loop [%d..%d) override %d",

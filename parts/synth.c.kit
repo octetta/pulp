@@ -696,8 +696,7 @@ float osc_next(int voice, float phase_inc) {
         float frac = (float)(final_phase - (double)idx);
         
         int next_idx = idx + 1;
-        //if (next_idx >= table_size) next_idx = 0;  // Wrap for seamless loops
-        if (next_idx >= table_size) next_idx = sv.one_shot[voice] ? table_size - 1 : 0;
+        if (next_idx >= table_size) next_idx = one_shot ? table_size - 1 : 0;
         
         float sample1 = sv.table[voice][idx];
         float sample2 = sv.table[voice][next_idx];

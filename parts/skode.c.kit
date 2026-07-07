@@ -2376,7 +2376,7 @@ void record_find_trim(int argc, float arg0, float arg1, int margin) {
   if (trail0 > 0) sampling.trim = trail0;
 }
 
-void skode_envelope_velocity(int voice, float x, uint64_t now, int method) {
+void skode_envelope_velocity(int voice, float x, uint64_t now) {
   if (voice < 0 || voice >= synth_config.voice_max) return;
   uint64_t t = sv.link_trig_samp[voice];
   if (t > 0) {
@@ -2694,16 +2694,15 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       if (opcode->argc != 1) return -1;
       {
         uint64_t now = SAMPLE_COUNT_GET();
-        int method = 0; // normal mode... will be enhanced later
-        skode_envelope_velocity(voice, opcode->arg[0], now, method);
+        skode_envelope_velocity(voice, opcode->arg[0], now);
         if (sv.link_velo_0[voice] >= 0)
-          skode_envelope_velocity(sv.link_velo_0[voice], opcode->arg[0], now, method);
+          skode_envelope_velocity(sv.link_velo_0[voice], opcode->arg[0], now);
         if (sv.link_velo_1[voice] >= 0)
-          skode_envelope_velocity(sv.link_velo_1[voice], opcode->arg[0], now, method);
+          skode_envelope_velocity(sv.link_velo_1[voice], opcode->arg[0], now);
         if (sv.link_velo_2[voice] >= 0)
-          skode_envelope_velocity(sv.link_velo_2[voice], opcode->arg[0], now, method);
+          skode_envelope_velocity(sv.link_velo_2[voice], opcode->arg[0], now);
         if (sv.link_velo_3[voice] >= 0)
-          skode_envelope_velocity(sv.link_velo_3[voice], opcode->arg[0], now, method);
+          skode_envelope_velocity(sv.link_velo_3[voice], opcode->arg[0], now);
         return 0;
       }
     case SKODE_OP_MUTE:
@@ -3376,17 +3375,16 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('l---'): // velocity amount
       if (argc) {
         uint64_t now = SAMPLE_COUNT_GET();
-        int method = 0;
         int a = sv.link_velo_0[voice];
         int b = sv.link_velo_1[voice];
         int c = sv.link_velo_2[voice];
         int d = sv.link_velo_3[voice];
         double vel = arg[0];
-        skode_envelope_velocity(voice, vel, now, method);
-        if (a >= 0) skode_envelope_velocity(a, vel, now, method);
-        if (b >= 0) skode_envelope_velocity(b, vel, now, method);
-        if (c >= 0) skode_envelope_velocity(c, vel, now, method);
-        if (d >= 0) skode_envelope_velocity(d, vel, now, method);
+        skode_envelope_velocity(voice, vel, now);
+        if (a >= 0) skode_envelope_velocity(a, vel, now);
+        if (b >= 0) skode_envelope_velocity(b, vel, now);
+        if (c >= 0) skode_envelope_velocity(c, vel, now);
+        if (d >= 0) skode_envelope_velocity(d, vel, now);
       }
       break;
     @doc(command.m)

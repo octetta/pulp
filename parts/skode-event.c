@@ -30,6 +30,7 @@ const char *skode_opcode_name(uint8_t opcode) {
     "RECORD_TRACK", "SMOOTHER", "VOICE_RESET", "ENVELOPE", "TRIGGER",
     "WAVE", "VOICE_COPY", "WAVE_DEFAULT", "VARIABLE_SET", "RING_MOD",
     "WAVE_LOOP_COUNT", "CONTROL_EVENT", "DELAY_PARAMS",
+    "WAVE_RANGE_SET", "WAVE_LOOP_SET",
   };
   return opcode < sizeof(names) / sizeof(names[0]) ?
     names[opcode] : "UNKNOWN";
@@ -276,6 +277,12 @@ static int skode_compile_callback(ands_t *s, int info) {
     case SKODE_ATOM('D', 'L', '-', '-'):
       opcode = SKODE_OP_DELAY_PARAMS; min_argc = 1; max_argc = 7;
       default_mask = 0x7e;
+      break;
+    case SKODE_ATOM('V', 'S', '-', '-'):
+      opcode = SKODE_OP_WAVE_RANGE_SET; min_argc = 0; max_argc = 2;
+      break;
+    case SKODE_ATOM('V', 'L', '-', '-'):
+      opcode = SKODE_OP_WAVE_LOOP_SET; min_argc = 0; max_argc = 2;
       break;
     default:
       compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;

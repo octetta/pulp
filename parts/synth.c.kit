@@ -591,11 +591,10 @@ float osc_next(int voice, float phase_inc) {
     }
     
     // Get loop boundaries (precomputed if available)
-    const double loop_start = loop_active && sv.loop_valid[voice]
-        ? (double)sv.loop_start_f[voice] : 0.0;
-    const double loop_end = loop_active && sv.loop_valid[voice]
-        ? (double)sv.loop_end_f[voice] : (double)table_size;
-    const double loop_length = loop_end - loop_start;
+    const bool valid_loop = loop_active && sv.loop_valid[voice];
+    const double loop_start = valid_loop ? (double)sv.loop_start_f[voice] : 0.0;
+    const double loop_end = valid_loop ? (double)sv.loop_end_f[voice] : (double)table_size;
+    const double loop_length = valid_loop ? (double)sv.loop_length[voice] : (double)table_size;
 
     // Wrap phase
     if (!one_shot) {
@@ -1012,11 +1011,18 @@ static uint64_t one_shot_natural_frames(int voice) {
     bool loop_bounded = loop_active && sv.loop_bounded[voice] != 0;
     int remaining = loop_bounded ? sv.loop_remaining[voice] : 0;
     double phase = sv.phase[voice];
+
+    bool valid_loop = loop_active && sv.loop_valid[voice];
+    double loop_start  = valid_loop ? (double)sv.loop_start_f[voice] : 0.0;
+    double loop_end    = valid_loop ? (double)sv.loop_end_f[voice]   : (double)sv.table_size[voice];
+    double loop_length = valid_loop ? (double)sv.loop_length[voice]  : (double)sv.table_size[voice];
+    #if 0
     double loop_start = loop_active && sv.loop_valid[voice]
         ? (double)sv.loop_start_f[voice] : 0.0;
     double loop_end = loop_active && sv.loop_valid[voice]
         ? (double)sv.loop_end_f[voice] : (double)sv.table_size[voice];
     double loop_length = loop_end - loop_start;
+    #endif
 
     if (!isfinite(phase) || !isfinite(loop_start) || !isfinite(loop_end) ||
         !isfinite(loop_length) || loop_length <= 0.0)

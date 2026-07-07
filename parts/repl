@@ -1,2 +1,2 @@
 #!/bin/bash
-./build_maxed/mini-skred
+./build_maxed/mini-skred "$@"

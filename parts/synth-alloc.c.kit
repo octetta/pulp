@@ -124,6 +124,12 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(loop_length,      int);
     VALLOC(loop_override,    int);
 
+    VALLOC(wave_range_start,  int);
+    VALLOC(wave_range_end,    int);
+    VALLOC(wave_range_start_f, float);
+    VALLOC(wave_range_end_f,   float);
+    VALLOC(wave_range_override, int);
+
     /* amplitude / pan */
     VALLOC(amp,              float);
     VALLOC(user_amp,         float);
@@ -254,6 +260,13 @@ void synth_free_voices(void) {
     VFREE(loop_start);       VFREE(loop_end);        VFREE(loop_start_f);
     VFREE(loop_end_f);       VFREE(loop_valid);      VFREE(loop_length);
     VFREE(loop_override);
+    
+    VFREE(wave_range_start);
+    VFREE(wave_range_end);
+    VFREE(wave_range_start_f);
+    VFREE(wave_range_end_f);
+    VFREE(wave_range_override);
+
     VFREE(amp);              VFREE(user_amp);        VFREE(pan);
     VFREE(pan_left);         VFREE(pan_right);       VFREE(delay_send);
     VFREE(sample);

@@ -763,6 +763,14 @@ void osc_set_wave_table_index(int voice, int wave) {
   }
 }
 
+int voice_set_points_set(int voice, int start, int end) {
+    return 0;
+}
+
+int voice_set_points_reset(int voice) {
+    return 0;
+}
+
 static void voice_loop_points_apply(int voice, int start, int end) {
   sv.loop_start[voice] = start;
   sv.loop_end[voice] = end;

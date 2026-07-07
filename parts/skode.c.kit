@@ -3759,6 +3759,22 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
+    @doc(command.VS)
+    name: VS
+    category: wave
+    summary: voice-set-points start end; no args resets from wave
+    @enddoc
+    case ATOM4('VS--'): // voice-set-points start end; no args resets from wave
+      if (argc >= 2) {
+        int start, end;
+        if (skode_double_to_int(arg[0], &start) &&
+            skode_double_to_int(arg[1], &end)) {
+          voice_set_points_set(voice, start, end);
+        }
+      } else if (argc == 0) {
+        voice_set_points_reset(voice);
+      }
+      break;
     @doc(command.VL)
     name: VL
     category: wave

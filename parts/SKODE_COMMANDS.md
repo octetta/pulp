@@ -466,7 +466,7 @@ rate, looping, and one-shot state, is not part of the transferred Ksynth vector.
 | `[filename] /ls [verbose]` | string | Load a named Skode file; bare names also fall back to `sk/filename` | `skode_load_name()` |
 | `[filename] /ws wave[,channel]` | string | Load an audio file into a writable wave slot | `wave_load_string()` |
 | `/w file-number[,wave[,channel]]` | numeric | Load a numbered audio file | `wave_load()` |
-| `<r seconds`, `^r seconds` | numeric | Record audio into the sample buffer | `skode_sample_go()` |
+| `<r seconds [voice]`, `^r seconds [voice]` | numeric | Record the all-voice mix or one voice into the sample buffer | `skode_sample_go()` |
 | `>r number` | numeric | Normalize sample buffer and write `out-N.wav` | miniaudio encoder API |
 | `[filename] /rg [max-seconds]` | string | Start multitrack recording | `recorder_start()` |
 | `/rs` | none | Stop multitrack recording | `recorder_stop()` |

@@ -735,7 +735,7 @@ immediately on the control thread.
 | `w!` | None | Applies current recording offsets and trims. |
 | `w@` | None | Resets recording offsets and trims. |
 | `/wex wave` | Dynamic wave index `200` through `999` | Expands storage for a dynamic wavetable slot. |
-| `<r seconds`, `^r seconds` | Duration | Records output into the temporary sample buffer. |
+| `<r seconds [voice]`, `^r seconds [voice]` | Duration, optional voice | Records the all-voice mix or one specific voice into the temporary sample buffer. |
 | `>r number` | Output number | Normalizes the temporary sample and writes `out-N.wav`. |
 | `[filename] /rg [max-seconds]` | Output filename and optional limit | Starts multitrack WAV recording. Requires `RECORD`. |
 | `/rs` | None | Stops multitrack recording. Requires `RECORD`. |

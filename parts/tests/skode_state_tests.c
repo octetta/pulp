@@ -1023,6 +1023,38 @@ static void test_record_find_trim_command(void) {
   sampling.trim = 0;
 }
 
+static void test_record_voice_selection(void) {
+  const char *test = "record voice selection";
+  skode_t ctx = new_ctx();
+  extern synth_sample_t sampling;
+
+  sampling.busy = 0;
+  sampling.go = 0;
+  sampling.what = -1;
+  consume(test, &ctx, "<r .001");
+  expect_int(test, sampling.what, -1, "default records all voices");
+  expect_int(test, sampling.go, 1, "default recording armed");
+
+  sampling.go = 0;
+  sampling.frames = 0;
+  consume(test, &ctx, "<r .001 3");
+  expect_int(test, sampling.what, 3, "optional voice selected");
+  expect_int(test, sampling.go, 1, "voice recording armed");
+
+  sampling.go = 0;
+  sampling.frames = 0;
+  ctx.log_enable = 1;
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "<r .001 99");
+  expect_int(test, sampling.go, 0, "invalid voice not armed");
+  expect_int(test, sampling.what, 3, "invalid voice keeps selection");
+  expect_substr(test, ctx.log, "usage: <r seconds [voice]",
+                "invalid voice reports usage");
+
+  sampling.what = -1;
+}
+
 static void test_bounded_loop_preserves_tail_envelopes(void) {
   const char *test = "bounded loop tail envelopes";
   if (!skode_opcode_supported(SKODE_OP_ENVELOPE) ||
@@ -2638,6 +2670,7 @@ int main(void) {
   test_wave_loop_points();
   test_wave_load_smpl_loop();
   test_record_find_trim_command();
+  test_record_voice_selection();
   test_bounded_loop_preserves_tail_envelopes();
   test_one_shot_asr_mode();
   test_opcode_events();

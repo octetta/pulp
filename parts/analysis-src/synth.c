@@ -1253,7 +1253,7 @@ void mmf_set_params(int n, float f, float resonance);
 static float empty_capture[65536] = {0};
 static float *this_capture;
 
-synth_sample_t sampling = {0};
+synth_sample_t sampling = {.what = -1};
 
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user) {
   (void)input;
@@ -1439,7 +1439,10 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
 
       sv.sample[n] *= final;
 
-      if (sv.disconnect[n] == 0 || is_capture) {
+      if (sampling.what == n) {
+        record_mono = sv.sample[n];
+      } else if (sampling.what < 0 &&
+                 (sv.disconnect[n] == 0 || is_capture)) {
         record_mono += sv.sample[n];
       }
 

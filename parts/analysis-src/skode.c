@@ -2144,12 +2144,15 @@ void skode_sample_alloc(int frames) {
   sampling.frames = frames;
 }
 
-void skode_sample_go(int frames) {
+void skode_sample_go(int frames, int voice) {
   if (sampling.busy) {
     return;
   }
   skode_sample_alloc(frames);
-  if (sampling.frames > 0 && sampling.where) sampling.go = 1;
+  if (sampling.frames > 0 && sampling.where) {
+    sampling.what = voice;
+    sampling.go = 1;
+  }
 }
 
 #include "miniaudio.h"
@@ -3982,10 +3985,19 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('^r--'): // record duration ... markdown/html doesn't like <
-    case ATOM4('<r--'): // record duration
+    case ATOM4('<r--'): // record duration [voice]
       if (argc && isfinite(arg[0]) && arg[0] > 0.0 &&
           arg[0] <= (double)(INT_MAX - 4096) / MAIN_SAMPLE_RATE) {
-        skode_sample_go((int)(arg[0] * (double)MAIN_SAMPLE_RATE));
+        int sample_voice = -1;
+        if (argc > 2 ||
+            (argc > 1 &&
+             (!skode_double_to_int(arg[1], &sample_voice) ||
+              !skode_voice_valid(sample_voice)))) {
+          ctx->printf(ctx, "# usage: <r seconds [voice]\n");
+          break;
+        }
+        skode_sample_go((int)(arg[0] * (double)MAIN_SAMPLE_RATE),
+                        sample_voice);
       } else {
         ctx->printf(ctx, "skode_sample -> %d %d %d\n", sampling.busy, sampling.go, sampling.frames);
       }

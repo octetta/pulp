@@ -18,9 +18,9 @@ y1 %4 z1 ym0 [boots-and-cats] yt
 # SKODE_FUNCTION ??--
 v0 w7 f440 n69,0 a10 # *
 v1 w101 f391.995 n67,0 a20 G3,-,-,- H3,-,-,- p-0.75 A2,0.5,0.5 t0.1,2,0,0 k0 {future-left} vt
-v2 w11 f55 n33,0 a0 m1 {future-left-am} vt
+v2 w16 f55 n33,0 a0 m1 {future-left-am} vt
 v3 w101 f349.228 n65,0 a10 N-2,0 p0.75 A4,0.5,0.5 t0.1,2,0,0 k0 {future-right} vt
-v4 w10 f55 n33,0 a0 m1 {future-right-am} vt
+v4 w15 f55 n33,0 a0 m1 {future-right-am} vt
 v10 w101 f391.995 n67,0 a25 {big-future-center} vt
 v11 w200 f220 n57,0 a25 J2 K4000 Q0.707 m1
 v20 w200 f220 n57,0 a25 J2 K4000 Q0.707 {snare} vt

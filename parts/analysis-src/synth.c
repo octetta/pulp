@@ -1250,12 +1250,13 @@ char *synth_stats(void) {
 void mmf_set_params(int n, float f, float resonance);
 #define FILTER_UC (16)
 
-static float empty_capture[65536] = {0};
 static float *this_capture;
+static int this_capture_channels;
 
 synth_sample_t sampling = {.what = -1};
 
-void synth(float *buffer, float *input, int num_frames, int num_channels, void *user) {
+void synth_capture(float *buffer, float *input, int num_frames,
+                   int num_channels, int input_channels, void *user) {
   (void)input;
   synth_record_bus_t *record_bus = (synth_record_bus_t *)user;
   float *record_frames = NULL;
@@ -1281,8 +1282,8 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     first = 0;
   }
 
-  if (input) this_capture = input;
-  else this_capture = empty_capture;
+  this_capture = input;
+  this_capture_channels = input && input_channels > 0 ? input_channels : 0;
 
 
   uint64_t callback_sample = SAMPLE_COUNT_ADD(num_frames);
@@ -1327,21 +1328,22 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       }
       int was_finished = sv.finished[n];
       char is_capture = 0;
-      if (sv.wave_table_index[n] == WAVE_TABLE_NOISE_ALT) {
+      int capture_channel = sv.wave_table_index[n] - WAVE_TABLE_CAPTURE_FIRST;
+      if (capture_channel >= 0 &&
+          capture_channel < WAVE_TABLE_CAPTURE_CHANNELS) {
+        f = capture_channel < this_capture_channels
+          ? this_capture[(size_t)i * this_capture_channels + capture_channel]
+          : 0.0f;
+        is_capture = 1;
+      }
+      else if (sv.wave_table_index[n] == WAVE_TABLE_NOISE_ALT) {
         if (!whiteish_ready) {
           whiteish = audio_rng_raw_float(noise_raw);
           whiteish_ready = 1;
         }
         f = whiteish;
       }
-      else if (sv.wave_table_index[n] == WAVE_TABLE_CAP_LEFT) {
-        f = this_capture[i * AUDIO_CHANNELS];
-        is_capture = 1;
-      }
-      else if (sv.wave_table_index[n] == WAVE_TABLE_CAP_RIGHT) {
-        f = this_capture[i * AUDIO_CHANNELS + 1];
-        is_capture = 1;
-      } else {
+      else {
         if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
           int mod = sv.freq_mod_osc[n];
           float g = sv.sample[mod] * sv.freq_mod_depth[n] + sv.freq_mod_adder[n];
@@ -1543,6 +1545,12 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       output_frame[channel + 1] = record_right[track] * track_gain[track];
     }
   }
+}
+
+void synth(float *buffer, float *input, int num_frames, int num_channels,
+           void *user) {
+  synth_capture(buffer, input, num_frames, num_channels,
+                input ? AUDIO_CHANNELS : 0, user);
 }
 
 int envelope_is_flat(int v) {
@@ -2353,9 +2361,14 @@ void wave_table_init(int flag) {
       case WAVE_TABLE_TRI:   name = "triangle"; break;
       case WAVE_TABLE_NOISE: name = "noise"; break;
       case WAVE_TABLE_NOISE_ALT: name = "noise-alt"; break; // not used, here for laziness in experiment
-      case WAVE_TABLE_CAP_LEFT:  name = "cap-left"; break; // not used, here for laziness in experiment
-      case WAVE_TABLE_CAP_RIGHT: name = "cap-right"; break; // not used, here for laziness in experiment
-      case WAVE_TABLE_CAP_BOTH:  name = "cap-both"; break; // not used, here for laziness in experiment
+      case WAVE_TABLE_CAP_1: name = "input-1-left"; break;
+      case WAVE_TABLE_CAP_2: name = "input-1-right"; break;
+      case WAVE_TABLE_CAP_3: name = "input-2-left"; break;
+      case WAVE_TABLE_CAP_4: name = "input-2-right"; break;
+      case WAVE_TABLE_CAP_5: name = "input-3-left"; break;
+      case WAVE_TABLE_CAP_6: name = "input-3-right"; break;
+      case WAVE_TABLE_CAP_7: name = "input-4-left"; break;
+      case WAVE_TABLE_CAP_8: name = "input-4-right"; break;
       case WAVE_TABLE_KRG1:  name = "dwg-strings"; break;
       case WAVE_TABLE_KRG2:  name = "dwg-clarinet"; break;
       case WAVE_TABLE_KRG3:  name = "dwg-apiano"; break;

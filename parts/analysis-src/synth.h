@@ -12,6 +12,8 @@
 #define SAMPLE_COUNT_ADD(n) atomic_fetch_add_uint64(&synth_sample_count, n)
 
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user);
+void synth_capture(float *buffer, float *input, int num_frames,
+                   int output_channels, int input_channels, void *user);
 void synth_init(int vc);
 void synth_free(void);
 
@@ -84,6 +86,8 @@ const char *delay_bus_format(int bus);
 const char *delay_format(void);
 const char *delay_status(void);
 void synth(float *buffer, float *input, int num_frames, int num_channels, void *user);
+void synth_capture(float *buffer, float *input, int num_frames,
+                   int output_channels, int input_channels, void *user);
 int freq_set(int v, float f);
 int voice_set(int n, int *old_voice);
 int voice_control_events_set(int voice, int enabled);

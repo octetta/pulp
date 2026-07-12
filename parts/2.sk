@@ -2,8 +2,8 @@
 [sk/drums-clap.ks] /ks wait 50 k>d d>r /r300
 # /w2,302 # chh
 [sk/drums-chh.ks] /ks wait 50 k>d d>r /r302
-v0 w10 f55 n33,0 a5 G1,-,-,- p-1 g0.8
-v1 w18 a0 N0,5 p1 g0.7
+v0 w15 f55 n33,0 a5 G1,-,-,- p-1 g0.8
+v1 w23 a0 N0,5 p1 g0.7
 v2 w300 n75,0 a20 P4,1,0
 v3 w302 f440 n69,0 a20
 v4 w0 f0.25 n0,0 a0 m1

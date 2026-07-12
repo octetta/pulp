@@ -1,7 +1,7 @@
 [sk/drums-snare.ks]/ks wait 100 k>d d>r /r300
 [sk/drums-kick.ks]/ks wait 100 k>d d>r /r301
-v12 w10 f87.3071 n41,0 a4 G13,-,-,- H13,-,-,- p-0.5 J1 K150 Q6 ft 0.5 0 0 0 fd 1000 t0,1,0,0 k0 [drone-one] vt
-v13 w10 f87.3071 n41,0 a2 p0.5 J1 K200 Q10 ft 0 1 0 0 fd 500 A14,0.25,1.25 t0.1,1,0,0 k0 [drone-two] vt
+v12 w15 f87.3071 n41,0 a4 G13,-,-,- H13,-,-,- p-0.5 J1 K150 Q6 ft 0.5 0 0 0 fd 1000 t0,1,0,0 k0 [drone-one] vt
+v13 w15 f87.3071 n41,0 a2 p0.5 J1 K200 Q10 ft 0 1 0 0 fd 500 A14,0.25,1.25 t0.1,1,0,0 k0 [drone-two] vt
 v14 w0 f10 n3,48.6821 a1 m1 [drone-two-am-lfo] vt
 v20 w300 f220 n57,0 a10 p0.5 [snare] vt
 v21 w301 f220 n57,0 a15 H22,-,-,- p-0.5 J1 K750 Q4 [kick-low] vt # *

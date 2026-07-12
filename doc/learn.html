@@ -313,8 +313,8 @@ How was that?
 <template data-type="code">
 S100
 =1,45
-v0 a0 n69 t.01 .4 0 0 N0,0 >1 p-.25 w11 G1 H1
-v1 w10 g.15 p.25
+v0 a0 n69 t.01 .4 0 0 N0,0 >1 p-.25 w16 G1 H1
+v1 w15 g.15 p.25
 [v0 ~0 n69l1 ~.25 n$1l2 ~.5 l2 ~.25 l3 ~.25 n60l2 ~.25 n$0l2] e>0
 =0,69
 =1,57
@@ -469,7 +469,7 @@ and ADSR, then starts the envelope. The second block stops the envelope.
 </template>
 
 <template data-type="code">
-S100 v0 w1 a5 f110 w11 t.5 .25 .5 .75 l1
+S100 v0 w1 a5 f110 w16 t.5 .25 .5 .75 l1
 </template>
 
 <template data-type="code">
@@ -517,8 +517,10 @@ Here are some more to try out...
 <template data-type="code"> v0 w6 a0 f440 t0 2 0 0 l1</template>
 
 <template data-type="markdown">
-**`w7`** and **`w8`** are the left and right audio input channels, used
-for sample capture, and quasi-live effects
+**`w7`** through **`w14`** map up to four stereo audio-input pairs, used
+for sample capture and quasi-live effects. `w7`/`w8` are pair 1,
+`w9`/`w10` are pair 2, `w11`/`w12` are pair 3, and `w13`/`w14` are pair 4.
+Input waves beyond the channels supplied by the selected device are silent.
 </template>
 
 <template data-type="markdown">
@@ -556,11 +558,7 @@ v14 l0 g0 f440 m0 w999 a16 B1 l0 t 0 0 1 2 l1
 </template>
 
 <template data-type="markdown">
-**`w9`**  is for future use, but will probably be left and right summed
-</template>
-
-<template data-type="markdown">
-**`w10`** to **`w25`** are recreations of my favorite 80's synth wave
+**`w15`** to **`w30`** are recreations of my favorite 80's synth wave
 tables created using my
 [k-synth](https://octetta.github.io/k-synth)
 tool (look at the patches under dw8000).
@@ -569,11 +567,6 @@ Eventually `k-synth` notation will be introduced into `skred` so you can
 make your own periodic waveforms and even entire samples.
 </template>
 
-<template data-type="code"> v0 w10 a0 f440 t0 2 0 0 l1</template>
-<template data-type="code"> v0 w11 a0 f440 t0 2 0 0 l1</template>
-<template data-type="code"> v0 w12 a0 f440 t0 2 0 0 l1</template>
-<template data-type="code"> v0 w13 a0 f440 t0 2 0 0 l1</template>
-<template data-type="code"> v0 w14 a0 f440 t0 2 0 0 l1</template>
 <template data-type="code"> v0 w15 a0 f440 t0 2 0 0 l1</template>
 <template data-type="code"> v0 w16 a0 f440 t0 2 0 0 l1</template>
 <template data-type="code"> v0 w17 a0 f440 t0 2 0 0 l1</template>
@@ -585,6 +578,11 @@ make your own periodic waveforms and even entire samples.
 <template data-type="code"> v0 w23 a0 f440 t0 2 0 0 l1</template>
 <template data-type="code"> v0 w24 a0 f440 t0 2 0 0 l1</template>
 <template data-type="code"> v0 w25 a0 f440 t0 2 0 0 l1</template>
+<template data-type="code"> v0 w26 a0 f440 t0 2 0 0 l1</template>
+<template data-type="code"> v0 w27 a0 f440 t0 2 0 0 l1</template>
+<template data-type="code"> v0 w28 a0 f440 t0 2 0 0 l1</template>
+<template data-type="code"> v0 w29 a0 f440 t0 2 0 0 l1</template>
+<template data-type="code"> v0 w30 a0 f440 t0 2 0 0 l1</template>
 
 <template data-type="markdown">
 
@@ -692,8 +690,8 @@ M120
 
 <template data-type="markdown">### Setup voices</template>
 <template data-type="code">
-v0 w11 a0 G1 H1 t 0 .5 0 0 p-1 g.2
-v1 w10 a0 N0 25 t .1 .4 0 0 p1
+v0 w16 a0 G1 H1 t 0 .5 0 0 p-1 g.2
+v1 w15 a0 N0 25 t .1 .4 0 0 p1
 v2 w6 a0 t 0 1 0 0
 v3 w5 a10 t 0 .5 0 0 q2 f440 J1 K500 Q10 P4 1
 v4 m1 a0 w0 f5 l1

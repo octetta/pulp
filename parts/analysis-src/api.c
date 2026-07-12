@@ -1138,8 +1138,9 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
       segment_bus.frames += (size_t)offset * segment_bus.channels;
       segment_capture_bus = &segment_bus;
     }
-    synth(segment_output, segment_input, segment_frames,
-          (int)pDevice->playback.channels, segment_capture_bus);
+    synth_capture(segment_output, segment_input, segment_frames,
+          (int)pDevice->playback.channels, (int)pDevice->capture.channels,
+          segment_capture_bus);
     offset += segment_frames;
   }
   if (scope_bus && capture_bus)
@@ -1351,7 +1352,7 @@ static int audio_init_selected_device(unsigned int sample_rate) {
   config.playback.format = ma_format_f32;
   config.playback.channels = 0;
   config.capture.format = ma_format_f32;
-  config.capture.channels = AUDIO_CHANNELS;
+  config.capture.channels = 0;
   config.sampleRate = sample_rate;
   config.dataCallback = synth_callback;
   config.notificationCallback = audio_device_notification;
@@ -1443,6 +1444,9 @@ char *skred_audio_status(void) {
   unsigned int input_channels =
     (device_initialized && selected_input.mode != SKRED_AUDIO_OFF)
       ? synth_device.capture.channels : 0;
+  unsigned int usable_input_channels = input_channels;
+  if (usable_input_channels > WAVE_TABLE_CAPTURE_CHANNELS)
+    usable_input_channels = WAVE_TABLE_CAPTURE_CHANNELS;
   unsigned int sample_rate = device_initialized
     ? synth_device.sampleRate : (unsigned int)synth_sample_rate_get();
   unsigned int period_frames = device_initialized
@@ -1466,6 +1470,7 @@ char *skred_audio_status(void) {
            "in: [%s]\n"
            "  requested: [%s]\n"
            "  channels: %u\n"
+           "  capture-waves: w7..w14 usable-channels: %u/%u\n"
            "rate: %u requested-callback-frames: %d\n"
            "device-buffer: period-frames %u periods %u total-frames %u %.3fms\n"
            "%s"
@@ -1475,7 +1480,8 @@ char *skred_audio_status(void) {
            output_channels, output_pairs
            , skred_pairs, stem_pairs
            , active_input, selected_input.name,
-           input_channels,
+           input_channels, usable_input_channels,
+           (unsigned int)WAVE_TABLE_CAPTURE_CHANNELS,
            sample_rate, requested_synth_frames_per_callback,
            period_frames, periods, buffer_frames, buffer_ms,
            delay_status(),

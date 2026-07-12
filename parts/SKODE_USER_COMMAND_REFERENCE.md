@@ -1012,7 +1012,7 @@ Requires `ADSR`, `FILT`, and `FADSR`.
 
 ```text
 S0
-v0 w17 a-12 t.08,.5,.7,.8 J1 K500 Q2 ft.12,.7,.3,.8 fd3200 n48 l1
+v0 w22 a-12 t.08,.5,.7,.8 J1 K500 Q2 ft.12,.7,.3,.8 fd3200 n48 l1
 ~1.5 v0 l0
 ```
 

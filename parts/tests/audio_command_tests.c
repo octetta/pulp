@@ -27,6 +27,8 @@ int main(void) {
          "/a? did not report callback frame metrics");
   expect(strstr(skred_audio_message(), "device-buffer:") != NULL,
          "/a? did not report effective device buffer metrics");
+  expect(strstr(skred_audio_message(), "capture-waves: w7..w14") != NULL,
+         "/a? did not report capture wave mapping");
   expect(strstr(skred_audio_message(), "delay:") != NULL,
          "/a? did not report delay status");
   expect(strstr(skred_audio_message(), "perf:") != NULL,

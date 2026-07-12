@@ -1055,6 +1055,45 @@ static void test_record_voice_selection(void) {
   sampling.what = -1;
 }
 
+static void test_multichannel_capture_waves(void) {
+  const char *test = "multichannel capture waves";
+  skode_t ctx = new_ctx();
+  float input[WAVE_TABLE_CAPTURE_CHANNELS];
+  float output[AUDIO_CHANNELS];
+
+  for (int voice = 0; voice < synth_config.voice_max; voice++) {
+    wave_reset(voice);
+    sv.finished[voice] = 1;
+  }
+  delay_clear();
+  amp_set(0, 0.0f);
+  pan_set(0, -1.0f);
+  consume(test, &ctx, "v0 s0");
+  sv.finished[0] = 0;
+  sv.use_amp_envelope[0] = 0;
+  volume_final = 1.0f;
+  volume_smoother_gain = 1.0f;
+
+  for (int channel = 0; channel < WAVE_TABLE_CAPTURE_CHANNELS; channel++) {
+    for (int i = 0; i < WAVE_TABLE_CAPTURE_CHANNELS; i++) input[i] = 0.0f;
+    input[channel] = (float)(channel + 1) / 10.0f;
+    output[0] = output[1] = 0.0f;
+    wave_set(0, WAVE_TABLE_CAPTURE_FIRST + channel);
+    sv.finished[0] = 0;
+    synth_capture(output, input, 1, AUDIO_CHANNELS,
+                  WAVE_TABLE_CAPTURE_CHANNELS, NULL);
+    expect_float(test, output[0], input[channel], 0.0001f,
+                 "capture wave selects matching input channel");
+  }
+
+  output[0] = output[1] = 1.0f;
+  wave_set(0, WAVE_TABLE_CAP_8);
+  sv.finished[0] = 0;
+  synth_capture(output, input, 1, AUDIO_CHANNELS, 2, NULL);
+  expect_float(test, output[0], 0.0f, 0.0001f,
+               "unavailable capture channel is silent");
+}
+
 static void test_bounded_loop_preserves_tail_envelopes(void) {
   const char *test = "bounded loop tail envelopes";
   if (!skode_opcode_supported(SKODE_OP_ENVELOPE) ||
@@ -2691,6 +2730,7 @@ int main(void) {
   test_control_plane_voice_events();
   test_load_909_patch_from_source_assets();
   test_909_load_rejects_too_small_wave_table();
+  test_multichannel_capture_waves();
 
   synth_free();
 

@@ -1716,7 +1716,13 @@ static int wave_boundary_col(int boundary, int n, int width) {
     return (int)(((long long)boundary * (long long)(width - 1) + (n / 2)) / n);
 }
 
-static void print_wave_marker_row(skode_t *ctx, int n, int width, int start, int end) {
+static void print_braille_cell(skode_t *ctx, unsigned int pattern) {
+    ctx->printf(ctx, "%c%c%c", 0xE2, 0xA0 | ((pattern >> 6) & 0x03),
+                0x80 | (pattern & 0x3F));
+}
+
+static void print_wave_marker_row(skode_t *ctx, int n, int width, int start, int end,
+                                  int braille) {
     if (!ctx || n <= 0 || width <= 0) return;
     if (start < 0) start = 0;
     if (end < 0) end = 0;
@@ -1736,16 +1742,27 @@ static void print_wave_marker_row(skode_t *ctx, int n, int width, int start, int
         col_start = tmp;
     }
 
-    ctx->printf(ctx, "^");
+    if (braille) print_braille_cell(ctx, 0xFF); /* physical start */
+    else ctx->printf(ctx, "|");
     for (int x = 0; x < width; x++) {
-        char ch = ' ';
-        if (x >= col_start && x <= col_end) ch = '=';
-        if (x == col_start) ch = '[';
-        if (x == col_end) ch = ']';
-        if (col_start == col_end && x == col_start) ch = '|';
-        ctx->printf(ctx, "%c", ch);
+        if (braille) {
+            unsigned int pattern = 0;
+            if (x >= col_start && x <= col_end) pattern |= 0x12; /* dots 2,5 */
+            if (x == col_start) pattern |= 0x47; /* left column */
+            if (x == col_end) pattern |= 0xB8;   /* right column */
+            print_braille_cell(ctx, pattern);
+        } else {
+            char ch = ' ';
+            if (x >= col_start && x <= col_end) ch = '-';
+            if (x == col_start) ch = '[';
+            if (x == col_end) ch = ']';
+            if (col_start == col_end && x == col_start) ch = '|';
+            ctx->printf(ctx, "%c", ch);
+        }
     }
-    ctx->printf(ctx, "^\n");
+    if (braille) print_braille_cell(ctx, 0xFF); /* physical end */
+    else ctx->printf(ctx, "|");
+    ctx->printf(ctx, "\n");
 }
 
 static int skode_env_eq(const char *a, const char *b) {
@@ -1871,7 +1888,7 @@ static void print_audio_ascii_wave(skode_t *ctx, float *data, int n, int width_c
     }
 
     if (labeled) {
-        print_wave_marker_row(ctx, n, width, offset, trim);
+        print_wave_marker_row(ctx, n, width, offset, trim, 0);
     }
 
     free(y_coords);
@@ -2068,7 +2085,7 @@ void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_cha
         ctx->printf(ctx, ":\n");
     }
 
-    print_wave_marker_row(ctx, n, width_chars, offset, trim);
+    print_wave_marker_row(ctx, n, width_chars, offset, trim, 1);
 
     free(y_coords);
     free(y_peak_min);
@@ -2116,8 +2133,8 @@ static void wavetable_waveform_show(skode_t *ctx, int wave, int width, int heigh
   if (label && label[0]) ctx->printf(ctx, "# %s\n", label);
   print_audio_braille_labeled(ctx, sw.data[wave], sw.size[wave], width, height,
     loop_start, loop_end);
-  ctx->printf(ctx, "# loop marker [%d..%d) one-shot %d baseline %gms\n",
-    loop_start, loop_end, sw.one_shot[wave],
+  ctx->printf(ctx, "# markers start 0 end %d loop [%d..%d) one-shot %d baseline %gms\n",
+    sw.size[wave], loop_start, loop_end, sw.one_shot[wave],
     wave_samples_to_ms(sw.size[wave],
       sw.rate[wave] > 0.0f ? sw.rate[wave] : (float)MAIN_SAMPLE_RATE));
 }

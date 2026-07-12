@@ -366,7 +366,8 @@ before freeing engine state.
 
 For hosts that want to integrate the same responder table into an existing
 service thread, `skred_control_dispatch_pump(max_events)` performs one
-nonblocking dispatch pass and returns the number of response commands executed.
+nonblocking dispatch pass and returns the number of response commands executed;
+it does not require starting the dispatcher thread with `/cer 1`.
 `skred_control_response_poll()` remains as a compatibility alias for
 `skred_control_dispatch_pump(256)`. Both consume events from the same ring used
 by `skred_control_event_poll()`, so a host should choose either custom polling
@@ -386,6 +387,54 @@ Response bindings dispatch by event type plus a key:
 Use key `-1` for a wildcard binding. Tags are not response keys. Tags are
 source metadata from scheduled or repeated work, useful for correlation and for
 cancelling queued work with commands such as `R! tag`.
+
+Before running a matching response command, the dispatcher sets its Skode
+context to the event source. For voice events, plain voice-relative commands
+such as `VS` and `VL` therefore apply to the voice that emitted the event:
+
+```text
+[VS1,7 VL2,6 BC1 l1] /ceb 2 5
+/cer 1
+```
+
+This binds voice `5` release events to retarget voice `5` to a new sample range
+and loop region, then retrigger it. Include an explicit `vN` in the response
+command only when the response should affect a different voice.
+
+Longer chains can be built by rebinding the next response from the current
+response. The dispatcher snapshots the matching command before running it, so a
+`/ceb` executed inside the response affects the next matching event, not the
+current one:
+
+```c
+skred_control_response_bind(
+    SKRED_CONTROL_EVENT_VOICE_RELEASE, 5,
+    "[VS22000,32000 VL24000,31000 BC1 l1] /ceb 2 5 "
+    "VS12000,22000 VL14000,21000 BC1 l1");
+```
+
+On the first release from voice `5`, this command installs the second-step
+response, switches voice `5` to `[12000..22000)`, sets its loop to
+`[14000..21000)`, and retriggers it. On the next release, the newly installed
+response advances voice `5` to `[22000..32000)`.
+
+There is no special fixed step count for this self-rebinding style. A chain for
+one voice normally occupies one responder slot because each `/ceb 2 voice`
+replaces the previous release binding for that voice. The practical limits are
+that the responder table stores 64 bindings total, each stored response command
+is limited to 512 bytes, and each step must install the next step before it
+needs to fire.
+
+To reset a chain, re-run the initial `/ceb`/`skred_control_response_bind()`
+seed command. To stop it, remove the binding with `/ce! 2 voice` or
+`skred_control_response_remove(SKRED_CONTROL_EVENT_VOICE_RELEASE, voice)`.
+`skred_control_event_reset()` clears queued notifications and sequence numbers,
+but it does not clear responder bindings. A final chain step can either remove
+its own binding to stop, or rebind the first step to make the chain loop.
+
+In the REPL, use `/cex external,type,key` to bind a command stored in an
+external string slot. This avoids nested bracket strings when authoring
+multi-step chains interactively.
 
 `skred_control_event_reset()` clears the ring and sequence counter. Use it when
 starting a new host-side subscription session or intentionally discarding old
@@ -448,7 +497,7 @@ Event type meanings:
 | Number | Type | Enablement | Important fields | Meaning |
 | --- | --- | --- | --- | --- |
 | `1` | `SKRED_CONTROL_EVENT_VOICE_TRIGGER` | Selected voice has `vc1` | `voice`, `sample`, optional `pattern`, `step`, `tag`, `opcode` | A voice began sounding. |
-| `2` | `SKRED_CONTROL_EVENT_VOICE_RELEASE` | Selected voice has `vc1` | `voice`, `sample`, optional source fields | A voice entered envelope release. |
+| `2` | `SKRED_CONTROL_EVENT_VOICE_RELEASE` | Selected voice has `vc1` | `voice`, `sample`, optional source fields | A voice entered its release lifecycle, including explicit `l0` release and bounded one-shot loop exhaustion. |
 | `3` | `SKRED_CONTROL_EVENT_VOICE_FINISHED` | Selected voice has `vc1` | `voice`, `sample`, optional source fields | A voice became inactive after a trigger/release lifecycle. |
 | `4` | `SKRED_CONTROL_EVENT_USER` | Explicit `ce` command | `id`, `value_count`, `value[]`, `voice`, optional source fields | Skode sent a host-defined marker. |
 | `5` | `SKRED_CONTROL_EVENT_PATTERN_START` | Selected pattern has `yc1` | `pattern`, `step`, `sample` | Pattern playback landed on step `0`. |

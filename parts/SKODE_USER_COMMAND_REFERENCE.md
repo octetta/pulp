@@ -71,11 +71,12 @@ most 32 operations.
 | --- | --- | --- | --- |
 | `w wave[,interpolate[,one-shot]]` | Wave index and optional boolean flags | Selects a wavetable. Interpolation smooths movement between samples. One-shot mode stops at the wave end instead of continuously cycling. | Yes |
 | `/` | None | Restores the selected voice's default waveform settings. | Yes |
-| `b [direction]` | `0` forward, `1` backward; no argument toggles | Changes the direction used to read the selected wave. | Yes |
+| `b [direction]` | `0` forward, `1` backward, `2` ping-pong; no argument toggles between `0` and `1` | Changes the direction mode used to read the selected wave. | Yes |
 | `B [loop]` | `0` off, `1` on; no argument toggles | Controls whether wave playback wraps at its end. This is most noticeable with sampled or one-shot waves. | Yes |
 | `BC count` | Nonnegative integer; `0` means unlimited | Enables looping and limits a one-shot voice to `count` wraps after its first pass through the loop. The configured count is captured on `l` or `T`; changing it does not alter a note already playing. | Yes |
 | `WL wave,start,end` | Wave index and sample boundaries | Sets the wave's loop start and end boundary. `start` is inclusive, `end` is exclusive, and `end` may equal the wave sample count. | No |
-| `VL start,end` | Sample boundaries on the selected voice | Overrides the selected voice's loop points after `w` has assigned a wave. `VL` with no arguments resets the voice to the current wave's `WL` defaults. | No |
+| `VS start,end` | Sample boundaries on the selected voice | Overrides the selected voice's playable sample range after `w` has assigned a wave. `VS` with no arguments resets the voice to the full current wave range. | Yes |
+| `VL start,end` | Sample boundaries on the selected voice | Overrides the selected voice's loop points after `w` has assigned a wave. `VL` with no arguments resets the voice to the current wave's `WL` defaults. | Yes |
 | `q bits` | Integer bit-depth control | Quantizes the waveform and adds bit-crusher distortion. Requires `CRUSH`. | Yes |
 | `h phases` | Integer hold length | Holds oscillator values for multiple phases, producing stepped or sample-and-hold distortion. Requires `SAH`. | Yes |
 | `[name] vt` | String | Gives the selected voice a display label. It does not alter sound. | No |
@@ -129,14 +130,16 @@ saved files.
 `b`, `B`, `BC`, and `l` describe different parts of one playback lifecycle:
 
 - `b` selects reading direction. `b0` moves toward the wave or loop end;
-  `b1` moves toward its start. It does not enable looping or trigger playback.
+  `b1` moves toward its start; `b2` is ping-pong mode. It does not enable
+  looping or trigger playback.
 - `B` selects whether playback wraps at the active loop boundary. `B1` enables
   wrapping and `B0` disables it. With no argument, `B` toggles the setting.
   This applies immediately to the current playback as well as later triggers.
 - `BC` enables looping and optionally bounds it for one-shot waves. `BC0`
-  means unlimited wrapping. A positive value counts additional wraps after the
-  first traversal of the loop region, so `BC1` plays that region twice: the
-  initial traversal, then one repeat.
+  means unlimited wrapping. A positive value counts additional boundary
+  traversals after the first traversal of the loop region, so `BC1` plays that
+  region twice: the initial traversal, then one repeat. In `b2` ping-pong mode,
+  each trip from one boundary to the other counts as one traversal.
 - A positive `l` value, or `T`, starts or retriggers a one-shot, initializes
   runtime looping from `B`, snapshots the current `BC` bound, resets the
   remaining wrap count, and triggers its envelopes. Changing `BC` during
@@ -144,29 +147,38 @@ saved files.
   Forward one-shot playback starts at physical sample `0`, reaches the loop end
   boundary, then wraps back to the loop start. Backward playback starts at the
   physical last sample, reaches the loop start boundary, then wraps back to the
-  loop end.
+  loop end. Ping-pong playback starts forward, reverses at `loop_end`, reverses
+  again at `loop_start`, and repeats.
 - `l0` releases active envelopes immediately. For a looping one-shot it also
   requests a clean loop exit: playback leaves the loop when it next reaches
   the boundary selected by `b`, then continues through any remaining wave tail.
   Forward playback exits at the loop end boundary and continues toward the
   physical wave end; backward playback exits at the loop start boundary and
-  continues toward the physical wave beginning.
+  continues toward the physical wave beginning. Ping-pong exits at whichever
+  loop boundary the current leg reaches next, then continues toward the
+  physical tail in that same direction.
 
-Loop points are layered. `WL wave,start,end` stores defaults on the wavetable,
-`w` copies those defaults into the selected voice, and `VL start,end` overrides
-the selected voice after the wave assignment. A later `WL` update follows
-voices that still use the wave defaults, but leaves voices with `VL` overrides
-alone. Plain `VL` clears the override and copies the current wave defaults
-back into the voice. `VL` only changes the region; use `B1` or `BC count` to
-enable looping before `l1`.
+Sample ranges and loop points are layered. `VS start,end` narrows the selected
+voice's playable wave range after `w`; plain `VS` restores the full current
+wave range. `WL wave,start,end` stores loop defaults on the wavetable, `w`
+copies those defaults into the selected voice, and `VL start,end` overrides the
+selected voice after the wave assignment. A later `WL` update follows voices
+that still use wave defaults, but leaves voices with `VL` overrides alone.
+Plain `VL` clears the override and copies the current wave defaults back into
+the voice when they fit inside the active `VS` range; otherwise the active `VS`
+range is used as the loop region. `VS` and `VL` only change regions; use `B1`
+or `BC count` to enable looping before `l1`.
 
 When a positive `BC` count is exhausted without `l0`, the oscillator leaves the
-loop at that boundary and automatically releases the active amplitude and
-filter envelopes. Ordinary cyclic wavetables can still use `b` and `B`, but
-bounded loop completion and one-shot retriggering apply only to one-shots.
-For forward playback, loop exhaustion exits at `loop_end` and continues toward
-the physical sample end; for backward playback, exhaustion exits at
-`loop_start` and continues toward sample `0`.
+loop at that boundary and emits one `VOICE_RELEASE` control-plane event while
+continuing through the physical tail. Explicit `l0` emits its release event
+immediately and does not emit a duplicate release when the loop boundary is
+reached. Ordinary cyclic wavetables can still use `b` and `B`, but bounded loop
+completion and one-shot retriggering apply only to one-shots. For forward
+playback, loop exhaustion exits at `loop_end` and continues toward the physical
+sample end; for backward playback, exhaustion exits at `loop_start` and
+continues toward sample `0`; for ping-pong playback, exhaustion exits at the
+next reached boundary in the current ping-pong leg.
 
 ```text
 v0 w300 b0 BC1 t.01,.1,.8,.3 l1
@@ -469,6 +481,7 @@ commands handled by Skode itself, not ad-hoc mini-skred syntax:
 | --- | --- | --- |
 | `/cer state` | `0` or nonzero | Stops or starts the API control-event dispatcher thread. |
 | `[command] /ceb type key` | Skode response command, numeric event type, event key | Runs `command` whenever a matching control event is received. |
+| `/cex external,type,key` | External string slot, event type, event key | Binds an external string slot as a response command. Useful for multi-step chains without nested bracket strings. |
 | `/ce! type key` | Numeric event type and key | Removes matching bindings. |
 | `/ce!` | None | Removes all responder bindings. |
 | `/ce?` | None | Displays responder state and bindings. |
@@ -519,6 +532,67 @@ Type `1` is `SKRED_CONTROL_EVENT_VOICE_TRIGGER`. The key is the triggering
 voice number. Because voice `0` and voice `1` both have `vc1`, `v0 l1` emits a
 trigger event with key `0` and runs `v2 l1`; `v1 l1` emits key `1` and runs
 `v3 l1`. Voices without `vc1` do not emit lifecycle events.
+
+Voice-event responses run with the event voice selected. That makes release
+events useful for chaining regions of the same sampled wave:
+
+```text
+v5 w300 VS0,12000 VL2000,9000 BC1 l1
+[VS12000,22000 VL14000,21000 BC1 l1] /ceb 2 5
+/cer 1
+```
+
+Type `2` is `SKRED_CONTROL_EVENT_VOICE_RELEASE`. When voice `5` emits that
+release event, the response command updates `VS` and `VL` on voice `5` and
+retriggers it. Add an explicit `vN` to the response command only when you want
+the event from one voice to control a different voice.
+
+Longer chains use the same mechanism: a response can install the next response
+with `/ceb` before it retriggers the voice. The API integration guide shows the
+self-rebinding form for multi-step region chains.
+
+There is no fixed chain length for one voice: each step replaces the current
+`/ceb 2 voice` binding, so a same-voice chain normally uses one responder slot.
+The practical limits are the 64 total responder bindings and the 512-byte
+stored command limit for each step.
+
+For example, this REPL sequence loads a large audio file into wave `300`, plays
+an intro region once without looping, plays a middle region three times, then
+plays an outro region once. External string slots avoid nested bracket strings,
+so the response dispatcher can read the next step even though it runs in its
+own Skode context:
+
+```text
+[large-take.wav] /ws 300,0
+v5 w300,1,1 vc1
+
+[ /ce! 3 5 /cex1,2,5 VS10000,20000 VL10000,20000 BC2 l1 ] e>0
+[ /ce! 2 5 B0 VS20000,30000 l1 ] e>1
+
+/cex0,3,5
+/cer 1
+B0 VS0,10000 l1
+```
+
+The intro is non-looping, so it hands off with type `3`,
+`SKRED_CONTROL_EVENT_VOICE_FINISHED`. External string `0` removes that finished
+binding, installs external string `1` as the next type `2` release response,
+sets both `VS` and `VL` to `[10000..20000)`, and uses `BC2` to play that region
+three times: the first traversal plus two repeats. When the bounded loop count
+is exhausted, type `2`, `SKRED_CONTROL_EVENT_VOICE_RELEASE`, fires. External
+string `1` removes the release binding, turns looping off with `B0`, switches
+to the outro range `[20000..30000)`, and retriggers it once.
+
+To reset the chain from the REPL, run `/cex0,3,5` again and trigger the intro
+with `B0 VS0,10000 l1`. To stop the chain immediately, run:
+
+```text
+/ce! 3 5
+/ce! 2 5
+```
+
+`/ce!` with no arguments clears all responder bindings. `?ce!` clears queued
+control events, but does not remove response bindings.
 
 Pattern-event example:
 

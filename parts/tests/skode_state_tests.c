@@ -488,6 +488,11 @@ static void configure_loop_test_voice(int voice, int direction) {
   sv.table_size[voice] = 8;
   sv.table_rate[voice] = MAIN_SAMPLE_RATE;
   sv.table_size_rate[voice] = 8.0f / MAIN_SAMPLE_RATE;
+  sv.wave_range_start[voice] = 0;
+  sv.wave_range_end[voice] = 8;
+  sv.wave_range_start_f[voice] = 0.0f;
+  sv.wave_range_end_f[voice] = 8.0f;
+  sv.wave_range_override[voice] = 0;
   sv.loop_start[voice] = 2;
   sv.loop_end[voice] = 5;
   sv.loop_start_f[voice] = 2.0f;
@@ -505,6 +510,8 @@ static void test_bounded_one_shot_loops(void) {
   skode_t ctx = new_ctx();
   const int voice = 5;
   event_program_t program;
+  float output[AUDIO_CHANNELS] = {0};
+  skred_control_event_t events[4];
 
   expect_int(test, skode_compile_program("v5 BC4", &program),
              SKODE_COMPILE_OK, "compile BC program");
@@ -612,6 +619,36 @@ static void test_bounded_one_shot_loops(void) {
   expect_int(test, sv.loop_active[voice], 0, "backward loop exhausted");
 
   configure_loop_test_voice(voice, 0);
+  consume(test, &ctx, "v5 a0 vc1 BC1 l1");
+  expect_int(test, skred_control_event_clear(), 1,
+             "clear trigger before loop exhaustion event");
+  sv.phase[voice] = 4.0f;
+  sv.phase_inc[voice] = 1.0f;
+  sv.loop_remaining[voice] = 0;
+  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  expect_int(test, skred_control_event_poll(events, 4), 1,
+             "loop exhaustion release event count");
+  expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_VOICE_RELEASE,
+             "loop exhaustion release event type");
+  expect_int(test, events[0].voice, voice,
+             "loop exhaustion release event voice");
+
+  configure_loop_test_voice(voice, 0);
+  consume(test, &ctx, "v5 a0 vc1 BC0 l1");
+  expect_int(test, skred_control_event_clear(), 1,
+             "clear trigger before l0 release event");
+  sv.phase[voice] = 4.0f;
+  sv.phase_inc[voice] = 1.0f;
+  consume(test, &ctx, "l0");
+  expect_int(test, skred_control_event_poll(events, 4), 1,
+             "l0 immediate release event count");
+  expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_VOICE_RELEASE,
+             "l0 immediate release event type");
+  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  expect_int(test, skred_control_event_poll(events, 4), 0,
+             "l0 boundary release event is not duplicated");
+
+  configure_loop_test_voice(voice, 0);
   consume(test, &ctx, "BC1 l1");
   osc_next(voice, 10.0f);
   expect_float(test, sv.phase[voice], 7.0f, 0.0001f,
@@ -619,6 +656,41 @@ static void test_bounded_one_shot_loops(void) {
   expect_int(test, sv.loop_remaining[voice], 0,
              "multi-boundary remaining");
   expect_int(test, sv.loop_active[voice], 0, "multi-boundary loop exhausted");
+
+  configure_loop_test_voice(voice, 0);
+  consume(test, &ctx, "b2 BC0 l1");
+  sv.phase[voice] = 4.0f;
+  osc_next(voice, 1.0f);
+  expect_float(test, sv.phase[voice], 5.0f, 0.0001f,
+               "ping-pong forward boundary phase");
+  expect_int(test, sv.pingpong_reverse[voice], 1,
+             "ping-pong reverses at loop end");
+  osc_next(voice, 1.0f);
+  expect_float(test, sv.phase[voice], 4.0f, 0.0001f,
+               "ping-pong backward phase");
+  sv.phase[voice] = 2.0f;
+  osc_next(voice, 1.0f);
+  expect_float(test, sv.phase[voice], 3.0f, 0.0001f,
+               "ping-pong reverses at loop start");
+  expect_int(test, sv.pingpong_reverse[voice], 0,
+             "ping-pong forward after loop start");
+
+  configure_loop_test_voice(voice, 0);
+  consume(test, &ctx, "b2 BC2 l1");
+  sv.phase[voice] = 4.0f;
+  osc_next(voice, 1.0f);
+  expect_int(test, sv.loop_remaining[voice], 1,
+             "ping-pong first traversal remaining");
+  sv.phase[voice] = 2.0f;
+  osc_next(voice, 1.0f);
+  expect_int(test, sv.loop_remaining[voice], 0,
+             "ping-pong second traversal remaining");
+  sv.phase[voice] = 4.0f;
+  osc_next(voice, 1.0f);
+  expect_int(test, sv.loop_active[voice], 0,
+             "ping-pong third traversal exits loop");
+  expect_int(test, sv.loop_ended[voice], 1,
+             "ping-pong bounded loop release event");
 
   wave_loop_count(voice, 3);
   voice_copy(voice, 4);
@@ -757,6 +829,14 @@ static void test_wave_loop_points(void) {
   if (strstr(formatted, "VL2,7") == NULL)
     fail(test, "voice loop override missing from voice format");
 
+  consume(test, &ctx, "VS2,8");
+  expect_int(test, sv.wave_range_start[voice], 2, "voice range override start");
+  expect_int(test, sv.wave_range_end[voice], 8, "voice range override end");
+  expect_int(test, sv.wave_range_override[voice], 1, "voice range override enabled");
+  voice_format(voice, formatted, sizeof(formatted), 0);
+  if (strstr(formatted, "VS2,8") == NULL)
+    fail(test, "voice range override missing from voice format");
+
   consume(test, &ctx, "WL300,4,9");
   expect_int(test, sw.loop_start[wave], 4, "updated wave loop start");
   expect_int(test, sw.loop_end[wave], 9, "updated wave loop end");
@@ -764,14 +844,25 @@ static void test_wave_loop_points(void) {
   expect_int(test, sv.loop_end[voice], 7, "WL preserves override end");
 
   voice_copy(voice, 7);
+  expect_int(test, sv.wave_range_start[7], 2, "copy preserves range start");
+  expect_int(test, sv.wave_range_end[7], 8, "copy preserves range end");
+  expect_int(test, sv.wave_range_override[7], 1, "copy preserves range flag");
   expect_int(test, sv.loop_start[7], 2, "copy preserves override start");
   expect_int(test, sv.loop_end[7], 7, "copy preserves override end");
   expect_int(test, sv.loop_override[7], 1, "copy preserves override flag");
 
   consume(test, &ctx, "VL");
-  expect_int(test, sv.loop_start[voice], 4, "VL reset start");
-  expect_int(test, sv.loop_end[voice], 9, "VL reset end");
+  expect_int(test, sv.loop_start[voice], 2, "VL reset falls back to range start");
+  expect_int(test, sv.loop_end[voice], 8, "VL reset falls back to range end");
   expect_int(test, sv.loop_override[voice], 0, "VL reset override flag");
+
+  consume(test, &ctx, "VS");
+  expect_int(test, sv.wave_range_start[voice], 0, "VS reset start");
+  expect_int(test, sv.wave_range_end[voice], 10, "VS reset end");
+  expect_int(test, sv.wave_range_override[voice], 0, "VS reset override flag");
+  consume(test, &ctx, "VL");
+  expect_int(test, sv.loop_start[voice], 4, "VL reset wave default start");
+  expect_int(test, sv.loop_end[voice], 9, "VL reset wave default end");
 
   consume(test, &ctx, "WL300,1,6");
   expect_int(test, sv.loop_start[voice], 1, "WL updates reset voice start");
@@ -784,6 +875,15 @@ static void test_wave_loop_points(void) {
   consume(test, &ctx, "VL5");
   expect_int(test, sv.loop_start[voice], 1, "partial VL keeps start");
   expect_int(test, sv.loop_end[voice], 6, "partial VL keeps end");
+
+  consume(test, &ctx, "VS3,8");
+  expect_int(test, sv.wave_range_start[voice], 3, "VS narrows start");
+  expect_int(test, sv.wave_range_end[voice], 8, "VS narrows end");
+  expect_int(test, sv.loop_start[voice], 3, "VS rehomes out-of-range loop start");
+  expect_int(test, sv.loop_end[voice], 8, "VS rehomes out-of-range loop end");
+  consume(test, &ctx, "VL1,6");
+  expect_int(test, sv.loop_start[voice], 3, "out-of-range VL keeps start");
+  expect_int(test, sv.loop_end[voice], 8, "out-of-range VL keeps end");
 
   wave_reset(voice);
   wave_reset(7);
@@ -822,6 +922,40 @@ static void test_wave_load_smpl_loop(void) {
   expect_int(test, sv.loop_enabled[2], 1, "voice inherits smpl loop enabled");
   expect_int(test, sv.loop_start[2], 2, "voice inherits smpl loop start");
   expect_int(test, sv.loop_end[2], 8, "voice inherits smpl loop end");
+
+  wave_free_one(wave);
+  wave_reset(2);
+  ctx.log_len = 0;
+  if (write_smpl_test_wav(path, 10, 2, 7, 1, 0) != 0) {
+    fail(test, "could not write ping-pong test wav");
+    unlink(path);
+    return;
+  }
+  if (wave_load_string(&ctx, path, wave, -1, 1) != 0) {
+    fail(test, "ping-pong wave_load_string failed");
+    unlink(path);
+    return;
+  }
+  expect_float(test, sw.direction[wave], 2.0f, 0.0001f,
+               "smpl ping-pong direction");
+  consume(test, &ctx, "v2 w301");
+  expect_int(test, sv.direction[2], 2, "voice inherits smpl ping-pong");
+
+  wave_free_one(wave);
+  wave_reset(2);
+  ctx.log_len = 0;
+  if (write_smpl_test_wav(path, 10, 2, 7, 2, 0) != 0) {
+    fail(test, "could not write backward test wav");
+    unlink(path);
+    return;
+  }
+  if (wave_load_string(&ctx, path, wave, -1, 1) != 0) {
+    fail(test, "backward wave_load_string failed");
+    unlink(path);
+    return;
+  }
+  expect_float(test, sw.direction[wave], 1.0f, 0.0001f,
+               "smpl backward direction");
 
   wave_reset(2);
   wave_free_one(wave);
@@ -1403,6 +1537,8 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"XM1,.5", SKODE_OP_RING_MOD},
     {"ce7,1,2,3", SKODE_OP_CONTROL_EVENT},
     {"DL1,2,3,4,5,6,7", SKODE_OP_DELAY_PARAMS},
+    {"VS1,3", SKODE_OP_WAVE_RANGE_SET},
+    {"VL1,3", SKODE_OP_WAVE_LOOP_SET},
   };
 
   for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
@@ -2193,6 +2329,81 @@ static void test_control_plane_voice_events(void) {
   if (strstr(ctx.log, "# control events empty") == NULL) {
     fail(test, "empty control-plane event after clear mismatch");
   }
+
+  configure_loop_test_voice(5, 0);
+  consume(test, &ctx, "[/cex1,2,5 VS1,7 VL2,6 BC1 l1] e>0");
+  consume(test, &ctx, "[/ce! 2 5 VS2,8 VL3,7 BC1 l1] e>1");
+  consume(test, &ctx, "/cex0,2,5");
+  consume(test, &ctx, "v5 a0 vc1 BC1 l1");
+  skred_control_event_clear();
+  sv.phase[5] = 4.0f;
+  sv.phase_inc[5] = 1.0f;
+  sv.loop_remaining[5] = 0;
+  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  (void)skred_control_dispatch_pump(8);
+  expect_int(test, sv.wave_range_start[5], 1,
+             "release response updates same voice range start");
+  expect_int(test, sv.wave_range_end[5], 7,
+             "release response updates same voice range end");
+  expect_int(test, sv.loop_start[5], 2,
+             "release response updates same voice loop start");
+  expect_int(test, sv.loop_end[5], 6,
+             "release response updates same voice loop end");
+
+  sv.phase[5] = (double)sv.loop_end[5] - 1.0;
+  sv.phase_inc[5] = 1.0f;
+  sv.loop_remaining[5] = 0;
+  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  (void)skred_control_dispatch_pump(8);
+  expect_int(test, sv.wave_range_start[5], 2,
+             "second release response updates same voice range start");
+  expect_int(test, sv.wave_range_end[5], 8,
+             "second release response updates same voice range end");
+  expect_int(test, sv.loop_start[5], 3,
+             "second release response updates same voice loop start");
+  expect_int(test, sv.loop_end[5], 7,
+             "second release response updates same voice loop end");
+  skred_control_response_clear();
+  skred_control_event_reset();
+  wave_reset(5);
+  SAMPLE_COUNT_PUT(saved_sample_count);
+
+  configure_loop_test_voice(5, 0);
+  consume(test, &ctx, "[/ce! 3 5 /cex1,2,5 VS2,5 VL2,5 BC2 l1] e>0");
+  consume(test, &ctx, "[/ce! 2 5 B0 VS5,8 l1] e>1");
+  consume(test, &ctx, "/cex0,3,5");
+  consume(test, &ctx, "v5 a0 vc1 B0 VS0,2 l1");
+  skred_control_event_clear();
+  sv.phase[5] = 1.0;
+  sv.phase_inc[5] = 1.0f;
+  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  (void)skred_control_dispatch_pump(8);
+  expect_int(test, sv.wave_range_start[5], 2,
+             "finished response sets middle range start");
+  expect_int(test, sv.wave_range_end[5], 5,
+             "finished response sets middle range end");
+  expect_int(test, sv.loop_start[5], 2,
+             "finished response sets middle loop start");
+  expect_int(test, sv.loop_end[5], 5,
+             "finished response sets middle loop end");
+  expect_int(test, sv.loop_count[5], 2,
+             "finished response sets three-play loop count");
+
+  sv.phase[5] = 4.0;
+  sv.phase_inc[5] = 1.0f;
+  sv.loop_remaining[5] = 0;
+  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  (void)skred_control_dispatch_pump(8);
+  expect_int(test, sv.wave_range_start[5], 5,
+             "release response sets outro range start");
+  expect_int(test, sv.wave_range_end[5], 8,
+             "release response sets outro range end");
+  expect_int(test, sv.loop_enabled[5], 0,
+             "release response disables looping for outro");
+  skred_control_response_clear();
+  skred_control_event_reset();
+  wave_reset(5);
+  SAMPLE_COUNT_PUT(saved_sample_count);
 
   foreign_call_count = 0;
   memset(&foreign_last_call, 0, sizeof(foreign_last_call));

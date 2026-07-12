@@ -563,31 +563,92 @@ float osc_next(int voice, float phase_inc) {
     const int table_size = sv.table_size[voice];
     const bool one_shot = sv.one_shot[voice];
     const bool loop_active = sv.loop_active[voice];
+    const float wave_range_start = sv.wave_range_start_f[voice];
+    const float wave_range_end = sv.wave_range_end_f[voice];
 
+    const bool pingpong = sv.direction[voice] == 2;
+    bool pingpong_reverse = pingpong && sv.pingpong_reverse[voice];
     double phase_step = phase_inc;
-    if (sv.direction[voice]) phase_step = -phase_step;
-    const bool reverse_step = phase_step < 0.0;
+    if (pingpong) phase_step = pingpong_reverse ? -fabs(phase_step) : fabs(phase_step);
+    else if (sv.direction[voice]) phase_step = -phase_step;
+    bool reverse_step = phase_step < 0.0;
 
     double phase = sv.phase[voice] + phase_step;
 
     if (!isfinite(phase)) {
-        sv.phase[voice] = 0.0f;
+        sv.phase[voice] = wave_range_start;
         sv.finished[voice] = one_shot;
         return 0.0f;
     }
 
     // Get loop boundaries (precomputed if available)
     const bool valid_loop = loop_active && sv.loop_valid[voice];
-    const double loop_start = valid_loop ? (double)sv.loop_start_f[voice] : 0.0;
-    const double loop_end = valid_loop ? (double)sv.loop_end_f[voice] : (double)table_size;
-    const double loop_length = valid_loop ? (double)sv.loop_length[voice] : (double)table_size;
+    const double loop_start = valid_loop ? (double)sv.loop_start_f[voice] : (double)wave_range_start;
+    const double loop_end = valid_loop ? (double)sv.loop_end_f[voice] : (double)wave_range_end;
+    const double loop_length = valid_loop ? (double)sv.loop_length[voice] : (double)(wave_range_end - wave_range_start);
 
     // Wrap phase
     if (!one_shot) {
-        if (phase >= loop_end) {
+        if (pingpong && loop_length > 0.0 && (phase >= loop_end || phase < loop_start)) {
+            double offset = fmod(phase - loop_start, loop_length * 2.0);
+            if (offset < 0.0) offset += loop_length * 2.0;
+            if (offset >= loop_length) {
+                phase = loop_end - (offset - loop_length);
+                sv.pingpong_reverse[voice] = 1;
+            } else {
+                phase = loop_start + offset;
+                sv.pingpong_reverse[voice] = 0;
+            }
+        } else if (phase >= loop_end) {
             phase = loop_start + fmod(phase - loop_start, loop_length);
         } else if (phase < loop_start) {
             phase = loop_end - fmod(loop_start - phase, loop_length);
+        }
+    } else if (pingpong && loop_active &&
+               ((!reverse_step && phase >= loop_end) ||
+                (reverse_step && phase < loop_start))) {
+        int guard = 32;
+        while (guard-- > 0 &&
+               ((!reverse_step && phase >= loop_end) ||
+                (reverse_step && phase < loop_start))) {
+            if (sv.loop_stop_requested[voice]) {
+                sv.loop_active[voice] = 0;
+                sv.loop_stop_requested[voice] = 0;
+                sv.loop_release_tail[voice] = 0;
+                if (!reverse_step && phase >= (double)wave_range_end) {
+                    phase = (double)wave_range_end - 1e-6;
+                    sv.finished[voice] = 1;
+                } else if (reverse_step && phase < (double)wave_range_start) {
+                    phase = (double)wave_range_start;
+                    sv.finished[voice] = 1;
+                }
+                break;
+            }
+            if (sv.loop_bounded[voice] && sv.loop_remaining[voice] <= 0) {
+                sv.loop_active[voice] = 0;
+                sv.loop_stop_requested[voice] = 0;
+                sv.loop_release_tail[voice] = 1;
+                sv.loop_ended[voice] = 1;
+                if (!reverse_step && phase >= (double)wave_range_end) {
+                    phase = (double)wave_range_end - 1e-6;
+                    sv.finished[voice] = 1;
+                } else if (reverse_step && phase < (double)wave_range_start) {
+                    phase = (double)wave_range_start;
+                    sv.finished[voice] = 1;
+                }
+                break;
+            }
+            if (sv.loop_bounded[voice]) sv.loop_remaining[voice]--;
+            if (!reverse_step) {
+                phase = loop_end - (phase - loop_end);
+                sv.pingpong_reverse[voice] = 1;
+            } else {
+                phase = loop_start + (loop_start - phase);
+                sv.pingpong_reverse[voice] = 0;
+            }
+            pingpong_reverse = sv.pingpong_reverse[voice] != 0;
+            phase_step = pingpong_reverse ? -fabs(phase_step) : fabs(phase_step);
+            reverse_step = phase_step < 0.0;
         }
     } else if (!reverse_step && phase >= loop_end) {
         if (!loop_active) {
@@ -596,9 +657,9 @@ float osc_next(int voice, float phase_inc) {
         } else if (sv.loop_stop_requested[voice]) {
             sv.loop_active[voice] = 0;
             sv.loop_stop_requested[voice] = 0;
-            sv.loop_ended[voice] = 1;
-            if (phase >= (double)table_size) {
-                phase = (double)table_size - 1e-6;
+            sv.loop_release_tail[voice] = 0;
+            if (phase >= (double)wave_range_end) {
+                phase = (double)wave_range_end - 1e-6;
                 sv.finished[voice] = 1;
             }
         } else if (sv.loop_bounded[voice]) {
@@ -612,8 +673,8 @@ float osc_next(int voice, float phase_inc) {
                 sv.loop_stop_requested[voice] = 0;
                 sv.loop_release_tail[voice] = 1;
                 sv.loop_ended[voice] = 1;
-                if (phase >= (double)table_size) {
-                    phase = (double)table_size - 1e-6;
+                if (phase >= (double)wave_range_end) {
+                    phase = (double)wave_range_end - 1e-6;
                     sv.finished[voice] = 1;
                 }
             }
@@ -627,9 +688,9 @@ float osc_next(int voice, float phase_inc) {
         } else if (sv.loop_stop_requested[voice]) {
             sv.loop_active[voice] = 0;
             sv.loop_stop_requested[voice] = 0;
-            sv.loop_ended[voice] = 1;
-            if (phase < 0.0f) {
-                phase = 0.0f;
+            sv.loop_release_tail[voice] = 0;
+            if (phase < (double)wave_range_start) {
+                phase = (double)wave_range_start;
                 sv.finished[voice] = 1;
             }
         } else if (sv.loop_bounded[voice]) {
@@ -643,8 +704,8 @@ float osc_next(int voice, float phase_inc) {
                 sv.loop_stop_requested[voice] = 0;
                 sv.loop_release_tail[voice] = 1;
                 sv.loop_ended[voice] = 1;
-                if (phase < 0.0f) {
-                    phase = 0.0f;
+                if (phase < (double)wave_range_start) {
+                    phase = (double)wave_range_start;
                     sv.finished[voice] = 1;
                 }
             }
@@ -669,8 +730,8 @@ float osc_next(int voice, float phase_inc) {
 
     int idx = (int)final_phase;
 
-    if (idx >= table_size) idx = table_size - 1;
-    if (idx < 0) idx = 0;
+    if (idx >= (int)wave_range_end) idx = (int)wave_range_end - 1;
+    if (idx < (int)wave_range_start) idx = (int)wave_range_start;
 
     // Check if interpolation is enabled for this voice
     if (sv.interpolate[voice]) {
@@ -678,7 +739,8 @@ float osc_next(int voice, float phase_inc) {
         float frac = (float)(final_phase - (double)idx);
 
         int next_idx = idx + 1;
-        if (next_idx >= table_size) next_idx = one_shot ? table_size - 1 : 0;
+        if (next_idx >= (int)wave_range_end)
+            next_idx = one_shot ? (int)wave_range_end - 1 : (int)wave_range_start;
 
         float sample1 = sv.table[voice][idx];
         float sample2 = sv.table[voice][next_idx];
@@ -713,6 +775,11 @@ void osc_set_wave_table_index(int voice, int wave) {
     sv.table[voice] = sw.data[wave];
     sv.one_shot[voice] = sw.one_shot[wave];
     sv.loop_override[voice] = 0;
+    sv.wave_range_override[voice] = 0;
+    sv.wave_range_start[voice] = 0;
+    sv.wave_range_end[voice]   = sv.table_size[voice];
+    sv.wave_range_start_f[voice] = 0.0f;
+    sv.wave_range_end_f[voice]   = (float)sv.table_size[voice];
     sv.loop_start[voice] = sw.loop_start[wave];
     sv.loop_enabled[voice] = sw.loop_enabled[wave];
     sv.loop_active[voice] = sv.loop_enabled[voice];
@@ -737,13 +804,13 @@ void osc_set_wave_table_index(int voice, int wave) {
       sv.loop_valid[voice] = 0;
       sv.loop_length[voice] = (float)sv.table_size[voice];
     }
-    //
-    // sv.phase[voice] = 0; // need to decide how to sync/reset phase???
     if (update_freq) {
       osc_set_freq(voice, sv.freq[voice]);
     }
   }
 }
+
+static void voice_loop_points_apply(int voice, int start, int end);
 
 static void voice_wave_range_apply(int voice, int start, int end) {
   sv.wave_range_start[voice] = start;
@@ -758,6 +825,10 @@ int voice_wave_range_set(int voice, int start, int end) {
         return SYNTH_INVALID_VOICE;
     }
     voice_wave_range_apply(voice, start, end);
+    if (sv.loop_start[voice] < start || sv.loop_end[voice] > end ||
+        sv.loop_end[voice] <= sv.loop_start[voice]) {
+      voice_loop_points_apply(voice, start, end);
+    }
     sv.wave_range_override[voice] = 1;
     return 0;
 }
@@ -779,13 +850,23 @@ static void voice_loop_points_apply(int voice, int start, int end) {
     sv.loop_length[voice] = end - start;
   } else {
     sv.loop_valid[voice] = 0;
-    sv.loop_length[voice] = sv.table_size[voice];
+    sv.loop_length[voice] = sv.wave_range_end[voice] - sv.wave_range_start[voice];
   }
+}
+
+static void voice_loop_points_apply_default(int voice, int start, int end) {
+  if (start < sv.wave_range_start[voice] || end <= start ||
+      end > sv.wave_range_end[voice]) {
+    start = sv.wave_range_start[voice];
+    end = sv.wave_range_end[voice];
+  }
+  voice_loop_points_apply(voice, start, end);
 }
 
 int voice_loop_points_set(int voice, int start, int end) {
   if (voice_invalid(voice) || sv.table_size[voice] < 2 ||
-      start < 0 || end <= start || end > sv.table_size[voice]) {
+      start < sv.wave_range_start[voice] || end <= start ||
+      end > sv.wave_range_end[voice]) {
     return SYNTH_INVALID_VOICE;
   }
   voice_loop_points_apply(voice, start, end);
@@ -798,7 +879,7 @@ int voice_loop_points_reset(int voice) {
   int wave = sv.wave_table_index[voice];
   if (wave < 0 || wave >= WAVE_TABLE_MAX || !sw.data[wave])
     return SYNTH_INVALID_VOICE;
-  voice_loop_points_apply(voice, sw.loop_start[wave], sw.loop_end[wave]);
+  voice_loop_points_apply_default(voice, sw.loop_start[wave], sw.loop_end[wave]);
   sv.loop_override[voice] = 0;
   return 0;
 }
@@ -813,7 +894,7 @@ int wave_loop_points_set(int wave, int start, int end) {
   sw.loop_end[wave] = end;
   for (int voice = 0; voice < synth_config.voice_max; voice++) {
     if (sv.wave_table_index[voice] == wave && !sv.loop_override[voice])
-      voice_loop_points_apply(voice, start, end);
+      voice_loop_points_apply_default(voice, start, end);
   }
   return 0;
 }
@@ -826,25 +907,26 @@ void osc_trigger(int voice) {
     sv.loop_stop_requested[voice] = 0;
     sv.loop_release_tail[voice] = 0;
     sv.loop_ended[voice] = 0;
+    sv.pingpong_reverse[voice] = sv.direction[voice] == 1;
 
     if (sv.one_shot[voice]) {
-        if (sv.direction[voice]) {
-            sv.phase[voice] = (double)(sv.table_size[voice] - 1);
+        if (sv.direction[voice] == 1) {
+            sv.phase[voice] = (double)sv.wave_range_end_f[voice] - 1e-6;
         } else {
-            sv.phase[voice] = 0.0;
+            sv.phase[voice] = (double)sv.wave_range_start_f[voice];
         }
     } else {
         // Preserve direction, but start at appropriate boundary
-        if (sv.direction[voice]) {
+        if (sv.direction[voice] == 1) {
             // Backward playback: start at loop end
             sv.phase[voice] = sv.loop_active[voice]
                 ? (double)sv.loop_end[voice] - 1e-6  // or sv.loop_end_f[voice]
-                : (double)(sv.table_size[voice] - 1);
+                : (double)sv.wave_range_end_f[voice] - 1e-6;
         } else {
             // Forward playback: start at loop start
             sv.phase[voice] = sv.loop_active[voice]
                 ? (double)sv.loop_start[voice]  // or sv.loop_start_f[voice]
-                : 0.0;
+                : (double)sv.wave_range_start_f[voice];
         }
     }
 }
@@ -1009,23 +1091,18 @@ static uint64_t one_shot_natural_frames(int voice) {
     double inc = fabs((double)sv.phase_inc[voice]);
     if (!isfinite(inc) || inc <= 0.0) return 0;
 
-    bool reverse_step = sv.direction[voice] != 0;
+    bool pingpong = sv.direction[voice] == 2;
+    bool reverse_step = pingpong ? (sv.pingpong_reverse[voice] != 0) :
+        (sv.direction[voice] != 0);
     bool loop_active = sv.loop_active[voice] != 0;
     bool loop_bounded = loop_active && sv.loop_bounded[voice] != 0;
     int remaining = loop_bounded ? sv.loop_remaining[voice] : 0;
     double phase = sv.phase[voice];
 
     bool valid_loop = loop_active && sv.loop_valid[voice];
-    double loop_start  = valid_loop ? (double)sv.loop_start_f[voice] : 0.0;
-    double loop_end    = valid_loop ? (double)sv.loop_end_f[voice]   : (double)sv.table_size[voice];
-    double loop_length = valid_loop ? (double)sv.loop_length[voice]  : (double)sv.table_size[voice];
-    #if 0
-    double loop_start = loop_active && sv.loop_valid[voice]
-        ? (double)sv.loop_start_f[voice] : 0.0;
-    double loop_end = loop_active && sv.loop_valid[voice]
-        ? (double)sv.loop_end_f[voice] : (double)sv.table_size[voice];
-    double loop_length = loop_end - loop_start;
-    #endif
+    double loop_start  = valid_loop ? (double)sv.loop_start_f[voice] : (double)sv.wave_range_start_f[voice];
+    double loop_end    = valid_loop ? (double)sv.loop_end_f[voice]   : (double)sv.wave_range_end_f[voice];
+    double loop_length = valid_loop ? (double)sv.loop_length[voice]  : (double)(sv.wave_range_end_f[voice] - sv.wave_range_start_f[voice]);
 
     if (!isfinite(phase) || !isfinite(loop_start) || !isfinite(loop_end) ||
         !isfinite(loop_length) || loop_length <= 0.0)
@@ -1036,7 +1113,38 @@ static uint64_t one_shot_natural_frames(int voice) {
     while (safety-- > 0) {
         double distance;
         uint64_t frames;
-        if (reverse_step) {
+        if (pingpong) {
+            if (reverse_step) {
+                distance = phase - loop_start;
+                if (!isfinite(distance) || distance < 0.0) distance = 0.0;
+                double frames_f = floor(distance / inc) + 1.0;
+                if (!isfinite(frames_f) || frames_f >= (double)(UINT64_MAX - total))
+                    return 0;
+                frames = (uint64_t)frames_f;
+                phase -= (double)frames * inc;
+                total += frames;
+                if (!loop_bounded) return total;
+                if (remaining <= 0) return total;
+                remaining--;
+                phase = loop_start + (loop_start - phase);
+                reverse_step = 0;
+            } else {
+                distance = loop_end - phase;
+                if (!isfinite(distance) || distance <= 0.0) distance = inc;
+                double frames_f = ceil(distance / inc);
+                if (frames_f < 1.0) frames_f = 1.0;
+                if (!isfinite(frames_f) || frames_f >= (double)(UINT64_MAX - total))
+                    return 0;
+                frames = (uint64_t)frames_f;
+                phase += (double)frames * inc;
+                total += frames;
+                if (!loop_bounded) return total;
+                if (remaining <= 0) return total;
+                remaining--;
+                phase = loop_end - (phase - loop_end);
+                reverse_step = 1;
+            }
+        } else if (reverse_step) {
             distance = phase - loop_start;
             if (!isfinite(distance) || distance < 0.0) distance = 0.0;
             double frames_f = floor(distance / inc) + 1.0;
@@ -1542,6 +1650,8 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" B%d", sv.loop_enabled[v]);
     if (verbose || sv.loop_count[v])
         APPEND(" BC%d", sv.loop_count[v]);
+    if (sv.wave_range_override[v])
+        APPEND(" VS%d,%d", sv.wave_range_start[v], sv.wave_range_end[v]);
     if (sv.loop_override[v])
         APPEND(" VL%d,%d", sv.loop_start[v], sv.loop_end[v]);
 
@@ -1720,7 +1830,9 @@ int wave_dir(int voice, int state) {
     if (sv.direction[voice] == 0) state = 1;
     else state = 0;
   }
+  if (state > 2) state = 2;
   sv.direction[voice] = state;
+  sv.pingpong_reverse[voice] = state == 1;
   return 0;
 }
 
@@ -1903,9 +2015,12 @@ int voice_copy(int v, int n) {
   amp_set(n, sv.user_amp[v]);
   freq_set(n, sv.freq[v]);
   voice_control_events_set(n, sv.control_events[v]);
+  if (sv.wave_range_override[v])
+    voice_wave_range_set(n, sv.wave_range_start[v], sv.wave_range_end[v]);
   sv.loop_count[n] = sv.loop_count[v];
   wave_loop(n, sv.loop_enabled[v]);
   wave_dir(n, sv.direction[v]);
+  sv.pingpong_reverse[n] = sv.pingpong_reverse[v];
   if (sv.loop_override[v])
     voice_loop_points_set(n, sv.loop_start[v], sv.loop_end[v]);
   sv.link_midi_0[n] = sv.link_midi_0[v];
@@ -2021,6 +2136,7 @@ void voice_reset(int i) {
   voice_control_events_set(i, 0);
   sv.disconnect[i] = 0;
   sv.direction[i] = 0;
+  sv.pingpong_reverse[i] = 0;
   sv.loop_enabled[i] = 0;
   sv.loop_count[i] = 0;
   sv.loop_bounded[i] = 0;

@@ -483,7 +483,6 @@ int skred_control_response_enabled(void) {
 }
 
 int skred_control_dispatch_pump(int max_events) {
-  if (!skred_control_response_enabled()) return 0;
   if (max_events <= 0) max_events = 256;
   if (max_events > 1024) max_events = 1024;
   skred_control_dispatch_init();
@@ -515,6 +514,9 @@ int skred_control_dispatch_pump(int max_events) {
       }
       simple_mutex_unlock(&control_response_mutex);
       for (int i = 0; i < command_count; i++) {
+        if (events[e].voice >= 0) control_dispatch_ctx.voice = events[e].voice;
+        if (events[e].pattern >= 0) control_dispatch_ctx.pattern = events[e].pattern;
+        control_dispatch_ctx.step = events[e].step;
         if (skode_consume(commands[i], &control_dispatch_ctx) >= 0)
           executed++;
       }

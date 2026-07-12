@@ -46,7 +46,8 @@ typedef struct {
     float  * restrict table_size_rate;
     int    * restrict one_shot;
     int    * restrict finished;
-    int    * restrict direction;
+    int    * restrict direction;          /* 0 forward, 1 backward, 2 ping-pong */
+    int    * restrict pingpong_reverse;   /* runtime leg for direction 2 */
     int    * restrict loop_enabled;
     int    * restrict loop_count;          /* configured wraps; 0 = unlimited */
     int    * restrict loop_bounded;        /* active note uses loop_remaining */

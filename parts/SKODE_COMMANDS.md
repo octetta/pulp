@@ -91,7 +91,8 @@ their named build option is enabled.
 | `B` | `[loop]` | `SKODE_OP_WAVE_LOOP` | `wave_loop()`; no argument toggles | base |
 | `BC` | `count` | `SKODE_OP_WAVE_LOOP_COUNT` | Sets bounded one-shot loop repeats; `0` means unlimited | base |
 | `WL` | `wave,start,end` | immediate | `wave_loop_points_set()` | base |
-| `VL` | `[start,end]` | immediate | `voice_loop_points_set()` or `voice_loop_points_reset()` | base |
+| `VS` | `[start,end]` | `SKODE_OP_WAVE_RANGE_SET` | `voice_wave_range_set()` or `voice_wave_range_reset()` | base |
+| `VL` | `[start,end]` | `SKODE_OP_WAVE_LOOP_SET` | `voice_loop_points_set()` or `voice_loop_points_reset()` | base |
 | `c` | `[mode [, depth]]` | `SKODE_OP_PHASE_DISTORTION` | `cz_set()` | `PD` |
 | `C` | `[voice, depth]` | `SKODE_OP_PHASE_MOD` | `cmod_set()`; fewer than two args disable modulation | `PD` |
 | `ft` | `attack, decay, sustain, release` | `SKODE_OP_FILTER_ENVELOPE` | Configures the filter envelope for its next trigger | `FILT`, `FADSR` |
@@ -135,19 +136,23 @@ configured by `G`.
 delay. It also propagates velocity to voices configured by `H`.
 
 `b`, `B`, `BC`, and `l` have separate playback responsibilities. `b` selects
-direction, `B` configures wrapping, and `BC` configures a bounded number of
-one-shot wraps. Zero is unlimited; a positive count means repeats after the
-initial loop traversal, so `BC1` permits one wrap and two traversals. Positive
-`l` or `T` snapshots the `BC` bound for the new note. `B` remains an immediate
-runtime switch. `l0` releases the envelopes immediately and asks any active
-one-shot loop, bounded or unbounded, to leave the loop at the next boundary in
-the current playback direction.
+direction mode: `b0` forward, `b1` backward, and `b2` ping-pong. `B`
+configures wrapping, and `BC` configures a bounded number of one-shot
+traversals. Zero is unlimited; a positive count means repeats after the initial
+loop traversal, so `BC1` permits one repeat and two traversals. In ping-pong
+mode, each trip from one boundary to the other counts as one traversal.
+Positive `l` or `T` snapshots the `BC` bound for the new note. `B` remains an
+immediate runtime switch. `l0` emits the release lifecycle event and asks any
+active one-shot loop, bounded or unbounded, to leave the loop at the next
+boundary in the current playback direction.
 
 One-shot loop entry always includes the pre-loop segment. Forward playback
 starts at physical sample `0`, plays to `loop_end`, then wraps to `loop_start`.
 Backward playback starts at the physical last sample, plays to `loop_start`,
-then wraps to `loop_end`. `l0` and `BC` exhaustion leave the loop at that same
-directional boundary and play the remaining physical tail.
+then wraps to `loop_end`. Ping-pong playback starts forward, reverses at
+`loop_end`, reverses again at `loop_start`, and repeats. `l0` and `BC`
+exhaustion leave the loop at the next boundary reached by the current leg and
+play the remaining physical tail in that same direction.
 
 `B0` clears active loop runtime state. `B1` immediately starts a fresh active
 loop snapshot from the current `BC` configuration, so stale counted-loop
@@ -158,12 +163,19 @@ remaining state does not carry into a later unbounded loop.
 count. Voices already using that wave receive the updated loop points unless
 they have a voice-level override.
 
+`VS start,end` overrides the selected voice's playable sample range after its
+`w` assignment. `VS` with no arguments resets the selected voice to the full
+current wave range. If narrowing the range would leave inherited loop points
+outside the playable region, the voice loop falls back to the new `VS` range.
+
 `VL start,end` overrides loop points on the selected voice after its `w`
 assignment. `VL` with no arguments clears the override and reapplies the
-current wave's `WL` defaults. Voice display emits `VLstart,end` only for voices
-with active overrides, so saved voice lines stay compact but pasteable. `VL`
-does not enable looping; the voice still needs `B1` or `BC count` for those
-points to affect `l1` playback.
+current wave's `WL` defaults when they fit inside the active `VS` range;
+otherwise it falls back to the active `VS` range. Voice display emits
+`VSstart,end` and `VLstart,end` only for voices with active overrides, so saved
+voice lines stay compact but pasteable. `VS` and `VL` do not enable looping;
+the voice still needs `B1` or `BC count` for those points to affect `l1`
+playback.
 
 Amplitude envelope mode `k1` enables timed one-shot ASR. For non-looping
 one-shots and bounded `BC` one-shot loops, positive `l` schedules the release
@@ -175,10 +187,12 @@ wave tail.
 
 At trigger time, `osc_trigger()` initializes `loop_active`, `loop_bounded`, and
 `loop_remaining`. `osc_next()` consumes wraps in either direction, including
-multiple boundaries crossed by one phase increment. A requested or natural
-exit raises `loop_ended`; the render loop consumes that event to release active
-amplitude and filter envelopes at the exact sample while playback continues
-through the one-shot tail.
+multiple boundaries crossed by one phase increment. Natural bounded-loop
+exhaustion raises `loop_ended`; the render loop consumes that event to publish
+one `VOICE_RELEASE` control-plane event while playback continues through the
+one-shot tail. An explicit `l0` publishes its release event immediately, then
+exits the loop at the next boundary without publishing a duplicate boundary
+release event.
 
 `c` phase-distortion modes are:
 

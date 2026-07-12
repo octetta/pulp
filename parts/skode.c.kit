@@ -1402,7 +1402,8 @@ static void wave_load_apply_smpl_loop(skode_t *ctx, const char *name,
   sw.loop_enabled[wave_index] = 1;
   sw.loop_start[wave_index] = loop.start;
   sw.loop_end[wave_index] = loop.end;
-  sw.direction[wave_index] = loop.type == 2 ? 1.0f : 0.0f;
+  sw.direction[wave_index] = loop.type == 1 ? 2.0f :
+    (loop.type == 2 ? 1.0f : 0.0f);
   ctx->printf(ctx, "# smpl loop %d..%d type:%d play:%d\n",
     loop.start, loop.end, loop.type, loop.play_count);
 }
@@ -2957,12 +2958,13 @@ int skode_function(ands_t *s, int info) {
     @doc(command.b)
     name: b
     category: wave
-    summary: wave-direction bool
+    summary: wave-direction mode
     @enddoc
     case ATOM4('b---'): // wave-direction bool
 @doc
 
-`b [0|1]` set voice waveform playback direction 0=forward, 1=backward
+`b [0|1|2]` set voice waveform playback direction:
+0=forward, 1=backward, 2=ping-pong
 
 @enddoc
       if (argc == 0) { wave_dir(voice, -1); } else { wave_dir(voice, x); } break;
@@ -4775,6 +4777,29 @@ int skode_function(ands_t *s, int info) {
         }
       } else {
         ctx->printf(ctx, "# usage: [skode-command] /ceb type key\n");
+      }
+      break;
+    @doc(command./cex)
+    name: /cex
+    category: events
+    summary: bind external string slot to control event type key
+    @enddoc
+    case ATOM4('/cex'): // bind external string slot to control event type key
+      if (argc > 2 && x_valid) {
+        int index, type, key;
+        char command[STRING_BUF_LEN];
+        if (skode_double_to_int(arg[0], &index) &&
+            skode_double_to_int(arg[1], &type) &&
+            skode_double_to_int(arg[2], &key) &&
+            skode_extra_copy(index, command, sizeof(command)) == 0 &&
+            command[0] != '\0' &&
+            skred_control_response_bind((uint32_t)type, key, command) == 0) {
+          ctx->printf(ctx, "# ce bound %d,%d -> %s\n", type, key, command);
+        } else {
+          ctx->printf(ctx, "# ce binding failed\n");
+        }
+      } else {
+        ctx->printf(ctx, "# usage: /cex external type key\n");
       }
       break;
     @doc(command.<s)

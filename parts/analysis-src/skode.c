@@ -1351,7 +1351,8 @@ static void wave_load_apply_smpl_loop(skode_t *ctx, const char *name,
   sw.loop_enabled[wave_index] = 1;
   sw.loop_start[wave_index] = loop.start;
   sw.loop_end[wave_index] = loop.end;
-  sw.direction[wave_index] = loop.type == 2 ? 1.0f : 0.0f;
+  sw.direction[wave_index] = loop.type == 1 ? 2.0f :
+    (loop.type == 2 ? 1.0f : 0.0f);
   ctx->printf(ctx, "# smpl loop %d..%d type:%d play:%d\n",
     loop.start, loop.end, loop.type, loop.play_count);
 }
@@ -2042,7 +2043,6 @@ int wavetable_show(skode_t *ctx, int n) {
       sw.rate[n], sw.offset_hz[n], sw.midi_note[n], sw.one_shot[n]);
     ctx->printf(ctx, "# loop %d..%d |%d| %gms\n",
       loop_start, loop_end, loop_len, wave_samples_to_ms(loop_len, rate));
-    ctx->printf(ctx, "# display %s\n", skode_wave_display_name());
     ctx->printf(ctx,
       "# min %+0.3f max %+0.3f peak %0.3f rms %0.3f dc %+0.4f zc %d",
       stats.min, stats.max, stats.peak, stats.rms, stats.dc, stats.zero_crossings);
@@ -2360,6 +2360,9 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_QUANTIZE: return 1;
     case SKODE_OP_RECORD_TRACK: return 1;
     case SKODE_OP_SMOOTHER: return 1;
+    case SKODE_OP_WAVE_RANGE_SET:
+    case SKODE_OP_WAVE_LOOP_SET:
+      return 1;
     case SKODE_OP_NONE:
     case SKODE_OP_DELAY:
     default:
@@ -2625,6 +2628,26 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         return delay_params_set(bus, coarse, fine, feedback, mod_freq,
           mod_depth, level);
       }
+    case SKODE_OP_WAVE_RANGE_SET:
+      if (opcode->argc == 2) {
+        voice_wave_range_set(voice, opcode->arg[0], opcode->arg[1]);
+        return 0;
+      }
+      if (opcode->argc == 0) {
+        voice_wave_range_reset(voice);
+        return 0;
+      }
+      return -1;
+    case SKODE_OP_WAVE_LOOP_SET:
+      if (opcode->argc == 2) {
+        voice_loop_points_set(voice, opcode->arg[0], opcode->arg[1]);
+        return 0;
+      }
+      if (opcode->argc == 0) {
+        voice_loop_points_reset(voice);
+        return 0;
+      }
+      return -1;
     case SKODE_OP_NONE:
     case SKODE_OP_DELAY:
     case SKODE_OP_VOICE:
@@ -3153,6 +3176,7 @@ int skode_function(ands_t *s, int info) {
         if (target_voice >= 0 && target_voice < synth_config.voice_max) {
           int wave = sv.wave_table_index[target_voice];
           if (skode_wave_valid(wave)) {
+            ctx->printf(ctx, "# wave [%d..%d)\n", sv.wave_range_start[target_voice], sv.wave_range_end[target_voice]);
             char label[96];
             snprintf(label, sizeof(label),
               "voice %d wave %d voice-loop [%d..%d) override %d",
@@ -3745,6 +3769,24 @@ int skode_function(ands_t *s, int info) {
         }
       } else {
         ctx->printf(ctx, "# usage: [skode-command] /ceb type key\n");
+      }
+      break;
+    case ATOM4('/cex'): // bind external string slot to control event type key
+      if (argc > 2 && x_valid) {
+        int index, type, key;
+        char command[STRING_BUF_LEN];
+        if (skode_double_to_int(arg[0], &index) &&
+            skode_double_to_int(arg[1], &type) &&
+            skode_double_to_int(arg[2], &key) &&
+            skode_extra_copy(index, command, sizeof(command)) == 0 &&
+            command[0] != '\0' &&
+            skred_control_response_bind((uint32_t)type, key, command) == 0) {
+          ctx->printf(ctx, "# ce bound %d,%d -> %s\n", type, key, command);
+        } else {
+          ctx->printf(ctx, "# ce binding failed\n");
+        }
+      } else {
+        ctx->printf(ctx, "# usage: /cex external type key\n");
       }
       break;
     case ATOM4('<s--'): // parser-local string slot to parser string

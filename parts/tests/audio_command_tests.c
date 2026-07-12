@@ -23,12 +23,18 @@ int main(void) {
          "/a? did not report stopped state");
   expect(strstr(skred_audio_message(), "channels:") != NULL,
          "/a? did not report channel metrics");
-  expect(strstr(skred_audio_message(), "callback-frames:") != NULL,
+  expect(strstr(skred_audio_message(), "requested-callback-frames:") != NULL,
          "/a? did not report callback frame metrics");
+  expect(strstr(skred_audio_message(), "device-buffer:") != NULL,
+         "/a? did not report effective device buffer metrics");
   expect(strstr(skred_audio_message(), "delay:") != NULL,
          "/a? did not report delay status");
   expect(strstr(skred_audio_message(), "perf:") != NULL,
          "/a? did not report performance metrics");
+  expect(strstr(skred_audio_message(), "suspected-glitches:") != NULL,
+         "/a? did not report suspected glitch metrics");
+  expect(strstr(skred_audio_message(), "clipped-samples") != NULL,
+         "/a? did not report output integrity metrics");
 
   skred_performance_metrics_t metrics;
   expect(skred_performance_metrics(&metrics) == 0,

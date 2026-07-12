@@ -3,6 +3,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -760,6 +761,15 @@ static atomic_uint64_t perf_callback_budget_ns_total;
 static atomic_uint64_t perf_callback_budget_ns_last;
 static atomic_uint64_t perf_callback_budget_ns_worst;
 static atomic_uint64_t perf_callback_overruns;
+static atomic_uint64_t perf_callback_late_starts;
+static atomic_uint64_t perf_callback_late_ns_worst;
+static atomic_uint64_t perf_output_discontinuities;
+static atomic_uint64_t perf_output_clipped_samples;
+static atomic_uint64_t perf_output_nonfinite_samples;
+static atomic_uint64_t perf_device_reroutes;
+static atomic_uint64_t perf_device_interruptions;
+static atomic_uint64_t perf_callback_begin_ns;
+static atomic_uint64_t perf_callback_expected_ns;
 static atomic_uint64_t perf_callback_frames_last;
 static atomic_uint64_t perf_callback_frames_worst;
 static char perf_status[1024];
@@ -775,6 +785,15 @@ void skred_performance_reset(void) {
   atomic_store_uint64(&perf_callback_budget_ns_last, 0);
   atomic_store_uint64(&perf_callback_budget_ns_worst, 0);
   atomic_store_uint64(&perf_callback_overruns, 0);
+  atomic_store_uint64(&perf_callback_late_starts, 0);
+  atomic_store_uint64(&perf_callback_late_ns_worst, 0);
+  atomic_store_uint64(&perf_output_discontinuities, 0);
+  atomic_store_uint64(&perf_output_clipped_samples, 0);
+  atomic_store_uint64(&perf_output_nonfinite_samples, 0);
+  atomic_store_uint64(&perf_device_reroutes, 0);
+  atomic_store_uint64(&perf_device_interruptions, 0);
+  atomic_store_uint64(&perf_callback_begin_ns, 0);
+  atomic_store_uint64(&perf_callback_expected_ns, 0);
   atomic_store_uint64(&perf_callback_frames_last, 0);
   atomic_store_uint64(&perf_callback_frames_worst, 0);
 }
@@ -794,6 +813,13 @@ int skred_performance_metrics(skred_performance_metrics_t *out) {
   out->callback_budget_ns_worst =
     atomic_load_uint64(&perf_callback_budget_ns_worst);
   out->callback_overruns = atomic_load_uint64(&perf_callback_overruns);
+  out->callback_late_starts = atomic_load_uint64(&perf_callback_late_starts);
+  out->callback_late_ns_worst = atomic_load_uint64(&perf_callback_late_ns_worst);
+  out->output_discontinuities = atomic_load_uint64(&perf_output_discontinuities);
+  out->output_clipped_samples = atomic_load_uint64(&perf_output_clipped_samples);
+  out->output_nonfinite_samples = atomic_load_uint64(&perf_output_nonfinite_samples);
+  out->device_reroutes = atomic_load_uint64(&perf_device_reroutes);
+  out->device_interruptions = atomic_load_uint64(&perf_device_interruptions);
   out->callback_frames_last =
     (uint32_t)atomic_load_uint64(&perf_callback_frames_last);
   out->callback_frames_worst =
@@ -824,6 +850,8 @@ char *skred_performance_status(void) {
            "  callbacks: %llu frames: %llu samples: %llu overruns: %llu\n"
            "  callback-ms: last %.3f avg %.3f worst %.3f budget %.3f worst-budget %.3f\n"
            "  callback-load: last %.1f%% avg %.1f%% worst %.1f%%\n"
+           "  suspected-glitches: late-starts %llu worst-late-ms %.3f discontinuities %llu\n"
+           "  output: clipped-samples %llu nonfinite-samples %llu reroutes %llu interruptions %llu\n"
            "  callback-frames: last %u worst %u",
            (unsigned long long)m.callbacks,
            (unsigned long long)m.frames,
@@ -831,6 +859,13 @@ char *skred_performance_status(void) {
            (unsigned long long)m.callback_overruns,
            last_ms, avg_ms, worst_ms, budget_ms, worst_budget_ms,
            last_load, avg_load, worst_load,
+           (unsigned long long)m.callback_late_starts,
+           (double)m.callback_late_ns_worst / 1000000.0,
+           (unsigned long long)m.output_discontinuities,
+           (unsigned long long)m.output_clipped_samples,
+           (unsigned long long)m.output_nonfinite_samples,
+           (unsigned long long)m.device_reroutes,
+           (unsigned long long)m.device_interruptions,
            m.callback_frames_last, m.callback_frames_worst);
   return perf_status;
 }
@@ -937,10 +972,71 @@ char *skred_thread_status(void) {
   return thread_status;
 }
 
-static struct timespec perf_callback_begin(void) {
+static struct timespec perf_callback_begin(ma_device *device,
+    ma_uint32 frame_count) {
   struct timespec start;
   clock_gettime(BENCH_CLOCK, &start);
+  uint64_t now_ns = (uint64_t)start.tv_sec * 1000000000ULL +
+                    (uint64_t)start.tv_nsec;
+  uint64_t previous_ns = atomic_load_uint64(&perf_callback_begin_ns);
+  uint64_t expected_ns = atomic_load_uint64(&perf_callback_expected_ns);
+  if (previous_ns && expected_ns && now_ns > previous_ns) {
+    uint64_t interval_ns = now_ns - previous_ns;
+    uint64_t tolerance_ns = expected_ns / 2;
+    if (tolerance_ns < 1000000ULL) tolerance_ns = 1000000ULL;
+    if (interval_ns > expected_ns + tolerance_ns) {
+      uint64_t late_ns = interval_ns - expected_ns;
+      uint64_t worst_ns = atomic_load_uint64(&perf_callback_late_ns_worst);
+      atomic_fetch_add_uint64(&perf_callback_late_starts, 1);
+      if (late_ns > worst_ns)
+        atomic_store_uint64(&perf_callback_late_ns_worst, late_ns);
+    }
+  }
+  uint32_t sample_rate = device && device->sampleRate
+    ? device->sampleRate : (uint32_t)MAIN_SAMPLE_RATE;
+  uint64_t next_expected_ns = sample_rate
+    ? ((uint64_t)frame_count * 1000000000ULL) / sample_rate : 0;
+  atomic_store_uint64(&perf_callback_begin_ns, now_ns);
+  atomic_store_uint64(&perf_callback_expected_ns, next_expected_ns);
   return start;
+}
+
+static void perf_inspect_output(float *output, ma_uint32 frame_count,
+    ma_uint32 channels) {
+  static float previous[2];
+  static int previous_valid = 0;
+  if (!output || frame_count == 0 || channels == 0) return;
+
+  int discontinuity = 0;
+  ma_uint32 inspected_channels = channels < 2 ? channels : 2;
+  if (previous_valid) {
+    for (ma_uint32 channel = 0; channel < inspected_channels; channel++) {
+      float first = output[channel];
+      if (isfinite(first) && fabsf(first - previous[channel]) > 0.5f)
+        discontinuity = 1;
+    }
+  }
+
+  uint64_t clipped = 0;
+  uint64_t nonfinite = 0;
+  size_t samples = (size_t)frame_count * channels;
+  for (size_t i = 0; i < samples; i++) {
+    if (!isfinite(output[i])) {
+      output[i] = 0.0f;
+      nonfinite++;
+    } else if (fabsf(output[i]) > 1.0f) {
+      clipped++;
+    }
+  }
+  size_t last = (size_t)(frame_count - 1) * channels;
+  for (ma_uint32 channel = 0; channel < inspected_channels; channel++)
+    previous[channel] = output[last + channel];
+  previous_valid = 1;
+
+  if (discontinuity) atomic_fetch_add_uint64(&perf_output_discontinuities, 1);
+  if (clipped) atomic_fetch_add_uint64(&perf_output_clipped_samples, clipped);
+  if (nonfinite)
+    atomic_fetch_add_uint64(&perf_output_nonfinite_samples, nonfinite);
 }
 
 static void perf_callback_end(const struct timespec *start,
@@ -999,7 +1095,7 @@ static void pattern_cb(int pattern, int step, const event_program_t *program) {
 }
 
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
-  struct timespec perf_start = perf_callback_begin();
+  struct timespec perf_start = perf_callback_begin(pDevice, frame_count);
   static int traced_callback = 0;
   if (!traced_callback && skred_env_enabled("SKRED_TRACE_CALLBACK")) {
     traced_callback = 1;
@@ -1049,6 +1145,7 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
   if (scope_bus && capture_bus)
     scope_ipc_publish(capture_bus->frames, (int)frame_count);
   recorder_end_block((int)frame_count);
+  perf_inspect_output((float *)output, frame_count, pDevice->playback.channels);
   perf_callback_end(&perf_start, pDevice, frame_count);
 }
 
@@ -1110,6 +1207,14 @@ static char active_input[SKRED_AUDIO_NAME_MAX] = "off";
 static char active_output[SKRED_AUDIO_NAME_MAX] = "stopped";
 static char audio_status[2048];
 static char audio_message[SKRED_AUDIO_MESSAGE_MAX];
+
+static void audio_device_notification(const ma_device_notification *notification) {
+  if (!notification) return;
+  if (notification->type == ma_device_notification_type_rerouted)
+    atomic_fetch_add_uint64(&perf_device_reroutes, 1);
+  else if (notification->type == ma_device_notification_type_interruption_began)
+    atomic_fetch_add_uint64(&perf_device_interruptions, 1);
+}
 
 static void audio_copy_name(char *dst, size_t dst_size, const char *src) {
   if (!dst || dst_size == 0) return;
@@ -1249,6 +1354,7 @@ static int audio_init_selected_device(unsigned int sample_rate) {
   config.capture.channels = AUDIO_CHANNELS;
   config.sampleRate = sample_rate;
   config.dataCallback = synth_callback;
+  config.notificationCallback = audio_device_notification;
   config.periodSizeInFrames = requested_synth_frames_per_callback;
   config.pUserData = NULL;
 
@@ -1339,6 +1445,13 @@ char *skred_audio_status(void) {
       ? synth_device.capture.channels : 0;
   unsigned int sample_rate = device_initialized
     ? synth_device.sampleRate : (unsigned int)synth_sample_rate_get();
+  unsigned int period_frames = device_initialized
+    ? synth_device.playback.internalPeriodSizeInFrames : 0;
+  unsigned int periods = device_initialized
+    ? synth_device.playback.internalPeriods : 0;
+  unsigned int buffer_frames = period_frames * periods;
+  double buffer_ms = sample_rate
+    ? (double)buffer_frames * 1000.0 / (double)sample_rate : 0.0;
   unsigned int output_pairs = output_channels / AUDIO_CHANNELS;
   unsigned int skred_pairs = RECORD_TRACK_COUNT;
   unsigned int stem_pairs = output_pairs > 0 ? output_pairs - 1 : 0;
@@ -1353,7 +1466,8 @@ char *skred_audio_status(void) {
            "in: [%s]\n"
            "  requested: [%s]\n"
            "  channels: %u\n"
-           "rate: %u callback-frames: %d\n"
+           "rate: %u requested-callback-frames: %d\n"
+           "device-buffer: period-frames %u periods %u total-frames %u %.3fms\n"
            "%s"
            "%s",
            running ? "running" : "stopped",
@@ -1363,6 +1477,7 @@ char *skred_audio_status(void) {
            , active_input, selected_input.name,
            input_channels,
            sample_rate, requested_synth_frames_per_callback,
+           period_frames, periods, buffer_frames, buffer_ms,
            delay_status(),
            skred_performance_status());
   return audio_status;

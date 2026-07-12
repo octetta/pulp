@@ -67,6 +67,13 @@ typedef struct skred_performance_metrics {
   uint64_t callback_budget_ns_last;
   uint64_t callback_budget_ns_worst;
   uint64_t callback_overruns;
+  uint64_t callback_late_starts;
+  uint64_t callback_late_ns_worst;
+  uint64_t output_discontinuities;
+  uint64_t output_clipped_samples;
+  uint64_t output_nonfinite_samples;
+  uint64_t device_reroutes;
+  uint64_t device_interruptions;
   uint32_t callback_frames_last;
   uint32_t callback_frames_worst;
 } skred_performance_metrics_t;

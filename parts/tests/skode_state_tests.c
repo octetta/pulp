@@ -771,7 +771,7 @@ static void test_wave_loop_points(void) {
                 "wave display includes one-shot state");
   expect_substr(test, ctx.log, "loop 3..8 |5|",
                 "wave display includes loop points");
-  expect_substr(test, ctx.log, "# loop marker [3..8)",
+  expect_substr(test, ctx.log, "loop [3..8)",
                 "wave display includes loop marker legend");
   expect_substr(test, ctx.log, "baseline",
                 "wave display includes baseline duration");
@@ -810,7 +810,7 @@ static void test_wave_loop_points(void) {
   consume(test, &ctx, "VW8,2");
   expect_substr(test, ctx.log, "voice 6 wave 300",
                 "VW shows current voice and wave");
-  expect_substr(test, ctx.log, "# loop marker [2..7)",
+  expect_substr(test, ctx.log, "loop [2..7)",
                 "VW uses voice loop override markers");
   ctx.log_enable = 0;
 

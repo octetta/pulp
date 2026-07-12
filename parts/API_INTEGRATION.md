@@ -593,7 +593,7 @@ skred_record_stop();
 ```
 
 When built with `SCOPE=1`, SKRED can publish the same 10-channel bus through
-POSIX shared memory:
+POSIX shared memory on Unix-like systems or a named file mapping on Windows:
 
 ```c
 skred_scope_start("skred-scope", 0xffffffffu, 1.0);

@@ -43,6 +43,12 @@ typedef struct {
   int mod_freq;
   int mod_depth;
   int level;
+  float base_frames;
+  float feedback_gain;
+  float lfo_phase_inc;
+  float mod_depth_frames;
+  float stereo_offset_frames;
+  float wet;
 } delay_bus_t;
 
 static delay_bus_t delay_bus[DELAY_BUS_COUNT];
@@ -55,6 +61,7 @@ extern float volume_user;
 extern float volume_final;
 static int voice_invalid(int voice);
 static int wave_invalid(int wave);
+static void delay_cache_params(delay_bus_t *bus);
 @if(RECORD || SCOPE || TRACKS)
 static void synth_track_defaults(void);
 @endif
@@ -95,6 +102,8 @@ void synth_init(int vc) {
 
   volume_set(VOLUME_DEFAULT);
   memset(delay_bus, 0, sizeof(delay_bus));
+  for (int bus = 0; bus < DELAY_BUS_COUNT; bus++)
+    delay_cache_params(&delay_bus[bus]);
   @if(RECORD || SCOPE || TRACKS)
   synth_track_defaults();
   @endif
@@ -247,6 +256,16 @@ static float delay_stereo_offset_frames(const delay_bus_t *bus) {
   return (2.0f + depth * 8.0f) * (float)MAIN_SAMPLE_RATE * 0.001f;
 }
 
+static void delay_cache_params(delay_bus_t *bus) {
+  bus->base_frames = delay_base_ms(bus) * (float)MAIN_SAMPLE_RATE * 0.001f;
+  bus->feedback_gain = delay_feedback_gain(bus);
+  bus->lfo_phase_inc = 2.0f * (float)M_PI * delay_lfo_hz(bus) /
+                       (float)MAIN_SAMPLE_RATE;
+  bus->mod_depth_frames = delay_mod_depth_frames(bus);
+  bus->stereo_offset_frames = delay_stereo_offset_frames(bus);
+  bus->wet = (float)bus->level / 15.0f;
+}
+
 static float delay_read(const delay_bus_t *bus, float delay_frames) {
   if (delay_frames < 1.0f) delay_frames = 1.0f;
   if (delay_frames > (float)(DELAY_MAX_FRAMES - 2))
@@ -262,39 +281,35 @@ static float delay_read(const delay_bus_t *bus, float delay_frames) {
 }
 
 static void delay_process(delay_bus_t *bus, float input, float *left, float *right) {
-  float base_frames = delay_base_ms(bus) * (float)MAIN_SAMPLE_RATE * 0.001f;
   float lfo = 0.0f;
   float mod_frames;
   float delayed_left;
   float delayed_right;
   float delayed_feedback;
   float write_sample;
-  float wet;
   float stereo_offset = 0.0f;
 
   if (bus->mod_depth > 0) {
     lfo = sinf(bus->lfo_phase);
     if (bus->mod_freq > 0) {
-      bus->lfo_phase += 2.0f * (float)M_PI *
-        delay_lfo_hz(bus) / (float)MAIN_SAMPLE_RATE;
+      bus->lfo_phase += bus->lfo_phase_inc;
       if (bus->lfo_phase >= 2.0f * (float)M_PI)
         bus->lfo_phase -= 2.0f * (float)M_PI;
     }
-    stereo_offset = delay_stereo_offset_frames(bus);
+    stereo_offset = bus->stereo_offset_frames;
   }
 
-  mod_frames = lfo * delay_mod_depth_frames(bus);
-  delayed_left = delay_read(bus, base_frames + mod_frames);
-  delayed_right = delay_read(bus, base_frames - mod_frames + stereo_offset);
+  mod_frames = lfo * bus->mod_depth_frames;
+  delayed_left = delay_read(bus, bus->base_frames + mod_frames);
+  delayed_right = delay_read(bus, bus->base_frames - mod_frames + stereo_offset);
   delayed_feedback = (delayed_left + delayed_right) * 0.5f;
-  write_sample = delay_12bit_clip(input + delayed_feedback * delay_feedback_gain(bus));
+  write_sample = delay_12bit_clip(input + delayed_feedback * bus->feedback_gain);
   bus->buffer[bus->write] = write_sample;
   bus->write++;
   if (bus->write >= DELAY_MAX_FRAMES) bus->write = 0;
 
-  wet = (float)bus->level / 15.0f;
-  if (left) *left = delayed_left * wet;
-  if (right) *right = delayed_right * wet;
+  if (left) *left = delayed_left * bus->wet;
+  if (right) *right = delayed_right * bus->wet;
 
   if (fabsf(input) + fabsf(delayed_left) + fabsf(delayed_right) +
       fabsf(write_sample) > 0.0000001f) {
@@ -335,6 +350,7 @@ int delay_params_set(int bus_number, int coarse, int fine, int feedback, int mod
   bus->mod_freq = clampi(mod_freq, 0, 31);
   bus->mod_depth = clampi(mod_depth, 0, 31);
   bus->level = clampi(level, 0, 15);
+  delay_cache_params(bus);
   return 0;
 }
 
@@ -1286,6 +1302,9 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
   @endif
   const int nvoices = synth_voice_count();
   @if(RECORD || SCOPE || TRACKS)
+  float track_gain[RECORD_TRACK_COUNT];
+  for (int track = 1; track <= RECORD_TRACK_MAX; track++)
+    track_gain[track] = synth_track_volume_linear_get(track);
   for (int n = 0; n < nvoices; n++) {
     sv.record[n] = atomic_load_int(&sv.record_pending[n]);
   }
@@ -1589,9 +1608,8 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
       record_frame[1] = sample_right;
       for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
         int channel = track * AUDIO_CHANNELS;
-        float track_gain = synth_track_volume_linear_get(track);
-        record_frame[channel] = record_left[track] * track_gain;
-        record_frame[channel + 1] = record_right[track] * track_gain;
+        record_frame[channel] = record_left[track] * track_gain[track];
+        record_frame[channel + 1] = record_right[track] * track_gain[track];
       }
     }
     @endif
@@ -1607,9 +1625,8 @@ void synth(float *buffer, float *input, int num_frames, int num_channels, void *
     for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
       int channel = track * AUDIO_CHANNELS;
       if (channel + 1 >= num_channels) break;
-      float track_gain = synth_track_volume_linear_get(track);
-      output_frame[channel] = record_left[track] * track_gain;
-      output_frame[channel + 1] = record_right[track] * track_gain;
+      output_frame[channel] = record_left[track] * track_gain[track];
+      output_frame[channel + 1] = record_right[track] * track_gain[track];
     }
     @endif
   }

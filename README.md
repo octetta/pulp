@@ -62,8 +62,9 @@ BENCH  # internal benchmark measurements
 The standard `maxed` target enables the features listed in
 `MAXED_KIT_OPTS` in `parts/Makefile`. `XM` is available to custom `KIT_OPTS`
 builds but is not enabled by that preset. `SCOPE` publishes the master and
-four stereo stems through a versioned POSIX shared-memory ring for external
-visualizers. The current scope transport is available on POSIX systems.
+four stereo stems through a versioned shared-memory ring for external
+visualizers. It uses POSIX shared memory on Unix-like systems and a
+`Local\\` named file mapping on Windows.
 
 ## Native Build
 

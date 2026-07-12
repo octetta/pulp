@@ -54,6 +54,7 @@ float volume_get(void);
 extern float volume_user;
 extern float volume_final;
 static int voice_invalid(int voice);
+static int wave_invalid(int wave);
 @if(RECORD || SCOPE || TRACKS)
 static void synth_track_defaults(void);
 @endif
@@ -895,7 +896,7 @@ int voice_loop_points_set(int voice, int start, int end) {
 int voice_loop_points_reset(int voice) {
   if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
   int wave = sv.wave_table_index[voice];
-  if (wave < 0 || wave >= WAVE_TABLE_MAX || !sw.data[wave])
+  if (wave_invalid(wave) || !sw.data[wave])
     return SYNTH_INVALID_VOICE;
   voice_loop_points_apply_default(voice, sw.loop_start[wave], sw.loop_end[wave]);
   sv.loop_override[voice] = 0;
@@ -903,7 +904,7 @@ int voice_loop_points_reset(int voice) {
 }
 
 int wave_loop_points_set(int wave, int start, int end) {
-  if (wave < 0 || wave >= WAVE_TABLE_MAX || !sw.data[wave] ||
+  if (wave_invalid(wave) || !sw.data[wave] ||
       sw.size[wave] < 2 || start < 0 || end <= start ||
       end > sw.size[wave]) {
     return -1;
@@ -1649,6 +1650,11 @@ static int voice_invalid(int voice) {
   return 0;
 }
 
+static int wave_invalid(int wave) {
+  if (wave < 0 || wave >= synth_config.wave_table_max) return 1;
+  return 0;
+}
+
 
 static void freq_to_note_cents(float freq, float *note, float *cents) {
   double n_float = 12.0 * log2(freq / 440.0) + 69.0;
@@ -1987,7 +1993,7 @@ int pan_mod_set(int voice, int o, float f, float a) {
 
 int wave_set(int voice, int wave) {
   if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
-  if (wave >= 0 && wave < WAVE_TABLE_MAX) {
+  if (!wave_invalid(wave)) {
     osc_set_wave_table_index(voice, wave);
   } else return 100; // <-- more LAZY!!! ERR_INVALID_WAVE;
   return 0;
@@ -2503,7 +2509,7 @@ void normalize_preserve_zero(float *data, int length) {
 void wave_table_init(int flag) {
   (void)flag;
 
-  for (int i = 0 ; i < WAVE_TABLE_MAX; i++) {
+  for (int i = 0 ; i < synth_config.wave_table_max; i++) {
     sw.data[i] = NULL;
     sw.size[i] = 0;
     sw.is_heap[i] = 0;
@@ -2515,6 +2521,7 @@ void wave_table_init(int flag) {
   uint64_t white_noise;
   audio_rng_init(&white_noise, 1);
   for (int w = WAVE_TABLE_SINE; w <= WAVE_TABLE_KRG16; w++) {
+    if (wave_invalid(w)) continue;
     int size = SIZE_SINE;
     char *name = "?";
     switch (w) {
@@ -2599,6 +2606,7 @@ void wave_table_init(int flag) {
 }
 
 void wave_free_one(int i) {
+  if (wave_invalid(i)) return;
   if (sw.data[i]) {
     if (sw.is_heap[i]) {
       free(sw.data[i]);
@@ -2610,5 +2618,5 @@ void wave_free_one(int i) {
 }
 
 void wave_free(void) {
-  for (int i = 0; i < WAVE_TABLE_MAX; i++) wave_free_one(i);
+  for (int i = 0; i < synth_config.wave_table_max; i++) wave_free_one(i);
 }

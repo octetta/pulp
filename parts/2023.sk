@@ -1,0 +1,86 @@
+[sk/nin-tom.ks]/ks 1 k>d d>r /r100
+[v0l1]x0
+[sk/nin-snare.ks]/ks 1 k>d d>r /r101
+v1a10w101
+[v1l1]x1
+f220
+v0f110
+[v0l1+.75v0l.5]x0
+ds1
+r1
+DL 1 2 0 0 0 31 7 DL? 1
+[v0l1+.75v0l1]x0
+DL 1 7 0 15 0 31 7 DL? 1
+v1 w101 f220 n57,0 a10
+v0f55
+f110
+f220
+f110
+f220
+g1
+f110
+f220
+f55
+f110
+f220
+f440
+f110
+g.5
+f220
+f110
+f220
+f440
+f110
+v1r1ds1
+r2
+DL2 3 0 0 0 15 15 DL?2
+f110
+f440
+f220
+ds.5
+g1
+f110
+f55
+f220
+[v0l1]x2
+[v1l1]x3
+[v0l1+.5v0l1]x2
+[v0l1]x2
+[v1l1+.5v1l1]x3
+[v1l1+.75v1l1]x3
+[v0l1]x4
+[v1l1]x5
+[v0l1+.5v0l1]x4
+[v1l1]x5
+v0f55
+f100
+f110
+f220
+h10
+q3
+h0
+q2
+q1
+J1
+K1000Q10
+K500Q10
+q3
+q0
+ds.5
+ds0
+f110
+ds1
+J2
+K1000
+K200
+J0
+h100
+h50
+J1
+J0
+h0
+r0
+r1
+ds.5
+v0 w100 f110 n45,0 a10 ds0.5 r1 g0.5 # *
+v1 w101 f220 n57,0 a10 ds0.5 r2 g1

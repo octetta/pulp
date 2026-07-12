@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
     <script src="coi-serviceworker.min.js"></script>
@@ -352,13 +353,6 @@ function setSkredVersion(version) {
     });
 }
 
-async function setSkredVersionFallback() {
-    try {
-        const response = await fetch('../VERSION', { cache: 'no-store' });
-        if (response.ok) setSkredVersion((await response.text()).trim());
-    } catch (_) {}
-}
-
 function setSkredVersionFromWasm() {
     if (typeof Module === "undefined" || !Module._skred_version ||
         !Module.UTF8ToString) return false;
@@ -368,7 +362,6 @@ function setSkredVersionFromWasm() {
     return true;
 }
 
-setSkredVersionFallback();
 if (typeof Module !== "undefined") {
     const previousRuntimeInitialized = Module.onRuntimeInitialized;
     Module.onRuntimeInitialized = function() {
@@ -397,141 +390,9 @@ function skredLogString() {
     return ptr ? Module.UTF8ToString(ptr) : "";
 }
 
-function browserYield() {
-    return new Promise(resolve => requestAnimationFrame(resolve));
-}
-
 function wasmHeapU8() {
     return typeof Module !== "undefined" ?
         (Module.HEAPU8 || globalThis.HEAPU8) : null;
-}
-
-function parseSkodeLoadCommand(cmd) {
-    const token = cmd.trim().split(/\s+/)[0] || "";
-    const debug = token.toLowerCase().startsWith("/jl");
-    const prefixLen = debug ? 3 : 2;
-    const rest = token.slice(prefixLen) || cmd.trim().split(/\s+/)[1] || "";
-    const parts = rest.split(",");
-    const fileId = parts[0].replace(/^\/?l?/, "");
-    const verbose = debug || Number(parts[1] || 0) !== 0;
-    if (!/^\d+$/.test(fileId)) return null;
-    return { fileId, verbose, debug };
-}
-
-function parseNamedSkodeLoadCommand(cmd) {
-    const match = cmd.trim().match(/^\[([^\]]+)\]\s*\/ls(?:\s+(-?\d+))?\s*$/i);
-    if (!match) return null;
-    const path = match[1].trim();
-    if (!path || path.toLowerCase().startsWith("file:")) return null;
-    return { path, verbose: Number(match[2] || 0) !== 0 };
-}
-
-function readMountedSkodeFile(path) {
-    const heap = wasmHeapU8();
-    if (typeof Module === "undefined" || !Module._malloc || !Module._free ||
-        !Module._skred_vfs_read_file || !Module._skred_vfs_free_file ||
-        !Module.ccall || !heap) {
-        return null;
-    }
-
-    const dataOut = Module._malloc(4);
-    const sizeOut = Module._malloc(4);
-    if (!dataOut || !sizeOut) {
-        if (dataOut) Module._free(dataOut);
-        if (sizeOut) Module._free(sizeOut);
-        return null;
-    }
-
-    let dataPtr = 0;
-    try {
-        const words = new Uint32Array(heap.buffer);
-        words[dataOut >> 2] = 0;
-        words[sizeOut >> 2] = 0;
-        const ok = Module.ccall(
-            'skred_vfs_read_file',
-            'number',
-            ['string', 'number', 'number'],
-            [path, dataOut, sizeOut]
-        );
-        if (!ok) return null;
-        const freshWords = new Uint32Array(wasmHeapU8().buffer);
-        dataPtr = freshWords[dataOut >> 2];
-        const size = freshWords[sizeOut >> 2];
-        if (!dataPtr) return null;
-        const freshHeap = wasmHeapU8();
-        return new TextDecoder().decode(freshHeap.slice(dataPtr, dataPtr + size));
-    } finally {
-        if (dataPtr) Module._skred_vfs_free_file(dataPtr);
-        Module._free(dataOut);
-        Module._free(sizeOut);
-    }
-}
-
-function readNamedSkodeText(path) {
-    let text = readMountedSkodeFile(path);
-    if (text !== null || path.includes("/") || path.includes("\\")) return text;
-    return readMountedSkodeFile(`sk/${path}`);
-}
-
-async function feedSkodeTextFromBrowser(path, text, verbose) {
-    const lines = text.split(/\r?\n/);
-    printToTerminal(`# js-load ${path} (${lines.length} lines)`, "system");
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        if (verbose)
-            printToTerminal(`${String(i + 1).padStart(3, "0")}: ${line}`, "dim");
-        await browserYield();
-        try {
-            Module.ccall('skred_command', null, ['string'], [line]);
-        } catch (e) {
-            printToTerminal(`# exception on ${i + 1}: ${e}`, "error");
-            return;
-        }
-        const log = skredLogString();
-        if (log !== "") printToTerminal(log, 'info');
-        await browserYield();
-    }
-    printToTerminal(`# js-load ${path} done`, "system");
-}
-
-async function loadSkodeNumberFromBrowser(cmd) {
-    if (!running) {
-        printToTerminal("Error: Engine must be 'boot'ed first.", "error");
-        return;
-    }
-    const request = parseSkodeLoadCommand(cmd);
-    if (!request) {
-        printToTerminal("usage: /l909 or /jl909", "error");
-        return;
-    }
-    const path = `/sk/${request.fileId}.sk`;
-    let text;
-    try {
-        text = Module.FS.readFile(path, { encoding: "utf8" });
-    } catch (e) {
-        printToTerminal(`Error: could not read ${path}`, "error");
-        return;
-    }
-    await feedSkodeTextFromBrowser(path, text, request.verbose);
-}
-
-async function loadNamedSkodeFileFromBrowser(cmd) {
-    if (!running) {
-        printToTerminal("Error: Engine must be 'boot'ed first.", "error");
-        return;
-    }
-    const request = parseNamedSkodeLoadCommand(cmd);
-    if (!request) {
-        sendSkredCommand(cmd);
-        return;
-    }
-    const text = readNamedSkodeText(request.path);
-    if (text === null) {
-        printToTerminal(`Error: could not read ${request.path}`, "error");
-        return;
-    }
-    await feedSkodeTextFromBrowser(request.path, text, request.verbose);
 }
 
 cmdInput.addEventListener('keydown', (e) => {
@@ -581,16 +442,6 @@ function processCommand(cmd) {
         const ptr = Module._skred_audio_message();
         const message = ptr ? Module.UTF8ToString(ptr) : "";
         if (message) printToTerminal(message, 'system');
-        return;
-    }
-
-    if (action.startsWith('/jl') || action === '/l' || /^\/l\d+(?:,.*)?$/.test(action)) {
-        loadSkodeNumberFromBrowser(cmd);
-        return;
-    }
-
-    if (/^\[[^\]]+\]\s*\/ls(?:\s+-?\d+)?\s*$/i.test(cmd.trim())) {
-        loadNamedSkodeFileFromBrowser(cmd);
         return;
     }
 

@@ -362,7 +362,7 @@ static int skode_voice_valid(int voice) {
 }
 
 static int skode_wave_valid(int wave) {
-  return wave >= 0 && wave < WAVE_TABLE_MAX;
+  return wave >= 0 && wave < synth_config.wave_table_max;
 }
 
 static int skode_double_to_int(double value, int *out) {
@@ -742,7 +742,7 @@ static void skode_macros_show(skode_t *ctx, int pasteable) {
 }
 
 static void wave_labels_show(skode_t *ctx) {
-  for (int wave = 0; wave < WAVE_TABLE_MAX; wave++) {
+  for (int wave = 0; wave < synth_config.wave_table_max; wave++) {
     if (!sw.data[wave] || sw.size[wave] <= 0 || sw.readonly[wave])
       continue;
     if (sw.name[wave][0] != '\0')
@@ -1142,8 +1142,12 @@ static int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
     const char *label,
     int verbose) {
   int r = 0;
-  skode_t loader = SKODE_EMPTY();
-  skode_init(&loader);
+  skode_t *loader = (skode_t *)calloc(1, sizeof(*loader));
+  if (!loader) {
+    ctx->printf(ctx, "# cannot allocate patch loader\n");
+    return -1;
+  }
+  skode_init(loader);
   if (text) {
     char line[1024];
     int line_no = 0;
@@ -1159,8 +1163,8 @@ static int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
       memcpy(line, text + start, len);
       line[len] = '\0';
       if (verbose) ctx->printf(ctx, "  %s\n", line);
-      r = skode_consume(line, &loader);
-      if (loader.log_len > 0) ctx->printf(ctx, "%s", loader.log);
+      r = skode_consume(line, loader);
+      if (loader->log_len > 0) ctx->printf(ctx, "%s", loader->log);
       if (r != 0) {
         ctx->printf(ctx, "# error in patch %s:%d status=%d\n",
           label ? label : "(unknown)", line_no, r);
@@ -1171,7 +1175,8 @@ static int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
     ctx->printf(ctx, "# cannot load %s\n", label ? label : "(null)");
     r = -1;
   }
-  skode_free(&loader);
+  skode_free(loader);
+  free(loader);
   return r;
 }
 
@@ -1223,7 +1228,7 @@ extern synth_sample_t sampling;
 int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset) {
   ctx->printf(ctx, "# rec_load(ctx, %d, %d, %g)\n",
     wave_slot, one_shot, offset);
-  if (wave_slot < 0 || wave_slot >= EXT_SAMPLE_999) {
+  if (!skode_wave_valid(wave_slot)) {
     ctx->printf(ctx, "# invalid slot %d\n", wave_slot);
     return -1;
   }
@@ -1286,7 +1291,7 @@ int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset) {
 int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offset) {
   if (ctx == NULL) return 100; // fix todo
   ctx->printf(ctx, "# data_load(ctx, %d, %d, %g, %g)\n", wave_slot, one_shot, rate, offset);
-  if (wave_slot < 0 || wave_slot >= EXT_SAMPLE_999) {
+  if (!skode_wave_valid(wave_slot)) {
     ctx->printf(ctx, "# invalid slot %d\n", wave_slot);
     return -1;
   }
@@ -2020,7 +2025,7 @@ void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_cha
 }
 
 int wavetable_show(skode_t *ctx, int n) {
-  if (n >= 0 && n < WAVE_TABLE_MAX && sw.data[n] && sw.size[n]) {
+  if (skode_wave_valid(n) && sw.data[n] && sw.size[n]) {
     int readonly = sw.readonly[n];
     int refcount = sw.refcount[n];
     int size = sw.size[n];
@@ -3121,7 +3126,7 @@ int skode_function(ands_t *s, int info) {
       skode_copy_string(sv.text[voice], TEXT_MAX, ands_string(ctx->parse));
       break;
     case ATOM4('wt--'): // [name] wave-text-set wave-number
-      if (argc && x >= 0 && x < WAVE_TABLE_MAX) {
+      if (argc && skode_wave_valid(x)) {
         skode_copy_string(sw.name[x], WAVE_NAME_MAX, ands_string(ctx->parse));
       }
       break;
@@ -3366,6 +3371,7 @@ int skode_function(ands_t *s, int info) {
         int w = WAVE_DISPLAY_DEFAULT_WIDTH;
         int h = WAVE_DISPLAY_DEFAULT_HEIGHT;
         int m = 0;
+        int wave_max = synth_config.wave_table_max - 1;
         int show_record_buffer = (arg[0] < 0 || isnan(arg[0]));
         if (show_record_buffer) {
           if (argc > 1) {
@@ -3375,10 +3381,10 @@ int skode_function(ands_t *s, int info) {
             h = wave_display_dim(arg[2], h, WAVE_DISPLAY_MIN_HEIGHT, WAVE_DISPLAY_MAX_HEIGHT);
           }
         } else if (argc == 2) {
-          if (isnan(arg[1])) m = WAVE_TABLE_MAX - 1;
+          if (isnan(arg[1])) m = wave_max;
           else if (!skode_double_to_int(arg[1], &m)) m = x;
           if (m < x) m = x;
-          if (m >= WAVE_TABLE_MAX) m = WAVE_TABLE_MAX - 1;
+          if (m > wave_max) m = wave_max;
         } else if (argc >= 3) {
           w = wave_display_dim(arg[1], w, WAVE_DISPLAY_MIN_WIDTH, WAVE_DISPLAY_MAX_WIDTH);
           h = wave_display_dim(arg[2], h, WAVE_DISPLAY_MIN_HEIGHT, WAVE_DISPLAY_MAX_HEIGHT);
@@ -3417,8 +3423,8 @@ int skode_function(ands_t *s, int info) {
         }
       } else if (argc == 0) {
         int c = 0;
-        ctx->printf(ctx, "# MAX %d\n", WAVE_TABLE_MAX);
-        for (int i=0; i<WAVE_TABLE_MAX; i++) {
+        ctx->printf(ctx, "# MAX %d\n", synth_config.wave_table_max);
+        for (int i=0; i<synth_config.wave_table_max; i++) {
           wavetable_show(ctx, i);
           c++;
         }

@@ -18,6 +18,9 @@ static int failures = 0;
 
 extern int wave_load_string(skode_t *ctx, char *name, int wave_index,
                             int ch, int normalize);
+extern int wave_load(skode_t *ctx, int file_num, int wave_index,
+                     int ch, int normalize);
+extern int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset);
 
 static void fail(const char *test, const char *msg) {
   fprintf(stderr, "FAIL %s: %s\n", test, msg);
@@ -2062,6 +2065,68 @@ static void test_vfs_zip_loads_skode_and_wave_assets(void) {
   chdir(cwd);
 }
 
+static void test_load_909_patch_from_source_assets(void) {
+#ifdef SKRED_TEST_SOURCE_DIR
+  const char *test = "load 909 patch from source assets";
+  char cwd[1024];
+  skode_t ctx = new_ctx();
+
+  if (!getcwd(cwd, sizeof(cwd))) {
+    fail(test, "getcwd failed");
+    return;
+  }
+  if (chdir(SKRED_TEST_SOURCE_DIR) != 0) {
+    fail(test, "chdir source dir failed");
+    return;
+  }
+
+  consume(test, &ctx, "/l909");
+  expect_int(test, sw.size[500] > 0, 1, "909 sample wave loaded");
+  expect_int(test, sw.size[400] > 0, 1, "909 chh wave loaded");
+  expect_int(test, sw.size[401] > 0, 1, "909 kick wave loaded");
+  expect_int(test, sw.size[402] > 0, 1, "909 snare wave loaded");
+
+  chdir(cwd);
+#endif
+}
+
+static void test_909_load_rejects_too_small_wave_table(void) {
+#ifdef SKRED_TEST_SOURCE_DIR
+  const char *test = "909 load rejects too-small wave table";
+  char cwd[1024];
+  skode_t ctx = new_ctx();
+
+  synth_free();
+  synth_config_set_waves(64);
+  synth_init(8);
+  wave_table_init(0);
+  voice_init();
+  seq_init();
+
+  if (!getcwd(cwd, sizeof(cwd))) {
+    fail(test, "getcwd failed");
+    return;
+  }
+  if (chdir(SKRED_TEST_SOURCE_DIR) != 0) {
+    fail(test, "chdir source dir failed");
+    return;
+  }
+
+  reset_log(&ctx);
+  expect_int(test, wave_load(&ctx, 24, 500, 0, 0), -1,
+             "high sample wave load status");
+
+  reset_log(&ctx);
+  expect_int(test, rec_load(&ctx, 400, 0, 0.0f), -1,
+             "high recording wave load status");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "/l909");
+
+  chdir(cwd);
+#endif
+}
+
 static void test_control_composition_primitives(void) {
   const char *test = "control composition primitives";
   skode_t ctx = new_ctx();
@@ -2568,6 +2633,8 @@ int main(void) {
   test_sample_accurate_sequence_boundaries();
   test_silent_voice_fast_path();
   test_control_plane_voice_events();
+  test_load_909_patch_from_source_assets();
+  test_909_load_rejects_too_small_wave_table();
 
   synth_free();
 

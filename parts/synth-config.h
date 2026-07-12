@@ -32,9 +32,9 @@
 #define VOICE_ALIGN_UP(n)        (((n) + VOICE_ALIGN - 1) & ~(VOICE_ALIGN - 1))
 
 /* Defaults match the compile-time constants in synth-types.h.
- * WAVE_TABLE_MAX_DEFAULT must equal the WAVE_TABLE_MAX enum value (1299)
- * because wave_table_init() loops up to WAVE_TABLE_MAX unconditionally.
- * VOICE_MAX_DEFAULT matches the original VOICE_MAX compile-time constant. */
+ * WAVE_TABLE_MAX is the hard cap; the live table size is
+ * synth_config.wave_table_max. VOICE_MAX_DEFAULT matches the original
+ * VOICE_MAX compile-time constant. */
 #define VOICE_MAX_DEFAULT        VOICE_MAX
 #define WAVE_TABLE_MAX_DEFAULT   WAVE_TABLE_MAX
 

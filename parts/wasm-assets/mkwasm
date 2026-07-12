@@ -1,6 +1,9 @@
 #!/bin/bash
+set -euo pipefail
 
 # put a few goodies in the wasm
+rm -rf ../sk-out ../wav-out
+mkdir -p ../sk-out ../wav-out
 cp ../sk/909.sk ../sk-out     # from skred
 cp ../sk/124.sk ../sk-out     # from skred
 cp ../sk/drums-*.ks ../sk-out # from k-synth
@@ -31,6 +34,9 @@ emcc -I. -I.. -I../exp-vfs \
     -s EXPORTED_FUNCTIONS='["_malloc", "_free", "_skred_start", "_skred_command", "_skred_stop", "_skred_features", "_skred_version", "_skred_version_major", "_skred_version_minor", "_skred_version_patch", "_skred_log", "_skred_logger", "_skred_thread_status", "_skred_devices", "_skred_device_idx", "_skred_device_str", "_skred_enumerate_devices", "_skred_set_audio_device", "_skred_audio_refresh", "_skred_audio_select", "_skred_audio_reconnect", "_skred_audio_disconnect", "_skred_audio_running", "_skred_audio_status", "_skred_audio_command", "_skred_audio_message", "_skred_vfs_mount", "_skred_vfs_mount_zip_memory", "_skred_vfs_unmount", "_skred_vfs_shutdown", "_skred_vfs_mode", "_skred_vfs_root", "_skred_vfs_status", "_skred_chdir", "_skred_getcwd", "_skred_vfs_read_file", "_skred_vfs_read_real_file", "_skred_vfs_free_file", "_skred_control_event_poll", "_skred_control_event_snapshot", "_skred_control_event_clear", "_skred_control_event_wait_fd", "_skred_control_event_wait_handle", "_skred_control_event_wait", "_skred_control_event_reset", "_skred_control_event_dropped", "_skred_control_response_bind", "_skred_control_response_remove", "_skred_control_response_clear", "_skred_control_response_set_enabled", "_skred_control_response_enabled", "_skred_control_response_poll", "_skred_control_response_status", "_skred_control_dispatch_start", "_skred_control_dispatch_stop", "_skred_control_dispatch_running", "_skred_control_dispatch_pump", "_skred_foreign_function_bind", "_skred_foreign_function_clear", "_skred_foreign_function_call", "_skred_scheduled_event_count", "_skred_scheduled_event_snapshot" ]' \
     -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap", "FS", "UTF8ToString", "stringToUTF8" ]' \
     -s FORCE_FILESYSTEM=1 \
+    -s STACK_SIZE=5242880 \
+    -s DEFAULT_PTHREAD_STACK_SIZE=2MB \
+    -Wl,-z,stack-size=5242880 \
     -s ALLOW_MEMORY_GROWTH=1 \
     -s MAXIMUM_MEMORY=4GB \
     -s INITIAL_MEMORY=128MB \

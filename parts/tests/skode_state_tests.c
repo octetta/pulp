@@ -888,6 +888,29 @@ static void test_wave_loop_points(void) {
   expect_int(test, sv.loop_start[voice], 3, "out-of-range VL keeps start");
   expect_int(test, sv.loop_end[voice], 8, "out-of-range VL keeps end");
 
+  ctx.log_enable = 1;
+  ctx.log[0] = '\0';
+  ctx.log_len = 0;
+  consume(test, &ctx, "VL1,9");
+  expect_substr(test, ctx.log, "VL rejected for v6",
+                "out-of-range VL explains rejection");
+  expect_substr(test, ctx.log, "within VS 3..8",
+                "VL rejection includes active voice range");
+
+  consume(test, &ctx,
+          "[BOB] : v6 VS 0 10 VL 8 10 B1 ; BOB");
+  expect_int(test, sv.wave_range_start[voice], 0,
+             "macro updates voice range start");
+  expect_int(test, sv.wave_range_end[voice], 10,
+             "macro updates voice range end");
+  expect_int(test, sv.loop_start[voice], 8,
+             "macro updates voice loop start");
+  expect_int(test, sv.loop_end[voice], 10,
+             "macro updates voice loop end");
+  expect_int(test, sv.loop_enabled[voice], 1,
+             "macro enables voice loop");
+  ctx.log_enable = 0;
+
   wave_reset(voice);
   wave_reset(7);
   sw.data[wave] = NULL;

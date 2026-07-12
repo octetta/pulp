@@ -3161,7 +3161,11 @@ int skode_function(ands_t *s, int info) {
         int start, end;
         if (skode_double_to_int(arg[0], &start) &&
             skode_double_to_int(arg[1], &end)) {
-          voice_wave_range_set(voice, start, end);
+          if (voice_wave_range_set(voice, start, end) != 0) {
+            ctx->printf(ctx,
+              "# VS rejected for v%d: %d..%d must be within 0..%d\n",
+              voice, start, end, sv.table_size[voice]);
+          }
         }
       } else if (argc == 0) {
         voice_wave_range_reset(voice);
@@ -3172,7 +3176,12 @@ int skode_function(ands_t *s, int info) {
         int start, end;
         if (skode_double_to_int(arg[0], &start) &&
             skode_double_to_int(arg[1], &end)) {
-          voice_loop_points_set(voice, start, end);
+          if (voice_loop_points_set(voice, start, end) != 0) {
+            ctx->printf(ctx,
+              "# VL rejected for v%d: %d..%d must be within VS %d..%d\n",
+              voice, start, end, sv.wave_range_start[voice],
+              sv.wave_range_end[voice]);
+          }
         }
       } else if (argc == 0) {
         voice_loop_points_reset(voice);

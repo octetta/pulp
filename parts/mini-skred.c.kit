@@ -15,18 +15,9 @@ void usage(void) {
   exit(1);
 }
 
-static int handle_audio_command(const char *line) {
-  int result = skred_audio_command(line);
-  if (result == 0) return 0;
-  const char *message = skred_audio_message();
-  if (message && message[0]) printf("%s\n", message);
-  return 1;
-}
-
 static int mini_run_command(const char *line) {
   char buf[1024];
   snprintf(buf, sizeof(buf), "%s", line);
-  if (handle_audio_command(buf)) return 0;
   int r = skred_command(buf);
   char *log = skred_log();
   if (strlen(log)) printf("%s", log);

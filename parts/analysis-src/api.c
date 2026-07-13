@@ -1671,6 +1671,19 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
 }
 
 int skred_command(char* line) {
+    /*
+     * Device commands are runtime operations, not schedulable Skode
+     * programs. Route them at the common API boundary and mirror their
+     * response into the ordinary command log. The dedicated audio command
+     * API retains its handled/error return value for hosts that need it;
+     * skred_command() keeps its historical zero-on-command behavior.
+     */
+    int audio_result = skred_audio_command(line);
+    if (audio_result != 0) {
+      skode_log_message(&w, skred_audio_message());
+      return 0;
+    }
+
     // Inject a command directly into the skqueue or seq parser
     // This allows local control without hitting the UDP layer
     int n = skode_consume(line, &w);

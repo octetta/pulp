@@ -149,6 +149,7 @@ char *skode_err_str(int n);
 
 int skode_puts(skode_t *, const char *s);
 int skode_printf(skode_t *, const char *fmt, ...);
+void skode_log_message(skode_t *ctx, const char *message);
 
 int null_puts(const char *s);
 int null_printf(const char *fmt, ...);

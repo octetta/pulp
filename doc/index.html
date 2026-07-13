@@ -432,19 +432,6 @@ function processCommand(cmd) {
     const action = cmd.split(' ')[0].toLowerCase();
     var arg = cmd.split(' ');
 
-    if (["/als", "/aout", "/ain", "/a?"].includes(action)) {
-        if (typeof Module === "undefined" || !Module.ccall ||
-            !Module._skred_audio_message) {
-            printToTerminal("Error: Audio runtime is not ready.", "error");
-            return;
-        }
-        Module.ccall('skred_audio_command', 'number', ['string'], [cmd]);
-        const ptr = Module._skred_audio_message();
-        const message = ptr ? Module.UTF8ToString(ptr) : "";
-        if (message) printToTerminal(message, 'system');
-        return;
-    }
-
     switch(action) {
         case 'boot':
             if (running) {

@@ -252,6 +252,16 @@ int skode_printf(skode_t *ctx, const char *fmt, ...) {
   return 0;
 }
 
+void skode_log_message(skode_t *ctx, const char *message) {
+  if (!ctx) return;
+  skode_log_reset(ctx);
+  if (message && message[0]) {
+    size_t length = strlen(message);
+    ctx->printf(ctx, "%s%s", message,
+      length > 0 && message[length - 1] == '\n' ? "" : "\n");
+  }
+}
+
 int null_puts(const char *s) { (void)s; return 0; }
 int null_printf(const char *fmt, ...) { (void)fmt; return 0; }
 

@@ -72,6 +72,23 @@ int main(void) {
   expect(skred_audio_command("/aout -3") < 0,
          "invalid negative output selection was accepted");
 
+  skred_logger(1);
+  expect(skred_command("/a?") == 0,
+         "skred_command did not preserve successful command semantics");
+  expect(strstr(skred_log(), "audio: stopped") != NULL,
+         "skred_command did not mirror audio status into the Skode log");
+  size_t status_log_length = strlen(skred_log());
+  expect(status_log_length > 0 && skred_log()[status_log_length - 1] == '\n',
+         "mirrored audio status did not end with a newline");
+
+  expect(skred_command("/ain") == 0,
+         "invalid audio command escaped the unified command boundary");
+  expect(strstr(skred_log(), "usage: /ain") != NULL,
+         "audio command error was not mirrored into the Skode log");
+
+  expect(skred_command("log 1") == 0,
+         "non-audio command did not fall through to Skode");
+
   if (failures) {
     fprintf(stderr, "%d audio command test failure(s)\n", failures);
     return 1;

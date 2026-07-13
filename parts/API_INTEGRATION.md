@@ -570,8 +570,11 @@ puts(skred_audio_status());
 Selection values are slots from the latest refresh. `-1` selects the default
 device and `-2` disables capture.
 
-The helper `skred_audio_command()` accepts the same audio-device commands used
-by `mini-skred`, and `skred_audio_message()` returns the latest status string.
+`skred_command()` recognizes `/als`, `/aout`, `/ain`, and `/a?` before passing
+other text to Skode, and mirrors the response into the normal command log. The
+lower-level `skred_audio_command()` helper remains available to hosts that need
+its handled/error return value; `skred_audio_message()` returns its full latest
+status string.
 `skred_audio_status()` and `/a?` include a cheap delay summary showing active
 delay lines, configured sends, and sends currently eligible to feed a routed
 track delay.

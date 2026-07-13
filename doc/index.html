@@ -220,6 +220,65 @@ body {
 .error { color: var(--atari-rust); }
 .info { color: var(--atari-grass); }
 .dim { color: #ffffff; }
+
+.voice-graph-output {
+    margin: 8px 0 14px;
+    padding: 10px;
+    overflow-x: auto;
+    background: rgba(0, 26, 102, 0.5);
+    border: 1px solid rgba(144, 176, 255, 0.55);
+    white-space: normal;
+}
+
+.voice-graph-title {
+    margin-bottom: 8px;
+    color: var(--atari-gold);
+    font-size: 11px;
+}
+
+.voice-graph-output svg {
+    display: block;
+    width: auto;
+    max-width: none;
+    height: auto;
+}
+
+.voice-graph-edge {
+    fill: none;
+    stroke: var(--atari-light);
+    stroke-width: 1.5;
+    opacity: 0.85;
+}
+
+.voice-graph-edge-label {
+    fill: #ffffff;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 6px;
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: var(--atari-dark);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+.voice-graph-node circle {
+    fill: var(--atari-dark);
+    stroke: var(--atari-light);
+    stroke-width: 2;
+}
+
+.voice-graph-node.root circle {
+    fill: #332b00;
+    stroke: var(--atari-gold);
+}
+
+.voice-graph-node text {
+    fill: #ffffff;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
     </style>
 
 </head>
@@ -311,6 +370,7 @@ function usage() {
   printToTerminal("/ain 1 # select input device");
   printToTerminal("/ain off # disable input");
   printToTerminal("/a? # show audio status");
+  printToTerminal("graph (voice) (depth) # draw voice dependencies");
   printToTerminal("learn # open skode tutorial");
   printToTerminal("ksynth # open k-synth tool");
   printToTerminal("load # select a wav file");
@@ -388,6 +448,214 @@ function printToTerminal(text, className = '') {
 function skredLogString() {
     const ptr = Module._skred_log();
     return ptr ? Module.UTF8ToString(ptr) : "";
+}
+
+function parseVoiceGraph(text) {
+    const graph = { version: 0, root: -1, nodes: [], edges: [] };
+    const nodes = new Set();
+    for (const line of text.trim().split(/\r?\n/)) {
+        const field = line.trim().split(/\s+/);
+        switch (field[0]) {
+            case 'skred-voice-graph':
+                graph.version = Number(field[1]);
+                break;
+            case 'root':
+                graph.root = Number(field[1]);
+                nodes.add(graph.root);
+                break;
+            case 'node':
+                nodes.add(Number(field[1]));
+                break;
+            case 'edge': {
+                const edge = {
+                    from: Number(field[1]),
+                    to: Number(field[2]),
+                    type: Number(field[3]),
+                    label: field[4]
+                };
+                graph.edges.push(edge);
+                nodes.add(edge.from);
+                nodes.add(edge.to);
+                break;
+            }
+        }
+    }
+    if (graph.version !== 1 || graph.root < 0)
+        throw new Error('unsupported voice graph response');
+    graph.nodes = Array.from(nodes).sort((a, b) => a - b);
+    return graph;
+}
+
+function voiceGraphLayout(graph) {
+    const level = new Map([[graph.root, 0]]);
+    for (let pass = 0; pass < graph.nodes.length; pass++) {
+        let changed = false;
+        for (const edge of graph.edges) {
+            if (!level.has(edge.from) || level.has(edge.to)) continue;
+            level.set(edge.to, level.get(edge.from) + 1);
+            changed = true;
+        }
+        if (!changed) break;
+    }
+    const knownMax = Math.max(0, ...level.values());
+    for (const voice of graph.nodes)
+        if (!level.has(voice)) level.set(voice, knownMax + 1);
+
+    const columns = new Map();
+    for (const voice of graph.nodes) {
+        const column = level.get(voice);
+        if (!columns.has(column)) columns.set(column, []);
+        columns.get(column).push(voice);
+    }
+    const maxLevel = Math.max(0, ...columns.keys());
+    const maxRows = Math.max(1, ...Array.from(columns.values(), x => x.length));
+    const width = Math.max(150, 80 + maxLevel * 110);
+    const height = Math.max(90, 36 + maxRows * 56);
+    const position = new Map();
+    for (const [column, voices] of columns) {
+        voices.forEach((voice, row) => position.set(voice, {
+            x: maxLevel ? 40 + column * (width - 80) / maxLevel : width / 2,
+            y: (row + 1) * height / (voices.length + 1)
+        }));
+    }
+    return { width, height, position };
+}
+
+function svgElement(name, attributes = {}) {
+    const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+    for (const [key, value] of Object.entries(attributes))
+        element.setAttribute(key, value);
+    return element;
+}
+
+let voiceGraphSequence = 0;
+
+function appendVoiceGraph(graph) {
+    const shouldFollow = outputNearBottom();
+    const layout = voiceGraphLayout(graph);
+    const container = document.createElement('div');
+    container.className = 'voice-graph-output';
+    const title = document.createElement('div');
+    title.className = 'voice-graph-title';
+    title.textContent = `voice graph v${graph.root} · ${graph.nodes.length} nodes · ${graph.edges.length} links`;
+    container.appendChild(title);
+
+    const svg = svgElement('svg', {
+        viewBox: `0 0 ${layout.width} ${layout.height}`,
+        width: layout.width,
+        height: layout.height,
+        role: 'img',
+        'aria-label': `Dependency graph for voice ${graph.root}`
+    });
+    const markerId = `voice-graph-arrow-${++voiceGraphSequence}`;
+    const defs = svgElement('defs');
+    const marker = svgElement('marker', {
+        id: markerId, markerWidth: 6, markerHeight: 6,
+        refX: 5, refY: 3, orient: 'auto', markerUnits: 'strokeWidth'
+    });
+    marker.appendChild(svgElement('path', { d: 'M0,0 L6,3 L0,6 Z', fill: '#90b0ff' }));
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
+    const parallel = new Map();
+    for (const edge of graph.edges) {
+        const key = `${edge.from}:${edge.to}`;
+        if (!parallel.has(key)) parallel.set(key, []);
+        parallel.get(key).push(edge);
+    }
+    const edgeLabels = [];
+    for (const edge of graph.edges) {
+        const from = layout.position.get(edge.from);
+        const to = layout.position.get(edge.to);
+        if (!from || !to) continue;
+        const siblings = parallel.get(`${edge.from}:${edge.to}`);
+        const offset = (siblings.indexOf(edge) - (siblings.length - 1) / 2) * 14;
+        const shortLabel = {
+            'pitch': 'pitch', 'gate': 'gate', 'amp-mod': 'amp',
+            'freq-mod': 'freq', 'pan-mod': 'pan',
+            'phase-mod': 'phase', 'ring-mod': 'ring'
+        };
+        if (edge.from === edge.to) {
+            const spread = 25 + siblings.indexOf(edge) * 8;
+            const path = svgElement('path', {
+                d: `M ${from.x - 10} ${from.y - 15} C ${from.x - spread} ${from.y - spread - 8}, ${from.x + spread} ${from.y - spread - 8}, ${from.x + 10} ${from.y - 15}`,
+                class: 'voice-graph-edge',
+                'marker-end': `url(#${markerId})`
+            });
+            const pathTitle = svgElement('title');
+            pathTitle.textContent = `${edge.label}: v${edge.from} to itself`;
+            path.appendChild(pathTitle);
+            svg.appendChild(path);
+            const label = svgElement('text', {
+                x: from.x, y: from.y - spread - 10,
+                class: 'voice-graph-edge-label'
+            });
+            label.textContent = shortLabel[edge.label] || edge.label;
+            edgeLabels.push(label);
+            continue;
+        }
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const length = Math.hypot(dx, dy) || 1;
+        const nx = -dy / length;
+        const ny = dx / length;
+        const startX = from.x + dx / length * 20;
+        const startY = from.y + dy / length * 20;
+        const endX = to.x - dx / length * 23;
+        const endY = to.y - dy / length * 23;
+        const controlX = (from.x + to.x) / 2 + nx * offset;
+        const controlY = (from.y + to.y) / 2 + ny * offset;
+        const path = svgElement('path', {
+            d: `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`,
+            class: 'voice-graph-edge',
+            'marker-end': `url(#${markerId})`
+        });
+        const pathTitle = svgElement('title');
+        pathTitle.textContent = `${edge.label}: v${edge.from} to v${edge.to}`;
+        path.appendChild(pathTitle);
+        svg.appendChild(path);
+        const label = svgElement('text', {
+            x: controlX, y: controlY - 3, class: 'voice-graph-edge-label'
+        });
+        label.textContent = shortLabel[edge.label] || edge.label;
+        edgeLabels.push(label);
+    }
+
+    for (const voice of graph.nodes) {
+        const point = layout.position.get(voice);
+        const node = svgElement('g', {
+            class: `voice-graph-node${voice === graph.root ? ' root' : ''}`,
+            transform: `translate(${point.x} ${point.y})`
+        });
+        node.appendChild(svgElement('circle', { r: 18 }));
+        const label = svgElement('text');
+        label.textContent = `v${voice}`;
+        node.appendChild(label);
+        svg.appendChild(node);
+    }
+    for (const label of edgeLabels) svg.appendChild(label);
+    container.appendChild(svg);
+    output.appendChild(container);
+    if (shouldFollow) output.scrollTop = output.scrollHeight;
+}
+
+function showVoiceGraph(voice, depth) {
+    if (!running) {
+        printToTerminal("Error: Engine must be 'boot'ed first.", 'error');
+        return;
+    }
+    if (!Number.isInteger(voice) || voice < 0 || voice >= nvoices ||
+        !Number.isInteger(depth) || depth < 0) {
+        printToTerminal('Usage: graph [voice [depth]]', 'error');
+        return;
+    }
+    try {
+        const ptr = Module._skred_voice_graph(voice, 1, depth);
+        if (!ptr) throw new Error('voice graph unavailable');
+        appendVoiceGraph(parseVoiceGraph(Module.UTF8ToString(ptr)));
+    } catch (error) {
+        printToTerminal(`Error: ${error.message}`, 'error');
+    }
 }
 
 function wasmHeapU8() {
@@ -490,6 +758,10 @@ function processCommand(cmd) {
             unmountZipBundle();
             break;
         case 'clear': output.innerHTML = ''; break;
+        case 'graph':
+            showVoiceGraph(arg.length > 1 ? Number(arg[1]) : 0,
+                arg.length > 2 ? Number(arg[2]) : 0);
+            break;
         case 'learn':
           window.open('https://octetta.github.io/pulp/doc/learn.html', "_blank");
           break;

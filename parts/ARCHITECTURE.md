@@ -30,6 +30,14 @@ void skred_stop(void);
 inspection, command logging, audio-device selection, runtime service health,
 and optional recording and shared-memory scope control.
 
+The optional voice-pool layer is implemented in `polyphony.c.kit`. It stores
+fixed group layouts, pool allocators, monophonic held-note ledgers, and graph
+formatting buffers. Structural commands run on the control thread. Performance
+commands compile to `SKODE_OP_POLY_NOTE`, `SKODE_OP_POLY_RELEASE`, and
+`SKODE_OP_POLY_BEND`, so allocation and note changes remain bounded and
+allocation-free when executed from the audio event path. Physical voices and
+all ordinary `v` commands remain available underneath the pool layer.
+
 It also exposes a bounded control-plane event ring. Hosts do not register a C
 callback. They use `skred_control_event_poll()` from their own control/UI loop
 to receive notifications such as `SKRED_CONTROL_EVENT_VOICE_TRIGGER`,

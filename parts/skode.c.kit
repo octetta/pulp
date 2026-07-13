@@ -9,6 +9,7 @@
 #include "synth-state.h"
 #include "synth-config.h"
 #include "control-events.h"
+#include "polyphony.h"
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -2556,6 +2557,9 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     @endif
     case SKODE_OP_WAVE_RANGE_SET:
     case SKODE_OP_WAVE_LOOP_SET:
+    case SKODE_OP_POLY_NOTE:
+    case SKODE_OP_POLY_RELEASE:
+    case SKODE_OP_POLY_BEND:
       return 1;
     case SKODE_OP_NONE:
     case SKODE_OP_DELAY:
@@ -2617,6 +2621,30 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
   int x = 0;
   int x_valid = skode_opcode_int(opcode, 0, &x);
   switch ((skode_opcode_t)opcode->code) {
+    case SKODE_OP_POLY_NOTE:
+      {
+        int key;
+        if (opcode->argc < 4 || opcode->argc > 5 || !x_valid ||
+            !skode_opcode_int(opcode, 1, &key)) return -1;
+        return skred_poly_note(x, key, opcode->arg[2], opcode->arg[3],
+          opcode->argc > 4 ? opcode->arg[4] : 0);
+      }
+    case SKODE_OP_POLY_RELEASE:
+      {
+        int key;
+        if (opcode->argc < 2 || opcode->argc > 3 || !x_valid ||
+            !skode_opcode_int(opcode, 1, &key)) return -1;
+        return skred_poly_release(x, key,
+          opcode->argc > 2 ? opcode->arg[2] : 0);
+      }
+    case SKODE_OP_POLY_BEND:
+      {
+        int key;
+        if (opcode->argc < 3 || opcode->argc > 4 || !x_valid ||
+            !skode_opcode_int(opcode, 1, &key)) return -1;
+        return skred_poly_bend(x, key, opcode->arg[2],
+          opcode->argc > 3 ? opcode->arg[3] : 0);
+      }
     case SKODE_OP_AMP:
       return opcode->argc == 1 ? amp_set(voice, opcode->arg[0]) : -1;
     @if(AM)
@@ -2900,6 +2928,113 @@ int skode_function(ands_t *s, int info) {
     ctx->puts(ctx, "");
   }
   switch (atom) {
+    case ATOM4('/pg-'):
+      {
+        int group, source, width, root = 0;
+        if (argc < 3 || argc > 4 ||
+            !skode_double_to_int(arg[0], &group) ||
+            !skode_double_to_int(arg[1], &source) ||
+            !skode_double_to_int(arg[2], &width) ||
+            (argc > 3 && !skode_double_to_int(arg[3], &root)) ||
+            skred_poly_group_set(group, source, width, root) != 0) {
+          ctx->printf(ctx, "# usage: /pg group,source,width[,root-offset]\n");
+        }
+      }
+      break;
+    case ATOM4('/pg!'):
+      if (!x_valid || argc != 1 || skred_poly_group_refresh(x) != 0)
+        ctx->printf(ctx, "# usage: /pg! group\n");
+      break;
+    case ATOM4('/pp-'):
+      {
+        int pool, group, base, count, policy = SKRED_POLY_STEAL_RELEASE_OLDEST;
+        if (argc < 4 || argc > 5 ||
+            !skode_double_to_int(arg[0], &pool) ||
+            !skode_double_to_int(arg[1], &group) ||
+            !skode_double_to_int(arg[2], &base) ||
+            !skode_double_to_int(arg[3], &count) ||
+            (argc > 4 && !skode_double_to_int(arg[4], &policy)) ||
+            skred_poly_pool_set(pool, group, base, count, policy) != 0) {
+          ctx->printf(ctx,
+            "# usage: /pp pool,group,base,count[,steal-policy]\n");
+        }
+      }
+      break;
+    case ATOM4('/pp!'):
+      if (!x_valid || argc != 1 || skred_poly_pool_refresh(x) != 0)
+        ctx->printf(ctx, "# usage: /pp! pool\n");
+      break;
+    case ATOM4('/pm-'):
+      {
+        int pool, mode, priority = SKRED_POLY_PRIORITY_LAST;
+        int articulation = SKRED_POLY_ARTICULATION_RETRIGGER;
+        if (argc < 2 || argc > 4 ||
+            !skode_double_to_int(arg[0], &pool) ||
+            !skode_double_to_int(arg[1], &mode) ||
+            (argc > 2 && !skode_double_to_int(arg[2], &priority)) ||
+            (argc > 3 && !skode_double_to_int(arg[3], &articulation)) ||
+            skred_poly_pool_mode(pool, mode, priority, articulation) != 0) {
+          ctx->printf(ctx,
+            "# usage: /pm pool,mode[,priority[,articulation]]\n");
+        }
+      }
+      break;
+    case ATOM4('?pg-'):
+      ctx->printf(ctx, "%s", skred_poly_group_status(x_valid ? x : -1));
+      break;
+    case ATOM4('?pp-'):
+      ctx->printf(ctx, "%s", skred_poly_pool_status(x_valid ? x : -1));
+      break;
+    case ATOM4('/vg-'):
+      {
+        int graph_voice, format = 0, depth = 0;
+        if (argc < 1 || argc > 3 ||
+            !skode_double_to_int(arg[0], &graph_voice) ||
+            (argc > 1 && !skode_double_to_int(arg[1], &format)) ||
+            (argc > 2 && !skode_double_to_int(arg[2], &depth))) {
+          ctx->printf(ctx, "# usage: /vg voice[,format[,depth]]\n");
+        } else {
+          ctx->printf(ctx, "%s", skred_voice_graph(graph_voice, format, depth));
+        }
+      }
+      break;
+    case ATOM4('pn--'):
+      {
+        int pool, key;
+        int result = -1;
+        if (argc >= 4 && argc <= 5 &&
+            skode_double_to_int(arg[0], &pool) &&
+            skode_double_to_int(arg[1], &key))
+          result = skred_poly_note(pool, key, arg[2], arg[3],
+            argc > 4 ? arg[4] : 0);
+        if (result < 0 || argc < 4 || argc > 5 ||
+            !skode_double_to_int(arg[0], &pool) ||
+            !skode_double_to_int(arg[1], &key))
+          ctx->printf(ctx, "# usage: pn pool,key,note,velocity[,cents]\n");
+        else if (result > 0)
+          ctx->printf(ctx, "# poly pool %d is full (no-steal policy)\n", pool);
+      }
+      break;
+    case ATOM4('pr--'):
+      {
+        int pool, key;
+        if (argc < 2 || argc > 3 ||
+            !skode_double_to_int(arg[0], &pool) ||
+            !skode_double_to_int(arg[1], &key) ||
+            skred_poly_release(pool, key, argc > 2 ? arg[2] : 0) != 0)
+          ctx->printf(ctx, "# usage: pr pool,key[,release-velocity]\n");
+      }
+      break;
+    case ATOM4('pb--'):
+      {
+        int pool, key;
+        if (argc < 3 || argc > 4 ||
+            !skode_double_to_int(arg[0], &pool) ||
+            !skode_double_to_int(arg[1], &key) ||
+            skred_poly_bend(pool, key, arg[2], argc > 3 ? arg[3] : 0) != 0)
+          ctx->printf(ctx, "# usage: pb pool,key,semitones[,cents]\n");
+      }
+      break;
     @doc(command.wait)
     name: wait
     category: parser
@@ -5596,3 +5731,61 @@ void skode_free(skode_t *ctx) {
   }
   @endif
 }
+
+/* Keep this new category after the legacy help records. Numeric help category
+   indices are part of the command interface and must remain stable. */
+@doc(command./pg)
+name: /pg
+category: polyphony
+summary: define voice group group source width [root-offset]
+@enddoc
+@doc(command./pg!)
+name: /pg!
+category: polyphony
+summary: refresh free instances using voice group
+@enddoc
+@doc(command./pp)
+name: /pp
+category: polyphony
+summary: define pool pool group base count [steal-policy]
+@enddoc
+@doc(command./pp!)
+name: /pp!
+category: polyphony
+summary: refresh free instances in pool
+@enddoc
+@doc(command./pm)
+name: /pm
+category: polyphony
+summary: pool mode pool mode [priority [articulation]]
+@enddoc
+@doc(command.?pg)
+name: ?pg
+category: polyphony
+summary: show voice groups
+@enddoc
+@doc(command.?pp)
+name: ?pp
+category: polyphony
+summary: show voice pools and allocations
+@enddoc
+@doc(command./vg)
+name: /vg
+category: polyphony
+summary: voice dependency graph voice [format [depth]]
+@enddoc
+@doc(command.pn)
+name: pn
+category: polyphony
+summary: pool note-on pool key note velocity [cents]
+@enddoc
+@doc(command.pr)
+name: pr
+category: polyphony
+summary: pool note release pool key [release-velocity]
+@enddoc
+@doc(command.pb)
+name: pb
+category: polyphony
+summary: pool pitch bend pool key semitones [cents]
+@enddoc

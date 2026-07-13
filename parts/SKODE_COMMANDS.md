@@ -93,6 +93,9 @@ their named build option is enabled.
 | `WL` | `wave,start,end` | immediate | `wave_loop_points_set()` | base |
 | `VS` | `[start,end]` | `SKODE_OP_WAVE_RANGE_SET` | `voice_wave_range_set()` or `voice_wave_range_reset()` | base |
 | `VL` | `[start,end]` | `SKODE_OP_WAVE_LOOP_SET` | `voice_loop_points_set()` or `voice_loop_points_reset()` | base |
+| `pn` | `pool,key,note,velocity[,cents]` | `SKODE_OP_POLY_NOTE` | Allocates/updates a group instance and applies pitch plus gate | base |
+| `pr` | `pool,key[,release-velocity]` | `SKODE_OP_POLY_RELEASE` | Releases a keyed pool allocation | base |
+| `pb` | `pool,key,semitones[,cents]` | `SKODE_OP_POLY_BEND` | Applies keyed or pool-wide pitch bend | base |
 | `c` | `[mode [, depth]]` | `SKODE_OP_PHASE_DISTORTION` | `cz_set()` | `PD` |
 | `C` | `[voice, depth]` | `SKODE_OP_PHASE_MOD` | `cmod_set()`; fewer than two args disable modulation | `PD` |
 | `ft` | `attack, decay, sustain, release` | `SKODE_OP_FILTER_ENVELOPE` | Configures the filter envelope for its next trigger | `FILT`, `FADSR` |
@@ -127,6 +130,12 @@ their named build option is enabled.
 | `XM` | `voice [, amount]` | `SKODE_OP_RING_MOD` | Sets `sv.ring_osc` and `sv.ring_amount` | `XM` |
 
 ### Notes on Selected Opcodes
+
+`pn`, `pr`, and `pb` operate on pools configured by the immediate `/pg`,
+`/pp`, and `/pm` commands. Their integer note key identifies a lifetime rather
+than a pitch. They are ordinary bounded opcodes, so patterns and queued events
+can use them without parsing text in the audio callback. See
+[POLYPHONY.md](POLYPHONY.md) for allocation and monophonic semantics.
 
 `n` accepts a MIDI note number and optional cents offset. `n-` reuses the
 voice's last MIDI note. `skode_midi_note()` also propagates the note to voices

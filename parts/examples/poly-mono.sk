@@ -1,0 +1,7 @@
+# Last-note-priority legato use of the same two-voice prototype.
+v0 w0 a-12 t.01,.15,.7,.35 N0 G1 H1
+v1 w0 a-20 t.005,.1,.5,.25 N12
+/pg0,0,2,0
+/pp1,0,20,1,0
+/pm1,1,0,1
+# Try: pn1,1,60,.8 pn1,2,67,.6 pr1,2 pr1,1

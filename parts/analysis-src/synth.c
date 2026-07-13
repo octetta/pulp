@@ -2238,6 +2238,10 @@ void voice_reset(int i) {
   sv.glissando_target[i] = 0.0f; // sv.freq[i]; // maybe 0.0f???
   sv.record[i] = 0;
   atomic_store_int(&sv.record_pending[i], 0);
+  sv.cz_mode[i] = 0;
+  sv.cz_mod_osc[i] = -1;
+  sv.cz_mod_depth[i] = 0.0f;
+  sv.cz_distortion[i] = 0.0f;
   sv.text[i][0] = '\0';
 }
 

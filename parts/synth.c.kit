@@ -2429,6 +2429,12 @@ void voice_reset(int i) {
   sv.ring_osc[i] = -1;
   sv.ring_amount[i] = 0.0;
   @endif
+  @if(PD)
+  sv.cz_mode[i] = 0;
+  sv.cz_mod_osc[i] = -1;
+  sv.cz_mod_depth[i] = 0.0f;
+  sv.cz_distortion[i] = 0.0f;
+  @endif
   sv.text[i][0] = '\0';
 }
 

@@ -5,6 +5,9 @@ parameters and what each command does to voices, sounds, patterns, or queued
 events. For implementation details, see
 [SKODE_COMMANDS.md](SKODE_COMMANDS.md).
 
+Voice groups, polyphonic/monophonic pools, allocation policies, and dependency
+graphs have a dedicated guide: [POLYPHONY.md](POLYPHONY.md).
+
 ## Reading Skode
 
 Skode is case-sensitive. Commands may be separated by spaces or written
@@ -64,6 +67,27 @@ most 32 operations.
 | `H voice[,voice...]` | Up to four voice indices | Sends later `l` and `T` envelope triggers to the listed voices. A new `H` replaces the old link list. | Yes |
 | `s amount` | Smoothing amount; `0` disables | Smooths amplitude changes to reduce abrupt level transitions. Requires `SMOOTHER`. | Yes |
 | `vc state` | `0` or nonzero | Disables or enables synth-generated control-plane events for the selected voice. Disabled by default. Voice show commands include `vc1` only when enabled. | No |
+
+## Voice Groups and Polyphony
+
+| Command | Parameters | Effect | Schedulable |
+| --- | --- | --- | --- |
+| `/pg group,source,width[,root]` | Integer group/layout values | Defines a contiguous multi-voice prototype and its root offset. | No |
+| `/pg! group` | Group index | Refreshes free instances in every pool using the group. | No |
+| `/pp pool,group,base,count[,policy]` | Integer pool/layout values | Clones a group into a physical voice pool. Policy defaults to `0`. | No |
+| `/pp! pool` | Pool index | Refreshes the pool's free instances. | No |
+| `/pm pool,mode[,priority[,articulation]]` | Numeric mode values | Selects polyphonic or monophonic behavior. | No |
+| `?pg [group]` | Optional group | Shows copy/pasteable group definitions. | No |
+| `?pp [pool]` | Optional pool | Shows configuration and live allocation state. | No |
+| `pn pool,key,note,velocity[,cents]` | Numeric note identity and performance values | Allocates or updates a group instance and performs note-on. | Yes |
+| `pr pool,key[,release-velocity]` | Numeric note identity | Releases the allocation; unknown/stolen keys are harmless. | Yes |
+| `pb pool,key,semitones[,cents]` | Numeric note identity and bend | Bends one allocation; key `-1` bends the whole pool. | Yes |
+| `/vg voice[,format[,depth]]` | Format `0` ASCII or `1` graph text | Shows the reachable voice dependency graph. | No |
+
+Steal policy values are `0` release-oldest, `1` oldest, `2` round-robin, `3`
+quietest, and `4` no-steal. Pool modes are `0` polyphonic and `1` monophonic;
+`2` is reserved for arpeggiation. See the dedicated guide for mono priority,
+articulation, refresh, cloning, graph protocol, and full examples.
 
 ## Wave Playback
 

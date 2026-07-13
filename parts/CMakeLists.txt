@@ -87,6 +87,7 @@ set(API_KIT_MODULES
     api
     synth
     skode
+    polyphony
     synth-alloc
     seq
 )
@@ -242,6 +243,7 @@ install(TARGETS api api_shared mini-skred
 
 install(FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/api.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/polyphony.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/exp-vfs/skred_vfs.h"
   "${SKRED_VERSION_H}"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/skred"
@@ -295,6 +297,17 @@ target_link_libraries(audio_command_tests PRIVATE api)
 add_test(
   NAME audio.command-routing
   COMMAND audio_command_tests
+)
+
+add_executable(polyphony_tests tests/polyphony_tests.c)
+target_link_libraries(polyphony_tests PRIVATE api)
+if(NOT TRACKS_FEATURE_INDEX EQUAL -1)
+  target_compile_definitions(polyphony_tests PRIVATE SKRED_TEST_TRACKS=1)
+endif()
+
+add_test(
+  NAME polyphony.groups-pools-and-graphs
+  COMMAND polyphony_tests
 )
 
 add_executable(ksynth_bridge_tests tests/ksynth_bridge_tests.c)

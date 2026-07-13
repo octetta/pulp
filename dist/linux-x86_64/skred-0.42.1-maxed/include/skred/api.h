@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "skred-version.h"
 #include "skred_vfs.h"
+#include "polyphony.h"
 
 #ifdef __cplusplus
 extern "C" {

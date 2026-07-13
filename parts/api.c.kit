@@ -26,6 +26,7 @@
 #include "synth-types.h"
 #include "synth.h"
 #include "skode.h"
+#include "polyphony.h"
 #include "portable_atomic.h"
 @if(SEQ)
 #include "seq.h"
@@ -1699,6 +1700,7 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   wave_table_init(0);
   skred_startup_trace("voice_init");
   voice_init();
+  skred_poly_reset();
   @if(SEQ)
   skred_startup_trace("seq_init");
   seq_init();

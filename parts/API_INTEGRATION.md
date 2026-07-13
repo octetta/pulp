@@ -579,6 +579,24 @@ status string.
 delay lines, configured sends, and sends currently eligible to feed a routed
 track delay.
 
+## Voice Groups, Pools, and Graphs
+
+Skode can clone a multi-voice prototype into a fixed pool, allocate it with
+schedulable `pn`/`pr`/`pb` commands, and use the first pool instance in
+monophonic held-note mode. Configuration is available both as `/pg`, `/pp`,
+and `/pm` commands and through the `skred_poly_*` functions declared by
+`api.h`.
+
+Hosts can request either a human ASCII dependency tree or stable graph text:
+
+```c
+puts(skred_voice_graph(0, 0, 0)); /* ASCII */
+puts(skred_voice_graph(0, 1, 0)); /* machine line protocol */
+```
+
+The complete command/API contract, numeric enums, edge protocol, lifecycle
+rules, and examples are in `POLYPHONY.md`.
+
 ## Recording and Scope
 
 When built with `RECORD=1`, SKRED can write a 10-channel float WAV: stereo

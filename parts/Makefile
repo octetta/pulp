@@ -31,6 +31,7 @@ ANALYSIS_SRC_DIR ?= analysis-src
 ANALYSIS_GENERATED = \
 	api.c \
 	mini-skred.c \
+	polyphony.c \
 	recorder.c \
 	recorder.h \
 	seq.c \

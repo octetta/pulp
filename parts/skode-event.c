@@ -13,7 +13,7 @@
   (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(b) << 16) | \
    ((uint32_t)(uint8_t)(c) << 8) | (uint32_t)(uint8_t)(d))
 
-_Static_assert(SKODE_OP_DELAY_PARAMS <= UINT8_MAX,
+_Static_assert(SKODE_OP_POLY_BEND <= UINT8_MAX,
   "Skode opcodes must fit in opcode_event_t.code");
 _Static_assert(SEQ_PROGRAM_OP_MAX <= UINT8_MAX,
   "Compiled program length must fit in event_program_t.count");
@@ -30,7 +30,8 @@ const char *skode_opcode_name(uint8_t opcode) {
     "RECORD_TRACK", "SMOOTHER", "VOICE_RESET", "ENVELOPE", "TRIGGER",
     "WAVE", "VOICE_COPY", "WAVE_DEFAULT", "VARIABLE_SET", "RING_MOD",
     "WAVE_LOOP_COUNT", "CONTROL_EVENT", "DELAY_PARAMS",
-    "WAVE_RANGE_SET", "WAVE_LOOP_SET",
+    "WAVE_RANGE_SET", "WAVE_LOOP_SET", "POLY_NOTE", "POLY_RELEASE",
+    "POLY_BEND",
   };
   return opcode < sizeof(names) / sizeof(names[0]) ?
     names[opcode] : "UNKNOWN";
@@ -283,6 +284,15 @@ static int skode_compile_callback(ands_t *s, int info) {
       break;
     case SKODE_ATOM('V', 'L', '-', '-'):
       opcode = SKODE_OP_WAVE_LOOP_SET; min_argc = 0; max_argc = 2;
+      break;
+    case SKODE_ATOM('p', 'n', '-', '-'):
+      opcode = SKODE_OP_POLY_NOTE; min_argc = 4; max_argc = 5;
+      break;
+    case SKODE_ATOM('p', 'r', '-', '-'):
+      opcode = SKODE_OP_POLY_RELEASE; min_argc = 2; max_argc = 3;
+      break;
+    case SKODE_ATOM('p', 'b', '-', '-'):
+      opcode = SKODE_OP_POLY_BEND; min_argc = 3; max_argc = 4;
       break;
     default:
       compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;

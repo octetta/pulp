@@ -67,6 +67,9 @@ typedef enum {
   SKODE_OP_DELAY_PARAMS,
   SKODE_OP_WAVE_RANGE_SET,
   SKODE_OP_WAVE_LOOP_SET,
+  SKODE_OP_POLY_NOTE,
+  SKODE_OP_POLY_RELEASE,
+  SKODE_OP_POLY_BEND,
 } skode_opcode_t;
 
 typedef enum {

@@ -1748,6 +1748,7 @@ static char _features_[65536] = {0};
 char *skred_features(void) {
 CAT(ADSR)
 CAT(AM)
+CAT(XM)
 CAT(CRUSH)
 CAT(FADSR)
 CAT(FILT)

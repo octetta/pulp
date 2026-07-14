@@ -1372,6 +1372,9 @@ void synth_capture(float *buffer, float *input, int num_frames,
         skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_FINISHED,
           current_sample, n);
       }
+        if (sv.ring_osc[n] >= 0.0) {
+          f *= sv.sample[sv.ring_osc[n]];
+        }
       }
       if (sv.sample_hold_max[n]) {
         if (sv.sample_hold_count[n] == 0) {
@@ -1659,6 +1662,10 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             d_to_s_or_nan(sv.link_midi_2[v]),
             d_to_s_or_nan(sv.link_midi_3[v]));
         }
+    if (verbose
+        || sv.ring_osc[v] >= 0)
+        APPEND(" XM%d,%g",
+          sv.ring_osc[v], sv.ring_amount[v]);
 
     if (verbose
         || (int)sv.link_velo_0[v] >= 0
@@ -2096,6 +2103,8 @@ int voice_copy(int v, int n) {
   float s = sv.filter_envelope[v].s;
   float r = sv.filter_envelope[v].r;
   envelope_init_e(&sv.filter_envelope[n], a, d, s, r);
+  sv.ring_osc[n] = sv.ring_osc[v];
+  sv.ring_amount[n] = sv.ring_amount[v];
   //
   // TODO stuff is missing from here...
   //
@@ -2238,6 +2247,8 @@ void voice_reset(int i) {
   sv.glissando_target[i] = 0.0f; // sv.freq[i]; // maybe 0.0f???
   sv.record[i] = 0;
   atomic_store_int(&sv.record_pending[i], 0);
+  sv.ring_osc[i] = -1;
+  sv.ring_amount[i] = 0.0;
   sv.cz_mode[i] = 0;
   sv.cz_mod_osc[i] = -1;
   sv.cz_mod_depth[i] = 0.0f;

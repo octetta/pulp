@@ -10,6 +10,7 @@
     #include <conio.h>
 #else
     #include <errno.h>
+    #include <sys/ioctl.h>
     #include <sys/select.h>
     #include <termios.h>
     #include <unistd.h>
@@ -67,7 +68,7 @@ static int uedit_raw_enabled = 0;
 static int uedit_atexit_registered = 0;
 static void uedit_disable_raw_mode(void) {
     if (!uedit_raw_enabled) return;
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &uedit_orig_termios);
+    tcsetattr(STDIN_FILENO, TCSANOW, &uedit_orig_termios);
     uedit_raw_enabled = 0;
 }
 static int uedit_enable_raw_mode(void) {
@@ -81,7 +82,7 @@ static int uedit_enable_raw_mode(void) {
     raw.c_lflag &= ~(ECHO | ICANON);
     raw.c_cc[VMIN] = 1;
     raw.c_cc[VTIME] = 0;
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) != 0) return -1;
+    if (tcsetattr(STDIN_FILENO, TCSANOW, &raw) != 0) return -1;
     uedit_raw_enabled = 1;
     return 0;
 }
@@ -150,10 +151,39 @@ static void uedit_cursor_visible(int visible) {
     printf("%s", visible ? "\033[?25h" : "\033[?25l");
 }
 
+static int uedit_term_width(void) {
+#ifdef _WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
+        return csbi.dwSize.X;
+    return 80;
+#else
+    struct winsize ws;
+    if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == 0 && ws.ws_col > 0)
+        return ws.ws_col;
+    return 80;
+#endif
+}
+
+/* Renders a width-limited, horizontally-scrolled window of buf centered
+ * around the cursor, so lines wider than the terminal never wrap onto
+ * multiple rows (which this single-row refresh logic can't track). */
 static void uedit_refresh_line(const char *prompt, const char *buf, int cur) {
+    int width = uedit_term_width();
+    int plen = (int)strlen(prompt);
+    int avail = width - plen - 1; /* leave 1 col margin to avoid edge wrap */
+    if (avail < 1) avail = 1;
+
+    int len = (int)strlen(buf);
+    int start = 0;
+    if (cur > avail) start = cur - avail;
+    if (start > len) start = len;
+    int show = len - start;
+    if (show > avail) show = avail;
+
     uedit_cursor_visible(0);
-    printf("\r\033[K%s%s\r", prompt, buf);
-    int col = (int)strlen(prompt) + cur;
+    printf("\r\033[K%s%.*s\r", prompt, show, buf + start);
+    int col = plen + (cur - start);
     if (col > 0) printf("\033[%dC", col);
     uedit_cursor_visible(1);
     fflush(stdout);

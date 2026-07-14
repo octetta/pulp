@@ -156,6 +156,8 @@ typedef struct {
     float  * restrict amp_mod_depth;
     float  * restrict amp_mod_adder;
 
+    int    * restrict ring_osc;
+    float  * restrict ring_amount;
 
     text_t * restrict text;
 } synth_voices_t;

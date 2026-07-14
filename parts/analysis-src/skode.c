@@ -1173,7 +1173,7 @@ static int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
       if (len >= sizeof(line)) len = sizeof(line) - 1;
       memcpy(line, text + start, len);
       line[len] = '\0';
-      if (verbose) ctx->printf(ctx, "  %s\n", line);
+      if (verbose) ctx->printf(ctx, "# %s # (%d)\n", line, line_no);
       r = skode_consume(line, loader);
       if (loader->log_len > 0) ctx->printf(ctx, "%s", loader->log);
       if (r != 0) {
@@ -2085,6 +2085,10 @@ int wavetable_show(skode_t *ctx, int n) {
   return 0;
 }
 
+#define WTWFS(ms) if ((ms) >= 1000.0f) { \
+  ctx->printf(ctx, " %gs", (ms)/1000.0f); \
+  } else { ctx->printf(ctx, " %gms", (ms)); }
+
 static void wavetable_waveform_show(skode_t *ctx, int wave, int width, int height,
                                     int loop_start, int loop_end,
                                     const char *label) {
@@ -2093,10 +2097,14 @@ static void wavetable_waveform_show(skode_t *ctx, int wave, int width, int heigh
   if (label && label[0]) ctx->printf(ctx, "# %s\n", label);
   print_audio_braille_labeled(ctx, sw.data[wave], sw.size[wave], width, height,
     loop_start, loop_end);
-  ctx->printf(ctx, "# markers start 0 end %d loop [%d..%d) one-shot %d baseline %gms\n",
-    sw.size[wave], loop_start, loop_end, sw.one_shot[wave],
-    wave_samples_to_ms(sw.size[wave],
-      sw.rate[wave] > 0.0f ? sw.rate[wave] : (float)MAIN_SAMPLE_RATE));
+  ctx->printf(ctx, "# wave [0..%d)", sw.size[wave]);
+  double rate = sw.rate[wave] > 0.0f ? sw.rate[wave] : (float)MAIN_SAMPLE_RATE;
+  double ms = wave_samples_to_ms(sw.size[wave], rate);
+  WTWFS(ms);
+  ctx->printf(ctx, "\n# loop [%d..%d)", loop_start, loop_end);
+  double lms = wave_samples_to_ms(loop_end - loop_start, rate);
+  WTWFS(lms);
+  ctx->printf(ctx, "\n");
 }
 
 void wave_table_dynamic_expand(int n) {
@@ -2396,6 +2404,7 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_QUANTIZE: return 1;
     case SKODE_OP_RECORD_TRACK: return 1;
     case SKODE_OP_SMOOTHER: return 1;
+    case SKODE_OP_RING_MOD: return 1;
     case SKODE_OP_WAVE_RANGE_SET:
     case SKODE_OP_WAVE_LOOP_SET:
     case SKODE_OP_POLY_NOTE:
@@ -2691,6 +2700,13 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         return delay_params_set(bus, coarse, fine, feedback, mod_freq,
           mod_depth, level);
       }
+    case SKODE_OP_RING_MOD:
+      if (opcode->argc < 1 || opcode->argc > 2) return -1;
+      sv.ring_osc[voice] =
+        x_valid && skode_voice_valid(x) ? x : -1;
+      sv.ring_amount[voice] =
+        opcode->argc > 1 ? opcode->arg[1] : 0;
+      return 0;
     case SKODE_OP_WAVE_RANGE_SET:
       if (opcode->argc == 2) {
         voice_wave_range_set(voice, opcode->arg[0], opcode->arg[1]);
@@ -3698,6 +3714,13 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('Z?--'): // show all patterns
       ctx->printf(ctx, "M%g\n", tempo_bpm_get());
       for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p, 1);
+      break;
+    case ATOM4('XM--'): // ring modulation osc amount
+      if (argc) {
+        sv.ring_osc[voice] = x_valid && skode_voice_valid(x) ? x : -1;
+        if (argc > 1) sv.ring_amount[voice] = arg[1];
+        else sv.ring_amount[voice] = 0.0;
+      }
       break;
     case ATOM4('v?--'): // show-voice
     case ATOM4('?---'): // show-voice

@@ -9,7 +9,6 @@ extern int synth_sample_rate;
 #define RECORD_TRACK_MAX (4)
 #define RECORD_TRACK_COUNT (RECORD_TRACK_MAX + 1)
 #define RECORD_CHANNELS (RECORD_TRACK_COUNT * AUDIO_CHANNELS)
-#define AMY_FACTOR (0.025f)
 #define SYNTH_FRAMES_PER_CALLBACK (128)
 
 #define NEG_60_DB (-60.0f)
@@ -74,9 +73,6 @@ enum {
   EW_04,
   EW_05,
   EW_99 = 50+99,
-
-  AMY_SAMPLE_00 = 200,    // was 100
-  AMY_SAMPLE_99 = 200+99, // was 199
 
   EXT_SAMPLE_000 = 300,        // was 200
   EXT_SAMPLE_999 = 300 + 999,  // 999

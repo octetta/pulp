@@ -1,0 +1,11 @@
+v1 w0 a-12 N12,0 m1 t0.01,0.3,0.0,0.4 l1     # Modulator: +1 octave, muted
+v0 w0 a0 G1 H1 A1,1.5,0 t0.05,1.2,0.8,2.0
+
+v3 w0 a-12 N12,0 m1 t0.01,0.4,0.0,0.6 l1     # Modulator: +1 octave, muted
+v2 w0 a0 G3 H3 XM3,1.2 t0.05,1.5,0.7,2.5
+
+=0 69
+=1 81
+
+[v2 l0 v0 n$0 l1] x0
+[v0 l0 v2 n$1 l1] x1

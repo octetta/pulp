@@ -139,6 +139,8 @@ static void remap_dependencies(int voice, const poly_group_t *group,
     sv.pan_mod_osc[voice] = remap_voice(sv.pan_mod_osc[voice], group, dest_base);
   if (sv.cz_mod_osc[voice] >= 0)
     sv.cz_mod_osc[voice] = remap_voice(sv.cz_mod_osc[voice], group, dest_base);
+  if (sv.ring_osc[voice] >= 0)
+    sv.ring_osc[voice] = remap_voice(sv.ring_osc[voice], group, dest_base);
 }
 
 static int clone_voice(const poly_group_t *group, int source, int dest,
@@ -691,6 +693,8 @@ static int graph_edges(int voice, graph_edge_t *edge, int max) {
     SKRED_VOICE_EDGE_PAN_MOD, "pan-mod");
   count = graph_add(edge, count, max, sv.cz_mod_osc[voice],
     SKRED_VOICE_EDGE_PHASE_MOD, "phase-mod");
+  count = graph_add(edge, count, max, sv.ring_osc[voice],
+    SKRED_VOICE_EDGE_RING_MOD, "ring-mod");
   return count;
 }
 

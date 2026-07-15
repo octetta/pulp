@@ -79,13 +79,15 @@ typedef enum {
   SKODE_COMPILE_TOO_LARGE,
 } skode_compile_result_t;
 
-#define SKODE_LOG_MAX (4096)
-#define SKODE_LOG_LINES (64)
-#define SKODE_LOG_LINE_MAX (256)
+#define SKODE_LOG_MAX (16384)
+#define SKODE_LOG_LINES (128)
+#define SKODE_LOG_LINE_MAX (1024)
 #define SKODE_EXTRA_MAX (128)
 #define SKODE_COMPILE_DEPTH_MAX (16)
 #define SKODE_STRING_SLOT_MAX (16)
 #define SKODE_STRING_SLOT_LEN (256)
+
+#define SPECTRO_LOG_LINE_BUDGET SKODE_LOG_LINE_MAX - 32
 
 typedef struct skode_s {
   int voice;

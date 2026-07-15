@@ -319,7 +319,7 @@ static void record_tracks_show(skode_t *ctx) {
       if (synth_record_track_get(voice) == track)
         ctx->printf(ctx, " v%d", voice);
     }
-    ctx->printf(ctx, "\n");
+    ctx->puts(ctx, "");
   }
 }
 
@@ -715,7 +715,7 @@ void skode_show(skode_t *ctx) {
       ctx->printf(ctx, " .which=%d", skode_ctx[i]->which);
       ctx->printf(ctx, " .ip=%x", skode_ctx[i]->ip);
       ctx->printf(ctx, " .port=%x", skode_ctx[i]->port);
-      ctx->printf(ctx, "\n");
+      ctx->puts(ctx, "");
     }
   }
 }
@@ -1529,7 +1529,7 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
         seq_mute[pattern_pointer]);
       if (seq_control_events[pattern_pointer]) ctx->printf(ctx, " yc1");
       if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " [%s] yt", seq_text[pattern_pointer]);
-      ctx->printf(ctx, "\n");
+      ctx->puts(ctx, "");
       first = 0;
       if (verbose == 0) break;
     }
@@ -1722,7 +1722,7 @@ static void print_wave_marker_row(skode_t *ctx, int n, int width, int start, int
     }
     if (braille) print_braille_cell(ctx, 0xFF); /* physical end */
     else ctx->printf(ctx, "|");
-    ctx->printf(ctx, "\n");
+    ctx->puts(ctx, "");
 }
 
 static int skode_env_eq(const char *a, const char *b) {
@@ -2052,6 +2052,10 @@ void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_cha
     free(y_peak_max);
 }
 
+#define WTWFS(ms) if ((ms) >= 1000.0f) { \
+  ctx->printf(ctx, " %gsec", (ms)/1000.0f); \
+  } else { ctx->printf(ctx, " %gmsec", (ms)); }
+
 int wavetable_show(skode_t *ctx, int n) {
   if (skode_wave_valid(n) && sw.data[n] && sw.size[n]) {
     int readonly = sw.readonly[n];
@@ -2065,17 +2069,15 @@ int wavetable_show(skode_t *ctx, int n) {
     int loop_len = loop_end - loop_start;
     float rate = sw.rate[n] > 0.0f ? sw.rate[n] : (float)MAIN_SAMPLE_RATE;
     wave_stats_t stats = wave_stats(sw.data[n], size);
-    ctx->printf(ctx, "# w%-3d |%d| %gms",
-      n, size, wave_samples_to_ms(size, rate));
-    if (readonly) ctx->printf(ctx, " R/O");
-    else ctx->printf(ctx, " R/W");
+    ctx->printf(ctx, "# W%d", n);
+    WTWFS(wave_samples_to_ms(size, rate));
+    if (readonly) ctx->printf(ctx, " R/O"); else ctx->printf(ctx, " R/W");
     ctx->printf(ctx, " ref#%d", refcount);
     ctx->printf(ctx, " [%s]", sw.name[n]);
     ctx->puts(ctx, "");
     ctx->printf(ctx, "# playback rate %gHz offset %+gHz MIDI %g one-shot %d\n",
       sw.rate[n], sw.offset_hz[n], sw.midi_note[n], sw.one_shot[n]);
-    ctx->printf(ctx, "# loop %d..%d |%d| %gms\n",
-      loop_start, loop_end, loop_len, wave_samples_to_ms(loop_len, rate));
+    // ctx->printf(ctx, "# loop %d..%d |%d| %gms\n", loop_start, loop_end, loop_len, wave_samples_to_ms(loop_len, rate));
     ctx->printf(ctx,
       "# min %+0.3f max %+0.3f peak %0.3f rms %0.3f dc %+0.4f zc %d",
       stats.min, stats.max, stats.peak, stats.rms, stats.dc, stats.zero_crossings);
@@ -2084,10 +2086,6 @@ int wavetable_show(skode_t *ctx, int n) {
   }
   return 0;
 }
-
-#define WTWFS(ms) if ((ms) >= 1000.0f) { \
-  ctx->printf(ctx, " %gs", (ms)/1000.0f); \
-  } else { ctx->printf(ctx, " %gms", (ms)); }
 
 static void wavetable_waveform_show(skode_t *ctx, int wave, int width, int height,
                                     int loop_start, int loop_end,
@@ -2104,7 +2102,325 @@ static void wavetable_waveform_show(skode_t *ctx, int wave, int width, int heigh
   ctx->printf(ctx, "\n# loop [%d..%d)", loop_start, loop_end);
   double lms = wave_samples_to_ms(loop_end - loop_start, rate);
   WTWFS(lms);
-  ctx->printf(ctx, "\n");
+  ctx->puts(ctx, "");
+}
+
+
+/* Tiny iterative radix-2 Cooley-Tukey FFT, in place. n must be a power of two. */
+typedef struct { float re, im; } spectro_cplx_t;
+
+static void spectro_fft(spectro_cplx_t *buf, int n) {
+    for (int i = 1, j = 0; i < n; i++) {
+        int bit = n >> 1;
+        for (; j & bit; bit >>= 1) j ^= bit;
+        j ^= bit;
+        if (i < j) { spectro_cplx_t tmp = buf[i]; buf[i] = buf[j]; buf[j] = tmp; }
+    }
+    for (int len = 2; len <= n; len <<= 1) {
+        float ang = -6.28318530717958647692f / (float)len;
+        spectro_cplx_t wlen = { cosf(ang), sinf(ang) };
+        for (int i = 0; i < n; i += len) {
+            spectro_cplx_t w = { 1.0f, 0.0f };
+            for (int k = 0; k < len / 2; k++) {
+                spectro_cplx_t u = buf[i + k];
+                spectro_cplx_t t = buf[i + k + len / 2];
+                spectro_cplx_t v = { t.re * w.re - t.im * w.im, t.re * w.im + t.im * w.re };
+                buf[i + k].re         = u.re + v.re;
+                buf[i + k].im         = u.im + v.im;
+                buf[i + k + len/2].re = u.re - v.re;
+                buf[i + k + len/2].im = u.im - v.im;
+                float nwre = w.re * wlen.re - w.im * wlen.im;
+                float nwim = w.re * wlen.im + w.im * wlen.re;
+                w.re = nwre; w.im = nwim;
+            }
+        }
+    }
+}
+
+static int spectro_next_pow2(int x) {
+    int p = 1;
+    while (p < x) p <<= 1;
+    return p;
+}
+
+/* SKRED_SPECTROGRAM_COLOR: "256" (default) -- the 6x6x6 cube is plenty of
+   steps for a heat ramp at glyph size and costs half the bytes of truecolor.
+   "truecolor"/"24bit" opts into full RGB if you want it and can afford the
+   line length. "none"/"mono"/"0" disables color. */
+static int skode_spectrogram_color_mode(void) {
+    const char *mode = getenv("SKRED_SPECTROGRAM_COLOR");
+    if (mode && mode[0]) {
+        if (skode_env_eq(mode, "none") || skode_env_eq(mode, "mono") || skode_env_eq(mode, "0")) return 0;
+        if (skode_env_eq(mode, "256")) return 1;
+        if (skode_env_eq(mode, "truecolor") || skode_env_eq(mode, "24bit") || skode_env_eq(mode, "1")) return 2;
+    }
+    if (getenv("NO_COLOR")) return 0;
+#if SKODE_WINDOWS_BUILD
+    return 0;
+#else
+    return 1;
+#endif
+}
+
+/* Inferno-ish heat ramp: t in [0,1] -> RGB */
+static void spectro_heat_rgb(float t, int *r, int *g, int *b) {
+    static const float stops[5][3] = {
+        {0.0f,   0.0f,   4.0f},
+        {87.0f,  16.0f,  110.0f},
+        {188.0f, 55.0f,  84.0f},
+        {249.0f, 142.0f, 8.0f},
+        {252.0f, 255.0f, 164.0f}
+    };
+    if (t < 0.0f) t = 0.0f;
+    if (t > 1.0f) t = 1.0f;
+    float pos = t * 4.0f;
+    int i0 = (int)pos;
+    if (i0 > 3) i0 = 3;
+    int i1 = i0 + 1;
+    float frac = pos - (float)i0;
+    *r = (int)(stops[i0][0] + (stops[i1][0] - stops[i0][0]) * frac);
+    *g = (int)(stops[i0][1] + (stops[i1][1] - stops[i0][1]) * frac);
+    *b = (int)(stops[i0][2] + (stops[i1][2] - stops[i0][2]) * frac);
+}
+
+static void spectro_reset_color(skode_t *ctx, int mode) {
+    if (mode) ctx->printf(ctx, "\x1b[0m");
+}
+
+/* 4x4 Bayer matrix, used to dither magnitude into on/off dots so the
+   braille cells carry fine texture on top of the per-cell color. */
+static const float spectro_bayer4[4][4] = {
+    { 0.0f/16,  8.0f/16,  2.0f/16, 10.0f/16},
+    {12.0f/16,  4.0f/16, 14.0f/16,  6.0f/16},
+    { 3.0f/16, 11.0f/16,  1.0f/16,  9.0f/16},
+    {15.0f/16,  7.0f/16, 13.0f/16,  5.0f/16}
+};
+
+#define SPECTRO_NOISE_FLOOR_DB -60.0f
+
+/* Conservative worst-case row length in bytes if EVERY cell happened to
+   change color (never actually true after quantization, but cheap and
+   safe to assume for sizing purposes). Set SPECTRO_LOG_LINE_BUDGET to a
+   little under your actual SKODE_LOG_LINE_MAX (see skode.h), or override
+   per-run with SKRED_SPECTROGRAM_LINE_BUDGET, if you want more headroom. */
+#ifndef SPECTRO_LOG_LINE_BUDGET
+#define SPECTRO_LOG_LINE_BUDGET 400
+#endif
+
+static int skode_spectrogram_line_budget(void) {
+    const char *v = getenv("SKRED_SPECTROGRAM_LINE_BUDGET");
+    if (v && v[0]) {
+        int n = atoi(v);
+        if (n > 0) return n;
+    }
+    return SPECTRO_LOG_LINE_BUDGET;
+}
+
+static int spectro_row_worst_case_bytes(int mode, int width, int use_braille) {
+    int glyph_bytes = use_braille ? width * 3 + 2 : width; /* +2 for ':' borders */
+    int per_cell_escape = (mode == 2) ? 20 : (mode == 1 ? 12 : 0); /* "\x1b[38;2;255;255;255m" / "\x1b[38;5;231m" */
+    int color_bytes = mode ? width * per_cell_escape + 4 /* trailing reset */ : 0;
+    return glyph_bytes + color_bytes;
+}
+
+/* Steps color_mode down (2->1->0) until the worst-case row estimate fits
+   the budget. Prints one short note on the way down so a truncated/garbled
+   display isn't a silent mystery. */
+static int spectro_fit_color_mode(skode_t *ctx, int color_mode, int width, int use_braille) {
+    int budget = skode_spectrogram_line_budget();
+    int original = color_mode;
+    while (color_mode > 0 && spectro_row_worst_case_bytes(color_mode, width, use_braille) > budget) {
+        color_mode--;
+    }
+    if (color_mode != original) {
+        ctx->printf(ctx, "# spectrogram: width %d too wide for %s at line budget %d, using %s\n",
+                    width,
+                    original == 2 ? "truecolor" : "256-color",
+                    budget,
+                    color_mode == 1 ? "256-color" : "mono");
+    }
+    return color_mode;
+}
+
+/* Same prototype as wavetable_waveform_show(). loop_start/loop_end are
+   drawn as a marker bar under the plot, same as the waveform view. */
+static void wavetable_spectrogram_show(skode_t *ctx, int wave, int width, int height,
+                                        int loop_start, int loop_end,
+                                        const char *label) {
+    if (!skode_wave_valid(wave) || !sw.data[wave] || sw.size[wave] <= 0) return;
+
+    float *data = sw.data[wave];
+    int n = sw.size[wave];
+    int use_braille = skode_wave_display_use_braille();
+    int color_mode = skode_spectrogram_color_mode();
+    color_mode = spectro_fit_color_mode(ctx, color_mode, width, use_braille);
+
+    wavetable_show(ctx, wave);
+    if (label && label[0]) ctx->printf(ctx, "# %s\n", label);
+
+    if (width <= 0 || height <= 0) return;
+
+    int total_dots_x = use_braille ? width * 2 : width;
+    int total_dots_y = use_braille ? height * 4 : height;
+
+    int fft_size = spectro_next_pow2(total_dots_y * 2);
+    if (fft_size < 64) fft_size = 64;
+    if (fft_size > 4096) fft_size = 4096;
+    int half = fft_size / 2;
+
+    float *win = (float *)malloc((size_t)fft_size * sizeof(float));
+    spectro_cplx_t *buf = (spectro_cplx_t *)malloc((size_t)fft_size * sizeof(spectro_cplx_t));
+    float *mag = (float *)malloc((size_t)total_dots_x * total_dots_y * sizeof(float));
+    if (!win || !buf || !mag) {
+        free(win); free(buf); free(mag);
+        return;
+    }
+
+    for (int i = 0; i < fft_size; i++) {
+        win[i] = 0.5f - 0.5f * cosf(6.28318530717958647692f * i / (fft_size - 1));
+    }
+
+    int hop = total_dots_x > 0 ? n / total_dots_x : n;
+    if (hop < 1) hop = 1;
+
+    float max_mag = 1e-9f;
+    for (int x = 0; x < total_dots_x; x++) {
+        int center = x * hop + hop / 2;
+        int start = center - fft_size / 2;
+        for (int i = 0; i < fft_size; i++) {
+            int idx = start + i;
+            float s = (idx >= 0 && idx < n) ? data[idx] : 0.0f;
+            buf[i].re = s * win[i];
+            buf[i].im = 0.0f;
+        }
+        spectro_fft(buf, fft_size);
+        for (int y = 0; y < total_dots_y; y++) {
+            int bin = (int)(((float)y + 0.5f) * half / total_dots_y);
+            if (bin >= half) bin = half - 1;
+            float re = buf[bin].re, im = buf[bin].im;
+            float m = sqrtf(re * re + im * im);
+            mag[y * total_dots_x + x] = m;
+            if (m > max_mag) max_mag = m;
+        }
+    }
+
+    /* normalize to 0..1 using dB scale against the loudest bin found */
+    for (int i = 0; i < total_dots_x * total_dots_y; i++) {
+        float db = 20.0f * log10f(mag[i] / max_mag + 1e-9f);
+        float t = (db - SPECTRO_NOISE_FLOOR_DB) / (0.0f - SPECTRO_NOISE_FLOOR_DB);
+        if (t < 0.0f) t = 0.0f;
+        if (t > 1.0f) t = 1.0f;
+        mag[i] = t;
+    }
+
+    static const char ascii_ramp[] = " .:-=+*#%@";
+    int ascii_levels = (int)sizeof(ascii_ramp) - 2;
+
+    for (int r = height - 1; r >= 0; r--) {
+        /* Track the last color actually emitted so we only send an escape
+           code on a real change, and reset once at end-of-row instead of
+           after every cell. Emitting set+reset per cell can blow a colored
+           row up to ~10x the byte length of the plain glyphs, which is
+           enough to overrun a fixed-size line buffer in some logging/
+           console layers (they'll force-split or truncate long lines,
+           often mid-escape-sequence, which is what corrupted output looks
+           like). Coalescing keeps escape codes down to one per color
+           transition instead of one per cell. */
+        int last_r = -1, last_g = -1, last_b = -1, last_idx = -1;
+        int row_has_color = 0;
+
+        if (use_braille) ctx->printf(ctx, ":");
+        for (int c = 0; c < width; c++) {
+            if (use_braille) {
+                unsigned int pattern = 0;
+                float cell_sum = 0.0f;
+                int cell_n = 0;
+                for (int dx = 0; dx < 2; dx++) {
+                    int x = c * 2 + dx;
+                    for (int dy = 0; dy < 4; dy++) {
+                        int y = r * 4 + dy;
+                        float level = mag[y * total_dots_x + x];
+                        cell_sum += level;
+                        cell_n++;
+                        float threshold = spectro_bayer4[y % 4][x % 4];
+                        if (level > threshold * 0.6f) {
+                            static const unsigned char masks[2][4] = {
+                                {0x40, 0x04, 0x02, 0x01},
+                                {0x80, 0x20, 0x10, 0x08}
+                            };
+                            pattern |= masks[dx][dy];
+                        }
+                    }
+                }
+                float cell_level = cell_n ? cell_sum / cell_n : 0.0f;
+                if (color_mode && pattern) {
+                    /* Quantize to 20 steps (5% granularity) so visually-flat
+                       regions actually repeat the same RGB triple instead of
+                       drifting by a rounding error every cell -- that's what
+                       lets the "only emit on change" logic above coalesce
+                       runs into one escape code instead of dozens. */
+                    float cell_level_q = roundf(cell_level * 20.0f) / 20.0f;
+                    int r8, g8, b8;
+                    spectro_heat_rgb(cell_level_q, &r8, &g8, &b8);
+                    if (color_mode == 2) {
+                        if (r8 != last_r || g8 != last_g || b8 != last_b) {
+                            ctx->printf(ctx, "\x1b[38;2;%d;%d;%dm", r8, g8, b8);
+                            last_r = r8; last_g = g8; last_b = b8;
+                        }
+                    } else {
+                        int ri = r8 * 5 / 255, gi = g8 * 5 / 255, bi = b8 * 5 / 255;
+                        int idx = 16 + 36 * ri + 6 * gi + bi;
+                        if (idx != last_idx) {
+                            ctx->printf(ctx, "\x1b[38;5;%dm", idx);
+                            last_idx = idx;
+                        }
+                    }
+                    row_has_color = 1;
+                }
+                print_braille_cell(ctx, pattern);
+            } else {
+                float level = mag[r * total_dots_x + c];
+                int idx = (int)(level * ascii_levels + 0.5f);
+                if (idx < 0) idx = 0;
+                if (idx > ascii_levels) idx = ascii_levels;
+                if (color_mode && idx > 0) {
+                    float level_q = roundf(level * 20.0f) / 20.0f;
+                    int r8, g8, b8;
+                    spectro_heat_rgb(level_q, &r8, &g8, &b8);
+                    if (color_mode == 2) {
+                        if (r8 != last_r || g8 != last_g || b8 != last_b) {
+                            ctx->printf(ctx, "\x1b[38;2;%d;%d;%dm", r8, g8, b8);
+                            last_r = r8; last_g = g8; last_b = b8;
+                        }
+                    } else {
+                        int ri = r8 * 5 / 255, gi = g8 * 5 / 255, bi = b8 * 5 / 255;
+                        int cidx = 16 + 36 * ri + 6 * gi + bi;
+                        if (cidx != last_idx) {
+                            ctx->printf(ctx, "\x1b[38;5;%dm", cidx);
+                            last_idx = cidx;
+                        }
+                    }
+                    row_has_color = 1;
+                }
+                ctx->printf(ctx, "%c", ascii_ramp[idx]);
+            }
+        }
+        if (row_has_color) spectro_reset_color(ctx, color_mode);
+        if (use_braille) ctx->printf(ctx, ":");
+        ctx->printf(ctx, "\n");
+    }
+
+    print_wave_marker_row(ctx, n, width, loop_start, loop_end, use_braille);
+
+    free(win);
+    free(buf);
+    free(mag);
+
+    ctx->printf(ctx, "# spectrogram [0..%d) fft=%d", n, fft_size);
+    double rate = sw.rate[wave] > 0.0f ? sw.rate[wave] : (float)MAIN_SAMPLE_RATE;
+    double ms = wave_samples_to_ms(n, rate);
+    WTWFS(ms);
+    ctx->printf(ctx, " floor %gdB\n", SPECTRO_NOISE_FLOOR_DB);
 }
 
 void wave_table_dynamic_expand(int n) {
@@ -3371,12 +3687,9 @@ int skode_function(ands_t *s, int info) {
         if (target_voice >= 0 && target_voice < synth_config.voice_max) {
           int wave = sv.wave_table_index[target_voice];
           if (skode_wave_valid(wave)) {
-            ctx->printf(ctx, "# wave [%d..%d)\n", sv.wave_range_start[target_voice], sv.wave_range_end[target_voice]);
+            // ctx->printf(ctx, "# wave [%d..%d)\n", sv.wave_range_start[target_voice], sv.wave_range_end[target_voice]);
             char label[96];
-            snprintf(label, sizeof(label),
-              "voice %d wave %d voice-loop [%d..%d) override %d",
-              target_voice, wave, sv.loop_start[target_voice],
-              sv.loop_end[target_voice], sv.loop_override[target_voice]);
+            snprintf(label, sizeof(label), "v%d w%d", target_voice, wave);
             wavetable_waveform_show(ctx, wave, w, h,
               sv.loop_start[target_voice], sv.loop_end[target_voice], label);
           }
@@ -3554,6 +3867,13 @@ int skode_function(ands_t *s, int info) {
         if (argc > 1) arg1 = arg[1];
         if (argc > 2) skode_double_to_int(arg[2], &margin);
         record_find_trim(argc, arg0, arg1, margin);
+      }
+      break;
+    case ATOM4('WS--'): // wave-spectro which-wave
+      if (argc && arg[0] >= 0) {
+        int w = WAVE_DISPLAY_DEFAULT_WIDTH;
+        int h = WAVE_DISPLAY_DEFAULT_HEIGHT / 2;
+        wavetable_spectrogram_show(ctx, x, w, h, sw.loop_start[x], sw.loop_end[x], NULL);
       }
       break;
     case ATOM4('W---'): // wave-show which-wave

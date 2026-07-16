@@ -23,6 +23,7 @@ emcc -I. -I.. -I../exp-vfs \
     ../exp-vfs/miniz_zip.c \
     ../exp-vfs/skred_vfs.c \
     ../skode-event.c \
+    ../skode-dict.c \
     ../skqueue.c \
     seq.c \
     api.c \

@@ -14,5 +14,6 @@ void skred_control_user_event(uint64_t sample, int voice, int pattern,
   const double *value);
 void skred_control_pattern_event(uint32_t type, uint64_t sample, int pattern,
   int step);
+void skred_control_midi_event(int type, int channel, int data1, int data2);
 
 #endif

@@ -502,6 +502,7 @@ Event type meanings:
 | `4` | `SKRED_CONTROL_EVENT_USER` | Explicit `ce` command | `id`, `value_count`, `value[]`, `voice`, optional source fields | Skode sent a host-defined marker. |
 | `5` | `SKRED_CONTROL_EVENT_PATTERN_START` | Selected pattern has `yc1` | `pattern`, `step`, `sample` | Pattern playback landed on step `0`. |
 | `6` | `SKRED_CONTROL_EVENT_PATTERN_END` | Selected pattern has `yc1` | `pattern`, `step`, `sample` | Pattern playback reached a stop marker or the last playable step before wrap. |
+| `7` | `SKRED_CONTROL_EVENT_MIDI` | Open MIDI input and event mask contains the message type | `id` is `skred_midi_message_type_t`; `value[]` is channel, data1, data2 | A MIDI message arrived on the control plane. System messages use channel `-1`; song position uses `value[1]`. |
 
 For human inspection in `mini-skred`, the matching Skode command is:
 
@@ -578,6 +579,41 @@ status string.
 `skred_audio_status()` and `/a?` include a cheap delay summary showing active
 delay lines, configured sends, and sends currently eligible to feed a routed
 track delay.
+
+## MIDI Device Control
+
+Build with `MIDI=1` to include the vendored minimidio backend. MIDI is not
+opened by `skred_start()`: initialize it explicitly with `skred_midi_init()` or
+`/mL`. That separation is important in browsers, where Web MIDI permission must
+be requested from a user-triggered call. Web MIDI supports enumerated input and
+output devices but not virtual ports. MIDI-enabled WASM builds use Asyncify for
+the permission request.
+
+The public API enumerates inputs and outputs independently, opens one of each,
+creates virtual ports where the platform supports them, and sends raw byte
+buffers. The compact runtime commands are intercepted by `skred_command()`
+before Skode parsing:
+
+| Command | Meaning |
+| --- | --- |
+| `/mL` | Initialize MIDI and list inputs and outputs. |
+| `/mi N`, `/mo N` | Open enumerated input or output `N`. |
+| `/miV [name]`, `/moV [name]` | Create a virtual input or output; the name is used when this call initializes the MIDI context. |
+| `/mi-`, `/mo-` | Close the active input or output. |
+| `/m?` | Show capabilities, open endpoints, and the input event mask. |
+
+Input callbacks only normalize and publish into the existing bounded
+control-event ring. They never parse Skode or invoke host callbacks. By
+default all representable messages except SysEx and active sensing are enabled.
+Use `skred_midi_event_mask_set()` to select message types; bit `N` controls
+`skred_midi_message_type_t` value `N`. SysEx input is intentionally omitted
+from the fixed-size event payload in this first bridge.
+
+Once an output is open, immediate Skode command `MO status[,data1[,data2]]`
+sends one to three raw bytes. `d>MO` converts the current data array to bytes
+and sends it as one raw buffer, including SysEx buffers. Both commands reject
+fractional values and values outside `0..255`; `d>MO` is bounded at 65,536
+bytes. These are immediate control-plane operations, not real-time opcodes.
 
 ## Voice Groups, Pools, and Graphs
 

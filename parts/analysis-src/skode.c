@@ -806,6 +806,7 @@ static const char *control_event_type_name(uint32_t type) {
     case SKRED_CONTROL_EVENT_USER: return "USER";
     case SKRED_CONTROL_EVENT_PATTERN_START: return "PATTERN_START";
     case SKRED_CONTROL_EVENT_PATTERN_END: return "PATTERN_END";
+    case SKRED_CONTROL_EVENT_MIDI: return "MIDI";
     default: return "UNKNOWN";
   }
 }
@@ -3247,6 +3248,28 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "# D[%d]\n", ands_data_cap(ctx->parse));
       }
       break;
+    case ATOM4('MO--'): // MIDI output bytes
+      {
+        uint8_t bytes[3];
+        if (argc < 1 || argc > 3) {
+          ctx->printf(ctx, "# usage: MO status[,data1[,data2]]\n");
+          break;
+        }
+        int valid = 1;
+        for (int i = 0; i < argc; i++) {
+          int byte;
+          if (!skode_double_to_int(arg[i], &byte) || byte < 0 || byte > 255 ||
+              arg[i] != (double)byte) {
+            valid = 0;
+            break;
+          }
+          bytes[i] = (uint8_t)byte;
+        }
+        int result = valid ? skred_midi_send_raw(bytes, argc) : -2;
+        if (result != 0)
+          ctx->printf(ctx, "# MIDI output failed (%d)\n", result);
+      }
+      break;
     case ATOM4('ce--'): // control-plane user event id [value0 [value1 [value2]]]
       if (argc > 0 && argc <= 4) {
         opcode_event_t opcode = {
@@ -3740,6 +3763,35 @@ int skode_function(ands_t *s, int info) {
         sampling.len = data_len;
         sampling.offset = 0;
         sampling.trim = 0;
+      }
+      break;
+    case ATOM4('d>MO'): // data-to-MIDI-output
+      {
+        double *data = ands_data(ctx->parse);
+        int data_len = ands_data_len(ctx->parse);
+        if (!data || data_len <= 0 || data_len > 65536) {
+          ctx->printf(ctx, "# d>MO requires 1..65536 data bytes\n");
+          break;
+        }
+        uint8_t *bytes = (uint8_t*)malloc((size_t)data_len);
+        if (!bytes) {
+          ctx->printf(ctx, "# d>MO allocation failed\n");
+          break;
+        }
+        int valid = 1;
+        for (int i = 0; i < data_len; i++) {
+          int byte;
+          if (!skode_double_to_int(data[i], &byte) || byte < 0 || byte > 255 ||
+              data[i] != (double)byte) {
+            valid = 0;
+            break;
+          }
+          bytes[i] = (uint8_t)byte;
+        }
+        int result = valid ? skred_midi_send_raw(bytes, data_len) : -2;
+        free(bytes);
+        if (result != 0)
+          ctx->printf(ctx, "# MIDI output failed (%d)\n", result);
       }
       break;
     case ATOM4('d>k-'): // data-to-ksynth-variable

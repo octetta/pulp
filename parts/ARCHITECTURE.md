@@ -741,6 +741,36 @@ different scheduling semantics, or a substantially different state model.
 Start by keeping the Skode compiler and opcode boundary intact; it is the
 cleanest separation between rich control behavior and real-time execution.
 
+## MIDI Boundary
+
+MIDI is an optional `MIDI=1` service beside the audio device, not part of the
+audio callback. `midi.c` owns the minimidio context and the single active input
+and output endpoints; the vendored header remains unmodified under
+`vendor/minimidio/`. Public `skred_midi_*()` functions keep minimidio types out
+of `api.h`.
+
+Inbound callbacks translate structured MIDI 1.0 messages into
+`SKRED_CONTROL_EVENT_MIDI` records in the bounded multi-producer event ring.
+This preserves the existing real-time boundary: the backend thread does no
+allocation, Skode parsing, response dispatch, or host callback work. The event
+type is the dispatcher key, so response bindings can later map particular MIDI
+message classes without changing the ring. Fixed events carry channel and two
+data values; variable-length SysEx input needs a separate bounded payload
+design before it can be exposed safely.
+
+Outbound `MO` and `d>MO` are immediate control-plane operations. A future
+sample-accurate MIDI output facility should compile into a bounded opcode and
+enqueue timestamped bytes; it should not make backend calls from the audio
+thread. Runtime endpoint commands remain at the `skred_command()` boundary,
+parallel to audio-device commands, because device enumeration, permissions,
+and virtual-port lifecycle are neither schedulable nor real-time work.
+
+Platform policy is explicit: CoreMIDI and ALSA can expose virtual endpoints;
+WinMM and Web MIDI cannot. Web MIDI still supports enumerated physical or
+browser-authorized ports, and its permission-bearing initialization is left to
+an explicit user-triggered `/mL` or API call. MIDI-enabled WASM therefore uses
+Asyncify; non-MIDI builds do not acquire that cost.
+
 ## Current Constraints Adopters Should Know
 
 - The engine is a singleton. Major synth, parser-register, sequencer, device,

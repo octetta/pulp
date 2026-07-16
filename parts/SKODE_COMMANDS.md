@@ -508,6 +508,15 @@ require `SCOPE`. The `r` stem-routing command is available with either feature.
 
 ## Diagnostics and Runtime Control
 
+### MIDI output and device management
+
+With `MIDI=1`, `MO status[,data1[,data2]]` sends one to three raw bytes to the
+open MIDI output. `d>MO` sends the current data array as raw bytes, including a
+complete SysEx buffer. Both are immediate commands and validate every element
+as an integer byte. MIDI endpoint commands `/mL`, `/mi`, `/miV`, `/mi-`, `/mo`,
+`/moV`, `/mo-`, and `/m?` are routed by the public API before text reaches the
+Skode parser; their names deliberately fit Skode's four-character atom limit.
+
 | Command | Arguments | Behavior | Main function or state |
 | --- | --- | --- | --- |
 | `?`, `v?` | none | Show selected voice | `voice_show()` |

@@ -20,6 +20,7 @@ list(FIND KIT_OPTS_LIST "RECORD=1" RECORD_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "SCOPE=1" SCOPE_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "TRACKS=1" TRACKS_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "KSYNTH=1" KSYNTH_FEATURE_INDEX)
+list(FIND KIT_OPTS_LIST "MIDI=1" MIDI_FEATURE_INDEX)
 if((NOT RECORD_FEATURE_INDEX EQUAL -1 OR NOT SCOPE_FEATURE_INDEX EQUAL -1) AND TRACKS_FEATURE_INDEX EQUAL -1)
     list(APPEND KIT_OPTS_LIST "TRACKS=1")
     set(TRACKS_FEATURE_INDEX 0)
@@ -70,6 +71,7 @@ set_property(SOURCE "${SYNTH_STATE_H}" PROPERTY GENERATED TRUE)
 set(API_PLAIN_SOURCES
     ands.c
     miniaudio.c
+    midi.c
     util.c
     miniwav.c
     exp-vfs/miniz.c
@@ -174,6 +176,25 @@ target_include_directories(api PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/exp-vfs")
 target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/exp-vfs")
+
+if(NOT MIDI_FEATURE_INDEX EQUAL -1)
+    target_compile_definitions(api PUBLIC SKRED_MIDI_ENABLED=1)
+    target_compile_definitions(api_shared PUBLIC SKRED_MIDI_ENABLED=1)
+    if(EMSCRIPTEN)
+        target_link_libraries(api PUBLIC "-sASYNCIFY")
+        target_link_libraries(api_shared PUBLIC "-sASYNCIFY")
+    elseif(APPLE)
+        find_library(COREMIDI_FRAMEWORK CoreMIDI REQUIRED)
+        target_link_libraries(api PUBLIC ${COREMIDI_FRAMEWORK})
+        target_link_libraries(api_shared PUBLIC ${COREMIDI_FRAMEWORK})
+    elseif(UNIX)
+        find_package(ALSA REQUIRED)
+        target_include_directories(api PRIVATE ${ALSA_INCLUDE_DIRS})
+        target_include_directories(api_shared PRIVATE ${ALSA_INCLUDE_DIRS})
+        target_link_libraries(api PUBLIC ${ALSA_LIBRARIES})
+        target_link_libraries(api_shared PUBLIC ${ALSA_LIBRARIES})
+    endif()
+endif()
 
 # 6. Setup the main mini-skred executable module
 set(EXE_MOD "mini-skred")
@@ -298,6 +319,14 @@ target_link_libraries(audio_command_tests PRIVATE api)
 add_test(
   NAME audio.command-routing
   COMMAND audio_command_tests
+)
+
+add_executable(midi_tests tests/midi_tests.c)
+target_link_libraries(midi_tests PRIVATE api)
+
+add_test(
+  NAME midi.control-event-bridge
+  COMMAND midi_tests
 )
 
 add_executable(polyphony_tests tests/polyphony_tests.c)

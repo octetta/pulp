@@ -28,6 +28,7 @@
 #include "skode.h"
 #include "polyphony.h"
 #include "portable_atomic.h"
+#include "midi.h"
 #include "seq.h"
 #include "udp.h"
 #include "recorder.h"
@@ -114,6 +115,7 @@ static int skred_control_event_key(const skred_control_event_t *event) {
     case SKRED_CONTROL_EVENT_VOICE_TRIGGER:
     case SKRED_CONTROL_EVENT_VOICE_RELEASE:
     case SKRED_CONTROL_EVENT_VOICE_FINISHED: return event->voice;
+    case SKRED_CONTROL_EVENT_MIDI: return event->id;
     default: return -1;
   }
 }
@@ -319,6 +321,12 @@ void skred_control_pattern_event(uint32_t type, uint64_t sample, int pattern,
       type != SKRED_CONTROL_EVENT_PATTERN_END) return;
   skred_control_event_publish(type, sample, -1, pattern, step, -1, 0, 0, 0,
     NULL);
+}
+
+void skred_control_midi_event(int type, int channel, int data1, int data2) {
+  double value[3] = {(double)channel, (double)data1, (double)data2};
+  skred_control_event_publish(SKRED_CONTROL_EVENT_MIDI, SAMPLE_COUNT_GET(),
+    -1, -1, -1, -1, 0, type, 3, value);
 }
 
 int skred_control_event_poll(skred_control_event_t *events, int max_events) {
@@ -1685,6 +1693,11 @@ int skred_command(char* line) {
       skode_log_message(&w, skred_audio_message());
       return 0;
     }
+    int midi_result = skred_midi_command(line);
+    if (midi_result != 0) {
+      skode_log_message(&w, skred_midi_message());
+      return 0;
+    }
 
     // Inject a command directly into the skqueue or seq parser
     // This allows local control without hitting the UDP layer
@@ -1697,6 +1710,7 @@ int skred_command(char* line) {
 
 void skred_stop(void) {
   skred_control_dispatch_stop();
+  skred_midi_uninit();
   udp_stop();
   // turn down volume smoothly to avoid clicks
   volume_set(-90);
@@ -1761,6 +1775,7 @@ CAT(SEQ)
 CAT(SMOOTHER)
 CAT(UDP)
 CAT(KSYNTH)
+CAT(MIDI)
 CAT(RECORD)
 CAT(SCOPE)
 return _features_;

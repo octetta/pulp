@@ -916,6 +916,17 @@ multichannel WAV recording can be active simultaneously.
 
 ## Inspection and Runtime Control
 
+### MIDI I/O
+
+Build with `MIDI=1`, then use `/mL` to request MIDI access and list ports.
+`/mi N` and `/mo N` open an input or output, `/mi-` and `/mo-` close them, and
+`/m?` shows status. `/miV [name]` and `/moV [name]` create virtual ports on
+CoreMIDI and ALSA; WinMM and Web MIDI do not provide virtual ports.
+
+With an output open, `MO 144,60,100` sends a three-byte note-on message.
+`d>MO` sends every value in the data array as a raw byte, which is useful for
+SysEx. These commands execute immediately and are not pattern-schedulable.
+
 | Command | Parameters | Effect |
 | --- | --- | --- |
 | `?`, `v?` | None | Displays the selected voice. |

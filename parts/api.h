@@ -14,7 +14,8 @@ extern "C" {
 int skred_start(unsigned int req_audio_frames, unsigned int voices, int port);
 
 // Send an ASCII control protocol message to the engine. Audio-device commands
-// (/als, /aout, /ain, /a?) are handled here before other text reaches Skode.
+// (/als, /aout, /ain, /a? and /m* MIDI management) are handled here before
+// other text reaches Skode.
 int skred_command(char* cmd);
 
 // Safely tear down resources
@@ -58,6 +59,73 @@ char *skred_audio_status(void);
 int skred_audio_command(const char *line);
 char *skred_audio_message(void);
 
+/*
+ * Optional MIDI support (build with MIDI=1). MIDI is initialized explicitly,
+ * which is required from a browser user gesture for Web MIDI. Open indices
+ * promptly after enumeration because device hot-plug can reorder them.
+ */
+enum {
+  SKRED_MIDI_OK = 0,
+  SKRED_MIDI_ERROR = -1,
+  SKRED_MIDI_INVALID_ARG = -2,
+  SKRED_MIDI_UNSUPPORTED = -3,
+  SKRED_MIDI_OUT_OF_RANGE = -4,
+  SKRED_MIDI_ALREADY_OPEN = -5,
+  SKRED_MIDI_NOT_OPEN = -6,
+  SKRED_MIDI_ALLOC_FAILED = -7,
+};
+
+enum {
+  SKRED_MIDI_CAP_MIDI1 = 1u << 0,
+  SKRED_MIDI_CAP_UMP = 1u << 1,
+  SKRED_MIDI_CAP_MIDI2 = 1u << 2,
+  SKRED_MIDI_CAP_VIRTUAL_IN = 1u << 3,
+  SKRED_MIDI_CAP_VIRTUAL_OUT = 1u << 4,
+  SKRED_MIDI_CAP_RAW = 1u << 5,
+};
+
+typedef enum {
+  SKRED_MIDI_NOTE_OFF = 0x08,
+  SKRED_MIDI_NOTE_ON = 0x09,
+  SKRED_MIDI_POLY_PRESSURE = 0x0a,
+  SKRED_MIDI_CONTROL_CHANGE = 0x0b,
+  SKRED_MIDI_PROGRAM_CHANGE = 0x0c,
+  SKRED_MIDI_CHANNEL_PRESSURE = 0x0d,
+  SKRED_MIDI_PITCH_BEND = 0x0e,
+  SKRED_MIDI_SYSEX = 0x10,
+  SKRED_MIDI_MTC_QUARTER_FRAME = 0x11,
+  SKRED_MIDI_SONG_POSITION = 0x12,
+  SKRED_MIDI_SONG_SELECT = 0x13,
+  SKRED_MIDI_TUNE_REQUEST = 0x14,
+  SKRED_MIDI_CLOCK = 0x18,
+  SKRED_MIDI_START = 0x1a,
+  SKRED_MIDI_CONTINUE = 0x1b,
+  SKRED_MIDI_STOP = 0x1c,
+  SKRED_MIDI_ACTIVE_SENSE = 0x1e,
+  SKRED_MIDI_RESET = 0x1f,
+} skred_midi_message_type_t;
+
+int skred_midi_init(const char *client_name);
+void skred_midi_uninit(void);
+uint32_t skred_midi_caps(void);
+int skred_midi_input_count(void);
+int skred_midi_output_count(void);
+int skred_midi_input_name(int index, char *name, int name_size);
+int skred_midi_output_name(int index, char *name, int name_size);
+int skred_midi_input_open(int index);
+int skred_midi_input_open_virtual(const char *name);
+int skred_midi_input_close(void);
+int skred_midi_output_open(int index);
+int skred_midi_output_open_virtual(const char *name);
+int skred_midi_output_close(void);
+int skred_midi_input_running(void);
+int skred_midi_output_running(void);
+int skred_midi_send_raw(const uint8_t *data, int length);
+void skred_midi_event_mask_set(uint32_t mask);
+uint32_t skred_midi_event_mask(void);
+char *skred_midi_status(void);
+char *skred_midi_message(void);
+
 typedef struct skred_performance_metrics {
   uint64_t callbacks;
   uint64_t frames;
@@ -93,6 +161,7 @@ typedef enum {
   SKRED_CONTROL_EVENT_USER = 4,
   SKRED_CONTROL_EVENT_PATTERN_START = 5,
   SKRED_CONTROL_EVENT_PATTERN_END = 6,
+  SKRED_CONTROL_EVENT_MIDI = 7,
 } skred_control_event_type_t;
 
 /*

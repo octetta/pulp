@@ -17,4 +17,5 @@ embedding API or a local adapter can provide the boundary.
 Current packages:
 
 - `ksynth`: array-oriented DSP language and evaluator
+- `minimidio`: single-header cross-platform MIDI input/output library
 - `uedit`: terminal line editor used by the native Mini-Skred host

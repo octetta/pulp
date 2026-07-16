@@ -43,6 +43,7 @@
 #define IS_ARRAY(c) (c == '(')
 #define IS_ARRAY_END(c) (c == ')')
 #define IS_VARIABLE(c) (c == '$')
+#define IS_RETURN(c) (c == '@')
 #define IS_COMMENT(c) (c == '#')
 #define IS_CHUNK_END(c) (c == ';' || c == 0x04) // 0x04 ASCII EOT / end of xmit
 #define IS_DEFER(c) (c == '+' || c == '~')
@@ -178,6 +179,14 @@ typedef struct ands_s {
     double local_var[VAR_MAX];
     double *global_var;
     double *global_save;
+
+    // Return-value registers (@0..@9). Deliberately NOT swappable like
+    // global_var -- these represent this parser's own last-command output,
+    // not shared process-global state. Cleared before every atom dispatch;
+    // see action_finish_atom()/action_chunk_end().
+    double ret_value[ANDS_RETURN_MAX];
+    int ret_count;
+    int ret_error;
     
     // Callback
     int (*fn)(struct ands_s *s, int info);
@@ -308,10 +317,11 @@ static int ands_macro_arg_count(const char *body) {
         if (p[0] == '$' && p[1] == '$' && isdigit((unsigned char)p[2])) {
             n = p[2] - '0';
             p += 2;
-        } else if (*p == '@' && isdigit((unsigned char)p[1])) {
-            n = p[1] - '0';
-            p++;
         }
+        /* '@' + digit was previously a legacy alias for $$N here. Removed:
+           '@' is now the return-value sigil (GET_RETURN/@N reads
+           ret_value[]), a distinct concept from macro-argument
+           placeholders, and the two meanings can no longer coexist. */
         if (n >= 0) {
             if (n < MACRO_ARGS_MAX && n > highest) highest = n;
         }
@@ -437,11 +447,15 @@ static int ands_expand_macro(ands_t *s, int macro_idx, char args[][MACRO_BODY_LE
             int arg_idx = p[2] - '0';
             if (arg_idx < num_args) ok = expand_buf_append(&expanded, args[arg_idx]);
             p += 2;
-        } else if (*p == '@' && isdigit((unsigned char)p[1])) {
-            int arg_idx = p[1] - '0';
-            if (arg_idx < num_args) ok = expand_buf_append(&expanded, args[arg_idx]);
-            p++;
-        } else {
+        }
+        /* '@' + digit was previously a legacy alias for $$N here. Removed:
+           '@' is now the return-value sigil, resolved fresh from
+           ret_value[] wherever it's typed (including inside an expanded
+           macro body) rather than substituted during macro expansion --
+           the two concepts are unrelated now, and a macro body containing
+           a literal '@N' passes through untouched to be handled by
+           GET_RETURN like any other occurrence. */
+        else {
             ok = expand_buf_push(&expanded, *p);
         }
     }
@@ -587,6 +601,7 @@ static void action_finish_atom(ands_t *s) {
     if (s->trace) printf("# ATOM %s\n", buffer_str(&s->atom));
 
     if (s->atom_num != ATOM_NIL) {
+        ands_return_clear(s);
         if (s->fn(s, FUNCTION) == 0) {
             s->arg_len = 0;  // Clear args
         }
@@ -617,6 +632,7 @@ static void action_chunk_end(ands_t *s) {
     // Handle leftover atom
     if (s->atom_num != ATOM_NIL) {
         if (s->trace) printf("# left-over ATOM\n");
+        ands_return_clear(s);
         s->fn(s, FUNCTION);
         s->string_fresh = 0;
         atom_reset(s);
@@ -689,6 +705,10 @@ int ands_consume(ands_t *s, char *line) {
                   s->state = GET_ARRAY;
                 }
                 else if (IS_VARIABLE(*ptr))  { s->state = GET_VARIABLE; }
+                else if (IS_RETURN(*ptr) && ptr + 1 < end &&
+                         isdigit((unsigned char)ptr[1])) {
+                  s->state = GET_RETURN;
+                }
                 else if (IS_COMMENT(*ptr))   { s->state = GET_COMMENT; }
                 else if (IS_CHUNK_END(*ptr)) { action_chunk_end(s); s->state = START; }
                 else if (IS_DEFER(*ptr))     { action_chunk_end(s); s->defer_mode = *ptr; s->state = GET_DEFER_NUMBER; }
@@ -763,6 +783,46 @@ int ands_consume(ands_t *s, char *line) {
                     ptr--;
                 } else {
                     if (s->trace) puts("# not a var");
+                    s->state = START;
+                    goto reprocess;
+                }
+                break;
+
+            case GET_RETURN:
+                if (isdigit(*ptr)) {
+                    int n = ands_var_parse(&ptr, end);
+                    /* Notify BEFORE consuming the value, mirroring
+                       GOT_STRING/GOT_ARRAY's "notify at the point the
+                       construct is fully recognized" placement. A
+                       compile-mode caller's s->fn sets
+                       SKODE_COMPILE_IMMEDIATE_ONLY on seeing this and lets
+                       parsing continue normally otherwise -- ands.c itself
+                       doesn't branch on the callback's return value here
+                       (unlike the FUNCTION case, which does), since @N's
+                       own behavior (push whatever ands_return_get()
+                       reports) is correct regardless of which mode the
+                       caller is in; only what happens to the RESULT differs,
+                       and that's the caller's business, not ands.c's. */
+                    s->fn(s, GOT_RETURN_REF);
+                    double d = ands_return_get(s, n);
+                    if (s->arg_len < s->arg_cap) {
+                        s->arg[s->arg_len] = d;
+                        /* Deliberately -1, NOT tagged like a $N variable
+                           reference: there is no compile-time deferral
+                           concept for a return value (nothing in a
+                           compiled opcode can "come back later" and read
+                           what a not-yet-run command produced), so this is
+                           always resolved to a plain literal at the moment
+                           it's read, never carried forward as a reference
+                           the way ands_arg_var() lets a $N reference be. */
+                        s->arg_var[s->arg_len] = -1;
+                        s->arg_len++;
+                    }
+                    if (s->trace) printf("# GET_RETURN %d (%g)\n", n, d);
+                    s->state = START;
+                    ptr--;
+                } else {
+                    if (s->trace) puts("# not a return reference");
                     s->state = START;
                     goto reprocess;
                 }
@@ -865,6 +925,10 @@ ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user) {
     s->defer_num = 0;
     s->defer_mode = '?';
     s->defer_var = -1;
+
+    s->ret_count = 0;
+    s->ret_error = 0;
+    for (int i = 0; i < ANDS_RETURN_MAX; i++) s->ret_value[i] = 0.0;
 
     s->arg_cap = ARG_MAX;
     s->arg_len = 0;
@@ -1043,6 +1107,59 @@ void ands_set_global(ands_t *s, double *p) { s->global_var = p; s->global_save =
 void ands_use_local(ands_t *s) { (void)s; }
 void ands_use_global(ands_t *s) {
     if (s && s->global_save) s->global_var = s->global_save;
+}
+
+void ands_return_clear(ands_t *s) {
+    if (!s) return;
+    s->ret_count = 0;
+    s->ret_error = 0;
+    /* Must actually clear the slots, not just reset count: ands_return_set()
+       (direct-index write, used by R=) can set count past several untouched
+       slots at once (count = max(count, n+1)), and if those slots still
+       held a stale value from several commands ago, reading one of the
+       gap indices would silently return old, unrelated data instead of
+       signaling "not set this time". NaN (not 0.0) specifically, so a gap
+       reads back unambiguously as "never set" rather than as a plausible-
+       looking 0.0 that could be mistaken for a real value. Ten doubles is
+       negligible next to the string/buffer work action_finish_atom()
+       already does per dispatch -- this was a real correctness bug, not
+       a justified optimization; caught by return_test.c's R=-then-read-a-
+       lower-slot case. */
+    for (int i = 0; i < ANDS_RETURN_MAX; i++) s->ret_value[i] = NAN;
+}
+
+void ands_return_push(ands_t *s, double value) {
+    if (!s) return;
+    if (s->ret_count < ANDS_RETURN_MAX) {
+        s->ret_value[s->ret_count] = value;
+        s->ret_count++;
+    }
+    /* Silently dropped past ANDS_RETURN_MAX, matching ands_arg_push_many()'s
+       existing "silently stop once the bounded buffer is full" convention
+       rather than introducing a new error-signaling path for it. */
+}
+
+void ands_return_set(ands_t *s, int n, double value) {
+    if (!s || n < 0 || n >= ANDS_RETURN_MAX) return;
+    s->ret_value[n] = value;
+    if (n + 1 > s->ret_count) s->ret_count = n + 1;
+}
+
+int ands_return_count(ands_t *s) {
+    return s ? s->ret_count : 0;
+}
+
+double ands_return_get(ands_t *s, int n) {
+    if (!s || n < 0 || n >= s->ret_count) return NAN;
+    return s->ret_value[n];
+}
+
+void ands_return_set_error(ands_t *s, int code) {
+    if (s) s->ret_error = code;
+}
+
+int ands_return_error(ands_t *s) {
+    return s ? s->ret_error : 0;
 }
 
 void ands_local_to_global(ands_t *s, int n) {

@@ -8,6 +8,7 @@
 #include "synth-state.h"
 #include "synth.h"
 #include "control-events.h"
+#include "skode-dict.h"
 
 #define SKODE_ATOM(a, b, c, d) \
   (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(b) << 16) | \
@@ -43,13 +44,14 @@ typedef struct {
   int depth;
   uint64_t *macro_active;
   int accepts_empty;
+  skode_vocab_t *private_vocab;
 } skode_compile_t;
 
 static int event_voice_valid(int voice) {
   return voice >= 0 && voice < synth_config.voice_max;
 }
 
-static int program_push(event_program_t *program, skode_opcode_t code,
+int skode_program_push(event_program_t *program, skode_opcode_t code,
     ands_t *parser, const double *arg, int argc, char mode,
     uint8_t default_mask) {
   if (program->count >= SEQ_PROGRAM_OP_MAX) return -1;
@@ -77,7 +79,8 @@ static int program_push(event_program_t *program, skode_opcode_t code,
 }
 
 static skode_compile_result_t compile_program_inner(const char *text,
-  event_program_t *program, int depth, uint64_t *macro_active);
+  event_program_t *program, int depth, uint64_t *macro_active,
+  skode_vocab_t *vocab);
 
 static int program_append(event_program_t *program,
     const event_program_t *nested) {
@@ -94,7 +97,7 @@ static int skode_compile_callback(ands_t *s, int info) {
   skode_compile_t *compile = ands_user(s);
   if (compile->result != SKODE_COMPILE_OK) return 0;
 
-  if (info == GOT_STRING || info == GOT_ARRAY) {
+  if (info == GOT_STRING || info == GOT_ARRAY || info == GOT_RETURN_REF) {
     compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
     return 0;
   }
@@ -105,7 +108,7 @@ static int skode_compile_callback(ands_t *s, int info) {
       return 0;
     }
     double delay_arg[] = {delay};
-    if (program_push(compile->program, SKODE_OP_DELAY, NULL, delay_arg, 1,
+    if (skode_program_push(compile->program, SKODE_OP_DELAY, NULL, delay_arg, 1,
         ands_defer_mode(s), 0) != 0) {
       compile->result = SKODE_COMPILE_TOO_LARGE;
       return 0;
@@ -119,7 +122,7 @@ static int skode_compile_callback(ands_t *s, int info) {
     }
     event_program_t nested = {0};
     compile->result = compile_program_inner(ands_defer_string(s), &nested,
-      compile->depth + 1, compile->macro_active);
+      compile->depth + 1, compile->macro_active, compile->private_vocab);
     if (compile->result != SKODE_COMPILE_OK) return 0;
     if (program_append(compile->program, &nested) != 0)
       compile->result = SKODE_COMPILE_TOO_LARGE;
@@ -161,7 +164,7 @@ static int skode_compile_callback(ands_t *s, int info) {
     *active |= bit;
     event_program_t nested = {0};
     compile->result = compile_program_inner(macro, &nested,
-      compile->depth + 1, compile->macro_active);
+      compile->depth + 1, compile->macro_active, compile->private_vocab);
     *active &= ~bit;
     if (compile->result == SKODE_COMPILE_OK &&
         program_append(compile->program, &nested) != 0) {
@@ -172,29 +175,14 @@ static int skode_compile_callback(ands_t *s, int info) {
     return 0;
   }
 
+  int dict_compile_result;
+  if (skode_compile_word(s, atom, arg, argc, compile->program,
+      compile->private_vocab, &dict_compile_result)) {
+    compile->result = (skode_compile_result_t)dict_compile_result;
+    return 0;
+  }
+
   switch (atom) {
-    case SKODE_ATOM('v', '-', '-', '-'):
-      opcode = SKODE_OP_VOICE;
-      min_argc = max_argc = 1;
-      break;
-    case SKODE_ATOM('a', '-', '-', '-'):
-      opcode = SKODE_OP_AMP;
-      min_argc = max_argc = 1;
-      break;
-    case SKODE_ATOM('f', '-', '-', '-'):
-      opcode = SKODE_OP_FREQ;
-      min_argc = max_argc = 1;
-      break;
-    case SKODE_ATOM('n', '-', '-', '-'):
-      opcode = SKODE_OP_MIDI_NOTE;
-      min_argc = 1;
-      max_argc = 2;
-      default_mask = 1;
-      break;
-    case SKODE_ATOM('p', '-', '-', '-'):
-      opcode = SKODE_OP_PAN;
-      min_argc = max_argc = 1;
-      break;
     case SKODE_ATOM('l', '-', '-', '-'):
       opcode = SKODE_OP_VELOCITY;
       min_argc = max_argc = 1;
@@ -239,8 +227,6 @@ static int skode_compile_callback(ands_t *s, int info) {
       opcode = SKODE_OP_FILTER_FREQ; min_argc = max_argc = 1; break;
     case SKODE_ATOM('k', '-', '-', '-'):
       opcode = SKODE_OP_ENVELOPE_MODE; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('m', '-', '-', '-'):
-      opcode = SKODE_OP_MUTE; min_argc = max_argc = 1; break;
     case SKODE_ATOM('N', '-', '-', '-'):
       opcode = SKODE_OP_MIDI_DETUNE; min_argc = 1; max_argc = 2;
       default_mask = 1; break;
@@ -314,14 +300,15 @@ static int skode_compile_callback(ands_t *s, int info) {
       return 0;
     }
   }
-  if (program_push(compile->program, opcode, s, arg, argc, 0,
+  if (skode_program_push(compile->program, opcode, s, arg, argc, 0,
       default_mask) != 0)
     compile->result = SKODE_COMPILE_TOO_LARGE;
   return 0;
 }
 
 static skode_compile_result_t compile_program_inner(const char *text,
-    event_program_t *program, int depth, uint64_t *macro_active) {
+    event_program_t *program, int depth, uint64_t *macro_active,
+    skode_vocab_t *vocab) {
   if (!text || !program || depth > SKODE_COMPILE_DEPTH_MAX)
     return SKODE_COMPILE_INVALID;
   size_t len = strnlen(text, STEP_MAX);
@@ -335,6 +322,7 @@ static skode_compile_result_t compile_program_inner(const char *text,
     .result = SKODE_COMPILE_OK,
     .depth = depth,
     .macro_active = macro_active,
+    .private_vocab = vocab,
   };
   ands_t *parser = ands_new(skode_compile_callback, &compile);
   if (!parser) return SKODE_COMPILE_INVALID;
@@ -349,10 +337,15 @@ static skode_compile_result_t compile_program_inner(const char *text,
 
 skode_compile_result_t skode_compile_program(const char *text,
     event_program_t *program) {
+  return skode_compile_program_ex(text, program, NULL);
+}
+
+skode_compile_result_t skode_compile_program_ex(const char *text,
+    event_program_t *program, skode_vocab_t *vocab) {
   if (!program) return SKODE_COMPILE_INVALID;
   memset(program, 0, sizeof(*program));
   uint64_t macro_active[(SKODE_EXTRA_MAX + 63) / 64] = {0};
-  return compile_program_inner(text, program, 0, macro_active);
+  return compile_program_inner(text, program, 0, macro_active, vocab);
 }
 
 int skode_midi_note(int voice, float note, float cents) {

@@ -7,6 +7,7 @@ enum {
   START = 0, // 0
   GET_NUMBER,
   GET_VARIABLE,
+  GET_RETURN,
   GET_DEFER_NUMBER,
   GET_DEFER_STRING,
   GET_ATOM,
@@ -22,6 +23,7 @@ enum {
   DEFER,
   GOT_STRING,
   GOT_ARRAY,
+  GOT_RETURN_REF,
 };
 
 typedef struct ands_s ands_t;
@@ -30,6 +32,7 @@ typedef uint32_t atom_t;
 #define ANDS_VAR_MAX (128)
 #define ANDS_MACRO_NAME_LEN (5)
 #define ANDS_MACRO_BODY_LEN (512)
+#define ANDS_RETURN_MAX (10)  /* @0 .. @9 */
 
 ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user);
 void ands_free(ands_t *s);
@@ -76,6 +79,44 @@ void ands_data_resize(ands_t *s, int len);
 void ands_data_len_set(ands_t *s, int n);
 int ands_data_cap(ands_t *s);
 double ands_get_local(ands_t *s, int n);
+
+/*
+ * Return-value registers (@0..@9), read from skode text via the GET_RETURN
+ * lexer state (mirrors GET_VARIABLE structurally, but is intentionally
+ * NOT the same mechanism -- return values have no meaning at compile time,
+ * since nothing in a compiled opcode carries "the previous command's
+ * output"; ands_consume() notifies s->fn(s, GOT_RETURN_REF) whenever @N is
+ * read so a compile-mode caller can reject it (SKODE_COMPILE_IMMEDIATE_ONLY),
+ * the same way GOT_STRING/GOT_ARRAY already do).
+ *
+ * Deliberately per-parser (ands_t owns ret_value[] directly, no
+ * ands_set_global()-style external swap the way variables have) -- return
+ * values represent "what did THIS session's last command produce", not
+ * shared process-global state the way $N variables are.
+ *
+ * ands_return_clear() is called automatically before every atom dispatch
+ * (see action_finish_atom()/action_chunk_end() in ands.c) -- callers
+ * don't need to call it themselves in the ordinary case; it's exposed for
+ * anything that wants to explicitly reset return state outside of normal
+ * dispatch (e.g. before a batch of internal calls that shouldn't leave
+ * return values behind for the next real command to see).
+ *
+ * ands_return_push() is sequential append (count increments by exactly
+ * one per call, silently dropped once ANDS_RETURN_MAX is reached) --
+ * intended for a word reporting "here are my N results, in order".
+ * ands_return_set() is direct-index write (count becomes
+ * max(count, n+1), lower slots are left untouched) -- intended for
+ * explicit slot assignment (e.g. skode's `R=` word). These have different
+ * shapes on purpose: push is how most words will report results, set is
+ * for the one word whose entire job is targeted assignment.
+ */
+void ands_return_clear(ands_t *s);
+void ands_return_push(ands_t *s, double value);
+void ands_return_set(ands_t *s, int n, double value);
+int ands_return_count(ands_t *s);
+double ands_return_get(ands_t *s, int n);
+void ands_return_set_error(ands_t *s, int code);
+int ands_return_error(ands_t *s);
 
 char *ands_string_to_external(ands_t *s, char *dst, int len);
 char *ands_string_from_external(ands_t *s, char *src, int len);

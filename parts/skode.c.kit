@@ -10,6 +10,7 @@
 #include "synth-config.h"
 #include "control-events.h"
 #include "polyphony.h"
+#include "skode-dict.h"
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -388,7 +389,7 @@ static int skode_wave_valid(int wave) {
   return wave >= 0 && wave < synth_config.wave_table_max;
 }
 
-static int skode_double_to_int(double value, int *out) {
+int skode_double_to_int(double value, int *out) {
   if (!out || !isfinite(value) || value < INT_MIN || value > INT_MAX) return 0;
   *out = (int)value;
   return 1;
@@ -2754,7 +2755,8 @@ void skode_envelope_velocity(int voice, float x, uint64_t now) {
 
 static int skode_compile_scheduled(skode_t *ctx, const char *text,
     event_program_t *program) {
-  skode_compile_result_t result = skode_compile_program(text, program);
+  skode_compile_result_t result =
+    skode_compile_program_ex(text, program, ctx ? ctx->vocab : NULL);
   if (result == SKODE_COMPILE_OK) return 1;
   ctx->printf(ctx, "# command is not schedulable (%d)\n", result);
   return 0;
@@ -3251,6 +3253,9 @@ int skode_function(ands_t *s, int info) {
     }
     ctx->puts(ctx, "");
   }
+  int dict_result;
+  if (skode_execute_word(ctx, s, atom, arg, argc, &dict_result))
+    return dict_result;
   switch (atom) {
     case ATOM4('/pg-'):
       {
@@ -3420,14 +3425,11 @@ int skode_function(ands_t *s, int info) {
     category: voice
     summary: amp loudness
     @enddoc
-    case ATOM4('a---'): // amp loudness
 @doc
 
 `a` set voice loudness (amplitude) in dB
 
 @enddoc
-      if (argc) amp_set(voice, arg[0]);
-      break;
     @if(AM)
     @doc(command.A)
     name: A
@@ -3572,9 +3574,6 @@ int skode_function(ands_t *s, int info) {
     category: voice
     summary: freq hz
     @enddoc
-    case ATOM4('f---'): // freq hz
-      if (argc) freq_set(voice, arg[0]);
-      break;
     @if(FILT && FADSR)
     @doc(command.ft)
     name: ft
@@ -3910,9 +3909,6 @@ int skode_function(ands_t *s, int info) {
     category: voice
     summary: mute-audio bool
     @enddoc
-    case ATOM4('m---'): // mute-audio bool
-      if (argc) { wave_mute(voice, x); }
-      break;
     @if(SEQ)
     @doc(command.M)
     name: M
@@ -3930,14 +3926,6 @@ int skode_function(ands_t *s, int info) {
     category: voice
     summary: midi-freq note-number (cents)
     @enddoc
-    case ATOM4('n---'): // midi-freq note-number (cents)
-      if (argc) {
-        float note = arg[0];
-        float cents = 0.0;
-        if (argc > 1) cents = arg[1];
-        skode_midi_note(voice, note, cents);
-      }
-      break;
     @doc(command.N)
     name: N
     category: voice
@@ -3958,9 +3946,6 @@ int skode_function(ands_t *s, int info) {
     category: voice
     summary: pan value
     @enddoc
-    case ATOM4('p---'): // pan value
-      if (argc) pan_set(voice, arg[0]);
-      break;
     @doc(command.ds)
     name: ds
     category: modulation
@@ -4220,9 +4205,6 @@ int skode_function(ands_t *s, int info) {
     category: voice
     summary: voice-select voice
     @enddoc
-    case ATOM4('v---'): // voice-select voice
-      if (argc) voice_set(x, &ctx->voice);
-      break;
     @doc(command.vc)
     name: vc
     category: voice
@@ -5978,6 +5960,7 @@ int skode_callback(ands_t *s, int info) {
     case CHUNK_END: return skode_chunk_end(s, info);
     case GOT_STRING: { if (ctx->trace) ctx->printf(ctx, "# -> [%s]\n", ands_string(s)); } break;
     case GOT_ARRAY: { if (ctx->trace) ctx->printf(ctx, "# -> (..%d..)\n", ands_data_len(s)); } break;
+    case GOT_RETURN_REF: { if (ctx->trace) ctx->printf(ctx, "# -> @return\n"); } break;
     default: return skode_unknown(ctx, s, info);
   }
   return 0;
@@ -6027,6 +6010,8 @@ int audio_show(skode_t *ctx) {
 
 void skode_init(skode_t *ctx) {
   skode_global_init();
+  skode_dict_init();
+  ctx->vocab = NULL;
   ctx->voice = 0;
   ctx->pattern = 0;
   ctx->step = -1;
@@ -6049,6 +6034,10 @@ void skode_init(skode_t *ctx) {
 
 void skode_free(skode_t *ctx) {
   if (!ctx) return;
+  if (ctx->vocab) {
+    skode_dict_vocab_destroy(ctx->vocab);
+    ctx->vocab = NULL;
+  }
   if (ctx->parse) {
     ands_free(ctx->parse);
     ctx->parse = NULL;

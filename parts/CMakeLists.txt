@@ -78,6 +78,7 @@ set(API_PLAIN_SOURCES
     exp-vfs/miniz_zip.c
     exp-vfs/skred_vfs.c
     skode-event.c
+    skode-dict.c
     skqueue.c
     udp.c
 )

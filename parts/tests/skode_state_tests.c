@@ -9,6 +9,7 @@
 #include "api.h"
 #include "control-events.h"
 #include "skode.h"
+#include "skode-dict.h"
 #include "seq.h"
 #include "synth.h"
 #include "synth-state.h"
@@ -2264,6 +2265,56 @@ static void test_control_composition_primitives(void) {
                "data read return feeds amp");
 }
 
+static void test_dictionary_core_words(void) {
+  const char *test = "dictionary core words";
+  skode_t ctx = new_ctx();
+  const char *names[] = {"v", "a", "f", "n", "p", "m", "R="};
+  const uint32_t atoms[] = {
+    SKODE_DICT_ATOM("v"), SKODE_DICT_ATOM("a"), SKODE_DICT_ATOM("f"),
+    SKODE_DICT_ATOM("n"), SKODE_DICT_ATOM("p"), SKODE_DICT_ATOM("m"),
+    SKODE_DICT_ATOM("R=")
+  };
+
+  for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
+    if (!skode_dict_lookup(ctx.vocab, atoms[i])) {
+      char msg[80];
+      snprintf(msg, sizeof(msg), "dictionary entry missing for %s", names[i]);
+      fail(test, msg);
+    }
+  }
+  if (skode_dict_lookup(ctx.vocab, SKODE_DICT_ATOM("l")))
+    fail(test, "incomplete velocity word should remain on legacy path");
+
+  consume(test, &ctx, "v2 a-9 n64,3 f330 p.25 m1");
+  expect_int(test, ctx.voice, 2, "dictionary voice selection");
+  expect_float(test, sv.user_amp[2], -9.0f, 0.0001f, "dictionary amp");
+  expect_float(test, sv.freq[2], 330.0f, 0.0001f, "dictionary freq");
+  expect_float(test, sv.last_midi_note[2], 64.0f, 0.0001f, "dictionary note");
+  expect_float(test, sv.pan[2], 0.25f, 0.0001f, "dictionary pan");
+  expect_int(test, sv.disconnect[2], 1, "dictionary mute");
+
+  consume(test, &ctx, "0 -4 R=; @0 a");
+  expect_float(test, sv.user_amp[2], -4.0f, 0.0001f,
+               "return register feeds dictionary amp");
+
+  event_program_t program = {0};
+  expect_int(test, skode_compile_program("v3 a-7 n60 f220 p-.5 m0", &program),
+             SKODE_COMPILE_OK, "dictionary compile result");
+  expect_int(test, skode_execute_program_state(&program, &ctx.voice, 0, -1,
+             -1, -1), 0, "dictionary program execution");
+  expect_int(test, ctx.voice, 3, "compiled dictionary voice selection");
+  expect_float(test, sv.user_amp[3], -7.0f, 0.0001f, "compiled dictionary amp");
+  expect_float(test, sv.freq[3], 220.0f, 0.0001f, "compiled dictionary freq");
+  expect_float(test, sv.last_midi_note[3], 60.0f, 0.0001f, "compiled dictionary note");
+  expect_float(test, sv.pan[3], -0.5f, 0.0001f, "compiled dictionary pan");
+  expect_int(test, sv.disconnect[3], 0, "compiled dictionary mute");
+  expect_int(test, skode_compile_program("@0 a", &program),
+             SKODE_COMPILE_IMMEDIATE_ONLY,
+             "return reference is immediate-only");
+
+  skode_free(&ctx);
+}
+
 static void test_tempo_and_pattern_reset_limits(void) {
   const char *test = "tempo and pattern reset limits";
   expect_int(test, tempo_set(120.0f), 0, "set normal tempo");
@@ -2724,6 +2775,7 @@ int main(void) {
   test_load_installs_global_macros_and_registers();
   test_vfs_zip_loads_skode_and_wave_assets();
   test_control_composition_primitives();
+  test_dictionary_core_words();
   test_tempo_and_pattern_reset_limits();
   test_sample_accurate_sequence_boundaries();
   test_silent_voice_fast_path();

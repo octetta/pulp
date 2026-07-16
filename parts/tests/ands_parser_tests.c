@@ -255,20 +255,28 @@ static void test_macros_basic(void) {
   expect_event(test, &r, 1, CHUNK_END, "----");
 }
 
-static void test_macros_legacy_at_arguments(void) {
-  const char *test = "macros legacy at arguments";
+static void test_return_references(void) {
+  const char *test = "return references";
   recorder_t r;
-  char input[] = "[ar] : t @0 0 @1 0 ; ar 0.01 0.4";
-  ands_macro_clear(NULL);
-  run_parse(test, input, &r);
+  memset(&r, 0, sizeof(r));
+  ands_t *s = ands_new(record_cb, &r);
+  if (!s) {
+    fail(test, "ands_new returned NULL");
+    return;
+  }
+  ands_return_set(s, 0, 0.01);
+  ands_return_set(s, 1, 0.4);
+  char input[] = "@0 0 @1 0 t";
+  ands_consume(s, input);
+  ands_free(s);
 
-  expect_len(test, &r, 2);
-  expect_event(test, &r, 0, FUNCTION, "t---");
-  expect_arg(test, &r, 0, 0, 0.01);
-  expect_arg(test, &r, 0, 1, 0);
-  expect_arg(test, &r, 0, 2, 0.4);
-  expect_arg(test, &r, 0, 3, 0);
-  expect_event(test, &r, 1, CHUNK_END, "----");
+  expect_len(test, &r, 4);
+  expect_event(test, &r, 2, FUNCTION, "t---");
+  expect_arg(test, &r, 2, 0, 0.01);
+  expect_arg(test, &r, 2, 1, 0);
+  expect_arg(test, &r, 2, 2, 0.4);
+  expect_arg(test, &r, 2, 3, 0);
+  expect_event(test, &r, 3, CHUNK_END, "----");
 }
 
 static void test_macro_names_truncate_to_atom_width(void) {
@@ -405,7 +413,7 @@ int main(void) {
   test_defer();
   test_variable_provenance();
   test_macros_basic();
-  test_macros_legacy_at_arguments();
+  test_return_references();
   test_macro_names_truncate_to_atom_width();
   test_macros_nested_and_replace();
   test_macro_definitions_do_not_break_strings();

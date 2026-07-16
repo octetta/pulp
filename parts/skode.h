@@ -99,6 +99,7 @@ typedef struct skode_s {
   int trace;
   int verbose;
   ands_t *parse;
+  struct skode_vocab *vocab;
   int quit;
   int (*puts)(struct skode_s *w, const char *s);
   int (*printf)(struct skode_s *w, const char *fmt, ...);
@@ -136,6 +137,9 @@ int skode_execute_program_state(const event_program_t *program, int *voice,
   uint64_t now, int tag, int pattern, int step);
 skode_compile_result_t skode_compile_program(const char *text,
   event_program_t *program);
+struct skode_vocab;
+skode_compile_result_t skode_compile_program_ex(const char *text,
+  event_program_t *program, struct skode_vocab *vocab);
 int skode_extra_copy(int index, char *dst, size_t dst_size);
 int skode_queue_program(const event_program_t *program, int voice,
   uint64_t when, int tag);
@@ -178,6 +182,10 @@ int null_printf(const char *fmt, ...);
 
 //  .output = 0, 
 
+
+/* Required by skode-dict.c -- see parts/docs/SKODE_DICT_INTEGRATION.md */
+int skode_double_to_int(double value, int *out);
+void sk_sleep(int milliseconds);
 
 void skode_init(skode_t *w);
 void skode_free(skode_t *w);

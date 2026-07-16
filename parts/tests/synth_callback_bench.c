@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include "synth.h"
 #include "synth-state.h"
@@ -22,6 +23,7 @@ static uint64_t elapsed_ns(const struct timespec *start,
 int main(int argc, char **argv) {
   int voices = argc > 1 ? atoi(argv[1]) : 32;
   int callbacks = argc > 2 ? atoi(argv[2]) : 5000;
+  const char *scenario = argc > 3 ? argv[3] : "off";
   if (voices < 1 || callbacks < 1) return 2;
 
   float output[BENCH_FRAMES * BENCH_CHANNELS];
@@ -38,6 +40,35 @@ int main(int argc, char **argv) {
   for (int voice = 0; voice < voices; voice++) {
     amp_set(voice, -12.0f);
     freq_set(voice, 110.0f + (float)voice);
+#ifdef SKRED_BENCH_PD
+    if (strcmp(scenario, "static") == 0) {
+      cz_set(voice, 6, 0.6f);
+    } else if (strcmp(scenario, "envelope") == 0) {
+      cz_set(voice, 6, -0.2f);
+      envelope_configure_e(&sv.cz_envelope[voice], 0.01f, 0.3f, 0.5f, 0.4f);
+      sv.use_cz_envelope[voice] = 1;
+      sv.cz_env_depth[voice] = 0.8f;
+    } else if (strcmp(scenario, "mod") == 0) {
+      cz_set(voice, 6, 0.1f);
+      cmod_set(voice, (voice + 1) % voices, 0.7f);
+    } else if (strcmp(scenario, "all") == 0) {
+      cz_set(voice, 6, -0.2f);
+      envelope_configure_e(&sv.cz_envelope[voice], 0.01f, 0.3f, 0.5f, 0.4f);
+      sv.use_cz_envelope[voice] = 1;
+      sv.cz_env_depth[voice] = 0.8f;
+      cmod_set(voice, (voice + 1) % voices, 0.7f);
+    } else if (strcmp(scenario, "off") != 0) {
+      fprintf(stderr, "unknown scenario: %s\n", scenario);
+      synth_free();
+      return 2;
+    }
+#else
+    if (strcmp(scenario, "off") != 0) {
+      fprintf(stderr, "PD is not enabled in this build\n");
+      synth_free();
+      return 2;
+    }
+#endif
     envelope_velocity(voice, 1.0f);
   }
 
@@ -60,9 +91,9 @@ int main(int argc, char **argv) {
   double average_us = (double)total_ns / callbacks / 1000.0;
   double worst_us = (double)worst_ns / 1000.0;
   double deadline_us = deadline_ns / 1000.0;
-  printf("voices=%d callbacks=%d average_us=%.3f worst_us=%.3f "
+  printf("scenario=%s voices=%d callbacks=%d average_us=%.3f worst_us=%.3f "
          "deadline_us=%.3f load=%.2f%% overruns=%d\n",
-         voices, callbacks, average_us, worst_us, deadline_us,
+         scenario, voices, callbacks, average_us, worst_us, deadline_us,
          average_us * 100.0 / deadline_us, overruns);
 
   synth_free();

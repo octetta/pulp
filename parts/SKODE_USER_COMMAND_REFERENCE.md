@@ -404,16 +404,20 @@ frequencies, increasing depth produces progressively richer FM sidebands.
 
 ### Phase-Distortion Modulation
 
-`c mode,depth` sets the base phase-distortion amount. `C voice,depth` then adds
-a bipolar modulation term:
+`c mode,amount` sets a signed phase-distortion amount in `-1..1`. Zero is the
+exact undistorted phase for every mode. `C voice,depth` adds bipolar oscillator
+modulation, while `ct attack,decay,sustain,release` and `cd depth` add a
+triggered envelope:
 
 ```text
-effective distortion = c depth + modulator sample * C depth
+effective amount = clamp(c amount + modulator sample * C depth
+                         + ct envelope * cd depth, -1, 1)
 ```
 
-`C` has no separate offset because the base depth from `c` serves that role.
-A negative `C` depth reverses the sweep. The useful range depends on the
-selected phase-distortion mode, and the effective value is not clamped.
+`C` has no separate offset because the base amount from `c` serves that role.
+Negative `c`, `C`, or `cd` values reverse their contribution. `ct` follows
+voice note-on/note-off just like the amplitude and filter envelopes, and the
+neutral `ct 0 0 1 0` disables it.
 
 ### Ring Modulation
 
@@ -1300,12 +1304,12 @@ gives a bright, slightly hollow digital brass tone. Requires `ADSR` and `PD`.
 
 ```text
 S0
-v0 w0 a-10 c6,.72 t.015,.35,.55,.45 n48 l1
+v0 w0 a-10 c6,-.15 ct.01,.3,.35,.45 cd.9 t.015,.35,.55,.45 n48 l1
 ~1 v0 l0
 ```
 
-Try `c7,.55` for a thinner resonant shape, or `c1,.8` for a more obvious
-saw-to-pulse character.
+Try `c7,-.25 ct.005,.2,.2,.3 cd.8` for a thinner resonant sweep, or
+`c1,-.6 ct.002,.15,.1,.2 cd1` for a more obvious saw-to-pulse attack.
 
 **Korg DW-8000-style brass pad.** Wave `17` is the built-in DWGS brass
 wavetable. A slow filter envelope softens its digital harmonic spectrum.
@@ -1456,7 +1460,7 @@ Some commands exist only when their build feature is enabled:
 | `GLISS` | `g` |
 | `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
 | `PANMOD` | `P` |
-| `PD` | `c`, `C` |
+| `PD` | `c`, `C`, `ct`, `cd` |
 | `RECORD` | `r`, `/rg`, `/rs`, `/r?` |
 | `SCOPE` | `r`, `/sg`, `/ss`, `/s?` |
 | `SAH` | `h` |

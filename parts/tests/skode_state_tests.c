@@ -1619,6 +1619,8 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"BC3", SKODE_OP_WAVE_LOOP_COUNT},
     {"c1,.5", SKODE_OP_PHASE_DISTORTION},
     {"C1,.5", SKODE_OP_PHASE_MOD},
+    {"ct.01,.2,.5,.3", SKODE_OP_PHASE_ENVELOPE},
+    {"cd-.75", SKODE_OP_PHASE_ENVELOPE_DEPTH},
     {"f220", SKODE_OP_FREQ},
     {"ft.01,.2,.5,.3", SKODE_OP_FILTER_ENVELOPE},
     {"fd2", SKODE_OP_FILTER_ENVELOPE_DEPTH},
@@ -1677,6 +1679,67 @@ static void test_scalar_voice_opcode_inventory(void) {
   expect_int(test, skode_compile_program("N-,7", &program),
              SKODE_COMPILE_OK, "compile MIDI transpose default");
 }
+
+#ifdef SKRED_TEST_PD
+static void test_signed_phase_distortion_and_envelope(void) {
+  const char *test = "signed phase distortion and envelope";
+  const float probes[] = {0.0f, 31.0f, 127.0f, 255.0f};
+
+  wave_reset(0);
+  wave_reset(1);
+
+  for (int mode = 1; mode <= 7; mode++) {
+    for (size_t i = 0; i < sizeof(probes) / sizeof(probes[0]); i++) {
+      expect_float(test, cz_phasor(mode, probes[i], 0.0f, 256), probes[i],
+                   0.001f, "zero amount is identity");
+      float negative = cz_phasor(mode, probes[i], -0.75f, 256);
+      float positive = cz_phasor(mode, probes[i], 0.75f, 256);
+      if (!isfinite(negative) || negative < 0.0f || negative > 256.0f ||
+          !isfinite(positive) || positive < 0.0f || positive > 256.0f)
+        fail(test, "signed transform escaped its phase range");
+    }
+    if (fabsf(cz_phasor(mode, 47.0f, -0.75f, 256) -
+              cz_phasor(mode, 47.0f, 0.75f, 256)) < 0.001f)
+      fail(test, "negative and positive amounts produced the same shape");
+  }
+
+  skode_t ctx = new_ctx();
+  consume(test, &ctx, "v0 c1,.25 ct .01 .2 .4 .3 cd-.75");
+  expect_int(test, sv.cz_mode[0], 1, "PD mode");
+  expect_float(test, sv.cz_distortion[0], 0.25f, 0.0f, "signed base amount");
+  expect_int(test, sv.use_cz_envelope[0], 1, "PD envelope enabled");
+  expect_float(test, sv.cz_envelope[0].a, 0.01f, 0.000001f,
+               "PD envelope attack");
+  expect_float(test, sv.cz_env_depth[0], -0.75f, 0.0f,
+               "PD envelope depth");
+
+  consume(test, &ctx, "l1");
+  expect_int(test, sv.cz_envelope[0].is_active, 1,
+             "PD envelope triggered");
+  consume(test, &ctx, "l0");
+  if (sv.cz_envelope[0].sample_release == UINT64_MAX)
+    fail(test, "PD envelope was not released");
+
+  voice_copy(0, 1);
+  expect_int(test, sv.use_cz_envelope[1], 1, "copied PD envelope enabled");
+  expect_float(test, sv.cz_env_depth[1], -0.75f, 0.0f,
+               "copied PD envelope depth");
+
+  wave_reset(0);
+  sv.phase[0] = 0.25 * sv.table_size[0];
+  cz_set(0, 0, 0.0f);
+  float plain = osc_next(0, 0.0f);
+  sv.phase[0] = 0.25 * sv.table_size[0];
+  cz_set(0, 1, 0.8f);
+  float shaped = osc_next(0, 0.0f);
+  if (fabsf(plain - shaped) < 0.01f)
+    fail(test, "base PD did not affect audio without a C modulator");
+
+  skode_free(&ctx);
+  wave_reset(0);
+  wave_reset(1);
+}
+#endif
 
 static void test_parameter_and_buffer_safety(void) {
   const char *test = "parameter and buffer safety";
@@ -2823,6 +2886,9 @@ int main(void) {
   test_opcode_events();
   test_909_sequence_programs();
   test_scalar_voice_opcode_inventory();
+#ifdef SKRED_TEST_PD
+  test_signed_phase_distortion_and_envelope();
+#endif
   test_parameter_and_buffer_safety();
   test_context_modes();
 #ifdef SKRED_TEST_TRACKS

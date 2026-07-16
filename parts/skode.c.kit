@@ -2848,6 +2848,8 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     @if(PD)
     case SKODE_OP_PHASE_DISTORTION:
     case SKODE_OP_PHASE_MOD:
+    case SKODE_OP_PHASE_ENVELOPE:
+    case SKODE_OP_PHASE_ENVELOPE_DEPTH:
       return 1;
     @endif
     @if(FILT && FADSR)
@@ -2998,13 +3000,25 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return x_valid ? wave_loop_count(voice, x) : -1;
     @if(PD)
     case SKODE_OP_PHASE_DISTORTION:
-      if (opcode->argc == 0) return cz_set(voice, 0, .5f);
+      if (opcode->argc == 0) return cz_set(voice, 0, 0.0f);
       if (!x_valid) return -1;
       return cz_set(voice, x,
-        opcode->argc > 1 ? opcode->arg[1] : .5f);
+        opcode->argc > 1 ? opcode->arg[1] : 0.0f);
     case SKODE_OP_PHASE_MOD:
       if (opcode->argc < 2) return cmod_set(voice, -1, 0);
       return x_valid ? cmod_set(voice, x, opcode->arg[1]) : -1;
+    case SKODE_OP_PHASE_ENVELOPE:
+      if (opcode->argc != 4) return -1;
+      envelope_configure_e(&sv.cz_envelope[voice], opcode->arg[0],
+        opcode->arg[1], opcode->arg[2], opcode->arg[3]);
+      sv.use_cz_envelope[voice] = !(opcode->arg[0] == 0 &&
+        opcode->arg[1] == 0 && opcode->arg[2] == 1 &&
+        opcode->arg[3] == 0);
+      return 0;
+    case SKODE_OP_PHASE_ENVELOPE_DEPTH:
+      if (opcode->argc != 1) return -1;
+      sv.cz_env_depth[voice] = opcode->arg[0];
+      return 0;
     @endif
     case SKODE_OP_FREQ:
       return opcode->argc == 1 ? freq_set(voice, opcode->arg[0]) : -1;
@@ -3658,7 +3672,8 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('c---'): // phase-distortion algo distortion
 @doc
 
-`c mode, depth` set voice CZ / phase distortion with `mode` (below) and `depth` (0.0 to 1.0)
+`c mode, amount` set voice CZ / phase distortion with `mode` (below) and a
+signed `amount` from -1.0 to 1.0. 0.0 is the undistorted phase for every mode.
   0 = off
   1 = saw -> pulse
   2 = folded sine
@@ -3670,9 +3685,9 @@ int skode_function(ands_t *s, int info) {
 
 @enddoc
       if (argc == 0) {
-        cz_set(voice, 0, .5);
+        cz_set(voice, 0, 0);
       } else if (argc == 1) {
-        cz_set(voice, x, .5);
+        cz_set(voice, x, 0);
       } else {
         cz_set(voice, x, arg[1]);
       }
@@ -3688,6 +3703,40 @@ int skode_function(ands_t *s, int info) {
       } else if (x_valid) {
         cmod_set(voice, x, arg[1]);
       }
+      break;
+    @doc(command.ct)
+    name: ct
+    category: modulation
+    summary: phase-distortion ADSR A D S R
+    @enddoc
+    case ATOM4('ct--'): // phase-distortion ADSR A D S R
+@doc
+
+`ct attack,decay,sustain,release` sets the phase-distortion envelope. The
+neutral `ct 0 0 1 0` disables it.
+
+@enddoc
+      if (argc == 4) {
+        float a = arg[0];
+        float d = arg[1];
+        float s = arg[2];
+        float r = arg[3];
+        envelope_configure_e(&sv.cz_envelope[voice], a, d, s, r);
+        sv.use_cz_envelope[voice] = !(a == 0 && d == 0 && s == 1 && r == 0);
+      }
+      break;
+    @doc(command.cd)
+    name: cd
+    category: modulation
+    summary: phase-distortion envelope depth
+    @enddoc
+    case ATOM4('cd--'): // phase-distortion envelope depth
+@doc
+
+`cd depth` sets the signed amount added by the phase-distortion envelope.
+
+@enddoc
+      if (argc) sv.cz_env_depth[voice] = arg[0];
       break;
     @endif
     @doc(command.D)

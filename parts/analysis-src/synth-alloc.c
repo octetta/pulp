@@ -178,6 +178,9 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(cz_distortion,    float);
     VALLOC(cz_mod_osc,       int);
     VALLOC(cz_mod_depth,     float);
+    VALLOC(cz_envelope,      envelope_t);
+    VALLOC(use_cz_envelope,  int);
+    VALLOC(cz_env_depth,     float);
 
     VALLOC(filter_freq,      float);
     VALLOC(filter_res,       float);
@@ -268,6 +271,8 @@ void synth_free_voices(void) {
 
     VFREE(cz_mode);          VFREE(cz_distortion);
     VFREE(cz_mod_osc);       VFREE(cz_mod_depth);
+    VFREE(cz_envelope);      VFREE(use_cz_envelope);
+    VFREE(cz_env_depth);
     VFREE(filter_freq);      VFREE(filter_res);
     VFREE(filter_mode);      VFREE(filter);
     VFREE(filter_envelope);

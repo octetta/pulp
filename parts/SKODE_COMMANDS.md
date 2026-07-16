@@ -96,8 +96,10 @@ their named build option is enabled.
 | `pn` | `pool,key,note,velocity[,cents]` | `SKODE_OP_POLY_NOTE` | Allocates/updates a group instance and applies pitch plus gate | base |
 | `pr` | `pool,key[,release-velocity]` | `SKODE_OP_POLY_RELEASE` | Releases a keyed pool allocation | base |
 | `pb` | `pool,key,semitones[,cents]` | `SKODE_OP_POLY_BEND` | Applies keyed or pool-wide pitch bend | base |
-| `c` | `[mode [, depth]]` | `SKODE_OP_PHASE_DISTORTION` | `cz_set()` | `PD` |
+| `c` | `[mode [, amount]]` | `SKODE_OP_PHASE_DISTORTION` | Sets signed base PD amount; zero args disable PD | `PD` |
 | `C` | `[voice, depth]` | `SKODE_OP_PHASE_MOD` | `cmod_set()`; fewer than two args disable modulation | `PD` |
+| `ct` | `attack, decay, sustain, release` | `SKODE_OP_PHASE_ENVELOPE` | Configures the PD envelope for its next trigger | `PD` |
+| `cd` | `depth` | `SKODE_OP_PHASE_ENVELOPE_DEPTH` | Sets the signed PD-envelope depth | `PD` |
 | `ft` | `attack, decay, sustain, release` | `SKODE_OP_FILTER_ENVELOPE` | Configures the filter envelope for its next trigger | `FILT`, `FADSR` |
 | `fd` | `depth` | `SKODE_OP_FILTER_ENVELOPE_DEPTH` | Sets `sv.filter_env_depth` | `FILT`, `FADSR` |
 | `F` | `[voice, depth [, offset]]` | `SKODE_OP_FREQ_MOD` | `freq_mod_set()`; zero or one arg disables FM | `FM` |
@@ -215,6 +217,12 @@ release event.
 | `5` | saw to triangle |
 | `6` | resonant 1 |
 | `7` | resonant 2 |
+
+The public PD amount range is `-1..1`, with `0` as the exact undistorted
+phase for every mode. The render path computes `c amount + C modulation +
+ct envelope * cd depth`, then clamps the result to `-1..1`. Negative amounts
+apply the complementary direction of each shape. `ct 0 0 1 0` disables the PD
+envelope; `cd` may be positive or negative.
 
 `w` changes the selected wavetable. The optional second and third arguments
 set interpolation and one-shot playback flags.
@@ -575,7 +583,7 @@ features are enabled. Important command features include:
 | `GLISS` | `g` |
 | `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
 | `PANMOD` | `P` |
-| `PD` | `c`, `C` |
+| `PD` | `c`, `C`, `ct`, `cd` |
 | `RECORD` | `r`, `rt`, `rv`, `?r`, `/rg`, `/rs`, `/r?` |
 | `SCOPE` | `r`, `rt`, `rv`, `?r`, `/sg`, `/ss`, `/s?` |
 | `SAH` | `h` |

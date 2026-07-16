@@ -11,8 +11,10 @@ note for now.
 
 ## Current Goal
 
-Continue the new Skode dictionary/macro architecture and MIDI integration while
-keeping native, Windows, and WebAssembly builds stable.
+Pause after completing the MIDI control-plane integration and signed
+phase-distortion envelope work. On return, preserve native, Windows, and
+WebAssembly behavior while addressing only the known unrelated test failures
+if the user chooses to prioritize them.
 
 ## Related Repositories
 
@@ -22,10 +24,13 @@ keeping native, Windows, and WebAssembly builds stable.
 
 ## Current State
 
-Pulp has the reconciled vendored k-synth API, the Skode dictionary foundation,
-promoted real-time-capable macros, and the first complete optional MIDI I/O
-slice. The working tree is clean on `main` at `eb92677` and matches
-`origin/main` as of 2026-07-16, apart from this handoff-note update.
+Pulp has the reconciled vendored k-synth API, dictionary-backed Skode commands,
+promoted real-time-capable macros, optional MIDI I/O plus control-plane
+voice/poly/binding routes, canonical audio-device commands, and signed
+phase-distortion with a dedicated envelope. The working tree is intentionally
+dirty with the current uncommitted MIDI, documentation, PD, benchmark,
+generated-analysis, and WASM-artifact changes. Do not discard or overwrite
+them when resuming.
 
 k-synth has the owned `ks_eval()` result contract restored, `ks_bind_vector()`
 restored, and `main.c` frees direct eval results after optional display.
@@ -47,22 +52,28 @@ restored, and `main.c` frees direct eval results after optional display.
 
 ## Recent Pulp Changes
 
-- `parts/vendor/ksynth/ksynth.c`
-- `parts/vendor/ksynth/ksynth.h`
-- `parts/CMakeLists.txt`
-- `parts/api.c.kit`
-- `parts/analysis-src/api.c`
-- `doc/skred_api.wasm`
+- MIDI implementation/API/help: `parts/midi.c`, `parts/midi.h`,
+  `parts/api.c.kit`, `parts/api.h`, and Skode documentation.
+- Signed PD and envelope: `parts/synth.c.kit`, `parts/synth-state.h.kit`,
+  `parts/synth-alloc.c.kit`, `parts/skode.c.kit`, `parts/skode-event.c`, and
+  `parts/skode.h`.
+- Validation support: `parts/tests/midi_tests.c`,
+  `parts/tests/skode_state_tests.c`, and `parts/tests/synth_callback_bench.c`.
+- Generated maxed analysis sources and `doc/skred_api.js`/`.wasm` are refreshed.
 
 ## Verified
 
 - `make native`
 - `make maxed`
 - `make wasm`
-- `ctest --test-dir build_native --output-on-failure`
-- `ctest --test-dir build_maxed --output-on-failure`
+- `ctest --test-dir build_native --output-on-failure` (known wave-display
+  assertions remain)
+- `ctest --test-dir build_maxed --output-on-failure` (known wave-display and
+  track-delay assertions remain)
 - `./build_native/ksynth_bridge_tests`
 - `./build_maxed/ksynth_bridge_tests`
+- `./build_maxed/synth_callback_bench 32 20000 <scenario>` for all PD scenarios
+- 64- and 128-voice PD callback stress passes
 
 ## Handoff Practice
 
@@ -350,3 +361,40 @@ fixing the wasm control-plane `/cer 0` hang path.
 - Added MIDI pitched-instrument recipes covering direct single-voice mono,
   pool-backed mono with priority/legato/held-note fallback, and multi-voice
   polyphonic pools with stealing policies, bend ranges, and channel selection.
+
+### 2026-07-16 - Signed Phase Distortion, PD Envelope, and Rest Checkpoint
+
+- Changed the public `c mode,amount` phase-distortion amount to signed
+  `-1..1`, with `0` as the exact identity for every PD mode. This is an
+  intentional patch-semantic break from mode 1's former `.5` neutral point.
+- The audio path now combines the signed base amount, optional `C` oscillator
+  modulation, and the new PD envelope, then clamps once to `-1..1`. Fixed the
+  older bug where the base `c` amount was ignored unless a `C` modulator was
+  connected.
+- Added schedulable `ct attack,decay,sustain,release` and `cd depth` commands,
+  including opcode names, built-in help, voice formatting/copy/reset, and
+  trigger/release/one-shot behavior. An envelope already in progress retains
+  its captured settings if `ct 0 0 1 0` disables future triggers.
+- Updated the command reference, architecture notes, CZ-style example, maxed
+  generated analysis sources, and browser WASM artifacts. Added regression
+  tests for zero identity, distinct positive/negative shapes, bounded output,
+  compiled `ct`/`cd`, envelope lifecycle/copy, and base PD without `C`.
+- Extended the opt-in `synth_callback_bench` target with `off`, `static`,
+  `envelope`, `mod`, and `all` scenarios. On this host, 128-frame callbacks
+  with 32 active voices averaged about 2.0-2.3% callback load with PD off,
+  4.2-4.3% with static resonant PD, and 4.7-4.8% with envelope plus oscillator
+  modulation. At 128 active voices the corresponding figures were 8.0%,
+  17.7%, and 20.0%, with no overruns in the 10,000-callback stress pass. PD
+  has an expected roughly 2x per-enabled-voice oscillator cost, but no runaway
+  behavior; disabled voices skip all PD envelope/modulation math.
+- Verified successful native, maxed, and WASM builds; the focused new PD tests
+  pass in maxed builds. Native `synth_callback_bench` also builds with PD
+  absent and accepts the `off` scenario.
+- Known unrelated failures remain: three wavetable-display assertions in both
+  native and maxed `skode.command-state`, plus three track-delay assertions in
+  maxed. Strict `warn-maxed` stops earlier on existing VFS
+  `-Wformat-truncation` diagnostics. One isolated benchmark run recorded a
+  scheduler-noise overrun, while repeated runs and the 64/128-voice stress
+  passes did not; use average load and repeated runs for comparisons.
+- No physical MIDI hardware validation has been performed. No Git history was
+  changed. Resume from the existing dirty working tree.

@@ -2711,6 +2711,8 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_AMP_MOD: return 1;
     case SKODE_OP_PHASE_DISTORTION:
     case SKODE_OP_PHASE_MOD:
+    case SKODE_OP_PHASE_ENVELOPE:
+    case SKODE_OP_PHASE_ENVELOPE_DEPTH:
       return 1;
     case SKODE_OP_FILTER_ENVELOPE:
     case SKODE_OP_FILTER_ENVELOPE_DEPTH:
@@ -2837,13 +2839,25 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
     case SKODE_OP_WAVE_LOOP_COUNT:
       return x_valid ? wave_loop_count(voice, x) : -1;
     case SKODE_OP_PHASE_DISTORTION:
-      if (opcode->argc == 0) return cz_set(voice, 0, .5f);
+      if (opcode->argc == 0) return cz_set(voice, 0, 0.0f);
       if (!x_valid) return -1;
       return cz_set(voice, x,
-        opcode->argc > 1 ? opcode->arg[1] : .5f);
+        opcode->argc > 1 ? opcode->arg[1] : 0.0f);
     case SKODE_OP_PHASE_MOD:
       if (opcode->argc < 2) return cmod_set(voice, -1, 0);
       return x_valid ? cmod_set(voice, x, opcode->arg[1]) : -1;
+    case SKODE_OP_PHASE_ENVELOPE:
+      if (opcode->argc != 4) return -1;
+      envelope_configure_e(&sv.cz_envelope[voice], opcode->arg[0],
+        opcode->arg[1], opcode->arg[2], opcode->arg[3]);
+      sv.use_cz_envelope[voice] = !(opcode->arg[0] == 0 &&
+        opcode->arg[1] == 0 && opcode->arg[2] == 1 &&
+        opcode->arg[3] == 0);
+      return 0;
+    case SKODE_OP_PHASE_ENVELOPE_DEPTH:
+      if (opcode->argc != 1) return -1;
+      sv.cz_env_depth[voice] = opcode->arg[0];
+      return 0;
     case SKODE_OP_FREQ:
       return opcode->argc == 1 ? freq_set(voice, opcode->arg[0]) : -1;
     case SKODE_OP_FILTER_ENVELOPE:
@@ -3379,9 +3393,9 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('c---'): // phase-distortion algo distortion
       if (argc == 0) {
-        cz_set(voice, 0, .5);
+        cz_set(voice, 0, 0);
       } else if (argc == 1) {
-        cz_set(voice, x, .5);
+        cz_set(voice, x, 0);
       } else {
         cz_set(voice, x, arg[1]);
       }
@@ -3392,6 +3406,19 @@ int skode_function(ands_t *s, int info) {
       } else if (x_valid) {
         cmod_set(voice, x, arg[1]);
       }
+      break;
+    case ATOM4('ct--'): // phase-distortion ADSR A D S R
+      if (argc == 4) {
+        float a = arg[0];
+        float d = arg[1];
+        float s = arg[2];
+        float r = arg[3];
+        envelope_configure_e(&sv.cz_envelope[voice], a, d, s, r);
+        sv.use_cz_envelope[voice] = !(a == 0 && d == 0 && s == 1 && r == 0);
+      }
+      break;
+    case ATOM4('cd--'): // phase-distortion envelope depth
+      if (argc) sv.cz_env_depth[voice] = arg[0];
       break;
     case ATOM4('D---'): // data-size
       if (argc) {

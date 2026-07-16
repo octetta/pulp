@@ -70,6 +70,8 @@ typedef enum {
   SKODE_OP_POLY_NOTE,
   SKODE_OP_POLY_RELEASE,
   SKODE_OP_POLY_BEND,
+  SKODE_OP_PHASE_ENVELOPE,
+  SKODE_OP_PHASE_ENVELOPE_DEPTH,
 } skode_opcode_t;
 
 typedef enum {

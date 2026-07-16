@@ -57,6 +57,7 @@ static int verbose = 0;
 
 int volume_set(float v);
 float volume_get(void);
+float envelope_step_e(envelope_t *e, uint64_t current_sample);
 extern float volume_user;
 extern float volume_final;
 static int voice_invalid(int voice);
@@ -503,23 +504,23 @@ static inline float fast_pow(float a, float b) {
 float cz_phasor(int n, float p, float d, int table_size) {
     const float table_size_f = (float)table_size;
     float phase = p / table_size_f;
-
-    // Clamp d to safe range [0, 1)
-    d = (d < 0.0f) ? 0.0f : (d > 0.999f ? 0.999f : d);
+    d = fmaxf(-1.0f, fminf(1.0f, d));
+    const float amount = fabsf(d);
 
     switch (n) {
         case 1: { // saw -> pulse
-            const float inv_d = 0.5f / d;
-            const float inv_1_minus_d = 0.5f / (1.0f - d);
-            if (phase < d) {
+            const float breakpoint = 0.5f + 0.499f * d;
+            const float inv_d = 0.5f / breakpoint;
+            const float inv_1_minus_d = 0.5f / (1.0f - breakpoint);
+            if (phase < breakpoint) {
                 phase *= inv_d;
             } else {
-                phase = 0.5f + (phase - d) * inv_1_minus_d;
+                phase = 0.5f + (phase - breakpoint) * inv_1_minus_d;
             }
             break;
         }
         case 2: { // square (folded sine)
-            const float half_d = d * 0.5f;
+            const float half_d = d * 0.499f;
             const float scale = 0.5f / (0.5f - half_d);
             if (phase < 0.5f) {
                 phase *= scale;
@@ -529,7 +530,7 @@ float cz_phasor(int n, float p, float d, int table_size) {
             break;
         }
         case 3: { // triangle
-            const float half_d = d * 0.5f;
+            const float half_d = d * 0.499f;
             const float scale = 0.5f / (0.5f - half_d);
             if (phase < 0.5f) {
                 phase *= scale;
@@ -539,13 +540,13 @@ float cz_phasor(int n, float p, float d, int table_size) {
             break;
         }
         case 4: { // double sine
-            // phase *= 2.0f;
-            // if (phase >= 1.0f) phase -= 1.0f;
-            phase = fmodf(phase * 2.0f, 1.0f);
+            const float doubled = fmodf(phase * 2.0f, 1.0f);
+            const float target = d < 0.0f ? 1.0f - doubled : doubled;
+            phase += amount * (target - phase);
             break;
         }
         case 5: { // saw -> triangle
-            const float half_d = d * 0.5f;
+            const float half_d = d * 0.499f;
             const float scale1 = 0.5f / (0.5f - half_d);
             const float scale2 = 0.5f / (0.5f + half_d);
             if (phase < 0.5f) {
@@ -555,16 +556,21 @@ float cz_phasor(int n, float p, float d, int table_size) {
             }
             break;
         }
-        case 6: // resonant 1
-            phase = fast_pow(phase, 1.0f + 4.0f * d);
+        case 6: { // resonant 1
+            float exponent = 1.0f + 4.0f * amount;
+            phase = fast_pow(phase, d < 0.0f ? 1.0f / exponent : exponent);
             break;
-        case 7: // resonant 2
-            phase = fast_pow(phase, 1.0f + 8.0f * d);
+        }
+        case 7: { // resonant 2
+            float exponent = 1.0f + 8.0f * amount;
+            phase = fast_pow(phase, d < 0.0f ? 1.0f / exponent : exponent);
             break;
+        }
         default:
             return p;
     }
 
+    phase = fmaxf(0.0f, fminf(1.0f, phase));
     return phase * table_size_f;
 }
 
@@ -574,7 +580,7 @@ static inline int osc_loop_crossings(double distance, double loop_length) {
         INT_MAX : (int)crossings + 1;
 }
 
-float osc_next(int voice, float phase_inc) {
+static float osc_next_at(int voice, float phase_inc, uint64_t current_sample) {
     if (sv.finished[voice]) return 0.0f;
 
     const int table_size = sv.table_size[voice];
@@ -737,10 +743,17 @@ float osc_next(int voice, float phase_inc) {
 
     double final_phase;
 
-    if (sv.cz_mode[voice] && sv.cz_mod_osc[voice] >= 0) {
+    if (sv.cz_mode[voice]) {
+      float amount = sv.cz_distortion[voice];
       int dv = sv.cz_mod_osc[voice];
-      float dm = (dv >= 0) ? sv.sample[dv] * sv.cz_mod_depth[voice] : 1.0f;
-      final_phase = cz_phasor(sv.cz_mode[voice], (float)phase, sv.cz_distortion[voice] + dm, table_size);
+      if (dv >= 0)
+        amount += sv.sample[dv] * sv.cz_mod_depth[voice];
+      if (sv.cz_envelope[voice].is_active)
+        amount += envelope_step_e(&sv.cz_envelope[voice], current_sample) *
+          sv.cz_env_depth[voice];
+      amount = fmaxf(-1.0f, fminf(1.0f, amount));
+      final_phase = cz_phasor(sv.cz_mode[voice], (float)phase, amount,
+        table_size);
     } else {
       final_phase = phase;
     }
@@ -767,6 +780,10 @@ float osc_next(int voice, float phase_inc) {
         // No interpolation - just return the sample
         return sv.table[voice][idx];
     }
+}
+
+float osc_next(int voice, float phase_inc) {
+    return osc_next_at(voice, phase_inc, SAMPLE_COUNT_GET());
 }
 
 void osc_set_wave_table_index(int voice, int wave) {
@@ -1353,9 +1370,9 @@ void synth_capture(float *buffer, float *input, int num_frames,
           } else {
             inc = sv.phase_inc[n] + (sv.phase_inc[mod] * sv.freq_scale[n] * g);
           }
-          f = osc_next(n, inc);
+          f = osc_next_at(n, inc, current_sample);
         } else {
-          f = osc_next(n, sv.phase_inc[n]);
+          f = osc_next_at(n, sv.phase_inc[n], current_sample);
         }
       if (sv.loop_ended[n]) {
         int release_tail = sv.one_shot[n] && sv.loop_release_tail[n];
@@ -1364,6 +1381,8 @@ void synth_capture(float *buffer, float *input, int num_frames,
           envelope_release_e_at(&sv.amp_envelope[n], current_sample);
         if (!release_tail)
           envelope_release_e_at(&sv.filter_envelope[n], current_sample);
+        if (!release_tail)
+          envelope_release_e_at(&sv.cz_envelope[n], current_sample);
         sv.loop_release_tail[n] = 0;
         skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE,
           current_sample, n);
@@ -1566,7 +1585,7 @@ int envelope_is_flat(int v) {
 
 int cz_set(int v, int n, float f) {
   sv.cz_mode[v] = n;
-  sv.cz_distortion[v] = f;
+  sv.cz_distortion[v] = fmaxf(-1.0f, fminf(1.0f, f));
   return 0;
 }
 
@@ -1724,6 +1743,14 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || (sv.cz_mod_osc[v] >= 0 && sv.cz_mod_depth[v] != 0.0f))
         APPEND(" C%d,%g", sv.cz_mod_osc[v], sv.cz_mod_depth[v]);
 
+    if (verbose || sv.use_cz_envelope[v])
+        APPEND(" ct %g %g %g %g cd %g",
+            sv.cz_envelope[v].a,
+            sv.cz_envelope[v].d,
+            sv.cz_envelope[v].s,
+            sv.cz_envelope[v].r,
+            sv.cz_env_depth[v]);
+
     if (verbose || sv.sample_hold_max[v]) APPEND(" h%d", sv.sample_hold_max[v]);
 
     if (verbose || sv.quantize[v]) APPEND(" q%d", sv.quantize[v]);
@@ -1788,6 +1815,14 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             sv.filter_envelope[v].release_time);
         APPEND(" filter_env_release:%llu",
             (unsigned long long)sv.filter_envelope[v].sample_release);
+        APPEND(" cz_env_active:%d", sv.cz_envelope[v].is_active);
+        APPEND(" cz_env_runtime:%g,%g,%g,%g",
+            sv.cz_envelope[v].attack_time,
+            sv.cz_envelope[v].decay_time,
+            sv.cz_envelope[v].sustain_level,
+            sv.cz_envelope[v].release_time);
+        APPEND(" cz_env_release:%llu",
+            (unsigned long long)sv.cz_envelope[v].sample_release);
         APPEND(" amp_env_active:%d", sv.amp_envelope[v].is_active);
         APPEND(" amp_env_runtime:%g,%g,%g,%g",
             sv.amp_envelope[v].attack_time,
@@ -2089,6 +2124,11 @@ int voice_copy(int v, int n) {
   sv.sample_hold[n] = sv.sample_hold[v];
   cz_set(n, sv.cz_mode[v], sv.cz_distortion[v]);
   cmod_set(n, sv.cz_mod_osc[v], sv.cz_mod_depth[v]);
+  sv.use_cz_envelope[n] = sv.use_cz_envelope[v];
+  sv.cz_env_depth[n] = sv.cz_env_depth[v];
+  envelope_init_e(&sv.cz_envelope[n],
+    sv.cz_envelope[v].a, sv.cz_envelope[v].d,
+    sv.cz_envelope[v].s, sv.cz_envelope[v].r);
   sv.filter_mode[n] = sv.filter_mode[v];
   mmf_init(n, sv.filter_freq[v], sv.filter_res[v]);
   sv.phase_inc[n] = sv.phase_inc[v];
@@ -2253,6 +2293,9 @@ void voice_reset(int i) {
   sv.cz_mod_osc[i] = -1;
   sv.cz_mod_depth[i] = 0.0f;
   sv.cz_distortion[i] = 0.0f;
+  sv.use_cz_envelope[i] = 0;
+  sv.cz_env_depth[i] = 0.0f;
+  envelope_init_e(&sv.cz_envelope[i], 0.0f, 0.0f, 1.0f, 0.0f);
   sv.text[i][0] = '\0';
 }
 
@@ -2276,6 +2319,7 @@ int envelope_velocity(int voice, float f) {
         sv.loop_release_tail[voice] = 0;
         sv.amp_envelope[voice].is_active = 0;
         sv.filter_envelope[voice].is_active = 0;
+        sv.cz_envelope[voice].is_active = 0;
         sv.finished[voice] = 1;
         skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE,
           SAMPLE_COUNT_GET(), voice);
@@ -2293,6 +2337,8 @@ int envelope_velocity(int voice, float f) {
             amp_envelope_release(voice);
         if (!one_shot_loop_release && sv.filter_envelope[voice].is_active)
             envelope_release_e(&sv.filter_envelope[voice]);
+        if (!one_shot_loop_release && sv.cz_envelope[voice].is_active)
+            envelope_release_e(&sv.cz_envelope[voice]);
     } else {
         sv.use_amp_envelope[voice] = 1;
         if (sv.one_shot[voice]) {
@@ -2304,6 +2350,8 @@ int envelope_velocity(int voice, float f) {
         amp_envelope_schedule_one_shot_release(voice);
         if (sv.use_filter_envelope[voice])
             envelope_trigger_e(&sv.filter_envelope[voice], f);
+        if (sv.use_cz_envelope[voice])
+            envelope_trigger_e(&sv.cz_envelope[voice], f);
     }
     return 0;
 }

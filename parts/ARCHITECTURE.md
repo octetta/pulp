@@ -475,9 +475,9 @@ physical sample count.
 direction. It accounts for more than one wrap when a large phase increment
 crosses several loop lengths. A requested exit or exhausted bound disables
 runtime looping and emits `loop_ended`; the render loop consumes that event at
-the same sample and releases active amplitude and filter envelopes. Oscillator
-playback then continues into the one-shot tail and sets `finished` only at the
-physical wave boundary.
+the same sample and releases active amplitude, filter, and phase-distortion
+envelopes. Oscillator playback then continues into the one-shot tail and sets
+`finished` only at the physical wave boundary.
 
 Envelope configuration follows the same snapshot principle. `t` and `ft`
 update parameters for the next trigger, while an envelope already in progress

@@ -118,6 +118,9 @@ typedef struct {
     float  * restrict cz_distortion;
     int    * restrict cz_mod_osc;
     float  * restrict cz_mod_depth;
+    envelope_t * restrict cz_envelope;
+    int        * restrict use_cz_envelope;
+    float      * restrict cz_env_depth;
 
     float  * restrict filter_freq;
     float  * restrict filter_res;

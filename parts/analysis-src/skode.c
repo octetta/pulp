@@ -10,6 +10,7 @@
 #include "synth-config.h"
 #include "control-events.h"
 #include "polyphony.h"
+#include "skode-dict.h"
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -376,7 +377,7 @@ static int skode_wave_valid(int wave) {
   return wave >= 0 && wave < synth_config.wave_table_max;
 }
 
-static int skode_double_to_int(double value, int *out) {
+int skode_double_to_int(double value, int *out) {
   if (!out || !isfinite(value) || value < INT_MIN || value > INT_MAX) return 0;
   *out = (int)value;
   return 1;
@@ -742,10 +743,17 @@ static void skode_macros_show(skode_t *ctx, int pasteable) {
     for (int i = 0; i < count; i++) {
       if (ands_macro_get(ctx->parse, i, name, sizeof(name),
                          body, sizeof(body), &arg_count)) {
+        int status = ands_macro_status(ctx->parse, i);
+        const char *status_name =
+          status == ANDS_MACRO_REALTIME ? "realtime" :
+          status == ANDS_MACRO_IMMEDIATE ? "immediate" :
+          status == ANDS_MACRO_INVALID ? "invalid" :
+          status == ANDS_MACRO_TOO_LARGE ? "too-large" : "unchecked";
         if (pasteable) {
           ctx->printf(ctx, "[%s] :%s ;\n", name, body);
         } else {
-          ctx->printf(ctx, "# [%s] :%s ; # @%d\n", name, body, arg_count);
+          ctx->printf(ctx, "# [%s] :%s ; # @%d %s\n",
+            name, body, arg_count, status_name);
         }
       }
     }
@@ -2622,7 +2630,8 @@ void skode_envelope_velocity(int voice, float x, uint64_t now) {
 
 static int skode_compile_scheduled(skode_t *ctx, const char *text,
     event_program_t *program) {
-  skode_compile_result_t result = skode_compile_program(text, program);
+  skode_compile_result_t result =
+    skode_compile_program_ex(text, program, ctx ? ctx->vocab : NULL);
   if (result == SKODE_COMPILE_OK) return 1;
   ctx->printf(ctx, "# command is not schedulable (%d)\n", result);
   return 0;
@@ -3067,6 +3076,9 @@ int skode_function(ands_t *s, int info) {
     }
     ctx->puts(ctx, "");
   }
+  int dict_result;
+  if (skode_execute_word(ctx, s, atom, arg, argc, &dict_result))
+    return dict_result;
   switch (atom) {
     case ATOM4('/pg-'):
       {
@@ -3196,9 +3208,6 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('swap'): // swap first two parser arguments
       ands_arg_swap(s);
       return 1;
-    case ATOM4('a---'): // amp loudness
-      if (argc) amp_set(voice, arg[0]);
-      break;
     case ATOM4('A---'): // AM voice depth
       if (argc < 2) {
         amp_mod_set(voice, -1, 0, 0);
@@ -3254,9 +3263,6 @@ int skode_function(ands_t *s, int info) {
         int data_len = ands_data_len(ctx->parse);
         skode_double_dump(ctx, data, data_len);
       }
-      break;
-    case ATOM4('f---'): // freq hz
-      if (argc) freq_set(voice, arg[0]);
       break;
     case ATOM4('ft--'): // filter-adsr A D S R
       if (argc == 4) {
@@ -3444,21 +3450,10 @@ int skode_function(ands_t *s, int info) {
         if (d >= 0) skode_envelope_velocity(d, vel, now);
       }
       break;
-    case ATOM4('m---'): // mute-audio bool
-      if (argc) { wave_mute(voice, x); }
-      break;
     case ATOM4('M---'): // tempo bpm
       if (argc && tempo_set(arg[0]) != 0)
         ctx->printf(ctx, "# tempo must be between %g and %g BPM\n",
           (double)SEQ_TEMPO_MIN_BPM, (double)SEQ_TEMPO_MAX_BPM);
-      break;
-    case ATOM4('n---'): // midi-freq note-number (cents)
-      if (argc) {
-        float note = arg[0];
-        float cents = 0.0;
-        if (argc > 1) cents = arg[1];
-        skode_midi_note(voice, note, cents);
-      }
       break;
     case ATOM4('N---'): // detune-midi key cents
       if (argc) {
@@ -3469,9 +3464,6 @@ int skode_function(ands_t *s, int info) {
         }
         if (argc > 1) sv.midi_cents[voice] = arg[1];
       }
-      break;
-    case ATOM4('p---'): // pan value
-      if (argc) pan_set(voice, arg[0]);
       break;
     case ATOM4('ds--'): // track-delay send amount; active only for routed, centered, unmodulated voices
       if (argc) delay_send_set(voice, arg[0]);
@@ -3606,9 +3598,6 @@ int skode_function(ands_t *s, int info) {
         if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1);
       }
       break;
-    case ATOM4('v---'): // voice-select voice
-      if (argc) voice_set(x, &ctx->voice);
-      break;
     case ATOM4('vc--'): // voice control-plane event publication bool
       if (argc) voice_control_events_set(voice, x != 0);
       break;
@@ -3720,7 +3709,7 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
-    case ATOM4('d@--'): // show an element from d array
+    case ATOM4('d*--'): // show an element from d array
       if (argc) {
         double *data = ands_data(ctx->parse);
         int data_len = ands_data_len(ctx->parse);
@@ -3832,7 +3821,7 @@ int skode_function(ands_t *s, int info) {
         sampling.offset = 0;
       }
       break;
-    case ATOM4('w@--'): // wave-nudge-reset
+    case ATOM4('w*--'): // wave-nudge-reset
       sampling.offset = 0;
       sampling.trim = 0;
       break;
@@ -4499,7 +4488,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('%---'): // pattern-modulus num
       if (argc) seq_modulo_set(ctx->pattern, x);
       break;
-    case ATOM4('W@--'):  // get a wavetable parameter to a variable
+    case ATOM4('W*--'):  // get a wavetable parameter to a variable
       if (argc > 1 && x_valid && skode_wave_valid(x)) {
         int wave = x;
         int param;
@@ -4530,14 +4519,14 @@ int skode_function(ands_t *s, int info) {
           if (skode_double_to_int(arg[2], &variable))
             ands_set_local(ctx->parse, variable, val);
         } else if (argc) {
-          ctx->printf(ctx, "# W@ %d %d -> %g\n", wave, param, val);
+          ctx->printf(ctx, "# W* %d %d -> %g\n", wave, param, val);
           ands_arg_clear(s);
           ands_arg_push(s, val);
           return 1;
         }
       }
       break;
-    case ATOM4('v@--'):  // get a voice parameter to a variable
+    case ATOM4('v*--'):  // get a voice parameter to a variable
       if (argc) {
         double val = 0.0;
         switch (x) {
@@ -4559,7 +4548,7 @@ int skode_function(ands_t *s, int info) {
           if (skode_double_to_int(arg[1], &y))
             ands_set_local(ctx->parse, y, val);
         } else if (argc) {
-          ctx->printf(ctx, "# v@ %d -> %g\n", x, val);
+          ctx->printf(ctx, "# v* %d -> %g\n", x, val);
           ands_arg_clear(s);
           ands_arg_push(s, val);
           return 1;
@@ -4799,6 +4788,43 @@ int skode_callback(ands_t *s, int info) {
     case CHUNK_END: return skode_chunk_end(s, info);
     case GOT_STRING: { if (ctx->trace) ctx->printf(ctx, "# -> [%s]\n", ands_string(s)); } break;
     case GOT_ARRAY: { if (ctx->trace) ctx->printf(ctx, "# -> (..%d..)\n", ands_data_len(s)); } break;
+    case GOT_RETURN_REF: { if (ctx->trace) ctx->printf(ctx, "# -> @return\n"); } break;
+    case MACRO_DEFINED: {
+      int index = ands_last_macro_index(s);
+      char name[ANDS_MACRO_NAME_LEN];
+      char body[ANDS_MACRO_BODY_LEN];
+      int argc = 0;
+      if (index >= 0 && ands_macro_get(s, index, name, sizeof(name),
+          body, sizeof(body), &argc)) {
+        skode_vocab_t *vocab = skode_dict_global_vocab();
+        skode_dict_unpromote_macro(vocab, name);
+        skode_compile_result_t result =
+          skode_dict_macro_compile_status(vocab, body);
+        int status =
+          result == SKODE_COMPILE_OK ? ANDS_MACRO_REALTIME :
+          result == SKODE_COMPILE_IMMEDIATE_ONLY ? ANDS_MACRO_IMMEDIATE :
+          result == SKODE_COMPILE_TOO_LARGE ? ANDS_MACRO_TOO_LARGE :
+          ANDS_MACRO_INVALID;
+        if (status == ANDS_MACRO_REALTIME &&
+            !skode_dict_promote_macro(vocab, name, body))
+          status = ANDS_MACRO_INVALID;
+        ands_macro_set_status(s, index, status);
+        if (ctx->trace)
+          ctx->printf(ctx, "# macro [%s] %s\n", name,
+            status == ANDS_MACRO_REALTIME ? "realtime" :
+            status == ANDS_MACRO_IMMEDIATE ? "immediate" :
+            status == ANDS_MACRO_TOO_LARGE ? "too-large" : "invalid");
+      }
+      break;
+    }
+    case MACRO_REMOVING: {
+      int index = ands_last_macro_index(s);
+      char name[ANDS_MACRO_NAME_LEN];
+      if (index >= 0 && ands_macro_get(s, index, name, sizeof(name),
+          NULL, 0, NULL))
+        skode_dict_unpromote_macro(skode_dict_global_vocab(), name);
+      break;
+    }
     default: return skode_unknown(ctx, s, info);
   }
   return 0;
@@ -4848,6 +4874,8 @@ int audio_show(skode_t *ctx) {
 
 void skode_init(skode_t *ctx) {
   skode_global_init();
+  skode_dict_init();
+  ctx->vocab = NULL;
   ctx->voice = 0;
   ctx->pattern = 0;
   ctx->step = -1;
@@ -4870,6 +4898,10 @@ void skode_init(skode_t *ctx) {
 
 void skode_free(skode_t *ctx) {
   if (!ctx) return;
+  if (ctx->vocab) {
+    skode_dict_vocab_destroy(ctx->vocab);
+    ctx->vocab = NULL;
+  }
   if (ctx->parse) {
     ands_free(ctx->parse);
     ctx->parse = NULL;
@@ -4883,6 +4915,9 @@ void skode_free(skode_t *ctx) {
     ctx->ks = NULL;
   }
 }
+
+/* Dictionary command documentation remains here so kit_tool includes it in
+   the generated command reference alongside the legacy switch commands. */
 
 /* Keep this new category after the legacy help records. Numeric help category
    indices are part of the command interface and must remain stable. */

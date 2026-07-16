@@ -126,6 +126,37 @@ uint32_t skred_midi_event_mask(void);
 char *skred_midi_status(void);
 char *skred_midi_message(void);
 
+#define SKRED_MIDI_ROUTE_MAX 32
+#define SKRED_MIDI_BINDING_MAX 32
+#define SKRED_MIDI_BINDING_COMMAND_MAX 256
+
+typedef enum {
+  SKRED_MIDI_ROUTE_VOICE = 0,
+  /* Pools are the live note-allocation side of a poly group definition. */
+  SKRED_MIDI_ROUTE_POOL = 1,
+} skred_midi_route_target_t;
+
+/* channel is 0..15, or -1 for all channels. Repeating this call for distinct
+ * channels/targets installs multiple simultaneous routes. bend_semitones is
+ * the symmetric full-scale pitch-bend range and must be finite and >= 0. */
+int skred_midi_route_set(int channel, int target_type, int target,
+                         float bend_semitones);
+int skred_midi_route_remove(int channel, int target_type, int target);
+void skred_midi_route_clear(void);
+int skred_midi_route_count(void);
+const char *skred_midi_route_status(void);
+
+/* Generic MIDI-to-Skode bindings. channel and data1 use -1 as a wildcard.
+ * Message types are SKRED_MIDI_* values. The command template may contain
+ * {ch}, {d1}, {d2}, {unit}, and {bend}; expansion happens on the control
+ * dispatcher, never in the MIDI backend callback. */
+int skred_midi_binding_set(int type, int channel, int data1,
+                           const char *command);
+int skred_midi_binding_remove(int type, int channel, int data1);
+void skred_midi_binding_clear(void);
+int skred_midi_binding_count(void);
+const char *skred_midi_binding_status(void);
+
 typedef struct skred_performance_metrics {
   uint64_t callbacks;
   uint64_t frames;

@@ -262,8 +262,8 @@ fixing the wasm control-plane `/cer 0` hang path.
   input and active sense are excluded by default; variable-length SysEx input
   still needs a separate bounded payload design.
 - Runtime device commands, routed before Skode parsing and kept within the
-  four-character atom limit, are `/mL`, `/m?`, `/mi N`, `/miV [name]`, `/mi-`,
-  `/mo N`, `/moV [name]`, and `/mo-`.
+  four-character atom limit, are `/mL`, `/m?`, `/mi N`, `/miV [name]`, `/mic`,
+  `/mo N`, `/moV [name]`, and `/moc`.
 - Immediate output commands are `MO status[,data1[,data2]]` and `d>MO` for a
   raw data-array buffer (including SysEx). They are control-plane operations,
   not schedulable real-time opcodes.
@@ -297,3 +297,56 @@ fixing the wasm control-plane `/cer 0` hang path.
   rebuilt WASM artifact directly under Node (no unknown atoms). Full ctest has
   only the same three known wavetable-display assertion failures documented
   above; all other tests pass.
+
+### 2026-07-16 - Control-Plane MIDI Note Routing
+
+- Added a fixed 32-entry MIDI route table applied by the existing control
+  dispatcher, after backend callbacks publish into the bounded event ring.
+  Routes map one zero-based MIDI channel or all channels to a physical voice or
+  poly pool, handling note-on, note-off, and configurable-range pitch bend.
+- Commands are `/mv channel,voice[,bend]`, `/mp channel,pool[,bend]`, `/mvd`,
+  `/mpd`, `/mR`, and `/mC`; `.` or `-` selects every channel and bend defaults to ±2
+  semitones. Groups remain templates, so live poly MIDI targets their pool.
+- All-channel pool keys combine channel and note, preserving independent note
+  lifetimes and pitch bend for equal notes arriving on different channels.
+  Removing, replacing, or clearing a route releases its held notes.
+- Added the public `skred_midi_route_*()` API and WASM exports, refreshed
+  generated analysis sources and browser artifacts, and documented the routing
+  model and commands.
+- Verified MIDI-enabled and MIDI-disabled builds, strict C11 compilation,
+  hardware-free voice/pool/channel/bend tests, WASM-feature tests, and direct
+  Node loading of the new WASM exports. Full WASM ctest retains only the three
+  known wavetable-display failures; all other tests pass.
+- Follow-up: replaced the non-Skode `*` wildcard with NaN-style `.`/`-` and
+  added `/mb type,channel,data1 command` generic MIDI-to-Skode bindings for
+  transport, CC, program/pressure, and other fixed messages. Templates support
+  `{ch}`, `{d1}`, `{d2}`, `{unit}`, and `{bend}`; `/mb?`, `/mbd`, and `/mbC`
+  inspect, remove, and clear bindings.
+- Follow-up: `/mb` message types are numeric-only; textual aliases were removed
+  to keep the command surface within Skode's numeric argument grammar. The user
+  reference documents every accepted decimal type value.
+- Follow-up: renamed invalid `/mb-` to the valid four-character atom `/mbd`
+  (`d` for delete); the old spelling is no longer intercepted.
+- Follow-up: MIDI management, route, and binding commands now also dispatch as
+  genuine immediate Skode atoms, so loader contexts and immediate macros can
+  invoke them. Binding commands use the parser string form `[command] /mb
+  type channel data1`; status emits the same pasteable form. Invalid close and
+  route-delete spellings were renamed to `/mic`, `/moc`, `/mvd`, and `/mpd`.
+- Audio-device audit: `/als` and `/a?` were API-only, while `/aout` was too long
+  to be an atom and `default`/`off` were textual selectors. Added genuine
+  immediate Skode `/ao selection` and `/ai selection` commands (`-1` default,
+  capture `-2` off), and made `/als` and `/a?` work through Skode as well.
+- MIDI `{ch}`/`{d1}`/`{d2}`/`{unit}`/`{bend}` forms are explicitly documented
+  as dispatcher template markers inside opaque bracket strings, not as Skode
+  operators; expansion produces numeric Skode text before parsing.
+- Added embedded `/h` records for all canonical MIDI and audio-device commands.
+  They are appended after legacy help records so established numeric category
+  indices remain stable. `[midi] /h`, `[/mb] /h`, and `[/ao] /h` now expose
+  the new command surface and are covered by help regression tests.
+- Documented `/mb` drum-map recipes: one-note/one-voice triggers, layered
+  multi-voice drums, velocity-fed immediate macros, channel-10 isolation, and
+  hi-hat choke behavior. Architecture notes distinguish this current
+  control-plane approach from a possible future precompiled drum-map layer.
+- Added MIDI pitched-instrument recipes covering direct single-voice mono,
+  pool-backed mono with priority/legato/held-note fallback, and multi-voice
+  polyphonic pools with stealing policies, bend ranges, and channel selection.

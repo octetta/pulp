@@ -916,12 +916,218 @@ multichannel WAV recording can be active simultaneously.
 
 ## Inspection and Runtime Control
 
+### Audio Device Selection
+
+Audio device operations are immediate Skode commands and can be used
+interactively, in `.sk` files, or from immediate macros:
+
+| Command | Parameters | Effect |
+| --- | --- | --- |
+| `/als` | None | Refresh and list output and input devices. |
+| `/a?` | None | Show audio state and the active/requested devices. |
+| `/ao selection` | Device list index or `-1` | Select an output; `-1` means the default output. |
+| `/ai selection` | Device list index, `-1`, or `-2` | Select an input; `-1` means the default input and `-2` disables capture. |
+
+The older API-router spellings `/aout default` and `/ain off` remain host
+compatibility aliases. They are not Skode syntax: `/aout` exceeds the
+four-character atom limit and the textual arguments are not numeric.
+
 ### MIDI I/O
 
 Build with `MIDI=1`, then use `/mL` to request MIDI access and list ports.
-`/mi N` and `/mo N` open an input or output, `/mi-` and `/mo-` close them, and
-`/m?` shows status. `/miV [name]` and `/moV [name]` create virtual ports on
+`/mi N` and `/mo N` open an input or output, `/mic` and `/moc` close them, and
+`/m?` shows status. `[name] /miV` and `[name] /moV` create virtual ports on
 CoreMIDI and ALSA; WinMM and Web MIDI do not provide virtual ports.
+
+Incoming note-on, note-off, and pitch-bend messages can be routed on the
+control plane. `/mv channel,voice[,bend]` routes to one voice and `/mp
+channel,pool[,bend]` routes to a poly pool. `channel` is `0..15`, or `.`/`-` for
+all channels; install multiple routes to listen to several selected channels.
+`bend` is the symmetric full-scale range in semitones and defaults to `2`.
+For example, `/mv 0,3` maps channel 1 (zero-based channel `0`) to voice 3, and
+`/mp .,0,12` maps all channels to pool 0 with a ±12-semitone bend range.
+
+`/mR` lists routes, `/mvd channel,voice` and `/mpd channel,pool` remove one,
+and `/mC` clears all routes. Adding a command route starts the existing control
+dispatcher. The C API can instead configure routes and have a host-owned loop
+call `skred_control_dispatch_pump()`.
+
+Poly groups are templates; MIDI targets the associated pool because the pool
+owns live note allocation, releases, stealing, mono priority, and per-note
+bend state.
+
+Other MIDI input can invoke arbitrary Skode with `[command] /mb
+type,channel,data1`. The bracketed command uses the normal parser string buffer,
+so the binding syntax works unchanged in interactive input, `.sk` files, and
+immediate macros. `type` is numeric:
+
+| Type | MIDI message | First-data selector |
+| ---: | --- | --- |
+| `8` | Note Off | Note number |
+| `9` | Note On | Note number |
+| `10` | Polyphonic Key Pressure | Note number |
+| `11` | Control Change | Controller number |
+| `12` | Program Change | Program number |
+| `13` | Channel Pressure | Pressure value |
+| `14` | Pitch Bend | LSB |
+| `17` | MTC Quarter Frame | Message byte |
+| `18` | Song Position | 14-bit song position |
+| `19` | Song Select | Song number |
+| `20` | Tune Request | `0` |
+| `24` | Timing Clock | `0` |
+| `26` | Start | `0` |
+| `27` | Continue | `0` |
+| `28` | Stop | `0` |
+| `31` | System Reset | `0` |
+
+Use `.` or `-` for any channel or any first data value. System/realtime
+messages have no channel, so their channel selector is normally `.`.
+
+Command templates substitute `{ch}`, `{d1}`, `{d2}`, `{unit}` (`d2 / 127`),
+and `{bend}` (normalized `-1..1`). The braces are not Skode operators. They
+are MIDI-binding template markers stored inside an opaque bracket string; the
+control dispatcher replaces them with numeric text before the resulting Skode
+command is parsed. Any other braces are copied literally. Examples:
+
+```text
+[Z1] /mb 26,.,.                  # MIDI Start: play all patterns
+[Z0] /mb 28,.,.                  # use Stop as pause
+[Z1] /mb 27,.,.                  # Continue resumes
+[v3K{d2}] /mb 11,.,74            # CC 74 controls voice 3 filter cutoff
+```
+
+MIDI has Start, Continue, and Stop but no separate Pause message; mapping Stop
+to pause and Continue to resume is the usual transport interpretation. `/mb?`
+lists bindings, `/mbd type,channel,data1` removes one, and `/mbC` clears them.
+The equivalent C API is `skred_midi_binding_*()`.
+
+All commands in this MIDI section are immediate Skode commands rather than
+API-only aliases. They can therefore be loaded from a file or invoked by an
+immediate macro. For example:
+
+```text
+[map1]:[v3K{d2}] /mb 11 . 74;
+map1
+```
+
+Bindings are process-global and remain installed after the loader or macro
+context returns. On Web MIDI, `/mL` still has to run from a browser user gesture
+because opening a file cannot grant browser MIDI permission.
+
+#### MIDI drum maps
+
+The first-data selector for message type `9` is the MIDI note number, so `/mb`
+can act as a drum map. Configure each voice's sample, envelope, tuning, pan, and
+routing first, then bind incoming notes to its trigger. `{unit}` converts MIDI
+velocity from `0..127` to the `0..1` range expected by `l`:
+
+```text
+[v0l{unit}] /mb 9 . 36          # kick
+[v1l{unit}] /mb 9 . 38          # snare
+[v2l{unit}] /mb 9 . 42          # closed hi-hat
+```
+
+A binding stores one command template for each `(type, channel, data1)` key,
+but that template may control several voices. This makes layered samples
+straightforward:
+
+```text
+[v3l{unit} v4l{unit} v5l{unit}] /mb 9 . 40
+```
+
+The three voices can independently provide the drum body, transient, and room
+layer. A named macro keeps larger kits readable while still allowing the
+MIDI dispatcher to supply velocity:
+
+```text
+[kik]:v0l$$0 v1l$$0;
+[snr]:v2l$$0 v3l$$0 v4l$$0;
+[hat]:v5l$$0;
+
+[kik {unit}] /mb 9 . 36
+[snr {unit}] /mb 9 . 38
+[hat {unit}] /mb 9 . 42
+```
+
+Channel selectors can isolate a conventional drum channel. Channels are
+zero-based, so selector `9` is MIDI channel 10:
+
+```text
+[v6l{unit}] /mb 9 9 46          # open hi-hat on channel 10
+[v6l0] /mb 8 9 46               # matching note-off releases it
+[v6l0 v5l{unit}] /mb 9 9 42     # closed hat chokes open hat, then triggers
+```
+
+This control-plane approach is suitable for modest kits and for developing the
+desired mapping behavior. Each hit still expands text and parses Skode on the
+control dispatcher. A future performance-oriented drum-map facility could
+compile each note's real-time-safe program once, retain velocity as an input,
+and add explicit choke groups, velocity layers, round-robin samples, and event
+timestamp handling without parsing text for every hit.
+
+#### MIDI mono and poly synths
+
+For the simplest monophonic instrument, configure one voice and route a MIDI
+channel directly to it. Channels are zero-based, so this listens to MIDI
+channel 1 and uses a ±2-semitone pitch-bend range:
+
+```text
+v0 w0 a-12 t.01,.15,.7,.35
+/mv 0 0 2
+```
+
+Note-on sets the voice pitch and triggers its envelope, note-off releases the
+currently active note, and pitch bend retunes it without retriggering. This
+direct route tracks only the latest active key. It does not retain a held-note
+stack, so use a monophonic pool when overlapping keys must return to an earlier
+held note.
+
+A pool provides proper monophonic priority and articulation. This example uses
+voice 2 as a one-voice prototype, materializes one instance at voice 16, selects
+last-note legato mode, and maps MIDI channel 1 with a ±12-semitone bend range:
+
+```text
+v2 w0 a-12 t.01,.15,.7,.35
+/pg 1 2 1 0
+/pp 1 1 16 1 0
+/pm 1 1 0 1
+/mp 0 1 12
+```
+
+The `/pm` arguments after the pool number are `mode=1` (mono), `priority=0`
+(last note), and `articulation=1` (legato). Other priorities are `1` highest,
+`2` lowest, and `3` first. With overlapping keys, releasing the active note
+returns to the appropriate still-held note; the envelope releases only after
+the last key is released.
+
+For polyphony, define the sound as a prototype group, clone several instances,
+then route MIDI to the pool. This two-voice sound layers an octave above its
+root and creates four playable instances in voices 8 through 15:
+
+```text
+v0 w0 a-12 t.01,.15,.7,.35 N0 G1 H1
+v1 w0 a-20 t.005,.1,.5,.25 N12
+/pg 0 0 2 0
+/pp 0 0 8 4 0
+/mp 0 0 2
+```
+
+Each MIDI note allocates one two-voice instance. Note-off releases the instance
+identified by that channel and note, and channel pitch bend applies to all
+notes still held through that route. The final `/pp` argument is the stealing
+policy: `0` release-oldest, `1` oldest, `2` round-robin, `3` quietest, or `4`
+no-steal.
+
+Use `.` instead of a channel number to accept all channels:
+
+```text
+/mp . 0 2
+```
+
+All-channel pool routes keep equal notes from different channels independent.
+Install several `/mv` or `/mp` routes when only a selected set of channels
+should drive the instrument. `/mR` displays the installed routes; `/mvd` and
+`/mpd` remove them.
 
 With an output open, `MO 144,60,100` sends a three-byte note-on message.
 `d>MO` sends every value in the data array as a raw byte, which is useful for

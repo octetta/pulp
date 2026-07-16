@@ -571,11 +571,17 @@ puts(skred_audio_status());
 Selection values are slots from the latest refresh. `-1` selects the default
 device and `-2` disables capture.
 
-`skred_command()` recognizes `/als`, `/aout`, `/ain`, and `/a?` before passing
-other text to Skode, and mirrors the response into the normal command log. The
-lower-level `skred_audio_command()` helper remains available to hosts that need
-its handled/error return value; `skred_audio_message()` returns its full latest
-status string.
+The canonical immediate Skode commands are `/als`, `/a?`, `/ao selection`, and
+`/ai selection`. Numeric selection uses the C API values: `-1` is the default
+device and capture-only `-2` is off. Because these are genuine Skode commands,
+they also work in `.sk` files and immediate macros.
+
+For host compatibility, `skred_command()` additionally recognizes the older
+API-only `/aout default` and `/ain off` spellings before passing other text to
+Skode. `/aout` cannot be a Skode atom because it exceeds four characters, and
+its textual selector is not part of Skode's numeric grammar. The lower-level
+`skred_audio_command()` helper remains available to hosts that need its
+handled/error return value; `skred_audio_message()` returns its latest status.
 `skred_audio_status()` and `/a?` include a cheap delay summary showing active
 delay lines, configured sends, and sends currently eligible to feed a routed
 track delay.
@@ -599,7 +605,7 @@ before Skode parsing:
 | `/mL` | Initialize MIDI and list inputs and outputs. |
 | `/mi N`, `/mo N` | Open enumerated input or output `N`. |
 | `/miV [name]`, `/moV [name]` | Create a virtual input or output; the name is used when this call initializes the MIDI context. |
-| `/mi-`, `/mo-` | Close the active input or output. |
+| `/mic`, `/moc` | Close the active input or output. |
 | `/m?` | Show capabilities, open endpoints, and the input event mask. |
 
 Input callbacks only normalize and publish into the existing bounded

@@ -508,14 +508,32 @@ require `SCOPE`. The `r` stem-routing command is available with either feature.
 
 ## Diagnostics and Runtime Control
 
+### Audio device management
+
+`/als` and `/a?` refresh/list devices and show status. `/ao selection` chooses
+playback and `/ai selection` chooses capture; `-1` means default and capture
+selection `-2` means off. These are immediate Skode commands and therefore work
+from files and immediate macros. The legacy host aliases `/aout default` and
+`/ain off` remain at the API boundary but are not Skode commands.
+
 ### MIDI output and device management
 
 With `MIDI=1`, `MO status[,data1[,data2]]` sends one to three raw bytes to the
 open MIDI output. `d>MO` sends the current data array as raw bytes, including a
 complete SysEx buffer. Both are immediate commands and validate every element
-as an integer byte. MIDI endpoint commands `/mL`, `/mi`, `/miV`, `/mi-`, `/mo`,
-`/moV`, `/mo-`, and `/m?` are routed by the public API before text reaches the
-Skode parser; their names deliberately fit Skode's four-character atom limit.
+as an integer byte. MIDI endpoint commands `/mL`, `/mi`, `/miV`, `/mic`, `/mo`,
+`/moV`, `/moc`, and `/m?` are also genuine immediate Skode commands, so they
+work through the public API, loaders, and immediate macros. `/mv
+channel,voice[,bend]` and `/mp channel,pool[,bend]` install
+control-plane input routes (`.` or `-` selects every channel); `/mvd` and `/mpd`
+remove routes, `/mR` lists them, and `/mC` clears them. Poly input targets the
+pool rather than its group template. Generic `[command] /mb
+type,channel,data1`
+bindings use the numeric `SKRED_MIDI_*` type values, filter any fixed-size MIDI
+message, and expand `{ch}`, `{d1}`, `{d2}`,
+`{unit}`, or `{bend}` into arbitrary Skode; `/mb?`, `/mbd`, and `/mbC` inspect,
+remove, and clear these bindings. These names deliberately fit Skode's
+four-character atom limit.
 
 | Command | Arguments | Behavior | Main function or state |
 | --- | --- | --- | --- |

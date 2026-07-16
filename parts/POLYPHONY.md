@@ -230,6 +230,42 @@ Changing `/pm` releases current allocations and clears the held-note ledger.
 This makes it safe to switch an existing multi-instance pool between poly and
 mono without rebuilding it.
 
+## MIDI Input Recipes
+
+The control-plane MIDI router can drive a configured pool directly. `/mp`
+accepts `channel,pool[,bend-range]`; channels are zero-based and `.`/`-` means
+all channels.
+
+For the four-instance, two-voice polyphonic pool `0` constructed above:
+
+```text
+/mp 0 0 2
+```
+
+MIDI channel 1 now supplies note-on, note-off, and ±2-semitone pitch bend.
+Every note lifetime is keyed by channel plus MIDI note, so delayed note-off and
+equal notes on different accepted channels do not release the wrong instance.
+
+For monophonic pool `1` from the previous section:
+
+```text
+/mp 0 1 12
+```
+
+This retains the pool's configured priority and articulation while allowing a
+±12-semitone bend range. The router does not replace `/pm`; it only translates
+MIDI performance messages into the pool's existing note, release, and bend
+operations.
+
+The simpler `/mv channel,voice[,bend-range]` route drives one physical voice
+without a pool. It is useful for a basic one-note-at-a-time instrument, but it
+tracks only the latest active key and cannot return to an earlier held note.
+Use monophonic pool mode for held-note priority, legato, and fallback behavior.
+
+See the “MIDI mono and poly synths” and “MIDI drum maps” recipes in
+[SKODE_USER_COMMAND_REFERENCE.md](SKODE_USER_COMMAND_REFERENCE.md) for complete
+voice setup examples and channel-routing variations.
+
 ## Refreshing a Group or Pool
 
 After editing prototype voices, refresh every free instance in pools using the

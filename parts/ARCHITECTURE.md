@@ -758,6 +758,44 @@ message classes without changing the ring. Fixed events carry channel and two
 data values; variable-length SysEx input needs a separate bounded payload
 design before it can be exposed safely.
 
+The control dispatcher also applies a fixed-capacity MIDI route table after it
+consumes each event. Routes select one MIDI channel or all channels and target
+either a physical voice or a poly pool. Note-on velocity is normalized to
+`0..1`; note-off releases the matching voice lifetime or pool key; pitch bend
+uses the route's symmetric range (±2 semitones by default). All-channel pool
+routes encode channel plus note into the allocation key, so equal notes on two
+channels retain independent lifetimes and bend. Groups are clone templates,
+not note allocators, so their live MIDI target is the corresponding pool.
+Backend callbacks remain publication-only; they never inspect or execute this
+table.
+
+A second fixed-capacity table maps other fixed-size MIDI messages to Skode
+command templates. Bindings filter on message type plus optional channel and
+first-data-byte selectors, then substitute channel/raw/normalized values only
+after the dispatcher consumes the event. This covers realtime transport,
+control change, program/pressure messages, and parameter control without
+letting parsing or arbitrary command execution leak into the backend callback.
+MIDI Stop can represent pause and Continue can represent resume; MIDI itself
+has no distinct Pause status byte.
+
+One practical use of generic bindings is a drum kit: MIDI note number is the
+`data1` filter, normalized velocity is substituted into one command, and that
+command may trigger one voice, several layered voices, or a named macro.
+Note-off bindings and multi-voice commands can implement simple choke behavior.
+This remains a control-plane facility: every hit expands and parses text. If
+large kits or tighter latency become a priority, the natural next layer is a
+fixed note-to-precompiled-program table with velocity input, choke groups,
+velocity ranges, round-robin selection, and captured MIDI event timestamps.
+Such a table should execute only verified real-time-safe opcodes and should not
+move parsing or allocation into the backend MIDI callback.
+
+For pitched instruments, direct voice routes provide the smallest monophonic
+path, while pool routes preserve the allocator's polyphonic or monophonic mode.
+In particular, mono priority, held-note fallback, and legato remain properties
+of `/pm`; MIDI routing translates messages but does not duplicate that state
+machine. Poly routes use channel-plus-note keys and apply channel bend to every
+held allocation belonging to the matching route.
+
 Outbound `MO` and `d>MO` are immediate control-plane operations. A future
 sample-accurate MIDI output facility should compile into a bounded opcode and
 enqueue timestamped bytes; it should not make backend calls from the audio

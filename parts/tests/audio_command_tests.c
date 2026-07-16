@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "api.h"
+#include "skode.h"
 #include "synth.h"
 #include "synth-types.h"
 
@@ -11,6 +12,12 @@ static void expect(int condition, const char *message) {
   if (condition) return;
   fprintf(stderr, "FAIL audio commands: %s\n", message);
   failures++;
+}
+
+static void consume_skode(skode_t *ctx, const char *command) {
+  char copy[256];
+  snprintf(copy, sizeof(copy), "%s", command);
+  expect(skode_consume(copy, ctx) == 0, "direct Skode audio command failed");
 }
 
 int main(void) {
@@ -88,6 +95,23 @@ int main(void) {
 
   expect(skred_command("log 1") == 0,
          "non-audio command did not fall through to Skode");
+
+  skode_t audio_skode = SKODE_EMPTY();
+  skode_init(&audio_skode);
+  audio_skode.log_enable = 1;
+  consume_skode(&audio_skode, "/ai -2");
+  expect(strstr(audio_skode.log, "requested: [off]") != NULL,
+         "Skode /ai did not disable capture");
+  consume_skode(&audio_skode, "/ao -1");
+  expect(strstr(audio_skode.log, "requested: [default]") != NULL,
+         "Skode /ao did not select default output");
+  consume_skode(&audio_skode, "[aud]:/ai -2; aud");
+  expect(strstr(audio_skode.log, "requested: [off]") != NULL,
+         "immediate macro could not invoke Skode audio selection");
+  consume_skode(&audio_skode, "/a?");
+  expect(strstr(audio_skode.log, "audio: stopped") != NULL,
+         "Skode /a? did not report status");
+  skode_free(&audio_skode);
 
   /* skred_command() owns a SKODE_EMPTY() context and depends on lazy parser
      initialization. Exercise dictionary-backed atoms through that exact API

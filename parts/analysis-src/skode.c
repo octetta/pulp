@@ -11,6 +11,7 @@
 #include "control-events.h"
 #include "polyphony.h"
 #include "skode-dict.h"
+#include "midi.h"
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -3081,6 +3082,157 @@ int skode_function(ands_t *s, int info) {
   if (skode_execute_word(ctx, s, atom, arg, argc, &dict_result))
     return dict_result;
   switch (atom) {
+    case ATOM4('/als'):
+      if (argc == 0) {
+        (void)skred_audio_command("/als");
+        ctx->printf(ctx, "%s\n", skred_audio_message());
+      }
+      break;
+    case ATOM4('/a?-'):
+      if (argc == 0) ctx->printf(ctx, "# %s\n", skred_audio_status());
+      break;
+    case ATOM4('/ai-'):
+    case ATOM4('/ao-'):
+      if (argc == 1 && x_valid) {
+        int is_capture = atom == ATOM4('/ai-');
+        int result = 0;
+        if (x >= 0) result = skred_audio_refresh();
+        if (result == 0) result = skred_audio_select(is_capture, x);
+        if (result == 0) ctx->printf(ctx, "# %s\n", skred_audio_status());
+        else ctx->printf(ctx, "# audio selection failed: /a%c %d\n",
+          is_capture ? 'i' : 'o', x);
+      } else {
+        ctx->printf(ctx, "# usage: /a%c selection (-1 default%s)\n",
+          atom == ATOM4('/ai-') ? 'i' : 'o',
+          atom == ATOM4('/ai-') ? ", -2 off" : "");
+      }
+      break;
+    case ATOM4('/mL-'):
+      if (argc == 0) {
+        int result = skred_midi_init("pulp");
+        if (result == 0) {
+          ctx->printf(ctx, "# MIDI inputs\n");
+          int count = skred_midi_input_count();
+          for (int i = 0; i < count; i++) {
+            char name[128] = {0};
+            if (skred_midi_input_name(i, name, sizeof(name)) == 0)
+              ctx->printf(ctx, "#   %d %s\n", i, name);
+          }
+          ctx->printf(ctx, "# MIDI outputs\n");
+          count = skred_midi_output_count();
+          for (int i = 0; i < count; i++) {
+            char name[128] = {0};
+            if (skred_midi_output_name(i, name, sizeof(name)) == 0)
+              ctx->printf(ctx, "#   %d %s\n", i, name);
+          }
+        } else ctx->printf(ctx, "# MIDI init failed (%d)\n", result);
+      }
+      break;
+    case ATOM4('/m?-'):
+      ctx->printf(ctx, "# %s\n", skred_midi_status());
+      break;
+    case ATOM4('/mi-'):
+    case ATOM4('/mo-'):
+      if (argc == 1 && x_valid) {
+        int result = skred_midi_init("pulp");
+        if (result == 0) result = atom == ATOM4('/mi-') ?
+          skred_midi_input_open(x) : skred_midi_output_open(x);
+        if (result != 0) ctx->printf(ctx, "# MIDI open failed (%d)\n", result);
+      }
+      break;
+    case ATOM4('/miV'):
+    case ATOM4('/moV'):
+      if (argc == 0) {
+        const char *name = ands_string(ctx->parse);
+        int result = skred_midi_init(name[0] ? name : "pulp");
+        if (result == 0) result = atom == ATOM4('/miV') ?
+          skred_midi_input_open_virtual(name) :
+          skred_midi_output_open_virtual(name);
+        if (result != 0)
+          ctx->printf(ctx, "# MIDI virtual open failed (%d)\n", result);
+      }
+      break;
+    case ATOM4('/mic'):
+      if (argc == 0 && skred_midi_input_close() != 0)
+        ctx->printf(ctx, "# MIDI input close failed\n");
+      break;
+    case ATOM4('/moc'):
+      if (argc == 0 && skred_midi_output_close() != 0)
+        ctx->printf(ctx, "# MIDI output close failed\n");
+      break;
+    case ATOM4('/mv-'):
+    case ATOM4('/mp-'):
+      {
+        int channel = -1, target;
+        float bend = 2.0f;
+        if (argc >= 2 && argc <= 3 &&
+            (isnan(arg[0]) || skode_double_to_int(arg[0], &channel)) &&
+            skode_double_to_int(arg[1], &target) &&
+            (argc < 3 || (isfinite(arg[2]) && arg[2] >= 0.0))) {
+          if (argc == 3) bend = (float)arg[2];
+          int kind = atom == ATOM4('/mv-') ? SKRED_MIDI_ROUTE_VOICE :
+            SKRED_MIDI_ROUTE_POOL;
+          if (skred_midi_route_set(channel, kind, target, bend) == 0 &&
+              skred_control_dispatch_start() == 0)
+            ctx->printf(ctx, "# MIDI route installed\n");
+          else ctx->printf(ctx, "# MIDI route failed\n");
+        } else ctx->printf(ctx, "# usage: /m%c channel target [bend]\n",
+          atom == ATOM4('/mv-') ? 'v' : 'p');
+      }
+      break;
+    case ATOM4('/mvd'):
+    case ATOM4('/mpd'):
+      {
+        int channel = -1, target;
+        if (argc == 2 &&
+            (isnan(arg[0]) || skode_double_to_int(arg[0], &channel)) &&
+            skode_double_to_int(arg[1], &target)) {
+          int kind = atom == ATOM4('/mvd') ? SKRED_MIDI_ROUTE_VOICE :
+            SKRED_MIDI_ROUTE_POOL;
+          ctx->printf(ctx, "# MIDI routes removed: %d\n",
+            skred_midi_route_remove(channel, kind, target));
+        }
+      }
+      break;
+    case ATOM4('/mR-'):
+      ctx->printf(ctx, "%s", skred_midi_route_status());
+      break;
+    case ATOM4('/mC-'):
+      skred_midi_route_clear();
+      ctx->printf(ctx, "# MIDI routes cleared\n");
+      break;
+    case ATOM4('/mb-'):
+      {
+        int type, channel = -1, data1 = -1;
+        if (argc == 3 && skode_double_to_int(arg[0], &type) &&
+            (isnan(arg[1]) || skode_double_to_int(arg[1], &channel)) &&
+            (isnan(arg[2]) || skode_double_to_int(arg[2], &data1)) &&
+            ands_string_len(ctx->parse) > 0 &&
+            skred_midi_binding_set(type, channel, data1,
+              ands_string(ctx->parse)) == 0 &&
+            skred_control_dispatch_start() == 0)
+          ctx->printf(ctx, "# MIDI Skode binding installed\n");
+        else ctx->printf(ctx,
+          "# usage: [skode-command] /mb type channel data1\n");
+      }
+      break;
+    case ATOM4('/mbd'):
+      {
+        int type, channel = -1, data1 = -1;
+        if (argc == 3 && skode_double_to_int(arg[0], &type) &&
+            (isnan(arg[1]) || skode_double_to_int(arg[1], &channel)) &&
+            (isnan(arg[2]) || skode_double_to_int(arg[2], &data1)))
+          ctx->printf(ctx, "# MIDI Skode bindings removed: %d\n",
+            skred_midi_binding_remove(type, channel, data1));
+      }
+      break;
+    case ATOM4('/mb?'):
+      ctx->printf(ctx, "%s", skred_midi_binding_status());
+      break;
+    case ATOM4('/mbC'):
+      skred_midi_binding_clear();
+      ctx->printf(ctx, "# MIDI Skode bindings cleared\n");
+      break;
     case ATOM4('/pg-'):
       {
         int group, source, width, root = 0;
@@ -4974,6 +5126,10 @@ void skode_free(skode_t *ctx) {
 
 /* Dictionary command documentation remains here so kit_tool includes it in
    the generated command reference alongside the legacy switch commands. */
+
+/* API/device command records live after the legacy records so adding them
+   cannot renumber the established numeric help categories. */
+
 
 /* Keep this new category after the legacy help records. Numeric help category
    indices are part of the command interface and must remain stable. */

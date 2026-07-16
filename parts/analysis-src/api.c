@@ -149,6 +149,14 @@ static void skred_control_dispatch_metrics_reset(void) {
   atomic_store_uint64(&control_dispatch_ns_worst, 0);
 }
 
+int skred_control_midi_command(const char *command) {
+  char copy[SKRED_MIDI_BINDING_COMMAND_MAX];
+  if (!command || !command[0] ||
+      strlen(command) >= sizeof(copy)) return -1;
+  snprintf(copy, sizeof(copy), "%s", command);
+  return skode_consume(copy, &control_dispatch_ctx);
+}
+
 static int skred_control_event_notify_init(void) {
   if (atomic_load_int(&control_notify_ready)) return 0;
 #if defined(_WIN32) || defined(_WIN64)
@@ -511,6 +519,8 @@ int skred_control_dispatch_pump(int max_events) {
     if (count <= 0) break;
     total += count;
     for (int e = 0; e < count; e++) {
+      if (events[e].type == SKRED_CONTROL_EVENT_MIDI)
+        (void)skred_midi_route_event(&events[e]);
       int key = skred_control_event_key(&events[e]);
       int command_count = 0;
       simple_mutex_lock(&control_response_mutex);

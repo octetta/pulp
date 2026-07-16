@@ -358,6 +358,23 @@ static void test_command_help(void) {
   consume(test, &ctx, "[/ls] /h");
   expect_substr(test, ctx.log, "# help /ls", "string command help");
   expect_substr(test, ctx.log, "skode-load-string filename", "string command summary");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[midi] /h");
+  expect_substr(test, ctx.log, "# help midi", "MIDI help category");
+  expect_substr(test, ctx.log, "/mL", "MIDI endpoint help");
+  expect_substr(test, ctx.log, "/mv", "MIDI voice-route help");
+  expect_substr(test, ctx.log, "/mb", "MIDI binding help");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[/mb] /h");
+  expect_substr(test, ctx.log, "# help /mb [midi]", "MIDI binding command help");
+  expect_substr(test, ctx.log, "filtered MIDI event", "MIDI binding summary");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[/ao] /h");
+  expect_substr(test, ctx.log, "# help /ao [runtime]", "audio output command help");
+  expect_substr(test, ctx.log, "audio output index", "audio output summary");
 }
 
 static void test_named_wave_destination(void) {

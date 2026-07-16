@@ -309,8 +309,8 @@ schedulable.
 | `[name] vt` | string | Set selected voice label | `sv.text[]` |
 | `[name] wt wave` | string, numeric | Set wavetable label | `sw.name[]` |
 | `W` | `[wave [, end-or-width [, height]]]` | Show wavetable or recording data, including loop metadata and one-shot baseline duration for single-wave displays | `wavetable_show()`, waveform display helpers |
-| `W@` | `wave,param[,register]` | Read wave size, rate, duration, loop start, or loop end | `sw`, register write |
-| `v@` | `param[,register]` | Read selected voice wave, amplitude, or frequency | `sv` fields, register write |
+| `W*` | `wave,param[,register]` | Read wave size, rate, duration, loop start, or loop end | `sw`, register write |
+| `v*` | `param[,register]` | Read selected voice wave, amplitude, or frequency | `sv` fields, register write |
 | `ds` | `amount` | Set selected voice send amount to the delay owned by its `r1`..`r4` record/scope track; effective only when `p0` and pan modulation is off | `delay_send_set()` |
 | `DL` | `track,coarse,fine,feedback,modfreq,moddepth,level` | Set the DW-style mono-send/stereo-return delay attached to record/scope track `1..4` | `delay_params_set()` |
 | `DL?` | `[track]` | Show one track delay or all four track delays as copy/pasteable `DL...` commands | `delay_format()`, `delay_bus_format()` |
@@ -319,7 +319,7 @@ schedulable.
 | `w>r` | `wave` | Copy wavetable samples to recording buffer | `skode_sample_alloc()` |
 | `d>r` | none | Copy parser data to recording buffer | `skode_sample_alloc()` |
 | `w!` | none | Apply current recording offset and trim | recording-buffer state |
-| `w@` | none | Reset recording offset and trim | recording-buffer state |
+| `w*` | none | Reset recording offset and trim | recording-buffer state |
 | `w>` | `[samples]` | Move recording start offset | `sampling.offset` |
 | `w<` | `[samples]` | Increase or decrease end trim | `sampling.trim` |
 | `w<>` | `[threshold [, end-threshold [, margin-samples]]]` | Find recording trim points using a default `0.001` silence threshold, four consecutive audible samples, and optional sample margin | `record_find_trim()` |
@@ -327,8 +327,8 @@ schedulable.
 | `/d` | `[slot [, rate [, one-shot [, offset]]]]` | Load parser data into a wave slot | `data_load()` |
 | `/wex` | `wave` | Expand a dynamic wave slot in the 200-999 range | `wave_table_dynamic_expand()` |
 
-For `W@`, parameter `0` is sample count, `1` is sample rate, `2` is duration
-(`size / rate`), `3` is loop start, and `4` is loop end. For `v@`, parameter
+For `W*`, parameter `0` is sample count, `1` is sample rate, `2` is duration
+(`size / rate`), `3` is loop start, and `4` is loop end. For `v*`, parameter
 `0` is wave index, `1` is user amplitude, and `2` is frequency.
 
 Single-wave `W` output prints a labeled marker row under the waveform using
@@ -348,7 +348,7 @@ baseline duration at the wave's stored playback rate and the loop duration.
 | `D` | `[capacity]` | Show or increase parser data capacity | `ands_data_cap()`, `ands_data_resize()` |
 | `/D` | `[capacity]` | Resize data and print capacity details | `ands_data_resize()` |
 | `?d` | none | Print parser data | `skode_double_dump()` |
-| `d@` | `index` | Print one data element | `ands_data()` |
+| `d*` | `index` | Print one data element | `ands_data()` |
 | `=d` | `register,index` | Copy a data element to a shared register | register write |
 | `=` | `[register [, value]]` | Set, inspect, or list shared registers | register read/write |
 | `*=` | `register,a,b` | Store `a * b` | register write |
@@ -358,27 +358,30 @@ baseline duration at the wave's stored playback rate and the loop duration.
 
 The two meanings of `=` share syntax. `=N,value` is also accepted by the
 scheduled opcode compiler and writes the shared register array when executed.
-The immediate read/math forms `d@`, `W@`, `v@`, `=`, `*=`, `/=`, `a=`, and
+The immediate read/math forms `d*`, `W*`, `v*`, `=`, `*=`, `/=`, `a=`, and
 `s=` also return their result as the next command's pending first argument
 when they are followed by another atom in the same chunk.
 
 ### Macro and Composition Examples
 
-ANDS macros are global shortcuts. Define them with `[name] : body ;`.
+ANDS macros are global named commands. Define them with `[name] : body ;`.
 Names use the same four-character atom width as commands; longer definition
 names are silently truncated to four characters. Macro arguments are written
-as `$$0`..`$$7`; the older `@0`..`@7` form is still accepted for compatibility.
-Plain `$0` keeps its normal meaning as a shared register reference after the
-macro expands. Because macros are global, scripts loaded with `/l` can define
-macros for later interactive use.
+as `$$0`..`$$7`. `@0`..`@9` now read parser-local return values and are not
+macro-parameter aliases. Plain `$0` keeps its normal meaning as a shared
+register reference. Because macros are global, scripts loaded with `/l` can
+define macros for later interactive use.
 
 ```skode
 [ar] : t $$0 0 $$1 0 ;
 ar 0.01 0.4
 ```
 
-The example above expands to `t 0.01 0 0.4 0`, which configures an attack /
-release-style amplitude envelope using the normal `t` command.
+The example above compiles to the same opcodes as `t 0.01 0 0.4 0`, which
+configures an attack/release-style amplitude envelope. Definition uses the
+real compiler: `?m` reports `realtime` when the bounded program is cached in
+the dictionary, and `immediate` when the body must retain text expansion.
+Invalid and oversized bodies are reported separately.
 
 Macros can bundle small voice recipes:
 
@@ -401,10 +404,23 @@ Read commands can feed later commands in the same chunk. The return value is
 left as the next command's first pending argument:
 
 ```skode
-1 v@ a       # read selected voice amplitude and feed it to a
+1 v* a       # read selected voice amplitude and feed it to a
 0 3 4 a= a  # store 3+4 in $0, then feed 7 to a
-(2 5 8) 1 d@ f
+(2 5 8) 1 d* f
 ```
+
+Immediate macros can return a tuple explicitly:
+
+```skode
+[pair] : *R .1 .2 ;
+pair
+?R                  # non-consuming: @0=.1, @1=.2
+@0 a
+```
+
+`*R` replaces the return tuple with its arguments. `@0`..`@9` read it, and
+`?R` displays it without changing it. These parser-local operations have no
+scheduled representation, so macros containing them are `immediate`.
 
 The stack helpers rearrange pending numeric arguments before the next atom:
 

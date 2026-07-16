@@ -123,19 +123,20 @@ schedulable Skode text can go (defers, repeats, patterns, macros).
 
 ### A word of caution: two unrelated things are called "macro"
 
-| | External macro | ANDS macro |
+| | External macro | Named ANDS macro |
 | --- | --- | --- |
 | Syntax | `e!N` | `[name] : body ;` |
 | Defined with | `[commands] e>N` | `[name] : body ;` itself |
 | Stored as | numbered buffer | global name (truncated to 4 chars) |
-| Expanded by | the **compiler**, at compile time | the **parser**, before compiling |
-| Semantics | snapshot — editing the buffer later doesn't change anything already compiled | plain text substitution — no snapshot concept |
+| Executed by | the **compiler**, which inlines a numbered-buffer snapshot | cached dictionary program when `realtime`; parser text expansion when `immediate` |
+| Semantics | snapshot — editing the buffer later doesn't change anything already compiled | classified on definition; redefinition replaces its status and cache |
 | Inspect / remove | `e?`, `e>N` | `?m`, `/m`, `/m!` |
 
-An ANDS macro isn't a third kind of schedulable thing. It just expands to
-plain command text *before* the immediate/compiled split is decided —
-so whether it's legal in a given spot depends entirely on what that
-expanded text is:
+An ANDS macro is checked by the real compiler when defined. `?m` reports
+`realtime` for a definition cached as a bounded dictionary program, or
+`immediate` when it requires parser/control-thread behavior and therefore
+retains text expansion. Only `realtime` named macros are legal in scheduled
+positions:
 
 ```skode
 [bozo] : ?ce ;

@@ -803,3 +803,43 @@ rich control input -> validate and compile -> fixed real-time data
 Keeping that boundary explicit will make extensions easier to reason about
 and will preserve the qualities that make SKRED useful as a small live audio
 engine.
+
+## Promoted Skode Macros: Follow-up Work
+
+Named macros are checked with the real Skode compiler when defined. Definitions
+that compile entirely to scheduled opcodes are cached as dictionary programs;
+immediate definitions retain text-expansion behavior; `?m` reports their
+classification. Cached parameter locations are explicit template metadata,
+not distinguished numeric values.
+
+The following constraints should be addressed before promoted macros become a
+widely relied-on public facility:
+
+- **Invalidate transitive dependants.** A promoted macro that calls another
+  promoted macro currently captures the callee's program at definition time.
+  Redefining or removing the callee can therefore leave the caller's cache
+  stale. With only 64 short definitions, the preferred initial fix is to
+  remove all promoted entries and reclassify the whole macro table in passes
+  after every definition/removal. Continue until no more definitions become
+  resolvable; then report remaining cycles or unresolved dependencies. Add a
+  dependency graph only if definition-time recompilation becomes measurable.
+- **Serialize mutation.** Macro storage and the global dictionary are mutable
+  process-global structures without internal synchronization. Funnel local,
+  UDP, and other command ingestion through one control-thread owner, or guard
+  macro storage plus dictionary lookup/mutation with one documented lock. A
+  definition changes both structures and should be treated as one transaction.
+- **Refine status taxonomy.** Keep `immediate` distinct from errors: it is a
+  valid control-thread macro. During whole-table reclassification, distinguish
+  temporarily `unresolved` dependencies and cycles from permanently `invalid`
+  syntax, and retain the existing `too-large` result.
+- **Keep ownership aligned.** Macros are process-global today, so their cached
+  words belong in the global vocabulary. Do not introduce per-context macro
+  promotion until macro storage itself becomes context-local.
+- **Split the implementation when it grows.** Macro classification, template
+  compilation, promotion, and invalidation are natural candidates for a
+  future `skode-macro.c`; generic lookup/registration and built-in words should
+  remain in `skode-dict.c`.
+
+Unless deliberately documented otherwise, nested named macros should retain
+their historical live-definition semantics rather than silently becoming
+permanent snapshots.

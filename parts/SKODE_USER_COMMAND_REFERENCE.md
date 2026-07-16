@@ -698,7 +698,64 @@ With `yc1`, a pattern emits `SKRED_CONTROL_EVENT_PATTERN_START` when playback
 lands on step `0`, and `SKRED_CONTROL_EVENT_PATTERN_END` when it reaches a stop
 marker or the last playable step before wrap.
 
-## External Macros
+## Named Macros
+
+Named macros are global four-character commands defined directly in Skode:
+
+```text
+[name]: body;
+```
+
+Names longer than four characters are truncated. Parameters are written as
+`$$0` through `$$7`; `@N` is not a parameter alias—it reads a return value.
+For example:
+
+```text
+[tone]: v $$0 n $$1 a $$2;
+tone 2,60,-9
+```
+
+Every definition is checked immediately using the real Skode compiler:
+
+- `realtime`: the body compiles entirely to bounded scheduled opcodes. It is
+  cached as a dictionary program and can be used interactively or anywhere
+  schedulable Skode is accepted.
+- `immediate`: the macro is valid but requires parser/control-thread behavior.
+  It retains text-expansion semantics and cannot be placed on the scheduled
+  real-time path.
+- `invalid` or `too-large`: compilation failed or exceeded the bounded program
+  size.
+
+Inspect and manage definitions with:
+
+| Command | Effect |
+| --- | --- |
+| `?m` | Show every named macro, parameter count, and capability status. |
+| `[name] /m` | Remove one named macro and any cached dictionary program. |
+| `/m!` | Clear all named macros and cached programs. |
+
+Redefinition replaces the stored text, classification, and cached program.
+Named macros loaded from Skode files are global and remain available for later
+commands.
+
+### Returning values from named macros
+
+Use `*R` as the final command of an immediate macro to return up to ten values:
+
+```text
+[bounds]: *R .1 .9;
+bounds
+?R
+# returns @0=0.1 @1=0.9
+@0 a
+```
+
+`@0` through `@9` supply a returned value as a numeric argument. `?R` displays
+the current tuple without consuming it. Return values are parser-local and
+immediate-only; a macro containing `*R` or `@N` is therefore classified
+`immediate`.
+
+## External Numbered Macros
 
 There are 128 external string buffers, numbered `0` through `127`. Each stores
 up to 255 text characters plus its terminator.
@@ -717,12 +774,6 @@ Literal `e!N` calls may be used inside patterns, defers, repeats, and other
 external macros. Recursive macro cycles, undefined macros, runtime-selected
 `e!$N`, and expansions beyond 32 operations are rejected.
 
-Named macros are checked when defined. `?m` labels each definition
-`realtime` when it compiles entirely to scheduled opcodes, or `immediate`
-when it requires parser/control-thread behavior. Real-time definitions are
-cached and invoked through the compiled dictionary path; redefining or
-removing a macro updates that cached entry.
-
 `eR` and `eRR` are control-thread scheduling commands. The macro is copied and
 compiled once when the command is issued, so later edits do not affect queued
 invocations. The 32-operation limit applies to one compiled invocation, not
@@ -739,7 +790,7 @@ the repeat count.
 | `/=N,a,b` | Register and operands | Stores `a / b` when `b` is nonzero. | No |
 | `a=N,a,b` | Register and operands | Stores `a + b`. | No |
 | `s=N,a,b` | Register and operands | Stores `a - b`. | No |
-| `*R [values...]` | Up to ten values | Returns its arguments as `@0`, `@1`, and so on; intended as the final command in a macro. | No |
+| `*R [values...]` | Up to ten values | Returns its arguments as `@0`, `@1`, and so on; see “Named Macros.” | No |
 | `@N` | Return slot `0` through `9` | Supplies return value `N` as a numeric argument to the next command. | No |
 | `?R` | None | Displays all current return values without consuming or changing them. | No |
 | `(values...)` | Numeric list | Replaces the parser's data array. | No |

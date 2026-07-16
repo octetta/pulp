@@ -50,6 +50,7 @@ static int near_double(double a, double b) {
 
 static int record_cb(ands_t *s, int info) {
   recorder_t *r = (recorder_t *)ands_user(s);
+  if (info == MACRO_DEFINED || info == MACRO_REMOVING) return 0;
   if (r->len >= MAX_EVENTS) return 0;
 
   event_t *e = &r->events[r->len++];

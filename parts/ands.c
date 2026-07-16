@@ -89,6 +89,7 @@ typedef struct {
     char name[MACRO_NAME_LEN];
     char body[MACRO_BODY_LEN];
     int arg_count;
+    int status;
     int used;
 } macro_t;
 
@@ -201,6 +202,7 @@ typedef struct ands_s {
 } ands_t;
 
 static macro_t global_macros[MACRO_MAX];
+static int last_defined_macro_idx = -1;
 
 // ============================================================================
 // MACRO PREPROCESSOR
@@ -295,21 +297,69 @@ int ands_macro_get(ands_t *s, int index, char *name, int name_len,
     return 0;
 }
 
+static int ands_macro_slot_from_index(int index) {
+    int seen = 0;
+    if (index < 0) return -1;
+    for (int i = 0; i < MACRO_MAX; i++) {
+        if (!global_macros[i].used) continue;
+        if (seen++ == index) return i;
+    }
+    return -1;
+}
+
+int ands_last_macro_index(ands_t *s) {
+    int seen = 0;
+    (void)s;
+    if (last_defined_macro_idx < 0 ||
+        !global_macros[last_defined_macro_idx].used) return -1;
+    for (int i = 0; i < MACRO_MAX; i++) {
+        if (!global_macros[i].used) continue;
+        if (i == last_defined_macro_idx) return seen;
+        seen++;
+    }
+    return -1;
+}
+
+int ands_macro_status(ands_t *s, int index) {
+    int slot;
+    (void)s;
+    slot = ands_macro_slot_from_index(index);
+    return slot >= 0 ? global_macros[slot].status : ANDS_MACRO_UNCHECKED;
+}
+
+int ands_macro_set_status(ands_t *s, int index, int status) {
+    int slot;
+    (void)s;
+    slot = ands_macro_slot_from_index(index);
+    if (slot < 0) return 0;
+    global_macros[slot].status = status;
+    return 1;
+}
+
 int ands_macro_remove(ands_t *s, const char *name) {
     int idx;
 
-    (void)s;
     if (!name) return 0;
     idx = ands_find_macro(name);
     if (idx < 0) return 0;
 
+    last_defined_macro_idx = idx;
+    if (s && s->fn) s->fn(s, MACRO_REMOVING);
     memset(&global_macros[idx], 0, sizeof(global_macros[idx]));
+    if (last_defined_macro_idx == idx) last_defined_macro_idx = -1;
     return 1;
 }
 
 void ands_macro_clear(ands_t *s) {
-    (void)s;
+    if (s && s->fn) {
+        for (int i = 0; i < MACRO_MAX; i++) {
+            if (!global_macros[i].used) continue;
+            last_defined_macro_idx = i;
+            s->fn(s, MACRO_REMOVING);
+        }
+    }
     memset(global_macros, 0, sizeof(global_macros));
+    last_defined_macro_idx = -1;
 }
 
 static int ands_macro_arg_count(const char *body) {
@@ -357,7 +407,9 @@ static int ands_store_macro(ands_t *s, const char *name, const char *body, int b
     memcpy(global_macros[idx].body, body, (size_t)body_len);
     global_macros[idx].body[body_len] = '\0';
     global_macros[idx].arg_count = ands_macro_arg_count(global_macros[idx].body);
+    global_macros[idx].status = ANDS_MACRO_UNCHECKED;
     global_macros[idx].used = 1;
+    last_defined_macro_idx = idx;
     return 1;
 }
 
@@ -396,7 +448,8 @@ static int ands_try_parse_macro_definition(ands_t *s, char **ptr, char *end) {
     p = body_start;
     while (p < end && *p != ';') p++;
     body_len = (int)(p - body_start);
-    ands_store_macro(s, name, body_start, body_len);
+    if (ands_store_macro(s, name, body_start, body_len))
+        s->fn(s, MACRO_DEFINED);
 
     if (p < end && *p == ';') p++;
     *ptr = p;
@@ -520,6 +573,10 @@ static int ands_preprocess_macros(ands_t *s, const char *input, buffer_t *out, i
 
             idx = ands_find_macro(atom);
             if (!atom_too_long && atom_len > 0 && atom_len < MACRO_NAME_LEN && idx >= 0) {
+                if (global_macros[idx].status == ANDS_MACRO_REALTIME) {
+                    if (!expand_buf_append_n(out, start, (int)(ptr - start))) return 0;
+                    continue;
+                }
                 int needed = global_macros[idx].arg_count;
                 int collected = 0;
                 arg_ptr = ptr;

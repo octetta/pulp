@@ -456,6 +456,8 @@ int skode_compile_word(ands_t *parser, uint32_t atom, double *arg, int argc,
  *                                     not verified real-time-safe)
  */
 word_safety_t compute_macro_safety(skode_vocab_t *vocab, const char *body);
+skode_compile_result_t skode_dict_macro_compile_status(
+  skode_vocab_t *vocab, const char *body);
 
 /*
  * Reports a macro's computed safety to the user. Call this from
@@ -534,6 +536,7 @@ void skode_dict_report_macro_safety(skode_t *ctx, const char *name,
  */
 skode_word_t *skode_dict_promote_macro(skode_vocab_t *vocab,
   const char *name, const char *body);
+int skode_dict_unpromote_macro(skode_vocab_t *vocab, const char *name);
 
 /*
  * True if `word` was produced by skode_dict_promote_macro() (as opposed to

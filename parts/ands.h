@@ -24,6 +24,16 @@ enum {
   GOT_STRING,
   GOT_ARRAY,
   GOT_RETURN_REF,
+  MACRO_DEFINED,
+  MACRO_REMOVING,
+};
+
+enum {
+  ANDS_MACRO_UNCHECKED = 0,
+  ANDS_MACRO_REALTIME,
+  ANDS_MACRO_IMMEDIATE,
+  ANDS_MACRO_INVALID,
+  ANDS_MACRO_TOO_LARGE,
 };
 
 typedef struct ands_s ands_t;
@@ -40,6 +50,9 @@ int ands_consume(ands_t *s, char *line);
 int ands_macro_count(ands_t *s);
 int ands_macro_get(ands_t *s, int index, char *name, int name_len,
                    char *body, int body_len, int *arg_count);
+int ands_last_macro_index(ands_t *s);
+int ands_macro_status(ands_t *s, int index);
+int ands_macro_set_status(ands_t *s, int index, int status);
 int ands_macro_remove(ands_t *s, const char *name);
 void ands_macro_clear(ands_t *s);
 uint32_t ands_atom_num(ands_t *s);

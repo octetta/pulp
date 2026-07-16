@@ -717,6 +717,12 @@ Literal `e!N` calls may be used inside patterns, defers, repeats, and other
 external macros. Recursive macro cycles, undefined macros, runtime-selected
 `e!$N`, and expansions beyond 32 operations are rejected.
 
+Named macros are checked when defined. `?m` labels each definition
+`realtime` when it compiles entirely to scheduled opcodes, or `immediate`
+when it requires parser/control-thread behavior. Real-time definitions are
+cached and invoked through the compiled dictionary path; redefining or
+removing a macro updates that cached entry.
+
 `eR` and `eRR` are control-thread scheduling commands. The macro is copied and
 compiled once when the command is issued, so later edits do not affect queued
 invocations. The 32-operation limit applies to one compiled invocation, not

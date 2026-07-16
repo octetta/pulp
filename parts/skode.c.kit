@@ -761,10 +761,17 @@ static void skode_macros_show(skode_t *ctx, int pasteable) {
     for (int i = 0; i < count; i++) {
       if (ands_macro_get(ctx->parse, i, name, sizeof(name),
                          body, sizeof(body), &arg_count)) {
+        int status = ands_macro_status(ctx->parse, i);
+        const char *status_name =
+          status == ANDS_MACRO_REALTIME ? "realtime" :
+          status == ANDS_MACRO_IMMEDIATE ? "immediate" :
+          status == ANDS_MACRO_INVALID ? "invalid" :
+          status == ANDS_MACRO_TOO_LARGE ? "too-large" : "unchecked";
         if (pasteable) {
           ctx->printf(ctx, "[%s] :%s ;\n", name, body);
         } else {
-          ctx->printf(ctx, "# [%s] :%s ; # @%d\n", name, body, arg_count);
+          ctx->printf(ctx, "# [%s] :%s ; # @%d %s\n",
+            name, body, arg_count, status_name);
         }
       }
     }
@@ -5961,6 +5968,42 @@ int skode_callback(ands_t *s, int info) {
     case GOT_STRING: { if (ctx->trace) ctx->printf(ctx, "# -> [%s]\n", ands_string(s)); } break;
     case GOT_ARRAY: { if (ctx->trace) ctx->printf(ctx, "# -> (..%d..)\n", ands_data_len(s)); } break;
     case GOT_RETURN_REF: { if (ctx->trace) ctx->printf(ctx, "# -> @return\n"); } break;
+    case MACRO_DEFINED: {
+      int index = ands_last_macro_index(s);
+      char name[ANDS_MACRO_NAME_LEN];
+      char body[ANDS_MACRO_BODY_LEN];
+      int argc = 0;
+      if (index >= 0 && ands_macro_get(s, index, name, sizeof(name),
+          body, sizeof(body), &argc)) {
+        skode_vocab_t *vocab = skode_dict_global_vocab();
+        skode_dict_unpromote_macro(vocab, name);
+        skode_compile_result_t result =
+          skode_dict_macro_compile_status(vocab, body);
+        int status =
+          result == SKODE_COMPILE_OK ? ANDS_MACRO_REALTIME :
+          result == SKODE_COMPILE_IMMEDIATE_ONLY ? ANDS_MACRO_IMMEDIATE :
+          result == SKODE_COMPILE_TOO_LARGE ? ANDS_MACRO_TOO_LARGE :
+          ANDS_MACRO_INVALID;
+        if (status == ANDS_MACRO_REALTIME &&
+            !skode_dict_promote_macro(vocab, name, body))
+          status = ANDS_MACRO_INVALID;
+        ands_macro_set_status(s, index, status);
+        if (ctx->trace)
+          ctx->printf(ctx, "# macro [%s] %s\n", name,
+            status == ANDS_MACRO_REALTIME ? "realtime" :
+            status == ANDS_MACRO_IMMEDIATE ? "immediate" :
+            status == ANDS_MACRO_TOO_LARGE ? "too-large" : "invalid");
+      }
+      break;
+    }
+    case MACRO_REMOVING: {
+      int index = ands_last_macro_index(s);
+      char name[ANDS_MACRO_NAME_LEN];
+      if (index >= 0 && ands_macro_get(s, index, name, sizeof(name),
+          NULL, 0, NULL))
+        skode_dict_unpromote_macro(skode_dict_global_vocab(), name);
+      break;
+    }
     default: return skode_unknown(ctx, s, info);
   }
   return 0;

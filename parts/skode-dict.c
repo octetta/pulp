@@ -303,12 +303,8 @@ static void resolve_macro_placeholders(const char *body, char *out,
 }
 
 word_safety_t compute_macro_safety(skode_vocab_t *vocab, const char *body) {
-  event_program_t program;
-  if (!body || !body[0]) return WORD_IMMEDIATE_ONLY;
-  char resolved[ANDS_MACRO_BODY_LEN];
-  resolve_macro_placeholders(body, resolved, sizeof(resolved));
   skode_compile_result_t result =
-    skode_compile_program_ex(resolved, &program, vocab);
+    skode_dict_macro_compile_status(vocab, body);
   switch (result) {
     case SKODE_COMPILE_OK:
       return WORD_REAL_TIME_SAFE;
@@ -319,6 +315,15 @@ word_safety_t compute_macro_safety(skode_vocab_t *vocab, const char *body) {
     default:
       return WORD_MAY_QUEUE;
   }
+}
+
+skode_compile_result_t skode_dict_macro_compile_status(
+    skode_vocab_t *vocab, const char *body) {
+  event_program_t program;
+  if (!body || !body[0]) return SKODE_COMPILE_IMMEDIATE_ONLY;
+  char resolved[ANDS_MACRO_BODY_LEN];
+  resolve_macro_placeholders(body, resolved, sizeof(resolved));
+  return skode_compile_program_ex(resolved, &program, vocab);
 }
 
 void skode_dict_report_macro_safety(skode_t *ctx, const char *name,
@@ -558,52 +563,25 @@ void skode_dict_install_example_mute_logger(skode_vocab_t *vocab) {
  * pre-compiled dictionary word
  * ===================================================================
  *
- * DESIGN NOTE -- why parameters need a sentinel at all:
+ * DESIGN NOTE -- preserving parameter identity:
  *
  * $$N placeholders are resolved by TEXT substitution before
  * skode_compile_program() ever runs (see resolve_macro_placeholders()
  * above); once compiled, an opcode_event_t's arg[] is just plain floats --
  * there's no way to tell "this came from $$0" apart from "the macro author
- * wrote this literal" after the fact. To promote a macro into a reusable
- * template, that information has to survive compilation, so each
- * placeholder is resolved to a distinguishable value instead of a neutral
- * "0", and that value is later converted into something an accidental
- * leak can't be confused for a real argument.
- *
- * DESIGN NOTE -- why the sentinel can't just be a literal NaN:
- *
- * The substitution happens as TEXT, fed into the same skode_compile_program()
- * every other command goes through -- there's no side channel. And the
- * lexer's START-state dispatch (ands.c) decides GET_NUMBER vs. GET_ATOM
- * purely by testing the *first character* of a token against IS_NUMBER
- * (digit, '-', or '.'); anything starting with a letter -- including "nan"
- * -- is classified as an atom and GET_NUMBER's ands_strtod() (which does
- * wrap real strtod(), and would honor "nan(...)" if it ever saw it) never
- * gets the string. A literal NaN is therefore unreachable via this
- * channel, full stop -- not a strtod limitation, a lexer-level gate.
- *
- * So detection uses an ordinary decimal sentinel that *is* reachable
- * through GET_NUMBER: MACRO_PARAM_SENTINEL_BASE - N, where the base
- * (-2^23) is the largest magnitude at which every small integer offset
- * remains exactly representable in `float` (no two distinct N can round
- * together), chosen far outside any plausible real skode argument (freq,
- * amp-dB, pan, MIDI note, velocity). Once compilation is done and we're
- * back in our own C code -- no longer bound by what the text lexer can
- * parse -- detected sentinel slots ARE converted to a real quiet NaN with
- * the parameter index embedded in its payload bits, for the template's
- * stored form. That's a strictly better final representation: any
- * accidental leak downstream (a bug that fails to substitute a slot)
- * poisons visibly -- arithmetic touching it stays NaN, x==x becomes false
- * -- rather than silently computing with a plausible-looking finite
- * number.
+ * wrote this literal" after the fact. Promotion substitutes each placeholder
+ * with an out-of-range variable reference ($128..$135). The normal compiler
+ * preserves those references in var_mask; extract_program_params() then
+ * moves them into explicit per-operand parameter metadata and clears the
+ * temporary variable reference. Valid user variables stop at $127, so no
+ * legal source value or variable can collide with this representation.
  */
 
-#define MACRO_PARAM_SENTINEL_BASE (-8388608.0) /* -2^23 */
-#define MACRO_PARAM_NAN_MASK      (0x7fc00000u) /* exponent=all-1s, quiet bit set */
-#define MACRO_PARAM_NAN_PAYLOAD   (0x00000007u) /* low 3 bits: params 0..7 */
+#define MACRO_PARAM_VAR_BASE (ANDS_VAR_MAX)
+#define MACRO_PARAM_NONE UINT8_MAX
 
 /* Same substitution shape as resolve_macro_placeholders() above, but tags
-   each placeholder with the magnitude sentinel instead of a neutral "0".
+   each placeholder with a reserved out-of-range variable reference.
    Returns 1 on success, 0 if a placeholder index >= SKODE_DICT_MACRO_PARAM_MAX
    was found (promotion must refuse such a macro). *max_param_seen is set
    to the highest placeholder index found, or -1 if none were found. */
@@ -625,8 +603,8 @@ static int resolve_macro_placeholders_tagged(const char *body, char *out,
     if (is_param) {
       if (n >= SKODE_DICT_MACRO_PARAM_MAX) overflow = 1;
       if (n > max_seen) max_seen = n;
-      int written = snprintf(out + oi, out_size - oi, "%.1f",
-        MACRO_PARAM_SENTINEL_BASE - (double)n);
+      int written = snprintf(out + oi, out_size - oi, "$%d",
+        MACRO_PARAM_VAR_BASE + n);
       if (written < 0 || (size_t)written >= out_size - oi) break;
       oi += (size_t)written;
       i += (size_t)skip;
@@ -639,48 +617,49 @@ static int resolve_macro_placeholders_tagged(const char *body, char *out,
   return overflow ? 0 : 1;
 }
 
-/* Walks a freshly-compiled program looking for magnitude-sentinel values
-   and converts each one, in place, to a payload-carrying quiet NaN. Called
-   once, at promotion time -- never per invocation. */
-static void tag_program_params(event_program_t *program) {
+/* Moves reserved variable references into explicit template metadata. */
+static void extract_program_params(event_program_t *program,
+    uint8_t param[SEQ_PROGRAM_OP_MAX][SEQ_OPCODE_ARG_MAX]) {
   for (int i = 0; i < program->count; i++) {
     opcode_event_t *op = &program->op[i].opcode;
     for (int j = 0; j < op->argc; j++) {
-      for (int n = 0; n < SKODE_DICT_MACRO_PARAM_MAX; n++) {
-        float sentinel = (float)(MACRO_PARAM_SENTINEL_BASE - (double)n);
-        if (op->arg[j] == sentinel) {
-          uint32_t bits = MACRO_PARAM_NAN_MASK | (uint32_t)n;
-          memcpy(&op->arg[j], &bits, sizeof(bits));
-          break;
+      param[i][j] = MACRO_PARAM_NONE;
+      if (op->var_mask & (1U << j)) {
+        int variable = (int)op->arg[j];
+        if (variable >= MACRO_PARAM_VAR_BASE &&
+            variable < MACRO_PARAM_VAR_BASE + SKODE_DICT_MACRO_PARAM_MAX) {
+          param[i][j] = (uint8_t)(variable - MACRO_PARAM_VAR_BASE);
+          op->var_mask &= (uint8_t)~(1U << j);
+          op->arg[j] = 0;
         }
       }
     }
   }
 }
 
-/* Returns a copy of `tmpl_op` with every tagged parameter slot replaced by
-   the corresponding real invocation argument. A slot whose index is out of
-   range for this invocation's argc is left as NaN -- argc validation
-   upstream (self->min_args/max_args, enforced by both player functions
-   below) should make that unreachable; if it's ever reached anyway, a
-   visibly-poisoned NaN is the correct fail-loud outcome, not a silent
-   wrong value. */
+/* Returns a copy of `tmpl_op` with every parameter slot replaced by the
+   corresponding invocation argument or variable reference. */
 static opcode_event_t resolve_template_op(const opcode_event_t *tmpl_op,
-    const double *arg, int argc) {
+    const uint8_t *param, ands_t *parser, const double *arg, int argc) {
   opcode_event_t resolved = *tmpl_op;
   for (int j = 0; j < resolved.argc; j++) {
-    uint32_t bits;
-    memcpy(&bits, &resolved.arg[j], sizeof(bits));
-    if ((bits & MACRO_PARAM_NAN_MASK) == MACRO_PARAM_NAN_MASK) {
-      int param_index = (int)(bits & MACRO_PARAM_NAN_PAYLOAD);
-      if (param_index < argc) resolved.arg[j] = (float)arg[param_index];
+    int param_index = param[j];
+    if (param_index != MACRO_PARAM_NONE && param_index < argc) {
+      int variable = parser ? ands_arg_var(parser, param_index) : -1;
+      if (variable >= 0) {
+        resolved.var_mask |= (uint8_t)(1U << j);
+        resolved.arg[j] = (float)variable;
+      } else {
+        resolved.arg[j] = (float)arg[param_index];
+      }
     }
   }
   return resolved;
 }
 
 typedef struct skode_macro_template {
-  event_program_t program;         /* compiled, with NaN-tagged param slots */
+  event_program_t program;
+  uint8_t param[SEQ_PROGRAM_OP_MAX][SEQ_OPCODE_ARG_MAX];
   char name[ANDS_MACRO_NAME_LEN];  /* owns word.name's storage too */
   skode_word_t word;               /* the registered word; word.data == this */
 } skode_macro_template_t;
@@ -702,39 +681,26 @@ static int word_exec_promoted_macro(const skode_word_t *self, skode_t *ctx,
       self->name, self->min_args, argc);
     return 0;
   }
-  for (int i = 0; i < tmpl->program.count; i++) {
-    opcode_event_t resolved =
-      resolve_template_op(&tmpl->program.op[i].opcode, arg, argc);
-    if (resolved.var_mask != 0) {
-      /* This op references a live $N global variable (distinct from the
-         $$N macro parameters handled above -- see the var_mask note in
-         skode_dict_promote_macro()). Whether skode_execute_voice_opcode()
-         is even the right call for a var_mask-pending op on the immediate
-         path hasn't been independently verified against seq.c's
-         resolution mechanism; refuse rather than guess. The COMPILE path
-         below has no such gap -- it hands the op, var_mask intact, to
-         whatever already resolves it for every other compiled command. */
-      if (ctx->printf) ctx->printf(ctx,
-        "# promoted macro %s: op %d references a live $N variable, "
-        "unsupported on the immediate-execute path -- skipped\n",
-        self->name, i);
-      continue;
-    }
-    skode_execute_voice_opcode(&resolved, ctx->voice);
-  }
+  event_program_t resolved = tmpl->program;
+  for (int i = 0; i < resolved.count; i++)
+    resolved.op[i].opcode = resolve_template_op(
+      &tmpl->program.op[i].opcode, tmpl->param[i], NULL, arg, argc);
+  if (skode_execute_program_state(&resolved, &ctx->voice,
+      SAMPLE_COUNT_GET(), -1, ctx->pattern, ctx->step) != 0 && ctx->printf)
+    ctx->printf(ctx, "# promoted macro %s failed\n", self->name);
   return 0;
 }
 
 static int word_compile_promoted_macro(const skode_word_t *self,
     ands_t *parser, double *arg, int argc, event_program_t *program) {
-  (void)parser;
   const skode_macro_template_t *tmpl = template_of(self);
   if (argc < self->min_args || argc > self->max_args)
     return SKODE_COMPILE_INVALID;
   for (int i = 0; i < tmpl->program.count; i++) {
     if (program->count >= SEQ_PROGRAM_OP_MAX) return SKODE_COMPILE_TOO_LARGE;
     opcode_event_t resolved =
-      resolve_template_op(&tmpl->program.op[i].opcode, arg, argc);
+      resolve_template_op(&tmpl->program.op[i].opcode, tmpl->param[i],
+        parser, arg, argc);
     program->op[program->count].opcode = resolved;
     program->count++;
   }
@@ -757,9 +723,22 @@ static uint32_t pack_atom_runtime(const char *name, int len) {
   return v;
 }
 
+int skode_dict_unpromote_macro(skode_vocab_t *vocab, const char *name) {
+  if (!vocab || !name || !name[0]) return 0;
+  uint32_t atom = pack_atom_runtime(name, (int)strlen(name));
+  skode_word_t *current = (skode_word_t *)skode_dict_find(vocab, atom);
+  if (!skode_dict_word_is_promoted_macro(current)) return 0;
+  skode_word_t *removed = current->shadow ?
+    skode_dict_revert(vocab, atom) : skode_dict_remove(vocab, atom);
+  skode_dict_free_promoted_macro(removed);
+  return 1;
+}
+
 skode_word_t *skode_dict_promote_macro(skode_vocab_t *vocab,
     const char *name, const char *body) {
   if (!vocab || !name || !name[0] || !body || !body[0]) return NULL;
+
+  skode_dict_unpromote_macro(vocab, name);
 
   char tagged[ANDS_MACRO_BODY_LEN];
   int max_param = -1;
@@ -777,12 +756,13 @@ skode_word_t *skode_dict_promote_macro(skode_vocab_t *vocab,
        WORD_REAL_TIME_SAFE. Refuse rather than partially promote. */
     return NULL;
   }
-  tag_program_params(&compiled);
 
   skode_macro_template_t *tmpl = malloc(sizeof(*tmpl));
   if (!tmpl) return NULL;
   memset(tmpl, 0, sizeof(*tmpl));
   tmpl->program = compiled;
+  memset(tmpl->param, MACRO_PARAM_NONE, sizeof(tmpl->param));
+  extract_program_params(&tmpl->program, tmpl->param);
   strncpy(tmpl->name, name, ANDS_MACRO_NAME_LEN - 1);
   tmpl->name[ANDS_MACRO_NAME_LEN - 1] = '\0';
 

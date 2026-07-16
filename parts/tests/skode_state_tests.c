@@ -1902,18 +1902,51 @@ static void test_ands_macro_commands(void) {
   ctx.log_enable = 1;
   ands_macro_clear(ctx.parse);
 
-  consume(test, &ctx, "[ar]: t $$0 0 $$1 0 ; [zz]: f $$0 ;");
-  expect_int(test, ands_macro_count(ctx.parse), 2, "macro count after define");
+  consume(test, &ctx,
+    "[ar]: t $$0 0 $$1 0 ; [zz]: f $$0 ; [rr]: *R $$0 ;");
+  expect_int(test, ands_macro_count(ctx.parse), 3, "macro count after define");
+  const skode_word_t *zz = skode_dict_lookup(
+    skode_dict_global_vocab(), SKODE_DICT_ATOM("zz"));
+  if (!zz || !skode_dict_word_is_promoted_macro(zz))
+    fail(test, "realtime macro was not promoted into dictionary");
 
   ctx.log[0] = '\0';
   ctx.log_len = 0;
   consume(test, &ctx, "?m");
-  if (!strstr(ctx.log, "[ar]") || !strstr(ctx.log, "[zz]")) {
+  if (!strstr(ctx.log, "[ar]") || !strstr(ctx.log, "[zz]") ||
+      !strstr(ctx.log, "[rr]")) {
     fail(test, "macro listing missing definitions");
   }
+  if (!strstr(ctx.log, "realtime") || !strstr(ctx.log, "immediate") ||
+      ands_macro_status(ctx.parse, 1) != ANDS_MACRO_REALTIME ||
+      ands_macro_status(ctx.parse, 2) != ANDS_MACRO_IMMEDIATE)
+    fail(test, "macro listing missing realtime capability");
 
-  consume(test, &ctx, "[ar] /m");
-  expect_int(test, ands_macro_count(ctx.parse), 1, "macro count after remove");
+  consume(test, &ctx, "v1 zz220");
+  expect_float(test, sv.freq[1], 220.0f, 0.0001f,
+               "promoted macro immediate execution");
+  event_program_t macro_program = {0};
+  expect_int(test, skode_compile_program("v2 zz330", &macro_program),
+             SKODE_COMPILE_OK, "promoted macro compile");
+  expect_int(test, skode_execute_program(&macro_program, 0,
+             SAMPLE_COUNT_GET(), -1), 0, "promoted macro program execution");
+  expect_float(test, sv.freq[2], 330.0f, 0.0001f,
+               "promoted macro compiled execution");
+
+  consume(test, &ctx, "[zz]: *R $$0 ;");
+  if (ands_macro_status(ctx.parse, 1) != ANDS_MACRO_IMMEDIATE ||
+      skode_dict_lookup(skode_dict_global_vocab(), SKODE_DICT_ATOM("zz")))
+    fail(test, "immediate redefinition did not remove promoted macro");
+  consume(test, &ctx, "[zz]: f $$0 ;");
+  zz = skode_dict_lookup(skode_dict_global_vocab(), SKODE_DICT_ATOM("zz"));
+  if (ands_macro_status(ctx.parse, 1) != ANDS_MACRO_REALTIME ||
+      !zz || !skode_dict_word_is_promoted_macro(zz))
+    fail(test, "realtime redefinition did not replace promoted macro");
+
+  consume(test, &ctx, "[zz] /m");
+  expect_int(test, ands_macro_count(ctx.parse), 2, "macro count after remove");
+  if (skode_dict_lookup(skode_dict_global_vocab(), SKODE_DICT_ATOM("zz")))
+    fail(test, "removed macro remains in dictionary");
 
   consume(test, &ctx, "/m!");
   expect_int(test, ands_macro_count(ctx.parse), 0, "macro count after clear");

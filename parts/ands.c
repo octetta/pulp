@@ -47,7 +47,7 @@
 #define IS_COMMENT(c) (c == '#')
 #define IS_CHUNK_END(c) (c == ';' || c == 0x04) // 0x04 ASCII EOT / end of xmit
 #define IS_DEFER(c) (c == '+' || c == '~')
-#define IS_ATOM(c) (isalpha(c) || strchr("!@%^&*_=:\"'<>?/", c))
+#define IS_ATOM(c) (isalpha(c) || strchr("!%^&*_=:\"'<>?/", c))
 #define IS_NUMBER_EX(c) (isxdigit(c) || strchr("-.eExX", c))
 
 static double ands_strtod(char *s) {
@@ -187,6 +187,9 @@ typedef struct ands_s {
     double ret_value[ANDS_RETURN_MAX];
     int ret_count;
     int ret_error;
+    double ret_saved_value[ANDS_RETURN_MAX];
+    int ret_saved_count;
+    int ret_saved_error;
     
     // Callback
     int (*fn)(struct ands_s *s, int info);
@@ -709,6 +712,7 @@ int ands_consume(ands_t *s, char *line) {
                          isdigit((unsigned char)ptr[1])) {
                   s->state = GET_RETURN;
                 }
+                else if (IS_RETURN(*ptr))    { /* reserved return sigil */ }
                 else if (IS_COMMENT(*ptr))   { s->state = GET_COMMENT; }
                 else if (IS_CHUNK_END(*ptr)) { action_chunk_end(s); s->state = START; }
                 else if (IS_DEFER(*ptr))     { action_chunk_end(s); s->defer_mode = *ptr; s->state = GET_DEFER_NUMBER; }
@@ -928,7 +932,12 @@ ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user) {
 
     s->ret_count = 0;
     s->ret_error = 0;
-    for (int i = 0; i < ANDS_RETURN_MAX; i++) s->ret_value[i] = 0.0;
+    s->ret_saved_count = 0;
+    s->ret_saved_error = 0;
+    for (int i = 0; i < ANDS_RETURN_MAX; i++) {
+        s->ret_value[i] = NAN;
+        s->ret_saved_value[i] = NAN;
+    }
 
     s->arg_cap = ARG_MAX;
     s->arg_len = 0;
@@ -1111,6 +1120,10 @@ void ands_use_global(ands_t *s) {
 
 void ands_return_clear(ands_t *s) {
     if (!s) return;
+    s->ret_saved_count = s->ret_count;
+    s->ret_saved_error = s->ret_error;
+    for (int i = 0; i < ANDS_RETURN_MAX; i++)
+        s->ret_saved_value[i] = s->ret_value[i];
     s->ret_count = 0;
     s->ret_error = 0;
     /* Must actually clear the slots, not just reset count: ands_return_set()
@@ -1160,6 +1173,27 @@ void ands_return_set_error(ands_t *s, int code) {
 
 int ands_return_error(ands_t *s) {
     return s ? s->ret_error : 0;
+}
+
+int ands_return_saved_count(ands_t *s) {
+    return s ? s->ret_saved_count : 0;
+}
+
+double ands_return_saved_get(ands_t *s, int n) {
+    if (!s || n < 0 || n >= s->ret_saved_count) return NAN;
+    return s->ret_saved_value[n];
+}
+
+int ands_return_saved_error(ands_t *s) {
+    return s ? s->ret_saved_error : 0;
+}
+
+void ands_return_restore_saved(ands_t *s) {
+    if (!s) return;
+    s->ret_count = s->ret_saved_count;
+    s->ret_error = s->ret_saved_error;
+    for (int i = 0; i < ANDS_RETURN_MAX; i++)
+        s->ret_value[i] = s->ret_saved_value[i];
 }
 
 void ands_local_to_global(ands_t *s, int n) {

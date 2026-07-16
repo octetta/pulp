@@ -4368,12 +4368,12 @@ int skode_function(ands_t *s, int info) {
         }
       }
       break;
-    @doc(command.d@)
-    name: d@
+    @doc(command.d*)
+    name: d*
     category: data
     summary: show an element from d array
     @enddoc
-    case ATOM4('d@--'): // show an element from d array
+    case ATOM4('d*--'): // show an element from d array
       if (argc) {
         double *data = ands_data(ctx->parse);
         int data_len = ands_data_len(ctx->parse);
@@ -4517,12 +4517,12 @@ int skode_function(ands_t *s, int info) {
         sampling.offset = 0;
       }
       break;
-    @doc(command.w@)
-    name: w@
+    @doc(command.w*)
+    name: w*
     category: wave
     summary: wave-nudge-reset
     @enddoc
-    case ATOM4('w@--'): // wave-nudge-reset
+    case ATOM4('w*--'): // wave-nudge-reset
       sampling.offset = 0;
       sampling.trim = 0;
       break;
@@ -5586,12 +5586,12 @@ int skode_function(ands_t *s, int info) {
       if (argc) seq_modulo_set(ctx->pattern, x);
       break;
     @endif
-    @doc(command.W@)
-    name: W@
+    @doc(command.W*)
+    name: W*
     category: data
     summary: get a wavetable parameter to a variable
     @enddoc
-    case ATOM4('W@--'):  // get a wavetable parameter to a variable
+    case ATOM4('W*--'):  // get a wavetable parameter to a variable
       if (argc > 1 && x_valid && skode_wave_valid(x)) {
         int wave = x;
         int param;
@@ -5622,19 +5622,19 @@ int skode_function(ands_t *s, int info) {
           if (skode_double_to_int(arg[2], &variable))
             ands_set_local(ctx->parse, variable, val);
         } else if (argc) {
-          ctx->printf(ctx, "# W@ %d %d -> %g\n", wave, param, val);
+          ctx->printf(ctx, "# W* %d %d -> %g\n", wave, param, val);
           ands_arg_clear(s);
           ands_arg_push(s, val);
           return 1;
         }
       }
       break;
-    @doc(command.v@)
-    name: v@
+    @doc(command.v*)
+    name: v*
     category: data
     summary: get a voice parameter to a variable
     @enddoc
-    case ATOM4('v@--'):  // get a voice parameter to a variable
+    case ATOM4('v*--'):  // get a voice parameter to a variable
       if (argc) {
         double val = 0.0;
         switch (x) {
@@ -5656,7 +5656,7 @@ int skode_function(ands_t *s, int info) {
           if (skode_double_to_int(arg[1], &y))
             ands_set_local(ctx->parse, y, val);
         } else if (argc) {
-          ctx->printf(ctx, "# v@ %d -> %g\n", x, val);
+          ctx->printf(ctx, "# v* %d -> %g\n", x, val);
           ands_arg_clear(s);
           ands_arg_push(s, val);
           return 1;
@@ -6053,6 +6053,14 @@ void skode_free(skode_t *ctx) {
   }
   @endif
 }
+
+/* Dictionary command documentation remains here so kit_tool includes it in
+   the generated command reference alongside the legacy switch commands. */
+@doc(command.?R)
+name: ?R
+category: parser
+summary: show return registers without consuming them
+@enddoc
 
 /* Keep this new category after the legacy help records. Numeric help category
    indices are part of the command interface and must remain stable. */

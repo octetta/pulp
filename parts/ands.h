@@ -117,6 +117,10 @@ int ands_return_count(ands_t *s);
 double ands_return_get(ands_t *s, int n);
 void ands_return_set_error(ands_t *s, int code);
 int ands_return_error(ands_t *s);
+int ands_return_saved_count(ands_t *s);
+double ands_return_saved_get(ands_t *s, int n);
+int ands_return_saved_error(ands_t *s);
+void ands_return_restore_saved(ands_t *s);
 
 char *ands_string_to_external(ands_t *s, char *dst, int len);
 char *ands_string_from_external(ands_t *s, char *src, int len);

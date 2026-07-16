@@ -434,6 +434,24 @@ static int word_exec_R_set(const skode_word_t *self, skode_t *ctx, ands_t *s,
   return 0;
 }
 
+static int word_exec_R_show(const skode_word_t *self, skode_t *ctx, ands_t *s,
+    double *arg, int argc) {
+  (void)self; (void)arg; (void)argc;
+  int count = ands_return_saved_count(s);
+  int error = ands_return_saved_error(s);
+  if (count == 0 && error == 0) {
+    ctx->printf(ctx, "# returns empty\n");
+  } else {
+    ctx->printf(ctx, "# returns");
+    for (int i = 0; i < count; i++)
+      ctx->printf(ctx, " @%d=%g", i, ands_return_saved_get(s, i));
+    if (error != 0) ctx->printf(ctx, " error=%d", error);
+    ctx->puts(ctx, "");
+  }
+  ands_return_restore_saved(s);
+  return 0;
+}
+
 /* Auto-sized: no manually-maintained count to drift out of sync with the
    actual entry count (see WORD_COUNT below, derived from this array's
    real size rather than hand-tracked). Designated initializers throughout
@@ -445,6 +463,9 @@ static skode_word_t word_table[] = {
   { WID("R="), .execute = word_exec_R_set, .min_args = 2, .max_args = 2,
     .safety = WORD_IMMEDIATE_ONLY, .category = "parser",
     .summary = "slot value R= -- set return register @slot" },
+  { WID("?R"), .execute = word_exec_R_show,
+    .safety = WORD_IMMEDIATE_ONLY, .category = "parser",
+    .summary = "show return registers without consuming them" },
 
   { WID("v"), .execute = word_exec_v, .opcode_id = SKODE_OP_VOICE,
     .min_args = 1, .max_args = 1,

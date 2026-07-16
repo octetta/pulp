@@ -151,7 +151,7 @@ static void test_compact_commands(void) {
 static void test_strings_and_arrays(void) {
   const char *test = "strings and arrays";
   recorder_t r;
-  char input[] = "[kick one] vt (1, 2 -3.5 4e2) d@";
+  char input[] = "[kick one] vt (1, 2 -3.5 4e2) d*";
   run_parse(test, input, &r);
 
   expect_len(test, &r, 5);
@@ -163,7 +163,7 @@ static void test_strings_and_arrays(void) {
   expect_arg(test, &r, 1, 2, -3.5);
   expect_arg(test, &r, 1, 3, 400);
   expect_event(test, &r, 2, FUNCTION, "vt--");
-  expect_event(test, &r, 3, FUNCTION, "d@--");
+  expect_event(test, &r, 3, FUNCTION, "d*--");
   expect_event(test, &r, 4, CHUNK_END, "----");
 }
 
@@ -277,6 +277,18 @@ static void test_return_references(void) {
   expect_arg(test, &r, 2, 2, 0.4);
   expect_arg(test, &r, 2, 3, 0);
   expect_event(test, &r, 3, CHUNK_END, "----");
+}
+
+static void test_return_sigil_is_not_an_atom(void) {
+  const char *test = "return sigil is not an atom";
+  recorder_t r;
+  char input[] = "@ f440";
+  run_parse(test, input, &r);
+
+  expect_len(test, &r, 2);
+  expect_event(test, &r, 0, FUNCTION, "f---");
+  expect_arg(test, &r, 0, 0, 440);
+  expect_event(test, &r, 1, CHUNK_END, "----");
 }
 
 static void test_macro_names_truncate_to_atom_width(void) {
@@ -414,6 +426,7 @@ int main(void) {
   test_variable_provenance();
   test_macros_basic();
   test_return_references();
+  test_return_sigil_is_not_an_atom();
   test_macro_names_truncate_to_atom_width();
   test_macros_nested_and_replace();
   test_macro_definitions_do_not_break_strings();

@@ -745,12 +745,12 @@ static void test_wave_loop_points(void) {
   expect_int(test, sv.loop_valid[voice], 1, "voice loop valid");
   expect_int(test, sv.loop_length[voice], 5, "voice loop length");
 
-  consume(test, &ctx, "W@300,3");
+  consume(test, &ctx, "W*300,3");
   expect_float(test, (float)ands_arg(ctx.parse)[0], 3.0f, 0.0001f,
-               "W@ loop start");
-  consume(test, &ctx, "W@300,4");
+               "W* loop start");
+  consume(test, &ctx, "W*300,4");
   expect_float(test, (float)ands_arg(ctx.parse)[0], 8.0f, 0.0001f,
-               "W@ loop end");
+               "W* loop end");
 
   consume(test, &ctx, "WL300,8,3");
   expect_int(test, sw.loop_start[wave], 3, "invalid WL keeps start");
@@ -1716,7 +1716,7 @@ static void test_parameter_and_buffer_safety(void) {
   consume(test, &ctx, "100000000 >");
   consume(test, &ctx, "v0 G100000000 n60");
   expect_int(test, (int)sv.link_midi_0[0], -1, "invalid MIDI link");
-  consume(test, &ctx, "100000000 0 W@");
+  consume(test, &ctx, "100000000 0 W*");
   consume(test, &ctx, "100000000 W");
 
   consume(test, &ctx, "(1 2 3) d>r; -100 w>; w!");
@@ -2260,7 +2260,7 @@ static void test_control_composition_primitives(void) {
   consume(test, &ctx, "11 6 = a");
   expect_float(test, sv.user_amp[ctx.voice], 6.0f, 0.0001f,
                "register set return feeds amp");
-  consume(test, &ctx, "(11 12) 1 d@ a");
+  consume(test, &ctx, "(11 12) 1 d* a");
   expect_float(test, sv.user_amp[ctx.voice], 12.0f, 0.0001f,
                "data read return feeds amp");
 }
@@ -2268,11 +2268,11 @@ static void test_control_composition_primitives(void) {
 static void test_dictionary_core_words(void) {
   const char *test = "dictionary core words";
   skode_t ctx = new_ctx();
-  const char *names[] = {"v", "a", "f", "n", "p", "m", "R="};
+  const char *names[] = {"v", "a", "f", "n", "p", "m", "R=", "?R"};
   const uint32_t atoms[] = {
     SKODE_DICT_ATOM("v"), SKODE_DICT_ATOM("a"), SKODE_DICT_ATOM("f"),
     SKODE_DICT_ATOM("n"), SKODE_DICT_ATOM("p"), SKODE_DICT_ATOM("m"),
-    SKODE_DICT_ATOM("R=")
+    SKODE_DICT_ATOM("R="), SKODE_DICT_ATOM("?R")
   };
 
   for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
@@ -2293,7 +2293,11 @@ static void test_dictionary_core_words(void) {
   expect_float(test, sv.pan[2], 0.25f, 0.0001f, "dictionary pan");
   expect_int(test, sv.disconnect[2], 1, "dictionary mute");
 
-  consume(test, &ctx, "0 -4 R=; @0 a");
+  ctx.log_enable = 1;
+  reset_log(&ctx);
+  consume(test, &ctx, "0 -4 R=; ?R; ?R; @0 a");
+  expect_substr(test, ctx.log, "# returns @0=-4",
+                "return register display");
   expect_float(test, sv.user_amp[2], -4.0f, 0.0001f,
                "return register feeds dictionary amp");
 

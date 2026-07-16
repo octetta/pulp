@@ -733,10 +733,13 @@ the repeat count.
 | `/=N,a,b` | Register and operands | Stores `a / b` when `b` is nonzero. | No |
 | `a=N,a,b` | Register and operands | Stores `a + b`. | No |
 | `s=N,a,b` | Register and operands | Stores `a - b`. | No |
+| `R= slot,value` | Return slot `0` through `9` and value | Sets one immediate return value. | No |
+| `@N` | Return slot `0` through `9` | Supplies return value `N` as a numeric argument to the next command. | No |
+| `?R` | None | Displays all current return values without consuming or changing them. | No |
 | `(values...)` | Numeric list | Replaces the parser's data array. | No |
 | `D [capacity]`, `/D [capacity]` | Optional element capacity | Displays or enlarges the parser data allocation. | No |
 | `?d` | None | Displays the current data array. | No |
-| `d@ index` | Data index | Displays one data value. | No |
+| `d* index` | Data index | Displays one data value. | No |
 | `=d register,index` | Register and data index | Copies a data value into a shared register. | No |
 
 ## Samples, Waves, and Recording
@@ -757,7 +760,7 @@ immediately on the control thread.
 | `w< [samples]` | End trim adjustment | Changes how many samples are removed from the recording end. |
 | `w<> [threshold[,end-threshold[,margin-samples]]]` | Detection thresholds and optional sample margin | Finds useful start and end trim points from signal level. Defaults to a small silence threshold of `0.001`. |
 | `w!` | None | Applies current recording offsets and trims. |
-| `w@` | None | Resets recording offsets and trims. |
+| `w*` | None | Resets recording offsets and trims. |
 | `/wex wave` | Dynamic wave index `200` through `999` | Expands storage for a dynamic wavetable slot. |
 | `<r seconds [voice]`, `^r seconds [voice]` | Duration, optional voice | Records the all-voice mix or one specific voice into the temporary sample buffer. |
 | `>r number` | Output number | Normalizes the temporary sample and writes `out-N.wav`. |
@@ -862,8 +865,8 @@ multichannel WAV recording can be active simultaneously.
 | `\` | None | Displays the selected voice with additional detail. |
 | `??`, `v??` | None | Displays active voices. |
 | `W [wave[,end-or-width[,height]]]` | Optional display parameters | Displays one wavetable, recording data, or all loaded waves. A single-wave display includes sample count, baseline duration, one-shot state, loop points, loop duration, stats, and a loop marker row under the waveform. |
-| `W@ wave,param[,register]` | Wave, property, optional destination | Reads wave sample count (`0`), sample rate (`1`), duration (`2`), loop start (`3`), or loop end (`4`). |
-| `v@ param[,register]` | Property and optional destination | Reads selected voice wave (`0`), amplitude (`1`), or frequency (`2`). |
+| `W* wave,param[,register]` | Wave, property, optional destination | Reads wave sample count (`0`), sample rate (`1`), duration (`2`), loop start (`3`), or loop end (`4`). |
+| `v* param[,register]` | Property and optional destination | Reads selected voice wave (`0`), amplitude (`1`), or frequency (`2`). |
 | `DL? [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. |
 | `GS [full]` | Optional boolean | Displays copy/pasteable version, master volume, tempo, and track delay commands. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. |
 | `?s` | None | Displays the current parser string. |

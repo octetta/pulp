@@ -11,8 +11,8 @@ note for now.
 
 ## Current Goal
 
-Maintain Pulp's integration with the updated k-synth code and keep the wasm
-Skred control-plane workflow stable.
+Continue the new Skode dictionary/macro architecture and MIDI integration while
+keeping native, Windows, and WebAssembly builds stable.
 
 ## Related Repositories
 
@@ -22,8 +22,10 @@ Skred control-plane workflow stable.
 
 ## Current State
 
-Pulp has the reconciled vendored k-synth API and a wasm control-plane responder
-fix for `/cer 0`.
+Pulp has the reconciled vendored k-synth API, the Skode dictionary foundation,
+promoted real-time-capable macros, and the first complete optional MIDI I/O
+slice. The working tree is clean on `main` at `eb92677` and matches
+`origin/main` as of 2026-07-16, apart from this handoff-note update.
 
 k-synth has the owned `ks_eval()` result contract restored, `ks_bind_vector()`
 restored, and `main.c` frees direct eval results after optional display.
@@ -38,6 +40,10 @@ restored, and `main.c` frees direct eval results after optional display.
 - Pulp's `parts/api.c.kit` is the source for generated API code.
 - `parts/analysis-src/api.c` should stay aligned with generated maxed output.
 - In wasm, `/cer 0` must not block the browser thread on `pthread_join()`.
+- MIDI backend callbacks only publish bounded control events; they do not run
+  Skode, allocate event payloads, or call host code.
+- Do not create branches, commit, merge, push, or otherwise change Git history
+  unless the user explicitly asks for that operation.
 
 ## Recent Pulp Changes
 
@@ -229,3 +235,51 @@ fixing the wasm control-plane `/cer 0` hang path.
 - Verified during this stretch: maxed and wasm `skode_state_tests`, plus wasm
   API relink via `parts/wasm-assets/mkwasm`. The wasm link still emits expected
   Emscripten pthread/memory-growth warnings.
+
+### 2026-07-16 - Dictionary, Macro Returns, and MIDI Foundation
+
+- The Skode dispatch refactor now has dictionary-backed implementations for
+  `v`, `a`, `f`, `n`, `p`, and `m`; architecture follow-up notes live in
+  `parts/ARCHITECTURE.md`.
+- `@` is no longer an atom symbol. Earlier `d@`, `w@`, `W@`, and `v@` reader
+  commands were renamed to `d*`, `w*`, `W*`, and `v*`.
+- Macro return values use push-style `*R value`, and the non-intrusive query
+  command is `?R`. Named macros are compiled when defined: definitions made
+  entirely from real-time-capable operations are promoted to cached dictionary
+  programs, while immediate macros retain text-expansion behavior. `?m` reports
+  each macro's classification.
+- Vendored `github.com/octetta/minimidio` exactly at revision
+  `0d1f33a24ca1aa9b8d22727e42cdda057570992a`, with MIT license and provenance
+  under `parts/vendor/minimidio/`.
+- Added optional `MIDI=1` support in `parts/midi.c`: public context,
+  capabilities, input/output enumeration, device open/close, virtual ports,
+  event masks, and raw output APIs. The public API does not expose minimidio
+  types.
+- Incoming structured MIDI 1.0 messages publish
+  `SKRED_CONTROL_EVENT_MIDI` into the existing bounded multi-producer control
+  ring. `id` is the MIDI message type and `value[]` contains channel, data1,
+  and data2. System messages use channel `-1`; song position uses data1. SysEx
+  input and active sense are excluded by default; variable-length SysEx input
+  still needs a separate bounded payload design.
+- Runtime device commands, routed before Skode parsing and kept within the
+  four-character atom limit, are `/mL`, `/m?`, `/mi N`, `/miV [name]`, `/mi-`,
+  `/mo N`, `/moV [name]`, and `/mo-`.
+- Immediate output commands are `MO status[,data1[,data2]]` and `d>MO` for a
+  raw data-array buffer (including SysEx). They are control-plane operations,
+  not schedulable real-time opcodes.
+- Web MIDI uses explicit user-triggered initialization (`/mL` or API) and an
+  Asyncify-enabled WASM build. Web MIDI supports enumerated ports but not
+  virtual ports. CoreMIDI and ALSA support virtual ports; WinMM does not.
+- Added `parts/tests/midi_tests.c`, updated API/user/architecture documentation,
+  refreshed generated analysis sources, and rebuilt `doc/skred_api.js` and
+  `doc/skred_api.wasm`.
+- Verified: MIDI-enabled and MIDI-disabled native builds, strict C11 compilation
+  of `midi.c`, maxed native build, `make wasm`, Windows Zig cross-build with
+  `MIDI=1`, and the hardware-independent MIDI control-event tests.
+- Known unrelated test failure: `skode.command-state` still fails the same three
+  pre-existing wavetable-display assertions (`loop 3..8 |5|`, `baseline`, and
+  `voice 6 wave 300`). The failure reproduces in an older existing maxed build;
+  all other maxed tests pass. No physical MIDI hardware test has been run yet.
+- Git checkpoint: `main` is at `eb92677` (`be brave with midi`), with MIDI work
+  also represented by preceding commit `bbd5506`. The tree was clean and
+  synchronized with `origin/main` when this note was updated.

@@ -89,6 +89,20 @@ int main(void) {
   expect(skred_command("log 1") == 0,
          "non-audio command did not fall through to Skode");
 
+  /* skred_command() owns a SKODE_EMPTY() context and depends on lazy parser
+     initialization. Exercise dictionary-backed atoms through that exact API
+     path so browser/WASM builds cannot silently lose the core voice words. */
+  synth_init(8);
+  wave_table_init(0);
+  voice_init();
+  expect(skred_command("v0a0f440l1") == 0,
+         "compact core command failed through unified command boundary");
+  expect(strstr(skred_log(), "unknown atom") == NULL,
+         "compact core command lost dictionary-backed atoms");
+  expect(sv.user_amp[0] == 0.0f && sv.freq[0] == 440.0f,
+         "compact core command did not update voice state");
+  synth_free();
+
   if (failures) {
     fprintf(stderr, "%d audio command test failure(s)\n", failures);
     return 1;

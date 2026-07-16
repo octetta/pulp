@@ -4888,6 +4888,10 @@ double global_var[ANDS_VAR_MAX];
 int skode_consume(char *line, skode_t *ctx) {
   if (!line || !ctx) return -1;
   skode_global_init();
+  /* SKODE_EMPTY() contexts intentionally initialize their parser lazily.
+     Keep dictionary setup on that same path: API-owned contexts such as
+     skred_command() are not passed through skode_init() first. */
+  skode_dict_init();
   if (ctx->parse == NULL) {
     // TODO this should live in wire-init or similar
     ctx->parse = ands_new(skode_callback, (void *)ctx);

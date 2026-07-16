@@ -283,3 +283,17 @@ fixing the wasm control-plane `/cer 0` hang path.
 - Git checkpoint: `main` is at `eb92677` (`be brave with midi`), with MIDI work
   also represented by preceding commit `bbd5506`. The tree was clean and
   synchronized with `origin/main` when this note was updated.
+
+### 2026-07-16 - WASM Lazy Dictionary Initialization Fix
+
+- Fixed `skred_command()`/WASM reporting `unknown atom` for the newly
+  dictionary-backed `v`, `a`, `f`, `n`, `p`, and `m` words. `skode_consume()`
+  now initializes the dictionary alongside its existing lazy parser setup for
+  API-owned `SKODE_EMPTY()` contexts that never pass through `skode_init()`.
+- Added API-path regression coverage using the exact compact command
+  `v0a0f440l1`, refreshed `parts/analysis-src/skode.c`, and rebuilt
+  `doc/skred_api.wasm`.
+- Verified native and WASM-feature builds, both `audio_command_tests`, and the
+  rebuilt WASM artifact directly under Node (no unknown atoms). Full ctest has
+  only the same three known wavetable-display assertion failures documented
+  above; all other tests pass.

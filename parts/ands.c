@@ -1127,7 +1127,7 @@ void ands_return_clear(ands_t *s) {
     s->ret_count = 0;
     s->ret_error = 0;
     /* Must actually clear the slots, not just reset count: ands_return_set()
-       (direct-index write, used by R=) can set count past several untouched
+       can set count past several untouched
        slots at once (count = max(count, n+1)), and if those slots still
        held a stale value from several commands ago, reading one of the
        gap indices would silently return old, unrelated data instead of
@@ -1136,7 +1136,7 @@ void ands_return_clear(ands_t *s) {
        looking 0.0 that could be mistaken for a real value. Ten doubles is
        negligible next to the string/buffer work action_finish_atom()
        already does per dispatch -- this was a real correctness bug, not
-       a justified optimization; caught by return_test.c's R=-then-read-a-
+       a justified optimization; caught by the direct-set gap test's read-a-
        lower-slot case. */
     for (int i = 0; i < ANDS_RETURN_MAX; i++) s->ret_value[i] = NAN;
 }

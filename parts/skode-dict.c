@@ -336,7 +336,7 @@ void skode_dict_report_macro_safety(skode_t *ctx, const char *name,
  * Migrated words
  * ===================================================================
  * This is a deliberately small first slice: v/a/f/n/p/m use the generic
- * opcode-backed compile path, while R= is an immediate-only new word for
+ * opcode-backed compile path, while *R is an immediate-only new word for
  * the return-register feature. All other existing commands remain in the
  * legacy switches until they have parity coverage.
  *
@@ -388,49 +388,17 @@ static int word_exec_m(const skode_word_t *self, skode_t *ctx, ands_t *s,
 }
 
 /*
- * R= : slot value R= -- direct-index write into the return-value registers
- * (@0..@9), via ands_return_set() (see ands.h/ands.c). Deliberately
- * IMMEDIATE_ONLY: return registers have no meaning at compile time (see
- * the design note on GET_RETURN in ands.c -- nothing in a compiled opcode
- * carries "the previous command's output"), so R= has no sensible
- * compiled form, matching @N itself.
- *
- * Not a general "assign a return value from text" feature by default --
- * per-word setting via ands_return_push()/ands_return_set() from C is the
- * primary path; R= exists specifically for cases that need to prime or
- * chain values manually (testing, deliberate composition). Read-only-by-
- * default was the initial design; R= is the explicitly-opted-into
- * exception, kept as a separate, ordinary dictionary word rather than
- * lexer-level assignment syntax (`@N=value`) -- START unconditionally
- * diverts on '@' to GET_RETURN before ever considering what follows, the
- * same way `$` always diverts to GET_VARIABLE, so `@N=value` could never
- * have parsed as a single assignment token; splitting `@` from `=` at the
- * lexer level was never actually available. This also matches how $N
- * variable assignment already works today -- always a command atom (`=`,
- * `*=`, `/=`, ...), never inline lexer syntax -- so R= is the more
- * consistent choice, not just the only implementable one.
+ * *R : push each argument into the return registers in order. Normal atom
+ * dispatch clears the previous return set immediately before this function,
+ * so one invocation defines the complete result: `*R .1 .2` produces
+ * @0=.1 and @1=.2. This is intended primarily as the final command in a
+ * macro body. It is deliberately IMMEDIATE_ONLY because return registers
+ * are parser-local control-flow state with no scheduled-opcode equivalent.
  */
-static int word_exec_R_set(const skode_word_t *self, skode_t *ctx, ands_t *s,
+static int word_exec_R_push(const skode_word_t *self, skode_t *ctx, ands_t *s,
     double *arg, int argc) {
-  (void)self;
-  if (argc < 2) {
-    if (ctx->printf) ctx->printf(ctx, "# R= needs slot value\n");
-    return 0;
-  }
-  int n;
-  if (!skode_double_to_int(arg[0], &n) || n < 0 || n >= ANDS_RETURN_MAX) {
-    /* No formal skode-wide error-code enum exists yet (out of scope for
-       this pass -- see SKODE_DICT_STATUS.md); this is a locally-meaningful
-       placeholder code (1 = "argument out of range"), not part of any
-       established convention. Whoever introduces a real enum should
-       revisit this call site along with every other ad hoc error int in
-       the words migrated so far. */
-    ands_return_set_error(s, 1);
-    if (ctx->printf) ctx->printf(ctx, "# R= slot %g out of range (0..%d)\n",
-      arg[0], ANDS_RETURN_MAX - 1);
-    return 0;
-  }
-  ands_return_set(s, n, arg[1]);
+  (void)self; (void)ctx;
+  for (int i = 0; i < argc; i++) ands_return_push(s, arg[i]);
   return 0;
 }
 
@@ -460,9 +428,10 @@ static int word_exec_R_show(const skode_word_t *self, skode_t *ctx, ands_t *s,
    other entry means, and every field not mentioned here (.compile,
    .default_mask, .next, .shadow, .data) zero-initializes automatically. */
 static skode_word_t word_table[] = {
-  { WID("R="), .execute = word_exec_R_set, .min_args = 2, .max_args = 2,
+  { WID("*R"), .execute = word_exec_R_push,
+    .min_args = 0, .max_args = ANDS_RETURN_MAX,
     .safety = WORD_IMMEDIATE_ONLY, .category = "parser",
-    .summary = "slot value R= -- set return register @slot" },
+    .summary = "return arguments as @0 through @9" },
   { WID("?R"), .execute = word_exec_R_show,
     .safety = WORD_IMMEDIATE_ONLY, .category = "parser",
     .summary = "show return registers without consuming them" },

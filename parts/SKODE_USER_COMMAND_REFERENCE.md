@@ -733,7 +733,7 @@ the repeat count.
 | `/=N,a,b` | Register and operands | Stores `a / b` when `b` is nonzero. | No |
 | `a=N,a,b` | Register and operands | Stores `a + b`. | No |
 | `s=N,a,b` | Register and operands | Stores `a - b`. | No |
-| `R= slot,value` | Return slot `0` through `9` and value | Sets one immediate return value. | No |
+| `*R [values...]` | Up to ten values | Returns its arguments as `@0`, `@1`, and so on; intended as the final command in a macro. | No |
 | `@N` | Return slot `0` through `9` | Supplies return value `N` as a numeric argument to the next command. | No |
 | `?R` | None | Displays all current return values without consuming or changing them. | No |
 | `(values...)` | Numeric list | Replaces the parser's data array. | No |

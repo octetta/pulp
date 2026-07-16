@@ -106,7 +106,7 @@ double ands_get_local(ands_t *s, int n);
  * intended for a word reporting "here are my N results, in order".
  * ands_return_set() is direct-index write (count becomes
  * max(count, n+1), lower slots are left untouched) -- intended for
- * explicit slot assignment (e.g. skode's `R=` word). These have different
+ * explicit slot assignment by C callers. These have different
  * shapes on purpose: push is how most words will report results, set is
  * for the one word whose entire job is targeted assignment.
  */

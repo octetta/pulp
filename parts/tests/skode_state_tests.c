@@ -2268,11 +2268,11 @@ static void test_control_composition_primitives(void) {
 static void test_dictionary_core_words(void) {
   const char *test = "dictionary core words";
   skode_t ctx = new_ctx();
-  const char *names[] = {"v", "a", "f", "n", "p", "m", "R=", "?R"};
+  const char *names[] = {"v", "a", "f", "n", "p", "m", "*R", "?R"};
   const uint32_t atoms[] = {
     SKODE_DICT_ATOM("v"), SKODE_DICT_ATOM("a"), SKODE_DICT_ATOM("f"),
     SKODE_DICT_ATOM("n"), SKODE_DICT_ATOM("p"), SKODE_DICT_ATOM("m"),
-    SKODE_DICT_ATOM("R="), SKODE_DICT_ATOM("?R")
+    SKODE_DICT_ATOM("*R"), SKODE_DICT_ATOM("?R")
   };
 
   for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
@@ -2295,11 +2295,14 @@ static void test_dictionary_core_words(void) {
 
   ctx.log_enable = 1;
   reset_log(&ctx);
-  consume(test, &ctx, "0 -4 R=; ?R; ?R; @0 a");
-  expect_substr(test, ctx.log, "# returns @0=-4",
+  ands_macro_clear(ctx.parse);
+  consume(test, &ctx,
+          "[bob]:*R .1 .2; bob; ?R; ?R; @0 a");
+  expect_substr(test, ctx.log, "# returns @0=0.1 @1=0.2",
                 "return register display");
-  expect_float(test, sv.user_amp[2], -4.0f, 0.0001f,
+  expect_float(test, sv.user_amp[2], 0.1f, 0.0001f,
                "return register feeds dictionary amp");
+  ands_macro_clear(ctx.parse);
 
   event_program_t program = {0};
   expect_int(test, skode_compile_program("v3 a-7 n60 f220 p-.5 m0", &program),

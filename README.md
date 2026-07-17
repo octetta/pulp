@@ -74,6 +74,16 @@ needed without recording or scope capture, notably in WASM. `RECORD` and
 `SCOPE` imply it automatically. It is not currently listed separately by
 `skred_features()`.
 
+## API Releases
+
+Changing `VERSION` on `main` publishes Linux x86-64, universal macOS, and
+Windows x86-64 maxed API packages to the matching `v<version>` GitHub Release.
+The release is created only after all three packages build and pass archive
+checks. Platform-qualified archives and `SHA256SUMS` are intended for external
+consumers such as ro-totem; see
+[the API integration guide](parts/API_INTEGRATION.md#published-api-releases)
+for asset names, download URLs, and static-link dependencies.
+
 ## Native Build
 
 ```sh

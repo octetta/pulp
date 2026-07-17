@@ -12,10 +12,10 @@ note for now.
 ## Current Goal
 
 Keep the repository documentation aligned with the current command surface,
-feature presets, public API, and runtime architecture. Preserve native,
-Windows, and WebAssembly behavior while addressing the known unrelated
-wavetable-display and synthetic delay-fixture test failures only if the user
-chooses to prioritize them.
+feature presets, public API, runtime architecture, and version-driven API
+release process. Preserve native, Windows, and WebAssembly behavior while
+addressing the known unrelated wavetable-display and synthetic delay-fixture
+test failures only if the user chooses to prioritize them.
 
 ## Related Repositories
 
@@ -454,3 +454,22 @@ fixing the wasm control-plane `/cer 0` hang path.
 - Validation: all generated `@doc` command names occur in the command
   references; Markdown links and fences are balanced; `git diff --check`
   passes. Existing state-test failures remain unrelated.
+
+### 2026-07-17 - Cross-Platform API Release Workflow
+
+- Added `.github/workflows/dist-api-release.yml`. A `VERSION` change on `main`,
+  or a manual dispatch, builds maxed API packages for Linux x86-64, universal
+  macOS, and Windows x86-64.
+- The final job runs only after all three builds and package checks succeed,
+  verifies the expected payload, writes `SHA256SUMS`, and creates the immutable
+  `v<version>` GitHub Release with platform-qualified asset names.
+- Linux and macOS package validation checks that the static library exports
+  `skred_midi_init`; the macOS job also verifies both universal architectures.
+  Windows continues to use the existing Linux-hosted Zig cross-build.
+- Updated `README.md` and `parts/API_INTEGRATION.md` with the published asset
+  contract, download URL, checksum flow, latest-release guidance, and static
+  MIDI link dependencies.
+- Locally validated the workflow YAML and release metadata checks. The current
+  Linux 0.49.1 maxed archive passes the exact archive/header/static-library
+  MIDI-symbol validation used by the workflow. No release, tag, push, or other
+  Git history operation was performed locally.

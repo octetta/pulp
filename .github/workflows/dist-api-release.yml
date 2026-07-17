@@ -1,0 +1,226 @@
+name: Publish API distributions
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - VERSION
+  workflow_dispatch:
+
+concurrency:
+  group: api-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read and validate VERSION
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '[:space:]' < VERSION)"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "VERSION is not a release version: $version" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+  linux:
+    needs: metadata
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.metadata.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev ninja-build
+
+      - name: Build maxed Linux API distribution
+        run: make -C parts dist-api
+
+      - name: Verify and name release asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          source="dist/linux-x86_64/skred-${VERSION}-maxed.tar.gz"
+          asset="skred-${VERSION}-maxed-linux-x86_64.tar.gz"
+          test -f "$source"
+          tar -tzf "$source" > archive-contents.txt
+          grep -q "skred-${VERSION}-maxed/include/skred/api.h" archive-contents.txt
+          linux_lib="$(
+            find "dist/linux-x86_64/skred-${VERSION}-maxed" \
+              -type f -name libapi.a -print -quit
+          )"
+          test -n "$linux_lib"
+          nm -g --defined-only "$linux_lib" > api-symbols.txt
+          grep -q "skred_midi_init" api-symbols.txt
+          mkdir -p release-assets
+          cp "$source" "release-assets/$asset"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-linux-x86_64
+          path: release-assets/*
+          if-no-files-found: error
+
+  macos:
+    needs: metadata
+    runs-on: macos-latest
+    env:
+      VERSION: ${{ needs.metadata.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build maxed universal macOS API distribution
+        run: make -C parts dist-api MACOS_UNIVERSAL=1
+
+      - name: Verify and name release asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          source="dist/macos-universal/skred-${VERSION}-maxed.tar.gz"
+          asset="skred-${VERSION}-maxed-macos-universal.tar.gz"
+          test -f "$source"
+          tar -tzf "$source" > archive-contents.txt
+          grep -q "skred-${VERSION}-maxed/include/skred/api.h" archive-contents.txt
+          grep -q "skred-${VERSION}-maxed/lib/libapi.a" archive-contents.txt
+          lipo -verify_arch x86_64 arm64 \
+            "dist/macos-universal/skred-${VERSION}-maxed/lib/libapi.a"
+          nm -gU \
+            "dist/macos-universal/skred-${VERSION}-maxed/lib/libapi.a" \
+            > api-symbols.txt
+          grep -q "_skred_midi_init" api-symbols.txt
+          mkdir -p release-assets
+          cp "$source" "release-assets/$asset"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-macos-universal
+          path: release-assets/*
+          if-no-files-found: error
+
+  windows:
+    needs: metadata
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.metadata.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Install Windows cross-build dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
+      - name: Build maxed Windows API distribution
+        run: make -C parts dist-api-windows
+
+      - name: Verify and name release asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          source="dist/windows-x86_64/skred-${VERSION}-maxed.zip"
+          asset="skred-${VERSION}-maxed-windows-x86_64.zip"
+          test -f "$source"
+          unzip -l "$source" > archive-contents.txt
+          grep -q "skred-${VERSION}-maxed/include/skred/api.h" archive-contents.txt
+          grep -q "skred-${VERSION}-maxed/lib/libapi.a" archive-contents.txt
+          grep -q "skred-${VERSION}-maxed/bin/libapi.dll" archive-contents.txt
+          mkdir -p release-assets
+          cp "$source" "release-assets/$asset"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-windows-x86_64
+          path: release-assets/*
+          if-no-files-found: error
+
+  release:
+    needs:
+      - metadata
+      - linux
+      - macos
+      - windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.metadata.outputs.version }}
+      TAG: ${{ needs.metadata.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: api-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Validate release payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=(
+            "skred-${VERSION}-maxed-linux-x86_64.tar.gz"
+            "skred-${VERSION}-maxed-macos-universal.tar.gz"
+            "skred-${VERSION}-maxed-windows-x86_64.zip"
+          )
+          for asset in "${expected[@]}"; do
+            test -s "release-assets/$asset"
+          done
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refusing to replace immutable assets." >&2
+            exit 1
+          fi
+          if git rev-parse --verify --quiet "refs/tags/$TAG" >/dev/null; then
+            tagged_commit="$(git rev-list -n 1 "$TAG")"
+            if [[ "$tagged_commit" != "$GITHUB_SHA" ]]; then
+              echo "Tag $TAG already points to $tagged_commit, not $GITHUB_SHA." >&2
+              exit 1
+            fi
+          fi
+          (
+            cd release-assets
+            sha256sum "${expected[@]}" > SHA256SUMS
+          )
+
+      - name: Publish GitHub release
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_args=(
+            --target "$GITHUB_SHA"
+            --title "SKRED $VERSION"
+            --generate-notes
+          )
+          if [[ "$VERSION" == *-* ]]; then
+            release_args+=(--prerelease)
+          fi
+          previous_tag="$(
+            git describe --tags --abbrev=0 "$GITHUB_SHA^" 2>/dev/null || true
+          )"
+          if [[ -n "$previous_tag" ]]; then
+            release_args+=(--notes-start-tag "$previous_tag")
+          fi
+          gh release create "$TAG" release-assets/* \
+            "${release_args[@]}"

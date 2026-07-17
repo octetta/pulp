@@ -53,6 +53,49 @@ when you need optional features such as sequencing, UDP, MIDI, Ksynth,
 recording, and shared-memory scope publication. The Windows maxed package
 includes Ksynth, MIDI, recording, and track routing but omits `SCOPE`.
 
+## Published API Releases
+
+When `VERSION` changes on `main`, the `Publish API distributions` GitHub
+Actions workflow builds the maxed API for all supported desktop release
+platforms. It creates the immutable tag and GitHub Release `v<version>` only
+after every platform build and package check succeeds. The workflow can also
+be run manually with `workflow_dispatch`.
+
+Each release contains:
+
+```text
+skred-<version>-maxed-linux-x86_64.tar.gz
+skred-<version>-maxed-macos-universal.tar.gz
+skred-<version>-maxed-windows-x86_64.zip
+SHA256SUMS
+```
+
+The platform suffix is on the release asset rather than the directory inside
+the archive. Each archive still expands to `skred-<version>-maxed/`, preserving
+the installed package layout used by existing consumers.
+
+Download a fixed version from:
+
+```text
+https://github.com/octetta/pulp/releases/download/v<version>/<asset>
+```
+
+For example:
+
+```sh
+version=0.49.1
+curl -fLO \
+  "https://github.com/octetta/pulp/releases/download/v${version}/skred-${version}-maxed-linux-x86_64.tar.gz"
+curl -fLO \
+  "https://github.com/octetta/pulp/releases/download/v${version}/SHA256SUMS"
+sha256sum --check --ignore-missing SHA256SUMS
+```
+
+Consumers implementing a `latest` mode should resolve the latest published
+release through the GitHub Releases API, then use its tag and assets. Reading
+`VERSION` directly from `main` can briefly expose a version whose release jobs
+are still running.
+
 ## Minimal Host
 
 ```c
@@ -97,24 +140,38 @@ From the repository root, define a Linux x86-64 package location once:
 
 ```sh
 PKG="dist/linux-x86_64/skred-$(cat VERSION)-maxed"
+if [ -f "$PKG/lib64/libapi.a" ]; then
+  LIBDIR="$PKG/lib64"
+else
+  LIBDIR="$PKG/lib"
+fi
 ```
+
+`GNUInstallDirs` may select `lib` or `lib64` for a native Linux package, so
+consumers should detect the installed directory as above rather than assuming
+one spelling.
 
 Static linking then looks like:
 
 ```sh
 cc -I "$PKG/include" \
    my_host.c \
-   "$PKG/lib64/libapi.a" \
-   -lm -lpthread \
+   "$LIBDIR/libapi.a" \
+   -lasound -ldl -lpthread -lm \
    -o my_host
 ```
+
+The maxed Linux static archive includes the ALSA MIDI backend, so static hosts
+must link ALSA. Using `$(pkg-config --libs alsa)` instead of spelling
+`-lasound` is preferred when integrating this into a build system. The shared
+library records ALSA as a dynamic dependency.
 
 Shared-library linking can use the installed library directory:
 
 ```sh
 cc -I "$PKG/include" \
    my_host.c \
-   -L "$PKG/lib64" -lapi \
+   -L "$LIBDIR" -lapi \
    -lm -lpthread \
    -o my_host
 ```
@@ -122,7 +179,7 @@ cc -I "$PKG/include" \
 Run it with the package library directory on the runtime loader path:
 
 ```sh
-LD_LIBRARY_PATH="$PKG/lib64" ./my_host
+LD_LIBRARY_PATH="$LIBDIR" ./my_host
 ```
 
 On macOS-style packages, use the `lib` directory present in the package:
@@ -132,6 +189,7 @@ PKG="dist/macos-$(uname -m)/skred-$(cat VERSION)-maxed"
 cc -I "$PKG/include" \
    my_host.c \
    "$PKG/lib/libapi.a" \
+   -framework CoreMIDI -framework CoreFoundation \
    -lm -lpthread \
    -o my_host
 ```
@@ -139,6 +197,11 @@ cc -I "$PKG/include" \
 For shared-library builds on macOS, link the installed dylib and configure the
 runtime search path with your normal deployment mechanism, such as `rpath` or
 `DYLD_LIBRARY_PATH` during local testing.
+
+Windows static hosts inherit the maxed archive's system-library requirements:
+`ws2_32`, `ole32`, `uuid`, `user32`, `advapi32`, and `winmm`. Import-library
+users should deploy `libapi.dll` beside the host executable or through their
+normal DLL search-path arrangement.
 
 ## Lifecycle
 

@@ -1,7 +1,8 @@
 # Skred Virtual File System (VFS)
 
-> Experimental standalone copy. This API is not currently wired into the main
-> SKRED CMake build or the Skode file commands.
+> Historical standalone prototype. This directory is not linked into SKRED.
+> The current integrated implementation and documentation live under
+> `parts/exp-vfs/`.
 
 The Skred VFS is a lightweight abstraction layer designed to unify file system interactions within the skred audio engine. It allows the engine to mount either a standard physical directory or a flat `.zip` archive, providing a unified API to read files, write files, and iterate directory structures.
 

@@ -19,16 +19,20 @@ make dist-api        # archive the maxed package
 make dist-api-windows # cross-build and zip the Windows maxed package
 ```
 
-The installed tree looks like:
+Native packages are installed below `dist/<platform>/`, where the default
+platform is derived from the host OS and architecture. The installed tree
+looks like:
 
 ```text
-dist/skred-0.23.1-maxed/
+dist/<platform>/skred-<version>-maxed/
   bin/mini-skred
   include/skred/api.h
+  include/skred/polyphony.h
+  include/skred/skred_vfs.h
   include/skred/skred-version.h
   lib*/libapi.a
-  lib*/libapi.so.0.23.1
-  lib/libapi.0.23.1.dylib
+  lib*/libapi.so.<version>
+  lib/libapi.<version>.dylib
 ```
 
 The Linux-hosted Windows cross package is written under
@@ -45,8 +49,9 @@ lib/libapi.dll.a
 ```
 
 Use the `native` package for the default feature set, or the `maxed` package
-when you need optional features such as sequencing, UDP, Ksynth, recording, and
-shared-memory scope publication.
+when you need optional features such as sequencing, UDP, MIDI, Ksynth,
+recording, and shared-memory scope publication. The Windows maxed package
+includes Ksynth, MIDI, recording, and track routing but omits `SCOPE`.
 
 ## Minimal Host
 
@@ -61,7 +66,7 @@ int main(void) {
     }
 
     skred_logger(1);
-    skred_command("v0 w0 f440 a-9 l1");
+    skred_command("v0 w0 f440 a0 l1");
 
     puts("Press Enter to stop...");
     (void)getchar();
@@ -88,22 +93,28 @@ The dist targets install both the static `api` library and the shared
 host binary. Use the shared library when you want to update or distribute SKRED
 separately from your host.
 
-For the checked-in Linux-style `dist` layout, static linking looks like:
+From the repository root, define a Linux x86-64 package location once:
 
 ```sh
-cc -I dist/skred-0.23.1-maxed/include \
+PKG="dist/linux-x86_64/skred-$(cat VERSION)-maxed"
+```
+
+Static linking then looks like:
+
+```sh
+cc -I "$PKG/include" \
    my_host.c \
-   dist/skred-0.23.1-maxed/lib64/libapi.a \
+   "$PKG/lib64/libapi.a" \
    -lm -lpthread \
    -o my_host
 ```
 
-Shared-library linking can use the installed versioned shared object directly:
+Shared-library linking can use the installed library directory:
 
 ```sh
-cc -I dist/skred-0.23.1-maxed/include \
+cc -I "$PKG/include" \
    my_host.c \
-   dist/skred-0.23.1-maxed/lib64/libapi.so.0.23.1 \
+   -L "$PKG/lib64" -lapi \
    -lm -lpthread \
    -o my_host
 ```
@@ -111,15 +122,16 @@ cc -I dist/skred-0.23.1-maxed/include \
 Run it with the package library directory on the runtime loader path:
 
 ```sh
-LD_LIBRARY_PATH=dist/skred-0.23.1-maxed/lib64 ./my_host
+LD_LIBRARY_PATH="$PKG/lib64" ./my_host
 ```
 
 On macOS-style packages, use the `lib` directory present in the package:
 
 ```sh
-cc -I dist/skred-0.23.1-maxed/include \
+PKG="dist/macos-$(uname -m)/skred-$(cat VERSION)-maxed"
+cc -I "$PKG/include" \
    my_host.c \
-   dist/skred-0.23.1-maxed/lib/libapi.a \
+   "$PKG/lib/libapi.a" \
    -lm -lpthread \
    -o my_host
 ```
@@ -266,6 +278,9 @@ for (;;) {
         case SKRED_CONTROL_EVENT_PATTERN_END:
             /* pattern e->pattern reached a boundary at step e->step */
             break;
+        case SKRED_CONTROL_EVENT_MIDI:
+            /* e->id is message type; value[] is channel, data1, data2 */
+            break;
         }
     }
 
@@ -383,6 +398,7 @@ Response bindings dispatch by event type plus a key:
 | `SKRED_CONTROL_EVENT_USER` | `event.id` |
 | `SKRED_CONTROL_EVENT_PATTERN_START` | `event.pattern` |
 | `SKRED_CONTROL_EVENT_PATTERN_END` | `event.pattern` |
+| `SKRED_CONTROL_EVENT_MIDI` | `event.id` (`skred_midi_message_type_t`) |
 
 Use key `-1` for a wildcard binding. Tags are not response keys. Tags are
 source metadata from scheduled or repeated work, useful for correlation and for
@@ -597,8 +613,9 @@ the permission request.
 
 The public API enumerates inputs and outputs independently, opens one of each,
 creates virtual ports where the platform supports them, and sends raw byte
-buffers. The compact runtime commands are intercepted by `skred_command()`
-before Skode parsing:
+buffers. The compact runtime commands are recognized at the
+`skred_command()` API router and also implemented as genuine immediate Skode
+atoms, so they work in loader contexts and immediate named macros:
 
 | Command | Meaning |
 | --- | --- |
@@ -620,6 +637,44 @@ sends one to three raw bytes. `d>MO` converts the current data array to bytes
 and sends it as one raw buffer, including SysEx buffers. Both commands reject
 fractional values and values outside `0..255`; `d>MO` is bounded at 65,536
 bytes. These are immediate control-plane operations, not real-time opcodes.
+
+Incoming note, release, and pitch-bend messages can target physical voices or
+poly pools through the fixed MIDI route table. Other fixed-size messages can
+expand bounded command templates on the control dispatcher:
+
+```text
+/mv 0,0,2
+/mp 1,0,12
+[v3 K{d2}] /mb 11,.,74
+/mR
+/mb?
+```
+
+The equivalent C APIs are `skred_midi_route_*()` and
+`skred_midi_binding_*()`. Routes and bindings are applied after the dispatcher
+drains `SKRED_CONTROL_EVENT_MIDI`; backend callbacks only publish fixed-size
+events. See the MIDI section of
+[SKODE_USER_COMMAND_REFERENCE.md](SKODE_USER_COMMAND_REFERENCE.md) for channel
+wildcards, message type numbers, and template fields.
+
+## Asset VFS
+
+`skred_vfs.h` is installed with the public headers. Hosts can mount a disk
+directory, a file-backed ZIP, or a copied in-memory ZIP and use the stdio-like
+file/directory API:
+
+```c
+skred_vfs_mount("assets.zip");
+puts(skred_vfs_status());
+/* Skode /ls, /ws, /ks, %ls, and %cat now see the mount. */
+skred_vfs_unmount();
+```
+
+Browser hosts use `skred_vfs_mount_zip_memory()` for uploaded asset bundles.
+`skred_vfs_read_real_file()` bypasses an active mount. These calls perform
+allocation and file/archive work and belong on the host control thread, never
+an audio callback. The full contract is documented in
+[exp-vfs/skred_vfs.md](exp-vfs/skred_vfs.md).
 
 ## Voice Groups, Pools, and Graphs
 
@@ -655,8 +710,10 @@ skred_command("v0 l1");
 skred_record_stop();
 ```
 
-When built with `SCOPE=1`, SKRED can publish the same 10-channel bus through
-POSIX shared memory on Unix-like systems or a named file mapping on Windows:
+When built with `SCOPE=1`, SKRED publishes the same 10-channel bus through
+shared memory. `scope-ipc.c` implements POSIX shared memory and a Windows named
+file mapping, but the current CMake configuration rejects `SCOPE=1` on Windows;
+the supported preset is therefore POSIX-only:
 
 ```c
 skred_scope_start("skred-scope", 0xffffffffu, 1.0);

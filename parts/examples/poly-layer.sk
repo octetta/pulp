@@ -1,6 +1,6 @@
 # Two-voice octave-layer prototype and a four-note pool.
 v0 w0 a0 t.01,.15,.7,.35 N0 G1 H1
-v1 w0 a-2 t.005,.1,.5,.25 N12
+v1 w0 a0 t.005,.1,.5,.25 N12
 /pg0,0,2,0
 /pp0,0,8,4,0
 /vg8

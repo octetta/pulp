@@ -8,12 +8,12 @@ existing patch files.
 
 ## Status Update
 
-Reviewed against the implementation on June 11, 2026.
+Reviewed against the implementation on July 17, 2026.
 
 - **Resolved:** `/r` offset indexing, `w>r` transfer behavior, `x-` handling,
   `G`/`H` link replacement, square-bracket documentation, bare `wait`, and the
   presentation's amplitude examples.
-- **Still open by design or pending decision:** the `S100` reset-all sentinel,
+- **Still open by design or pending decision:** the out-of-range `S` reset-all sentinel,
   incomplete serialization of `w` interpolation/one-shot flags, query syntax
   consistency, aliases, and undocumented numeric selector families.
 
@@ -52,18 +52,17 @@ Relevant code:
 
 ### `S100` is an accidental reset-all sentinel - Open
 
-`S` appears to mean "reset the specified voice," but an invalid voice causes
-all voices to reset. Documentation and patches use `S100` as "quiet/reset all,"
-which depends on voice 100 remaining invalid.
+`S` appears to mean "reset the specified voice," but any invalid voice causes
+all voices to reset. Older patches use `S100` as "quiet/reset all," which
+depends on voice 100 remaining outside the configured voice count.
 
 A dedicated all-voices reset command would communicate this intention without
 relying on an out-of-range value.
 
 Relevant code:
 
-- `parts/skode.c.kit:1783`
-- `parts/synth.c.kit:1486`
-- `doc/learn.html:314`
+- `parts/skode.c.kit`
+- `parts/synth.c.kit`
 
 ### Former partial `G` and `H` link replacement - Resolved
 
@@ -121,7 +120,7 @@ Several commands follow a useful `?` convention:
 Other commands inspect state through unrelated forms:
 
 - Bare `z` and `Z` show pattern state.
-- Bare `D`, `/f`, and `/c` show their current values.
+- Bare `D` and `/f` show their current values.
 - `W` is both a wave query and waveform display command.
 - `udp` only displays information when given an otherwise unused argument.
 
@@ -136,21 +135,24 @@ Examples include:
 - `ks` and `k!` both execute k-synth source.
 - `xg` and `>x` both jump to a pattern step.
 - `^r` and `<r` both start recording into the sample buffer.
-- `/s 0..7`, `W@` parameter numbers, and `v@` parameter numbers expose
-  undocumented numeric command families.
+- `/s 0..7`, `W*` parameter numbers, and `v*` parameter numbers expose
+  numeric selector families. `W*` and `v*` are now documented, but `/s`
+  remains a broad status selector.
 
 Aliases may be useful for compatibility, but one form should be identified as
 canonical and the numeric selectors should be named or documented.
 
 ### Former amplitude documentation error - Resolved
 
-The presentation now uses `a0` for unity amplitude and negative dB values for
-quieter examples.
+The presentation and current patch examples use the project convention:
+`a0` for ordinary synth voices and `a10` for normalized long one-shots and
+Ksynth drums. Negative dB remains valid when a patch deliberately needs
+per-voice attenuation.
 
 Relevant code and documentation:
 
-- `parts/skode.c.kit:1397`
-- `doc/adc-tokyo-2026-beeps-and-ports.md:83`
+- `parts/synth.c.kit`
+- `doc/adc-tokyo-2026-beeps-and-ports.md`
 
 ## Inferred Design Conventions
 

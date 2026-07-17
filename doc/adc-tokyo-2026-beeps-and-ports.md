@@ -53,7 +53,7 @@ Follow my two-plus-year (but really life-long journey) to make exactly the sound
 ### Slide 4: Safe Architecture via Pipes and Network Ports
 *   **Visual:** A simple graphic showing an isolated process box with an explosive "Blast Radius" indicator contained cleanly outside the host system.
 *   **Speaker Voice:** "Let's be completely candid: this C code is not defensive, bubble-wrapped, corporate enterprise software. If you feed it complete garbage, it might segfault. But instead of cluttering the high-priority audio thread with thousands of lines of bulletproof error-checking, we handle safety through architecture.
-    
+
     For process isolation, we can run `mini-skred -n` behind **pipes** or control a separate process through **UDP**. The embedded C API and browser build run the command and rendering layers in one process, so process isolation is a host choice rather than an intrinsic property of the engine."
 
 ---
@@ -63,7 +63,7 @@ Follow my two-plus-year (but really life-long journey) to make exactly the sound
 ### Slide 5: Array-Oriented Wave Generation
 *   **Visual:** A clean, short snippet of your right-associative `k-synth` syntax code. Below it, a text link: `github.com/kparc/ksimple`.
 *   **Speaker Voice:** "To populate an audio engine, you need data structures. Writing massive, nested loops in raw C just to generate lookup wavetables is tedious and high-ceremony. Instead, I integrated an array-oriented syntax directly into the data pipeline via `k-synth`.
-    
+
     It is heavily modeled after `ksimple`—Arthur Whitney’s minimal K interpreter designed for educational clarity. Adopting that compact style allows me to mathematically define complex audio arrays on the fly on the host side or in the browser workspace with practically zero boilerplate."
 
 ### Slide 6: Vintage Tables & Homage to 1985
@@ -71,7 +71,7 @@ Follow my two-plus-year (but really life-long journey) to make exactly the sound
     *   16 digital wavetables modeled after the **Korg DW-8000** Digital Waveform Generator System (DWGS).
     *   Bespoke, array-generated digital drum definitions.
 *   **Speaker Voice:** "Once you have an array language baked into your synthesis workspace, you need something iconic to generate.
-    
+
     A massive shoutout to Korg, who is sponsoring this event—I've spent a lot of time obsessed with the 1985 **Korg DW-8000**. Its digital waveform architecture was brilliant. So, I used `k-synth` as a rapid generator to mathematically recreate those exact 16 single-cycle digital wavetables. Alongside those vintage shapes, I wrote tight definitions for digital drum sounds. This gives our runtime an immediate, rich, nostalgic sonic palette right out of the box—no massive sample folders required."
 
 ---
@@ -82,7 +82,7 @@ Follow my two-plus-year (but really life-long journey) to make exactly the sound
 *   **Visual:** High-contrast text examples for the audience to track visually during the demo:
     *   `v0 w0 f440 a0` -> Voice 0, sine wave, 440 Hz, unity amplitude (0 dB).
     *   `v1 m1 f4` -> Voice 1 becomes a control modulator running at 4 Hz.
-    *   `v0 F1,50` -> Target Voice 0's frequency modulation variable using Voice 1 as the source.
+    *   `v0 FF2 F1,2` -> Voice 1 phase-modulates Voice 0 with a two-radian index.
 *   **Speaker Voice:** "Before I pull up the live shell, here are the basic keys. The grammar is stateless in structure but stateful in execution—parameters stay exactly where you put them until a new command overrides them."
 
 ### Slide 8: The Live Demo
@@ -91,15 +91,15 @@ Follow my two-plus-year (but really life-long journey) to make exactly the sound
 
 
 Act I (The Baseline Tone):
-v0 w0 f220 a-8
+v0 w0 f220 a0
 
 Act II (The Modulation Layer):
 v1 m1 f6
-v0 F1,40
+v0 FF2 F1,2
 
-Act III (The Korg Homage & Drums):
-v0 w8
-v2 w0 n36 a-6 l1
+Act III (The Korg Homage & Percussion):
+v0 w22
+v2 w5 a0 t.001,.12,0,.05 l1
 
 Act IV (The Fade Out):
 v0 a-60 v2 a-60
@@ -123,7 +123,8 @@ Array Generator: github.com/octetta/k-synth
 "ksynth try-it": octetta.github.io/k-synth
 
 
-Next Steps: Exploring libpd embedding, macro parsing, and cluster sequencing.
+Next Steps: Exploring libpd embedding, transitive promoted-macro
+reclassification, and cluster sequencing.
 
 Looking For: Compelling R&D collaborations, instrument design exploration, or deep architectural discussions with people who love synthesis.
 

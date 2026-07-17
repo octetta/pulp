@@ -11,10 +11,11 @@ note for now.
 
 ## Current Goal
 
-Pause after completing the MIDI control-plane integration and signed
-phase-distortion envelope work. On return, preserve native, Windows, and
-WebAssembly behavior while addressing only the known unrelated test failures
-if the user chooses to prioritize them.
+Keep the repository documentation aligned with the current command surface,
+feature presets, public API, and runtime architecture. Preserve native,
+Windows, and WebAssembly behavior while addressing the known unrelated
+wavetable-display and synthetic delay-fixture test failures only if the user
+chooses to prioritize them.
 
 ## Related Repositories
 
@@ -435,3 +436,21 @@ fixing the wasm control-plane `/cer 0` hang path.
 - Updated the user reference and added maxed/WASM-feature load-and-execute
   regression coverage for every new macro. Native/maxed builds succeed; the
   same known unrelated state-test failures remain.
+
+### 2026-07-17 - Repository-Wide Markdown Audit
+
+- Audited all 20 project Markdown files against the current templates, public
+  headers, build presets, generated help records, and runtime code.
+- Corrected maxed/Windows feature descriptions, added `MIDI` and internal
+  `TRACKS` documentation, replaced fixed-rate claims with the active
+  engine/device sample rate, and documented the integrated VFS.
+- Updated event/API/diagram coverage for MIDI routes and bindings, corrected
+  the opcode argument bound from four to eight, fixed DWGS slots, and aligned
+  synth/one-shot examples with the `a0`/`a10` gain convention.
+- Reconciled API distribution paths with platform/version packaging and
+  recorded verified Ksynth and uedit vendor revisions.
+- Marked the top-level `vfs/` copy as a historical prototype and made
+  `parts/exp-vfs/` the documented integrated implementation.
+- Validation: all generated `@doc` command names occur in the command
+  references; Markdown links and fences are balanced; `git diff --check`
+  passes. Existing state-test failures remain unrelated.

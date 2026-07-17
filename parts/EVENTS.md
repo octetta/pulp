@@ -33,10 +33,11 @@ running parser text in the audio callback.
 
 ## Control-plane events — "what just happened?"
 
-Voice lifecycle code, pattern boundaries, and explicit `ce` markers publish
-`skred_control_event_t` records into a bounded ring after engine behavior has
-already occurred. This lets a host mirror or react to engine state without
-putting callbacks, I/O, or UI work on the real-time audio path.
+Voice lifecycle code, pattern boundaries, explicit `ce` markers, and the
+optional MIDI backend publish `skred_control_event_t` records into a bounded
+ring after engine behavior has already occurred. This lets a host mirror or
+react to engine state without putting callbacks, I/O, or UI work on the
+real-time audio path.
 
 Publication is opt-in: voice lifecycle events require `vc1` on the voice,
 pattern boundary events require `yc1` on the pattern, and user events are
@@ -47,6 +48,7 @@ graph TD
     V[Voice events<br/><small>vc1 voices only</small>] --> R[Control-plane event ring<br/><small>bounded, host drains it</small>]
     P[Pattern events<br/><small>yc1 patterns only</small>] --> R
     U[User events<br/><small>ce id command</small>] --> R
+    M[MIDI events<br/><small>enabled input message types</small>] --> R
 
     R --> H[Host poll loop<br/><small>skred_control_event_poll&#40;&#41;</small>]
     R --> DT[Dispatch thread<br/><small>/cer 1 runs /ceb bindings</small>]
@@ -57,29 +59,30 @@ graph TD
     classDef ring fill:#faeeda,stroke:#854f0b,color:#412402
     classDef consumer fill:#faece7,stroke:#993c1d,color:#4a1b0c
     classDef loop fill:#f1efe8,stroke:#5f5e5a,color:#2c2c2a
-    class V,P,U source
+    class V,P,U,M source
     class R ring
     class H,DT consumer
     class A loop
 ```
 
-Note the dashed edge: the dispatch thread's `/ceb` bindings run back on the
-control thread, not the audio thread. That's what makes it safe for a bound
+Note the dashed edge: the dispatch thread's `/ceb` bindings run on its
+dedicated control-plane thread, not the audio thread. That's what makes it safe for a bound
 response to do the things immediate commands can do — allocate, format
 text, perform I/O — that would be unsafe inside the audio callback in the
 diagram above.
 
 ## Voice, pattern, and user events in practice
 
-The three producers feeding the ring in the diagram above are configured and
+The four producers feeding the ring in the diagram above are configured and
 consumed differently. This section is the lookup table for "I want event
 type X — what do I turn on, and what do I read?"
 
 ### Voice events (types 1–3)
 
 Voice lifecycle events are emitted only for voices explicitly opted in.
-They report the same thing as `?q` inspection but after the fact, and cheap
-enough to leave on for voices you're actively monitoring.
+Unlike `?q`, which shows queued work before execution, they report completed
+trigger/release/finished transitions and are cheap enough to leave on for
+voices you're actively monitoring.
 
 | | Detail |
 | --- | --- |
@@ -119,7 +122,23 @@ schedulable Skode text can go (defers, repeats, patterns, macros).
 | Payload | up to three numeric values `a,b,c`, meaning defined entirely by the host |
 | Bind from Skode | `[command] /ceb 4 id` |
 | Skode example | `[v4 l1] /ceb 4 42` then `ce 42` runs `v4 l1` |
-| Poll from host | `skred_control_event_poll()`, filter on `.id` and read `.a`/`.b`/`.c` |
+| Poll from host | `skred_control_event_poll()`, filter on `.id` and read `value[0..value_count-1]` |
+
+### MIDI events (type 7)
+
+With `MIDI=1`, an open input publishes enabled fixed-size MIDI messages. The
+backend callback performs no parsing, routing, allocation, or host callback;
+the control dispatcher applies route and binding tables after draining the
+event.
+
+| | Detail |
+| --- | --- |
+| Enable | initialize MIDI, open an input, and include the message type in the input mask |
+| Event type | `7` `SKRED_CONTROL_EVENT_MIDI` |
+| Responder key | `event.id`, the numeric `skred_midi_message_type_t`, or `-1` as a wildcard |
+| Payload | `value[0]` channel, `value[1]` data1, `value[2]` data2; system messages use channel `-1` |
+| Automatic consumers | `/mv` and `/mp` routes; `/mb` command bindings |
+| Poll from host | `skred_control_event_poll()`, filter on `.id` and inspect `value[]` |
 
 ### A word of caution: two unrelated things are called "macro"
 
@@ -153,7 +172,7 @@ ring 43                 \ expands to "ce 43" — legal anywhere ce 43 is, trigge
 ### Two ways to consume any of the three
 
 - **Responder bindings via the dispatcher:** `/ceb type key` binds a
-  schedulable Skode response command, `/cer 1` starts the built-in
+  Skode response command, `/cer 1` starts the built-in
   dispatcher thread, and everything after that runs without host code — the
   dispatcher pulls from the same ring `?ce` inspects and runs matching
   commands from its own Skode context. Good for patches that should be
@@ -183,7 +202,7 @@ consumed.
   `?ce!` explicitly discards outstanding control-plane events.
 - Event type numbers are the public `SKRED_CONTROL_EVENT_*` enum:
   `1` trigger, `2` release, `3` finished, `4` user, `5` pattern start,
-  `6` pattern end.
+  `6` pattern end, `7` MIDI.
 - The `event` `tag` field is provenance/cancellation metadata from scheduled
   work — it is not a response-binding key. Bindings match on event type plus
   `voice`, `pattern`, or user `id`.

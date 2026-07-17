@@ -14,6 +14,10 @@ Pi, Extempore, mimium, and NKIDO. These were picked for architectural
 contrast, not because they're the only other systems worth knowing — FoxDot
 and Glicol are left out for brevity.
 
+External-system descriptions were last checked against project documentation
+on July 17, 2026. They are architectural summaries, not compatibility or
+version guarantees.
+
 ## At a glance
 
 | System | Control representation | Where control code runs | Time model | Host notification |
@@ -64,12 +68,12 @@ is server-first by design — it's technically possible to link against it,
 but as of 2026 that's still exploratory territory (Sam Aaron's SuperSonic
 AudioWorklet prototype is a notable recent attempt), not the common path.
 
-**Embeddable via dedicated per-host bridges.** ChucK is distributed
-standalone (miniAudicle) by default, but it does have real embedding
-stories — Chunity (Unity), Chunreal (Unreal, early), WebChucK (browsers),
-and a handful of others. Each of these is its own engineering project
-built to bridge the full ChucK VM into one specific host, rather than one
-generic embedding surface that works the same way everywhere.
+**Embeddable through a reusable core plus host integrations.** ChucK is
+distributed standalone (with miniAudicle as its IDE), while the libChucK
+rearchitecture exposes the VM as an embeddable C++ component. Chunity,
+Chunreal, and WebChucK package that core for Unity, Unreal, and browsers;
+WebChucK also provides a general JavaScript API for embedding a ChucK VM in a
+web application.
 
 **Both, by design, via one generic API.** This turns out to be a longer
 list than it might first appear, and a much older idea than live coding
@@ -88,10 +92,11 @@ host Rust program. NKIDO's Cedar is described as a standalone, embeddable
 C++ library targeting native apps, web (WASM), Godot, and even ESP32
 microcontrollers. SKRED works the same way: `mini-skred` is a standalone
 host with its own audio device selection and interactive editor, and the
-exact same three-function C API (`skred_start`, `skred_command`,
-`skred_stop`) is what a host application embeds directly into its own
-audio callback — no bridge project, no per-host integration layer, just
-one small header.
+same three-function C API (`skred_start`, `skred_command`, `skred_stop`) is
+what an application embeds. The current public API still owns its miniaudio
+device and callback; an application that already owns audio rendering must
+extract or expose SKRED's lower-level block renderer rather than call the
+public API from its callback.
 
 What actually sets SKRED apart within this "both" group isn't the
 embeddability itself — that's well-trodden ground going back to Csound.
@@ -102,8 +107,8 @@ callbacks freely and trust you not to misuse them near the audio thread;
 SKRED's compiler refuses to schedule anything that could allocate or block
 in the first place.
 
-If "I want to drop this into an existing app's audio thread without
-adopting a whole separate process or runtime" is a hard requirement, that
+If "I want to link this into an existing app without adopting a whole separate
+process or language runtime" is a hard requirement, that
 rules out TidalCycles, Sonic Pi, Extempore, and (in the common case)
 SuperCollider — but leaves a genuinely crowded field of Csound, Pure Data,
 Strudel, mimium, NKIDO, and SKRED all viable on that axis alone. The rest
@@ -445,8 +450,8 @@ graph TD
 A rough guide, based on everything above:
 
 - **Reach for SKRED** if you want a small, dependency-light engine you can
-  either run standalone or compile directly into your own application's
-  audio callback with one C API and no bridge project; if real-time safety
+  either run standalone or link directly into your application with one C API
+  and no bridge project, while letting SKRED own the audio device callback; if real-time safety
   matters enough that you want the compiler to reject anything unsafe from
   the schedulable path rather than trusting yourself not to allocate in
   the wrong place; or if you want to inspect and reason about pending work
@@ -478,13 +483,12 @@ more structurally powerful systems above.
   and no responder callback firing on your client thread whenever it
   wants. If your mental model is "the engine calls me," rebuild it as "I
   ask the engine" — `skred_control_event_poll()` is pull, not push.
-- **From Csound or Pure Data:** the host callback you're used to
-  registering — a C function Csound or `libpd` calls directly — doesn't
-  exist in SKRED. There's a bounded ring and a poll function instead, and
-  it's on purpose: SKRED's compiler won't let you schedule the kind of
-  code that would be unsafe to run from inside a callback fired near the
-  audio thread in the first place, so the ring is drained on the host's
-  own schedule rather than the engine's.
+- **From Csound or Pure Data:** SKRED does not deliver engine notifications by
+  invoking a host callback. There's a bounded ring and a poll function
+  instead. `/ff0` through `/ff9` can invoke host-bound C functions from
+  immediate/control-thread Skode, but those calls are deliberately excluded
+  from scheduled audio execution. The ring is drained on the host's own
+  schedule rather than the engine's.
 - **From ChucK:** SKRED's immediate/compiled split has no equivalent in
   ChucK, where everything compiles the same way. The thing to unlearn is
   writing schedulable Skode the way you'd write ChucK code that does

@@ -137,7 +137,7 @@ UI, scripts, and embedding applications the same control vocabulary.
 Skode is deliberately compact:
 
 ```text
-v0 w0 n60 a-8 l1
+v0 w0 n60 a0 l1
 [v0 n36 l1] xa
 ~0.25 v0 l0
 ```
@@ -337,7 +337,7 @@ Files:
 
 `skode_compile_program()` invokes a separate ANDS parser configured with a
 compiler callback. The result is an `event_program_t` containing no more than
-32 operations. Each operation contains an opcode, up to four numeric
+32 operations. Each operation contains an opcode, up to eight numeric
 arguments, variable-reference bits, and optional delay mode.
 
 Program execution tracks a current voice. It executes due operations directly
@@ -529,14 +529,15 @@ This separation is important: disk I/O and encoder work do not occur in the
 audio callback. If the ring cannot accept data, recording reports dropped
 frames rather than waiting.
 
-The file is 44.1 kHz interleaved 32-bit float WAV. Channels `0..1` are master
-left/right, followed by four stereo stem pairs in channels `2..9`. Voice
-command `r1` through `r4` adds that voice to the corresponding stem while
-leaving it in the master; `r0` removes the stem route. Each non-master stem
-also owns one mono-send/stereo-return delay line. `ds amount` feeds the delay
-attached to the voice's current `r1`..`r4` route, and that wet return is added
-both to the main stereo mix and to the matching stem. `[filename]/rg` starts,
-`/r?` reports progress, and `/rs` drains and finalizes the encoder.
+The file uses the active engine/device sample rate (44.1 kHz by default) and
+interleaved 32-bit float samples. Channels `0..1` are master left/right,
+followed by four stereo stem pairs in channels `2..9`. Voice command `r1`
+through `r4` adds that voice to the corresponding stem while leaving it in the
+master; `r0` removes the stem route. Each non-master stem also owns one
+mono-send/stereo-return delay line. `ds amount` feeds the delay attached to the
+voice's current `r1`..`r4` route, and that wet return is added both to the main
+stereo mix and to the matching stem. `[filename]/rg` starts, `/r?` reports
+progress, and `/rs` drains and finalizes the encoder.
 
 ### Shared-Memory Scope
 
@@ -547,10 +548,12 @@ Files:
 - `scope-reader.c`
 
 With `SCOPE=1`, the same ten-channel master/stem bus can be published to a
-versioned POSIX shared-memory overwrite ring. The producer writes full-rate
-interleaved floats and atomically advances an absolute frame counter. A
-seqlock-style publication counter lets readers reject a partial or overwritten
-snapshot and retry.
+versioned shared-memory overwrite ring. The transport has POSIX
+shared-memory and Windows named-file-mapping implementations, although the
+current CMake configuration enables `SCOPE` only on POSIX targets. The
+producer writes full-rate interleaved floats and atomically advances an
+absolute frame counter. A seqlock-style publication counter lets readers
+reject a partial or overwritten snapshot and retry.
 
 The scope stems use the same routing as recording: dry voice contribution
 comes from `r1`..`r4`, and each stem includes the return from its corresponding
@@ -592,6 +595,30 @@ UDP is a convenience transport, not an authentication or reliability layer.
 An adopter exposing it beyond a trusted network should add validation,
 authorization, rate limiting, and protocol-level acknowledgement as needed.
 
+### Asset VFS and ZIP Mounts
+
+Files:
+
+- `exp-vfs/skred_vfs.c`
+- `exp-vfs/skred_vfs.h`
+- `exp-vfs/miniz*.c`
+
+The VFS is part of the main API library. It presents disk directories,
+file-backed ZIP archives, and copied in-memory ZIP archives through one
+stdio-like interface with a VFS-relative current directory. Skode file,
+wavetable, and Ksynth loaders search the active mount before real-directory
+and type-specific fallback paths. A `file:` prefix explicitly bypasses a ZIP
+mount.
+
+ZIP extraction, directory enumeration, mounting, and writing are all
+control-thread operations. They do not run from scheduled opcodes or the audio
+callback. Browser hosts use the memory-mount API for uploaded asset bundles;
+native Skode uses `%z`, `%zu`, `%pwd`, `%cd`, `%ls`, and `%cat`.
+
+The top-level `vfs/` directory is an older standalone prototype. The
+integrated implementation is `parts/exp-vfs/`, despite the historical
+directory name.
+
 ### WebAssembly
 
 Files:
@@ -614,9 +641,13 @@ The project has several possible threads:
 
 - the miniaudio callback thread
 - the application or command thread
+- the optional control-event response dispatcher thread
+- optional MIDI backend callback threads
 - the optional UDP receiver thread
 - the optional recording writer thread
-- optional synchronous Ksynth evaluation on command or UDP threads
+
+Ksynth evaluation is synchronous and runs on whichever command or UDP thread
+invoked it; it does not create a separate worker.
 
 The most important rule is that the audio callback must remain bounded:
 
@@ -666,8 +697,9 @@ cmake --preset windows-zig-ninja
 cmake --build --preset windows-zig-ninja
 ```
 
-Use `windows-zig-maxed` for the portable maxed feature set. It omits
-`KSYNTH=1` and `SCOPE=1` because those paths currently depend on POSIX APIs.
+Use `windows-zig-maxed` for the portable maxed feature set. It includes
+Ksynth, MIDI, recording, and track routing, but omits `SCOPE=1` because the
+current CMake configuration rejects that feature on Windows.
 
 Linux hosts can also cross-build a Windows executable with Zig. Build the
 native generator first, then configure the Windows target:
@@ -698,6 +730,10 @@ Tests live in `tests/` and are registered in `CMakeLists.txt`:
 - `recording_tests.c` covers recording when `RECORD` is enabled.
 - `scope_ipc_tests.c` covers cross-process reads, wraparound, restart
   generations, and Skode scope commands when `SCOPE` is enabled.
+- `midi_tests.c` covers hardware-independent MIDI event publication, routing,
+  bindings, voice/pool behavior, and pitch bend when `MIDI` is enabled.
+- `polyphony_tests.c` covers group cloning, allocation/stealing, monophonic
+  held-note behavior, routing preservation, and dependency graphs.
 - the CMake smoke test checks generated build artifacts and feature output.
 - `synth_callback_bench.c` is an opt-in timing diagnostic for average and
   worst synthesis callback cost and measured deadline overruns.

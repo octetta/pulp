@@ -4,19 +4,24 @@ Recorded June 6, 2026.
 
 ## Status Update
 
-Reviewed against the implementation on June 15, 2026.
+Reviewed against the implementation on July 17, 2026.
 
 - **Resolved:** `ks_eval()` result ownership.
 - **Resolved:** event queue publication ordering; covered by
   `skqueue_tests.c`.
-- **Still open:** deterministic UDP worker shutdown; Ksynth shutdown is
-  resolved.
-- **Partially resolved:** `ands_free()` now frees the parser object and
-  `ands_new()` checks allocation failures, but `skode_t` still has no explicit
-  destructor and UDP context cleanup remains unfinished.
+- **Still open:** deterministic UDP worker shutdown. The worker remains
+  detached, and `udp_stop()` closes its socket without joining it.
+- **Resolved:** `skode_free()` now owns parser, dictionary-vocabulary, and
+  optional Ksynth cleanup. UDP client contexts call it before reuse and at
+  worker exit.
 - **Partially resolved:** audio device initialization and startup failures now
   propagate from `skred_start()`, but complete unwind coverage for every
   partial-start failure remains follow-up work.
+- **Known test debt:** the state suite currently has three wavetable-display
+  assertions and, in track-enabled builds, delay assertions whose synthetic
+  voice fixture does not initialize the newer wave-range fields. Normal
+  `w`-selected voices initialize those fields through
+  `osc_set_wave_table_index()`.
 
 Line references below describe the June 6 snapshot and may have moved.
 
@@ -32,7 +37,7 @@ Line references below describe the June 6 snapshot and may have moved.
 Relevant code:
 
 - `parts/vendor/ksynth/ksynth.c`
-- `parts/kse.c:82`
+- `parts/tests/ksynth_bridge_tests.c`
 
 ## High
 
@@ -45,36 +50,36 @@ multi-producer/single-consumer test now covers this behavior.
 
 Relevant code:
 
-- `parts/skqueue.c:87`
-- `parts/skqueue.c:130`
+- `parts/skqueue.c`
+- `parts/tests/skqueue_tests.c`
 
-### Make worker shutdown deterministic - Partially Resolved
+### Make worker shutdown deterministic - Open for UDP
 
-- The Ksynth worker now drains its owned job queue, joins during shutdown,
-  and destroys its synchronization resources. Repeated start/stop is covered.
+- Ksynth evaluation is synchronous in the current integration and its context
+  is released by `skode_free()`.
 - The UDP worker remains detached and still needs synchronized stop state,
-  wakeup, joining, and repeated start/stop coverage.
+  wakeup, joining, and repeated start/stop coverage. `udp_running` should also
+  use the portable atomic contract rather than a plain cross-thread integer.
 
 Relevant code:
 
-- `parts/kse.c:172`
-- `parts/udp.c:166`
+- `parts/skode.c.kit`
+- `parts/udp.c`
 
 ## Medium
 
-### Complete parser and context cleanup - Partially Resolved
+### Complete parser and context cleanup - Resolved
 
-- `ands_free()` now releases internal allocations and the `ands_t` object.
-- There is still no matching destructor for parser state owned by a `skode_t`.
-- UDP context cleanup is explicitly unfinished.
-- Add clear ownership APIs and test cleanup of partially and fully initialized
-  contexts.
+- `ands_free()` releases internal allocations and the `ands_t` object.
+- `skode_free()` releases parser state, a context-local dictionary vocabulary,
+  retained Ksynth results, and the Ksynth context when present.
+- API, loader, control-dispatcher, and UDP client contexts use this destructor.
 
 Relevant code:
 
-- `parts/ands.c:500`
-- `parts/skode.c.kit:2548`
-- `parts/udp.c:156`
+- `parts/ands.c`
+- `parts/skode.c.kit`
+- `parts/udp.c`
 
 ### Handle initialization and allocation failures - Partially Resolved
 
@@ -86,9 +91,8 @@ Relevant code:
 
 Relevant code:
 
-- `parts/ands.c:461`
-- `parts/api.c.kit:210`
-- `parts/api.c.kit:213`
+- `parts/ands.c`
+- `parts/api.c.kit`
 
 ## Verification Work
 
@@ -109,6 +113,7 @@ Relevant code:
 - Overall assessment: good experimental/research quality, with moderate-to-high
   runtime risk until the ownership and concurrency issues above are resolved.
 
-The queue risk described in that assessment has since been addressed. The
-remaining highest-risk items are Ksynth result lifetime and detached worker
-shutdown.
+The queue, Ksynth result-lifetime, and parser/context ownership risks described
+in that assessment have since been addressed. The main remaining item from
+this review is deterministic UDP shutdown, followed by complete unwind tests
+for partial `skred_start()` failures.

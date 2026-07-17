@@ -54,17 +54,25 @@ XM     # ring modulation
 
 UDP    # receive skode on UDP
 KSYNTH # synchronous k-synth evaluation
+MIDI   # MIDI input/output, routing, and control bindings
 RECORD # multitrack WAV recording
 SCOPE  # shared-memory live audio publication
+TRACKS # four stem routes and their track-aligned delay buses without capture
 BENCH  # internal benchmark measurements
 ```
 
 The standard `maxed` target enables the features listed in
-`MAXED_KIT_OPTS` in `parts/Makefile`. `XM` is available to custom `KIT_OPTS`
-builds but is not enabled by that preset. `SCOPE` publishes the master and
+`MAXED_KIT_OPTS` in `parts/Makefile`, including `XM` and `MIDI`. `ADSR` is
+always appended by CMake. `SCOPE` publishes the master and
 four stereo stems through a versioned shared-memory ring for external
-visualizers. It uses POSIX shared memory on Unix-like systems and a
-`Local\\` named file mapping on Windows.
+visualizers. The transport has POSIX shared-memory and Windows `Local\\`
+named-file-mapping implementations, but the current CMake configuration
+enables `SCOPE` only on POSIX targets.
+
+`TRACKS` is an internal generation option used when stem routing and delays are
+needed without recording or scope capture, notably in WASM. `RECORD` and
+`SCOPE` imply it automatically. It is not currently listed separately by
+`skred_features()`.
 
 ## Native Build
 
@@ -106,9 +114,10 @@ cmake --build --preset windows-zig-maxed
 .\build_windows_zig_maxed\mini-skred.exe
 ```
 
-`windows-zig-maxed` enables the portable maxed features but intentionally omits
-`KSYNTH=1` and `SCOPE=1`: Ksynth currently uses POSIX `sigjmp_buf`, and the
-scope transport uses POSIX shared memory.
+`windows-zig-maxed` enables the portable maxed features, including Ksynth,
+MIDI, recording, and track-aligned delays. It intentionally omits `SCOPE=1`;
+the current CMake configuration rejects that feature on Windows even though
+`scope-ipc.c` contains a named-file-mapping backend.
 
 If Zig reports cache or filesystem permission errors, point its caches at a
 writable directory before configuring:
@@ -149,8 +158,7 @@ For the portable feature-rich cross-build:
 make -C parts cross-windows-zig-maxed
 ```
 
-The same `KSYNTH=1` and `SCOPE=1` exclusions apply to the Windows cross maxed
-preset.
+The same `SCOPE=1` exclusion applies to the Windows cross maxed preset.
 
 If generated `.kit` outputs look stale, use the refresh target. It removes the
 generated C files inside the cross-build directory before rebuilding:
@@ -192,8 +200,8 @@ In the Mini-Skred REPL, route voices to optional stereo stems and start a
 ten-channel WAV recording:
 
 ```text
-v0 r1 w0 f440 a-6 t.01,.2,.7,.3
-v1 r2 w1 f660 a-9 t.01,.2,.6,.3
+v0 r1 w0 f440 a0 t.01,.2,.7,.3
+v1 r2 w1 f660 a0 t.01,.2,.6,.3
 [take.wav]/rg
 v0 l1
 v1 l1
@@ -201,7 +209,8 @@ v1 l1
 /rs
 ```
 
-`take.wav` contains interleaved 32-bit float audio at 44.1 kHz:
+`take.wav` contains interleaved 32-bit float audio at the active engine/device
+sample rate (44.1 kHz by default):
 
 ```text
 0 master L    1 master R

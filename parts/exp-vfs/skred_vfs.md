@@ -1,45 +1,71 @@
-# Skred Virtual File System (VFS)
+# Skred Virtual File System
 
-> Experimental module. This API is not currently wired into the main SKRED
-> CMake build or the Skode file commands.
+The VFS under `parts/exp-vfs/` is compiled into the main SKRED API. It provides
+disk, file-backed ZIP, and memory-backed ZIP mounts behind one file/directory
+interface. Skode loaders and filesystem commands use it, and the public
+functions are installed through `include/skred/skred_vfs.h`.
 
-The Skred VFS is a lightweight abstraction layer designed to unify file system interactions within the skred audio engine. It allows the engine to mount either a standard physical directory or a flat `.zip` archive, providing a unified API to read files, write files, and iterate directory structures.
+The implementation maintains a VFS-relative current working directory. Paths
+are lexically resolved before disk or ZIP lookup; `.` and `..` are collapsed
+without allowing ZIP navigation above the mounted root. In disk mode, an
+absolute path selects a real directory or file. Prefix a loader path with
+`file:` when a ZIP is mounted and the command must bypass the mount.
 
-Crucially, it implements an internal **Current Working Directory (CWD)**. This stateful navigation allows commands like `cd` and `ls` to function transparently across both physical hierarchies and stateless zip archives.
+## Build and Dependencies
 
-## Dependencies & Integration
+The main CMake build compiles:
 
-This module requires **miniz**, a single-file ZIP/Deflate library.
+- `skred_vfs.c`
+- `miniz.c`
+- `miniz_tdef.c`
+- `miniz_tinfl.c`
+- `miniz_zip.c`
 
-1. Build the standalone experiment with `make` in `parts/exp-vfs`.
-2. To embed it elsewhere, compile `miniz.c` and `skred_vfs.c` and include
-   `miniz.h` and `skred_vfs.h`.
+The separate Makefile and test program in this directory are useful for
+isolated VFS development. The older top-level `vfs/` directory is a standalone
+prototype and is not the implementation linked into SKRED.
 
-## Architecture Notes
+## Mount Lifecycle
 
-* **Lexical Path Resolution:** All paths passed to `skred_fopen`, `skred_opendir`, and `skred_chdir` are first lexically resolved against the VFS CWD. Relative traversals (`../`) are collapsed in memory before interacting with disk or zip data.
-* **Write Buffering in ZIP Mode:** Opening a file in ZIP mode with `"wb"` allocates an expanding heap buffer. All `skred_fwrite` calls write to this buffer. The actual Deflate compression and insertion into the central ZIP directory occurs *only* when `skred_fclose` is called.
+- `skred_vfs_mount(path)` mounts a disk directory or a file-backed `.zip`.
+- `skred_vfs_mount_zip_memory(data,size,label)` copies and mounts an in-memory
+  ZIP, which is used by browser uploads.
+- `skred_vfs_unmount()` returns to disk mode rooted at the real current
+  directory.
+- `skred_vfs_shutdown()` releases archive and memory state.
+- `skred_vfs_mode()`, `skred_vfs_root()`, and `skred_vfs_status()` report the
+  active mount.
+- `skred_chdir()` and `skred_getcwd()` manage the VFS-relative working
+  directory.
 
-## API Reference
+`skred_vfs_init()` is a compatibility alias for `skred_vfs_mount()`.
 
-### Initialization & State
+## File and Directory API
 
-* `bool skred_vfs_init(const char *path)`: Mounts a target. If `path` ends in `.zip`, the engine enters ZIP mode. Otherwise, it operates in DISK mode rooted at `path`.
-* `void skred_vfs_shutdown(void)`: Closes open file handles and finalizes ZIP archives if writes were performed.
-* `bool skred_chdir(const char *path)`: Changes the internal working directory. Resolves lexically and verifies directory existence.
-* `const char* skred_getcwd(void)`: Returns the current absolute VFS path.
+The stdio-like API is:
 
-### Standard I/O Replicas
+- `skred_fopen()`, `skred_fread()`, `skred_fwrite()`
+- `skred_fseek()`, `skred_ftell()`, `skred_fclose()`
+- `skred_opendir()`, `skred_readdir()`, `skred_closedir()`
 
-* `SkredFile* skred_fopen(const char *filepath, const char *mode)`
-* `size_t skred_fread(void *ptr, size_t size, size_t count, SkredFile *stream)`
-* `size_t skred_fwrite(const void *ptr, size_t size, size_t count, SkredFile *stream)`
-* `int skred_fseek(SkredFile *stream, long offset, int origin)`
-* `long skred_ftell(SkredFile *stream)`
-* `int skred_fclose(SkredFile *stream)`
+Disk mode delegates to ordinary stdio and directory calls. ZIP reads extract a
+member to an owned memory buffer. ZIP writes buffer a member and add it when
+the handle closes; archive finalization occurs during unmount/shutdown.
 
-### Directory Iteration
+Whole-file helpers are:
 
-* `SkredDir* skred_opendir(const char *dirpath)`
-* `SkredDirent* skred_readdir(SkredDir *dirp)`
-* `int skred_closedir(SkredDir *dirp)`
+- `skred_vfs_read_file()` for the active VFS
+- `skred_vfs_read_real_file()` to bypass the active mount
+- `skred_vfs_free_file()` to release returned data
+
+## Skode Surface
+
+The main user-facing commands are:
+
+- `[bundle.zip] %z` — mount a disk ZIP
+- `%zu` — unmount
+- `%pwd`, `%cd`, `%ls`, `%cat` — inspect and navigate the active view
+
+File, wave, Skode, and Ksynth loaders search the mounted VFS first, then the
+real current directory and their type-specific fallback directories. See
+`SKODE_USER_COMMAND_REFERENCE.md` for command syntax and search behavior.

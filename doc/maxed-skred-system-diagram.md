@@ -1,5 +1,9 @@
 # Maxed SKRED System Diagram
 
+This diagram represents the canonical POSIX `MAXED_KIT_OPTS` build. Windows
+maxed presets omit the shared-memory scope node but retain recording, MIDI,
+Ksynth, tracks, and track-aligned delays.
+
 ## One-Page Overview
 
 ```mermaid
@@ -10,6 +14,7 @@ flowchart TB
   classDef observe fill:#fff7e8,stroke:#874,color:#111
 
   host[Host / UI / mini-skred / UDP]:::control
+  midi[MIDI backend]:::control
   api[Public API]:::control
   parser[Skode parser]:::control
   control[Immediate control\nstate, files, devices,\nrecord/scope, macros]:::control
@@ -31,6 +36,7 @@ flowchart TB
   dispatch[Optional response dispatcher]:::observe
 
   host --> api --> parser
+  midi --> events
   parser --> control
   parser --> program
   control --> voices
@@ -56,6 +62,7 @@ flowchart TB
   timeline --> events
   events --> host
   events --> dispatch --> parser
+  dispatch --> voices
 ```
 
 ## Control Path
@@ -141,6 +148,7 @@ flowchart LR
   voices[Voice lifecycle]
   seq[Pattern yc1 boundaries]
   ce[Explicit ce markers]
+  midi[MIDI input]
   ring[Control-event ring]
   host[Host poll / wait]
   dispatch[Optional /cer dispatcher]
@@ -149,13 +157,15 @@ flowchart LR
   voices --> ring
   seq --> ring
   ce --> ring
+  midi --> ring
   ring --> host
   ring --> dispatch --> parser
 ```
 
 - Scheduled opcode events are engine work waiting to happen.
-- Control-plane events are notifications after work happens: voice lifecycle,
-  pattern boundaries, and explicit `ce` markers.
+- Control-plane events report observed activity: voice lifecycle, pattern
+  boundaries, explicit `ce` markers, and optional MIDI input.
 - Hosts consume notifications by polling or waiting on the control-event ring.
 - The optional response dispatcher can consume matching events and submit bound
-  Skode commands back through the control path.
+  Skode commands back through the control path. It also applies MIDI voice/pool
+  routes and MIDI-to-Skode bindings after draining MIDI events.

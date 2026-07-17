@@ -41,8 +41,8 @@ First construct a sound using ordinary voices. This two-voice example layers
 an octave above the root:
 
 ```text
-v0 w0 a-12 t.01,.15,.7,.35 N0 G1 H1
-v1 w0 a-20 t.005,.1,.5,.25 N12
+v0 w0 a0 t.01,.15,.7,.35 N0 G1 H1
+v1 w0 a0 t.005,.1,.5,.25 N12
 ```
 
 Define group `0` from voices `0` and `1`:
@@ -418,8 +418,8 @@ graph request. Consumers should copy it before issuing another request.
 
 ```text
 # Prototype: root plus octave layer.
-v0 w0 a-12 t.01,.15,.7,.35 N0 G1 H1
-v1 w0 a-20 t.005,.1,.5,.25 N12
+v0 w0 a0 t.01,.15,.7,.35 N0 G1 H1
+v1 w0 a0 t.005,.1,.5,.25 N12
 
 # Four instances occupy voices 8..15.
 /pg 0,0,2,0

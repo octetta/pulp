@@ -14,8 +14,8 @@ Skode is case-sensitive. Commands may be separated by spaces or written
 together:
 
 ```text
-v0 w1 n60 a-8 l1
-v0w1n60a-8l1
+v0 w1 n60 a0 l1
+v0w1n60a0l1
 ```
 
 Numeric arguments may be separated by commas or spaces. Square brackets place
@@ -53,7 +53,7 @@ most 32 operations.
 
 | Command | Parameters | Effect | Schedulable |
 | --- | --- | --- | --- |
-| `a dB` | Amplitude in decibels | Sets voice loudness. Values closer to `0` are louder; negative values attenuate. | Yes |
+| `a dB` | Amplitude in decibels | Sets voice loudness. `a0` is the normal synth-patch level; negative values attenuate. Long normalized one-shots and Ksynth drums conventionally use `a10`, with final listening level controlled by `V`. | Yes |
 | `V dB` | Master amplitude in decibels | Changes the final output level for the entire synth, not just the selected voice. | No |
 | `p pan` | Stereo position from `-1` to `1` | Moves the voice across the stereo field. `-1` is left, `0` is center, and `1` is right. | Yes |
 | `ds amount` | Send `0..1` or `0..15` | Sends the selected voice's mono signal to the delay owned by its record/scope track. The voice must be routed with `r1`..`r4`, centered with `p0`, and have no pan modulation. | No |
@@ -455,7 +455,7 @@ selecting the modulator voice enables full-strength ring modulation.
 | `FF mode` | `0` relative, `1` absolute hertz, `2` phase | Selects frequency or lookup-phase modulation. Requires `FM`. | Yes |
 | `FB amount` | `0..7` | Adds two-sample operator feedback in `FF2`; zero clears its history. Requires `FM`. | Yes |
 | `P voice,depth[,offset]` | Pan scale and center | Sets pan to `sample * depth + offset`. Requires `PANMOD`. | Yes |
-| `c [mode[,depth]]` | Phase-distortion mode and base amount | Reshapes oscillator phase. No arguments disables it; omitted depth defaults to `0.5`. Requires `PD`. | Yes |
+| `c [mode[,amount]]` | Phase-distortion mode and signed base amount | Reshapes oscillator phase. No arguments disables it; an omitted amount defaults to the neutral value `0`. Requires `PD`. | Yes |
 | `C voice,depth` | Phase-distortion modulation scale | Adds `sample * depth` to the amount set by `c`. Fewer than two arguments disables it. Requires `PD`. | Yes |
 | `XM voice[,amount]` | Ring-modulator voice; currently unused amount | Multiplies the selected oscillator by another oscillator at full strength. Requires `XM`. | Yes |
 
@@ -480,15 +480,15 @@ ticks and their `%` modulus, so their duration is not necessarily one beat.
 
 ### Timing Accuracy
 
-Queued events and pattern ticks use the synth's absolute 44.1 kHz sample
-counter. The audio callback renders adaptively: when a timing boundary falls
-inside a device block, it renders up to that sample, executes the due commands,
-and then renders the rest of the block. Blocks without internal boundaries are
-rendered normally in one call.
+Queued events and pattern ticks use the synth's absolute sample counter at the
+active engine/device rate (44.1 kHz by default). The audio callback renders
+adaptively: when a timing boundary falls inside a device block, it renders up
+to that sample, executes the due commands, and then renders the rest of the
+block. Blocks without internal boundaries are rendered normally in one call.
 
 Events scheduled at integer sample times affect that exact sample. Tempo
 boundaries that fall between samples are rounded forward, giving less than one
-sample of sequencing error (under 0.023 ms at 44.1 kHz) during normal
+sample of sequencing error (under 0.023 ms at the default 44.1 kHz) during normal
 operation. This improves event placement inside the audio stream; it does not
 remove output-device or hardware buffering latency.
 
@@ -879,8 +879,8 @@ make maxed
 Configure two voices, assign them to stereo stems, and start recording:
 
 ```text
-v0 r1 w0 f440 a-6 t.01,.2,.7,.3
-v1 r2 w1 f660 a-9 t.01,.2,.6,.3
+v0 r1 w0 f440 a0 t.01,.2,.7,.3
+v1 r2 w1 f660 a0 t.01,.2,.6,.3
 [take.wav]/rg
 v0 l1
 v1 l1
@@ -889,7 +889,8 @@ v1 l1
 ```
 
 `/rs` drains the writer queue and finalizes the WAV header before returning.
-The output is a 44.1 kHz, 32-bit float, ten-channel WAV in this order:
+The output uses the active engine/device sample rate (44.1 kHz by default),
+32-bit float samples, and ten channels in this order:
 
 | Channel | Signal |
 | --- | --- |
@@ -1098,7 +1099,7 @@ channel directly to it. Channels are zero-based, so this listens to MIDI
 channel 1 and uses a ±2-semitone pitch-bend range:
 
 ```text
-v0 w0 a-12 t.01,.15,.7,.35
+v0 w0 a0 t.01,.15,.7,.35
 /mv 0 0 2
 ```
 
@@ -1113,7 +1114,7 @@ voice 2 as a one-voice prototype, materializes one instance at voice 16, selects
 last-note legato mode, and maps MIDI channel 1 with a ±12-semitone bend range:
 
 ```text
-v2 w0 a-12 t.01,.15,.7,.35
+v2 w0 a0 t.01,.15,.7,.35
 /pg 1 2 1 0
 /pp 1 1 16 1 0
 /pm 1 1 0 1
@@ -1131,8 +1132,8 @@ then route MIDI to the pool. This two-voice sound layers an octave above its
 root and creates four playable instances in voices 8 through 15:
 
 ```text
-v0 w0 a-12 t.01,.15,.7,.35 N0 G1 H1
-v1 w0 a-20 t.005,.1,.5,.25 N12
+v0 w0 a0 t.01,.15,.7,.35 N0 G1 H1
+v1 w0 a0 t.005,.1,.5,.25 N12
 /pg 0 0 2 0
 /pp 0 0 8 4 0
 /mp 0 0 2
@@ -1165,6 +1166,8 @@ SysEx. These commands execute immediately and are not pattern-schedulable.
 | `\` | None | Displays the selected voice with additional detail. |
 | `??`, `v??` | None | Displays active voices. |
 | `W [wave[,end-or-width[,height]]]` | Optional display parameters | Displays one wavetable, recording data, or all loaded waves. A single-wave display includes sample count, baseline duration, one-shot state, loop points, loop duration, stats, and a loop marker row under the waveform. |
+| `VW [voice[,width,height]]` | Optional voice and display dimensions | Displays the wavetable assigned to a voice and marks that voice's current loop points. With two arguments, they are interpreted as width and height for the selected voice. |
+| `WS wave` | Wavetable index | Displays a compact spectrogram over the wave's loop region. |
 | `W* wave,param[,register]` | Wave, property, optional destination | Reads wave sample count (`0`), sample rate (`1`), duration (`2`), loop start (`3`), or loop end (`4`). |
 | `v* param[,register]` | Property and optional destination | Reads selected voice wave (`0`), amplitude (`1`), or frequency (`2`). |
 | `DL? [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. |
@@ -1179,6 +1182,7 @@ SysEx. These commands execute immediately and are not pattern-schedulable.
 | `udp value` | Any numeric argument | Displays the current UDP context endpoint. Requires `UDP`. |
 | `/m_` | None | Benchmarks the selected voice. Requires `BENCH`. |
 | `I value` | Numeric value | Reserved event-logging stub. It currently has no effect. |
+| `/h [category[,entry]]` | Optional help indices; current string may select by name | Displays generated command help. Use `[term] /h` to search. |
 | `/q` | None | Requests exit from the interactive shell. |
 
 `W` reports the selected renderer as `display braille` or `display ascii`.
@@ -1205,8 +1209,11 @@ below `0.001` is treated as silence.
 | `/l file[,verbose]` | Numbered Skode file | Loads and executes a `.sk` file. |
 | `[filename] /ls [verbose]` | Skode filename | Loads and executes a named Skode file. The literal filename is tried first; bare names also fall back to `sk/filename`. |
 | `[filename] %cat` | String | Prints a text file. |
-| `[directory] %cd` | String | Changes the process working directory. |
-| `%ls [type]` | `0` `.sk`, `1` `.wav`, `2` `.mp3`, `3` `.ks` | Lists matching files in the working directory. |
+| `[zip-or-directory] %z` | String | Mounts a ZIP archive or disk directory as the active VFS root. |
+| `%zu` | None | Unmounts and returns to disk mode at the real current directory. |
+| `%pwd` | None | Displays VFS mode, mounted root, and VFS working directory. |
+| `[directory] %cd` | String | Changes the VFS working directory. |
+| `%ls [type]` | `0` `.sk`, `1` `.wav`, `2` `.mp3`, `3` `.ks` | Lists matching files in the active VFS directory. |
 | `[file] /ks [verbose]` | Ksynth filename | Loads a named Ksynth source file. Requires `KSYNTH`. |
 | `/k file[,verbose]` | Numbered Ksynth file | Loads numbered Ksynth source. Requires `KSYNTH`. |
 | `[code] ks`, `[code] k!` | Ksynth source string | Runs source in this Skode context's Ksynth evaluator. |
@@ -1216,6 +1223,12 @@ below `0.001` is treated as silence.
 | `k>d` | None | Copies the latest Ksynth result into parser data. |
 | `d>k variable` | Variable `0` through `25` | Copies parser data into Ksynth variable `A` through `Z`. |
 | `w>k wave,variable` | Wave index and variable `0` through `25` | Copies a wavetable directly into Ksynth variable `A` through `Z`. |
+
+Loaders search the active VFS first, then the real current directory and their
+type-specific `sk`, `wav`, or `ks` fallback directory. While a ZIP is mounted,
+prefix a path with `file:` to force access to a real filesystem path.
+`skred_vfs_mount_zip_memory()` provides the equivalent memory-backed mount for
+browser/API hosts.
 
 Each Skode command context owns its own Ksynth evaluator and persistent
 `A` through `Z` variables. For example, `(1 2 3) d>k0 [A,A] ks kw>` binds
@@ -1333,7 +1346,7 @@ Moog bass patches. Requires `ADSR`, `FILT`, and `FADSR`.
 
 ```text
 S0
-v0 w2 a-8 t.005,.18,.7,.25 J1 K120 Q5 ft.002,.25,.08,.3 fd2600 n36 l1
+v0 w2 a0 t.005,.18,.7,.25 J1 K120 Q5 ft.002,.25,.08,.3 fd2600 n36 l1
 ~.75 v0 l0
 ```
 
@@ -1342,25 +1355,25 @@ gives a bright, slightly hollow digital brass tone. Requires `ADSR` and `PD`.
 
 ```text
 S0
-v0 w0 a-10 c6,-.15 ct.01,.3,.35,.45 cd.9 t.015,.35,.55,.45 n48 l1
+v0 w0 a0 c6,-.15 ct.01,.3,.35,.45 cd.9 t.015,.35,.55,.45 n48 l1
 ~1 v0 l0
 ```
 
 Try `c7,-.25 ct.005,.2,.2,.3 cd.8` for a thinner resonant sweep, or
 `c1,-.6 ct.002,.15,.1,.2 cd1` for a more obvious saw-to-pulse attack.
 
-**Korg DW-8000-style brass pad.** Wave `17` is the built-in DWGS brass
+**Korg DW-8000-style brass pad.** Wave `22` is the built-in DWGS brass
 wavetable. A slow filter envelope softens its digital harmonic spectrum.
 Requires `ADSR`, `FILT`, and `FADSR`.
 
 ```text
 S0
-v0 w22 a-12 t.08,.5,.7,.8 J1 K500 Q2 ft.12,.7,.3,.8 fd3200 n48 l1
+v0 w22 a0 t.08,.5,.7,.8 J1 K500 Q2 ft.12,.7,.3,.8 fd3200 n48 l1
 ~1.5 v0 l0
 ```
 
-Other built-in DWGS waves occupy slots `10` through `25`; wave `10` is
-strings, `13` is electric piano, `15` is clavinet, and `24` is bell.
+The 16 built-in DWGS waves occupy slots `15` through `30`; wave `15` is
+strings, `18` is electric piano, `20` is clavinet, and `29` is bell.
 
 **DX-inspired electric piano.** Voice `0` is a muted 2:1 sine modulator with
 light feedback. Voice `1` is the audible carrier. `G0 H0` makes the carrier's
@@ -1368,13 +1381,13 @@ note and velocity commands also reach the modulator. Requires `ADSR` and `FM`.
 
 ```text
 S0 S1
-v0 w0 m1 N12,0 a-12 t.001,.28,0,.18 FF2 FB.8
-v1 w0 G0 H0 a-8 t.002,1.2,.18,.6 FF2 F0,5.5 n52 l1
+v0 w0 m1 N12,0 a0 t.001,.28,0,.18 FF2 FB.2
+v1 w0 G0 H0 a0 t.002,1.2,.18,.6 FF2 F0,1.38 n52 l1
 ~1.5 v1 l0
 ```
 
-Increase `F0,5.5` toward `F0,7` for a harder tine, or increase `FB.8` toward
-`FB1.5` for a buzzier modulator. `m1` removes voice `0` from the main mix while
+Increase `F0,1.38` toward `F0,1.8` for a harder tine, or increase `FB.2` toward
+`FB.4` for a buzzier modulator. `m1` removes voice `0` from the main mix while
 leaving it available as a modulation source.
 
 **DX-inspired struck bell.** Three sine operators form a current-sample chain:
@@ -1383,9 +1396,9 @@ give approximate 3:1, 2:1, and 1:1 ratios. Requires `ADSR` and `FM`.
 
 ```text
 S0 S1 S2
-v0 w0 m1 N19,2 a-10 t.001,.16,0,.25 FF2 FB1.7
-v1 w0 m1 N12,0 a-12 t.001,.7,0,.5 FF2 F0,2.8
-v2 w0 G0,1 H0,1 a-10 t.001,2.4,0,1.2 FF2 F1,4.2 n69 l1
+v0 w0 m1 N19,2 a0 t.001,.16,0,.25 FF2 FB.54
+v1 w0 m1 N12,0 a0 t.001,.7,0,.5 FF2 F0,.89
+v2 w0 G0,1 H0,1 a0 t.001,2.4,0,1.2 FF2 F1,1.05 n69 l1
 ~2.5 v2 l0
 ```
 
@@ -1398,12 +1411,12 @@ growling attack that decays into a sine fundamental. Requires `ADSR` and `FM`.
 
 ```text
 S0 S1
-v0 w0 m1 N0,0 a-8 t.001,.22,.08,.18 FF2 FB3.2
-v1 w0 G0 H0 a-7 t.002,.35,.7,.3 FF2 F0,3.8 n36 l1
+v0 w0 m1 N0,0 a0 t.001,.22,.08,.18 FF2 FB1.27
+v1 w0 G0 H0 a0 t.002,.35,.7,.3 FF2 F0,1.51 n36 l1
 ~1 v1 l0
 ```
 
-Raise `FB3.2` toward `FB5` for a noisier edge. Lowering `F0,3.8` changes the
+Raise `FB1.27` toward `FB2` for a noisier edge. Lowering `F0,1.51` changes the
 brightness without changing the feedback operator's own spectrum.
 
 **Metallic percussion.** A short, non-octave modulator envelope and strong
@@ -1411,8 +1424,8 @@ feedback produce an inharmonic digital strike. Requires `ADSR` and `FM`.
 
 ```text
 S0 S1
-v0 w0 m1 N7,0 a-7 t.0005,.09,0,.08 FF2 FB4.5
-v1 w0 G0 H0 a-9 t.0005,.55,0,.25 FF2 F0,6.5 n57 l1
+v0 w0 m1 N7,0 a0 t.0005,.09,0,.08 FF2 FB2.01
+v1 w0 G0 H0 a0 t.0005,.55,0,.25 FF2 F0,2.9 n57 l1
 ~.7 v1 l0
 ```
 
@@ -1453,9 +1466,9 @@ When Skode is started from the `parts` directory, these commands generate a
 kick, snare, and closed hi-hat in dynamic wave slots `300` through `302`:
 
 ```text
-[sk/drums-kick.ks] /ks kw k>d d>r /r300
-[sk/drums-snare.ks] /ks kw k>d d>r /r301
-[sk/drums-chh.ks] /ks kw k>d d>r /r302
+[sk/drums-kick.ks] /ks k>d d>r /r300
+[sk/drums-snare.ks] /ks k>d d>r /r301
+[sk/drums-chh.ks] /ks k>d d>r /r302
 ```
 
 The standalone `examples/ksynth-drums-inspired.sk` file performs this setup,
@@ -1465,9 +1478,9 @@ trigger macros.
 Assign each sample to a voice and trigger it with `l1` or `T`:
 
 ```text
-v0 w300 f440 a-6
-v1 w301 f440 a-8
-v2 w302 f440 a-12
+v0 w300 f440 a10
+v1 w301 f440 a10
+v2 w302 f440 a10
 
 v0 T
 ~.25 v2 T
@@ -1484,13 +1497,13 @@ These bundled one-shots provide useful raw material for alarms, transitions,
 and game-like effects:
 
 ```text
-[sk/nap-fm-alarm.ks] /ks kw k>d d>r /r310
-[sk/nap-noise-sweep.ks] /ks kw k>d d>r /r311
-[sk/nap-perc-zap.ks] /ks kw k>d d>r /r312
+[sk/nap-fm-alarm.ks] /ks k>d d>r /r310
+[sk/nap-noise-sweep.ks] /ks k>d d>r /r311
+[sk/nap-perc-zap.ks] /ks k>d d>r /r312
 
-v3 w310 f440 a-12
-v4 w311 f440 a-10
-v5 w312 f440 a-8
+v3 w310 f440 a10
+v4 w311 f440 a10
+v5 w312 f440 a10
 ```
 
 Trigger the alarm, a rising noise transition, or an electric zap:
@@ -1513,7 +1526,7 @@ v5 f220 T
 Play a centered A4 on voice 0:
 
 ```text
-v0 w0 n69 a-10 p0 l1
+v0 w0 n69 a0 p0 l1
 ```
 
 Create a filtered, enveloped note:
@@ -1558,7 +1571,9 @@ z1
 
 ## Feature-Gated Commands
 
-Some commands exist only when their build feature is enabled:
+Most commands below exist only when their build feature is enabled. MIDI
+management atoms remain parseable in all builds but report an unavailable
+backend unless `MIDI=1`:
 
 | Feature | Commands |
 | --- | --- |
@@ -1570,6 +1585,7 @@ Some commands exist only when their build feature is enabled:
 | `FM` | `F`, `FF`, `FB` |
 | `GLISS` | `g` |
 | `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
+| `MIDI` | `/mL`, `/m?`, `/mi`, `/miV`, `/mic`, `/mo`, `/moV`, `/moc`, `MO`, `d>MO`, `/mv`, `/mvd`, `/mp`, `/mpd`, `/mR`, `/mC`, `/mb`, `/mb?`, `/mbd`, `/mbC` |
 | `PANMOD` | `P` |
 | `PD` | `c`, `C`, `ct`, `cd` |
 | `RECORD` | `r`, `/rg`, `/rs`, `/r?` |
@@ -1577,4 +1593,6 @@ Some commands exist only when their build feature is enabled:
 | `SAH` | `h` |
 | `SEQ` | Timing, event, and pattern commands |
 | `SMOOTHER` | `s` |
+| `TRACKS` | `r`, `rt`, `rv`, `?r`, `ds`, `DL`, `DL?` |
+| `UDP` | `udp` and API/host UDP startup |
 | `XM` | `XM` |

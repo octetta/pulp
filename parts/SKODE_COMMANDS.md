@@ -10,7 +10,7 @@ separated by commas or whitespace, and commands may be placed next to each
 other:
 
 ```text
-v0 w0 f220 a-8 l1
+v0 w0 f220 a0 l1
 v1n60l1
 ```
 
@@ -62,7 +62,7 @@ opcodes and may run from the audio callback.
 - `+delay command` defers by a tempo-relative amount.
 - `~seconds command` defers by seconds.
 - Compiled programs contain at most `SEQ_PROGRAM_OP_MAX` (32) operations.
-- Each compiled opcode contains at most `SEQ_OPCODE_ARG_MAX` (4) arguments.
+- Each compiled opcode contains at most `SEQ_OPCODE_ARG_MAX` (8) arguments.
 
 Register operands remain symbolic in compiled programs and are resolved when
 the event executes. This permits commands such as:
@@ -118,10 +118,10 @@ their named build option is enabled.
 | `P` | `[voice, depth [, offset]]` | `SKODE_OP_PAN_MOD` | `pan_mod_set()`; fewer than two args disable modulation | `PANMOD` |
 | `q` | `bit-depth` | `SKODE_OP_QUANTIZE` | `wave_quant()` | `CRUSH` |
 | `Q` | `resonance` | `SKODE_OP_FILTER_RESONANCE` | `mmf_set_res()` | `FILT` |
-| `r` | `track` | `SKODE_OP_RECORD_TRACK` | `synth_record_track_set()` | `RECORD` |
-| `rt` | `[name] track` | immediate | `synth_track_name_set()` | `RECORD` or `SCOPE` |
-| `rv` | `track,dB` | immediate | `synth_track_volume_set()` | `RECORD` or `SCOPE` |
-| `?r` | none | immediate | show track names, volumes, and assigned voices | `RECORD` or `SCOPE` |
+| `r` | `track` | `SKODE_OP_RECORD_TRACK` | `synth_record_track_set()` | `TRACKS`, `RECORD`, or `SCOPE` |
+| `rt` | `[name] track` | immediate | `synth_track_name_set()` | `TRACKS`, `RECORD`, or `SCOPE` |
+| `rv` | `track,dB` | immediate | `synth_track_volume_set()` | `TRACKS`, `RECORD`, or `SCOPE` |
+| `?r` | none | immediate | show track names, volumes, and assigned voices | `TRACKS`, `RECORD`, or `SCOPE` |
 | `s` | `amount` | `SKODE_OP_SMOOTHER` | Enables or disables amplitude smoothing | `SMOOTHER` |
 | `S` | `voice` | `SKODE_OP_VOICE_RESET` | `wave_reset()` | base |
 | `t` | `attack, decay, sustain, release` | `SKODE_OP_ENVELOPE` | Configures the amplitude envelope for its next trigger | `ADSR` |
@@ -318,6 +318,8 @@ schedulable.
 | `[name] vt` | string | Set selected voice label | `sv.text[]` |
 | `[name] wt wave` | string, numeric | Set wavetable label | `sw.name[]` |
 | `W` | `[wave [, end-or-width [, height]]]` | Show wavetable or recording data, including loop metadata and one-shot baseline duration for single-wave displays | `wavetable_show()`, waveform display helpers |
+| `VW` | `[voice [, width, height]]` | Show the wavetable assigned to one voice with its current loop markers | `wavetable_waveform_show()` |
+| `WS` | `wave` | Show a compact spectrogram over a wavetable loop region | `wavetable_spectrogram_show()` |
 | `W*` | `wave,param[,register]` | Read wave size, rate, duration, loop start, or loop end | `sw`, register write |
 | `v*` | `param[,register]` | Read selected voice wave, amplitude, or frequency | `sv` fields, register write |
 | `ds` | `amount` | Set selected voice send amount to the delay owned by its `r1`..`r4` record/scope track; effective only when `p0` and pan modulation is off | `delay_send_set()` |
@@ -508,9 +510,12 @@ rate, looping, and one-shot state, is not part of the transferred Ksynth vector.
 | `[name] /sg [channel-mask[,buffer-seconds]]` | string and numeric | Start shared-memory audio publication | `scope_ipc_start()` |
 | `/ss` | none | Stop and unlink shared-memory publication | `scope_ipc_stop()` |
 | `/s?` | none | Show shared-memory publication status | scope IPC status functions |
-| `[filename] %cat` | string | Print a text file | `fopen()`, `fgets()` |
-| `[directory] %cd` | string | Change working directory | `chdir()` |
-| `%ls [type]` | optional numeric | List files; `0=.sk`, `1=.wav`, `2=.mp3`, `3=.ks` | `opendir()`, `readdir()` |
+| `[filename] %cat` | string | Print a text file from the active VFS/search path | `skode_asset_read()` |
+| `[zip-or-directory] %z` | string | Mount a ZIP archive or disk directory | `skred_vfs_mount()` |
+| `%zu` | none | Unmount and return to real-directory disk mode | `skred_vfs_unmount()` |
+| `%pwd` | none | Show VFS mode, root, and working directory | `skred_vfs_status()` |
+| `[directory] %cd` | string | Change VFS working directory | `skred_chdir()` |
+| `%ls [type]` | optional numeric | List VFS files; `0=.sk`, `1=.wav`, `2=.mp3`, `3=.ks` | `skred_opendir()`, `skred_readdir()` |
 
 Multitrack file commands require `RECORD`. Shared-memory publication commands
 require `SCOPE`. The `r` stem-routing command is available with either feature.
@@ -583,15 +588,21 @@ features are enabled. Important command features include:
 | `FM` | `F`, `FF`, `FB` |
 | `GLISS` | `g` |
 | `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
+| `MIDI` | `/mL`, `/m?`, `/mi`, `/miV`, `/mic`, `/mo`, `/moV`, `/moc`, `MO`, `d>MO`, `/mv`, `/mvd`, `/mp`, `/mpd`, `/mR`, `/mC`, `/mb`, `/mb?`, `/mbd`, `/mbC` |
 | `PANMOD` | `P` |
 | `PD` | `c`, `C`, `ct`, `cd` |
 | `RECORD` | `r`, `rt`, `rv`, `?r`, `/rg`, `/rs`, `/r?` |
 | `SCOPE` | `r`, `rt`, `rv`, `?r`, `/sg`, `/ss`, `/s?` |
+| `TRACKS` | `r`, `rt`, `rv`, `?r`, `ds`, `DL`, `DL?` |
 | `SAH` | `h` |
 | `SEQ` | timing, queue, and pattern commands |
 | `SMOOTHER` | `s` |
 | `UDP` | `udp` |
 | `XM` | `XM` |
+
+MIDI management, route, binding, and output atoms are present even without
+`MIDI=1` so scripts receive a stable unavailable-backend result. The actual
+backend, device access, and `MIDI` feature report require `MIDI=1`.
 
 The normal WASM build enables the voice and sequence features listed in
 `WASM_KIT_OPTS` in `Makefile`, but does not enable every optional command.

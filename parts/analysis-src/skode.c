@@ -2719,6 +2719,7 @@ int skode_opcode_supported(skode_opcode_t opcode) {
       return 1;
     case SKODE_OP_FREQ_MOD:
     case SKODE_OP_FREQ_MOD_MODE:
+    case SKODE_OP_FREQ_FEEDBACK:
       return 1;
     case SKODE_OP_GLISSANDO: return 1;
     case SKODE_OP_SAMPLE_HOLD: return 1;
@@ -2878,8 +2879,10 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         opcode->argc > 2 ? opcode->arg[2] : 0) : -1;
     case SKODE_OP_FREQ_MOD_MODE:
       if (!x_valid) return -1;
-      sv.freq_mod_mode[voice] = x;
-      return 0;
+      return freq_mod_mode_set(voice, x);
+    case SKODE_OP_FREQ_FEEDBACK:
+      if (opcode->argc != 1) return -1;
+      return freq_feedback_set(voice, opcode->arg[0]);
     case SKODE_OP_GLISSANDO:
       if (opcode->argc != 1) return -1;
       if (opcode->arg[0] <= 0) {
@@ -3489,7 +3492,10 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('FF--'): // FM mode
-      if (argc) sv.freq_mod_mode[voice] = x;
+      if (argc) freq_mod_mode_set(voice, x);
+      break;
+    case ATOM4('FB--'): // FF2 operator feedback amount
+      if (argc) freq_feedback_set(voice, arg[0]);
       break;
     case ATOM4('g---'): // glissando speed
       if (argc) {

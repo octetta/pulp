@@ -103,7 +103,8 @@ their named build option is enabled.
 | `ft` | `attack, decay, sustain, release` | `SKODE_OP_FILTER_ENVELOPE` | Configures the filter envelope for its next trigger | `FILT`, `FADSR` |
 | `fd` | `depth` | `SKODE_OP_FILTER_ENVELOPE_DEPTH` | Sets `sv.filter_env_depth` | `FILT`, `FADSR` |
 | `F` | `[voice, depth [, offset]]` | `SKODE_OP_FREQ_MOD` | `freq_mod_set()`; zero or one arg disables FM | `FM` |
-| `FF` | `mode` | `SKODE_OP_FREQ_MOD_MODE` | Sets `sv.freq_mod_mode` | `FM` |
+| `FF` | `mode` | `SKODE_OP_FREQ_MOD_MODE` | `0` relative FM, `1` absolute hertz, `2` lookup-phase modulation | `FM` |
+| `FB` | `amount` | `SKODE_OP_FREQ_FEEDBACK` | Sets FF2 two-sample operator feedback in radians, `0..7` | `FM` |
 | `g` | `time` | `SKODE_OP_GLISSANDO` | Sets `sv.glissando_enable` and `sv.glissando_time` | `GLISS` |
 | `G` | `voice [, voice ...]` | `SKODE_OP_LINK_MIDI` | Sets up to four `sv.link_midi_*` voices | base |
 | `h` | `phase-count` | `SKODE_OP_SAMPLE_HOLD` | Sets `sv.sample_hold_max` | `SAH` |
@@ -579,7 +580,7 @@ features are enabled. Important command features include:
 | `CRUSH` | `q` |
 | `FADSR` with `FILT` | `ft`, `fd` |
 | `FILT` | `J`, `K`, `Q` |
-| `FM` | `F`, `FF` |
+| `FM` | `F`, `FF`, `FB` |
 | `GLISS` | `g` |
 | `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
 | `PANMOD` | `P` |

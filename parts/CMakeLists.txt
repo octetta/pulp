@@ -22,6 +22,9 @@ list(FIND KIT_OPTS_LIST "TRACKS=1" TRACKS_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "KSYNTH=1" KSYNTH_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "MIDI=1" MIDI_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "PD=1" PD_FEATURE_INDEX)
+list(FIND KIT_OPTS_LIST "FM=1" FM_FEATURE_INDEX)
+list(FIND KIT_OPTS_LIST "FILT=1" FILT_FEATURE_INDEX)
+list(FIND KIT_OPTS_LIST "FADSR=1" FADSR_FEATURE_INDEX)
 if((NOT RECORD_FEATURE_INDEX EQUAL -1 OR NOT SCOPE_FEATURE_INDEX EQUAL -1) AND TRACKS_FEATURE_INDEX EQUAL -1)
     list(APPEND KIT_OPTS_LIST "TRACKS=1")
     set(TRACKS_FEATURE_INDEX 0)
@@ -304,6 +307,16 @@ endif()
 if(NOT PD_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_PD=1)
 endif()
+if(NOT FM_FEATURE_INDEX EQUAL -1)
+  target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_FM=1)
+endif()
+if(NOT PD_FEATURE_INDEX EQUAL -1 AND
+   NOT FILT_FEATURE_INDEX EQUAL -1 AND
+   NOT FADSR_FEATURE_INDEX EQUAL -1 AND
+   NOT KSYNTH_FEATURE_INDEX EQUAL -1)
+  target_compile_definitions(skode_state_tests PRIVATE
+    SKRED_TEST_INSPIRED_BANKS=1)
+endif()
 add_test(
   NAME skode.command-state
   COMMAND skode_state_tests
@@ -366,6 +379,9 @@ add_executable(synth_callback_bench EXCLUDE_FROM_ALL
 target_link_libraries(synth_callback_bench PRIVATE api)
 if(NOT PD_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(synth_callback_bench PRIVATE SKRED_BENCH_PD=1)
+endif()
+if(NOT FM_FEATURE_INDEX EQUAL -1)
+  target_compile_definitions(synth_callback_bench PRIVATE SKRED_BENCH_FM=1)
 endif()
 
 if(NOT RECORD_FEATURE_INDEX EQUAL -1)

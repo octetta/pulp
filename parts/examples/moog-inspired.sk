@@ -1,0 +1,26 @@
+# Moog-inspired subtractive patch bank. Requires ADSR, FILT, and FADSR.
+# Load this file, then call one macro with a MIDI note:
+#
+#   mgbs 36       resonant bass
+#   mgld 60       detuned lead
+#   mgpl 48       short sequencer pluck
+#   mgpd 48       warm two-oscillator pad
+#
+# Single-voice patches release with v0l0. Lead and pad release with v1l0.
+# Pulp's multimode filter is not a transistor-ladder model; these patches use
+# saw oscillators, resonance, and filter envelopes for a related character.
+# All audible oscillators use the normal synth level a0.
+
+# Rounded bass: fast filter opening, resonant low-pass, solid sustain.
+[mgbs]: S0 v0 w2 a0 t.005,.18,.7,.25 J1 K120 Q5 ft.002,.25,.08,.3 fd2600 n $$0 l1;
+
+# Detuned lead: two saw oscillators, narrow stereo spread, matched filter
+# sweeps. Voice 1 propagates note and velocity to voice 0.
+[mgld]: S0 S1 v0 w2 N0,-7 a0 p-.08 t.008,.3,.72,.35 J1 K260 Q3.8 ft.004,.38,.2,.4 fd3600 v1 w2 G0 H0 a0 p.08 t.008,.3,.72,.35 J1 K260 Q3.8 ft.004,.38,.2,.4 fd3600 n $$0 l1;
+
+# Sequencer pluck: short VCA/filter decays and a brighter resonant snap.
+[mgpl]: S0 v0 w2 a0 t.001,.16,0,.1 J1 K180 Q4.5 ft.001,.12,0,.12 fd4200 n $$0 l1;
+
+# Warm pad: two gently detuned saws with slow envelopes and restrained
+# resonance. Voice 1 is the root for note-on and release.
+[mgpd]: S0 S1 v0 w2 N0,-5 a0 p-.16 t.18,1.1,.72,1.6 J1 K320 Q2.2 ft.25,1.4,.3,1.8 fd2400 v1 w2 G0 H0 a0 p.16 t.18,1.1,.72,1.6 J1 K320 Q2.2 ft.25,1.4,.3,1.8 fd2400 n $$0 l1;

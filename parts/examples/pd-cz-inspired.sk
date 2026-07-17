@@ -1,0 +1,24 @@
+# PD/CZ-inspired patch bank. Requires ADSR and PD.
+# Load this file, then call one macro with a MIDI note:
+#
+#   czbr 48       bright brass
+#   czbs 36       pulse bass
+#   czbl 72       glassy bell
+#   czpd 55       animated pad
+#
+# Release brass, bass, or bell with v0l0. Release the pad with v1l0.
+# These are phase-distortion starting points, not Casio CZ patch emulations.
+# Audible synth voices and the pad's muted control oscillator use a0.
+
+# Resonant brass: mode 6 opens quickly, then settles into a hollow sustain.
+[czbr]: S0 v0 w0 a0 c6,-.15 ct.01,.3,.35,.45 cd.9 t.015,.35,.55,.45 n $$0 l1;
+
+# Pulse bass: mode 1 drives a strong saw-to-pulse transient over a dark body.
+[czbs]: S0 v0 w0 a0 c1,-.65 ct.001,.16,.08,.22 cd1 t.002,.24,.62,.28 n $$0 l1;
+
+# Glass bell: double-sine mode with a short positive distortion envelope.
+[czbl]: S0 v0 w0 a0 c4,.08 ct.001,.55,0,.7 cd.8 t.001,1.8,0,1 n $$0 l1;
+
+# Animated pad: voice 0 is a muted sub-audio sine that moves mode 5 while
+# voice 1 supplies a slow phase-distortion and amplitude envelope.
+[czpd]: S0 S1 v0 w0 m1 f.22 a0 t.01,0,1,.5 v1 w0 H0 a0 c5,-.18 C0,.14 ct.3,1.2,.55,1.4 cd.65 t.25,1.1,.72,1.8 n $$0 l1;

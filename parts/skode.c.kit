@@ -2860,6 +2860,7 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     @if(FM)
     case SKODE_OP_FREQ_MOD:
     case SKODE_OP_FREQ_MOD_MODE:
+    case SKODE_OP_FREQ_FEEDBACK:
       return 1;
     @endif
     @if(GLISS)
@@ -3043,8 +3044,10 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         opcode->argc > 2 ? opcode->arg[2] : 0) : -1;
     case SKODE_OP_FREQ_MOD_MODE:
       if (!x_valid) return -1;
-      sv.freq_mod_mode[voice] = x;
-      return 0;
+      return freq_mod_mode_set(voice, x);
+    case SKODE_OP_FREQ_FEEDBACK:
+      if (opcode->argc != 1) return -1;
+      return freq_feedback_set(voice, opcode->arg[0]);
     @endif
     @if(GLISS)
     case SKODE_OP_GLISSANDO:
@@ -3856,7 +3859,15 @@ neutral `ct 0 0 1 0` disables it.
     summary: FM mode
     @enddoc
     case ATOM4('FF--'): // FM mode
-      if (argc) sv.freq_mod_mode[voice] = x;
+      if (argc) freq_mod_mode_set(voice, x);
+      break;
+    @doc(command.FB)
+    name: FB
+    category: modulation
+    summary: FF2 operator feedback amount
+    @enddoc
+    case ATOM4('FB--'): // FF2 operator feedback amount
+      if (argc) freq_feedback_set(voice, arg[0]);
       break;
     @endif
     @if(GLISS)

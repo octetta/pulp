@@ -113,6 +113,8 @@ int wave_reset(int voice);
 
 @if(FM)
 int freq_mod_set(int voice, int o, float f, float a);
+int freq_mod_mode_set(int voice, int mode);
+int freq_feedback_set(int voice, float amount);
 @endif
 
 @if(PANMOD)

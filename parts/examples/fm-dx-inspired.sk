@@ -1,0 +1,30 @@
+# FF2/FB DX-inspired starting points.
+# Run one section at a time. Modulators are muted with m1 and use lower voice
+# numbers so each carrier sees their current sample.
+# All operators use the normal synth level a0. F and FB values account for
+# that level directly, including on muted modulators.
+
+# Electric piano: 2:1 modulator with light feedback.
+S0 S1
+v0 w0 m1 N12,0 a0 t.001,.28,0,.18 FF2 FB.2
+v1 w0 G0 H0 a0 t.002,1.2,.18,.6 FF2 F0,1.38 n52 l1
+~1.5 v1 l0
+
+# Struck bell: 3:1 -> 2:1 -> 1:1 three-operator chain.
+S0 S1 S2
+v0 w0 m1 N19,2 a0 t.001,.16,0,.25 FF2 FB.54
+v1 w0 m1 N12,0 a0 t.001,.7,0,.5 FF2 F0,.89
+v2 w0 G0,1 H0,1 a0 t.001,2.4,0,1.2 FF2 F1,1.05 n69 l1
+~2.5 v2 l0
+
+# Feedback bass: same-ratio feedback operator into a carrier.
+S0 S1
+v0 w0 m1 N0,0 a0 t.001,.22,.08,.18 FF2 FB1.27
+v1 w0 G0 H0 a0 t.002,.35,.7,.3 FF2 F0,1.51 n36 l1
+~1 v1 l0
+
+# Metallic percussion: non-octave ratio and strong feedback.
+S0 S1
+v0 w0 m1 N7,0 a0 t.0005,.09,0,.08 FF2 FB2.01
+v1 w0 G0 H0 a0 t.0005,.55,0,.25 FF2 F0,2.9 n57 l1
+~.7 v1 l0

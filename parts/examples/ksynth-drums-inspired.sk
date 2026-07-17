@@ -1,0 +1,31 @@
+# Ksynth electronic drum kit. Requires KSYNTH.
+#
+# Loading this file renders kick, snare, and closed hi-hat one-shots into
+# dynamic wave slots 470, 471, and 472, then configures voices 0, 1, and 2.
+# It installs realtime trigger macros:
+#
+#   kick           kick drum
+#   snar           snare drum
+#   chat           closed hi-hat
+#
+# The source definitions are the repository's 808-inspired Ksynth recipes.
+# Loading this file replaces any existing waves in slots 470..472.
+# These normalized one-shot drum waves use the standard one-shot level a10.
+
+[sk/drums-kick.ks] /ks k>d d>r /r470
+[sk/drums-snare.ks] /ks k>d d>r /r471
+[sk/drums-chh.ks] /ks k>d d>r /r472
+
+S0 S1 S2
+v0 w470,1,1 a10 p0 k1 t.001,0,1,.01 [kick] vt
+v1 w471,1,1 a10 p-.08 k1 t.001,0,1,.01 [snare] vt
+v2 w472,1,1 a10 p.12 k1 t.0005,0,1,.005 [closed-hat] vt
+
+[kick]: v0 l1;
+[snar]: v1 l1;
+[chat]: v2 l1;
+
+# Optional MIDI channel-10 bindings:
+# [v0l{unit}] /mb 9 9 36
+# [v1l{unit}] /mb 9 9 38
+# [v2l{unit}] /mb 9 9 42

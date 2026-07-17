@@ -375,6 +375,15 @@ static void test_command_help(void) {
   consume(test, &ctx, "[/ao] /h");
   expect_substr(test, ctx.log, "# help /ao [runtime]", "audio output command help");
   expect_substr(test, ctx.log, "audio output index", "audio output summary");
+
+#ifdef SKRED_TEST_FM
+  reset_log(&ctx);
+  consume(test, &ctx, "[FB] /h");
+  expect_substr(test, ctx.log, "# help FB [modulation]",
+                "FM feedback command help");
+  expect_substr(test, ctx.log, "FF2 operator feedback",
+                "FM feedback summary");
+#endif
 }
 
 static void test_named_wave_destination(void) {
@@ -1626,6 +1635,7 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"fd2", SKODE_OP_FILTER_ENVELOPE_DEPTH},
     {"F1,.5,0", SKODE_OP_FREQ_MOD},
     {"FF1", SKODE_OP_FREQ_MOD_MODE},
+    {"FB2.5", SKODE_OP_FREQ_FEEDBACK},
     {"g.1", SKODE_OP_GLISSANDO},
     {"G1,2", SKODE_OP_LINK_MIDI},
     {"h4", SKODE_OP_SAMPLE_HOLD},
@@ -1738,6 +1748,114 @@ static void test_signed_phase_distortion_and_envelope(void) {
   skode_free(&ctx);
   wave_reset(0);
   wave_reset(1);
+}
+#endif
+
+#ifdef SKRED_TEST_FM
+static void configure_fm_pair(int with_phase_mod, float feedback) {
+  wave_reset(0);
+  wave_reset(1);
+  amp_set(0, 0.0f);
+  amp_set(1, 0.0f);
+  sv.use_amp_envelope[0] = 0;
+  sv.use_amp_envelope[1] = 0;
+  wave_mute(0, 1);
+  wave_mute(1, 0);
+  freq_set(0, 330.0f);
+  freq_set(1, 220.0f);
+  sv.phase[0] = 0.0;
+  sv.phase[1] = 0.0;
+  sv.sample[0] = 0.0f;
+  sv.sample[1] = 0.0f;
+  freq_mod_mode_set(0, 2);
+  freq_feedback_set(0, feedback);
+  freq_mod_mode_set(1, 2);
+  if (with_phase_mod)
+    freq_mod_set(1, 0, 4.0f, 0.0f);
+  else
+    freq_mod_set(1, -1, 0.0f, 0.0f);
+}
+
+static void test_phase_modulation_and_feedback(void) {
+  const char *test = "FF2 phase modulation and feedback";
+  skode_t ctx = new_ctx();
+
+  consume(test, &ctx, "v0 FF2 FB2.5");
+  expect_int(test, sv.freq_mod_mode[0], 2, "phase-modulation mode");
+  expect_float(test, sv.freq_mod_feedback[0], 2.5f, 0.0f,
+               "feedback amount");
+  char formatted[1024];
+  voice_format(0, formatted, sizeof(formatted), 0);
+  expect_substr(test, formatted, "FF2", "formatted phase-modulation mode");
+  expect_substr(test, formatted, "FB2.5", "formatted feedback amount");
+
+  sv.freq_mod_feedback_z1[0] = 0.75f;
+  sv.freq_mod_feedback_z2[0] = -0.25f;
+  consume(test, &ctx, "l1");
+  expect_float(test, sv.freq_mod_feedback_z1[0], 0.0f, 0.0f,
+               "feedback z1 trigger reset");
+  expect_float(test, sv.freq_mod_feedback_z2[0], 0.0f, 0.0f,
+               "feedback z2 trigger reset");
+
+  voice_copy(0, 2);
+  expect_int(test, sv.freq_mod_mode[2], 2, "copied phase-modulation mode");
+  expect_float(test, sv.freq_mod_feedback[2], 2.5f, 0.0f,
+               "copied feedback amount");
+  expect_float(test, sv.freq_mod_feedback_z1[2], 0.0f, 0.0f,
+               "copied feedback history reset");
+
+  float pm[64 * AUDIO_CHANNELS];
+  float plain[64 * AUDIO_CHANNELS];
+  memset(pm, 0, sizeof(pm));
+  memset(plain, 0, sizeof(plain));
+
+  configure_fm_pair(1, 0.0f);
+  float carrier_inc = sv.phase_inc[1];
+  synth(pm, NULL, 64, AUDIO_CHANNELS, NULL);
+  expect_float(test, (float)sv.phase[1], carrier_inc * 64.0f, 0.001f,
+               "FF2 preserves carrier phase accumulator");
+
+  configure_fm_pair(0, 0.0f);
+  synth(plain, NULL, 64, AUDIO_CHANNELS, NULL);
+  float difference = 0.0f;
+  for (size_t i = 0; i < sizeof(pm) / sizeof(pm[0]); i++)
+    difference += fabsf(pm[i] - plain[i]);
+  if (difference < 0.01f)
+    fail(test, "FF2 modulation did not change carrier audio");
+
+  float feedback_audio[64 * AUDIO_CHANNELS];
+  float no_feedback_audio[64 * AUDIO_CHANNELS];
+  memset(feedback_audio, 0, sizeof(feedback_audio));
+  memset(no_feedback_audio, 0, sizeof(no_feedback_audio));
+
+  configure_fm_pair(0, 3.0f);
+  wave_mute(0, 0);
+  wave_mute(1, 1);
+  synth(feedback_audio, NULL, 64, AUDIO_CHANNELS, NULL);
+  if (fabsf(sv.freq_mod_feedback_z1[0]) < 0.0001f &&
+      fabsf(sv.freq_mod_feedback_z2[0]) < 0.0001f)
+    fail(test, "feedback history did not capture operator output");
+
+  configure_fm_pair(0, 0.0f);
+  wave_mute(0, 0);
+  wave_mute(1, 1);
+  synth(no_feedback_audio, NULL, 64, AUDIO_CHANNELS, NULL);
+  difference = 0.0f;
+  for (size_t i = 0; i < sizeof(feedback_audio) / sizeof(feedback_audio[0]); i++)
+    difference += fabsf(feedback_audio[i] - no_feedback_audio[i]);
+  if (difference < 0.01f)
+    fail(test, "FB did not change operator audio");
+
+  consume(test, &ctx, "v0 FB0");
+  expect_float(test, sv.freq_mod_feedback_z1[0], 0.0f, 0.0f,
+               "FB0 clears z1");
+  expect_float(test, sv.freq_mod_feedback_z2[0], 0.0f, 0.0f,
+               "FB0 clears z2");
+
+  skode_free(&ctx);
+  wave_reset(0);
+  wave_reset(1);
+  wave_reset(2);
 }
 #endif
 
@@ -2297,6 +2415,58 @@ static void test_load_909_patch_from_source_assets(void) {
   chdir(cwd);
 #endif
 }
+
+#ifdef SKRED_TEST_INSPIRED_BANKS
+static void test_load_inspired_example_banks(void) {
+  const char *test = "load inspired example banks";
+  char cwd[1024];
+  skode_t ctx = new_ctx();
+
+  if (!getcwd(cwd, sizeof(cwd))) {
+    fail(test, "getcwd failed");
+    return;
+  }
+  if (chdir(SKRED_TEST_SOURCE_DIR) != 0) {
+    fail(test, "chdir source dir failed");
+    return;
+  }
+
+  consume(test, &ctx, "[examples/pd-cz-inspired.sk] /ls");
+  consume(test, &ctx, "czbr 48");
+  expect_int(test, sv.cz_mode[0], 6, "CZ brass macro");
+  consume(test, &ctx, "czbs 36");
+  expect_int(test, sv.cz_mode[0], 1, "CZ bass macro");
+  consume(test, &ctx, "czbl 72");
+  expect_int(test, sv.cz_mode[0], 4, "CZ bell macro");
+  consume(test, &ctx, "czpd 55");
+  expect_int(test, sv.cz_mode[1], 5, "CZ pad macro");
+
+  consume(test, &ctx, "[examples/moog-inspired.sk] /ls");
+  consume(test, &ctx, "mgbs 36");
+  expect_int(test, sv.filter_mode[0], 1, "Moog bass macro");
+  consume(test, &ctx, "mgld 60");
+  expect_int(test, sv.filter_mode[1], 1, "Moog lead macro");
+  consume(test, &ctx, "mgpl 48");
+  expect_int(test, sv.filter_mode[0], 1, "Moog pluck macro");
+  consume(test, &ctx, "mgpd 48");
+  expect_int(test, sv.filter_mode[1], 1, "Moog pad macro");
+
+  consume(test, &ctx, "[examples/ksynth-drums-inspired.sk] /ls");
+  expect_int(test, sw.size[470] > 0, 1, "Ksynth kick wave");
+  expect_int(test, sw.size[471] > 0, 1, "Ksynth snare wave");
+  expect_int(test, sw.size[472] > 0, 1, "Ksynth hi-hat wave");
+  consume(test, &ctx, "kick");
+  expect_int(test, sv.amp_envelope[0].is_active, 1, "kick macro");
+  consume(test, &ctx, "snar");
+  expect_int(test, sv.amp_envelope[1].is_active, 1, "snare macro");
+  consume(test, &ctx, "chat");
+  expect_int(test, sv.amp_envelope[2].is_active, 1, "closed hi-hat macro");
+
+  consume(test, &ctx, "/m!");
+  skode_free(&ctx);
+  chdir(cwd);
+}
+#endif
 
 static void test_909_load_rejects_too_small_wave_table(void) {
 #ifdef SKRED_TEST_SOURCE_DIR
@@ -2889,6 +3059,9 @@ int main(void) {
 #ifdef SKRED_TEST_PD
   test_signed_phase_distortion_and_envelope();
 #endif
+#ifdef SKRED_TEST_FM
+  test_phase_modulation_and_feedback();
+#endif
   test_parameter_and_buffer_safety();
   test_context_modes();
 #ifdef SKRED_TEST_TRACKS
@@ -2904,6 +3077,9 @@ int main(void) {
   test_silent_voice_fast_path();
   test_control_plane_voice_events();
   test_load_909_patch_from_source_assets();
+#ifdef SKRED_TEST_INSPIRED_BANKS
+  test_load_inspired_example_banks();
+#endif
   test_909_load_rejects_too_small_wave_table();
   test_multichannel_capture_waves();
 

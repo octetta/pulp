@@ -398,3 +398,40 @@ fixing the wasm control-plane `/cer 0` hang path.
   passes did not; use average load and repeated runs for comparisons.
 - No physical MIDI hardware validation has been performed. No Git history was
   changed. Resume from the existing dirty working tree.
+
+### 2026-07-17 - FF2 Lookup-Phase Modulation and Operator Feedback
+
+- Added `FF2` lookup-phase modulation. `F` depth/offset are radians in this
+  mode and affect only wavetable lookup phase, leaving the carrier's persistent
+  phase increment and base pitch unchanged.
+- Added schedulable `FB 0..7` two-sample operator feedback. Feedback uses
+  previous post-envelope samples, resets on positive triggers/copy/reset,
+  affects only `FF2`, and adds no allocation or host work to the callback.
+- Added state allocation/copy/reset/display support, generated maxed analysis
+  sources, embedded help, FF2/FB regression coverage, and callback benchmark
+  scenarios.
+- Added electric-piano, bell, feedback-bass, and metallic-percussion examples
+  in `parts/SKODE_USER_COMMAND_REFERENCE.md` and
+  `parts/examples/fm-dx-inspired.sk`, plus an explicit comparison with the
+  remaining DX7 limitations.
+- Verified native, maxed, and WASM builds; maxed/WASM audio and polyphony
+  tests; FF2 phase/audio/feedback tests; and 10,000-callback benchmarks at 32
+  voices. Loads were about 1.81% off, 3.82% FF2, 3.86% feedback, and 4.00%
+  combined, with no overruns.
+- The known unrelated state-test failures remain: three wave-display
+  assertions, three maxed track-delay assertions, and two of those track-delay
+  assertions in the WASM-feature build. Browser artifacts were refreshed.
+  No Git history was changed; resume from the dirty working tree.
+
+### 2026-07-17 - Inspired Skode Patch Banks
+
+- Added `parts/examples/pd-cz-inspired.sk` with `czbr`, `czbs`, `czbl`, and
+  `czpd` phase-distortion patch macros.
+- Added `parts/examples/moog-inspired.sk` with `mgbs`, `mgld`, `mgpl`, and
+  `mgpd` subtractive patch macros.
+- Added `parts/examples/ksynth-drums-inspired.sk`; it renders the existing
+  kick/snare/closed-hat Ksynth sources into waves `470..472`, configures voices
+  `0..2`, and installs `kick`, `snar`, and `chat`.
+- Updated the user reference and added maxed/WASM-feature load-and-execute
+  regression coverage for every new macro. Native/maxed builds succeed; the
+  same known unrelated state-test failures remain.

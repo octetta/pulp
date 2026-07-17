@@ -491,6 +491,29 @@ so it finishes at that natural end. Unbounded one-shot loops do not have a
 natural end, so they keep normal held ADSR behavior until `l0`; that release
 then exits the loop in the current direction and plays the remaining wave tail.
 
+#### FM and Lookup-Phase Modulation
+
+The optional `FM` feature has three render modes. `FF0` adds a relative
+frequency deviation to the carrier phase increment, `FF1` treats the `F`
+control value as instantaneous hertz, and `FF2` advances the carrier at its
+unmodulated phase increment but adds the `F` control value to the wavetable
+lookup phase in radians. Consequently, bipolar `FF2` modulation cannot
+accumulate into carrier pitch drift.
+
+`FB 0..7` is configuration for `FF2` operator feedback. Each voice owns two
+previous post-envelope output samples. Their average, multiplied by `FB`, is
+added to the lookup phase along with any external `F` source. The history is
+runtime note state: it is zeroed on positive triggers, copies, resets, `FB0`,
+and transitions out of `FF2`. It is never allocated or cleared from the audio
+callback.
+
+The ordinary voice loop remains the operator scheduler. A modulation source
+with a lower voice number has already rendered its current sample; a
+higher-numbered source contributes its previous sample. Stage-one
+DX-inspired patches therefore arrange acyclic chains in ascending order.
+Self-reference through `F` remains disabled; `FB` is the only intentional
+cycle and is explicitly delayed by its two-sample history.
+
 ### Recording
 
 Files:

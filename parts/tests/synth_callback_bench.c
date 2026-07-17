@@ -40,6 +40,19 @@ int main(int argc, char **argv) {
   for (int voice = 0; voice < voices; voice++) {
     amp_set(voice, -12.0f);
     freq_set(voice, 110.0f + (float)voice);
+#ifdef SKRED_BENCH_FM
+    if (strcmp(scenario, "fm-phase") == 0) {
+      freq_mod_mode_set(voice, 2);
+      if (voice > 0) freq_mod_set(voice, voice - 1, 4.0f, 0.0f);
+    } else if (strcmp(scenario, "fm-feedback") == 0) {
+      freq_mod_mode_set(voice, 2);
+      freq_feedback_set(voice, 3.0f);
+    } else if (strcmp(scenario, "fm-all") == 0) {
+      freq_mod_mode_set(voice, 2);
+      if (voice > 0) freq_mod_set(voice, voice - 1, 4.0f, 0.0f);
+      freq_feedback_set(voice, 3.0f);
+    } else
+#endif
 #ifdef SKRED_BENCH_PD
     if (strcmp(scenario, "static") == 0) {
       cz_set(voice, 6, 0.6f);
@@ -64,7 +77,7 @@ int main(int argc, char **argv) {
     }
 #else
     if (strcmp(scenario, "off") != 0) {
-      fprintf(stderr, "PD is not enabled in this build\n");
+      fprintf(stderr, "requested benchmark feature is not enabled\n");
       synth_free();
       return 2;
     }

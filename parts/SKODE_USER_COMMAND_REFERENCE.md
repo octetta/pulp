@@ -383,12 +383,14 @@ changes its meaning:
 | --- | --- |
 | `FF0` | Adds frequency movement to the carrier. Depth and offset scale the modulator oscillator's frequency, so the result depends on both the modulator pitch and sample value. This is the original relative-FM mode. |
 | `FF1` | Treats the control value as the carrier's instantaneous frequency in hertz. Offset is the center frequency and depth is approximately the frequency deviation for a nominal `-1..1` modulator. |
+| `FF2` | Adds the control value directly to the wavetable lookup phase in radians. The carrier's persistent phase continues at its base frequency, producing stable DX-style phase modulation. |
 
 Approximately, for ordinary oscillator waves:
 
 ```text
 FF0 frequency = carrier Hz + modulator Hz * control
 FF1 frequency = control
+FF2 lookup phase = carrier phase + control radians
 ```
 
 For example:
@@ -401,6 +403,25 @@ v0 FF1 F1,20,220         # carrier sweeps approximately 200..240 Hz
 In `FF1`, use a positive offset large enough that `offset - abs(depth)` does
 not drive the instantaneous frequency below zero. At audio-rate modulator
 frequencies, increasing depth produces progressively richer FM sidebands.
+
+In `FF2`, `depth` is the phase-modulation index in radians. A sine modulator
+with `F1,1` moves the lookup phase by up to approximately one radian;
+increasing the index adds progressively stronger sidebands without changing
+the carrier's base phase increment. `offset` is a constant phase offset and is
+normally left at zero.
+
+`FB amount` adds operator self-feedback in `FF2`, from `0` (off) through `7`
+(strong). Feedback uses the average of the operator's previous two
+post-envelope samples as an additional phase offset:
+
+```text
+feedback phase = average(previous two outputs) * FB
+```
+
+Feedback history is cleared by `FB0`, by leaving `FF2`, and at each positive
+trigger. `FB` is stored in other modes but affects sound only in `FF2`.
+Feedback belongs on the operator whose spectrum should brighten; that operator
+can then modulate another voice through `F`.
 
 ### Phase-Distortion Modulation
 
@@ -430,8 +451,9 @@ selecting the modulator voice enables full-strength ring modulation.
 | Command | Parameters | Effect | Schedulable |
 | --- | --- | --- | --- |
 | `A voice,depth[,offset]` | Amplitude multiplier scale and bias | Multiplies amplitude by `sample * depth + offset`. Requires `AM`. | Yes |
-| `F voice,depth[,offset]` | Relative scale or hertz deviation and center | Modulates frequency according to `FF`. Requires `FM`. | Yes |
-| `FF mode` | `0` relative, `1` absolute hertz | Selects how the `F` control value becomes oscillator frequency. Requires `FM`. | Yes |
+| `F voice,depth[,offset]` | Relative scale, hertz control, or phase index | Modulates according to `FF`. In `FF2`, depth and offset are radians. Requires `FM`. | Yes |
+| `FF mode` | `0` relative, `1` absolute hertz, `2` phase | Selects frequency or lookup-phase modulation. Requires `FM`. | Yes |
+| `FB amount` | `0..7` | Adds two-sample operator feedback in `FF2`; zero clears its history. Requires `FM`. | Yes |
 | `P voice,depth[,offset]` | Pan scale and center | Sets pan to `sample * depth + offset`. Requires `PANMOD`. | Yes |
 | `c [mode[,depth]]` | Phase-distortion mode and base amount | Reshapes oscillator phase. No arguments disables it; omitted depth defaults to `0.5`. Requires `PD`. | Yes |
 | `C voice,depth` | Phase-distortion modulation scale | Adds `sample * depth` to the amount set by `c`. Fewer than two arguments disables it. Requires `PD`. | Yes |
@@ -1287,6 +1309,22 @@ examples require the named feature gates, and the sample examples require
 `KSYNTH`. Run each example separately, or reset its voices with `S` before
 trying the next one.
 
+Standalone example banks are available under `parts/examples/`:
+
+- `fm-dx-inspired.sk` contains four directly copyable `FF2`/`FB` examples.
+- `pd-cz-inspired.sk` installs `czbr`, `czbs`, `czbl`, and `czpd`.
+- `moog-inspired.sk` installs `mgbs`, `mgld`, `mgpl`, and `mgpd`.
+- `ksynth-drums-inspired.sk` renders waves `470..472`, configures voices
+  `0..2`, and installs `kick`, `snar`, and `chat`.
+
+Load a macro bank with `/ls`, then invoke the named patch with a MIDI note:
+
+```text
+[examples/pd-cz-inspired.sk] /ls
+czbr 48
+~1 v0 l0
+```
+
 ### Synthesizer-Inspired Patches
 
 **Moog-style resonant bass.** A saw wave, fast filter envelope, and resonant
@@ -1324,20 +1362,89 @@ v0 w22 a-12 t.08,.5,.7,.8 J1 K500 Q2 ft.12,.7,.3,.8 fd3200 n48 l1
 Other built-in DWGS waves occupy slots `10` through `25`; wave `10` is
 strings, `13` is electric piano, `15` is clavinet, and `24` is bell.
 
-**Yamaha DX7-style electric piano.** Voice `1` is a decaying sine modulator
-for the sine carrier on voice `0`. Its envelope makes the bright FM attack
-settle into a softer body. Requires `ADSR` and `FM`.
+**DX-inspired electric piano.** Voice `0` is a muted 2:1 sine modulator with
+light feedback. Voice `1` is the audible carrier. `G0 H0` makes the carrier's
+note and velocity commands also reach the modulator. Requires `ADSR` and `FM`.
 
 ```text
 S0 S1
-v1 w0 n76 a-18 t.001,.35,0,.15 l1
-v0 w0 n52 a-8 t.002,1.2,.18,.6 FF0 F1,8 l1
-~1.5 v0 l0 v1 l0
+v0 w0 m1 N12,0 a-12 t.001,.28,0,.18 FF2 FB.8
+v1 w0 G0 H0 a-8 t.002,1.2,.18,.6 FF2 F0,5.5 n52 l1
+~1.5 v1 l0
 ```
 
-Increase `F1,8` toward `F1,14` for a harder tine attack. The modulator is also
-present in the output, so its amplitude controls both FM strength and how much
-of the upper sine tone is directly audible.
+Increase `F0,5.5` toward `F0,7` for a harder tine, or increase `FB.8` toward
+`FB1.5` for a buzzier modulator. `m1` removes voice `0` from the main mix while
+leaving it available as a modulation source.
+
+**DX-inspired struck bell.** Three sine operators form a current-sample chain:
+voice `0` modulates `1`, which modulates audible carrier `2`. The transpositions
+give approximate 3:1, 2:1, and 1:1 ratios. Requires `ADSR` and `FM`.
+
+```text
+S0 S1 S2
+v0 w0 m1 N19,2 a-10 t.001,.16,0,.25 FF2 FB1.7
+v1 w0 m1 N12,0 a-12 t.001,.7,0,.5 FF2 F0,2.8
+v2 w0 G0,1 H0,1 a-10 t.001,2.4,0,1.2 FF2 F1,4.2 n69 l1
+~2.5 v2 l0
+```
+
+Keep modulators at lower voice numbers than the operators they feed. The
+current renderer processes voices in ascending order, so `0 -> 1 -> 2` uses
+current samples throughout the chain.
+
+**Feedback bass.** A same-ratio feedback operator gives the carrier a bright,
+growling attack that decays into a sine fundamental. Requires `ADSR` and `FM`.
+
+```text
+S0 S1
+v0 w0 m1 N0,0 a-8 t.001,.22,.08,.18 FF2 FB3.2
+v1 w0 G0 H0 a-7 t.002,.35,.7,.3 FF2 F0,3.8 n36 l1
+~1 v1 l0
+```
+
+Raise `FB3.2` toward `FB5` for a noisier edge. Lowering `F0,3.8` changes the
+brightness without changing the feedback operator's own spectrum.
+
+**Metallic percussion.** A short, non-octave modulator envelope and strong
+feedback produce an inharmonic digital strike. Requires `ADSR` and `FM`.
+
+```text
+S0 S1
+v0 w0 m1 N7,0 a-7 t.0005,.09,0,.08 FF2 FB4.5
+v1 w0 G0 H0 a-9 t.0005,.55,0,.25 FF2 F0,6.5 n57 l1
+~.7 v1 l0
+```
+
+Changing `N7,0` on voice `0` changes the partial spacing; try `N12,0` for a
+more harmonic strike or `N19,2` for an approximate 3:1 ratio.
+
+### DX-Inspired FM Versus a DX7
+
+`FF2` and `FB` provide the two most important signal-path ingredients for
+DX-like patches: lookup-phase modulation and operator self-feedback. They do
+not make this engine a DX7 emulator:
+
+- A DX7 voice has six operators selected from 32 fixed algorithms. Skode uses
+  general synth voices and explicit `F` connections, with one modulation input
+  per destination voice.
+- Skode's operator level envelope is ADSR. A DX7 operator has four rates and
+  four levels, so imported envelopes cannot yet be represented exactly.
+- Ratios are approximated with `N` transpose/cents. There is no dedicated
+  DX ratio/fixed-frequency mode, coarse/fine mapping, or DX detune curve.
+- Keyboard level/rate scaling, per-operator velocity sensitivity, pitch
+  envelope, and the DX LFO/modulation-sensitivity model are not implemented.
+- Voice evaluation is ascending by voice number rather than compiled from an
+  operator algorithm. A higher-numbered modulator supplies its previous
+  sample, while a lower-numbered modulator supplies its current sample.
+- Poly groups can clone six-voice graphs, but their root note/gate propagation
+  currently reaches only four linked voices in addition to the root.
+- `FB 0..7` is a continuous phase-index scale using a two-sample average. Its
+  numbers are musically useful but are not a bit-exact recreation of the DX7
+  feedback-level table, sine ROM, arithmetic, quantization, or aliasing.
+
+These differences make the examples starting points for the same families of
+sound rather than compatible reproductions of DX7 patches or SysEx data.
 
 ### Drum Samples
 
@@ -1350,6 +1457,10 @@ kick, snare, and closed hi-hat in dynamic wave slots `300` through `302`:
 [sk/drums-snare.ks] /ks kw k>d d>r /r301
 [sk/drums-chh.ks] /ks kw k>d d>r /r302
 ```
+
+The standalone `examples/ksynth-drums-inspired.sk` file performs this setup,
+assigns the waves to voices `0..2`, and installs `kick`, `snar`, and `chat`
+trigger macros.
 
 Assign each sample to a voice and trigger it with `l1` or `T`:
 
@@ -1456,7 +1567,7 @@ Some commands exist only when their build feature is enabled:
 | `CRUSH` | `q` |
 | `FILT` | `J`, `K`, `Q` |
 | `FILT` and `FADSR` | `ft`, `fd` |
-| `FM` | `F`, `FF` |
+| `FM` | `F`, `FF`, `FB` |
 | `GLISS` | `g` |
 | `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
 | `PANMOD` | `P` |

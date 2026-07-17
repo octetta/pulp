@@ -30,6 +30,7 @@ int synth_sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
 #define SYNTH_INVALID_VOICE (100)
 #define DELAY_MAX_FRAMES (65536)
 #define DELAY_BUS_COUNT (4)
+#define FM_TWO_PI (2.0f * (float)M_PI)
 
 typedef struct {
   float buffer[DELAY_MAX_FRAMES];
@@ -580,7 +581,8 @@ static inline int osc_loop_crossings(double distance, double loop_length) {
         INT_MAX : (int)crossings + 1;
 }
 
-static float osc_next_at(int voice, float phase_inc, uint64_t current_sample) {
+static float osc_next_at(int voice, float phase_inc, float phase_offset,
+    uint64_t current_sample) {
     if (sv.finished[voice]) return 0.0f;
 
     const int table_size = sv.table_size[voice];
@@ -758,6 +760,20 @@ static float osc_next_at(int voice, float phase_inc, uint64_t current_sample) {
       final_phase = phase;
     }
 
+    /*
+     * FF2 phase modulation changes only the wavetable lookup position. The
+     * persistent oscillator phase above continues at phase_inc, so bipolar
+     * modulation and feedback do not pull the operator off pitch.
+     * phase_offset is expressed in radians (the conventional FM index unit).
+     */
+    if (phase_offset != 0.0f) {
+      const double span = (double)wave_range_end - (double)wave_range_start;
+      double offset = (double)phase_offset * span / (double)FM_TWO_PI;
+      final_phase = (double)wave_range_start +
+        fmod(final_phase - (double)wave_range_start + offset, span);
+      if (final_phase < (double)wave_range_start) final_phase += span;
+    }
+
     int idx = (int)final_phase;
 
     if (idx >= (int)wave_range_end) idx = (int)wave_range_end - 1;
@@ -783,7 +799,7 @@ static float osc_next_at(int voice, float phase_inc, uint64_t current_sample) {
 }
 
 float osc_next(int voice, float phase_inc) {
-    return osc_next_at(voice, phase_inc, SAMPLE_COUNT_GET());
+    return osc_next_at(voice, phase_inc, 0.0f, SAMPLE_COUNT_GET());
 }
 
 void osc_set_wave_table_index(int voice, int wave) {
@@ -1326,6 +1342,8 @@ void synth_capture(float *buffer, float *input, int num_frames,
       }  
       if (sv.user_amp[n] <= SILENT) {
         sv.sample[n] = 0.0f;
+        sv.freq_mod_feedback_z1[n] = 0.0f;
+        sv.freq_mod_feedback_z2[n] = 0.0f;
         continue;
       }
       if (sv.glissando_enable[n]) {
@@ -1361,7 +1379,21 @@ void synth_capture(float *buffer, float *input, int num_frames,
         f = whiteish;
       }
       else {
-        if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
+        if (sv.freq_mod_mode[n] == 2) {
+          float phase_offset = 0.0f;
+          if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
+            int mod = sv.freq_mod_osc[n];
+            phase_offset += sv.sample[mod] * sv.freq_mod_depth[n] +
+              sv.freq_mod_adder[n];
+          }
+          if (sv.freq_mod_feedback[n] > 0.0f) {
+            phase_offset +=
+              0.5f * (sv.freq_mod_feedback_z1[n] +
+                      sv.freq_mod_feedback_z2[n]) *
+              sv.freq_mod_feedback[n];
+          }
+          f = osc_next_at(n, sv.phase_inc[n], phase_offset, current_sample);
+        } else if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
           int mod = sv.freq_mod_osc[n];
           float g = sv.sample[mod] * sv.freq_mod_depth[n] + sv.freq_mod_adder[n];
           float inc;
@@ -1370,9 +1402,9 @@ void synth_capture(float *buffer, float *input, int num_frames,
           } else {
             inc = sv.phase_inc[n] + (sv.phase_inc[mod] * sv.freq_scale[n] * g);
           }
-          f = osc_next_at(n, inc, current_sample);
+          f = osc_next_at(n, inc, 0.0f, current_sample);
         } else {
-          f = osc_next_at(n, sv.phase_inc[n], current_sample);
+          f = osc_next_at(n, sv.phase_inc[n], 0.0f, current_sample);
         }
       if (sv.loop_ended[n]) {
         int release_tail = sv.one_shot[n] && sv.loop_release_tail[n];
@@ -1462,6 +1494,11 @@ void synth_capture(float *buffer, float *input, int num_frames,
 #endif
 
       sv.sample[n] *= final;
+
+      if (sv.freq_mod_mode[n] == 2 && sv.freq_mod_feedback[n] > 0.0f) {
+        sv.freq_mod_feedback_z2[n] = sv.freq_mod_feedback_z1[n];
+        sv.freq_mod_feedback_z1[n] = sv.sample[n];
+      }
 
       if (sampling.what == n) {
         record_mono = sv.sample[n];
@@ -1758,11 +1795,13 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || (sv.amp_mod_osc[v] >= 0 && sv.amp_mod_depth[v] != 0.0f))
         APPEND(" A%d,%g,%g", sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
 
+    if (verbose || sv.freq_mod_mode[v] != 0)
+        APPEND(" FF%d", sv.freq_mod_mode[v]);
     if (verbose || (sv.freq_mod_osc[v] >= 0 && sv.freq_mod_depth[v] != 0.0f)) {
-        if (sv.freq_mod_mode[v] == 1)
-            APPEND(" FF1");
         APPEND(" F%d,%g,%g", sv.freq_mod_osc[v], sv.freq_mod_depth[v], sv.freq_mod_adder[v]);
     }
+    if (verbose || sv.freq_mod_feedback[v] > 0.0f)
+        APPEND(" FB%g", sv.freq_mod_feedback[v]);
 
     /* --- mix / record flags (suppress if default) --- */
     if (verbose || sv.disconnect[v])
@@ -1948,6 +1987,29 @@ int freq_mod_set(int voice, int o, float f, float a) {
   return 0;
 }
 
+int freq_mod_mode_set(int voice, int mode) {
+  if (voice_invalid(voice) || mode < 0 || mode > 2)
+    return SYNTH_INVALID_VOICE;
+  sv.freq_mod_mode[voice] = mode;
+  if (mode != 2) {
+    sv.freq_mod_feedback_z1[voice] = 0.0f;
+    sv.freq_mod_feedback_z2[voice] = 0.0f;
+  }
+  return 0;
+}
+
+int freq_feedback_set(int voice, float amount) {
+  if (voice_invalid(voice) || !isfinite(amount) ||
+      amount < 0.0f || amount > 7.0f)
+    return SYNTH_INVALID_VOICE;
+  sv.freq_mod_feedback[voice] = amount;
+  if (amount == 0.0f) {
+    sv.freq_mod_feedback_z1[voice] = 0.0f;
+    sv.freq_mod_feedback_z2[voice] = 0.0f;
+  }
+  return 0;
+}
+
 int wave_loop(int voice, int state) {
   if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
   if (state < 0) {
@@ -2117,6 +2179,10 @@ int voice_copy(int v, int n) {
   delay_send_set(n, sv.delay_send[v]);
   amp_mod_set(n, sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
   freq_mod_set(n, sv.freq_mod_osc[v], sv.freq_mod_depth[v], sv.freq_mod_adder[v]);
+  freq_mod_mode_set(n, sv.freq_mod_mode[v]);
+  freq_feedback_set(n, sv.freq_mod_feedback[v]);
+  sv.freq_mod_feedback_z1[n] = 0.0f;
+  sv.freq_mod_feedback_z2[n] = 0.0f;
   pan_mod_set(n, sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
   wave_quant(n, sv.quantize[v]);
   sv.sample_hold_max[n] = sv.sample_hold_max[v];
@@ -2261,6 +2327,9 @@ void voice_reset(int i) {
   sv.freq_mod_depth[i] = 0.0f;
   sv.freq_mod_adder[i] = 0.0f;
   sv.freq_mod_mode[i] = 0;
+  sv.freq_mod_feedback[i] = 0.0f;
+  sv.freq_mod_feedback_z1[i] = 0.0f;
+  sv.freq_mod_feedback_z2[i] = 0.0f;
   sv.freq_scale[i] = 1.0f;
   sv.pan_mod_osc[i] = -1;
   sv.pan_mod_depth[i] = 0.0f;
@@ -2340,18 +2409,20 @@ int envelope_velocity(int voice, float f) {
         if (!one_shot_loop_release && sv.cz_envelope[voice].is_active)
             envelope_release_e(&sv.cz_envelope[voice]);
     } else {
-        sv.use_amp_envelope[voice] = 1;
-        if (sv.one_shot[voice]) {
-            osc_trigger(voice);
-        }
-        skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_TRIGGER,
-          SAMPLE_COUNT_GET(), voice);
-        amp_envelope_trigger(voice, f);
-        amp_envelope_schedule_one_shot_release(voice);
-        if (sv.use_filter_envelope[voice])
-            envelope_trigger_e(&sv.filter_envelope[voice], f);
-        if (sv.use_cz_envelope[voice])
-            envelope_trigger_e(&sv.cz_envelope[voice], f);
+      sv.use_amp_envelope[voice] = 1;
+      sv.freq_mod_feedback_z1[voice] = 0.0f;
+      sv.freq_mod_feedback_z2[voice] = 0.0f;
+      if (sv.one_shot[voice]) {
+          osc_trigger(voice);
+      }
+      skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_TRIGGER,
+        SAMPLE_COUNT_GET(), voice);
+      amp_envelope_trigger(voice, f);
+      amp_envelope_schedule_one_shot_release(voice);
+      if (sv.use_filter_envelope[voice])
+          envelope_trigger_e(&sv.filter_envelope[voice], f);
+      if (sv.use_cz_envelope[voice])
+          envelope_trigger_e(&sv.cz_envelope[voice], f);
     }
     return 0;
 }

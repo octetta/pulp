@@ -152,6 +152,9 @@ typedef struct {
     float  * restrict freq_mod_depth;
     float  * restrict freq_mod_adder;
     int    * restrict freq_mod_mode;
+    float  * restrict freq_mod_feedback;
+    float  * restrict freq_mod_feedback_z1;
+    float  * restrict freq_mod_feedback_z2;
     int    * restrict pan_mod_osc;
     float  * restrict pan_mod_depth;
     float  * restrict pan_mod_adder;

@@ -102,6 +102,8 @@ int amp_mod_set(int voice, int o, float f, float a);
 int wave_reset(int voice);
 
 int freq_mod_set(int voice, int o, float f, float a);
+int freq_mod_mode_set(int voice, int mode);
+int freq_feedback_set(int voice, float amount);
 
 int pan_mod_set(int voice, int o, float f, float a);
 

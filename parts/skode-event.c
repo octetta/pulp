@@ -14,7 +14,7 @@
   (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(b) << 16) | \
    ((uint32_t)(uint8_t)(c) << 8) | (uint32_t)(uint8_t)(d))
 
-_Static_assert(SKODE_OP_PHASE_ENVELOPE_DEPTH <= UINT8_MAX,
+_Static_assert(SKODE_OP_FREQ_FEEDBACK <= UINT8_MAX,
   "Skode opcodes must fit in opcode_event_t.code");
 _Static_assert(SEQ_PROGRAM_OP_MAX <= UINT8_MAX,
   "Compiled program length must fit in event_program_t.count");
@@ -33,6 +33,7 @@ const char *skode_opcode_name(uint8_t opcode) {
     "WAVE_LOOP_COUNT", "CONTROL_EVENT", "DELAY_PARAMS",
     "WAVE_RANGE_SET", "WAVE_LOOP_SET", "POLY_NOTE", "POLY_RELEASE",
     "POLY_BEND", "PHASE_ENVELOPE", "PHASE_ENVELOPE_DEPTH",
+    "FREQ_FEEDBACK",
   };
   return opcode < sizeof(names) / sizeof(names[0]) ?
     names[opcode] : "UNKNOWN";
@@ -215,6 +216,8 @@ static int skode_compile_callback(ands_t *s, int info) {
       opcode = SKODE_OP_FREQ_MOD; min_argc = 0; max_argc = 3; break;
     case SKODE_ATOM('F', 'F', '-', '-'):
       opcode = SKODE_OP_FREQ_MOD_MODE; min_argc = max_argc = 1; break;
+    case SKODE_ATOM('F', 'B', '-', '-'):
+      opcode = SKODE_OP_FREQ_FEEDBACK; min_argc = max_argc = 1; break;
     case SKODE_ATOM('g', '-', '-', '-'):
       opcode = SKODE_OP_GLISSANDO; min_argc = max_argc = 1; break;
     case SKODE_ATOM('G', '-', '-', '-'):

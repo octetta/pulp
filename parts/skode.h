@@ -149,6 +149,7 @@ int skode_queue_program(const event_program_t *program, int voice,
 int skode_queue_program_deferred(const event_program_t *program, int voice,
   uint64_t base, char mode, double delay, int tag);
 int skode_midi_note(int voice, float note, float cents);
+int skode_linked_velocity(int voice, float velocity, uint64_t sample);
 void skode_envelope_velocity(int voice, float x, uint64_t now);
 extern double global_var[ANDS_VAR_MAX];
 void show_threads(skode_t *w);

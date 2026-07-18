@@ -2937,6 +2937,10 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return opcode->argc == 1 ?
         envelope_velocity(voice, opcode->arg[0]) : -1;
     case SKODE_OP_VELOCITY:
+    #if 1
+      return opcode->argc == 1 ?
+        skode_linked_velocity(voice, opcode->arg[0], SAMPLE_COUNT_GET()) : -1;
+    #else
       if (opcode->argc != 1) return -1;
       {
         uint64_t now = SAMPLE_COUNT_GET();
@@ -2951,6 +2955,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
           skode_envelope_velocity(sv.link_velo_3[voice], opcode->arg[0], now);
         return 0;
       }
+    #endif
     case SKODE_OP_MUTE:
       return x_valid ? wave_mute(voice, x) : -1;
     case SKODE_OP_MIDI_NOTE:
@@ -3156,6 +3161,11 @@ int skode_function(ands_t *s, int info) {
           skred_midi_input_open(x) : skred_midi_output_open(x);
         if (result != 0) ctx->printf(ctx, "# MIDI open failed (%d)\n", result);
       }
+      break;
+    case ATOM4('/md-'):
+      if (argc == 0) x = skred_midi_debug_get() ? 0 : 1;
+      skred_midi_debug_set(x);
+      ctx->printf(ctx, "# midi debug %s\n", skred_midi_debug_get() ? "on" : "off");
       break;
     case ATOM4('/miV'):
     case ATOM4('/moV'):
@@ -3644,6 +3654,9 @@ int skode_function(ands_t *s, int info) {
       if (argc && isfinite(arg[0])) envelope_velocity(voice, arg[0]);
       break;
     case ATOM4('l---'): // velocity amount
+    #if 1
+      if (argc) skode_linked_velocity(voice, arg[0], SAMPLE_COUNT_GET());
+    #else
       if (argc) {
         uint64_t now = SAMPLE_COUNT_GET();
         int a = sv.link_velo_0[voice];
@@ -3657,6 +3670,7 @@ int skode_function(ands_t *s, int info) {
         if (c >= 0) skode_envelope_velocity(c, vel, now);
         if (d >= 0) skode_envelope_velocity(d, vel, now);
       }
+    #endif
       break;
     case ATOM4('M---'): // tempo bpm
       if (argc && tempo_set(arg[0]) != 0)

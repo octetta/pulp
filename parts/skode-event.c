@@ -366,6 +366,16 @@ int skode_midi_note(int voice, float note, float cents) {
   return result;
 }
 
+int skode_linked_velocity(int voice, float velocity, uint64_t sample) {
+  if (!event_voice_valid(voice)) return -1;
+  skode_envelope_velocity(voice, velocity, sample);
+  if (sv.link_velo_0[voice] >= 0) skode_envelope_velocity(sv.link_velo_0[voice], velocity, sample);
+  if (sv.link_velo_1[voice] >= 0) skode_envelope_velocity(sv.link_velo_1[voice], velocity, sample);
+  if (sv.link_velo_2[voice] >= 0) skode_envelope_velocity(sv.link_velo_2[voice], velocity, sample);
+  if (sv.link_velo_3[voice] >= 0) skode_envelope_velocity(sv.link_velo_3[voice], velocity, sample);
+  return 0;
+}
+
 static int execute_opcode(const opcode_event_t *opcode, int voice) {
   if (!opcode || !event_voice_valid(voice)) return -1;
   if (opcode->argc > SEQ_OPCODE_ARG_MAX) return -1;

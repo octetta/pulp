@@ -28,6 +28,11 @@ static char midi_message[SKRED_MIDI_MESSAGE_MAX];
 static atomic_int_t midi_mask = (int)(0xffffffffu & ~(1u << SKRED_MIDI_SYSEX) &
   ~(1u << SKRED_MIDI_ACTIVE_SENSE));
 
+static atomic_int_t midi_debug = 0;
+
+void skred_midi_debug_set(int on) { atomic_store_int(&midi_debug, on ? 1 : 0); }
+int  skred_midi_debug_get(void)   { return atomic_load_int(&midi_debug); }
+
 typedef struct {
   int used;
   int channel;
@@ -408,6 +413,21 @@ static int midi_route_pool_event(midi_route_t *route, int type, int channel,
 static int midi_route_voice_event(midi_route_t *route, int type, int channel,
     int data1, int data2) {
   int key = channel * 128 + data1;
+#if 1
+  if (type == SKRED_MIDI_NOTE_ON && data2 > 0) {
+    route->active_key = key;
+    (void)skode_midi_note(route->target, (float)data1, route->bend_cents[channel]);
+    skode_linked_velocity(route->target, (float)data2 / 127.0f, SAMPLE_COUNT_GET());
+    return 1;
+  }
+  if (type == SKRED_MIDI_NOTE_OFF ||
+      (type == SKRED_MIDI_NOTE_ON && data2 == 0)) {
+    if (route->active_key != key) return 0;
+    route->active_key = -1;
+    skode_linked_velocity(route->target, 0.0f, SAMPLE_COUNT_GET());
+    return 1;
+  }
+#else
   if (type == SKRED_MIDI_NOTE_ON && data2 > 0) {
     route->active_key = key;
     (void)skode_midi_note(route->target, (float)data1,
@@ -423,6 +443,7 @@ static int midi_route_voice_event(midi_route_t *route, int type, int channel,
     skode_envelope_velocity(route->target, 0.0f, SAMPLE_COUNT_GET());
     return 1;
   }
+#endif
   if (type == SKRED_MIDI_PITCH_BEND) {
     route->bend_cents[channel] = midi_bend_cents(data1, data2,
       route->bend_semitones);
@@ -476,12 +497,19 @@ int skred_midi_route_event(const skred_control_event_t *event) {
         data1, data2) == 0 && skred_control_midi_command(expanded) >= 0)
       handled++;
   }
+  if (atomic_load_int(&midi_debug))
+    fprintf(stderr, "[midi] route type=%d ch=%d d1=%d d2=%d handled=%d\n",
+      type, channel, data1, data2, handled);
   return handled;
 }
 
 static void midi_publish(int type, int channel, int data1, int data2) {
   uint32_t mask = (uint32_t)atomic_load_int(&midi_mask);
-  if (type < 0 || type >= 32 || !(mask & (1u << type))) return;
+  int pass = type >= 0 && type < 32 && (mask & (1u << type));
+  if (atomic_load_int(&midi_debug))
+    fprintf(stderr, "[midi] publish type=%d ch=%d d1=%d d2=%d mask=0x%08x %s\n",
+      type, channel, data1, data2, mask, pass ? "pass" : "DROPPED(mask)");
+  if (!pass) return;
   skred_control_midi_event(type, channel, data1, data2);
 }
 
@@ -512,6 +540,9 @@ static void midi_input_callback(mm_device *device, const mm_message *message,
   if (!message || message->type == MM_SYSEX) return;
   int data1 = message->data[0];
   int data2 = message->data[1];
+  if (atomic_load_int(&midi_debug))
+    fprintf(stderr, "[midi] rx type=%d ch=%d d1=%d d2=%d\n",
+      message->type, message->channel, message->data[0], message->data[1]);
   if (message->type == MM_SONG_POSITION) {
     data1 = message->song_position;
     data2 = 0;
@@ -678,13 +709,15 @@ int skred_midi_send_raw(const uint8_t *data, int length) {
 
 char *skred_midi_status(void) {
   snprintf(midi_message, sizeof(midi_message),
-    "midi: %s caps:0x%x in:%s%s%d out:%s%s%d mask:0x%08x routes:%d bindings:%d",
+    "midi: %s caps:0x%x in:%s%s%d out:%s%s%d mask:0x%08x debug:%s routes:%d bindings:%d",
     midi_initialized ? "ready" : "stopped", skred_midi_caps(),
     midi_input_opened ? "open" : "closed",
     midi_input_virtual ? "/virtual:" : "/device:", midi_input_index,
     midi_output_opened ? "open" : "closed",
     midi_output_virtual ? "/virtual:" : "/device:", midi_output_index,
-    skred_midi_event_mask(), skred_midi_route_count(),
+    skred_midi_event_mask(),
+    skred_midi_debug_get() ? "on" : "off",
+    skred_midi_route_count(),
     skred_midi_binding_count());
   return midi_message;
 }

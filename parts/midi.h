@@ -19,4 +19,7 @@ int skred_midi_route_event(const skred_control_event_t *event);
 /* Execute expanded MIDI bindings in api.c's dedicated dispatcher context. */
 int skred_control_midi_command(const char *command);
 
+void skred_midi_debug_set(int on);
+int  skred_midi_debug_get(void);
+
 #endif

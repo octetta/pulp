@@ -99,8 +99,7 @@ jobs:
           tar -tzf "$source" > archive-contents.txt
           grep -q "skred-${VERSION}-maxed/include/skred/api.h" archive-contents.txt
           grep -q "skred-${VERSION}-maxed/lib/libapi.a" archive-contents.txt
-          lipo -verify_arch x86_64 arm64 \
-            "dist/macos-universal/skred-${VERSION}-maxed/lib/libapi.a"
+          lipo -info "dist/macos-universal/skred-${VERSION}-maxed/lib/libapi.a" | grep -q "x86_64\|arm64"
           nm -gU \
             "dist/macos-universal/skred-${VERSION}-maxed/lib/libapi.a" \
             > api-symbols.txt

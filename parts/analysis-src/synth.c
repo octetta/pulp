@@ -1554,33 +1554,33 @@ void synth_capture(float *buffer, float *input, int num_frames,
         record_mono += sv.sample[n];
       }
 
+      float left  = sv.sample[n];
+      float right = sv.sample[n];
+      if (sv.pan_mod_osc[n] >= 0) {
+        float q = sv.sample[sv.pan_mod_osc[n]] * sv.pan_mod_depth[n] +
+          sv.pan_mod_adder[n];
+        sv.pan_left[n]  = (1.0f - q) / 2.0f;
+        sv.pan_right[n] = (1.0f + q) / 2.0f;
+      }
+      left  *= sv.pan_left[n];
+      right *= sv.pan_right[n];
+
+      int track = sv.record[n];
+      if (track >= 1 && track <= RECORD_TRACK_MAX) {
+        record_left[track] += left;
+        record_right[track] += right;
+      }
+
       if (sv.disconnect[n] == 0) {
         if (sv.delay_send[n] > 0.0f && delay_voice_can_send(n)) {
           int bus = -1;
-          int delay_track = sv.record[n];
-          if (delay_track >= 1 && delay_track <= RECORD_TRACK_MAX)
-            bus = delay_track - 1;
+          if (track >= 1 && track <= RECORD_TRACK_MAX)
+            bus = track - 1;
           if (bus >= 0 && bus < DELAY_BUS_COUNT)
             delay_input[bus] += sv.sample[n] * sv.delay_send[n];
         }
-        float left  = sv.sample[n];
-        float right = sv.sample[n];
-        // accumulate samples
-        if (sv.pan_mod_osc[n] >= 0) {
-          // handle pan modulation
-          float q = sv.sample[sv.pan_mod_osc[n]] * sv.pan_mod_depth[n] + sv.pan_mod_adder[n];
-          sv.pan_left[n]  = (1.0f - q) / 2.0f;
-          sv.pan_right[n] = (1.0f + q) / 2.0f;
-        }
-        left  *= sv.pan_left[n];
-        right *= sv.pan_right[n];
         sample_left  += left;
         sample_right += right;
-        int track = sv.record[n];
-        if (track >= 1 && track <= RECORD_TRACK_MAX) {
-          record_left[track] += left;
-          record_right[track] += right;
-        }
       }
     }
 

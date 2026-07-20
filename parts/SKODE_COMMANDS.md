@@ -113,7 +113,7 @@ their named build option is enabled.
 | `J` | `mode` | `SKODE_OP_FILTER_MODE` | Sets filter mode and calls `mmf_set_params()` | `FILT` |
 | `K` | `Hz` | `SKODE_OP_FILTER_FREQ` | `mmf_set_freq()` | `FILT` |
 | `k` | `mode` | `SKODE_OP_ENVELOPE_MODE` | Sets `sv.amp_envelope_mode` | `ADSR` |
-| `m` | `state` | `SKODE_OP_MUTE` | `wave_mute()` | base |
+| `m` | `state` | `SKODE_OP_MUTE` | `wave_mute()`; suppresses master output while preserving an `r1`..`r4` dry stem route | base |
 | `N` | `semitones [, cents]` | `SKODE_OP_MIDI_DETUNE` | Sets `sv.midi_transpose` and `sv.midi_cents` | base |
 | `P` | `[voice, depth [, offset]]` | `SKODE_OP_PAN_MOD` | `pan_mod_set()`; fewer than two args disable modulation | `PANMOD` |
 | `q` | `bit-depth` | `SKODE_OP_QUANTIZE` | `wave_quant()` | `CRUSH` |

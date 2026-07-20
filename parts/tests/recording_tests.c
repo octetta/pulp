@@ -101,6 +101,63 @@ static void test_track_routing(void) {
   synth_free();
 }
 
+static void test_muted_voice_remains_on_stem(void) {
+  const char *test = "muted voice remains on stem";
+  enum { FRAMES = 512 };
+  float output[FRAMES * AUDIO_CHANNELS] = {0};
+  float recorded[FRAMES * RECORD_CHANNELS] = {0};
+  synth_record_bus_t bus = {recorded, RECORD_CHANNELS};
+  skode_t ctx = SKODE_EMPTY();
+
+  synth_init(1);
+  wave_table_init(0);
+  voice_init();
+  skode_init(&ctx);
+
+  wave_set(0, WAVE_TABLE_SINE);
+  freq_set(0, 440.0f);
+  amp_set(0, 0.0f);
+  pan_set(0, 0.0f);
+  synth_record_track_set(0, 1);
+  delay_send_set(0, 1.0f);
+  delay_params_set(1, 0, 0, 0, 0, 0, 15);
+  envelope_velocity(0, 1.0f);
+
+  char mute[] = "v0 m1";
+  if (skode_consume(mute, &ctx) != 0 || sv.disconnect[0] != 1)
+    fail(test, "m1 did not mute the voice");
+
+  synth(output, NULL, FRAMES, AUDIO_CHANNELS, &bus);
+
+  int stem_nonzero = 0;
+  for (int frame = 0; frame < FRAMES; frame++) {
+    int output_index = frame * AUDIO_CHANNELS;
+    int record_index = frame * RECORD_CHANNELS;
+    if (fabsf(output[output_index]) > 1e-7f ||
+        fabsf(output[output_index + 1]) > 1e-7f ||
+        fabsf(recorded[record_index]) > 1e-7f ||
+        fabsf(recorded[record_index + 1]) > 1e-7f) {
+      fail(test, "muted voice leaked into the master");
+      break;
+    }
+    if (fabsf(recorded[record_index + 2]) > 1e-7f ||
+        fabsf(recorded[record_index + 3]) > 1e-7f) {
+      stem_nonzero = 1;
+    }
+    for (int channel = 4; channel < RECORD_CHANNELS; channel++) {
+      if (fabsf(recorded[record_index + channel]) > 1e-7f) {
+        fail(test, "muted voice leaked into an unassigned stem");
+        frame = FRAMES;
+        break;
+      }
+    }
+  }
+  if (!stem_nonzero) fail(test, "muted voice was missing from its stem");
+
+  skode_free(&ctx);
+  synth_free();
+}
+
 static void test_multichannel_device_track_routing(void) {
   const char *test = "multichannel device track routing";
   enum { FRAMES = 128 };
@@ -384,6 +441,7 @@ static void test_skode_recording_commands(void) {
 
 int main(void) {
   test_track_routing();
+  test_muted_voice_remains_on_stem();
   test_multichannel_device_track_routing();
   test_sub_block_record_offsets();
   test_ring_writer();

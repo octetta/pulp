@@ -60,7 +60,7 @@ most 32 operations.
 | `DL track,coarse,fine,feedback,modfreq,moddepth,level` | Track `1..4`, DW-style delay parameters | Sets the mono-send/stereo-return delay attached to one record/scope track. Parameter ranges are `0..7`, `0..15`, `0..15`, `0..31`, `0..31`, `0..15`. | No |
 | `DL? [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. | No |
 | `GS [full]` | Optional boolean | Displays copy/pasteable global synth state and the build version. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. | No |
-| `m state` | `0` or nonzero | Mutes or unmutes oscillator output without deleting the voice settings. | Yes |
+| `m state` | `0` or nonzero | Removes or restores the voice in the master output without deleting its settings. A muted voice assigned with `r1`..`r4` remains available in that dry record/scope stem. | Yes |
 | `l velocity` | Envelope velocity | Triggers or updates the voice envelope with the supplied velocity. It also affects voices linked with `H`. | Yes |
 | `T` | None | Retriggers the selected voice at velocity `1`, including velocity-linked voices. | Yes |
 | `L seconds` | Trigger delay; `0` disables | Delays velocity/envelope triggering for the selected voice. This is a per-voice trigger delay, distinct from queue defers. | Yes |
@@ -906,9 +906,11 @@ The output uses the active engine/device sample rate (44.1 kHz by default),
 | 6, 7 | Stem 3 left, right |
 | 8, 9 | Stem 4 left, right |
 
-Every audible voice is present in the master. `r1` through `r4` additionally
-route the selected voice into a stem; `r0` removes that extra route. To stop
-automatically after five seconds, use `[take.wav]/rg5`.
+Every unmuted voice is present in the master. `r1` through `r4` additionally
+route the selected voice into a stem; `r0` removes that extra route. `m1`
+removes the voice from the master but preserves its dry stem route, allowing
+isolated stem recording or monitoring. To stop automatically after five
+seconds, use `[take.wav]/rg5`.
 
 ### Shared-Memory Scope Walkthrough
 

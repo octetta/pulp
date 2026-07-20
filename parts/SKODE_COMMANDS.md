@@ -326,6 +326,8 @@ schedulable.
 | `DL` | `track,coarse,fine,feedback,modfreq,moddepth,level` | Set the DW-style mono-send/stereo-return delay attached to record/scope track `1..4` | `delay_params_set()` |
 | `DL?` | `[track]` | Show one track delay or all four track delays as copy/pasteable `DL...` commands | `delay_format()`, `delay_bus_format()` |
 | `GS` | `[full]` | Show copy/pasteable version, master volume, tempo, and track delays; `full > 0` adds a larger text snapshot | `global_status_show()` |
+| `[filename] GS>` | string | Save the complete current REPL/session state as an ordinary versioned ZIP | `skode_session_save()` |
+| `[filename] GS<` | string | Validate and restore a complete session ZIP | `skode_session_load()` |
 | `w>d` | `wave` | Copy wavetable samples to parser data | `sw`, `ands_data_resize()` |
 | `w>r` | `wave` | Copy wavetable samples to recording buffer | `skode_sample_alloc()` |
 | `[filename] w>w wave` | string, numeric | Write wavetable samples unchanged at their stored sample rate | miniaudio encoder API |
@@ -562,6 +564,8 @@ four-character atom limit.
 | `[name] /m` | string | Remove one global ANDS macro | `ands_macro_remove()` |
 | `/m!` | none | Clear all global ANDS macros | `ands_macro_clear()` |
 | `GS` | `[full]` | Show copy/pasteable version, master volume, tempo, and track delay commands; `full > 0` adds a larger text snapshot | `global_status_show()` |
+| `[filename] GS>` | string | Save settings, writable waves, recording buffer, variables, macros, KSynth state, and control/MIDI mappings to ZIP | `skode_session_save()` |
+| `[filename] GS<` | string | Restore a validated session ZIP into the receiving parser context | `skode_session_load()` |
 | `/s [section]` | optional numeric | Show system, audio, synth, Skode, string, or benchmark state | `system_show()` and related helpers |
 | `/t [level]` | optional numeric | Toggle or set command/parser tracing | `ctx->trace`, `ands_trace_set()` |
 | `/v [level]` | optional numeric | Toggle or set verbose output | `ctx->verbose` |

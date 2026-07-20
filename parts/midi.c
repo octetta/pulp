@@ -190,6 +190,42 @@ const char *skred_midi_binding_status(void) {
   return midi_binding_message;
 }
 
+int skred_midi_binding_snapshot(skred_midi_binding_snapshot_t *bindings,
+    int capacity) {
+  if (capacity < 0 || (capacity > 0 && !bindings)) return -1;
+  midi_route_init();
+  simple_mutex_lock(&midi_route_mutex);
+  int total = 0;
+  for (int i = 0; i < SKRED_MIDI_BINDING_MAX; i++) {
+    if (!midi_binding[i].used) continue;
+    if (total < capacity) {
+      bindings[total].type = midi_binding[i].type;
+      bindings[total].channel = midi_binding[i].channel;
+      bindings[total].data1 = midi_binding[i].data1;
+      snprintf(bindings[total].command, sizeof(bindings[total].command),
+        "%s", midi_binding[i].command);
+    }
+    total++;
+  }
+  simple_mutex_unlock(&midi_route_mutex);
+  return total;
+}
+
+int skred_midi_binding_restore(
+    const skred_midi_binding_snapshot_t *bindings, int count) {
+  if (count < 0 || count > SKRED_MIDI_BINDING_MAX ||
+      (count > 0 && !bindings)) return -1;
+  skred_midi_binding_clear();
+  for (int i = 0; i < count; i++) {
+    if (skred_midi_binding_set(bindings[i].type, bindings[i].channel,
+        bindings[i].data1, bindings[i].command) != 0) {
+      skred_midi_binding_clear();
+      return -1;
+    }
+  }
+  return 0;
+}
+
 static int midi_route_target_valid(int target_type, int target) {
   if (target_type == SKRED_MIDI_ROUTE_VOICE)
     return target >= 0 && target < VOICE_MAX_HARD_LIMIT;
@@ -323,6 +359,41 @@ const char *skred_midi_route_status(void) {
       sizeof(midi_route_message) - used, "#   none\n");
   simple_mutex_unlock(&midi_route_mutex);
   return midi_route_message;
+}
+
+int skred_midi_route_snapshot(skred_midi_route_snapshot_t *routes,
+    int capacity) {
+  if (capacity < 0 || (capacity > 0 && !routes)) return -1;
+  midi_route_init();
+  simple_mutex_lock(&midi_route_mutex);
+  int total = 0;
+  for (int i = 0; i < SKRED_MIDI_ROUTE_MAX; i++) {
+    if (!midi_route[i].used) continue;
+    if (total < capacity) {
+      routes[total].channel = midi_route[i].channel;
+      routes[total].target_type = midi_route[i].target_type;
+      routes[total].target = midi_route[i].target;
+      routes[total].bend_semitones = midi_route[i].bend_semitones;
+    }
+    total++;
+  }
+  simple_mutex_unlock(&midi_route_mutex);
+  return total;
+}
+
+int skred_midi_route_restore(const skred_midi_route_snapshot_t *routes,
+    int count) {
+  if (count < 0 || count > SKRED_MIDI_ROUTE_MAX ||
+      (count > 0 && !routes)) return -1;
+  skred_midi_route_clear();
+  for (int i = 0; i < count; i++) {
+    if (skred_midi_route_set(routes[i].channel, routes[i].target_type,
+        routes[i].target, routes[i].bend_semitones) != 0) {
+      skred_midi_route_clear();
+      return -1;
+    }
+  }
+  return 0;
 }
 
 static float midi_bend_cents(int lsb, int msb, float range) {

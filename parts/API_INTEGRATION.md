@@ -447,6 +447,13 @@ context. `/cer 0`, `skred_control_response_set_enabled(0)`, or
 `skred_control_dispatch_stop()` stops that thread. `skred_stop()` also stops it
 before freeing engine state.
 
+Session/host integrations can copy this durable configuration with
+`skred_control_response_snapshot()` and replace it as one API operation
+with `skred_control_response_restore()`. The restore call stops the built-in
+dispatcher, replaces the responder table, and applies the requested enabled
+state only after every binding has been installed. Outstanding events in the
+notification ring are intentionally separate.
+
 For hosts that want to integrate the same responder table into an existing
 service thread, `skred_control_dispatch_pump(max_events)` performs one
 nonblocking dispatch pass and returns the number of response commands executed;
@@ -724,6 +731,11 @@ drains `SKRED_CONTROL_EVENT_MIDI`; backend callbacks only publish fixed-size
 events. See the MIDI section of
 [SKODE_USER_COMMAND_REFERENCE.md](SKODE_USER_COMMAND_REFERENCE.md) for channel
 wildcards, message type numbers, and template fields.
+
+`skred_midi_route_snapshot()`/`restore()` and
+`skred_midi_binding_snapshot()`/`restore()` provide bounded copies of these
+portable tables for session storage. They do not snapshot open MIDI device
+handles, held-note bookkeeping, or current bend values.
 
 ## Asset VFS
 

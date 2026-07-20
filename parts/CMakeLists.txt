@@ -311,6 +311,9 @@ endif()
 if(NOT FM_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_FM=1)
 endif()
+if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
+  target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_KSYNTH=1)
+endif()
 if(NOT PD_FEATURE_INDEX EQUAL -1 AND
    NOT FILT_FEATURE_INDEX EQUAL -1 AND
    NOT FADSR_FEATURE_INDEX EQUAL -1 AND
@@ -321,6 +324,10 @@ endif()
 add_test(
   NAME skode.command-state
   COMMAND skode_state_tests
+)
+add_test(
+  NAME skode.session-archive
+  COMMAND skode_state_tests --session-only
 )
 
 add_executable(skqueue_tests tests/skqueue_tests.c)

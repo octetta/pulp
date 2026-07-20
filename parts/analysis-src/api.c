@@ -42,7 +42,6 @@
 #define SKRED_CONTROL_EVENT_CAPACITY 1024
 #define SKRED_CONTROL_VOICE_CAPACITY VOICE_MAX_HARD_LIMIT
 #define SKRED_CONTROL_RESPONSE_CAPACITY 64
-#define SKRED_CONTROL_RESPONSE_COMMAND_MAX 512
 
 static skode_t w = SKODE_EMPTY();
 
@@ -515,6 +514,44 @@ void skred_control_response_set_enabled(int enabled) {
 
 int skred_control_response_enabled(void) {
   return atomic_load_int(&control_response_enabled);
+}
+
+int skred_control_response_snapshot(
+    skred_control_response_snapshot_t *bindings, int capacity) {
+  if (capacity < 0 || (capacity > 0 && !bindings)) return -1;
+  skred_control_dispatch_init();
+  simple_mutex_lock(&control_response_mutex);
+  int total = 0;
+  for (int i = 0; i < SKRED_CONTROL_RESPONSE_CAPACITY; i++) {
+    if (!control_response[i].used) continue;
+    if (total < capacity) {
+      bindings[total].type = control_response[i].type;
+      bindings[total].key = control_response[i].key;
+      snprintf(bindings[total].command, sizeof(bindings[total].command),
+        "%s", control_response[i].command);
+    }
+    total++;
+  }
+  simple_mutex_unlock(&control_response_mutex);
+  return total;
+}
+
+int skred_control_response_restore(
+    const skred_control_response_snapshot_t *bindings, int count,
+    int enabled) {
+  if (count < 0 || (count > 0 && !bindings) ||
+      count > SKRED_CONTROL_RESPONSE_CAPACITY) return -1;
+  skred_control_response_set_enabled(0);
+  skred_control_response_clear();
+  for (int i = 0; i < count; i++) {
+    if (skred_control_response_bind(bindings[i].type, bindings[i].key,
+        bindings[i].command) != 0) {
+      skred_control_response_clear();
+      return -1;
+    }
+  }
+  skred_control_response_set_enabled(enabled != 0);
+  return 0;
 }
 
 int skred_control_dispatch_pump(int max_events) {
@@ -1796,6 +1833,7 @@ int skred_scope_stop(void) {
 static char _features_[65536] = {0};
 #define CAT(x) {strcat(_features_, #x);strcat(_features_," ");}
 char *skred_features(void) {
+_features_[0] = '\0';
 CAT(ADSR)
 CAT(AM)
 CAT(XM)
@@ -1814,6 +1852,7 @@ CAT(KSYNTH)
 CAT(MIDI)
 CAT(RECORD)
 CAT(SCOPE)
+CAT(TRACKS)
 return _features_;
 }
 

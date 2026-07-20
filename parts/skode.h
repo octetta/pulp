@@ -106,6 +106,7 @@ typedef struct skode_s {
   int quit;
   int (*puts)(struct skode_s *w, const char *s);
   int (*printf)(struct skode_s *w, const char *fmt, ...);
+  void *output_user;
   int log_enable;
   char log[SKODE_LOG_MAX + 1024];
   int log_max;
@@ -177,6 +178,7 @@ int null_printf(const char *fmt, ...);
   .quit = 0, \
   .puts = skode_puts, \
   .printf = skode_printf, \
+  .output_user = NULL, \
   .log_enable = 0, \
   .log_len = 0, \
   .log_max = SKODE_LOG_MAX, \

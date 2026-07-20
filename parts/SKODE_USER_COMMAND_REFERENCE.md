@@ -60,6 +60,8 @@ most 32 operations.
 | `DL track,coarse,fine,feedback,modfreq,moddepth,level` | Track `1..4`, DW-style delay parameters | Sets the mono-send/stereo-return delay attached to one record/scope track. Parameter ranges are `0..7`, `0..15`, `0..15`, `0..31`, `0..31`, `0..15`. | No |
 | `DL? [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. | No |
 | `GS [full]` | Optional boolean | Displays copy/pasteable global synth state and the build version. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. | No |
+| `[filename.zip] GS>` | String filename | Saves a versioned, restorable REPL session as an ordinary ZIP archive. | No |
+| `[filename.zip] GS<` | String filename | Validates and restores a session ZIP into the current REPL context. | No |
 | `m state` | `0` or nonzero | Removes or restores the voice in the master output without deleting its settings. A muted voice assigned with `r1`..`r4` remains available in that dry record/scope stem. | Yes |
 | `l velocity` | Envelope velocity | Triggers or updates the voice envelope with the supplied velocity. It also affects voices linked with `H`. | Yes |
 | `T` | None | Retriggers the selected voice at velocity `1`, including velocity-linked voices. | Yes |
@@ -153,7 +155,66 @@ GS1
 for user-loaded wavetables, record/scope track routing when available, active
 voice definitions, and sequencer patterns. Wavetable sample data is not
 embedded; the snapshot includes a comment to make that limitation visible in
-saved files.
+saved files. Defined polyphony groups and pools are emitted after voice
+definitions so pool prototypes are rebuilt from the restored voices.
+
+### Complete Session Archives
+
+Use `GS>` when the text-only `GS1` snapshot is not enough:
+
+```text
+[working-session.zip] GS>
+[working-session.zip] GS<
+```
+
+The result is an ordinary ZIP and can also be mounted and inspected through
+the VFS:
+
+```text
+[working-session.zip] %z
+%ls
+[state.sk] %cat
+%zu
+```
+
+A session contains a readable `manifest.txt` and `state.sk`, plus exact binary
+entries for state that cannot be represented safely or compactly as Skode
+text. The saved state includes:
+
+- global synth, voice, track-delay, pattern, and named-macro state from `GS1`;
+- all 128 shared `$N` registers and the current parser data array;
+- all populated numbered external entries stored with `e>N` and invoked by
+  `e!N`;
+- parser-local `s>N` string slots and the selected voice, pattern, and step;
+- parser flag, trace, and verbose settings;
+- every populated writable/non-native wavetable, with unchanged float samples,
+  rate, playback mode, loop metadata, direction, pitch metadata, and label;
+- the completed `<r` recording buffer, including mono/stereo layout, source,
+  offset, and trim;
+- KSynth `A` through `Z` variables, including numeric vectors and function
+  variables, plus the latest KSynth result when `KSYNTH` is available;
+- control-event response bindings and their `/cer` enabled state;
+- MIDI voice/pool routes, MIDI-to-Skode bindings, event mask, and debug state.
+
+Physical MIDI and audio device handles are not saved: numeric device indices
+are machine-specific, and Web MIDI access must still originate from a browser
+user gesture. Active UDP endpoints and scope/recorder publications are not
+reopened. Outstanding control notifications, pending scheduled events, active
+or armed recording, oscillator phase, envelope progress, and delay-line
+contents are also not replayed. A restored session recreates the REPL and
+patch configuration, rather than continuing at the identical audio sample.
+
+`GS<` validates the archive format, enabled build-feature set, sample rate,
+configured voice/wave capacity, binary entry sizes, and available KSynth
+support before clearing the current session. Writable waves are installed
+before `state.sk`; control and MIDI mappings are restored afterward, and the
+control dispatcher is enabled last. Loading a session should be treated like
+loading a `.sk` program: use archives from sources you trust.
+
+When audio is running, `GS<` disconnects the active device for the committed
+restore and reconnects it afterward so the callback cannot retain pointers to
+replaced wave memory. Restoration is rejected while `<r` capture or `/rg`
+multitrack recording is armed, recording, or stopping.
 
 ### Direction, Looping, and Triggering
 

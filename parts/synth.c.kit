@@ -1371,7 +1371,12 @@ void mmf_set_params(int n, float f, float resonance);
 static float *this_capture;
 static int this_capture_channels;
 
-synth_sample_t sampling = {.what = -1};
+synth_sample_t sampling = {
+  .state = SAMPLE_STATE_IDLE,
+  .source = SAMPLE_SOURCE_DRY,
+  .source_voice = -1,
+  .channels = 1
+};
 
 void synth_capture(float *buffer, float *input, int num_frames,
                    int num_channels, int input_channels, void *user) {
@@ -1424,7 +1429,17 @@ void synth_capture(float *buffer, float *input, int num_frames,
     float record_right[RECORD_TRACK_COUNT] = {0};
     @endif
     
+    int sample_state = atomic_load_int(&sampling.state);
+    if (sample_state == SAMPLE_STATE_ARMED) {
+      sampling.ptr = 0;
+      sampling.len = 0;
+      sampling.offset = 0;
+      sampling.trim = 0;
+      atomic_store_int(&sampling.state, SAMPLE_STATE_RECORDING);
+      sample_state = SAMPLE_STATE_RECORDING;
+    }
     float record_mono = 0.0f;
+    float record_voice = 0.0f;
     
     float f = 0.0f;
     uint64_t noise_raw = audio_rng_next(&synth_random);
@@ -1632,10 +1647,14 @@ void synth_capture(float *buffer, float *input, int num_frames,
       }
       @endif
 
-      if (sampling.what == n) {
-        record_mono = sv.sample[n];
-      } else if (sampling.what < 0 &&
-                 (sv.disconnect[n] == 0 || is_capture)) {
+      if (sample_state == SAMPLE_STATE_RECORDING &&
+          sampling.source == SAMPLE_SOURCE_VOICE &&
+          sampling.source_voice == n) {
+        record_voice = sv.sample[n];
+      }
+      if (sample_state == SAMPLE_STATE_RECORDING &&
+          sampling.source == SAMPLE_SOURCE_DRY &&
+          (sv.disconnect[n] == 0 || is_capture)) {
         record_mono += sv.sample[n];
       }
 
@@ -1694,30 +1713,30 @@ void synth_capture(float *buffer, float *input, int num_frames,
       }
     }
 
-    if (sampling.go) {
-      sampling.busy = 1;
-      sampling.go = 0;
-      sampling.ptr = 0;
-      sampling.len = 0;
-      sampling.offset = 0;
-      sampling.trim = 0;
-    }
-    if (sampling.busy) {
-      if (sampling.frames >= 0) {
-        sampling.where[sampling.ptr++] = record_mono;
-        sampling.frames--;
-      } else {
-        sampling.len = sampling.ptr-1;
-        sampling.busy = 0;
-      }
-    }
-
     // Adjust to main volume: smooth it otherwise is sounds crummy with realtime changes
     volume_smoother_gain += volume_smoother_smoothing * (volume_final - volume_smoother_gain);
     float volume_adjusted = volume_smoother_gain;
 
     sample_left  *= volume_adjusted;
     sample_right *= volume_adjusted;
+
+    if (sample_state == SAMPLE_STATE_RECORDING &&
+        atomic_load_int(&sampling.frames) > 0) {
+      if (sampling.source == SAMPLE_SOURCE_MASTER) {
+        size_t frame = (size_t)sampling.ptr * 2;
+        sampling.where[frame] = sample_left;
+        sampling.where[frame + 1] = sample_right;
+      } else {
+        sampling.where[sampling.ptr] =
+          sampling.source == SAMPLE_SOURCE_VOICE ? record_voice : record_mono;
+      }
+      sampling.ptr++;
+      int remaining = atomic_fetch_add_int(&sampling.frames, -1) - 1;
+      if (remaining == 0) {
+        sampling.len = sampling.ptr;
+        atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
+      }
+    }
 
     @if(RECORD || SCOPE)
     if (record_frames) {

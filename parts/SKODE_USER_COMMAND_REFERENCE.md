@@ -842,17 +842,18 @@ immediately on the control thread.
 | `/w file[,wave[,channel]]` | Numbered file and optional destination | Loads a numbered audio file. |
 | `w>d wave` | Wave index | Copies wavetable samples into the parser data array. |
 | `w>r wave` | Wave index | Copies wavetable samples into the temporary recording buffer. |
+| `[filename] w>w wave` | File name and wave index | Writes the wavetable directly as mono floating-point WAV data, unchanged, using its stored sample rate. |
 | `d>r` | None | Copies parser data into the temporary recording buffer. |
-| `/r [slot[,mode[,offset]]]` | Wave destination and options | Loads the temporary recording buffer into a wavetable. Mode is `0` cycle or `1` one-shot (default). |
+| `/r [slot[,mode[,channel]]]` | Wave destination and options | Loads the temporary recording into a mono wavetable. Mode is `0` cycle or `1` one-shot (default). Stereo recordings default to a mono downmix; channel `0` or `1` selects left or right. |
 | `/d [slot[,rate[,mode[,offset]]]]` | Wave destination and options | Loads parser data into a wavetable at the requested sample rate. Mode is `0` cycle (default) or `1` one-shot. |
-| `w> [samples]` | Start offset adjustment | Moves the temporary recording's start point. |
-| `w< [samples]` | End trim adjustment | Changes how many samples are removed from the recording end. |
-| `w<> [threshold[,end-threshold[,margin-samples]]]` | Detection thresholds and optional sample margin | Finds useful start and end trim points from signal level. Defaults to a small silence threshold of `0.001`. |
+| `w> [frames]` | Start offset adjustment | Moves the temporary recording's start point. |
+| `w< [frames]` | End trim adjustment | Changes how many frames are removed from the recording end. |
+| `w<> [threshold[,end-threshold[,margin-frames]]]` | Detection thresholds and optional frame margin | Finds useful start and end trim points from signal level. For stereo, either channel can make a frame audible. Defaults to a small silence threshold of `0.001`. |
 | `w!` | None | Applies current recording offsets and trims. |
 | `w*` | None | Resets recording offsets and trims. |
 | `/wex wave` | Dynamic wave index `200` through `999` | Expands storage for a dynamic wavetable slot. |
-| `<r seconds [voice]`, `^r seconds [voice]` | Duration, optional voice | Records the all-voice mix or one specific voice into the temporary sample buffer. |
-| `>r number` | Output number | Normalizes the temporary sample and writes `out-N.wav`. |
+| `<r seconds[,source[,voice]]`, `^r ...` | Duration, source mode, optional source voice | Records source `0` dry mono, `1` one selected voice, or `2` the audible stereo master. Source defaults to `0`; source `1` requires the voice argument. |
+| `[filename] >r` | File name | Normalizes the completed temporary recording and writes it as a mono or stereo WAV at the main sample rate. |
 | `[filename] /rg [max-seconds]` | Output filename and optional limit | Starts multitrack WAV recording. Requires `RECORD`. |
 | `/rs` | None | Stops multitrack recording. Requires `RECORD`. |
 | `/r?` | None | Displays multitrack recorder status. Requires `RECORD`. |
@@ -863,6 +864,22 @@ immediately on the control thread.
 | `[name] /sg [channel-mask[,buffer-seconds]]` | Shared-memory name, channel bit mask, ring duration | Starts live publication of the ten-channel master/stem bus. Defaults to `skred-scope`, all channels, and one second. Requires `SCOPE`. |
 | `/ss` | None | Stops publication and unlinks the shared-memory name. Existing mappings remain readable and report inactive. Requires `SCOPE`. |
 | `/s?` | None | Displays scope name, format, mask, capacity, and absolute frame counter. Requires `SCOPE`. |
+
+For example, `[periodic.wav] w>w300` exports wave 300 without changing its
+sample values, while `[take.wav] >r` exports and normalizes the temporary
+recording. The supplied filename is used literally, so include the `.wav`
+extension when desired.
+
+`<r 5` and `<r 5,0` capture five seconds of the current dry mono voice sum,
+before panning, delay returns, and master volume. `<r 5,1,12` captures voice
+12 after its voice processing but before pan and master volume. `<r 5,2`
+captures the audible stereo master after panning, delay returns, and master
+volume. The older `<r seconds,voice` form is intentionally replaced by the
+unambiguous source-mode syntax.
+
+When `/r` installs a one-shot recording, it automatically records the
+duration-derived pitch metadata that makes MIDI note 69 play it at its natural
+rate. The former, misleading `offset` argument is no longer exposed.
 
 Scope channel-mask bits follow the file layout: bits `0` and `1` are master
 left/right, bits `2` and `3` are stem 1, through bits `8` and `9` for stem 4.

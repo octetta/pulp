@@ -328,13 +328,14 @@ schedulable.
 | `GS` | `[full]` | Show copy/pasteable version, master volume, tempo, and track delays; `full > 0` adds a larger text snapshot | `global_status_show()` |
 | `w>d` | `wave` | Copy wavetable samples to parser data | `sw`, `ands_data_resize()` |
 | `w>r` | `wave` | Copy wavetable samples to recording buffer | `skode_sample_alloc()` |
+| `[filename] w>w wave` | string, numeric | Write wavetable samples unchanged at their stored sample rate | miniaudio encoder API |
 | `d>r` | none | Copy parser data to recording buffer | `skode_sample_alloc()` |
-| `w!` | none | Apply current recording offset and trim | recording-buffer state |
+| `w!` | none | Apply current recording frame offset and trim | recording-buffer state |
 | `w*` | none | Reset recording offset and trim | recording-buffer state |
-| `w>` | `[samples]` | Move recording start offset | `sampling.offset` |
-| `w<` | `[samples]` | Increase or decrease end trim | `sampling.trim` |
-| `w<>` | `[threshold [, end-threshold [, margin-samples]]]` | Find recording trim points using a default `0.001` silence threshold, four consecutive audible samples, and optional sample margin | `record_find_trim()` |
-| `/r` | `[slot [, mode [, offset]]]` | Load recording buffer into a wave slot; defaults to one-shot mode | `rec_load()` |
+| `w>` | `[frames]` | Move recording start offset | `sampling.offset` |
+| `w<` | `[frames]` | Increase or decrease end trim | `sampling.trim` |
+| `w<>` | `[threshold [, end-threshold [, margin-frames]]]` | Find recording trim points using a default `0.001` silence threshold, four consecutive audible frames, and optional frame margin | `record_find_trim()` |
+| `/r` | `[slot [, mode [, channel]]]` | Load recording into a mono wave; stereo defaults to a downmix, or channel `0`/`1` selects left/right | `rec_load()` |
 | `/d` | `[slot [, rate [, mode [, offset]]]]` | Load parser data into a wave slot; defaults to cycle mode | `data_load()` |
 | `/wex` | `wave` | Expand a dynamic wave slot in the 200-999 range | `wave_table_dynamic_expand()` |
 
@@ -504,8 +505,8 @@ vector, so `k>w` arguments supply the desired rate and playback mode.
 | `[filename] /ls [verbose]` | string | Load a named Skode file; bare names also fall back to `sk/filename` | `skode_load_name()` |
 | `[filename] /ws wave[,channel]` | string | Load an audio file into a writable wave slot | `wave_load_string()` |
 | `/w file-number[,wave[,channel]]` | numeric | Load a numbered audio file | `wave_load()` |
-| `<r seconds [voice]`, `^r seconds [voice]` | numeric | Record the all-voice mix or one voice into the sample buffer | `skode_sample_go()` |
-| `>r number` | numeric | Normalize sample buffer and write `out-N.wav` | miniaudio encoder API |
+| `<r seconds[,source[,voice]]`, `^r ...` | numeric | Record source `0` dry mono, `1` selected voice, or `2` audible stereo master | `skode_sample_go()` |
+| `[filename] >r` | string | Normalize the completed mono or stereo sample buffer and write the named WAV file | miniaudio encoder API |
 | `[filename] /rg [max-seconds]` | string | Start multitrack recording | `recorder_start()` |
 | `/rs` | none | Stop multitrack recording | `recorder_stop()` |
 | `/r?` | none | Show multitrack recorder status | recorder status functions |

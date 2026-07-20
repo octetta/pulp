@@ -1,6 +1,8 @@
 #ifndef _SYNTH_TYPES_H_
 #define _SYNTH_TYPES_H_
 
+#include "portable_atomic.h"
+
 #define SKRED_DEFAULT_SAMPLE_RATE (44100)
 extern int synth_sample_rate;
 #define MAIN_SAMPLE_RATE (synth_sample_rate)
@@ -136,37 +138,28 @@ typedef char wave_name_t[WAVE_NAME_MAX];
 #define TEXT_MAX (32+1)
 typedef char text_t[TEXT_MAX];
 
+enum {
+  SAMPLE_STATE_IDLE = 0,
+  SAMPLE_STATE_ARMED,
+  SAMPLE_STATE_RECORDING,
+  SAMPLE_STATE_COMPLETE
+};
+
+enum {
+  SAMPLE_SOURCE_DRY = 0,
+  SAMPLE_SOURCE_VOICE,
+  SAMPLE_SOURCE_MASTER
+};
+
 typedef struct {
-  int capacity;
-  int busy;
-  int what;
-  int go;
-  int frames;
+  int capacity; /* frames; storage is allocated for up to stereo */
+  atomic_int_t state;
+  int source;
+  int source_voice;
+  atomic_int_t frames; /* frames remaining while recording */
   int channels;
-  /*
-      IDEA skred has 5 channels
-      arranged in memory
-      +0 = MONO
-      +1 = A-LEFT
-      +2 = A-RIGHT
-      +3 = B-LEFT
-      +4 = B-RIGHT
-      using these destinations per voice
-      0 = NONE
-      when dest 0, this voice is not recorded
-      1 = A(L/R)
-      2 = B(L/R)
-      when dest 1, panning applied then this voice's
-        L gets added to A-L
-        R gets added to A-R
-      when dest 2, panning applied then this voice's
-        L gets added to A-L
-        R gets added to A-R
-      3 = MONO
-      when dest 3, panning is bypassed and this voice gets added to MONO
-  */
-  int ptr;
-  int len;
+  int ptr;      /* frames written */
+  int len;      /* completed frames */
   float *where;
   int offset;
   int trim;

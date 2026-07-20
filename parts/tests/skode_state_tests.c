@@ -8,6 +8,7 @@
 #include "ands.h"
 #include "api.h"
 #include "control-events.h"
+#include "miniwav.h"
 #include "skode.h"
 #include "skode-dict.h"
 #include "seq.h"
@@ -21,7 +22,7 @@ extern int wave_load_string(skode_t *ctx, char *name, int wave_index,
                             int ch, int normalize);
 extern int wave_load(skode_t *ctx, int file_num, int wave_index,
                      int ch, int normalize);
-extern int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset);
+extern int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel);
 
 static void fail(const char *test, const char *msg) {
   fprintf(stderr, "FAIL %s: %s\n", test, msg);
@@ -862,8 +863,10 @@ static void test_wave_loop_points(void) {
   sampling.where = rec_data;
   sampling.len = 10;
   sampling.capacity = 10;
+  sampling.channels = 1;
   sampling.offset = 2;
   sampling.trim = 3;
+  atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
   ctx.log_enable = 1;
   ctx.log[0] = '\0';
   ctx.log_len = 0;
@@ -997,6 +1000,93 @@ static void test_wave_loop_points(void) {
   sw.size[wave] = 0;
 }
 
+static void test_named_wav_exports(void) {
+  const char *test = "named WAV exports";
+  const int wave = 300;
+  static float wave_data[4] = {-0.25f, 0.5f, -0.75f, 0.125f};
+  static float recording_data[8] = {
+    -0.25f, 0.25f,
+     0.50f, -0.50f,
+    -1.00f, 0.25f,
+     0.125f, -0.125f
+  };
+  char wave_filename[128];
+  char recording_filename[128];
+  char command[192];
+  wav_t header;
+  int frames = 0;
+  float *decoded;
+  skode_t ctx = new_ctx();
+  extern synth_sample_t sampling;
+
+  snprintf(wave_filename, sizeof(wave_filename),
+           "/tmp/pulp-wave-export-%ld.wav", (long)getpid());
+  snprintf(recording_filename, sizeof(recording_filename),
+           "/tmp/pulp-recording-export-%ld.wav", (long)getpid());
+  unlink(wave_filename);
+  unlink(recording_filename);
+
+  sw.data[wave] = wave_data;
+  sw.size[wave] = 4;
+  sw.rate[wave] = 22050.0f;
+  sw.readonly[wave] = 0;
+  sw.is_heap[wave] = 0;
+
+  snprintf(command, sizeof(command), "[%s] w>w%d", wave_filename, wave);
+  consume(test, &ctx, command);
+  decoded = mw_get(wave_filename, &frames, &header, 0);
+  if (!decoded) {
+    fail(test, "w>w did not create a readable WAV file");
+  } else {
+    expect_int(test, frames, 4, "w>w frame count");
+    expect_int(test, (int)header.SamplesRate, 22050, "w>w stored sample rate");
+    expect_float(test, decoded[0], wave_data[0], 0.0001f,
+                 "w>w preserves sample amplitude");
+    mw_free(decoded);
+  }
+
+  sampling.where = recording_data;
+  sampling.len = 4;
+  sampling.capacity = 4;
+  sampling.channels = 2;
+  sampling.offset = 0;
+  sampling.trim = 0;
+  atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
+  snprintf(command, sizeof(command), "[%s] >r", recording_filename);
+  consume(test, &ctx, command);
+  decoded = mw_get(recording_filename, &frames, &header, 0);
+  if (!decoded) {
+    fail(test, ">r did not create a readable named WAV file");
+  } else {
+    expect_int(test, frames, 4, ">r frame count");
+    expect_int(test, (int)header.Channels, 2, ">r stereo channel count");
+    expect_int(test, (int)header.SamplesRate, MAIN_SAMPLE_RATE,
+               ">r main sample rate");
+    expect_float(test, decoded[2], -0.95f, 0.0001f,
+                 ">r normalizes recording");
+    mw_free(decoded);
+  }
+
+  consume(test, &ctx, "/r301,1,0");
+  expect_int(test, sw.size[301], 4, "/r stereo channel frame count");
+  expect_float(test, sw.data[301][0], -0.25f, 0.0001f,
+               "/r selected left channel");
+  expect_float(test, sw.midi_note[301], 69.0f, 0.0001f,
+               "/r one-shot natural-rate root note");
+  wave_free_one(301);
+
+  ctx.log_enable = 1;
+  reset_log(&ctx);
+  consume(test, &ctx, ">r");
+  expect_substr(test, ctx.log, "# >r requires [filename]",
+                ">r missing filename diagnostic");
+
+  unlink(wave_filename);
+  unlink(recording_filename);
+  sw.data[wave] = NULL;
+  sw.size[wave] = 0;
+}
+
 static void test_wave_load_smpl_loop(void) {
   const char *test = "wave load smpl loop";
   char path[128];
@@ -1081,8 +1171,10 @@ static void test_record_find_trim_command(void) {
   sampling.where = rec_data;
   sampling.len = 16;
   sampling.capacity = 16;
+  sampling.channels = 1;
   sampling.offset = 0;
   sampling.trim = 0;
+  atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
 
   consume(test, &ctx, "w<>");
   expect_int(test, sampling.offset, 5,
@@ -1104,35 +1196,54 @@ static void test_record_find_trim_command(void) {
 }
 
 static void test_record_voice_selection(void) {
-  const char *test = "record voice selection";
+  const char *test = "record source selection";
   skode_t ctx = new_ctx();
   extern synth_sample_t sampling;
 
-  sampling.busy = 0;
-  sampling.go = 0;
-  sampling.what = -1;
+  atomic_store_int(&sampling.state, SAMPLE_STATE_IDLE);
+  sampling.source = SAMPLE_SOURCE_DRY;
+  sampling.source_voice = -1;
   consume(test, &ctx, "<r .001");
-  expect_int(test, sampling.what, -1, "default records all voices");
-  expect_int(test, sampling.go, 1, "default recording armed");
+  expect_int(test, sampling.source, SAMPLE_SOURCE_DRY,
+             "default records dry mix");
+  expect_int(test, atomic_load_int(&sampling.state), SAMPLE_STATE_ARMED,
+             "default recording armed");
+  expect_int(test, sampling.channels, 1, "dry recording is mono");
 
-  sampling.go = 0;
-  sampling.frames = 0;
-  consume(test, &ctx, "<r .001 3");
-  expect_int(test, sampling.what, 3, "optional voice selected");
-  expect_int(test, sampling.go, 1, "voice recording armed");
+  atomic_store_int(&sampling.state, SAMPLE_STATE_IDLE);
+  consume(test, &ctx, "<r .001,1,3");
+  expect_int(test, sampling.source, SAMPLE_SOURCE_VOICE,
+             "voice source selected");
+  expect_int(test, sampling.source_voice, 3, "source voice selected");
+  expect_int(test, atomic_load_int(&sampling.state), SAMPLE_STATE_ARMED,
+             "voice recording armed");
 
-  sampling.go = 0;
-  sampling.frames = 0;
+  atomic_store_int(&sampling.state, SAMPLE_STATE_IDLE);
+  consume(test, &ctx, "<r .001,2");
+  expect_int(test, sampling.source, SAMPLE_SOURCE_MASTER,
+             "master source selected");
+  expect_int(test, sampling.channels, 2, "master recording is stereo");
+  {
+    float output[44 * AUDIO_CHANNELS] = {0};
+    synth(output, NULL, 44, AUDIO_CHANNELS, NULL);
+    for (int i = 0; i < 44 * AUDIO_CHANNELS; i++) {
+      expect_float(test, sampling.where[i], output[i], 0.000001f,
+                   "master recording matches stereo output");
+    }
+  }
+  expect_int(test, atomic_load_int(&sampling.state), SAMPLE_STATE_COMPLETE,
+             "master recording completes on final frame");
+  expect_int(test, sampling.len, 44, "master recording exact frame count");
+
+  atomic_store_int(&sampling.state, SAMPLE_STATE_IDLE);
   ctx.log_enable = 1;
   ctx.log[0] = '\0';
   ctx.log_len = 0;
-  consume(test, &ctx, "<r .001 99");
-  expect_int(test, sampling.go, 0, "invalid voice not armed");
-  expect_int(test, sampling.what, 3, "invalid voice keeps selection");
-  expect_substr(test, ctx.log, "usage: <r seconds [voice]",
+  consume(test, &ctx, "<r .001,1,99");
+  expect_int(test, atomic_load_int(&sampling.state), SAMPLE_STATE_IDLE,
+             "invalid voice not armed");
+  expect_substr(test, ctx.log, "usage: <r seconds,1,voice",
                 "invalid voice reports usage");
-
-  sampling.what = -1;
 }
 
 static void test_multichannel_capture_waves(void) {
@@ -2548,7 +2659,7 @@ static void test_909_load_rejects_too_small_wave_table(void) {
              "high sample wave load status");
 
   reset_log(&ctx);
-  expect_int(test, rec_load(&ctx, 400, 0, 0.0f), -1,
+  expect_int(test, rec_load(&ctx, 400, 0, -1), -1,
              "high recording wave load status");
 
   reset_log(&ctx);
@@ -3101,6 +3212,7 @@ int main(void) {
   test_envelope_future_timestamps();
   test_cycle_playback_classification();
   test_bounded_one_shot_loops();
+  test_named_wav_exports();
   test_wave_loop_points();
   test_wave_load_smpl_loop();
   test_record_find_trim_command();

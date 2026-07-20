@@ -1314,11 +1314,15 @@ static void wave_install_memory(int wave_slot, float *table, int len,
   sw.offset_hz[wave_slot] = offset_hz;
 }
 
-int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset) {
-  ctx->printf(ctx, "# rec_load(ctx, %d, %d, %g)\n",
-    wave_slot, one_shot, offset);
+int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel) {
+  ctx->printf(ctx, "# rec_load(ctx, %d, %d, %d)\n",
+    wave_slot, one_shot, channel);
   if (!skode_wave_valid(wave_slot)) {
     ctx->printf(ctx, "# invalid slot %d\n", wave_slot);
+    return -1;
+  }
+  if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE) {
+    ctx->printf(ctx, "# recording buffer is not complete\n");
     return -1;
   }
   if (!sampling.where || sampling.offset < 0 || sampling.trim < 0 ||
@@ -1327,15 +1331,15 @@ int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset) {
     ctx->printf(ctx, "# invalid recording bounds\n");
     return -1;
   }
-  float *data = sampling.where + sampling.offset;
+  int channels = sampling.channels == 2 ? 2 : 1;
   int data_len = sampling.len - sampling.offset - sampling.trim;
-  if (data == NULL) {
-    ctx->printf(ctx, "# no data\n");
-    return 100; // fix todo
-  }
   if (data_len <= 0) {
     ctx->printf(ctx, "# no data len\n");
     return 100;
+  }
+  if (channel < -1 || channel >= channels) {
+    ctx->printf(ctx, "# recording channel must be -1..%d\n", channels - 1);
+    return -1;
   }
   if (sw.readonly[wave_slot] == 1) {
     ctx->printf(ctx, "# cannot write to w%d r/o\n", wave_slot);
@@ -1352,18 +1356,27 @@ int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset) {
     ctx->printf(ctx, "# allocation failed\n");
     return -1;
   }
-  for (int i=0; i<data_len; i++) table[i] = (float)data[i];
+  for (int i=0; i<data_len; i++) {
+    size_t frame = (size_t)(sampling.offset + i) * (size_t)channels;
+    if (channels == 1) {
+      table[i] = sampling.where[frame];
+    } else if (channel >= 0) {
+      table[i] = sampling.where[frame + (size_t)channel];
+    } else {
+      table[i] = 0.5f * (sampling.where[frame] + sampling.where[frame + 1]);
+    }
+  }
   normalize_preserve_zero(table, data_len);
   int len = data_len;
     char wave_name[WAVE_NAME_MAX];
     snprintf(wave_name, sizeof(wave_name), "data[%d]", data_len);
-    float offset_hz = offset > 0
+    float offset_hz = one_shot
       ? (float)len / (float)MAIN_SAMPLE_RATE * 440.0f : 0.0f;
     wave_install_memory(wave_slot, table, len, (float)MAIN_SAMPLE_RATE,
-      one_shot, wave_name, offset > 0 ? 69.0f : 0.0f, offset_hz);
+      one_shot, wave_name, one_shot ? 69.0f : 0.0f, offset_hz);
     char *name = "data";
-    int channels = 1;
-    ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d)\n", data_len, name, wave_slot, channels);
+    ctx->printf(ctx, "# read %d frames from %s to %d (ch:1)\n",
+                data_len, name, wave_slot);
   return 0;
 }
 
@@ -2499,33 +2512,35 @@ void wave_table_dynamic_expand(int n) {
 #include <sys/time.h>
 #include <unistd.h>
 
-void skode_sample_alloc(int frames) {
-  if (frames <= 0 || frames > INT_MAX - 4096) {
-    sampling.frames = 0;
-    return;
+static int skode_sample_alloc(int frames) {
+  if (frames <= 0 || frames > INT_MAX / AUDIO_CHANNELS) {
+    return 0;
   }
   if (sampling.capacity < frames) {
-    float *where = (float *)calloc((size_t)frames + 4096, sizeof(float));
+    size_t samples = (size_t)frames * AUDIO_CHANNELS;
+    float *where = (float *)calloc(samples, sizeof(float));
     if (!where) {
-      sampling.frames = 0;
-      return;
+      return 0;
     }
     free(sampling.where);
     sampling.where = where;
     sampling.capacity = frames;
   }
-  sampling.frames = frames;
+  return sampling.where != NULL;
 }
 
-void skode_sample_go(int frames, int voice) {
-  if (sampling.busy) {
-    return;
+int skode_sample_go(int frames, int source, int voice) {
+  int state = atomic_load_int(&sampling.state);
+  if (state == SAMPLE_STATE_ARMED || state == SAMPLE_STATE_RECORDING) {
+    return 0;
   }
-  skode_sample_alloc(frames);
-  if (sampling.frames > 0 && sampling.where) {
-    sampling.what = voice;
-    sampling.go = 1;
-  }
+  if (!skode_sample_alloc(frames)) return 0;
+  sampling.source = source;
+  sampling.source_voice = voice;
+  sampling.channels = source == SAMPLE_SOURCE_MASTER ? 2 : 1;
+  atomic_store_int(&sampling.frames, frames);
+  atomic_store_int(&sampling.state, SAMPLE_STATE_ARMED);
+  return 1;
 }
 
 #include "miniaudio.h"
@@ -2647,16 +2662,105 @@ void normalize_buffer(float* pSamples, ma_uint32 frameCount, ma_uint32 channels)
     }
 }
 
+static int skode_write_wav(skode_t *ctx, const char *filename,
+                           const float *samples, int frames,
+                           ma_uint32 channels, ma_uint32 sample_rate,
+                           int normalize) {
+    ma_encoder_config config;
+    ma_encoder encoder;
+    const float *where = samples;
+    float *copy = NULL;
+    ma_uint64 frames_written = 0;
+    ma_result result;
+
+    if (!filename || !filename[0]) {
+        ctx->printf(ctx, "# WAV output requires [filename]\n");
+        return 0;
+    }
+    if (!samples || frames <= 0) {
+        ctx->printf(ctx, "# no samples to write to %s\n", filename);
+        return 0;
+    }
+    if (channels < 1 || channels > AUDIO_CHANNELS) {
+        ctx->printf(ctx, "# invalid WAV channel count\n");
+        return 0;
+    }
+    if (sample_rate == 0) sample_rate = MAIN_SAMPLE_RATE;
+    if (normalize) {
+        size_t sample_count = (size_t)frames * channels;
+        copy = (float *)malloc(sample_count * sizeof(float));
+        if (!copy) {
+            ctx->printf(ctx, "# allocation failed writing %s\n", filename);
+            return 0;
+        }
+        memcpy(copy, samples, sample_count * sizeof(float));
+        normalize_buffer(copy, (ma_uint32)frames, channels);
+        where = copy;
+    }
+
+    config = ma_encoder_config_init(ma_encoding_format_wav, ma_format_f32,
+                                    channels, sample_rate);
+    result = ma_encoder_init_file(filename, &config, &encoder);
+    if (result != MA_SUCCESS) {
+        ctx->printf(ctx, "# cannot open %s\n", filename);
+        free(copy);
+        return 0;
+    }
+    result = ma_encoder_write_pcm_frames(&encoder, where, (ma_uint64)frames,
+                                         &frames_written);
+    ma_encoder_uninit(&encoder);
+    free(copy);
+    if (result != MA_SUCCESS || frames_written != (ma_uint64)frames) {
+        ctx->printf(ctx, "# cannot write %s\n", filename);
+        return 0;
+    }
+    ctx->printf(ctx, "# wrote %d frames (%u channel%s) to %s at %u Hz\n",
+                frames, channels, channels == 1 ? "" : "s",
+                filename, sample_rate);
+    return 1;
+}
+
+static float record_frame_mono(int frame) {
+  int channels = sampling.channels == 2 ? 2 : 1;
+  size_t index = (size_t)frame * (size_t)channels;
+  if (channels == 1) return sampling.where[index];
+  return 0.5f * (sampling.where[index] + sampling.where[index + 1]);
+}
+
+static float record_frame_level(int frame) {
+  int channels = sampling.channels == 2 ? 2 : 1;
+  size_t index = (size_t)frame * (size_t)channels;
+  float level = fabsf(sampling.where[index]);
+  if (channels == 2) {
+    float right = fabsf(sampling.where[index + 1]);
+    if (right > level) level = right;
+  }
+  return level;
+}
+
+static int record_frames_cross_zero(int a, int b) {
+  int channels = sampling.channels == 2 ? 2 : 1;
+  size_t ai = (size_t)a * (size_t)channels;
+  size_t bi = (size_t)b * (size_t)channels;
+  for (int channel = 0; channel < channels; channel++) {
+    float av = sampling.where[ai + (size_t)channel];
+    float bv = sampling.where[bi + (size_t)channel];
+    if (av == 0.0f || av * bv <= 0.0f) return 1;
+  }
+  return 0;
+}
+
 static int record_trim_run_above(int start, int count, float threshold) {
   if (start < 0 || count <= 0 || start + count > sampling.len) return 0;
   for (int i = 0; i < count; i++) {
-    if (fabsf(sampling.where[start + i]) <= threshold) return 0;
+    if (record_frame_level(start + i) <= threshold) return 0;
   }
   return 1;
 }
 
 void record_find_trim(int argc, float arg0, float arg1, int margin) {
-  if (!sampling.where || sampling.len <= 0 ||
+  if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE ||
+      !sampling.where || sampling.len <= 0 ||
       sampling.len > sampling.capacity) {
     return;
   }
@@ -2687,7 +2791,7 @@ void record_find_trim(int argc, float arg0, float arg1, int margin) {
     if (lead0 < 0) lead0 = 0;
     // Look backward into silence/margin to find the closest zero crossing.
     while (lead0 > 0) {
-      if (sampling.where[lead0] == 0.0 || (sampling.where[lead0] * sampling.where[lead0 - 1] <= 0.0)) {
+      if (record_frames_cross_zero(lead0, lead0 - 1)) {
         break;
       }
       lead0--;
@@ -2710,7 +2814,7 @@ void record_find_trim(int argc, float arg0, float arg1, int margin) {
     if (end_idx >= sampling.len) end_idx = sampling.len - 1;
     // Look forward into silence/margin to find the closest zero crossing.
     while (end_idx < sampling.len - 1) {
-      if (sampling.where[end_idx] == 0.0 || (sampling.where[end_idx] * sampling.where[end_idx + 1] <= 0.0)) {
+      if (record_frames_cross_zero(end_idx, end_idx + 1)) {
         break;
       }
       end_idx++;
@@ -4659,7 +4763,9 @@ neutral `ct 0 0 1 0` disables it.
         double *data = ands_data(ctx->parse);
         int data_len = ands_data_len(ctx->parse);
         if (!data || data_len <= 0) break;
-        if (sampling.busy) {
+        int sample_state = atomic_load_int(&sampling.state);
+        if (sample_state == SAMPLE_STATE_ARMED ||
+            sample_state == SAMPLE_STATE_RECORDING) {
           ctx->printf(ctx, "# recording buffer busy\n");
           break;
         }
@@ -4670,8 +4776,10 @@ neutral `ct 0 0 1 0` disables it.
         }
         for (int i=0; i<data_len; i++) sampling.where[i] = (float)data[i];
         sampling.len = data_len;
+        sampling.channels = 1;
         sampling.offset = 0;
         sampling.trim = 0;
+        atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
       }
       break;
     @doc(command.d>MO)
@@ -4776,20 +4884,46 @@ neutral `ct 0 0 1 0` disables it.
     case ATOM4('w>r-'): // wave-to-rec
       if (x_valid && skode_wave_valid(x) && sw.data[x] && sw.size[x] > 0) {
         int valid = 1;
-        if (sw.size[x] > sampling.capacity) {
-          if (sampling.busy) {
-            valid = 0;
-          } else {
-            skode_sample_alloc(sw.size[x]);
-            valid = sampling.where != NULL && sampling.capacity >= sw.size[x];
-          }
+        int sample_state = atomic_load_int(&sampling.state);
+        if (sample_state == SAMPLE_STATE_ARMED ||
+            sample_state == SAMPLE_STATE_RECORDING) {
+          valid = 0;
+          ctx->printf(ctx, "# recording buffer busy\n");
+        } else if (sw.size[x] > sampling.capacity) {
+          skode_sample_alloc(sw.size[x]);
+          valid = sampling.where != NULL && sampling.capacity >= sw.size[x];
         }
         if (valid) {
           sampling.offset = 0;
           sampling.trim = 0;
           for (int i=0; i<sw.size[x]; i++) sampling.where[i] = sw.data[x][i];
           sampling.len = sw.size[x];
+          sampling.channels = 1;
+          atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
         }
+      }
+      break;
+    @doc(command.w>w)
+    name: w>w
+    category: wave
+    summary: write wavetable to string-named WAV file
+    @enddoc
+    case ATOM4('w>w-'): // wave-to-wav-file
+      if (!ands_string_fresh(ctx->parse) ||
+          !ands_string(ctx->parse)[0]) {
+        ctx->printf(ctx, "# w>w requires [filename]\n");
+      } else if (!x_valid || !skode_wave_valid(x) ||
+                 !sw.data[x] || sw.size[x] <= 0) {
+        ctx->printf(ctx, "# invalid wavetable for w>w\n");
+      } else {
+        double stored_rate = sw.rate[x];
+        ma_uint32 sample_rate = MAIN_SAMPLE_RATE;
+        if (isfinite(stored_rate) && stored_rate >= 1.0 &&
+            stored_rate <= (double)UINT32_MAX - 0.5) {
+          sample_rate = (ma_uint32)(stored_rate + 0.5);
+        }
+        skode_write_wav(ctx, ands_string(ctx->parse), sw.data[x],
+                        sw.size[x], 1, sample_rate, 0);
       }
       break;
     @doc(command.w!)
@@ -4799,17 +4933,19 @@ neutral `ct 0 0 1 0` disables it.
     @enddoc
     case ATOM4('w!--'): // wave-lock
       {
-        if (!sampling.where || sampling.offset < 0 || sampling.trim < 0 ||
+        if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE ||
+            !sampling.where || sampling.offset < 0 || sampling.trim < 0 ||
             sampling.offset > sampling.len ||
             sampling.trim > sampling.len - sampling.offset) {
           ctx->printf(ctx, "# invalid recording bounds\n");
           break;
         }
-        int j = 0;
-        for (int i=sampling.offset; i<sampling.len-sampling.trim; i++) {
-          sampling.where[j++] = sampling.where[i];
-        }
-        sampling.len = sampling.len - sampling.offset - sampling.trim;
+        int channels = sampling.channels == 2 ? 2 : 1;
+        int new_len = sampling.len - sampling.offset - sampling.trim;
+        memmove(sampling.where,
+                sampling.where + (size_t)sampling.offset * channels,
+                (size_t)new_len * channels * sizeof(float));
+        sampling.len = new_len;
         sampling.trim = 0;
         sampling.offset = 0;
       }
@@ -4820,8 +4956,12 @@ neutral `ct 0 0 1 0` disables it.
     summary: wave-nudge-reset
     @enddoc
     case ATOM4('w*--'): // wave-nudge-reset
-      sampling.offset = 0;
-      sampling.trim = 0;
+      if (atomic_load_int(&sampling.state) == SAMPLE_STATE_COMPLETE) {
+        sampling.offset = 0;
+        sampling.trim = 0;
+      } else {
+        ctx->printf(ctx, "# recording buffer is not complete\n");
+      }
       break;
     @doc(command.w>)
     name: w>
@@ -4829,6 +4969,10 @@ neutral `ct 0 0 1 0` disables it.
     summary: wave-nudge-start
     @enddoc
     case ATOM4('w>--'): // wave-nudge-start
+      if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE) {
+        ctx->printf(ctx, "# recording buffer is not complete\n");
+        break;
+      }
       if (argc == 0) x = 1;
       if (argc == 0 || x_valid) {
         long long next = (long long)sampling.offset + x;
@@ -4845,6 +4989,10 @@ neutral `ct 0 0 1 0` disables it.
     summary: wave-nudge-len
     @enddoc
     case ATOM4('w<--'): // wave-nudge-len
+      if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE) {
+        ctx->printf(ctx, "# recording buffer is not complete\n");
+        break;
+      }
       if (argc == 0) x = 1;
       if (argc == 0 || x_valid) {
         long long next = (long long)sampling.trim + x;
@@ -4921,19 +5069,36 @@ neutral `ct 0 0 1 0` disables it.
             }
           }
         } else {
-          if (sampling.where) {
+          if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE) {
+            ctx->printf(ctx, "# recording buffer is not complete\n");
+          } else if (sampling.where) {
             if ((sampling.offset > sampling.len) || (sampling.len - sampling.trim <= 0)) {
               ctx->printf(ctx,"NO!\n");
               ctx->printf(ctx, "offset:%d\n", sampling.offset);
               ctx->printf(ctx, "trim:%d\n", sampling.trim);
               ctx->printf(ctx, "len:%d\n", sampling.len);
               ctx->printf(ctx, "where:%p\n", sampling.where);
-              ctx->printf(ctx, "busy:%d\n", sampling.busy);
-              ctx->printf(ctx, "go:%d\n", sampling.go);
+              ctx->printf(ctx, "state:%d\n",
+                          atomic_load_int(&sampling.state));
             } else {
-              print_wave_stats(ctx, "recording", sampling.where, sampling.len, (float)MAIN_SAMPLE_RATE);
-              print_audio_braille_labeled(ctx, sampling.where, sampling.len, w, h, sampling.offset, sampling.len - sampling.trim);
+              float *display = sampling.where;
+              float *mono = NULL;
+              if (sampling.channels == 2) {
+                mono = malloc((size_t)sampling.len * sizeof(float));
+                if (mono) {
+                  for (int i = 0; i < sampling.len; i++)
+                    mono[i] = record_frame_mono(i);
+                  display = mono;
+                }
+              }
+              print_wave_stats(ctx, "recording", display, sampling.len,
+                               (float)MAIN_SAMPLE_RATE);
+              print_audio_braille_labeled(ctx, display, sampling.len, w, h,
+                sampling.offset, sampling.len - sampling.trim);
+              free(mono);
               int len = sampling.len - sampling.offset - sampling.trim;
+              ctx->printf(ctx, "# recording channels %d\n",
+                          sampling.channels == 2 ? 2 : 1);
               ctx->printf(ctx,"# found start %d end %d |%d| %gms\n",
                 sampling.offset, sampling.len - sampling.trim, len,
                 SAMPLES_TO_MSEC(len));
@@ -5409,17 +5574,26 @@ neutral `ct 0 0 1 0` disables it.
     @doc(command./r)
     name: /r
     category: recording
-    summary: sample-to-wave slot mode offset
+    summary: sample-to-wave slot mode channel
     @enddoc
-    case ATOM4('/r--'): // sample-to-wave slot one_shot offset
+    case ATOM4('/r--'): // sample-to-wave slot one_shot channel
       {
         int wave_slot = EXT_SAMPLE_000;
         int one_shot = 1;
-        float offset = 1;
+        int channel = -1;
         if (argc && !skode_double_to_int(arg[0], &wave_slot)) break;
-        if (argc > 1) skode_double_to_int(arg[1], &one_shot);
-        if (argc > 2 && isfinite(arg[2])) offset = arg[2];
-        rec_load(ctx, wave_slot, one_shot, offset);
+        if (argc > 1 &&
+            (!skode_double_to_int(arg[1], &one_shot) ||
+             (one_shot != 0 && one_shot != 1))) {
+          ctx->printf(ctx, "# /r mode must be 0=cycle or 1=one-shot\n");
+          break;
+        }
+        if (argc > 2 && !skode_double_to_int(arg[2], &channel)) break;
+        if (argc > 3) {
+          ctx->printf(ctx, "# usage: /r slot[,mode[,channel]]\n");
+          break;
+        }
+        rec_load(ctx, wave_slot, one_shot, channel);
       }
       break;
                         //              x/0  1     2        3
@@ -5806,55 +5980,70 @@ neutral `ct 0 0 1 0` disables it.
     @doc(command.>r)
     name: >r
     category: recording
-    summary: record to file
+    summary: normalize recording to string-named WAV file
     @enddoc
     case ATOM4('>r--'): // record to file
-      if (x_valid && sampling.where && sampling.len > 0) {
-        char filename[64];
-        snprintf(filename, sizeof(filename), "out-%d.wav", x);
-        ma_encoder_config config;
-        ma_encoder encoder;
-        float *where;
-        int len = sampling.len;
-        where = (float *)malloc(len * sizeof(float));
-        if (!where) break;
-        for (int i=0; i<len; i++) where[i] = sampling.where[i];
-        normalize_buffer(where, len, 1);
-        config = ma_encoder_config_init(ma_encoding_format_wav, ma_format_f32, 1, MAIN_SAMPLE_RATE);
-        if (ma_encoder_init_file(filename, &config, &encoder) != MA_SUCCESS) {
+      if (!ands_string_fresh(ctx->parse) ||
+          !ands_string(ctx->parse)[0]) {
+        ctx->printf(ctx, "# >r requires [filename]\n");
+      } else {
+        int state = atomic_load_int(&sampling.state);
+        if (state != SAMPLE_STATE_COMPLETE) {
+          ctx->printf(ctx, "# recording buffer is not complete\n");
         } else {
-          ma_encoder_write_pcm_frames(&encoder, where, len, NULL);
-          ma_encoder_uninit(&encoder);
+          skode_write_wav(ctx, ands_string(ctx->parse),
+                          sampling.where, sampling.len,
+                          sampling.channels == 2 ? 2 : 1,
+                          MAIN_SAMPLE_RATE, 1);
         }
-        free(where);
       }
       break;
     @doc(command.^r)
     name: ^r
     category: recording
-    summary: record duration [voice] ... markdown/html doesn't like <
+    summary: record duration source voice ... markdown/html doesn't like <
     @enddoc
     case ATOM4('^r--'): // record duration ... markdown/html doesn't like <
     @doc(command.<r)
     name: <r
     category: recording
-    summary: record duration [voice]
+    summary: record duration source voice
     @enddoc
-    case ATOM4('<r--'): // record duration [voice]
+    case ATOM4('<r--'): // record duration source voice
       if (argc && isfinite(arg[0]) && arg[0] > 0.0 &&
-          arg[0] <= (double)(INT_MAX - 4096) / MAIN_SAMPLE_RATE) {
+          arg[0] <= (double)(INT_MAX / AUDIO_CHANNELS) / MAIN_SAMPLE_RATE) {
+        int source = SAMPLE_SOURCE_DRY;
         int sample_voice = -1;
-        if (argc > 2 ||
-            (argc > 1 &&
-             (!skode_double_to_int(arg[1], &sample_voice) ||
-              !skode_voice_valid(sample_voice)))) {
-          ctx->printf(ctx, "# usage: <r seconds [voice]\n");
+        if (argc > 1 && !skode_double_to_int(arg[1], &source)) {
+          ctx->printf(ctx, "# <r source must be 0=dry, 1=voice, or 2=master\n");
           break;
         }
-        skode_sample_go((int)(arg[0] * (double)MAIN_SAMPLE_RATE),
-                        sample_voice);
+        if (source < SAMPLE_SOURCE_DRY || source > SAMPLE_SOURCE_MASTER) {
+          ctx->printf(ctx, "# <r source must be 0=dry, 1=voice, or 2=master\n");
+          break;
+        }
+        if (source == SAMPLE_SOURCE_VOICE) {
+          if (argc != 3 ||
+              !skode_double_to_int(arg[2], &sample_voice) ||
+              !skode_voice_valid(sample_voice)) {
+            ctx->printf(ctx, "# usage: <r seconds,1,voice\n");
+            break;
+          }
+        } else if (argc > 2) {
+          ctx->printf(ctx, "# usage: <r seconds[,source[,voice]]\n");
+          break;
+        }
+        if (!skode_sample_go((int)(arg[0] * (double)MAIN_SAMPLE_RATE),
+                             source, sample_voice)) {
+          ctx->printf(ctx, "# recording buffer busy or allocation failed\n");
+        }
       } else {
-        ctx->printf(ctx, "skode_sample -> %d %d %d\n", sampling.busy, sampling.go, sampling.frames);
+        int state = atomic_load_int(&sampling.state);
+        ctx->printf(ctx, "# sample state=%d source=%d voice=%d remaining=%d frames=%d channels=%d\n",
+                    state, sampling.source, sampling.source_voice,
+                    atomic_load_int(&sampling.frames),
+                    state == SAMPLE_STATE_COMPLETE ? sampling.len : 0,
+                    sampling.channels);
       }
       break;
     @doc(command.>)

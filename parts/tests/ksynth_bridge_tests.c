@@ -135,10 +135,32 @@ static void test_skode_wave_round_trip(void) {
   expect_vector(test, ands_data(ctx.parse),
                 (size_t)ands_data_len(ctx.parse), concatenated, 6);
 
-  consume(test, &ctx, "/d300,44100");
+  consume(test, &ctx, "k>w300");
   if (!sw.data[300] || sw.size[300] != 6) {
     fail(test, "parser data was not loaded into wave 300");
   }
+  if (sw.one_shot[300] || sw.loop_start[300] != 0 ||
+      sw.loop_end[300] != sw.size[300]) {
+    fail(test, "k>w did not install a full-range cycle");
+  }
+  consume(test, &ctx, "v0 w300,1");
+  if (sv.playback_class[0] != OSC_PLAYBACK_CYCLE_SIMPLE)
+    fail(test, "cycle wave did not select simple playback");
+  consume(test, &ctx, "w300,1,1");
+  if (sv.playback_class[0] != OSC_PLAYBACK_GENERAL)
+    fail(test, "one-shot override did not select general playback");
+  consume(test, &ctx, "w300,1");
+  if (sv.one_shot[0] || sv.playback_class[0] != OSC_PLAYBACK_CYCLE_SIMPLE)
+    fail(test, "wave reselection did not restore its stored cycle mode");
+
+  consume(test, &ctx, "k>w301,22050,1");
+  if (!sw.data[301] || sw.size[301] != 6 || !sw.one_shot[301] ||
+      fabsf(sw.rate[301] - 22050.0f) > 0.01f) {
+    fail(test, "k>w one-shot options were not applied");
+  }
+  consume(test, &ctx, "w301,1");
+  if (!sv.one_shot[0] || sv.playback_class[0] != OSC_PLAYBACK_GENERAL)
+    fail(test, "one-shot wave mode was not inherited");
 
   consume(test, &ctx, "w>k300,1 [i B] ks kw>1000");
   const double reversed[] = {-1, 0.5, 0, -1, 0.5, 0};

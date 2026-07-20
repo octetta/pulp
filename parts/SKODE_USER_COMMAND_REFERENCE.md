@@ -93,7 +93,7 @@ articulation, refresh, cloning, graph protocol, and full examples.
 
 | Command | Parameters | Effect | Schedulable |
 | --- | --- | --- | --- |
-| `w wave[,interpolate[,one-shot]]` | Wave index and optional boolean flags | Selects a wavetable. Interpolation smooths movement between samples. One-shot mode stops at the wave end instead of continuously cycling. | Yes |
+| `w wave[,interpolate[,mode]]` | Wave index and optional flags | Selects a wavetable. Interpolation smooths movement between samples. Mode is `0` for a repeating cycle or `1` for one-shot playback; omit it to inherit the mode stored by the loader. | Yes |
 | `/` | None | Restores the selected voice's default waveform settings. | Yes |
 | `b [direction]` | `0` forward, `1` backward, `2` ping-pong; no argument toggles between `0` and `1` | Changes the direction mode used to read the selected wave. | Yes |
 | `B [loop]` | `0` off, `1` on; no argument toggles | Controls whether wave playback wraps at its end. This is most noticeable with sampled or one-shot waves. | Yes |
@@ -105,6 +105,12 @@ articulation, refresh, cloning, graph protocol, and full examples.
 | `h phases` | Integer hold length | Holds oscillator values for multiple phases, producing stepped or sample-and-hold distortion. Requires `SAH`. | Yes |
 | `[name] vt` | String | Gives the selected voice a display label. It does not alter sound. | No |
 | `[name] wt wave` | String and wave index | Gives a wavetable a display label. It does not alter sound. | No |
+
+A cycle wave should contain one complete period, with its end prepared to join
+smoothly back to its beginning. Full-range, forward cycle playback with no
+active loop automatically uses the pared-down oscillator path; table length
+does not need to be a special value. Direction changes, subranges, explicit
+loops, and one-shots continue to use the general playback path.
 
 Delay sends tap the selected voice after its oscillator, filter, envelope, and
 amplitude, but before pan. The record/scope route owns the delay identity:
@@ -837,8 +843,8 @@ immediately on the control thread.
 | `w>d wave` | Wave index | Copies wavetable samples into the parser data array. |
 | `w>r wave` | Wave index | Copies wavetable samples into the temporary recording buffer. |
 | `d>r` | None | Copies parser data into the temporary recording buffer. |
-| `/r [slot[,one-shot[,offset]]]` | Wave destination and options | Loads the temporary recording buffer into a wavetable. |
-| `/d [slot[,rate[,one-shot[,offset]]]]` | Wave destination and options | Loads parser data into a wavetable at the requested sample rate. |
+| `/r [slot[,mode[,offset]]]` | Wave destination and options | Loads the temporary recording buffer into a wavetable. Mode is `0` cycle or `1` one-shot (default). |
+| `/d [slot[,rate[,mode[,offset]]]]` | Wave destination and options | Loads parser data into a wavetable at the requested sample rate. Mode is `0` cycle (default) or `1` one-shot. |
 | `w> [samples]` | Start offset adjustment | Moves the temporary recording's start point. |
 | `w< [samples]` | End trim adjustment | Changes how many samples are removed from the recording end. |
 | `w<> [threshold[,end-threshold[,margin-samples]]]` | Detection thresholds and optional sample margin | Finds useful start and end trim points from signal level. Defaults to a small silence threshold of `0.001`. |
@@ -1165,7 +1171,7 @@ SysEx. These commands execute immediately and are not pattern-schedulable.
 | `?`, `v?` | None | Displays the selected voice. |
 | `\` | None | Displays the selected voice with additional detail. |
 | `??`, `v??` | None | Displays active voices. |
-| `W [wave[,end-or-width[,height]]]` | Optional display parameters | Displays one wavetable, recording data, or all loaded waves. A single-wave display includes sample count, baseline duration, one-shot state, loop points, loop duration, stats, and a loop marker row under the waveform. |
+| `W [wave[,end-or-width[,height]]]` | Optional display parameters | Displays one wavetable, recording data, or all loaded waves. A single-wave display includes sample count, baseline duration, playback mode, loop points, loop duration, stats, and a loop marker row under the waveform. |
 | `VW [voice[,width,height]]` | Optional voice and display dimensions | Displays the wavetable assigned to a voice and marks that voice's current loop points. With two arguments, they are interpreted as width and height for the selected voice. |
 | `WS wave` | Wavetable index | Displays a compact spectrogram over the wave's loop region. |
 | `W* wave,param[,register]` | Wave, property, optional destination | Reads wave sample count (`0`), sample rate (`1`), duration (`2`), loop start (`3`), or loop end (`4`). |
@@ -1221,6 +1227,7 @@ below `0.001` is treated as silence.
 | `kw> [timeout-ms]` | Optional timeout | Copies the latest Ksynth result into parser data. |
 | `k?` | None | Displays the latest Ksynth result. |
 | `k>d` | None | Copies the latest Ksynth result into parser data. |
+| `k>w [slot[,rate[,mode[,offset]]]]` | Wave destination and options | Loads the latest Ksynth result directly into a wave. Defaults to slot `300`, the main sample rate, and cycle mode. |
 | `d>k variable` | Variable `0` through `25` | Copies parser data into Ksynth variable `A` through `Z`. |
 | `w>k wave,variable` | Wave index and variable `0` through `25` | Copies a wavetable directly into Ksynth variable `A` through `Z`. |
 
@@ -1234,8 +1241,8 @@ Each Skode command context owns its own Ksynth evaluator and persistent
 `A` through `Z` variables. For example, `(1 2 3) d>k0 [A,A] ks kw>` binds
 `A` before evaluating the concatenation; `kw` is accepted for compatibility
 but no longer waits. Sample-rate and loop metadata are not copied with array
-values; provide the desired rate when loading returned parser data with `/d`.
-Vectors are limited to one million elements.
+values; provide the desired rate and playback mode to `k>w` or `/d`. Vectors
+are limited to one million elements.
 
 ### Processing Wavetables with Ksynth
 
@@ -1258,20 +1265,18 @@ UDP clients keep independent variables.
 ```text
 (0 .5 1 .5 0) d>k0
 [i A] ks
-kw>1000
-/d300,44100
+k>w300
 ```
 
-This binds the data array to `A`, reverses it with Ksynth's monadic `i`, waits
-up to 1000 milliseconds, and loads the result into wavetable 300 at 44100 Hz.
+This binds the data array to `A`, reverses it with Ksynth's monadic `i`, and
+loads the result into wavetable 300 as a cycle at the main sample rate.
 
 **Transform a wavetable directly:**
 
 ```text
 w>k10,0
 [w A] ks
-kw>1000
-/d300,44100
+k>w300
 ```
 
 This copies wave 10 into `A`, peak-normalizes it with Ksynth's monadic `w`,
@@ -1284,16 +1289,15 @@ data array during import.
 w>k10,0
 w>k11,1
 [A,B] ks
-kw>1000
-/d300,44100,0
-v0 w300,1,0
+k>w300
+v0 w300,1
 ```
 
 Built-in waves 10 and 11 each contain 4096 samples. The comma concatenates
-`A` and `B` into one 8192-sample cycle. `/d300,44100,0` stores it as a
-periodic wavetable, and `w300,1,0` selects it with interpolation enabled and
-one-shot playback disabled. The oscillator wraps from the end of wave 11 back
-to the beginning of wave 10.
+`A` and `B` into one 8192-sample cycle. `k>w300` stores it in the default cycle
+mode, and `w300,1` selects it with interpolation enabled while inheriting that
+mode. The oscillator wraps from the end of wave 11 back to the beginning of
+wave 10.
 
 **Concatenate two wavetables into a one-shot waveform:**
 
@@ -1301,16 +1305,15 @@ to the beginning of wave 10.
 w>k10,0
 w>k11,1
 [A,B] ks
-kw>1000
-/d301,44100,1
-v0 w301,1,1
+k>w301,44100,1
+v0 w301,1
 ```
 
 This creates the same 8192-sample sequence but stores it in wave 301 as a
-one-shot. `w301,1,1` selects it with interpolation enabled and one-shot
-playback enabled, so a trigger reads wave 10 followed by wave 11 and then
-stops at the end instead of wrapping. Use another `/d` rate when the source
-material is not 44100 Hz.
+one-shot. `w301,1` selects it with interpolation enabled and inherits
+one-shot mode, so a trigger reads wave 10 followed by wave 11 and then stops
+at the end instead of wrapping. Use another `k>w` rate when the source material
+is not 44100 Hz.
 
 `kw` is kept for older scripts and does nothing. `k>d` and `kw>` both copy the
 latest completed result.
@@ -1584,7 +1587,7 @@ backend unless `MIDI=1`:
 | `FILT` and `FADSR` | `ft`, `fd` |
 | `FM` | `F`, `FF`, `FB` |
 | `GLISS` | `g` |
-| `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
+| `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `k>w`, `d>k`, `w>k` |
 | `MIDI` | `/mL`, `/m?`, `/mi`, `/miV`, `/mic`, `/mo`, `/moV`, `/moc`, `MO`, `d>MO`, `/mv`, `/mvd`, `/mp`, `/mpd`, `/mR`, `/mC`, `/mb`, `/mb?`, `/mbd`, `/mbC` |
 | `PANMOD` | `P` |
 | `PD` | `c`, `C`, `ct`, `cd` |

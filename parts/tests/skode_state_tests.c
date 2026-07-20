@@ -535,6 +535,59 @@ static void configure_loop_test_voice(int voice, int direction) {
   sv.finished[voice] = 1;
 }
 
+static void test_cycle_playback_classification(void) {
+  const char *test = "cycle playback classification";
+  const int fast_voice = 0;
+  const int general_voice = 1;
+
+  wave_reset(fast_voice);
+  wave_reset(general_voice);
+  expect_int(test, sv.playback_class[fast_voice],
+             OSC_PLAYBACK_CYCLE_SIMPLE, "default cycle class");
+
+  wave_dir(fast_voice, 1);
+  expect_int(test, sv.playback_class[fast_voice], OSC_PLAYBACK_GENERAL,
+             "backward direction class");
+  wave_dir(fast_voice, 0);
+  expect_int(test, sv.playback_class[fast_voice],
+             OSC_PLAYBACK_CYCLE_SIMPLE, "forward direction class");
+
+  voice_wave_range_set(fast_voice, 1, sv.table_size[fast_voice]);
+  expect_int(test, sv.playback_class[fast_voice], OSC_PLAYBACK_GENERAL,
+             "partial range class");
+  voice_wave_range_reset(fast_voice);
+  expect_int(test, sv.playback_class[fast_voice],
+             OSC_PLAYBACK_CYCLE_SIMPLE, "full range class");
+
+  wave_loop(fast_voice, 1);
+  expect_int(test, sv.playback_class[fast_voice], OSC_PLAYBACK_GENERAL,
+             "active loop class");
+  wave_loop(fast_voice, 0);
+  expect_int(test, sv.playback_class[fast_voice],
+             OSC_PLAYBACK_CYCLE_SIMPLE, "disabled loop class");
+
+  sv.interpolate[fast_voice] = 1;
+  sv.interpolate[general_voice] = 1;
+  const float span = (float)sv.table_size[fast_voice];
+  const float increments[] = {
+    1.25f, span + 1.5f, -2.75f, span * 2.0f + 1808.125f
+  };
+  for (size_t i = 0; i < sizeof(increments) / sizeof(increments[0]); i++) {
+    sv.phase[fast_voice] = (double)span - 1.25;
+    sv.phase[general_voice] = (double)span - 1.25;
+    sv.finished[fast_voice] = 0;
+    sv.finished[general_voice] = 0;
+    osc_reclassify(fast_voice);
+    sv.playback_class[general_voice] = OSC_PLAYBACK_GENERAL;
+    float fast = osc_next(fast_voice, increments[i]);
+    float general = osc_next(general_voice, increments[i]);
+    expect_float(test, fast, general, 0.0001f, "sample equivalence");
+    expect_float(test, (float)sv.phase[fast_voice],
+                 (float)sv.phase[general_voice], 0.0001f,
+                 "phase equivalence");
+  }
+}
+
 static void test_bounded_one_shot_loops(void) {
   const char *test = "bounded one-shot loops";
   skode_t ctx = new_ctx();
@@ -794,8 +847,8 @@ static void test_wave_loop_points(void) {
   ctx.log[0] = '\0';
   ctx.log_len = 0;
   consume(test, &ctx, "W300,8,2");
-  expect_substr(test, ctx.log, "one-shot 1",
-                "wave display includes one-shot state");
+  expect_substr(test, ctx.log, "mode one-shot",
+                "wave display includes playback mode");
   expect_substr(test, ctx.log, "loop 3..8 |5|",
                 "wave display includes loop points");
   expect_substr(test, ctx.log, "loop [3..8)",
@@ -3046,6 +3099,7 @@ int main(void) {
   test_trigger_delay_lifecycle();
   test_envelope_configuration_is_deferred();
   test_envelope_future_timestamps();
+  test_cycle_playback_classification();
   test_bounded_one_shot_loops();
   test_wave_loop_points();
   test_wave_load_smpl_loop();

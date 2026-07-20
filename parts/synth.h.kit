@@ -101,6 +101,7 @@ int voice_set(int n, int *old_voice);
 int voice_control_events_set(int voice, int enabled);
 int voice_copy(int v, int n);
 int wave_set(int voice, int wave);
+void osc_reclassify(int voice);
 int wave_mute(int voice, int state);
 int wave_dir(int voice, int state);
 int freq_midi(int voice, float note, float cents);

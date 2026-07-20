@@ -431,6 +431,21 @@ Adopters adding high-volume automation should preserve the established
 real-time rules and consider adding bounded command transport instead of
 performing arbitrary cross-thread writes.
 
+#### Oscillator Playback Classes
+
+Each voice caches a playback classification. A non-one-shot, forward,
+full-range wave with no active loop is a simple cycle; `osc_next()` sends it
+through a short phase-wrap path that skips the general direction, subrange,
+loop-count, release-tail, and one-shot boundary machinery. All other
+configurations use the general path. Wave selection and commands that change
+mode, direction, range, or looping reclassify the voice, so this is an
+automatic implementation detail rather than a user-selected optimization.
+
+Memory-backed wave loaders initialize loop metadata with neutral half-open
+bounds `[0, length)`. Parser data and `k>w` results default to cycle mode;
+recordings and decoded audio files default to one-shot mode. Selecting a wave
+without a mode override inherits that stored mode.
+
 #### One-Shot Loop State
 
 Wave direction, loop configuration, and note lifecycle are separate:

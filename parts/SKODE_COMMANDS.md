@@ -126,7 +126,7 @@ their named build option is enabled.
 | `S` | `voice` | `SKODE_OP_VOICE_RESET` | `wave_reset()` | base |
 | `t` | `attack, decay, sustain, release` | `SKODE_OP_ENVELOPE` | Configures the amplitude envelope for its next trigger | `ADSR` |
 | `T` | none | `SKODE_OP_TRIGGER` | Calls `envelope_velocity(..., 1)` on the voice and velocity links | base |
-| `w` | `wave [, interpolate [, one-shot]]` | `SKODE_OP_WAVE` | `wave_set()` and optional voice flags | base |
+| `w` | `wave [, interpolate [, mode]]` | `SKODE_OP_WAVE` | `wave_set()` and optional voice flags; mode `0` is cycle and `1` is one-shot | base |
 | `>` | `destination-voice` | `SKODE_OP_VOICE_COPY` | `voice_copy(current, destination)` | base |
 | `/` | none | `SKODE_OP_WAVE_DEFAULT` | `wave_default()` | base |
 | `=` | `register, value` | `SKODE_OP_VARIABLE_SET` | Writes `global_var[register]` | base |
@@ -334,8 +334,8 @@ schedulable.
 | `w>` | `[samples]` | Move recording start offset | `sampling.offset` |
 | `w<` | `[samples]` | Increase or decrease end trim | `sampling.trim` |
 | `w<>` | `[threshold [, end-threshold [, margin-samples]]]` | Find recording trim points using a default `0.001` silence threshold, four consecutive audible samples, and optional sample margin | `record_find_trim()` |
-| `/r` | `[slot [, one-shot [, offset]]]` | Load recording buffer into a wave slot | `rec_load()` |
-| `/d` | `[slot [, rate [, one-shot [, offset]]]]` | Load parser data into a wave slot | `data_load()` |
+| `/r` | `[slot [, mode [, offset]]]` | Load recording buffer into a wave slot; defaults to one-shot mode | `rec_load()` |
+| `/d` | `[slot [, rate [, mode [, offset]]]]` | Load parser data into a wave slot; defaults to cycle mode | `data_load()` |
 | `/wex` | `wave` | Expand a dynamic wave slot in the 200-999 range | `wave_table_dynamic_expand()` |
 
 For `W*`, parameter `0` is sample count, `1` is sample rate, `2` is duration
@@ -483,6 +483,7 @@ Skode has `SKODE_EXTRA_MAX` (128) external string buffers of 256 bytes each.
 | `kw> [timeout-ms]` | optional numeric | Copy latest Ksynth result to parser data | `skode_ks_result_to_data()` |
 | `k?` | none | Print latest Ksynth result | direct result inspection |
 | `k>d` | none | Copy latest Ksynth result to parser data | `skode_ks_result_to_data()` |
+| `k>w` | `[slot[,rate[,mode[,offset]]]]` | Load latest Ksynth result directly into a wave; defaults to slot 300 and cycle mode | `skode_ks_result_to_data()`, `data_load()` |
 | `d>k variable` | numeric `0..25` | Copy parser data to Ksynth `A..Z` | `ks_bind_vector()` |
 | `w>k wave,variable` | numeric | Copy a wavetable directly to Ksynth `A..Z` | `ks_bind_vector()` |
 
@@ -491,8 +492,9 @@ Each vector is limited to one million elements. Each Skode command context
 owns its own lazy Ksynth context and persistent `A..Z` variables; local input
 and each UDP client therefore keep independent Ksynth state. `kw` remains
 accepted for older scripts, but no longer waits for a worker. `kw>` and `k>d`
-copy the latest numeric result into parser data. Wavetable metadata, including
-rate, looping, and one-shot state, is not part of the transferred Ksynth vector.
+copy the latest numeric result into parser data. `k>w` combines that copy with
+wave installation. Wavetable metadata is not part of the transferred Ksynth
+vector, so `k>w` arguments supply the desired rate and playback mode.
 
 ## Files, Samples, and Recording
 
@@ -587,7 +589,7 @@ features are enabled. Important command features include:
 | `FILT` | `J`, `K`, `Q` |
 | `FM` | `F`, `FF`, `FB` |
 | `GLISS` | `g` |
-| `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `d>k`, `w>k` |
+| `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `k>w`, `d>k`, `w>k` |
 | `MIDI` | `/mL`, `/m?`, `/mi`, `/miV`, `/mic`, `/mo`, `/moV`, `/moc`, `MO`, `d>MO`, `/mv`, `/mvd`, `/mp`, `/mpd`, `/mR`, `/mC`, `/mb`, `/mb?`, `/mbd`, `/mbC` |
 | `PANMOD` | `P` |
 | `PD` | `c`, `C`, `ct`, `cd` |

@@ -44,6 +44,7 @@ typedef struct {
     int    * restrict table_size;
     float  * restrict table_rate;
     float  * restrict table_size_rate;
+    int    * restrict playback_class;
     int    * restrict one_shot;
     int    * restrict finished;
     int    * restrict direction;          /* 0 forward, 1 backward, 2 ping-pong */

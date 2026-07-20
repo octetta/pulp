@@ -1297,6 +1297,23 @@ int skode_load(skode_t *ctx, int voice, int n, int verbose) {
 
 extern synth_sample_t sampling;
 
+static void wave_install_memory(int wave_slot, float *table, int len,
+                                float rate, int one_shot, const char *name,
+                                float midi_note, float offset_hz) {
+  skode_copy_string(sw.name[wave_slot], WAVE_NAME_MAX, name ? name : "data");
+  sw.is_heap[wave_slot] = 1;
+  sw.data[wave_slot] = table;
+  sw.size[wave_slot] = len;
+  sw.rate[wave_slot] = rate;
+  sw.one_shot[wave_slot] = one_shot != 0;
+  sw.loop_enabled[wave_slot] = 0;
+  sw.loop_start[wave_slot] = 0;
+  sw.loop_end[wave_slot] = len;
+  sw.direction[wave_slot] = 0.0f;
+  sw.midi_note[wave_slot] = midi_note;
+  sw.offset_hz[wave_slot] = offset_hz;
+}
+
 int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset) {
   ctx->printf(ctx, "# rec_load(ctx, %d, %d, %g)\n",
     wave_slot, one_shot, offset);
@@ -1338,22 +1355,12 @@ int rec_load(skode_t *ctx, int wave_slot, int one_shot, float offset) {
   for (int i=0; i<data_len; i++) table[i] = (float)data[i];
   normalize_preserve_zero(table, data_len);
   int len = data_len;
-    snprintf(sw.name[wave_slot], WAVE_NAME_MAX, "data[%d]", data_len);
-    sw.is_heap[wave_slot] = 1;
-    sw.data[wave_slot] = table;
-    sw.size[wave_slot] = len;
-    sw.rate[wave_slot] = (float)MAIN_SAMPLE_RATE;
-    sw.one_shot[wave_slot] = (one_shot != 0);
-    sw.loop_enabled[wave_slot] = 0;
-    sw.loop_start[wave_slot] = 1;
-    sw.loop_end[wave_slot] = len;
-    if (offset > 0) {
-      sw.offset_hz[wave_slot] = (float)len / (float)MAIN_SAMPLE_RATE * 440.0f;
-      sw.midi_note[wave_slot] = 69;
-    } else {
-      sw.offset_hz[wave_slot] = 0.0f;
-      sw.midi_note[wave_slot] = 0;
-    }
+    char wave_name[WAVE_NAME_MAX];
+    snprintf(wave_name, sizeof(wave_name), "data[%d]", data_len);
+    float offset_hz = offset > 0
+      ? (float)len / (float)MAIN_SAMPLE_RATE * 440.0f : 0.0f;
+    wave_install_memory(wave_slot, table, len, (float)MAIN_SAMPLE_RATE,
+      one_shot, wave_name, offset > 0 ? 69.0f : 0.0f, offset_hz);
     char *name = "data";
     int channels = 1;
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d)\n", data_len, name, wave_slot, channels);
@@ -1398,22 +1405,11 @@ int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offse
   }
   for (int i=0; i<data_len; i++) table[i] = (float)data[i];
   int len = data_len;
-    snprintf(sw.name[wave_slot], WAVE_NAME_MAX, "data[%d]", data_len);
-    sw.is_heap[wave_slot] = 1;
-    sw.data[wave_slot] = table;
-    sw.size[wave_slot] = len;
-    sw.rate[wave_slot] = rate;
-    sw.one_shot[wave_slot] = (one_shot != 0);
-    sw.loop_enabled[wave_slot] = 0;
-    sw.loop_start[wave_slot] = 1;
-    sw.loop_end[wave_slot] = len;
-    if (offset > 0) {
-      sw.offset_hz[wave_slot] = (float)len / rate * 440.0f;
-      sw.midi_note[wave_slot] = 69;
-    } else {
-      sw.offset_hz[wave_slot] = 0.0f;
-      sw.midi_note[wave_slot] = 0;
-    }
+    char wave_name[WAVE_NAME_MAX];
+    snprintf(wave_name, sizeof(wave_name), "data[%d]", data_len);
+    float offset_hz = offset > 0 ? (float)len / rate * 440.0f : 0.0f;
+    wave_install_memory(wave_slot, table, len, rate, one_shot, wave_name,
+      offset > 0 ? 69.0f : 0.0f, offset_hz);
     char *name = "data";
     int channels = 1;
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%g)\n", len, name, wave_slot, channels, rate);
@@ -1468,18 +1464,8 @@ int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int norma
     skred_vfs_free_file(data);
     return -1;
   } else {
-    skode_copy_string(sw.name[wave_index], WAVE_NAME_MAX, resolved);
-    sw.is_heap[wave_index] = 1;
-    sw.data[wave_index] = table;
-    sw.size[wave_index] = len;
-    sw.rate[wave_index] = (float)wav.SamplesRate;
-    sw.one_shot[wave_index] = 1;
-    sw.loop_enabled[wave_index] = 0;
-    sw.loop_start[wave_index] = 1;
-    sw.loop_end[wave_index] = len;
-    sw.direction[wave_index] = 0.0f;
-    sw.midi_note[wave_index] = 69;
-    sw.offset_hz[wave_index] = (float)len / (float)wav.SamplesRate * 440.0f;
+    wave_install_memory(wave_index, table, len, (float)wav.SamplesRate, 1,
+      resolved, 69.0f, (float)len / (float)wav.SamplesRate * 440.0f);
     wave_load_apply_smpl_loop(ctx, resolved, data, data_size, wave_index, len);
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
       len, resolved, wave_index, wav.Channels, wav.SamplesRate);
@@ -1553,18 +1539,8 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
     skred_vfs_free_file(data);
     return -1;
   } else {
-    skode_copy_string(sw.name[wave_index], WAVE_NAME_MAX, resolved);
-    sw.is_heap[wave_index] = 1;
-    sw.data[wave_index] = table;
-    sw.size[wave_index] = len;
-    sw.rate[wave_index] = (float)wav.SamplesRate;
-    sw.one_shot[wave_index] = 1;
-    sw.loop_enabled[wave_index] = 0;
-    sw.loop_start[wave_index] = 1;
-    sw.loop_end[wave_index] = len;
-    sw.direction[wave_index] = 0.0f;
-    sw.midi_note[wave_index] = 69;
-    sw.offset_hz[wave_index] = (float)len / (float)wav.SamplesRate * 440.0f;
+    wave_install_memory(wave_index, table, len, (float)wav.SamplesRate, 1,
+      resolved, 69.0f, (float)len / (float)wav.SamplesRate * 440.0f);
     wave_load_apply_smpl_loop(ctx, resolved, data, data_size, wave_index, len);
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
       len, resolved, wave_index, wav.Channels, wav.SamplesRate);
@@ -2136,8 +2112,9 @@ int wavetable_show(skode_t *ctx, int n) {
     ctx->printf(ctx, " ref#%d", refcount);
     ctx->printf(ctx, " [%s]", sw.name[n]);
     ctx->puts(ctx, "");
-    ctx->printf(ctx, "# playback rate %gHz offset %+gHz MIDI %g one-shot %d\n",
-      sw.rate[n], sw.offset_hz[n], sw.midi_note[n], sw.one_shot[n]);
+    ctx->printf(ctx, "# playback rate %gHz offset %+gHz MIDI %g mode %s\n",
+      sw.rate[n], sw.offset_hz[n], sw.midi_note[n],
+      sw.one_shot[n] ? "one-shot" : "cycle");
     // ctx->printf(ctx, "# loop %d..%d |%d| %gms\n", loop_start, loop_end, loop_len, wave_samples_to_ms(loop_len, rate));
     ctx->printf(ctx,
       "# min %+0.3f max %+0.3f peak %0.3f rms %0.3f dc %+0.4f zc %d",
@@ -3195,7 +3172,8 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         int value;
         if (!skode_opcode_int(opcode, 2, &value)) return -1;
         sv.one_shot[voice] = value != 0;
-      }
+      } else sv.one_shot[voice] = sw.one_shot[x];
+      osc_reclassify(voice);
       return 0;
     case SKODE_OP_VOICE_COPY:
       return x_valid && skode_voice_valid(x) ? voice_copy(voice, x) : -1;
@@ -4108,6 +4086,25 @@ neutral `ct 0 0 1 0` disables it.
         skode_ks_result_to_data(ctx);
       }
       break;
+    @doc(command.k>w)
+    name: k>w
+    category: ksynth
+    summary: load latest ksynth result into wave slot rate? mode? offset?
+    @enddoc
+    case ATOM4('k>w-'):
+      {
+        int wave_slot = EXT_SAMPLE_000;
+        int one_shot = 0;
+        float rate = (float)MAIN_SAMPLE_RATE;
+        float offset = 0.0f;
+        if (argc && !skode_double_to_int(arg[0], &wave_slot)) break;
+        if (argc > 1) rate = arg[1];
+        if (argc > 2) skode_double_to_int(arg[2], &one_shot);
+        if (argc > 3) offset = arg[3];
+        if (skode_ks_result_to_data(ctx))
+          data_load(ctx, wave_slot, one_shot, rate, offset);
+      }
+      break;
     @endif
     @doc(command.k)
     name: k
@@ -4603,18 +4600,18 @@ neutral `ct 0 0 1 0` disables it.
     @doc(command.w)
     name: w
     category: wave
-    summary: wave-select which-wave interpolate? one-shot?
+    summary: wave-select which-wave interpolate? mode-override?
     @enddoc
-    case ATOM4('w---'): // wave-select which-wave interpolate? one-shot?
-      if (argc) {
-        wave_set(voice, x);
+    case ATOM4('w---'): // wave-select which-wave interpolate? mode-override?
+      if (argc && wave_set(voice, x) == 0) {
         int n;
         if (argc > 1) {
           if (skode_double_to_int(arg[1], &n)) sv.interpolate[voice] = n != 0;
         }
         if (argc > 2) {
           if (skode_double_to_int(arg[2], &n)) sv.one_shot[voice] = n != 0;
-        }
+        } else sv.one_shot[voice] = sw.one_shot[x];
+        osc_reclassify(voice);
       }
       break;
     @doc(command.=d)
@@ -5412,7 +5409,7 @@ neutral `ct 0 0 1 0` disables it.
     @doc(command./r)
     name: /r
     category: recording
-    summary: sample-to-wave slot one_shot offset
+    summary: sample-to-wave slot mode offset
     @enddoc
     case ATOM4('/r--'): // sample-to-wave slot one_shot offset
       {
@@ -5430,7 +5427,7 @@ neutral `ct 0 0 1 0` disables it.
     @doc(command./d)
     name: /d
     category: data
-    summary: data-to-wave slot rate  one-shot offset
+    summary: data-to-wave slot rate mode offset
     @enddoc
     case ATOM4('/d--'): // data-to-wave slot rate  one-shot offset
       {

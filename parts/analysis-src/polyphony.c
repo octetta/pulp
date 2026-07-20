@@ -193,6 +193,7 @@ static int clone_voice(const poly_group_t *group, int source, int dest,
   sv.loop_ended[dest] = 0;
   sv.finished[dest] = 0;
   sv.sample[dest] = 0;
+  osc_reclassify(dest);
   sv.sample_hold[dest] = 0;
   sv.sample_hold_count[dest] = 0;
   remap_dependencies(dest, group, dest_base);

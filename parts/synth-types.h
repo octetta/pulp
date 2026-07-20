@@ -15,6 +15,11 @@ extern int synth_sample_rate;
 #define NEG_60_DB_AS_LINEAR (0.001)
 #define SILENT NEG_60_DB
 
+typedef enum {
+  OSC_PLAYBACK_GENERAL = 0,
+  OSC_PLAYBACK_CYCLE_SIMPLE = 1
+} osc_playback_class_t;
+
 enum {
   WAVE_TABLE_SINE,     // 0
   WAVE_TABLE_SQR,      // 1

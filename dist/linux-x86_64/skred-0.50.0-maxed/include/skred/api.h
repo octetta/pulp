@@ -224,7 +224,8 @@ int skred_control_event_snapshot(skred_control_event_t *events,
 int skred_control_event_clear(void);
 /*
  * POSIX: returns a selectable file descriptor that becomes readable when the
- * control-event ring is non-empty. Returns -1 when unavailable.
+ * control-event ring is non-empty. Returns -1 when unavailable, including
+ * Emscripten builds.
  */
 int skred_control_event_wait_fd(void);
 /*
@@ -235,7 +236,8 @@ void *skred_control_event_wait_handle(void);
 /*
  * Convenience wait. timeout_ms < 0 waits forever, 0 polls, >0 waits up to
  * that many milliseconds. Returns 1 when events should be polled, 0 on
- * timeout, and -1 on error or unavailable notification support.
+ * timeout, and -1 on error or unavailable notification support. Emscripten
+ * performs only the initial nonblocking ring check and otherwise returns 0.
  */
 int skred_control_event_wait(int timeout_ms);
 /* Clears queued notifications, sequence numbering, and dropped count. */
@@ -252,10 +254,12 @@ int skred_control_response_poll(void);
 char *skred_control_response_status(void);
 
 /*
- * Optional built-in dispatcher for response bindings. The dispatcher sleeps on
- * the control-event wait object, consumes matching events, and runs bound Skode
- * commands from a dedicated control context. Hosts that own their service loop
- * can call skred_control_dispatch_pump() instead of starting the thread.
+ * Optional built-in dispatcher for response bindings. Native builds sleep on
+ * the control-event wait object in a dedicated thread. Emscripten builds use a
+ * browser event-loop timer because blocking POSIX waits cannot safely run in a
+ * WASM worker. Both consume matching events and run bound Skode commands from
+ * a dedicated control context. Hosts that own their service loop can call
+ * skred_control_dispatch_pump() instead.
  */
 int skred_control_dispatch_start(void);
 void skred_control_dispatch_stop(void);

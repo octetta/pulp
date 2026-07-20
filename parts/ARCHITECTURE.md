@@ -114,9 +114,11 @@ For host applications, the control-plane contract is:
 - The host owns interpretation of `ce` IDs and payload values.
 - The host must drain the bounded ring with `skred_control_event_poll()` and
   watch the dropped-event counter. The fd/HANDLE APIs are only wake signals.
-- Built-in response bindings may be serviced by SKRED's dispatcher thread with
-  `/cer 1` or `skred_control_dispatch_start()`, or manually by calling
-  `skred_control_dispatch_pump()` from a host service loop.
+- Built-in response bindings may be serviced automatically with `/cer 1` or
+  `skred_control_dispatch_start()`, or manually by calling
+  `skred_control_dispatch_pump()` from a host service loop. Native builds use
+  a waitable dispatcher thread. Emscripten uses a bounded browser timer pump;
+  it does not create a worker that blocks in an emulated `select()`.
 - Diagnostic readers can use `skred_control_event_snapshot()` or `?ce` to
   inspect outstanding events without consuming them; `?ce!` explicitly discards
   outstanding control-plane events.

@@ -246,6 +246,11 @@ service health. It reports audio callback load and overruns, control-event
 dispatcher wake/dispatch counters, UDP packet/command counters when UDP is
 included, and recorder/scope state when those features are included.
 
+The automatic control dispatcher is a waitable background thread on native
+hosts. Emscripten schedules the same bounded pump from the browser event loop;
+its `wait_fd` and blocking-wait APIs are intentionally unavailable so a WASM
+worker never proxies `select()` to the browser main thread.
+
 ```c
 puts(skred_thread_status());
 ```

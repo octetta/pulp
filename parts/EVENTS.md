@@ -196,8 +196,9 @@ consumed.
   watch the dropped-event counter. `skred_control_event_wait_fd()` /
   `skred_control_event_wait_handle()` are wake signals only, not the data.
 - `skred_control_dispatch_start()` (`/cer 1`) runs bindings automatically on
-  a dedicated thread; `skred_control_dispatch_pump()` lets a host service
-  loop drive bindings manually instead.
+  a dedicated native thread or an Emscripten event-loop timer;
+  `skred_control_dispatch_pump()` lets a host service loop drive bindings
+  manually instead.
 - `skred_control_event_snapshot()` / `?ce` peek without consuming;
   `?ce!` explicitly discards outstanding control-plane events.
 - Event type numbers are the public `SKRED_CONTROL_EVENT_*` enum:

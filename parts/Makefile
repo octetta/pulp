@@ -1,5 +1,5 @@
 # A simple "Top-Level" Makefile to manage the CMake complexity
-.PHONY: all clean native pi test warn warn-maxed maxed wasm analysis-src analysis-check libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-kit cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows
+.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test analysis-src analysis-check libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-kit cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows
 
 ZIG_LOCAL_CACHE_DIR ?= /tmp/pulp-zig-local-cache
 ZIG_GLOBAL_CACHE_DIR ?= /tmp/pulp-zig-global-cache
@@ -122,9 +122,13 @@ wasm:
 	cp wasm-assets/test-wasm.html build_wasm/test-wasm.html
 	cp wasm-assets/serve-wasm.sh build_wasm/serve-wasm.sh
 	cd build_wasm && $(EM_ENV) ./mkwasm
+	node wasm-assets/test-control-dispatch.js build_wasm/skred_api.js
 	cp build_wasm/skred_api.js ../doc
 	cp build_wasm/skred_api.wasm ../doc
 	cp wasm-assets/serve-wasm.sh ../doc
+
+wasm-test:
+	node wasm-assets/test-control-dispatch.js build_wasm/skred_api.js
 
 native:
 	cmake -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)

@@ -905,6 +905,7 @@ immediately on the control thread.
 | `w>r wave` | Wave index | Copies wavetable samples into the temporary recording buffer. |
 | `[filename] w>w wave` | File name and wave index | Writes the wavetable directly as mono floating-point WAV data, unchanged, using its stored sample rate. |
 | `d>r` | None | Copies parser data into the temporary recording buffer. |
+| `r>d [channel]` | Optional channel `-1`, `0`, or `1` | Copies the trimmed temporary recording into parser data without normalization. Stereo defaults to a mono downmix (`-1`); `0` or `1` selects a channel. |
 | `/r [slot[,mode[,channel]]]` | Wave destination and options | Loads the temporary recording into a mono wavetable. Mode is `0` cycle or `1` one-shot (default). Stereo recordings default to a mono downmix; channel `0` or `1` selects left or right. |
 | `/d [slot[,rate[,mode[,offset]]]]` | Wave destination and options | Loads parser data into a wavetable at the requested sample rate. Mode is `0` cycle (default) or `1` one-shot. |
 | `w> [frames]` | Start offset adjustment | Moves the temporary recording's start point. |

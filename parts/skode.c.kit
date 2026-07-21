@@ -4809,6 +4809,63 @@ neutral `ct 0 0 1 0` disables it.
         atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
       }
       break;
+    @doc(command.r>d)
+    name: r>d
+    category: data
+    summary: recording-to-data channel
+    @enddoc
+    case ATOM4('r>d-'): // recording-to-data [channel]
+      {
+        int channel = -1;
+        if (argc > 1) {
+          ctx->printf(ctx, "# usage: r>d [channel]\n");
+          break;
+        }
+        if (argc == 1 && !skode_double_to_int(arg[0], &channel)) break;
+        if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE) {
+          ctx->printf(ctx, "# recording buffer is not complete\n");
+          break;
+        }
+        if (!sampling.where || sampling.len > sampling.capacity ||
+            sampling.offset < 0 || sampling.trim < 0 ||
+            sampling.offset > sampling.len ||
+            sampling.trim > sampling.len - sampling.offset) {
+          ctx->printf(ctx, "# invalid recording bounds\n");
+          break;
+        }
+        int channels = sampling.channels == 2 ? 2 : 1;
+        if (channel < -1 || channel >= channels) {
+          ctx->printf(ctx, "# recording channel must be -1..%d\n",
+                      channels - 1);
+          break;
+        }
+        int data_len = sampling.len - sampling.offset - sampling.trim;
+        if (data_len <= 0) {
+          ctx->printf(ctx, "# recording buffer is empty\n");
+          break;
+        }
+        if (data_len > ands_data_cap(ctx->parse))
+          ands_data_resize(ctx->parse, data_len);
+        double *data = ands_data(ctx->parse);
+        if (!data || data_len > ands_data_cap(ctx->parse)) {
+          ctx->printf(ctx, "# data array allocation failed\n");
+          break;
+        }
+        for (int i = 0; i < data_len; i++) {
+          size_t frame =
+            (size_t)(sampling.offset + i) * (size_t)channels;
+          if (channels == 1) {
+            data[i] = sampling.where[frame];
+          } else if (channel >= 0) {
+            data[i] = sampling.where[frame + (size_t)channel];
+          } else {
+            data[i] = 0.5 * (sampling.where[frame] +
+                             sampling.where[frame + 1]);
+          }
+        }
+        ands_data_len_set(ctx->parse, data_len);
+      }
+      break;
     @doc(command.d>MO)
     name: d>MO
     category: midi

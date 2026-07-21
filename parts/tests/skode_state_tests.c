@@ -336,6 +336,59 @@ static void test_data_array_logging(void) {
   }
 }
 
+static void test_record_to_data(void) {
+  const char *test = "record to data";
+  static float recording_data[8] = {
+    1.0f, 3.0f,
+    10.0f, 14.0f,
+    -4.0f, 2.0f,
+    8.0f, 12.0f
+  };
+  skode_t ctx = new_ctx();
+  extern synth_sample_t sampling;
+
+  sampling.where = recording_data;
+  sampling.len = 4;
+  sampling.capacity = 4;
+  sampling.channels = 2;
+  sampling.offset = 1;
+  sampling.trim = 1;
+  atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
+
+  consume(test, &ctx, "r>d");
+  expect_int(test, ands_data_len(ctx.parse), 2, "downmix data length");
+  expect_float(test, (float)ands_data(ctx.parse)[0], 12.0f, 0.0001f,
+               "downmix first frame");
+  expect_float(test, (float)ands_data(ctx.parse)[1], -1.0f, 0.0001f,
+               "downmix second frame");
+
+  consume(test, &ctx, "r>d0");
+  expect_float(test, (float)ands_data(ctx.parse)[0], 10.0f, 0.0001f,
+               "left first frame");
+  expect_float(test, (float)ands_data(ctx.parse)[1], -4.0f, 0.0001f,
+               "left second frame");
+
+  consume(test, &ctx, "r>d1");
+  expect_float(test, (float)ands_data(ctx.parse)[0], 14.0f, 0.0001f,
+               "right first frame");
+  expect_float(test, (float)ands_data(ctx.parse)[1], 2.0f, 0.0001f,
+               "right second frame");
+
+  ctx.log_enable = 1;
+  reset_log(&ctx);
+  consume(test, &ctx, "r>d2");
+  expect_substr(test, ctx.log, "# recording channel must be -1..1",
+                "invalid channel diagnostic");
+
+  sampling.where = NULL;
+  sampling.len = 0;
+  sampling.capacity = 0;
+  sampling.channels = 1;
+  sampling.offset = 0;
+  sampling.trim = 0;
+  atomic_store_int(&sampling.state, SAMPLE_STATE_IDLE);
+}
+
 static void test_command_help(void) {
   const char *test = "command help";
   skode_t ctx = new_ctx();
@@ -3411,6 +3464,7 @@ int main(int argc, char **argv) {
   test_invalid_voice_does_not_move_selection();
   test_text_and_show_logging();
   test_data_array_logging();
+  test_record_to_data();
   test_command_help();
   test_named_wave_destination();
   test_midi_and_links();

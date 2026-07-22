@@ -5167,7 +5167,7 @@ int skode_function(ands_t *s, int info) {
       }
       ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
       break;
-    case ATOM4('%ls-'): // list directory (match-type)
+    case ATOM4('%ls-'): // list directory (match-type) (index)
       {
       /*
           types
@@ -5182,6 +5182,11 @@ int skode_function(ands_t *s, int info) {
       SkredDirent *entry;
       SkredDir *dp = skred_opendir(".");
         if (dp) {
+          int index = -100;
+          if (argc > 1) {
+            index = (int)arg[1];
+          }
+          int count = 0;
           while ((entry = skred_readdir(dp))) {
             char *name = entry->d_name;
             int f = 0;
@@ -5206,8 +5211,24 @@ int skode_function(ands_t *s, int info) {
                 f = (strstr(name, ".flac") != NULL);
                 break;
             }
-            if (f) ctx->printf(ctx, "# [%s%s]\n", name,
-              entry->is_directory ? "/" : "");
+            if (f) {
+              if (index == -100) {
+                ctx->printf(ctx,
+                  "# [%s%s] # %d\n",
+                  name, entry->is_directory ? "/" : "", count);
+              }
+              if (index == count) {
+                ctx->printf(ctx, "# [%s%s] # %d\n",
+                  name, entry->is_directory ? "/" : "", index);
+                ands_string_from_external(ctx->parse, name, strlen(name));
+              }
+              count++;
+              if (index == -1) {
+                if (rand() % count == 0) {
+                  ands_string_from_external(ctx->parse, name, strlen(name));
+                }
+              }
+            }
           }
           skred_closedir(dp);
         }

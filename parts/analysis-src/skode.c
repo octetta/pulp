@@ -5176,6 +5176,8 @@ int skode_function(ands_t *s, int info) {
           2 = .mp3
           3 = .ks
           4 = .flac
+          5 = .zip
+          6 = .pnl
       */
       int p = -1;
       if (argc) p = x;
@@ -5209,6 +5211,12 @@ int skode_function(ands_t *s, int info) {
                 break;
               case 4:
                 f = (strstr(name, ".flac") != NULL);
+                break;
+              case 5:
+                f = (strstr(name, ".zip") != NULL);
+                break;
+              case 6:
+                f = (strstr(name, ".pnl") != NULL);
                 break;
             }
             if (f) {

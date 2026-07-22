@@ -6418,6 +6418,8 @@ neutral `ct 0 0 1 0` disables it.
           2 = .mp3
           3 = .ks
           4 = .flac
+          5 = .zip
+          6 = .pnl
       */
       int p = -1;
       if (argc) p = x;
@@ -6451,6 +6453,12 @@ neutral `ct 0 0 1 0` disables it.
                 break;
               case 4:
                 f = (strstr(name, ".flac") != NULL);
+                break;
+              case 5:
+                f = (strstr(name, ".zip") != NULL);
+                break;
+              case 6:
+                f = (strstr(name, ".pnl") != NULL);
                 break;
             }
             if (f) {

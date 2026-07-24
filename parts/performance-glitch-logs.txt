@@ -1,0 +1,71 @@
+# with skred 0.52.2 audio in enabled, using a delay line
+# talk to codex and claude about this
+# 2026-07-23
+
+# /a?
+# audio: running
+out: [Ryzen HD Audio Controller Analog Stereo]
+  requested: [default]
+  channels: 2 pairs: 1 skred-pairs: 5 stem-pairs: 0
+in: [Ryzen HD Audio Controller Analog Stereo]
+  requested: [Ryzen HD Audio Controller Analog Stereo]
+  channels: 2
+  capture-waves: w7..w14 usable-channels: 2/8
+rate: 48000 requested-callback-frames: 128
+device-buffer: period-frames 384 periods 1 total-frames 384 8.000ms
+delay: active 1/4 sends:2 eligible:2
+perf:
+  callbacks: 414515 frames: 53057920 samples: 53057920 overruns: 1
+  callback-ms: last 0.072 avg 0.027 worst 4.808 budget 2.667 worst-budget 2.667
+  callback-load: last 2.7% avg 1.0% worst 180.3%
+  suspected-glitches: late-starts 80926 worst-late-ms 1623.809 discontinuities 175
+  output: clipped-samples 87977 nonfinite-samples 0 reroutes 0 interruptions 0
+  callback-frames: last 128 worst 128
+# 
+
+# /a?
+# audio: running
+out: [Ryzen HD Audio Controller Analog Stereo]
+  requested: [default]
+  channels: 2 pairs: 1 skred-pairs: 5 stem-pairs: 0
+in: [Ryzen HD Audio Controller Analog Stereo]
+  requested: [Ryzen HD Audio Controller Analog Stereo]
+  channels: 2
+  capture-waves: w7..w14 usable-channels: 2/8
+rate: 48000 requested-callback-frames: 128
+device-buffer: period-frames 384 periods 1 total-frames 384 8.000ms
+delay: active 1/4 sends:2 eligible:2
+perf:
+  callbacks: 463760 frames: 59361280 samples: 59361280 overruns: 1
+  callback-ms: last 0.059 avg 0.029 worst 4.808 budget 2.667 worst-budget 2.667
+  callback-load: last 2.2% avg 1.1% worst 180.3%
+  suspected-glitches: late-starts 99762 worst-late-ms 1623.809 discontinuities 175
+  output: clipped-samples 87977 nonfinite-samples 0 reroutes 0 interruptions 0
+  callback-frames: last 128 worst 128
+
+
+# idea... using udp with the attached client using "log1" to allow return
+# text, an external process could control skred and collect
+# performance info, for logging and debug?
+
+# bAD CRASH... extending into many many seconds
+
+# /a?
+# audio: running
+out: [Ryzen HD Audio Controller Analog Stereo]
+  requested: [default]
+  channels: 2 pairs: 1 skred-pairs: 5 stem-pairs: 0
+in: [Ryzen HD Audio Controller Analog Stereo]
+  requested: [Ryzen HD Audio Controller Analog Stereo]
+  channels: 2
+  capture-waves: w7..w14 usable-channels: 2/8
+rate: 48000 requested-callback-frames: 128
+device-buffer: period-frames 384 periods 1 total-frames 384 8.000ms
+delay: active 0/4 sends:2 eligible:2
+perf:
+  callbacks: 603694 frames: 77272832 samples: 77272832 overruns: 1
+  callback-ms: last 0.052 avg 0.034 worst 4.808 budget 2.667 worst-budget 2.667
+  callback-load: last 1.9% avg 1.3% worst 180.3%
+  suspected-glitches: late-starts 132950 worst-late-ms 5354.592 discontinuities 175
+  output: clipped-samples 87977 nonfinite-samples 0 reroutes 0 interruptions 0
+  callback-frames: last 128 worst 128

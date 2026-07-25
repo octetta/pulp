@@ -27,7 +27,7 @@ static int mini_run_command(const char *line) {
 
 int main(int argc, char **argv) {
   int useue = 1;
-  unsigned int vc = 32;
+  unsigned int vc = 64;
   unsigned int req = 128;
   int udp_port = 60440;
   int output = -1;

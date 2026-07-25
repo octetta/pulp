@@ -398,13 +398,21 @@ static void test_command_help(void) {
   expect_substr(test, ctx.log, "# help categories", "help categories");
   expect_substr(test, ctx.log, "parser", "help parser category");
 
+#ifdef SKRED_TEST_MIDI
+  const char *parser_cat_cmd = "/h 2";
+  const char *wait_cmd = "/h 2,1";
+#else
+  const char *parser_cat_cmd = "/h 1";
+  const char *wait_cmd = "/h 1,1";
+#endif
+
   reset_log(&ctx);
-  consume(test, &ctx, "/h 1");
+  consume(test, &ctx, parser_cat_cmd);
   expect_substr(test, ctx.log, "# help parser", "numeric category help");
   expect_substr(test, ctx.log, "wait", "numeric category command");
 
   reset_log(&ctx);
-  consume(test, &ctx, "/h 1,1");
+  consume(test, &ctx, wait_cmd);
   expect_substr(test, ctx.log, "# help wait", "numeric command help");
   expect_substr(test, ctx.log, "blocking msec wait", "numeric command summary");
 
@@ -1888,6 +1896,10 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"DL1,2,3,4,5,6,7", SKODE_OP_DELAY_PARAMS},
     {"VS1,3", SKODE_OP_WAVE_RANGE_SET},
     {"VL1,3", SKODE_OP_WAVE_LOOP_SET},
+    {"fb.5", SKODE_OP_FREQ_BEND},
+    {"fbp12,2", SKODE_OP_FREQ_BEND_PARAM},
+    {"ab-.5", SKODE_OP_AMP_BEND},
+    {"abp6,0", SKODE_OP_AMP_BEND_PARAM},
   };
 
   for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
@@ -3443,6 +3455,78 @@ static void test_control_plane_voice_events(void) {
   wave_reset(0);
 }
 
+static void test_frequency_and_amplitude_bend(void) {
+  const char *test = "frequency and amplitude bend";
+  skode_t ctx = new_ctx();
+  ctx.voice = 0;
+  wave_reset(0);
+  wave_reset(1);
+
+  /* Defaults check */
+  expect_float(test, sv.freq_bend[0], 0.0f, 1e-4f, "default freq_bend is 0");
+  expect_float(test, sv.freq_bend_range[0], 2.0f, 1e-4f, "default freq_bend_range is 2");
+  expect_float(test, sv.freq_bend_offset[0], 0.0f, 1e-4f, "default freq_bend_offset is 0");
+  expect_float(test, sv.amp_bend[0], 0.0f, 1e-4f, "default amp_bend is 0");
+  expect_float(test, sv.amp_bend_range[0], 12.0f, 1e-4f, "default amp_bend_range is 12");
+  expect_float(test, sv.amp_bend_offset[0], 0.0f, 1e-4f, "default amp_bend_offset is 0");
+
+  /* SKode command execution for fb and fbp */
+  consume(test, &ctx, "fb .5");
+  expect_float(test, sv.freq_bend[0], 0.5f, 1e-4f, "fb .5 sets freq_bend to 0.5");
+
+  consume(test, &ctx, "fb 2.5");
+  expect_float(test, sv.freq_bend[0], 1.0f, 1e-4f, "fb > 1 clamps to 1.0");
+
+  consume(test, &ctx, "fb -3");
+  expect_float(test, sv.freq_bend[0], -1.0f, 1e-4f, "fb < -1 clamps to -1.0");
+
+  consume(test, &ctx, "fbp 12 2");
+  expect_float(test, sv.freq_bend_range[0], 12.0f, 1e-4f, "fbp range set to 12");
+  expect_float(test, sv.freq_bend_offset[0], 2.0f, 1e-4f, "fbp offset set to 2");
+
+  /* Frequency calculation check */
+  freq_set(0, 440.0f);
+  freq_bend_param_set(0, 12.0f, 0.0f);
+  freq_bend_set(0, 1.0f); /* +12 semitones = 1 octave = 880 Hz */
+  float inc_440 = osc_get_phase_inc(0, 440.0f);
+  freq_bend_set(0, 0.0f);
+  float inc_base = osc_get_phase_inc(0, 440.0f);
+  expect_float(test, inc_440, inc_base * 2.0f, 1e-4f, "1 octave frequency bend doubles phase_inc");
+
+  /* SKode command execution for ab and abp */
+  consume(test, &ctx, "ab .25");
+  expect_float(test, sv.amp_bend[0], 0.25f, 1e-4f, "ab .25 sets amp_bend to 0.25");
+
+  consume(test, &ctx, "abp 24 -6");
+  expect_float(test, sv.amp_bend_range[0], 24.0f, 1e-4f, "abp range set to 24");
+  expect_float(test, sv.amp_bend_offset[0], -6.0f, 1e-4f, "abp offset set to -6");
+
+  /* Amplitude calculation check */
+  amp_set(0, 0.0f);
+  amp_bend_param_set(0, 12.0f, 0.0f);
+  amp_bend_set(0, 0.5f); /* +6 dB */
+  expect_float(test, sv.amp[0], powf(10.0f, 6.0f / 20.0f), 1e-4f, "ab .5 with abp 12 range gives +6 dB");
+
+  /* Voice copy */
+  voice_copy(0, 1);
+  expect_float(test, sv.freq_bend[1], sv.freq_bend[0], 1e-4f, "voice_copy copies freq_bend");
+  expect_float(test, sv.freq_bend_range[1], sv.freq_bend_range[0], 1e-4f, "voice_copy copies freq_bend_range");
+  expect_float(test, sv.freq_bend_offset[1], sv.freq_bend_offset[0], 1e-4f, "voice_copy copies freq_bend_offset");
+  expect_float(test, sv.amp_bend[1], sv.amp_bend[0], 1e-4f, "voice_copy copies amp_bend");
+  expect_float(test, sv.amp_bend_range[1], sv.amp_bend_range[0], 1e-4f, "voice_copy copies amp_bend_range");
+  expect_float(test, sv.amp_bend_offset[1], sv.amp_bend_offset[0], 1e-4f, "voice_copy copies amp_bend_offset");
+
+  /* Voice reset */
+  wave_reset(0);
+  expect_float(test, sv.freq_bend[0], 0.0f, 1e-4f, "wave_reset resets freq_bend");
+  expect_float(test, sv.freq_bend_range[0], 2.0f, 1e-4f, "wave_reset resets freq_bend_range");
+  expect_float(test, sv.amp_bend[0], 0.0f, 1e-4f, "wave_reset resets amp_bend");
+  expect_float(test, sv.amp_bend_range[0], 12.0f, 1e-4f, "wave_reset resets amp_bend_range");
+
+  wave_reset(0);
+  wave_reset(1);
+}
+
 int main(int argc, char **argv) {
   synth_init(8);
   wave_table_init(0);
@@ -3461,6 +3545,7 @@ int main(int argc, char **argv) {
   }
 
   test_voice_core_commands();
+  test_frequency_and_amplitude_bend();
   test_invalid_voice_does_not_move_selection();
   test_text_and_show_logging();
   test_data_array_logging();

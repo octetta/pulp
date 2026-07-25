@@ -2826,6 +2826,10 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_POLY_NOTE:
     case SKODE_OP_POLY_RELEASE:
     case SKODE_OP_POLY_BEND:
+    case SKODE_OP_FREQ_BEND:
+    case SKODE_OP_FREQ_BEND_PARAM:
+    case SKODE_OP_AMP_BEND:
+    case SKODE_OP_AMP_BEND_PARAM:
       return 1;
     case SKODE_OP_NONE:
     case SKODE_OP_DELAY:
@@ -2911,6 +2915,18 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         return skred_poly_bend(x, key, opcode->arg[2],
           opcode->argc > 3 ? opcode->arg[3] : 0);
       }
+    case SKODE_OP_FREQ_BEND:
+      return opcode->argc == 1 ? freq_bend_set(voice, (float)opcode->arg[0]) : -1;
+    case SKODE_OP_FREQ_BEND_PARAM:
+      return (opcode->argc >= 1 && opcode->argc <= 2)
+        ? freq_bend_param_set(voice, (float)opcode->arg[0], opcode->argc > 1 ? (float)opcode->arg[1] : 0.0f)
+        : -1;
+    case SKODE_OP_AMP_BEND:
+      return opcode->argc == 1 ? amp_bend_set(voice, (float)opcode->arg[0]) : -1;
+    case SKODE_OP_AMP_BEND_PARAM:
+      return (opcode->argc >= 1 && opcode->argc <= 2)
+        ? amp_bend_param_set(voice, (float)opcode->arg[0], opcode->argc > 1 ? (float)opcode->arg[1] : 0.0f)
+        : -1;
     case SKODE_OP_AMP:
       return opcode->argc == 1 ? amp_set(voice, opcode->arg[0]) : -1;
     case SKODE_OP_AMP_MOD:
@@ -3475,6 +3491,16 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('swap'): // swap first two parser arguments
       ands_arg_swap(s);
       return 1;
+    case ATOM4('ab--'): // amp bend
+      if (argc) amp_bend_set(voice, (float)arg[0]);
+      break;
+    case ATOM4('abp-'): // amp bend range/offset
+      if (argc) {
+        float range = (float)arg[0];
+        float offset = argc > 1 ? (float)arg[1] : 0.0f;
+        amp_bend_param_set(voice, range, offset);
+      }
+      break;
     case ATOM4('A---'): // AM voice depth
       if (argc < 2) {
         amp_mod_set(voice, -1, 0, 0);
@@ -3564,6 +3590,16 @@ int skode_function(ands_t *s, int info) {
         double *data = ands_data(ctx->parse);
         int data_len = ands_data_len(ctx->parse);
         skode_double_dump(ctx, data, data_len);
+      }
+      break;
+    case ATOM4('fb--'): // freq bend
+      if (argc) freq_bend_set(voice, (float)arg[0]);
+      break;
+    case ATOM4('fbp-'): // freq bend range/offset
+      if (argc) {
+        float range = (float)arg[0];
+        float offset = argc > 1 ? (float)arg[1] : 0.0f;
+        freq_bend_param_set(voice, range, offset);
       }
       break;
     case ATOM4('ft--'): // filter-adsr A D S R

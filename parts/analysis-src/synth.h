@@ -97,6 +97,10 @@ void osc_reclassify(int voice);
 int wave_mute(int voice, int state);
 int wave_dir(int voice, int state);
 int freq_midi(int voice, float note, float cents);
+int freq_bend_set(int voice, float val);
+int freq_bend_param_set(int voice, float range, float offset);
+int amp_bend_set(int voice, float val);
+int amp_bend_param_set(int voice, float range, float offset);
 
 int amp_mod_set(int voice, int o, float f, float a);
 

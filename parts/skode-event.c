@@ -208,6 +208,14 @@ static int skode_compile_callback(ands_t *s, int info) {
       opcode = SKODE_OP_PHASE_ENVELOPE; min_argc = max_argc = 4; break;
     case SKODE_ATOM('c', 'd', '-', '-'):
       opcode = SKODE_OP_PHASE_ENVELOPE_DEPTH; min_argc = max_argc = 1; break;
+    case SKODE_ATOM('a', 'b', '-', '-'):
+      opcode = SKODE_OP_AMP_BEND; min_argc = max_argc = 1; break;
+    case SKODE_ATOM('a', 'b', 'p', '-'):
+      opcode = SKODE_OP_AMP_BEND_PARAM; min_argc = 1; max_argc = 2; break;
+    case SKODE_ATOM('f', 'b', '-', '-'):
+      opcode = SKODE_OP_FREQ_BEND; min_argc = max_argc = 1; break;
+    case SKODE_ATOM('f', 'b', 'p', '-'):
+      opcode = SKODE_OP_FREQ_BEND_PARAM; min_argc = 1; max_argc = 2; break;
     case SKODE_ATOM('f', 't', '-', '-'):
       opcode = SKODE_OP_FILTER_ENVELOPE; min_argc = max_argc = 4; break;
     case SKODE_ATOM('f', 'd', '-', '-'):

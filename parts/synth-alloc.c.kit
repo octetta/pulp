@@ -162,6 +162,12 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(link_velo_3,      float);
     VALLOC(link_trig,        float);
     VALLOC(link_trig_samp,   uint64_t);
+    VALLOC(freq_bend,        float);
+    VALLOC(freq_bend_range,  float);
+    VALLOC(freq_bend_offset, float);
+    VALLOC(amp_bend,         float);
+    VALLOC(amp_bend_range,   float);
+    VALLOC(amp_bend_offset,  float);
 
     /* config flags */
     VALLOC(wave_table_index, int);
@@ -293,6 +299,8 @@ void synth_free_voices(void) {
     VFREE(link_velo_3);
     VFREE(link_trig);
     VFREE(link_trig_samp);
+    VFREE(freq_bend);        VFREE(freq_bend_range); VFREE(freq_bend_offset);
+    VFREE(amp_bend);         VFREE(amp_bend_range);  VFREE(amp_bend_offset);
     VFREE(wave_table_index); VFREE(disconnect);      VFREE(control_events);
     @if(RECORD || SCOPE || TRACKS)
     VFREE(record);

@@ -101,6 +101,12 @@ typedef struct {
     float  * restrict link_velo_3;
     float  * restrict link_trig;
     uint64_t  * restrict link_trig_samp;
+    float  * restrict freq_bend;
+    float  * restrict freq_bend_range;
+    float  * restrict freq_bend_offset;
+    float  * restrict amp_bend;
+    float  * restrict amp_bend_range;
+    float  * restrict amp_bend_offset;
 
     /* --- config flags --- */
     int    * restrict wave_table_index;

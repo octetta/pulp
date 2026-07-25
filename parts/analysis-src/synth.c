@@ -482,6 +482,12 @@ float osc_get_phase_inc(int v, float f) {
   // Compute the frequency in "table samples per system sample"
   // This works even if table_rate ≠ system rate
   float g = f;
+  if (sv.freq_bend) {
+    float semitones = sv.freq_bend[v] * sv.freq_bend_range[v] + sv.freq_bend_offset[v];
+    if (semitones != 0.0f) {
+      g *= powf(2.0f, semitones / 12.0f);
+    }
+  }
   if (sv.one_shot[v] && sv.offset_hz[v] > 0.0f) g /= sv.offset_hz[v];
   float phase_inc = (g * (float)sv.table_size[v]) / sv.table_rate[v] * (sv.table_rate[v] / MAIN_SAMPLE_RATE);
   return phase_inc;
@@ -1947,7 +1953,45 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
 int amp_set(int voice, float f) {
   if (voice_invalid(voice) || !isfinite(f)) return SYNTH_INVALID_VOICE;
   sv.user_amp[voice] = f;
-  sv.amp[voice] = DB_TO_LINEAR(f);
+  float total_db = f;
+  if (sv.amp_bend) {
+    total_db += sv.amp_bend[voice] * sv.amp_bend_range[voice] + sv.amp_bend_offset[voice];
+  }
+  sv.amp[voice] = DB_TO_LINEAR(total_db);
+  return 0;
+}
+
+int freq_bend_set(int voice, float val) {
+  if (voice_invalid(voice) || !isfinite(val)) return SYNTH_INVALID_VOICE;
+  if (val < -1.0f) val = -1.0f;
+  if (val > 1.0f) val = 1.0f;
+  sv.freq_bend[voice] = val;
+  osc_set_freq(voice, sv.freq[voice]);
+  return 0;
+}
+
+int freq_bend_param_set(int voice, float range, float offset) {
+  if (voice_invalid(voice) || !isfinite(range) || !isfinite(offset)) return SYNTH_INVALID_VOICE;
+  sv.freq_bend_range[voice] = range;
+  sv.freq_bend_offset[voice] = offset;
+  osc_set_freq(voice, sv.freq[voice]);
+  return 0;
+}
+
+int amp_bend_set(int voice, float val) {
+  if (voice_invalid(voice) || !isfinite(val)) return SYNTH_INVALID_VOICE;
+  if (val < -1.0f) val = -1.0f;
+  if (val > 1.0f) val = 1.0f;
+  sv.amp_bend[voice] = val;
+  amp_set(voice, sv.user_amp[voice]);
+  return 0;
+}
+
+int amp_bend_param_set(int voice, float range, float offset) {
+  if (voice_invalid(voice) || !isfinite(range) || !isfinite(offset)) return SYNTH_INVALID_VOICE;
+  sv.amp_bend_range[voice] = range;
+  sv.amp_bend_offset[voice] = offset;
+  amp_set(voice, sv.user_amp[voice]);
   return 0;
 }
 
@@ -2282,6 +2326,10 @@ int voice_copy(int v, int n) {
   envelope_init_e(&sv.filter_envelope[n], a, d, s, r);
   sv.ring_osc[n] = sv.ring_osc[v];
   sv.ring_amount[n] = sv.ring_amount[v];
+  freq_bend_param_set(n, sv.freq_bend_range[v], sv.freq_bend_offset[v]);
+  freq_bend_set(n, sv.freq_bend[v]);
+  amp_bend_param_set(n, sv.amp_bend_range[v], sv.amp_bend_offset[v]);
+  amp_bend_set(n, sv.amp_bend[v]);
   //
   // TODO stuff is missing from here...
   //
@@ -2385,6 +2433,12 @@ void voice_reset(int i) {
   sv.link_velo_3[i] = -1;
   sv.link_trig[i] = -1;
   sv.link_trig_samp[i] = 0;
+  sv.freq_bend[i] = 0.0f;
+  sv.freq_bend_range[i] = 2.0f;
+  sv.freq_bend_offset[i] = 0.0f;
+  sv.amp_bend[i] = 0.0f;
+  sv.amp_bend_range[i] = 12.0f;
+  sv.amp_bend_offset[i] = 0.0f;
   osc_set_wave_table_index(i, WAVE_TABLE_SINE);
   //
   sv.pan[i] = 0;

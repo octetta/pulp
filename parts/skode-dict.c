@@ -391,6 +391,38 @@ static int word_exec_m(const skode_word_t *self, skode_t *ctx, ands_t *s,
   if (argc && skode_double_to_int(arg[0], &x)) wave_mute(ctx->voice, x);
   return 0;
 }
+static int word_exec_fb(const skode_word_t *self, skode_t *ctx, ands_t *s,
+    double *arg, int argc) {
+  (void)self; (void)s;
+  if (argc) freq_bend_set(ctx->voice, (float)arg[0]);
+  return 0;
+}
+static int word_exec_fbp(const skode_word_t *self, skode_t *ctx, ands_t *s,
+    double *arg, int argc) {
+  (void)self; (void)s;
+  if (argc) {
+    float range = (float)arg[0];
+    float offset = argc > 1 ? (float)arg[1] : 0.0f;
+    freq_bend_param_set(ctx->voice, range, offset);
+  }
+  return 0;
+}
+static int word_exec_ab(const skode_word_t *self, skode_t *ctx, ands_t *s,
+    double *arg, int argc) {
+  (void)self; (void)s;
+  if (argc) amp_bend_set(ctx->voice, (float)arg[0]);
+  return 0;
+}
+static int word_exec_abp(const skode_word_t *self, skode_t *ctx, ands_t *s,
+    double *arg, int argc) {
+  (void)self; (void)s;
+  if (argc) {
+    float range = (float)arg[0];
+    float offset = argc > 1 ? (float)arg[1] : 0.0f;
+    amp_bend_param_set(ctx->voice, range, offset);
+  }
+  return 0;
+}
 
 /*
  * *R : push each argument into the return registers in order. Normal atom
@@ -465,6 +497,22 @@ static skode_word_t word_table[] = {
     .min_args = 1, .max_args = 1,
     .safety = WORD_REAL_TIME_SAFE, .category = "voice",
     .summary = "mute-audio bool" },
+  { WID("fb"), .execute = word_exec_fb, .opcode_id = SKODE_OP_FREQ_BEND,
+    .min_args = 1, .max_args = 1,
+    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
+    .summary = "freq bend (-1..1)" },
+  { WID("fbp"), .execute = word_exec_fbp, .opcode_id = SKODE_OP_FREQ_BEND_PARAM,
+    .min_args = 1, .max_args = 2,
+    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
+    .summary = "freq bend range (semitones) [offset]" },
+  { WID("ab"), .execute = word_exec_ab, .opcode_id = SKODE_OP_AMP_BEND,
+    .min_args = 1, .max_args = 1,
+    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
+    .summary = "amp bend (-1..1)" },
+  { WID("abp"), .execute = word_exec_abp, .opcode_id = SKODE_OP_AMP_BEND_PARAM,
+    .min_args = 1, .max_args = 2,
+    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
+    .summary = "amp bend range (dB) [offset]" },
 };
 #define WORD_COUNT ((int)(sizeof(word_table) / sizeof(word_table[0])))
 

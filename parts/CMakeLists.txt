@@ -314,6 +314,9 @@ endif()
 if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_KSYNTH=1)
 endif()
+if(NOT MIDI_FEATURE_INDEX EQUAL -1)
+  target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_MIDI=1)
+endif()
 if(NOT PD_FEATURE_INDEX EQUAL -1 AND
    NOT FILT_FEATURE_INDEX EQUAL -1 AND
    NOT FADSR_FEATURE_INDEX EQUAL -1 AND

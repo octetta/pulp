@@ -82,6 +82,10 @@ their named build option is enabled.
 | `v` | `voice` | `SKODE_OP_VOICE` | Changes the current voice inside the compiled program | base |
 | `a` | `dB` | `SKODE_OP_AMP` | `amp_set()` | base |
 | `f` | `Hz` | `SKODE_OP_FREQ` | `freq_set()` | base |
+| `fb` | `val` | `SKODE_OP_FREQ_BEND` | `freq_bend_set()`; frequency bend normalized value (`-1.0` to `1.0`) | base |
+| `fbp` | `range [, offset]` | `SKODE_OP_FREQ_BEND_PARAM` | `freq_bend_param_set()`; frequency bend range (semitones) and optional offset | base |
+| `ab` | `val` | `SKODE_OP_AMP_BEND` | `amp_bend_set()`; amplitude bend normalized value (`-1.0` to `1.0`) | base |
+| `abp` | `range [, offset]` | `SKODE_OP_AMP_BEND_PARAM` | `amp_bend_param_set()`; amplitude bend range (dB) and optional offset | base |
 | `n` | `note [, cents]` | `SKODE_OP_MIDI_NOTE` | `skode_midi_note()` then `freq_midi()` | base |
 | `p` | `pan` | `SKODE_OP_PAN` | `pan_set()` | base |
 | `l` | `velocity` | `SKODE_OP_VELOCITY` | `skode_envelope_velocity()` and linked voices | base |

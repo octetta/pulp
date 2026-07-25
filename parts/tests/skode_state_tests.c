@@ -3463,6 +3463,11 @@ static void test_frequency_and_amplitude_bend(void) {
   wave_reset(1);
 
   /* Defaults check */
+  char fmt_buf[512];
+  voice_format(0, fmt_buf, sizeof(fmt_buf), 0);
+  if (strstr(fmt_buf, "fb") != NULL || strstr(fmt_buf, "ab") != NULL) {
+    fail(test, "voice_format output contains bend parameters when default");
+  }
   expect_float(test, sv.freq_bend[0], 0.0f, 1e-4f, "default freq_bend is 0");
   expect_float(test, sv.freq_bend_range[0], 2.0f, 1e-4f, "default freq_bend_range is 2");
   expect_float(test, sv.freq_bend_offset[0], 0.0f, 1e-4f, "default freq_bend_offset is 0");
@@ -3480,9 +3485,25 @@ static void test_frequency_and_amplitude_bend(void) {
   consume(test, &ctx, "fb -3");
   expect_float(test, sv.freq_bend[0], -1.0f, 1e-4f, "fb < -1 clamps to -1.0");
 
+  consume(test, &ctx, "fb .5");
   consume(test, &ctx, "fbp 12 2");
   expect_float(test, sv.freq_bend_range[0], 12.0f, 1e-4f, "fbp range set to 12");
   expect_float(test, sv.freq_bend_offset[0], 2.0f, 1e-4f, "fbp offset set to 2");
+
+  /* SKode command execution for ab and abp */
+  consume(test, &ctx, "ab .25");
+  expect_float(test, sv.amp_bend[0], 0.25f, 1e-4f, "ab .25 sets amp_bend to 0.25");
+
+  consume(test, &ctx, "abp 24 -6");
+  expect_float(test, sv.amp_bend_range[0], 24.0f, 1e-4f, "abp range set to 24");
+  expect_float(test, sv.amp_bend_offset[0], -6.0f, 1e-4f, "abp offset set to -6");
+
+  /* Format non-default parameters check */
+  voice_format(0, fmt_buf, sizeof(fmt_buf), 0);
+  expect_substr(test, fmt_buf, "fb0.5", "voice_format includes non-default fb");
+  expect_substr(test, fmt_buf, "fbp12,2", "voice_format includes non-default fbp");
+  expect_substr(test, fmt_buf, "ab0.25", "voice_format includes non-default ab");
+  expect_substr(test, fmt_buf, "abp24,-6", "voice_format includes non-default abp");
 
   /* Frequency calculation check */
   freq_set(0, 440.0f);
@@ -3527,6 +3548,14 @@ static void test_frequency_and_amplitude_bend(void) {
   wave_reset(1);
 }
 
+static void test_thread_status_includes_midi(void) {
+  const char *test = "thread status includes midi";
+  skode_t ctx = new_ctx();
+  ctx.log_enable = 1;
+  consume(test, &ctx, "/th?");
+  expect_substr(test, ctx.log, "midi:", "thread status includes midi section");
+}
+
 int main(int argc, char **argv) {
   synth_init(8);
   wave_table_init(0);
@@ -3546,6 +3575,7 @@ int main(int argc, char **argv) {
 
   test_voice_core_commands();
   test_frequency_and_amplitude_bend();
+  test_thread_status_includes_midi();
   test_invalid_voice_does_not_move_selection();
   test_text_and_show_logging();
   test_data_array_logging();

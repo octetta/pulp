@@ -243,7 +243,7 @@ sending more commands.
 
 `skred_thread_status()` returns a human-readable snapshot of SKRED-owned
 service health. It reports audio callback load and overruns, control-event
-dispatcher wake/dispatch counters, UDP packet/command counters when UDP is
+dispatcher wake/dispatch counters, MIDI status when MIDI is included, UDP packet/command counters when UDP is
 included, and recorder/scope state when those features are included.
 
 The automatic control dispatcher is a waitable background thread on native

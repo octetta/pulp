@@ -2082,7 +2082,7 @@ int wavetable_show(skode_t *ctx, int n) {
     ctx->printf(ctx, "# playback rate %gHz offset %+gHz MIDI %g mode %s\n",
       sw.rate[n], sw.offset_hz[n], sw.midi_note[n],
       sw.one_shot[n] ? "one-shot" : "cycle");
-    // ctx->printf(ctx, "# loop %d..%d |%d| %gms\n", loop_start, loop_end, loop_len, wave_samples_to_ms(loop_len, rate));
+    ctx->printf(ctx, "# loop %d..%d |%d| %gms\n", loop_start, loop_end, loop_len, wave_samples_to_ms(loop_len, rate));
     ctx->printf(ctx,
       "# min %+0.3f max %+0.3f peak %0.3f rms %0.3f dc %+0.4f zc %d",
       stats.min, stats.max, stats.peak, stats.rms, stats.dc, stats.zero_crossings);
@@ -2100,7 +2100,7 @@ static void wavetable_waveform_show(skode_t *ctx, int wave, int width, int heigh
   if (label && label[0]) ctx->printf(ctx, "# %s\n", label);
   print_audio_braille_labeled(ctx, sw.data[wave], sw.size[wave], width, height,
     loop_start, loop_end);
-  ctx->printf(ctx, "# wave [0..%d)", sw.size[wave]);
+  ctx->printf(ctx, "# wave [0..%d) baseline", sw.size[wave]);
   double rate = sw.rate[wave] > 0.0f ? sw.rate[wave] : (float)MAIN_SAMPLE_RATE;
   double ms = wave_samples_to_ms(sw.size[wave], rate);
   WTWFS(ms);
@@ -4049,7 +4049,7 @@ int skode_function(ands_t *s, int info) {
           if (skode_wave_valid(wave)) {
             // ctx->printf(ctx, "# wave [%d..%d)\n", sv.wave_range_start[target_voice], sv.wave_range_end[target_voice]);
             char label[96];
-            snprintf(label, sizeof(label), "v%d w%d", target_voice, wave);
+            snprintf(label, sizeof(label), "voice %d wave %d", target_voice, wave);
             wavetable_waveform_show(ctx, wave, w, h,
               sv.loop_start[target_voice], sv.loop_end[target_voice], label);
           }
@@ -4772,6 +4772,10 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('/th?'): // skred service/thread health
       ctx->printf(ctx, "%s", skred_thread_status());
+      break;
+    case ATOM4('/th!'): // reset skred performance counters and peak load tracking
+      skred_performance_reset();
+      ctx->printf(ctx, "# performance counters reset\n");
       break;
     case ATOM4('/ce!'): // control-event responder remove/clear
       if (argc == 0) {

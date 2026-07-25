@@ -42,6 +42,8 @@ most 32 operations.
 | --- | --- | --- | --- |
 | `v voice` | Integer voice index | Selects the voice affected by following commands. A pattern remembers its selected voice between steps. | Yes |
 | `f hz` | Frequency in hertz | Sets the selected voice directly to an oscillator frequency. | Yes |
+| `fb val` | Frequency bend normalized value (`-1..1`) | Bends the selected voice frequency in real-time according to its range/offset. | Yes |
+| `fbp range[,offset]` | Range (semitones) and optional offset | Configures the frequency bend range in semitones (default `2.0`) and offset (default `0.0`). | Yes |
 | `n note[,cents]` | MIDI note number; optional cents offset | Tunes the selected voice to a MIDI pitch. Fractional notes are accepted. `n-` reuses the last note. Notes also reach voices linked with `G`. | Yes |
 | `N semitones[,cents]` | Transposition and fine detune | Offsets later `n` pitches for the selected voice. `N-` preserves the current semitone setting while allowing cents to be changed. | Yes |
 | `g seconds` | Glide time; `0` disables | Glides from the current pitch to later pitch changes instead of jumping immediately. Requires `GLISS`. | Yes |
@@ -54,6 +56,8 @@ most 32 operations.
 | Command | Parameters | Effect | Schedulable |
 | --- | --- | --- | --- |
 | `a dB` | Amplitude in decibels | Sets voice loudness. `a0` is the normal synth-patch level; negative values attenuate. Long normalized one-shots and Ksynth drums conventionally use `a10`, with final listening level controlled by `V`. | Yes |
+| `ab val` | Amplitude bend normalized value (`-1..1`) | Bends the selected voice amplitude in real-time according to its range/offset. | Yes |
+| `abp range[,offset]` | Range (dB) and optional offset | Configures the amplitude bend range in dB (default `12.0`) and offset (default `0.0`). | Yes |
 | `V dB` | Master amplitude in decibels | Changes the final output level for the entire synth, not just the selected voice. | No |
 | `p pan` | Stereo position from `-1` to `1` | Moves the voice across the stereo field. `-1` is left, `0` is center, and `1` is right. | Yes |
 | `ds amount` | Send `0..1` or `0..15` | Sends the selected voice's mono signal to the delay owned by its record/scope track. The voice must be routed with `r1`..`r4`, centered with `p0`, and have no pan modulation. | No |

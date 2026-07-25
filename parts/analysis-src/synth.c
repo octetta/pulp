@@ -1768,6 +1768,26 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
       sv.user_amp[v]);
     if (sv.control_events[v]) APPEND(" vc1");
 
+    /* --- frequency bend (suppress if default) --- */
+    if (verbose || sv.freq_bend[v] != 0.0f)
+        APPEND(" fb%g", sv.freq_bend[v]);
+    if (verbose || sv.freq_bend_range[v] != 2.0f || sv.freq_bend_offset[v] != 0.0f) {
+        if (sv.freq_bend_offset[v] != 0.0f)
+            APPEND(" fbp%g,%g", sv.freq_bend_range[v], sv.freq_bend_offset[v]);
+        else
+            APPEND(" fbp%g", sv.freq_bend_range[v]);
+    }
+
+    /* --- amplitude bend (suppress if default) --- */
+    if (verbose || sv.amp_bend[v] != 0.0f)
+        APPEND(" ab%g", sv.amp_bend[v]);
+    if (verbose || sv.amp_bend_range[v] != 12.0f || sv.amp_bend_offset[v] != 0.0f) {
+        if (sv.amp_bend_offset[v] != 0.0f)
+            APPEND(" abp%g,%g", sv.amp_bend_range[v], sv.amp_bend_offset[v]);
+        else
+            APPEND(" abp%g", sv.amp_bend_range[v]);
+    }
+
     /* --- last midi note (suppress if never set) --- */
     #if 0
     if (verbose || sv.last_midi_note[v] > 0)

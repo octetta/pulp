@@ -1021,6 +1021,22 @@ char *skred_thread_status(void) {
   ptr += written;
   left -= (size_t)written;
 
+  @if(MIDI)
+  written = snprintf(ptr, left,
+    "\n#   %s",
+    skred_midi_status());
+  if (written < 0) return thread_status;
+  if ((size_t)written >= left) return thread_status;
+  ptr += written;
+  left -= (size_t)written;
+  @else
+  written = snprintf(ptr, left, "\n#   midi: unavailable");
+  if (written < 0) return thread_status;
+  if ((size_t)written >= left) return thread_status;
+  ptr += written;
+  left -= (size_t)written;
+  @endif
+
   @if(UDP)
   skred_udp_metrics_t udp;
   if (udp_metrics(&udp) == 0) {
@@ -1177,6 +1193,10 @@ static void perf_callback_end(const struct timespec *start,
     atomic_store_uint64(&perf_callback_ns_worst, elapsed_ns);
     atomic_store_uint64(&perf_callback_budget_ns_worst, budget_ns);
     atomic_store_uint64(&perf_callback_frames_worst, frame_count);
+  } else if (worst_ns > 0) {
+    uint64_t decayed_worst = worst_ns - (worst_ns >> 10);
+    if (decayed_worst < elapsed_ns) decayed_worst = elapsed_ns;
+    atomic_store_uint64(&perf_callback_ns_worst, decayed_worst);
   }
   if (budget_ns > 0 && elapsed_ns > budget_ns)
     atomic_fetch_add_uint64(&perf_callback_overruns, 1);

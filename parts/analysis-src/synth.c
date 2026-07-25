@@ -64,11 +64,28 @@ extern float volume_final;
 static int voice_invalid(int voice);
 static int wave_invalid(int wave);
 static void delay_cache_params(delay_bus_t *bus);
+void osc_set_freq(int v, float f);
 static void synth_track_defaults(void);
 
 int synth_sample_rate_set(int sample_rate) {
   if (sample_rate < 1) sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
+  int old_rate = synth_sample_rate;
   synth_sample_rate = sample_rate;
+  if (old_rate != sample_rate && sw.data) {
+    for (int w = 0; w < synth_config.wave_table_max; w++) {
+      if (sw.data[w] && (sw.rate[w] == (float)old_rate || sw.rate[w] <= 0.0f)) {
+        sw.rate[w] = (float)sample_rate;
+      }
+    }
+    for (int v = 0; v < synth_config.voice_max; v++) {
+      if (sv.table_rate) {
+        if (sv.table_rate[v] == (float)old_rate) sv.table_rate[v] = (float)sample_rate;
+        sv.table_size_rate[v] = (float)sv.table_size[v] / (float)sample_rate;
+        float f = sv.freq[v] > 0.0f ? sv.freq[v] : 440.0f;
+        osc_set_freq(v, f);
+      }
+    }
+  }
   return synth_sample_rate;
 }
 
@@ -479,8 +496,6 @@ static inline float audio_rng_raw_float(uint64_t raw) {
 }
 
 float osc_get_phase_inc(int v, float f) {
-  // Compute the frequency in "table samples per system sample"
-  // This works even if table_rate ≠ system rate
   float g = f;
   if (sv.freq_bend) {
     float semitones = sv.freq_bend[v] * sv.freq_bend_range[v] + sv.freq_bend_offset[v];
@@ -488,9 +503,15 @@ float osc_get_phase_inc(int v, float f) {
       g *= powf(2.0f, semitones / 12.0f);
     }
   }
-  if (sv.one_shot[v] && sv.offset_hz[v] > 0.0f) g /= sv.offset_hz[v];
-  float phase_inc = (g * (float)sv.table_size[v]) / sv.table_rate[v] * (sv.table_rate[v] / MAIN_SAMPLE_RATE);
-  return phase_inc;
+  if (sv.one_shot[v]) {
+    if (sv.offset_hz[v] > 0.0f) {
+      g /= sv.offset_hz[v];
+      return (g * (float)sv.table_size[v]) / (float)MAIN_SAMPLE_RATE;
+    }
+    float rate = sv.table_rate[v] > 0.0f ? sv.table_rate[v] : (float)MAIN_SAMPLE_RATE;
+    return (g / 440.0f) * (rate / (float)MAIN_SAMPLE_RATE);
+  }
+  return (g * (float)sv.table_size[v]) / (float)MAIN_SAMPLE_RATE;
 }
 
 void osc_set_freq(int v, float f) {

@@ -3556,6 +3556,18 @@ static void test_thread_status_includes_midi(void) {
   expect_substr(test, ctx.log, "midi:", "thread status includes midi section");
 }
 
+static void test_rec_load_k_to_data_to_rec(void) {
+  const char *test = "rec load k to data to rec";
+  skode_t ctx = new_ctx();
+  consume(test, &ctx, "(0 1 2 3) d>r /r100");
+  expect_int(test, sw.data[100] != NULL ? 1 : 0, 1, "wave 100 installed from rec_load");
+  expect_int(test, sw.size[100], 4, "wave 100 size is 4");
+  expect_int(test, sw.one_shot[100], 1, "wave 100 is one_shot");
+  consume(test, &ctx, "v0 w100 f440 n69,0");
+  float phase_inc = osc_get_phase_inc(0, 440.0f);
+  expect_int(test, phase_inc > 0.0f ? 1 : 0, 1, "phase_inc is positive for rec_load one-shot wave");
+}
+
 int main(int argc, char **argv) {
   synth_init(8);
   wave_table_init(0);
@@ -3576,6 +3588,7 @@ int main(int argc, char **argv) {
   test_voice_core_commands();
   test_frequency_and_amplitude_bend();
   test_thread_status_includes_midi();
+  test_rec_load_k_to_data_to_rec();
   test_invalid_voice_does_not_move_selection();
   test_text_and_show_logging();
   test_data_array_logging();

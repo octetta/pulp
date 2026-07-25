@@ -171,6 +171,37 @@ static void test_skode_wave_round_trip(void) {
   wave_free();
   synth_free();
 }
+
+static void test_ksynth_sample_rate_binding_and_scaling(void) {
+  const char *test = "ksynth sample rate binding and phase scaling";
+  skode_t ctx = SKODE_EMPTY();
+  synth_init(8);
+  wave_table_init(0);
+  voice_init();
+  skode_init(&ctx);
+
+  synth_sample_rate_set(48000);
+  consume(test, &ctx, "[S] ks kw>");
+  if (ands_data_len(ctx.parse) < 1 || fabs(ands_data(ctx.parse)[0] - 48000.0) > 1e-3) {
+    fail(test, "scalar S was not bound to system sample rate 48000");
+  }
+
+  consume(test, &ctx, "k>w302,22050,1");
+  consume(test, &ctx, "v0 w302,1");
+  float expected_ratio = 22050.0f / 48000.0f;
+  float phase_inc = osc_get_phase_inc(0, 440.0f);
+  if (fabsf(phase_inc - expected_ratio) > 0.001f) {
+    fail(test, "sample playback rate ratio was not applied for table_rate != system_rate");
+  }
+  float phase_inc_220 = osc_get_phase_inc(0, 220.0f);
+  if (fabsf(phase_inc_220 - (expected_ratio * 0.5f)) > 0.001f) {
+    fail(test, "untuned k>w drum sample did not scale phase increment proportionally with frequency");
+  }
+
+  skode_free(&ctx);
+  wave_free();
+  synth_free();
+}
 #endif
 
 int main(void) {
@@ -179,6 +210,7 @@ int main(void) {
 #ifdef SKRED_TEST_KSYNTH
   test_skode_context_isolation();
   test_skode_wave_round_trip();
+  test_ksynth_sample_rate_binding_and_scaling();
 #endif
 
   if (failures) {

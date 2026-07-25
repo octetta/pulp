@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "api.h"
 #include "skode.h"
@@ -125,6 +126,36 @@ int main(void) {
          "compact core command lost dictionary-backed atoms");
   expect(sv.user_amp[0] == 0.0f && sv.freq[0] == 440.0f,
          "compact core command did not update voice state");
+  synth_free();
+
+  synth_init(8);
+  wave_table_init(0);
+  voice_init();
+  synth_sample_rate_set(48000);
+  skode_t audio_skode2 = SKODE_EMPTY();
+  skode_init(&audio_skode2);
+  if (skode_load_name(&audio_skode2, "2023.sk", 1) != 0) {
+    skode_load_name(&audio_skode2, "../2023.sk", 1);
+  }
+  skode_consume("v0l1 v1l1", &audio_skode2);
+  float max_val = 0.0f;
+  int non_zero_samples = 0;
+  for (int f = 0; f < 375; f++) {
+    float buf[256];
+    memset(buf, 0, sizeof(buf));
+    synth(buf, NULL, 128, 2, NULL);
+    for (int i = 0; i < 256; i++) {
+      float a = buf[i] < 0 ? -buf[i] : buf[i];
+      if (a > 1e-5f) non_zero_samples++;
+      if (a > max_val) max_val = a;
+    }
+  }
+  float inc_440 = osc_get_phase_inc(0, 440.0f);
+  float inc_220 = osc_get_phase_inc(0, 220.0f);
+  expect(fabsf(inc_220 - (inc_440 * 0.5f)) < 1e-4f, "halving frequency halves phase increment for drum patch");
+  expect(max_val > 0.1f, "2023.sk renders strong audio amplitude");
+  skode_free(&audio_skode2);
+  wave_free();
   synth_free();
 
   if (failures) {

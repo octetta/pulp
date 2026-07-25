@@ -1086,7 +1086,12 @@ static ks_ctx *skode_ks_ctx(skode_t *ctx) {
   if (!ctx) return NULL;
   if (!ctx->ks) {
     ctx->ks = ks_create(16 * 1024 * 1024, 10000000);
-    if (!ctx->ks) ctx->printf(ctx, "# ksynth context allocation failed\n");
+    if (!ctx->ks) {
+      ctx->printf(ctx, "# ksynth context allocation failed\n");
+    } else {
+      bind_scalar(ctx->ks, 'S', (double)MAIN_SAMPLE_RATE);
+      bind_scalar(ctx->ks, 'R', (double)MAIN_SAMPLE_RATE);
+    }
   }
   return ctx->ks;
 }
@@ -1107,6 +1112,8 @@ int skode_ks_eval(skode_t *ctx, char *cmd, int len) {
     ks_clear_vars(ks);
     return 1;
   }
+
+
 
   simple_mutex_lock(&skode_ks_eval_mutex);
   K next = ks_eval(ks, cmd, (size_t)len);
@@ -1375,10 +1382,8 @@ int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel) {
   int len = data_len;
     char wave_name[WAVE_NAME_MAX];
     snprintf(wave_name, sizeof(wave_name), "data[%d]", data_len);
-    float offset_hz = one_shot
-      ? (float)len / (float)MAIN_SAMPLE_RATE * 440.0f : 0.0f;
     wave_install_memory(wave_slot, table, len, (float)MAIN_SAMPLE_RATE,
-      one_shot, wave_name, one_shot ? 69.0f : 0.0f, offset_hz);
+      one_shot, wave_name, one_shot ? 69.0f : 0.0f, 0.0f);
     char *name = "data";
     ctx->printf(ctx, "# read %d frames from %s to %d (ch:1)\n",
                 data_len, name, wave_slot);

@@ -6,6 +6,9 @@
 
 #include <time.h>
 #include <stdint.h>
+#ifdef _WIN32
+#include "portable_win.h"
+#endif
 
 typedef struct {
   struct timespec a;

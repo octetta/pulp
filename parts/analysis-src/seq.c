@@ -11,6 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef _WIN32
+#include "portable_win.h"
+#endif
 
 int requested_seq_frames_per_callback = SEQ_FRAMES_PER_CALLBACK;
 int seq_frames_per_callback = 0;

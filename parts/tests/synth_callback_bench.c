@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#ifdef _WIN32
+#include "../portable_win.h"
+#endif
 
 #include "synth.h"
 #include "synth-state.h"

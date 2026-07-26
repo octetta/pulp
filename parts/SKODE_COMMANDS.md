@@ -279,20 +279,23 @@ Sequence support is compiled under the `SEQ` feature.
 
 | Command | Arguments or string | Behavior | Main function or state |
 | --- | --- | --- | --- |
-| `M` | `bpm` | Set tempo from 1 to 960 BPM | `tempo_set()` |
+| `M` | `bpm [subdivision]` | Set tempo (BPM) with optional step subdivision per quarter note (default 16 for 16th-note drum steps; 8 for 8th notes, 4 for quarter notes, 32 for 32nd rolls). | `tempo_set_subdivision()` |
 | `y` | `pattern` | Select the editing pattern | `ctx->pattern` |
 | `[text] yt` | string | Name the selected pattern | `seq_text[]` |
 | `ym` | `0/1` | Mute the selected pattern | `seq_mute_set()` |
 | `Y` | `pattern` | Clear a pattern | `pattern_reset()` |
 | `[commands] xa` | string | Append a compiled step | `seq_step_append()` |
 | `[commands] x step` | string | Set a compiled step; `x-` advances the edit cursor | `seq_step_set()` |
+| `[-N] x step` | string (`-0`..`-127`) | Cross-pattern wait step: holds pattern at step until target pattern `N` reaches step 0. Emits `SKRED_CONTROL_EVENT_PATTERN_WAIT` (code 8). | `seq_step_set()` |
 | `<x step` | numeric | Copy a step's source text into the parser string | `seq_step_get()` |
-| `xg step`, `>x step` | numeric | Jump pattern playback to a step | `seq_step_goto()` |
-| `%` | `modulus` | Set the selected pattern's modulus | `seq_modulo_set()` |
-| `z` | `[0..3]` | Set selected pattern state (`stop`, `start`, `pause`, `resume`), or show it | `seq_state_set()`, `pattern_show()` |
+| `zg step`, `z g step` | `step` | Immediately jump pattern playback pointer to a specific step | `seq_step_goto()` |
+| `zq` | `0/1` | Queue pattern start (`zq1`) or stop (`zq0`) on next downbeat (`seq_pointer[0] == 0`) | `seq_state_queue()` |
+| `%`, `z%` | `modulus` | Set selected pattern step clock division modulus (default 1 per 16th-note tick; e.g. `z%16` 16th notes, `z%8` 8th notes, `z%32` 32nd notes) | `seq_modulo_set()` |
+| `z*` | `count` | Step ratchet opcode: subdivide step duration into `count` micro-triggers (`z*2`, `z*3`, `z*4`, `z*8`) | `skode_program_push()` |
+| `z` | `[0..3]` | Set selected pattern state (`0`=stop, `1`=start phase-aligned at step 0) | `seq_state_set()`, `pattern_show()` |
 | `z?` | none | Show selected pattern | `pattern_show()` |
-| `Z` | `[0..3]` | Set all pattern states, or show all patterns | `seq_state_all()`, `pattern_show()` |
-| `Z?`, `z??` | none | Show all patterns with steps | `pattern_show()` |
+| `Z` | `[0..3]` | Set all pattern states (`0`=all stop, `1`=all start phase-aligned at step 0; empty pattern slots omitted) | `seq_state_all()`, `pattern_show()` |
+| `Z?`, `z??` | none | Show all populated patterns with steps (empty pattern slots omitted) | `pattern_show()` |
 
 Sequence steps retain their source text for editing and diagnostics, but
 playback uses the compiled `event_program_t`. Each pattern keeps its own

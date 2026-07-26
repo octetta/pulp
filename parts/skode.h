@@ -77,6 +77,8 @@ typedef enum {
   SKODE_OP_FREQ_BEND_PARAM,
   SKODE_OP_AMP_BEND,
   SKODE_OP_AMP_BEND_PARAM,
+  SKODE_OP_PATTERN_MODULO,
+  SKODE_OP_RATCHET,
 } skode_opcode_t;
 
 typedef enum {

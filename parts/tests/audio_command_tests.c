@@ -134,8 +134,8 @@ int main(void) {
   synth_sample_rate_set(48000);
   skode_t audio_skode2 = SKODE_EMPTY();
   skode_init(&audio_skode2);
-  if (skode_load_name(&audio_skode2, "2023.sk", 1) != 0) {
-    skode_load_name(&audio_skode2, "../2023.sk", 1);
+  if (skode_load_name(&audio_skode2, "sk/2023.sk", 1) != 0) {
+    skode_load_name(&audio_skode2, "file:sk/2023.sk", 1);
   }
   skode_consume("v0l1 v1l1", &audio_skode2);
   float max_val = 0.0f;
@@ -157,6 +157,33 @@ int main(void) {
   skode_free(&audio_skode2);
   wave_free();
   synth_free();
+
+  static const char *demo_files[] = {
+    "sk/demo_polymetric.sk", "file:../sk/demo_polymetric.sk",
+    "sk/demo_ratchets.sk", "file:../sk/demo_ratchets.sk",
+    "sk/demo_dynamic_speed.sk", "file:../sk/demo_dynamic_speed.sk"
+  };
+  for (int d = 0; d < 3; d++) {
+    synth_init(8); wave_table_init(0); voice_init(); seq_init();
+    synth_sample_rate_set(48000);
+    skode_t sk_demo = SKODE_EMPTY();
+    skode_init(&sk_demo);
+    if (skode_load_name(&sk_demo, (char*)demo_files[d*2], 0) != 0) {
+      skode_load_name(&sk_demo, (char*)demo_files[d*2+1], 0);
+    }
+    skode_consume("v0l1 v1l1 v2l1 v3l1", &sk_demo);
+    float d_max = 0.0f;
+    for (int f = 0; f < 500; f++) {
+      float buf[256]; memset(buf, 0, sizeof(buf));
+      synth(buf, NULL, 128, 2, NULL);
+      for (int i = 0; i < 256; i++) {
+        float a = buf[i] < 0 ? -buf[i] : buf[i];
+        if (a > d_max) d_max = a;
+      }
+    }
+    expect(d_max > 0.01f, "demo composition file renders audio");
+    skode_free(&sk_demo); wave_free(); synth_free();
+  }
 
   if (failures) {
     fprintf(stderr, "%d audio command test failure(s)\n", failures);

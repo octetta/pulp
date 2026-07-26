@@ -89,7 +89,13 @@ static int skode_asset_read(const char *path, skode_asset_kind_t kind,
   if (skode_asset_try_read(path, 1, data, size, resolved, resolved_size))
     return 1;
 
-  if (has_dir) return 0;
+  if (has_dir) {
+    char parent_candidate[1024];
+    snprintf(parent_candidate, sizeof(parent_candidate), "../%s", path);
+    if (skode_asset_try_read(parent_candidate, 1, data, size, resolved, resolved_size))
+      return 1;
+    return 0;
+  }
 
   switch (kind) {
     case SKODE_ASSET_SKODE: fallback_dir = "sk"; break;
@@ -819,8 +825,10 @@ void global_status_show(skode_t *ctx, int full) {
   voice_show_all(ctx, ctx->voice, 0);
   ctx->printf(ctx, "%s", skred_poly_group_status(-1));
   ctx->printf(ctx, "%s", skred_poly_pool_status(-1));
-  for (int pattern = 0; pattern < PATTERNS_MAX; pattern++)
-    pattern_show(ctx, pattern, 1);
+  for (int pattern = 0; pattern < PATTERNS_MAX; pattern++) {
+    if (seq_pattern_length[pattern] > 0 || seq_state[pattern] != 0)
+      pattern_show(ctx, pattern, 1);
+  }
 }
 
 @if(BENCH)
@@ -859,6 +867,7 @@ static const char *control_event_type_name(uint32_t type) {
     case SKRED_CONTROL_EVENT_USER: return "USER";
     case SKRED_CONTROL_EVENT_PATTERN_START: return "PATTERN_START";
     case SKRED_CONTROL_EVENT_PATTERN_END: return "PATTERN_END";
+    case SKRED_CONTROL_EVENT_PATTERN_WAIT: return "PATTERN_WAIT";
     case SKRED_CONTROL_EVENT_MIDI: return "MIDI";
     default: return "UNKNOWN";
   }
@@ -1577,24 +1586,25 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
 void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
   if (pattern_pointer < 0 || pattern_pointer >= PATTERNS_MAX) return;
   seq_edit_lock();
-  int first = 1;
-  for (int s = 0; s < SEQ_STEPS_MAX; s++) {
-    char *line = seq_pattern[pattern_pointer][s];
-    if (strlen(line) == 0) break;
-    if (first) {
-      ctx->printf(ctx, "y%d %%%d z%d ym%d",
-        pattern_pointer,
-        seq_modulo[pattern_pointer],
-        seq_state[pattern_pointer],
-        seq_mute[pattern_pointer]);
-      if (seq_control_events[pattern_pointer]) ctx->printf(ctx, " yc1");
-      if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " [%s] yt", seq_text[pattern_pointer]);
+  int len = seq_pattern_length[pattern_pointer];
+  if (len == 0 && seq_state[pattern_pointer] == 0 && seq_mute[pattern_pointer] == 0 && verbose == 0) {
+    seq_edit_unlock();
+    return;
+  }
+  ctx->printf(ctx, "y%d %%%d z%d ym%d",
+    pattern_pointer,
+    seq_modulo[pattern_pointer] > 0 ? seq_modulo[pattern_pointer] : 1,
+    seq_state[pattern_pointer],
+    seq_mute[pattern_pointer]);
+  if (seq_control_events[pattern_pointer]) ctx->printf(ctx, " yc1");
+  if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " [%s] yt", seq_text[pattern_pointer]);
+  ctx->puts(ctx, "");
+  if (verbose) {
+    for (int s = 0; s < len; s++) {
+      char *line = seq_pattern[pattern_pointer][s];
+      ctx->printf(ctx, "[%s] x%d", line, s);
       ctx->puts(ctx, "");
-      first = 0;
-      if (verbose == 0) break;
     }
-    ctx->printf(ctx, "[%s] x%d", line, s);
-    ctx->puts(ctx, "");
   }
   seq_edit_unlock();
 }
@@ -2993,6 +3003,8 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_FREQ_BEND_PARAM:
     case SKODE_OP_AMP_BEND:
     case SKODE_OP_AMP_BEND_PARAM:
+    case SKODE_OP_PATTERN_MODULO:
+    case SKODE_OP_RATCHET:
       return 1;
     case SKODE_OP_NONE:
     case SKODE_OP_DELAY:
@@ -4368,10 +4380,14 @@ neutral `ct 0 0 1 0` disables it.
     category: sequencer
     summary: tempo bpm
     @enddoc
-    case ATOM4('M---'): // tempo bpm
-      if (argc && tempo_set(arg[0]) != 0)
-        ctx->printf(ctx, "# tempo must be between %g and %g BPM\n",
-          (double)SEQ_TEMPO_MIN_BPM, (double)SEQ_TEMPO_MAX_BPM);
+    case ATOM4('M---'): // tempo bpm [subdivision]
+      if (argc) {
+        float bpm = arg[0];
+        float sub = (argc >= 2 && arg[1] > 0.0f) ? arg[1] : 16.0f;
+        if (tempo_set_subdivision(bpm, sub) != 0)
+          ctx->printf(ctx, "# tempo must be between %g and %g BPM\n",
+            (double)SEQ_TEMPO_MIN_BPM, (double)SEQ_TEMPO_MAX_BPM);
+      }
       break;
     @endif
     @doc(command.n)
@@ -5345,7 +5361,7 @@ neutral `ct 0 0 1 0` disables it.
         if (x >= 0 && x < SEQ_STEPS_MAX) {
           const char *source = ands_string(ctx->parse);
           event_program_t program;
-          int source_only = source[0] == '\0' || strcmp(source, "-") == 0;
+          int source_only = source[0] == '\0' || source[0] == '-';
           skode_compile_result_t result = source_only ?
             SKODE_COMPILE_OK : skode_compile_program(source, &program);
           if (result == SKODE_COMPILE_OK) {
@@ -5416,6 +5432,26 @@ neutral `ct 0 0 1 0` disables it.
         seq_state_set(ctx->pattern, x);
       } else pattern_show(ctx, ctx->pattern, 1);
       break;
+    @doc(command.zg)
+    name: zg
+    category: sequencer
+    summary: goto-pattern-step step
+    @enddoc
+    case ATOM4('zg--'): // goto-pattern-step step
+      if (argc && x >= 0 && x < SEQ_STEPS_MAX) {
+        seq_step_goto(ctx->pattern, x);
+      }
+      break;
+    @doc(command.zq)
+    name: zq
+    category: sequencer
+    summary: queue-pattern-start-stop mode
+    @enddoc
+    case ATOM4('zq--'): // queue-pattern-start-stop mode
+      if (argc) {
+        seq_state_queue(ctx->pattern, x);
+      }
+      break;
     @doc(command.z?)
     name: z?
     category: sequencer
@@ -5434,7 +5470,10 @@ neutral `ct 0 0 1 0` disables it.
         seq_state_all(x);
       } else {
         ctx->printf(ctx, "M%g\n", tempo_bpm_get());
-        for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p, 0);
+        for (int p = 0; p < PATTERNS_MAX; p++) {
+          if (seq_pattern_length[p] > 0 || seq_text[p][0] != '\0')
+            pattern_show(ctx, p, 0);
+        }
       }
       break;
     @doc(command.z??)
@@ -5450,7 +5489,10 @@ neutral `ct 0 0 1 0` disables it.
     @enddoc
     case ATOM4('Z?--'): // show all patterns
       ctx->printf(ctx, "M%g\n", tempo_bpm_get());
-      for (int p = 0; p < PATTERNS_MAX; p++) pattern_show(ctx, p, 1);
+      for (int p = 0; p < PATTERNS_MAX; p++) {
+        if (seq_pattern_length[p] > 0 || seq_text[p][0] != '\0')
+          pattern_show(ctx, p, 1);
+      }
       break;
     @if(XM)
     @doc(command.XM)

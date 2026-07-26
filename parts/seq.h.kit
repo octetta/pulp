@@ -58,11 +58,16 @@ void seq_rewind(void);
 uint64_t seq_master_tick(void);
 void pattern_reset(int p);
 int queue_event(uint64_t when, const event_t *event, int tag);
+int tempo_set_subdivision(float bpm, float subdivision);
 int tempo_set(float bpm);
 float tempo_bpm_get(void);
+float tempo_subdivision_get(void);
 float tempo_step_seconds_get(void);
+uint64_t seq_overhead_ns_get(uint64_t *max_ns);
+void seq_overhead_reset(void);
 
 void seq_modulo_set(int pattern, int m);
+void seq_modulo_set_locked(int pattern, int m);
 void seq_mute_set(int pattern, int state);
 void seq_control_events_set(int pattern, int state);
 int seq_step_set(int pattern, int step, const char *source,
@@ -73,6 +78,7 @@ int seq_step_append(int pattern, const char *source,
 void seq_pattern_length_set(int pattern, int len);
 void seq_step_goto(int pattern, int step);
 void seq_state_set(int p, int state);
+void seq_state_queue(int p, int state);
 void seq_state_all(int state);
 int seq_pattern_generation(int pattern);
 void seq_edit_lock(void);
@@ -85,6 +91,7 @@ extern int seq_pointer[PATTERNS_MAX];
 extern int seq_modulo[PATTERNS_MAX];
 extern int seq_counter[PATTERNS_MAX];
 extern int seq_state[PATTERNS_MAX];
+extern int seq_pending_state[PATTERNS_MAX];
 extern int seq_mute[PATTERNS_MAX];
 extern int seq_control_events[PATTERNS_MAX];
 extern int seq_pattern_length[PATTERNS_MAX];

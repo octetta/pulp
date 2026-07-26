@@ -8,7 +8,9 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 int requested_seq_frames_per_callback = SEQ_FRAMES_PER_CALLBACK;
 int seq_frames_per_callback = 0;
@@ -20,6 +22,7 @@ int seq_pattern_length[PATTERNS_MAX] = {0};
 int scope_pattern_pointer = 0;
 int seq_pointer[PATTERNS_MAX] = {0};  // read-only derived value, kept for external inspection
 int seq_state[PATTERNS_MAX] = {0};
+int seq_pending_state[PATTERNS_MAX] = {0};
 int seq_modulo[PATTERNS_MAX] = {0};
 int seq_mute[PATTERNS_MAX] = {0};
 int seq_control_events[PATTERNS_MAX] = {0};
@@ -40,7 +43,8 @@ static uint64_t master_tick = 0;
 static uint64_t seq_sample_origin = 0;
 static double seq_tick_origin = 0.0;
 
-static float tempo_time_per_step = 60.0f / 120.0f / 4.0f;
+static float tempo_time_per_step = 240.0f / (120.0f * 16.0f);
+static float tempo_subdivision_val = 16.0f;
 static atomic_int_t tempo_step_micros;
 static atomic_int_t tempo_bpm_milli;
 
@@ -52,9 +56,10 @@ void seq_edit_unlock(void) {
   simple_mutex_unlock(&seq_edit_mutex);
 }
 
-int tempo_set(float bpm) {
+int tempo_set_subdivision(float bpm, float subdivision) {
   if (!isfinite(bpm) || bpm < SEQ_TEMPO_MIN_BPM ||
       bpm > SEQ_TEMPO_MAX_BPM) return -1;
+  if (!isfinite(subdivision) || subdivision <= 0.0f) subdivision = 16.0f;
   seq_edit_lock();
   uint64_t now = SAMPLE_COUNT_GET();
   double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
@@ -66,8 +71,9 @@ int tempo_set(float bpm) {
   }
   seq_sample_origin = now;
   seq_tick_origin = tick_origin;
-  float bps = bpm / 60.f;
-  float time_per_step = 1.0f / bps / 4.0f;
+  tempo_subdivision_val = subdivision;
+  float step_freq_hz = (bpm * subdivision) / 240.0f;
+  float time_per_step = 1.0f / step_freq_hz;
   tempo_time_per_step = time_per_step;
   atomic_store_int(&tempo_step_micros,
     (int)(time_per_step * 1000000.0f + 0.5f));
@@ -76,8 +82,16 @@ int tempo_set(float bpm) {
   return 0;
 }
 
+int tempo_set(float bpm) {
+  return tempo_set_subdivision(bpm, 16.0f);
+}
+
 float tempo_bpm_get(void) {
   return (float)atomic_load_int(&tempo_bpm_milli) / 1000.0f;
+}
+
+float tempo_subdivision_get(void) {
+  return tempo_subdivision_val;
 }
 
 float tempo_step_seconds_get(void) {
@@ -145,6 +159,24 @@ void do_pattern(uint64_t now,
     while (master_tick < target_tick) {
       master_tick++;
       for (int p = 0; p < PATTERNS_MAX; p++) {
+        if (seq_pending_state[p] > 0) {
+          int mod = seq_modulo[p] > 0 ? seq_modulo[p] : 1;
+          if (seq_pointer[0] == 0 || (master_tick % (uint64_t)mod) == 0) {
+            if (seq_pending_state[p] == 1) {
+              seq_state[p] = SEQ_RUNNING;
+              int64_t ticks_so_far = (int64_t)(master_tick / (uint64_t)mod);
+              seq_offset[p] = ticks_so_far;
+              seq_pointer[p] = 0;
+            } else if (seq_pending_state[p] == 2) {
+              seq_state[p] = SEQ_STOPPED;
+              seq_pointer[p] = 0;
+              seq_offset[p] = 0;
+            }
+            seq_pending_state[p] = 0;
+          }
+        }
+      }
+      for (int p = 0; p < PATTERNS_MAX; p++) {
         if (seq_state[p] != SEQ_RUNNING) continue;
         if ((master_tick % (uint64_t)seq_modulo[p]) != 0) continue;
 
@@ -160,13 +192,29 @@ void do_pattern(uint64_t now,
         if (seq_control_events[p] && step == 0)
           skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_START, now,
             p, step);
-
-        if (seq_pattern[p][step][0] == '-') {
-          if (seq_control_events[p])
-            skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_END, now,
-              p, step);
-          seq_state[p] = SEQ_STOPPED;
-          seq_pointer[p] = 0;
+        const char *step_str = seq_pattern[p][step];
+        if (step_str[0] == '-') {
+          if (step_str[1] >= '0' && step_str[1] <= '9') {
+            int target_p = atoi(&step_str[1]);
+            if (target_p >= 0 && target_p < PATTERNS_MAX &&
+                (target_p == p || (seq_state[target_p] == SEQ_RUNNING && seq_pointer[target_p] == 0))) {
+              seq_offset[p] = ticks_so_far;
+              step = 0;
+              seq_pointer[p] = 0;
+              if (seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);
+            } else {
+              seq_offset[p] = ticks_so_far - step;
+              if (seq_control_events[p])
+                skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_WAIT, now,
+                  p, step);
+            }
+          } else {
+            if (seq_control_events[p])
+              skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_END, now,
+                p, step);
+            seq_state[p] = SEQ_STOPPED;
+            seq_pointer[p] = 0;
+          }
         } else {
           if (seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);
           if (seq_control_events[p] &&
@@ -221,20 +269,42 @@ int seq_next_boundary(uint64_t now, uint64_t limit, uint64_t *boundary) {
   return 1;
 }
 
+static atomic_int_t seq_last_overhead_ns;
+static atomic_int_t seq_max_overhead_ns;
+
+uint64_t seq_overhead_ns_get(uint64_t *max_ns) {
+  if (max_ns) *max_ns = (uint64_t)atomic_load_int(&seq_max_overhead_ns);
+  return (uint64_t)atomic_load_int(&seq_last_overhead_ns);
+}
+
+void seq_overhead_reset(void) {
+  atomic_store_int(&seq_last_overhead_ns, 0);
+  atomic_store_int(&seq_max_overhead_ns, 0);
+}
+
 void seq(uint64_t now, void (*event_fn)(const event_t *event),
     void (*program_fn)(int pattern, int step,
       const event_program_t *program)) {
+  struct timespec ts1, ts2;
+  clock_gettime(CLOCK_MONOTONIC, &ts1);
+
 
   do_event(now, event_fn);
   do_pattern(now, program_fn);
 
+
+  clock_gettime(CLOCK_MONOTONIC, &ts2);
+  uint64_t ns = (uint64_t)(ts2.tv_sec - ts1.tv_sec) * 1000000000ULL + (uint64_t)(ts2.tv_nsec - ts1.tv_nsec);
+  atomic_store_int(&seq_last_overhead_ns, (int)ns);
+  int cur_max = atomic_load_int(&seq_max_overhead_ns);
+  if ((int)ns > cur_max) atomic_store_int(&seq_max_overhead_ns, (int)ns);
 }
 
 static void pattern_reset_locked(int p) {
   if (p < 0 || p >= PATTERNS_MAX) return;
   seq_pointer[p] = 0;
   seq_state[p] = SEQ_STOPPED;
-  seq_modulo[p] = 4;
+  seq_modulo[p] = 1;
   seq_mute[p] = 0;
   seq_control_events[p] = 0;
   seq_pattern_length[p] = 0;
@@ -266,6 +336,8 @@ void seq_init(void) {
   }
   atomic_store_int(&tempo_step_micros, 125000);
   atomic_store_int(&tempo_bpm_milli, 120000);
+  tempo_subdivision_val = 16.0f;
+  tempo_time_per_step = 0.125f;
   seq_edit_lock();
   seq_sample_origin = SAMPLE_COUNT_GET();
   seq_tick_origin = 0.0;
@@ -281,11 +353,20 @@ int queue_event(uint64_t when, const event_t *event, int tag) {
   return queue_put_event(&seq_q, when, tag, NULL, event) ? 0 : -1;
 }
 
-void seq_modulo_set(int pattern, int m) {
+void seq_modulo_set_locked(int pattern, int m) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return;
   if (m < 1) m = 1;
+  if (seq_modulo[pattern] != m) {
+    int cur_step = seq_pointer[pattern];
+    seq_modulo[pattern] = m;
+    int64_t ticks_so_far = (int64_t)(master_tick / (uint64_t)m);
+    seq_offset[pattern] = ticks_so_far - (int64_t)cur_step;
+  }
+}
+
+void seq_modulo_set(int pattern, int m) {
   seq_edit_lock();
-  seq_modulo[pattern] = m;
+  seq_modulo_set_locked(pattern, m);
   seq_edit_unlock();
 }
 
@@ -312,7 +393,7 @@ int seq_step_set(int pattern, int step, const char *source,
   if (source == NULL || source[0] == '\0') {
     seq_pattern[pattern][step][0] = '\0';
     seq_program[pattern][step].count = 0;
-  } else if (strcmp(source, "-") == 0) {
+  } else if (source[0] == '-') {
     snprintf(seq_pattern[pattern][step], STEP_MAX, "%s", source);
     seq_program[pattern][step].count = 0;
   } else if (!program || program->count > SEQ_PROGRAM_OP_MAX) {
@@ -371,9 +452,17 @@ static void seq_state_set_locked(int p, int state) {
   switch (state) {
     case 0: // stop
       seq_state[p] = SEQ_STOPPED;
+      seq_pointer[p] = 0;
+      seq_offset[p] = 0;
       break;
     case 1: // start
       seq_state[p] = SEQ_RUNNING;
+      {
+        int modulo = seq_modulo[p] > 0 ? seq_modulo[p] : 1;
+        int64_t ticks_so_far = (int64_t)(master_tick / (uint64_t)modulo);
+        seq_offset[p] = ticks_so_far;
+        seq_pointer[p] = 0;
+      }
       break;
     case 2: // pause
       seq_state[p] = SEQ_PAUSED;
@@ -390,9 +479,18 @@ void seq_state_set(int p, int state) {
   seq_edit_unlock();
 }
 
+void seq_state_queue(int p, int state) {
+  if (p < 0 || p >= PATTERNS_MAX) return;
+  seq_edit_lock();
+  seq_pending_state[p] = state == 1 ? 1 : (state == 0 ? 2 : 0);
+  seq_edit_unlock();
+}
+
 void seq_state_all(int state) {
   seq_edit_lock();
-  for (int p = 0; p < PATTERNS_MAX; p++) seq_state_set_locked(p, state);
+  for (int p = 0; p < PATTERNS_MAX; p++) {
+    seq_state_set_locked(p, state);
+  }
   seq_edit_unlock();
 }
 

@@ -1,0 +1,30 @@
+# 2026.sk: Dynamic Speed Changes (z%) & Live Downbeat Queuing (zq1)
+# ------------------------------------------------------------------
+M 120
+
+# Load bundled Ksynth drum & tom patches:
+[sk/drums-kick.ks]/ks 1 k>d d>r /r100
+[sk/drums-snare.ks]/ks 1 k>d d>r /r101
+[sk/drums-tomhi.ks]/ks 1 k>d d>r /r102
+
+# Voice Assignments:
+v0 w100 f440 a10          # Kick
+v1 w101 f440 a8           # Snare
+v2 w102 f440 a8           # High Tom
+
+# Pattern 0: Changes step speed dynamically mid-pattern!
+y0
+[v0l1 z%1] x0             # Standard 16th-note step clock (1 tick per step)
+[v2l0.8] x1
+[v0l1 v1l1] x2
+[v2l0.8] x3
+[v1l1 z%2] x4             # Switch to half-speed 8th notes (2 ticks per step)
+[v2l0.8] x5
+[v0l1 v2l0.8 z%1] x6      # Return to 16th-note step clock
+[v1l1 z%1] x7
+
+# Start Pattern 0
+y0 z1
+
+# Queue Pattern 1 to enter on the next downbeat
+y1 zq1

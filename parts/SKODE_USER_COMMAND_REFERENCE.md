@@ -565,7 +565,7 @@ remove output-device or hardware buffering latency.
 
 | Command | Parameters | Effect |
 | --- | --- | --- |
-| `M bpm` | `1` through `960` BPM | Sets pattern and tempo-relative event speed. It does not retime events already placed at absolute sample times. |
+| `M bpm [subdivision]` | `1` through `960` BPM | Sets master tempo (BPM) with optional step subdivision per quarter note (default `16` for 16th-note drum machine steps; `8` for 8th notes, `4` for quarter notes, `32` for 32nd-note rolls). |
 | `+beats commands` | Beat delay followed by commands | Compiles the remaining commands and schedules them after a tempo-relative delay. |
 | `~seconds commands` | Second delay followed by commands | Compiles the remaining commands and schedules them after a real-time delay. |
 | `[commands] R count,seconds[,tag]` | Repeat count, interval, optional tag | Queues the command program `count` times, starting immediately and spacing starts by seconds. |
@@ -617,6 +617,8 @@ Event type numbers are the public `SKRED_CONTROL_EVENT_*` enum values:
 | `4` | `SKRED_CONTROL_EVENT_USER` |
 | `5` | `SKRED_CONTROL_EVENT_PATTERN_START` |
 | `6` | `SKRED_CONTROL_EVENT_PATTERN_END` |
+| `7` | `SKRED_CONTROL_EVENT_MIDI` |
+| `8` | `SKRED_CONTROL_EVENT_PATTERN_WAIT` |
 
 `key` is the event id for `SKRED_CONTROL_EVENT_USER`, the pattern number for
 pattern events, and the voice number for voice events. Use `-1` as a wildcard
@@ -769,30 +771,33 @@ up to 128 steps, also numbered `0` through `127`.
 
 | Command | Parameters | Effect |
 | --- | --- | --- |
-| `y pattern` | Pattern index | Selects the pattern edited by `x`, `xa`, `yt`, `ym`, `%`, and `z`. |
+| `y pattern` | Pattern index | Selects the pattern edited by `x`, `xa`, `yt`, `ym`, `%`, `z%`, `zg`, `zq`, and `z`. |
 | `[name] yt` | String | Sets the selected pattern's display name. |
 | `[commands] x step` | Step index | Compiles and stores a specific step. Replacing a step replaces both its source text and compiled program. |
 | `[commands] x-` | No explicit step | Advances the edit cursor and stores the step there. |
 | `[commands] xa` | String | Appends a compiled step after the pattern's current end. |
 | `[] x step` | Empty string and step | Clears a step. An empty step inside the existing pattern length consumes time but performs no operation; empty trailing steps do not extend the pattern. |
 | `[-] x step` | Stop marker and step | Stores the pattern stop marker. Playback stops when it reaches that step. |
+| `[-N] x step` | Wait marker (`-0`..`-127`) | Holds/pauses pattern `p` at this step until target pattern `N` reaches step `0` (downbeat). Enables lockstep polymetric drum fills. Emits `SKRED_CONTROL_EVENT_PATTERN_WAIT` (code 8). |
 | `<x step` | Step index | Copies a step's source text into the parser string buffer for inspection or editing. |
-| `xg step`, `>x step` | Step index | Moves the selected pattern's playback pointer to a step. |
-| `% modulus` | Positive integer; minimum `1` | Makes the selected pattern advance only on every Nth quarter-beat master tick. The default is `4`, or one step per beat. Larger values run more slowly. |
+| `zg step`, `z g step` | Step index | Immediately jumps the selected pattern's playback pointer to the specified step. |
+| `zq state` | `0` or `1` | Queues selected pattern start (`zq1`) or stop (`zq0`) to trigger on the next downbeat boundary (`seq_pointer[0] == 0`). |
+| `% modulus`, `z% modulus` | Positive integer; minimum `1` | Sets the selected pattern's step clock division modulo. Default is `1` (1 step per master clock tick from `M <BPM> 16`). `z%16` runs standard 16th notes, `z%8` runs half-speed 8th notes, and `z%32` runs double-speed 32nd notes. |
+| `z* count` | Positive integer (`2`..`16`) | Step ratchet opcode. Subdivides step duration into `count` equal micro-triggers (`z*2` double-tap, `z*3` triplet, `z*4` 32nd-note burst, `z*8` 64th-note roll). |
 | `ym state` | `0` or nonzero | Mutes pattern execution while retaining its contents and playback state. |
 | `yc state` | `0` or nonzero | Disables or enables pattern boundary control-plane events for the selected pattern. Disabled by default. Pattern show commands include `yc1` only when enabled. |
 | `Y pattern` | Pattern index | Clears the pattern, stops it, and resets its persistent playback voice to voice `0`. |
-| `z state` | `0` stop, `1` start, `2` pause, `3` resume | Changes the selected pattern's playback state. With no argument, displays the pattern. |
+| `z state` | `0` stop, `1` start, `2` pause, `3` resume | Changes the selected pattern's playback state. With no argument, displays summary for the selected pattern. |
 | `z?` | None | Displays the selected pattern and its steps. |
-| `Z state` | `0` stop, `1` start, `2` pause, `3` resume | Applies a playback-state command to every pattern. With no argument, displays pattern summaries. |
-| `Z?`, `z??` | None | Displays all patterns with their steps. |
+| `Z state` | `0` stop, `1` start, `2` pause, `3` resume | Applies playback state to all patterns (`Z1` starts all active patterns; `Z0` stops all patterns). With no argument (`Z`), displays summaries for all populated patterns (empty pattern slots omitted). |
+| `Z?`, `z??` | None | Displays all populated patterns with their steps (empty pattern slots omitted). |
 
 Pattern source text is retained for display, but playback uses the compiled
 snapshot. Editing an external macro later does not alter a pattern step that
 was already compiled from it.
 
 With `yc1`, a pattern emits `SKRED_CONTROL_EVENT_PATTERN_START` when playback
-lands on step `0`, and `SKRED_CONTROL_EVENT_PATTERN_END` when it reaches a stop
+lands on step `0`, `SKRED_CONTROL_EVENT_PATTERN_WAIT` when waiting on a `-N` step, and `SKRED_CONTROL_EVENT_PATTERN_END` when it reaches a stop
 marker or the last playable step before wrap.
 
 ## Named Macros
@@ -1684,3 +1689,16 @@ backend unless `MIDI=1`:
 | `TRACKS` | `r`, `rt`, `rv`, `?r`, `ds`, `DL`, `DL?` |
 | `UDP` | `udp` and API/host UDP startup |
 | `XM` | `XM` |
+
+## Demonstration Files (`sk/`)
+
+The `sk/` directory contains complete composition files demonstrating synth patch loading, pattern sequencing, cross-pattern synchronization, ratcheting, and dynamic clock division:
+
+- **`sk/2023.sk`** (or `2023.sk`): Master Ksynth drum loading demonstration (`/ks`, `k>w`) with dynamic pitch scaling (`f110`, `f220`), delay send, and multi-pattern playback.
+- **`sk/2024.sk`** (or `sk/demo_polymetric.sk`): Polymetric drum & bass loop with cross-pattern wait step (`-0`) sync, Ksynth drum patches (`nin-kick.ks`, `nin-snare.ks`, `nin-chh.ks`), and Ksynth acid bass (`nap-bass-acid.ks`).
+- **`sk/2025.sk`** (or `sk/demo_ratchets.sk`): Trap & IDM drum rolls demonstrating step ratcheting (`z*3` triplet snare roll, `z*4` 32nd-note ratchet, `z*8` 64th-note roll), Ksynth drums, and Moog lead (`gm-lead-moog.ks`).
+- **`sk/2026.sk`** (or `sk/demo_dynamic_speed.sk`): Dynamic speed changes (`z%4`, `z%2`, `z%8`) and live downbeat quantized queuing (`zq1`).
+- **`sk/2027.sk`** (or `sk/drum_909_techno.sk`): TR-909 Peak-Time Techno 4-on-the-floor kick, ghost snare, offbeat open hat, 32nd-note ratchet fill (`z*4`), and 303 acid bassline (`nap-bass-acid.ks`).
+- **`sk/2028.sk`** (or `sk/drum_808_electro.sk`): 808 Electro-Funk syncopated beat, rimshot accents, triplet hat rolls (`z*3`), and electro bass synth (`gm-bass-chase.ks`).
+- **`sk/2029.sk`** (or `sk/drum_amen_jungle.sk`): Jungle / Drum & Bass Amen break chop, ghost snares, triplet roll (`z*3`), 64th-note hat roll (`z*8`), and deep sub bass (`gm-bass-sub.ks`).
+- **`sk/2030.sk`** (or `sk/drum_linn_synthwave.sk`): 80s LinnDrum Synthwave / Italo Disco driving beat, tom fills, 16th-note hats (`%2`), and chugging octave bass (`nap-bass-grind.ks`).

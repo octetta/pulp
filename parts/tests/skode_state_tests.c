@@ -3034,6 +3034,14 @@ static void test_tempo_and_pattern_reset_limits(void) {
   const char *test = "tempo and pattern reset limits";
   expect_int(test, tempo_set(120.0f), 0, "set normal tempo");
   expect_float(test, tempo_bpm_get(), 120.0f, 0.001f, "normal tempo");
+  expect_float(test, tempo_step_seconds_get(), 0.125f, 0.001f, "default sub 16 step duration 125ms");
+  expect_int(test, tempo_set_subdivision(120.0f, 8.0f), 0, "set 120 bpm subdivision 8");
+  expect_float(test, tempo_step_seconds_get(), 0.250f, 0.001f, "120 BPM sub 8 step duration 250ms");
+  expect_int(test, tempo_set_subdivision(120.0f, 4.0f), 0, "set 120 bpm subdivision 4");
+  expect_float(test, tempo_step_seconds_get(), 0.500f, 0.001f, "120 BPM sub 4 step duration 500ms");
+  expect_int(test, tempo_set_subdivision(120.0f, 32.0f), 0, "set 120 bpm subdivision 32");
+  expect_float(test, tempo_step_seconds_get(), 0.0625f, 0.001f, "120 BPM sub 32 step duration 62.5ms");
+  expect_int(test, tempo_set(120.0f), 0, "restore default sub 16");
   expect_int(test, tempo_set(0.0f), -1, "reject zero tempo");
   expect_int(test, tempo_set(-1.0f), -1, "reject negative tempo");
   expect_int(test, tempo_set(NAN), -1, "reject non-finite tempo");
@@ -3556,6 +3564,38 @@ static void test_thread_status_includes_midi(void) {
   expect_substr(test, ctx.log, "midi:", "thread status includes midi section");
 }
 
+static void test_pattern_sync_and_wait_steps(void) {
+  const char *test = "pattern sync and cross-pattern wait steps";
+  skode_t ctx = new_ctx();
+
+  consume(test, &ctx, "y0 x0 c4 x1 e4 x2 g4 x3 c5");
+  consume(test, &ctx, "y1 x0 a4 x1 c5 x2 -0");
+
+  consume(test, &ctx, "Z1");
+  expect_int(test, seq_state[0], SEQ_RUNNING, "pattern 0 running after Z1");
+  expect_int(test, seq_state[1], SEQ_RUNNING, "pattern 1 running after Z1");
+  expect_int(test, seq_pointer[0], 0, "pattern 0 reset to step 0 after Z1");
+  expect_int(test, seq_pointer[1], 0, "pattern 1 reset to step 0 after Z1");
+
+  consume(test, &ctx, "Z0");
+  expect_int(test, seq_state[0], SEQ_STOPPED, "pattern 0 stopped after Z0");
+  expect_int(test, seq_state[1], SEQ_STOPPED, "pattern 1 stopped after Z0");
+  expect_int(test, seq_pointer[0], 0, "pattern 0 reset to step 0 after Z0");
+  expect_int(test, seq_pointer[1], 0, "pattern 1 reset to step 0 after Z0");
+
+  consume(test, &ctx, "y0 z1");
+  expect_int(test, seq_state[0], SEQ_RUNNING, "pattern 0 running after y0 z1");
+  expect_int(test, seq_pointer[0], 0, "pattern 0 reset to step 0 after y0 z1");
+
+  consume(test, &ctx, "y0 z0");
+  expect_int(test, seq_state[0], SEQ_STOPPED, "pattern 0 stopped after y0 z0");
+
+  consume(test, &ctx, "y0 z?");
+  consume(test, &ctx, "z");
+  consume(test, &ctx, "Z");
+  consume(test, &ctx, "Z?");
+}
+
 static void test_rec_load_k_to_data_to_rec(void) {
   const char *test = "rec load k to data to rec";
   skode_t ctx = new_ctx();
@@ -3589,6 +3629,7 @@ int main(int argc, char **argv) {
   test_frequency_and_amplitude_bend();
   test_thread_status_includes_midi();
   test_rec_load_k_to_data_to_rec();
+  test_pattern_sync_and_wait_steps();
   test_invalid_voice_does_not_move_selection();
   test_text_and_show_logging();
   test_data_array_logging();

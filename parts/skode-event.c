@@ -33,7 +33,8 @@ const char *skode_opcode_name(uint8_t opcode) {
     "WAVE_LOOP_COUNT", "CONTROL_EVENT", "DELAY_PARAMS",
     "WAVE_RANGE_SET", "WAVE_LOOP_SET", "POLY_NOTE", "POLY_RELEASE",
     "POLY_BEND", "PHASE_ENVELOPE", "PHASE_ENVELOPE_DEPTH",
-    "FREQ_FEEDBACK",
+    "FREQ_FEEDBACK", "FREQ_BEND", "FREQ_BEND_PARAM",
+    "AMP_BEND", "AMP_BEND_PARAM", "PATTERN_MODULO", "RATCHET",
   };
   return opcode < sizeof(names) / sizeof(names[0]) ?
     names[opcode] : "UNKNOWN";
@@ -295,6 +296,12 @@ static int skode_compile_callback(ands_t *s, int info) {
     case SKODE_ATOM('p', 'b', '-', '-'):
       opcode = SKODE_OP_POLY_BEND; min_argc = 3; max_argc = 4;
       break;
+    case SKODE_ATOM('z', '%', '-', '-'):
+    case SKODE_ATOM('%', '-', '-', '-'):
+      opcode = SKODE_OP_PATTERN_MODULO; min_argc = max_argc = 1; break;
+    case SKODE_ATOM('z', '*', '-', '-'):
+    case SKODE_ATOM('*', '-', '-', '-'):
+      opcode = SKODE_OP_RATCHET; min_argc = max_argc = 1; break;
     default:
       compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
       return 0;
@@ -483,68 +490,103 @@ static int run_program(const event_program_t *program, int voice,
     int *final_voice, int pattern, int step) {
   if (!program || !event_voice_valid(voice)) return -1;
   if (program->count > SEQ_PROGRAM_OP_MAX) return -1;
-  uint64_t when = base;
-  int current_voice = voice;
-  uint8_t current_voice_var = 0;
 
+  int ratchet_count = 1;
   for (int i = 0; i < program->count; i++) {
-    const program_op_t *op = &program->op[i];
-    if (op->opcode.code == SKODE_OP_DELAY) {
-      uint64_t relative;
-      double delay;
-      if (op->opcode.argc != 1 ||
-          resolve_program_arg(&op->opcode, 0, &delay) != 0)
-        return -1;
-      if (delay < 0.0) delay = 0.0;
-      if (delay_to_samples(op->opcode.mode, delay, &relative) != 0)
-        return -1;
-      when = relative > UINT64_MAX - when ? UINT64_MAX : when + relative;
-      continue;
-    }
-    if (op->opcode.code == SKODE_OP_VOICE) {
-      if (op->opcode.argc != 1) return -1;
-      if (op->opcode.var_mask & 1U) {
-        int variable = (int)op->opcode.arg[0];
-        if (variable < 0 || variable >= ANDS_VAR_MAX) return -1;
-        current_voice_var = (uint8_t)(variable + 1);
-        continue;
+    if (program->op[i].opcode.code == SKODE_OP_RATCHET) {
+      double r_val;
+      if (resolve_program_arg(&program->op[i].opcode, 0, &r_val) == 0 && r_val > 1.0) {
+        ratchet_count = (int)r_val;
+        if (ratchet_count > 16) ratchet_count = 16;
       }
-      if (op->opcode.arg[0] < 0.0 ||
-          op->opcode.arg[0] >= synth_config.voice_max ||
-          floor(op->opcode.arg[0]) != op->opcode.arg[0]) {
-        return -1;
-      }
-      current_voice = (int)op->opcode.arg[0];
-      current_voice_var = 0;
-      continue;
-    }
-
-    event_t event = {
-      .voice = current_voice,
-      .voice_var = current_voice_var,
-      .source_valid = (pattern >= 0 || step >= 0 || tag >= 0),
-      .pattern = pattern,
-      .step = step,
-      .tag = tag,
-      .opcode = op->opcode,
-    };
-    if (execute_due && when <= now) {
-      if (skode_execute_event(&event, NULL) != 0) return -1;
-    } else if (queue_event(when, &event, tag) != 0) {
-      return -1;
     }
   }
-  if (final_voice) {
-    if (current_voice_var) {
-      int variable = current_voice_var - 1;
-      double value = global_var[variable];
-      if (!isfinite(value) || value < 0.0 ||
-          value >= synth_config.voice_max || floor(value) != value) {
+
+  uint64_t step_samples = 5512;
+  double samples_per_step = (double)tempo_step_seconds_get() * (double)MAIN_SAMPLE_RATE;
+  if (samples_per_step > 0.0) {
+    step_samples = (uint64_t)(samples_per_step + 0.5);
+  }
+  uint64_t sub_samples = step_samples / (uint64_t)ratchet_count;
+  if (sub_samples == 0) sub_samples = 1;
+
+  for (int r = 0; r < ratchet_count; r++) {
+    uint64_t when = base + (uint64_t)r * sub_samples;
+    int current_voice = voice;
+    uint8_t current_voice_var = 0;
+    int r_exec_due = (r == 0) ? execute_due : 0;
+
+    for (int i = 0; i < program->count; i++) {
+      const program_op_t *op = &program->op[i];
+      if (op->opcode.code == SKODE_OP_DELAY) {
+        uint64_t relative;
+        double delay;
+        if (op->opcode.argc != 1 ||
+            resolve_program_arg(&op->opcode, 0, &delay) != 0)
+          return -1;
+        if (delay < 0.0) delay = 0.0;
+        if (delay_to_samples(op->opcode.mode, delay, &relative) != 0)
+          return -1;
+        when = relative > UINT64_MAX - when ? UINT64_MAX : when + relative;
+        continue;
+      }
+      if (op->opcode.code == SKODE_OP_VOICE) {
+        if (op->opcode.argc != 1) return -1;
+        if (op->opcode.var_mask & 1U) {
+          int variable = (int)op->opcode.arg[0];
+          if (variable < 0 || variable >= ANDS_VAR_MAX) return -1;
+          current_voice_var = (uint8_t)(variable + 1);
+          continue;
+        }
+        if (op->opcode.arg[0] < 0.0 ||
+            op->opcode.arg[0] >= synth_config.voice_max ||
+            floor(op->opcode.arg[0]) != op->opcode.arg[0]) {
+          return -1;
+        }
+        current_voice = (int)op->opcode.arg[0];
+        current_voice_var = 0;
+        continue;
+      }
+      if (op->opcode.code == SKODE_OP_PATTERN_MODULO) {
+        if (r == 0) {
+          double mod;
+          if (resolve_program_arg(&op->opcode, 0, &mod) == 0 && mod > 0.0) {
+            seq_modulo_set_locked(pattern >= 0 ? pattern : 0, (int)mod);
+          }
+        }
+        continue;
+      }
+      if (op->opcode.code == SKODE_OP_RATCHET) {
+        continue;
+      }
+
+      event_t event = {
+        .voice = current_voice,
+        .voice_var = current_voice_var,
+        .source_valid = (pattern >= 0 || step >= 0 || tag >= 0),
+        .pattern = pattern,
+        .step = step,
+        .tag = tag,
+        .opcode = op->opcode,
+      };
+      if (r_exec_due && when <= now) {
+        if (skode_execute_event(&event, NULL) != 0) return -1;
+      } else if (queue_event(when, &event, tag) != 0) {
         return -1;
       }
-      *final_voice = (int)value;
-    } else {
-      *final_voice = current_voice;
+    }
+    if (r == 0 && final_voice) {
+      if (current_voice_var) {
+        int variable = current_voice_var - 1;
+        double value = global_var[variable];
+        if (!isfinite(value) || value < 0.0 ||
+            value >= synth_config.voice_max || floor(value) != value) {
+          return -1;
+        }
+        *final_voice = (int)value;
+      } else {
+        *final_voice = current_voice;
+      }
     }
   }
   return 0;

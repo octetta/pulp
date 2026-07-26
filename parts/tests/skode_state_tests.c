@@ -3415,19 +3415,23 @@ static void test_control_plane_voice_events(void) {
   seq_step_goto(14, 0);
   SAMPLE_COUNT_PUT(saved_sample_count + 5513);
   seq(SAMPLE_COUNT_GET(), execute_queued_event, execute_pattern_program);
-  expect_int(test, skred_control_event_poll(events, 8), 3,
+  expect_int(test, skred_control_event_poll(events, 8), 4,
              "pattern boundary event count");
   expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_PATTERN_START,
              "pattern start event type");
   expect_int(test, events[0].pattern, 14, "pattern start event pattern");
   expect_int(test, events[0].step, 0, "pattern start event step");
-  expect_int(test, (int)events[1].type, SKRED_CONTROL_EVENT_USER,
+  expect_int(test, (int)events[1].type, SKRED_CONTROL_EVENT_PATTERN_STEP,
+             "pattern step event type");
+  expect_int(test, events[1].pattern, 14, "pattern step event pattern");
+  expect_int(test, events[1].step, 0, "pattern step event step");
+  expect_int(test, (int)events[2].type, SKRED_CONTROL_EVENT_USER,
              "pattern scheduled user event type");
-  expect_int(test, events[1].pattern, 14,
+  expect_int(test, events[2].pattern, 14,
              "pattern scheduled user event pattern");
-  expect_int(test, events[1].step, 0, "pattern scheduled user event step");
-  expect_int(test, events[1].id, 12, "pattern scheduled user event id");
-  expect_int(test, (int)events[2].type, SKRED_CONTROL_EVENT_PATTERN_END,
+  expect_int(test, events[2].step, 0, "pattern scheduled user event step");
+  expect_int(test, events[2].id, 12, "pattern scheduled user event id");
+  expect_int(test, (int)events[3].type, SKRED_CONTROL_EVENT_PATTERN_END,
              "pattern end event type");
   ctx.log[0] = '\0';
   ctx.log_len = 0;

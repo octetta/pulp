@@ -192,9 +192,11 @@ void do_pattern(uint64_t now,
 
         seq_pointer[p] = step;
 
-        if (seq_control_events[p] && step == 0)
-          skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_START, now,
-            p, step);
+        if (seq_control_events[p]) {
+          if (step == 0)
+            skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_START, now, p, step);
+          skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_STEP, now, p, step);
+        }
         const char *step_str = seq_pattern[p][step];
         if (step_str[0] == '-') {
           if (step_str[1] >= '0' && step_str[1] <= '9') {
@@ -204,7 +206,7 @@ void do_pattern(uint64_t now,
               seq_offset[p] = ticks_so_far;
               step = 0;
               seq_pointer[p] = 0;
-              if (seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);
+              if (program_fn && seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);
             } else {
               seq_offset[p] = ticks_so_far - step;
               if (seq_control_events[p])
@@ -219,7 +221,7 @@ void do_pattern(uint64_t now,
             seq_pointer[p] = 0;
           }
         } else {
-          if (seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);
+          if (program_fn && seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);
           if (seq_control_events[p] &&
               (step == len - 1 || seq_pattern[p][step + 1][0] == '-')) {
             skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_END, now,

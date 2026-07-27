@@ -119,7 +119,11 @@ static int skred_control_event_key(const skred_control_event_t *event) {
     case SKRED_CONTROL_EVENT_PATTERN_START:
     case SKRED_CONTROL_EVENT_PATTERN_END:
     case SKRED_CONTROL_EVENT_PATTERN_WAIT:
-    case SKRED_CONTROL_EVENT_PATTERN_STEP: return event->pattern;
+    case SKRED_CONTROL_EVENT_PATTERN_STEP:
+    case SKRED_CONTROL_EVENT_PATTERN_CHANGE:
+    case SKRED_CONTROL_EVENT_PATTERN_QUEUE:
+    case SKRED_CONTROL_EVENT_MUTE_CHANGE:
+    case SKRED_CONTROL_EVENT_ERROR: return event->pattern;
     case SKRED_CONTROL_EVENT_VOICE_TRIGGER:
     case SKRED_CONTROL_EVENT_VOICE_RELEASE:
     case SKRED_CONTROL_EVENT_VOICE_FINISHED: return event->voice;
@@ -338,7 +342,12 @@ void skred_control_pattern_event(uint32_t type, uint64_t sample, int pattern,
   if (type != SKRED_CONTROL_EVENT_PATTERN_START &&
       type != SKRED_CONTROL_EVENT_PATTERN_END &&
       type != SKRED_CONTROL_EVENT_PATTERN_WAIT &&
-      type != SKRED_CONTROL_EVENT_PATTERN_STEP) return;
+      type != SKRED_CONTROL_EVENT_PATTERN_STEP &&
+      type != SKRED_CONTROL_EVENT_PATTERN_CHANGE &&
+      type != SKRED_CONTROL_EVENT_TEMPO_CHANGE &&
+      type != SKRED_CONTROL_EVENT_PATTERN_QUEUE &&
+      type != SKRED_CONTROL_EVENT_MUTE_CHANGE &&
+      type != SKRED_CONTROL_EVENT_ERROR) return;
   skred_control_event_publish(type, sample, -1, pattern, step, -1, 0, 0, 0,
     NULL);
 }

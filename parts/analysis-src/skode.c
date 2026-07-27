@@ -822,6 +822,11 @@ static const char *control_event_type_name(uint32_t type) {
     case SKRED_CONTROL_EVENT_PATTERN_END: return "PATTERN_END";
     case SKRED_CONTROL_EVENT_PATTERN_WAIT: return "PATTERN_WAIT";
     case SKRED_CONTROL_EVENT_PATTERN_STEP: return "PATTERN_STEP";
+    case SKRED_CONTROL_EVENT_PATTERN_CHANGE: return "PATTERN_CHANGE";
+    case SKRED_CONTROL_EVENT_TEMPO_CHANGE: return "TEMPO_CHANGE";
+    case SKRED_CONTROL_EVENT_PATTERN_QUEUE: return "PATTERN_QUEUE";
+    case SKRED_CONTROL_EVENT_MUTE_CHANGE: return "MUTE_CHANGE";
+    case SKRED_CONTROL_EVENT_ERROR: return "ERROR";
     case SKRED_CONTROL_EVENT_MIDI: return "MIDI";
     default: return "UNKNOWN";
   }
@@ -3834,6 +3839,8 @@ int skode_function(ands_t *s, int info) {
         if (tempo_set_subdivision(bpm, sub) != 0)
           ctx->printf(ctx, "# tempo must be between %g and %g BPM\n",
             (double)SEQ_TEMPO_MIN_BPM, (double)SEQ_TEMPO_MAX_BPM);
+        else
+          skred_control_pattern_event(SKRED_CONTROL_EVENT_TEMPO_CHANGE, SAMPLE_COUNT_GET(), -1, 0);
       }
       break;
     case ATOM4('N---'): // detune-midi key cents
@@ -4511,8 +4518,19 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('y---'): // select-pattern which
       if (argc && x >= 0 && x < PATTERNS_MAX) {
+        int old_p = ctx->pattern;
         ctx->pattern = x;
         scope_pattern_pointer = x;
+        if (old_p != x && old_p >= 0 && seq_control_events[x]) {
+          skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_CHANGE, SAMPLE_COUNT_GET(), x, 0);
+        }
+      }
+      break;
+    case ATOM4('ys?-'):
+    case ATOM4('ys--'):
+      {
+        int p = (argc && x >= 0 && x < PATTERNS_MAX) ? x : ctx->pattern;
+        pattern_show(ctx, p, 1);
       }
       break;
     case ATOM4('yt--'): // {note} pattern-text
@@ -4523,7 +4541,10 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('ym--'): // pattern-mute 0/1
-      if (argc) seq_mute_set(ctx->pattern, x);
+      if (argc) {
+        seq_mute_set(ctx->pattern, x);
+        skred_control_pattern_event(SKRED_CONTROL_EVENT_MUTE_CHANGE, SAMPLE_COUNT_GET(), ctx->pattern, x);
+      }
       break;
     case ATOM4('yc--'): // pattern control-plane event publication bool
       if (argc) seq_control_events_set(ctx->pattern, x);
@@ -4546,6 +4567,7 @@ int skode_function(ands_t *s, int info) {
     case ATOM4('zq--'): // queue-pattern-start-stop mode
       if (argc) {
         seq_state_queue(ctx->pattern, x);
+        skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_QUEUE, SAMPLE_COUNT_GET(), ctx->pattern, x);
       }
       break;
     case ATOM4('z?--'): // one-pattern-play-mode bool

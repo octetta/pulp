@@ -620,6 +620,7 @@ Event type numbers are the public `SKRED_CONTROL_EVENT_*` enum values:
 | `7` | `SKRED_CONTROL_EVENT_MIDI` |
 | `8` | `SKRED_CONTROL_EVENT_PATTERN_WAIT` |
 | `9` | `SKRED_CONTROL_EVENT_PATTERN_STEP` |
+| `10` | `SKRED_CONTROL_EVENT_PATTERN_CHANGE` |
 
 `key` is the event id for `SKRED_CONTROL_EVENT_USER`, the pattern number for
 pattern events, and the voice number for voice events. Use `-1` as a wildcard

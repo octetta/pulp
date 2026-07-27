@@ -123,7 +123,8 @@ static int skred_control_event_key(const skred_control_event_t *event) {
     case SKRED_CONTROL_EVENT_PATTERN_CHANGE:
     case SKRED_CONTROL_EVENT_PATTERN_QUEUE:
     case SKRED_CONTROL_EVENT_MUTE_CHANGE:
-    case SKRED_CONTROL_EVENT_ERROR: return event->pattern;
+    case SKRED_CONTROL_EVENT_ERROR:
+    case SKRED_CONTROL_EVENT_PATTERN_DOWNBEAT_SWITCH: return event->pattern;
     case SKRED_CONTROL_EVENT_VOICE_TRIGGER:
     case SKRED_CONTROL_EVENT_VOICE_RELEASE:
     case SKRED_CONTROL_EVENT_VOICE_FINISHED: return event->voice;
@@ -347,9 +348,50 @@ void skred_control_pattern_event(uint32_t type, uint64_t sample, int pattern,
       type != SKRED_CONTROL_EVENT_TEMPO_CHANGE &&
       type != SKRED_CONTROL_EVENT_PATTERN_QUEUE &&
       type != SKRED_CONTROL_EVENT_MUTE_CHANGE &&
-      type != SKRED_CONTROL_EVENT_ERROR) return;
+      type != SKRED_CONTROL_EVENT_ERROR &&
+      type != SKRED_CONTROL_EVENT_PATTERN_DOWNBEAT_SWITCH) return;
   skred_control_event_publish(type, sample, -1, pattern, step, -1, 0, 0, 0,
     NULL);
+}
+
+int skred_trigger_voice(int voice, float velocity) {
+  if (voice < 0 || voice >= synth_config.voice_max) return -1;
+  if (velocity <= 0.0f) velocity = 1.0f;
+  if (velocity > 1.0f) velocity = 1.0f;
+  float gain_db = (velocity >= 1.0f) ? 0.0f : (20.0f * log10f(velocity));
+  amp_set(voice, gain_db);
+  sv.phase[voice] = 0.0;
+  sv.loop_ended[voice] = 0;
+  wave_loop(voice, 1);
+  if (sv.control_events[voice]) {
+    skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_TRIGGER, SAMPLE_COUNT_GET(), voice);
+  }
+  return 0;
+}
+
+int skred_set_voice_pitch(int voice, float pitch_hz_or_note) {
+  if (voice < 0 || voice >= synth_config.voice_max) return -1;
+  if (pitch_hz_or_note >= 0.0f && pitch_hz_or_note <= 127.0f) {
+    freq_midi(voice, pitch_hz_or_note, 0.0f);
+  } else if (pitch_hz_or_note > 127.0f) {
+    freq_set(voice, pitch_hz_or_note);
+  }
+  return 0;
+}
+
+int skred_trigger_voice_pitch_velocity(int voice, float pitch_hz_or_note, float velocity) {
+  if (voice < 0 || voice >= synth_config.voice_max) return -1;
+  skred_set_voice_pitch(voice, pitch_hz_or_note);
+  return skred_trigger_voice(voice, velocity);
+}
+
+int skred_release_voice(int voice) {
+  if (voice < 0 || voice >= synth_config.voice_max) return -1;
+  wave_loop(voice, 0);
+  if (sv.control_events[voice]) {
+    skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE, SAMPLE_COUNT_GET(), voice);
+  }
+  return 0;
 }
 
 void skred_control_midi_event(int type, int channel, int data1, int data2) {

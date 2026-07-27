@@ -193,6 +193,9 @@ void do_pattern(uint64_t now,
               int64_t ticks_so_far = (int64_t)(master_tick / (uint64_t)mod);
               seq_offset[p] = ticks_so_far;
               seq_pointer[p] = 0;
+              if (seq_control_events[p]) {
+                skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_DOWNBEAT_SWITCH, now, p, 0);
+              }
             } else if (seq_pending_state[p] == 2) {
               seq_state[p] = SEQ_STOPPED;
               seq_pointer[p] = 0;

@@ -827,6 +827,7 @@ static const char *control_event_type_name(uint32_t type) {
     case SKRED_CONTROL_EVENT_PATTERN_QUEUE: return "PATTERN_QUEUE";
     case SKRED_CONTROL_EVENT_MUTE_CHANGE: return "MUTE_CHANGE";
     case SKRED_CONTROL_EVENT_ERROR: return "ERROR";
+    case SKRED_CONTROL_EVENT_PATTERN_DOWNBEAT_SWITCH: return "PATTERN_DOWNBEAT_SWITCH";
     case SKRED_CONTROL_EVENT_MIDI: return "MIDI";
     default: return "UNKNOWN";
   }

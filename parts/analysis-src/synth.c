@@ -310,12 +310,6 @@ static float delay_read_buf(const float *buf, int write, float delay_frames) {
   return buf[i0] + frac * (buf[i1] - buf[i0]);
 }
 
-#if 0
-static float delay_read(const delay_bus_t *bus, float delay_frames) {
-  return delay_read_buf(bus->buffer, bus->write, delay_frames);
-}
-#endif
-
 static float delay_damping_coeff(const delay_bus_t *bus) {
   float amount = (float)bus->damping / 15.0f;             // 0..1
   float fc = 20000.0f * powf(500.0f / 20000.0f, amount);   // 20kHz (no damping) -> 500Hz (dark)
@@ -385,15 +379,16 @@ static void delay_process(delay_bus_t *bus, float input, float *left, float *rig
   fb_left = delay_filter_feedback(bus, 0, fb_left);
   if (bus->pingpong) fb_right = delay_filter_feedback(bus, 1, fb_right);
 
+  float fb_gain = bus->freeze ? 1.0f : bus->feedback_gain;
   float feed = bus->freeze ? 0.0f : input;
-  float write_left = delay_12bit_clip(feed + fb_left * bus->feedback_gain);
-  if (!bus->freeze) bus->buffer[bus->write] = write_left;
+  float write_left = delay_12bit_clip(feed + fb_left * fb_gain);
+  bus->buffer[bus->write] = write_left;
   bus->write++;
   if (bus->write >= DELAY_MAX_FRAMES) bus->write = 0;
 
   if (bus->pingpong) {
-    float write_right = delay_12bit_clip(feed + fb_right * bus->feedback_gain);
-    if (!bus->freeze) bus->buffer_r[bus->write_r] = write_right;
+    float write_right = delay_12bit_clip(feed + fb_right * fb_gain);
+    bus->buffer_r[bus->write_r] = write_right;
     bus->write_r++;
     if (bus->write_r >= DELAY_MAX_FRAMES) bus->write_r = 0;
   }
@@ -509,17 +504,16 @@ int delay_pingpong_get(int bus_number) {
   return index < 0 ? 0 : delay_bus[index].pingpong;
 }
 
-// Set delay time directly in ms, inverting the coarse/fine encoding.
 int delay_time_ms_set(int bus_number, float target_ms) {
   int index = delay_bus_index(bus_number);
   if (index < 0) return SYNTH_INVALID_VOICE;
   delay_bus_t *bus = &delay_bus[index];
 
-  float max_ms = 8.0f * (float)(1 << 7);   // matches the widened cap above (1024ms)
+  float max_ms = 8.0f * (float)(1 << 7);   // 1024ms
   if (target_ms < 4.0f) target_ms = 4.0f;
   if (target_ms > max_ms) target_ms = max_ms;
 
-  int coarse = (int)floorf(log2f(target_ms / 8.0f));
+  int coarse = (int)ceilf(log2f(target_ms / 8.0f) - 1e-6f);
   coarse = clampi(coarse, 0, 7);
   float base = 8.0f * (float)(1 << coarse);
   float fine_factor = clampf(target_ms / base, 0.5f, 1.0f);

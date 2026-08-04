@@ -318,12 +318,6 @@ static float delay_read_buf(const float *buf, int write, float delay_frames) {
   return buf[i0] + frac * (buf[i1] - buf[i0]);
 }
 
-#if 0
-static float delay_read(const delay_bus_t *bus, float delay_frames) {
-  return delay_read_buf(bus->buffer, bus->write, delay_frames);
-}
-#endif
-
 static float delay_damping_coeff(const delay_bus_t *bus) {
   float amount = (float)bus->damping / 15.0f;             // 0..1
   float fc = 20000.0f * powf(500.0f / 20000.0f, amount);   // 20kHz (no damping) -> 500Hz (dark)
@@ -393,15 +387,16 @@ static void delay_process(delay_bus_t *bus, float input, float *left, float *rig
   fb_left = delay_filter_feedback(bus, 0, fb_left);
   if (bus->pingpong) fb_right = delay_filter_feedback(bus, 1, fb_right);
 
+  float fb_gain = bus->freeze ? 1.0f : bus->feedback_gain;
   float feed = bus->freeze ? 0.0f : input;
-  float write_left = delay_12bit_clip(feed + fb_left * bus->feedback_gain);
-  if (!bus->freeze) bus->buffer[bus->write] = write_left;
+  float write_left = delay_12bit_clip(feed + fb_left * fb_gain);
+  bus->buffer[bus->write] = write_left;
   bus->write++;
   if (bus->write >= DELAY_MAX_FRAMES) bus->write = 0;
 
   if (bus->pingpong) {
-    float write_right = delay_12bit_clip(feed + fb_right * bus->feedback_gain);
-    if (!bus->freeze) bus->buffer_r[bus->write_r] = write_right;
+    float write_right = delay_12bit_clip(feed + fb_right * fb_gain);
+    bus->buffer_r[bus->write_r] = write_right;
     bus->write_r++;
     if (bus->write_r >= DELAY_MAX_FRAMES) bus->write_r = 0;
   }

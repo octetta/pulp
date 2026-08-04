@@ -81,6 +81,16 @@ int delay_params_set(int bus, int coarse, int fine, int feedback, int mod_freq,
                      int mod_depth, int level);
 void delay_params_get(int bus, int *coarse, int *fine, int *feedback, int *mod_freq,
                       int *mod_depth, int *level);
+int delay_damping_set(int bus, int damping, int hp);
+void delay_damping_get(int bus, int *damping, int *hp);
+int delay_freeze_set(int bus, int on);
+int delay_freeze_get(int bus);
+int delay_pingpong_set(int bus, int on);
+int delay_pingpong_get(int bus);
+int delay_time_ms_set(int bus, float target_ms);
+int delay_time_sync_set(int bus, float bpm, float division);
+void delay_clear(void);
+const char *delay_bus_format(int bus);
 void delay_clear(void);
 const char *delay_bus_format(int bus);
 const char *delay_format(void);

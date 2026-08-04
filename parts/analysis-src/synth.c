@@ -487,6 +487,28 @@ int delay_pingpong_set(int bus_number, int on) {
   return 0;
 }
 
+void delay_damping_get(int bus_number, int *damping, int *hp) {
+  int index = delay_bus_index(bus_number);
+  if (index < 0) {
+    if (damping) *damping = 0;
+    if (hp) *hp = 0;
+    return;
+  }
+  delay_bus_t *bus = &delay_bus[index];
+  if (damping) *damping = bus->damping;
+  if (hp) *hp = bus->hp;
+}
+
+int delay_freeze_get(int bus_number) {
+  int index = delay_bus_index(bus_number);
+  return index < 0 ? 0 : delay_bus[index].freeze;
+}
+
+int delay_pingpong_get(int bus_number) {
+  int index = delay_bus_index(bus_number);
+  return index < 0 ? 0 : delay_bus[index].pingpong;
+}
+
 // Set delay time directly in ms, inverting the coarse/fine encoding.
 int delay_time_ms_set(int bus_number, float target_ms) {
   int index = delay_bus_index(bus_number);
@@ -534,9 +556,10 @@ void delay_clear(void) {
 static void delay_format_bus(char *out, size_t out_size, int index) {
   delay_bus_t *bus = &delay_bus[index];
   snprintf(out, out_size,
-    "DL%d,%d,%d,%d,%d,%d,%d\n",
+    "DL%d,%d,%d,%d,%d,%d,%d DD%d,%d DF%d DP%d\n",
     index + 1, bus->coarse, bus->fine, bus->feedback, bus->mod_freq,
-    bus->mod_depth, bus->level);
+    bus->mod_depth, bus->level, bus->damping, bus->hp, bus->freeze,
+    bus->pingpong);
 }
 
 const char *delay_bus_format(int bus_number) {

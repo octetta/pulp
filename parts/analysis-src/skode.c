@@ -2815,6 +2815,11 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_VARIABLE_SET:
     case SKODE_OP_CONTROL_EVENT:
     case SKODE_OP_DELAY_PARAMS:
+    case SKODE_OP_DELAY_DAMPING:
+    case SKODE_OP_DELAY_FREEZE:
+    case SKODE_OP_DELAY_PINGPONG:
+    case SKODE_OP_DELAY_TIME:
+    case SKODE_OP_DELAY_SYNC:
       return 1;
     case SKODE_OP_AMP_MOD: return 1;
     case SKODE_OP_PHASE_DISTORTION:
@@ -3175,6 +3180,56 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
             !skode_opcode_int(opcode, 6, &level)) return -1;
         return delay_params_set(bus, coarse, fine, feedback, mod_freq,
           mod_depth, level);
+      }
+    case SKODE_OP_DELAY_DAMPING:
+      {
+        int bus = 1;
+        int damping, hp;
+        if (opcode->argc < 1 || opcode->argc > 3 ||
+            !skode_opcode_int(opcode, 0, &bus)) return -1;
+        delay_damping_get(bus, &damping, &hp);
+        if (opcode->argc > 1 && isfinite(opcode->arg[1]) &&
+            !skode_opcode_int(opcode, 1, &damping)) return -1;
+        if (opcode->argc > 2 && isfinite(opcode->arg[2]) &&
+            !skode_opcode_int(opcode, 2, &hp)) return -1;
+        return delay_damping_set(bus, damping, hp);
+      }
+    case SKODE_OP_DELAY_FREEZE:
+      {
+        int bus = 1;
+        int on;
+        if (opcode->argc < 1 || opcode->argc > 2 ||
+            !skode_opcode_int(opcode, 0, &bus)) return -1;
+        on = delay_freeze_get(bus);
+        if (opcode->argc > 1 && isfinite(opcode->arg[1]) &&
+            !skode_opcode_int(opcode, 1, &on)) return -1;
+        return delay_freeze_set(bus, on);
+      }
+    case SKODE_OP_DELAY_PINGPONG:
+      {
+        int bus = 1;
+        int on;
+        if (opcode->argc < 1 || opcode->argc > 2 ||
+            !skode_opcode_int(opcode, 0, &bus)) return -1;
+        on = delay_pingpong_get(bus);
+        if (opcode->argc > 1 && isfinite(opcode->arg[1]) &&
+            !skode_opcode_int(opcode, 1, &on)) return -1;
+        return delay_pingpong_set(bus, on);
+      }
+    case SKODE_OP_DELAY_TIME:
+      {
+        int bus;
+        if (opcode->argc != 2 || !skode_opcode_int(opcode, 0, &bus) ||
+            !isfinite(opcode->arg[1])) return -1;
+        return delay_time_ms_set(bus, (float)opcode->arg[1]);
+      }
+    case SKODE_OP_DELAY_SYNC:
+      {
+        int bus;
+        if (opcode->argc != 3 || !skode_opcode_int(opcode, 0, &bus) ||
+            !isfinite(opcode->arg[1]) || !isfinite(opcode->arg[2])) return -1;
+        return delay_time_sync_set(bus, (float)opcode->arg[1],
+          (float)opcode->arg[2]);
       }
     case SKODE_OP_RING_MOD:
       if (opcode->argc < 1 || opcode->argc > 2) return -1;
@@ -3879,6 +3934,51 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "%s", delay_bus_format(bus));
       } else {
         ctx->printf(ctx, "%s", delay_format());
+      }
+      break;
+    case ATOM4('DD--'):
+      {
+        int bus = 1;
+        int damping, hp;
+        if (argc > 0) skode_double_to_int(arg[0], &bus);
+        delay_damping_get(bus, &damping, &hp);
+        if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &damping);
+        if (argc > 2 && isfinite(arg[2])) skode_double_to_int(arg[2], &hp);
+        delay_damping_set(bus, damping, hp);
+      }
+      break;
+    case ATOM4('DF--'):
+      {
+        int bus = 1;
+        int on;
+        if (argc > 0) skode_double_to_int(arg[0], &bus);
+        on = delay_freeze_get(bus);
+        if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &on);
+        delay_freeze_set(bus, on);
+      }
+      break;
+    case ATOM4('DP--'):
+      {
+        int bus = 1;
+        int on;
+        if (argc > 0) skode_double_to_int(arg[0], &bus);
+        on = delay_pingpong_get(bus);
+        if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &on);
+        delay_pingpong_set(bus, on);
+      }
+      break;
+    case ATOM4('DT--'):
+      if (argc == 2) {
+        int bus;
+        if (skode_double_to_int(arg[0], &bus) && isfinite(arg[1]))
+          delay_time_ms_set(bus, (float)arg[1]);
+      }
+      break;
+    case ATOM4('DS--'):
+      if (argc == 3) {
+        int bus;
+        if (skode_double_to_int(arg[0], &bus) && isfinite(arg[1]) && isfinite(arg[2]))
+          delay_time_sync_set(bus, (float)arg[1], (float)arg[2]);
       }
       break;
     case ATOM4('GS--'): // show global synth status

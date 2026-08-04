@@ -35,6 +35,8 @@ const char *skode_opcode_name(uint8_t opcode) {
     "POLY_BEND", "PHASE_ENVELOPE", "PHASE_ENVELOPE_DEPTH",
     "FREQ_FEEDBACK", "FREQ_BEND", "FREQ_BEND_PARAM",
     "AMP_BEND", "AMP_BEND_PARAM", "PATTERN_MODULO", "RATCHET",
+    "DELAY_DAMPING", "DELAY_FREEZE", "DELAY_PINGPONG", "DELAY_TIME",
+    "DELAY_SYNC",
   };
   return opcode < sizeof(names) / sizeof(names[0]) ?
     names[opcode] : "UNKNOWN";
@@ -280,6 +282,24 @@ static int skode_compile_callback(ands_t *s, int info) {
     case SKODE_ATOM('D', 'L', '-', '-'):
       opcode = SKODE_OP_DELAY_PARAMS; min_argc = 1; max_argc = 7;
       default_mask = 0x7e;
+      break;
+    case SKODE_ATOM('D', 'D', '-', '-'):
+      opcode = SKODE_OP_DELAY_DAMPING; min_argc = 1; max_argc = 3;
+      default_mask = 0x6;   // bits 1,2 (damping, hp) may default to current value
+      break;
+    case SKODE_ATOM('D', 'F', '-', '-'):
+      opcode = SKODE_OP_DELAY_FREEZE; min_argc = 1; max_argc = 2;
+      default_mask = 0x2;
+      break;
+    case SKODE_ATOM('D', 'P', '-', '-'):
+      opcode = SKODE_OP_DELAY_PINGPONG; min_argc = 1; max_argc = 2;
+      default_mask = 0x2;
+      break;
+    case SKODE_ATOM('D', 'T', '-', '-'):
+      opcode = SKODE_OP_DELAY_TIME; min_argc = max_argc = 2;
+      break;
+    case SKODE_ATOM('D', 'S', '-', '-'):
+      opcode = SKODE_OP_DELAY_SYNC; min_argc = max_argc = 3;
       break;
     case SKODE_ATOM('V', 'S', '-', '-'):
       opcode = SKODE_OP_WAVE_RANGE_SET; min_argc = 0; max_argc = 2;

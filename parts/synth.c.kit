@@ -2229,7 +2229,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
 
     @if(FILT)
     if (verbose || sv.filter_mode[v])
-        APPEND(" J%d K%g Q%g", sv.filter_mode[v], sv.filter_freq[v], sv.filter_res[v]);
+        APPEND(" J%d %d K%g Q%g", sv.filter_mode[v] % 10, sv.filter_mode[v] / 10, sv.filter_freq[v], sv.filter_res[v]);
     @endif
 
     @if(FADSR)
@@ -2260,11 +2260,11 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     @endif
 
     @if(SAH)
-    if (verbose || sv.sample_hold_ratio[v] > 0.0f) APPEND(" h%g,%d", sv.sample_hold_ratio[v], sv.sample_hold_mode[v]);
+    if (verbose || sv.sample_hold_ratio[v] > 0.0f) APPEND(" h%g %d", sv.sample_hold_ratio[v], sv.sample_hold_mode[v]);
     @endif
 
     @if(CRUSH)
-    if (verbose || sv.quantize[v]) APPEND(" q%d", sv.quantize[v]);
+    if (verbose || sv.quantize[v]) APPEND(" q%d %d", sv.quantize[v] % 100, sv.quantize[v] / 100);
     @endif
 
     @if(AM)

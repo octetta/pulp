@@ -552,7 +552,7 @@ followed by four stereo stem pairs in channels `2..9`. Voice command `r1`
 through `r4` adds that voice to the corresponding stem while normally leaving
 it in the master; `r0` removes the stem route. `m1` suppresses the voice in the
 master without suppressing its dry stem contribution. Each non-master stem
-owns one mono-send/stereo-return delay line. `ds amount` feeds the delay
+owns one mono-send/stereo-return delay line which supports variable bit-depth quantization (grit). `ds amount` feeds the delay
 attached to the voice's current `r1`..`r4` route while the voice is unmuted,
 and that wet return is added both to the main stereo mix and to the matching
 stem. `[filename]/rg` starts, `/r?` reports progress, and `/rs` drains and

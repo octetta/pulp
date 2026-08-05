@@ -62,6 +62,7 @@ most 32 operations.
 | `p pan` | Stereo position from `-1` to `1` | Moves the voice across the stereo field. `-1` is left, `0` is center, and `1` is right. | Yes |
 | `ds amount` | Send `0..1` or `0..15` | Sends the selected voice's mono signal to the delay owned by its record/scope track. The voice must be routed with `r1`..`r4`, centered with `p0`, and have no pan modulation. | No |
 | `DL track,coarse,fine,feedback,modfreq,moddepth,level` | Track `1..4`, DW-style delay parameters | Sets the mono-send/stereo-return delay attached to one record/scope track. Parameter ranges are `0..7`, `0..15`, `0..15`, `0..31`, `0..31`, `0..15`. | No |
+| `DG track [bits] [native]` | Track `1..4` | Sets the track delay bit-depth and optional quantization bypass. `bits` defaults to 12. | No |
 | `DL? [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. | No |
 | `GS [full]` | Optional boolean | Displays copy/pasteable global synth state and the build version. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. | No |
 | `[filename.zip] GS>` | String filename | Saves a versioned, restorable REPL session as an ordinary ZIP archive. | No |
@@ -107,8 +108,8 @@ articulation, refresh, cloning, graph protocol, and full examples.
 | `WL wave,start,end` | Wave index and sample boundaries | Sets the wave's loop start and end boundary. `start` is inclusive, `end` is exclusive, and `end` may equal the wave sample count. | No |
 | `VS start,end` | Sample boundaries on the selected voice | Overrides the selected voice's playable sample range after `w` has assigned a wave. `VS` with no arguments resets the voice to the full current wave range. | Yes |
 | `VL start,end` | Sample boundaries on the selected voice | Overrides the selected voice's loop points after `w` has assigned a wave. `VL` with no arguments resets the voice to the current wave's `WL` defaults. | Yes |
-| `q bits` | Integer bit-depth control | Quantizes the waveform and adds bit-crusher distortion. Requires `CRUSH`. | Yes |
-| `h phases` | Integer hold length | Holds oscillator values for multiple phases, producing stepped or sample-and-hold distortion. Requires `SAH`. | Yes |
+| `q [bits] [curve]` | Bit-depth and quantization curve | Quantizes the waveform and adds bit-crusher distortion. `curve` is `0` (linear), `1` (companded), or `2` (dithered). Requires `CRUSH`. | Yes |
+| `h [ratio] [mode]` | Sample-hold ratio | Holds oscillator values as a decimal fraction of the wave cycle, producing stepped or sample-and-hold distortion. `mode` is `0` (hard), `1` (smoothed), or `2` (jittered). Requires `SAH`. | Yes |
 | `[name] vt` | String | Gives the selected voice a display label. It does not alter sound. | No |
 | `[name] wt wave` | String and wave index | Gives a wavetable a display label. It does not alter sound. | No |
 
@@ -383,7 +384,7 @@ triggered.
 | --- | --- | --- | --- |
 | `t attack,decay,sustain,release` | Times in seconds; sustain level `0..1` | Sets the amplitude envelope triggered by `l` and `T` and released by `l0`. Requires `ADSR`. | Yes |
 | `k mode` | Integer stored mode | Stores and reports the amplitude-envelope mode. The current envelope calculation does not branch on this value, so it presently has no audible effect. Requires `ADSR`. | Yes |
-| `J mode` | `0` bypass, `1` low-pass, `2` high-pass, `3` band-pass, `4` notch, `5` all-pass | Selects the filter response. Requires `FILT`. | Yes |
+| `J [mode] [character]` | Selects response and character | `mode` is `0` (bypass), `1` (LP), `2` (HP), `3` (BP), `4` (Notch), `5` (All-pass). `character` is `0` (clean), `1` (driven), `2` (screamer). Requires `FILT`. | Yes |
 | `K hz` | Cutoff or center frequency in hertz | Sets the frequency interpreted according to `J`. Requires `FILT`. | Yes |
 | `Q quality` | Positive quality factor | Sets resonance or bandwidth around `K`; `0.707` is a useful neutral value. Requires `FILT`. | Yes |
 | `ft attack,decay,sustain,release` | Times in seconds; sustain level `0..1` | Sets the filter envelope triggered and released with the amplitude envelope. Requires `FILT` and `FADSR`. | Yes |

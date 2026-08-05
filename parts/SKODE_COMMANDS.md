@@ -111,16 +111,16 @@ their named build option is enabled.
 | `FB` | `amount` | `SKODE_OP_FREQ_FEEDBACK` | Sets FF2 two-sample operator feedback in radians, `0..7` | `FM` |
 | `g` | `time` | `SKODE_OP_GLISSANDO` | Sets `sv.glissando_enable` and `sv.glissando_time` | `GLISS` |
 | `G` | `voice [, voice ...]` | `SKODE_OP_LINK_MIDI` | Sets up to four `sv.link_midi_*` voices | base |
-| `h` | `phase-count` | `SKODE_OP_SAMPLE_HOLD` | Sets `sv.sample_hold_max` | `SAH` |
+| `h` | `ratio [mode]` | `SKODE_OP_SAMPLE_HOLD` | Sets `sv.sample_hold_ratio` and `sv.sample_hold_mode` | `SAH` |
 | `H` | `voice [, voice ...]` | `SKODE_OP_LINK_VELOCITY` | Sets up to four `sv.link_velo_*` voices | base |
 | `L` | `seconds` | `SKODE_OP_TRIGGER_DELAY` | Sets `sv.link_trig` and `sv.link_trig_samp` | base |
-| `J` | `mode` | `SKODE_OP_FILTER_MODE` | Sets filter mode and calls `mmf_set_params()` | `FILT` |
+| `J` | `mode [character]` | `SKODE_OP_FILTER_MODE` | Sets filter mode and calls `mmf_set_params()` | `FILT` |
 | `K` | `Hz` | `SKODE_OP_FILTER_FREQ` | `mmf_set_freq()` | `FILT` |
 | `k` | `mode` | `SKODE_OP_ENVELOPE_MODE` | Sets `sv.amp_envelope_mode` | `ADSR` |
 | `m` | `state` | `SKODE_OP_MUTE` | `wave_mute()`; suppresses master output while preserving an `r1`..`r4` dry stem route | base |
 | `N` | `semitones [, cents]` | `SKODE_OP_MIDI_DETUNE` | Sets `sv.midi_transpose` and `sv.midi_cents` | base |
 | `P` | `[voice, depth [, offset]]` | `SKODE_OP_PAN_MOD` | `pan_mod_set()`; fewer than two args disable modulation | `PANMOD` |
-| `q` | `bit-depth` | `SKODE_OP_QUANTIZE` | `wave_quant()` | `CRUSH` |
+| `q` | `bit-depth [curve]` | `SKODE_OP_QUANTIZE` | `wave_quant()` | `CRUSH` |
 | `Q` | `resonance` | `SKODE_OP_FILTER_RESONANCE` | `mmf_set_res()` | `FILT` |
 | `r` | `track` | `SKODE_OP_RECORD_TRACK` | `synth_record_track_set()` | `TRACKS`, `RECORD`, or `SCOPE` |
 | `rt` | `[name] track` | immediate | `synth_track_name_set()` | `TRACKS`, `RECORD`, or `SCOPE` |
@@ -331,6 +331,7 @@ schedulable.
 | `v*` | `param[,register]` | Read selected voice wave, amplitude, or frequency | `sv` fields, register write |
 | `ds` | `amount` | Set selected voice send amount to the delay owned by its `r1`..`r4` record/scope track; effective only when `p0` and pan modulation is off | `delay_send_set()` |
 | `DL` | `track,coarse,fine,feedback,modfreq,moddepth,level` | Set the DW-style mono-send/stereo-return delay attached to record/scope track `1..4` | `delay_params_set()` |
+| `DG` | `track [bits] [native]` | Set the bit depth reduction applied to the delay line for the specified track | `delay_grit_set()` |
 | `DL?` | `[track]` | Show one track delay or all four track delays as copy/pasteable `DL...` commands | `delay_format()`, `delay_bus_format()` |
 | `GS` | `[full]` | Show copy/pasteable version, master volume, tempo, and track delays; `full > 0` adds a larger text snapshot | `global_status_show()` |
 | `[filename] GS>` | string | Save the complete current REPL/session state as an ordinary versioned ZIP | `skode_session_save()` |

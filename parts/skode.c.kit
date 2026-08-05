@@ -4252,7 +4252,7 @@ neutral `ct 0 0 1 0` disables it.
     @doc(command.J)
     name: J
     category: filter
-    summary: filter-mode selector
+    summary: filter-mode selector; mode = J%10 (1=LP,2=HP,3=BP,4=Notch,5=Allpass), character = J/10 (0=clean,1=driven,2=screamer)
     @enddoc
     case ATOM4('J---'): // filter-mode selector
       if (argc) {

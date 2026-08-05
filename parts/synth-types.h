@@ -111,6 +111,7 @@ typedef struct {
   float last_freq;
   float last_resonance;
   int last_mode;
+  float drive;  // cached per-character soft-clip amount; 0 = bypass (character 0)
 } mmf_t;
 
 #include <stdint.h> // for uint64_t

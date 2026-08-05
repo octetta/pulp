@@ -1288,6 +1288,14 @@ float mmf_process(int n, float input) {
     sv.filter[n].x1 = input;
     sv.filter[n].y2 = sv.filter[n].y1;
     sv.filter[n].y1 = output;
+    if (sv.filter[n].drive > 0.0f) {
+      // Standard cubic soft-clip: transparent near zero, compresses toward
+      // the boundary, C1-continuous at the clamp so no audible kink.
+      float d = output * sv.filter[n].drive;
+      if (d > 1.0f) d = 1.0f;
+      else if (d < -1.0f) d = -1.0f;
+      output = (d - (d * d * d) * (1.0f / 3.0f)) / sv.filter[n].drive;
+    }
     
     return output;
 }
@@ -2552,15 +2560,24 @@ void mmf_set_params(int n, float f, float resonance) {
     sv.filter[n].last_resonance = resonance;
     sv.filter[n].last_mode = sv.filter_mode[n];
 
+    int base_mode = sv.filter_mode[n] % 10;   // 1=LP,2=HP,3=BP,4=Notch,5=Allpass
+    int character = sv.filter_mode[n] / 10;    // 0=clean,1=driven,2=screamer
+
     // Calculate filter coefficients (expensive operations only done here)
     float omega = 2.0f * (float)M_PI * f / (float)MAIN_SAMPLE_RATE;
     float sin_omega = sinf(omega);
     float cos_omega = cosf(omega);
     float alpha = sin_omega / (2.0f * resonance);
 
+    // Tier 1, free: reshapes the coefficient curve. Only runs here, on
+    // parameter change — costs nothing extra per sample.
+    if (character == 2) {
+      alpha *= 1.6f;   // "screamer": pushes the resonant peak harder
+    }
+
     float a0, b0, b1, b2, a1, a2;
 
-    switch (sv.filter_mode[n]) {
+    switch (base_mode) {
       case 0:
         return;
       default:
@@ -2615,6 +2632,14 @@ void mmf_set_params(int n, float f, float resonance) {
     sv.filter[n].b2 = b2 / a0;
     sv.filter[n].a1 = a1 / a0;
     sv.filter[n].a2 = a2 / a0;
+
+    // Tier 2, cheap: character sets a post-filter drive amount.
+    // drive == 0 lets mmf_process skip the extra work entirely.
+    switch (character) {
+      case 1:  sv.filter[n].drive = 1.5f + resonance * 0.5f; break;  // "driven"/warm
+      case 2:  sv.filter[n].drive = 1.2f; break;                       // a little bite on top of the alpha boost
+      default: sv.filter[n].drive = 0.0f; break;                        // "clean" — zero added cost
+    }
 }
 
 

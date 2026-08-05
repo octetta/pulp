@@ -35,7 +35,7 @@ extern float volume_smoother_higher_smoothing;
 
 @if(CRUSH)
       int wave_quant(int voice, int n);
-      float quantize_bits_int(float v, int bits);
+      float quantize_bits_curve(float v, int bits, int curve, uint64_t *rng);
 @endif
 
 @if(FILT)

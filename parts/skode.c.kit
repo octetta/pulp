@@ -4182,7 +4182,7 @@ neutral `ct 0 0 1 0` disables it.
     @doc(command.h)
     name: h
     category: wave
-    summary: sample-hold phase-count
+    summary: sample-hold phase-count; period = h%1000, mode = h/1000 (0=hard,1=smoothed,2=jittered)
     @enddoc
     case ATOM4('h---'): // sample-hold phase-count
       if (argc) { sv.sample_hold_max[voice] = x; } break;
@@ -4671,7 +4671,7 @@ neutral `ct 0 0 1 0` disables it.
     @doc(command.q)
     name: q
     category: wave
-    summary: bit-crush bit-depth
+    summary: bit-crush bit-depth; bits = q%100 (1-24), curve = q/100 (0=linear,1=companded,2=dithered)
     @enddoc
     case ATOM4('q---'):  // bit-crush bit-depth
       if (argc) { wave_quant(voice, x); }

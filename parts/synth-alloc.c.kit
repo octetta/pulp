@@ -232,6 +232,8 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(sample_hold,        float);
     VALLOC(sample_hold_count,  int);
     VALLOC(sample_hold_max,    int);
+    VALLOC(sample_hold_smooth,        float);
+    VALLOC(sample_hold_jitter_target, int);
     @endif
 
     @if(FM)
@@ -339,6 +341,7 @@ void synth_free_voices(void) {
     @endif
     @if(SAH)
     VFREE(sample_hold);      VFREE(sample_hold_count); VFREE(sample_hold_max);
+    VFREE(sample_hold_smooth); VFREE(sample_hold_jitter_target);
     @endif
     @if(FM)
     VFREE(freq_mod_osc);     VFREE(freq_mod_depth); VFREE(freq_mod_adder); VFREE(freq_mod_mode);

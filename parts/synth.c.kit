@@ -51,6 +51,8 @@ typedef struct {
   int hp;            // 0-15, feedback highpass amount
   int freeze;         // 0/1, infinite repeat toggle
   int pingpong;         // 0/1, cross-channel feedback
+  int bits;              // 0 = default (12-bit), else 1-16 explicit depth
+  int native;             // 0 = quantize (default), 1 = bypass entirely
   float base_frames;
   float base_frames_target;   // delay_process ramps base_frames toward this
   float feedback_gain;
@@ -63,6 +65,7 @@ typedef struct {
   float lp_state[2];    // [0]=mono/left, [1]=right (pingpong only)
   float hp_state[2];
   float hp_prev[2];
+  float quant_levels;    // cached: (2^(effective_bits-1))-1, only used when !native
 } delay_bus_t;
 
 static delay_bus_t delay_bus[DELAY_BUS_COUNT];
@@ -248,9 +251,14 @@ static int clampi(int value, int min_value, int max_value) {
   return value;
 }
 
-static float delay_12bit_clip(float x) {
+static float delay_quantize(const delay_bus_t *bus, float x) {
+  if (bus->native) {
+    // Full float precision, no bit-depth reduction. Still safety-clamped
+    // well above unity so a runaway feedback setting can't produce inf/nan.
+    return clampf(x, -4.0f, 4.0f);
+  }
   x = clampf(x, -1.0f, 1.0f);
-  return roundf(x * 2047.0f) * (1.0f / 2047.0f);
+  return roundf(x * bus->quant_levels) * (1.0f / bus->quant_levels);
 }
 
 static int delay_bus_index(int bus) {
@@ -302,6 +310,11 @@ static void delay_cache_params(delay_bus_t *bus) {
   bus->wet = (float)bus->level / 15.0f;
   bus->damping_coeff = delay_damping_coeff(bus);
   bus->hp_coeff = delay_hp_coeff(bus);
+  {
+    int effective_bits = bus->bits > 0 ? bus->bits : 12;
+    if (effective_bits > 16) effective_bits = 16;
+    bus->quant_levels = (float)((1 << (effective_bits - 1)) - 1);
+  }
 }
 
 static float delay_read_buf(const float *buf, int write, float delay_frames) {
@@ -389,13 +402,13 @@ static void delay_process(delay_bus_t *bus, float input, float *left, float *rig
 
   float fb_gain = bus->freeze ? 1.0f : bus->feedback_gain;
   float feed = bus->freeze ? 0.0f : input;
-  float write_left = delay_12bit_clip(feed + fb_left * fb_gain);
+  float write_left = delay_quantize(bus, feed + fb_left * bus->feedback_gain);
   bus->buffer[bus->write] = write_left;
   bus->write++;
   if (bus->write >= DELAY_MAX_FRAMES) bus->write = 0;
 
   if (bus->pingpong) {
-    float write_right = delay_12bit_clip(feed + fb_right * fb_gain);
+    float write_right = delay_quantize(bus, feed + fb_right * bus->feedback_gain);
     bus->buffer_r[bus->write_r] = write_right;
     bus->write_r++;
     if (bus->write_r >= DELAY_MAX_FRAMES) bus->write_r = 0;
@@ -514,6 +527,28 @@ int delay_pingpong_get(int bus_number) {
   return index < 0 ? 0 : delay_bus[index].pingpong;
 }
 
+int delay_grit_set(int bus_number, int bits, int native) {
+  int index = delay_bus_index(bus_number);
+  if (index < 0) return SYNTH_INVALID_VOICE;
+  delay_bus_t *bus = &delay_bus[index];
+  bus->bits = clampi(bits, 0, 16);
+  bus->native = native ? 1 : 0;
+  delay_cache_params(bus);
+  return 0;
+}
+
+void delay_grit_get(int bus_number, int *bits, int *native) {
+  int index = delay_bus_index(bus_number);
+  if (index < 0) {
+    if (bits) *bits = 0;
+    if (native) *native = 0;
+    return;
+  }
+  delay_bus_t *bus = &delay_bus[index];
+  if (bits) *bits = bus->bits;
+  if (native) *native = bus->native;
+}
+
 int delay_time_ms_set(int bus_number, float target_ms) {
   int index = delay_bus_index(bus_number);
   if (index < 0) return SYNTH_INVALID_VOICE;
@@ -560,10 +595,10 @@ void delay_clear(void) {
 static void delay_format_bus(char *out, size_t out_size, int index) {
   delay_bus_t *bus = &delay_bus[index];
   snprintf(out, out_size,
-    "DL%d,%d,%d,%d,%d,%d,%d DD%d,%d DF%d DP%d\n",
+    "DL%d,%d,%d,%d,%d,%d,%d DD%d,%d DF%d DP%d DG%d,%d\n",
     index + 1, bus->coarse, bus->fine, bus->feedback, bus->mod_freq,
     bus->mod_depth, bus->level, bus->damping, bus->hp, bus->freeze,
-    bus->pingpong);
+    bus->pingpong, bus->bits, bus->native);
 }
 
 const char *delay_bus_format(int bus_number) {

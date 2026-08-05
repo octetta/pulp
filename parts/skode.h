@@ -84,6 +84,7 @@ typedef enum {
   SKODE_OP_DELAY_PINGPONG,
   SKODE_OP_DELAY_TIME,
   SKODE_OP_DELAY_SYNC,
+  SKODE_OP_DELAY_GRIT,
 } skode_opcode_t;
 
 typedef enum {

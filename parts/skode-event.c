@@ -36,7 +36,7 @@ const char *skode_opcode_name(uint8_t opcode) {
     "FREQ_FEEDBACK", "FREQ_BEND", "FREQ_BEND_PARAM",
     "AMP_BEND", "AMP_BEND_PARAM", "PATTERN_MODULO", "RATCHET",
     "DELAY_DAMPING", "DELAY_FREEZE", "DELAY_PINGPONG", "DELAY_TIME",
-    "DELAY_SYNC",
+    "DELAY_SYNC", "DELAY_GRIT",
   };
   return opcode < sizeof(names) / sizeof(names[0]) ?
     names[opcode] : "UNKNOWN";

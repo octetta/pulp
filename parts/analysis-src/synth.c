@@ -348,20 +348,6 @@ static float delay_filter_feedback(delay_bus_t *bus, int ch, float x) {
   return y;
 }
 
-static float delay_read(const delay_bus_t *bus, float delay_frames) {
-  if (delay_frames < 1.0f) delay_frames = 1.0f;
-  if (delay_frames > (float)(DELAY_MAX_FRAMES - 2))
-    delay_frames = (float)(DELAY_MAX_FRAMES - 2);
-
-  float read = (float)bus->write - delay_frames;
-  while (read < 0.0f) read += (float)DELAY_MAX_FRAMES;
-  int i0 = (int)read;
-  int i1 = i0 + 1;
-  if (i1 >= DELAY_MAX_FRAMES) i1 = 0;
-  float frac = read - (float)i0;
-  return bus->buffer[i0] + frac * (bus->buffer[i1] - bus->buffer[i0]);
-}
-
 static void delay_process(delay_bus_t *bus, float input, float *left, float *right) {
   float lfo = 0.0f;
   float mod_frames;
@@ -394,13 +380,13 @@ static void delay_process(delay_bus_t *bus, float input, float *left, float *rig
 
   float fb_gain = bus->freeze ? 1.0f : bus->feedback_gain;
   float feed = bus->freeze ? 0.0f : input;
-  float write_left = delay_quantize(bus, feed + fb_left * bus->feedback_gain);
+  float write_left = delay_quantize(bus, feed + fb_left * fb_gain);
   bus->buffer[bus->write] = write_left;
   bus->write++;
   if (bus->write >= DELAY_MAX_FRAMES) bus->write = 0;
 
   if (bus->pingpong) {
-    float write_right = delay_quantize(bus, feed + fb_right * bus->feedback_gain);
+    float write_right = delay_quantize(bus, feed + fb_right * fb_gain);
     bus->buffer_r[bus->write_r] = write_right;
     bus->write_r++;
     if (bus->write_r >= DELAY_MAX_FRAMES) bus->write_r = 0;

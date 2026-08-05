@@ -301,6 +301,10 @@ static int skode_compile_callback(ands_t *s, int info) {
     case SKODE_ATOM('D', 'S', '-', '-'):
       opcode = SKODE_OP_DELAY_SYNC; min_argc = max_argc = 3;
       break;
+    case SKODE_ATOM('D', 'G', '-', '-'):
+      opcode = SKODE_OP_DELAY_GRIT; min_argc = 1; max_argc = 3;
+      default_mask = 0x6;
+      break;
     case SKODE_ATOM('V', 'S', '-', '-'):
       opcode = SKODE_OP_WAVE_RANGE_SET; min_argc = 0; max_argc = 2;
       break;

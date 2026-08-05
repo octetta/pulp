@@ -34,7 +34,7 @@ extern float volume_threshold;
 extern float volume_smoother_higher_smoothing;
 
       int wave_quant(int voice, int n);
-      float quantize_bits_int(float v, int bits);
+      float quantize_bits_curve(float v, int bits, int curve, uint64_t *rng);
 
       void mmf_init(int, float, float);
       void mmf_set_params(int, float, float);
@@ -87,6 +87,8 @@ int delay_freeze_set(int bus, int on);
 int delay_freeze_get(int bus);
 int delay_pingpong_set(int bus, int on);
 int delay_pingpong_get(int bus);
+int delay_grit_set(int bus, int bits, int native);
+void delay_grit_get(int bus, int *bits, int *native);
 int delay_time_ms_set(int bus, float target_ms);
 int delay_time_sync_set(int bus, float bpm, float division);
 void delay_clear(void);

@@ -51,6 +51,8 @@ typedef struct {
   int hp;            // 0-15, feedback highpass amount
   int freeze;         // 0/1, infinite repeat toggle
   int pingpong;         // 0/1, cross-channel feedback
+  int bits;              // 0 = default (12-bit), else 1-16 explicit depth
+  int native;             // 0 = quantize (default), 1 = bypass entirely
   float base_frames;
   float base_frames_target;   // delay_process ramps base_frames toward this
   float feedback_gain;
@@ -63,6 +65,7 @@ typedef struct {
   float lp_state[2];    // [0]=mono/left, [1]=right (pingpong only)
   float hp_state[2];
   float hp_prev[2];
+  float quant_levels;    // cached: (2^(effective_bits-1))-1, only used when !native
 } delay_bus_t;
 
 static delay_bus_t delay_bus[DELAY_BUS_COUNT];
@@ -240,9 +243,14 @@ static int clampi(int value, int min_value, int max_value) {
   return value;
 }
 
-static float delay_12bit_clip(float x) {
+static float delay_quantize(const delay_bus_t *bus, float x) {
+  if (bus->native) {
+    // Full float precision, no bit-depth reduction. Still safety-clamped
+    // well above unity so a runaway feedback setting can't produce inf/nan.
+    return clampf(x, -4.0f, 4.0f);
+  }
   x = clampf(x, -1.0f, 1.0f);
-  return roundf(x * 2047.0f) * (1.0f / 2047.0f);
+  return roundf(x * bus->quant_levels) * (1.0f / bus->quant_levels);
 }
 
 static int delay_bus_index(int bus) {
@@ -294,6 +302,11 @@ static void delay_cache_params(delay_bus_t *bus) {
   bus->wet = (float)bus->level / 15.0f;
   bus->damping_coeff = delay_damping_coeff(bus);
   bus->hp_coeff = delay_hp_coeff(bus);
+  {
+    int effective_bits = bus->bits > 0 ? bus->bits : 12;
+    if (effective_bits > 16) effective_bits = 16;
+    bus->quant_levels = (float)((1 << (effective_bits - 1)) - 1);
+  }
 }
 
 static float delay_read_buf(const float *buf, int write, float delay_frames) {
@@ -381,13 +394,13 @@ static void delay_process(delay_bus_t *bus, float input, float *left, float *rig
 
   float fb_gain = bus->freeze ? 1.0f : bus->feedback_gain;
   float feed = bus->freeze ? 0.0f : input;
-  float write_left = delay_12bit_clip(feed + fb_left * fb_gain);
+  float write_left = delay_quantize(bus, feed + fb_left * bus->feedback_gain);
   bus->buffer[bus->write] = write_left;
   bus->write++;
   if (bus->write >= DELAY_MAX_FRAMES) bus->write = 0;
 
   if (bus->pingpong) {
-    float write_right = delay_12bit_clip(feed + fb_right * fb_gain);
+    float write_right = delay_quantize(bus, feed + fb_right * bus->feedback_gain);
     bus->buffer_r[bus->write_r] = write_right;
     bus->write_r++;
     if (bus->write_r >= DELAY_MAX_FRAMES) bus->write_r = 0;
@@ -504,6 +517,28 @@ int delay_pingpong_get(int bus_number) {
   return index < 0 ? 0 : delay_bus[index].pingpong;
 }
 
+int delay_grit_set(int bus_number, int bits, int native) {
+  int index = delay_bus_index(bus_number);
+  if (index < 0) return SYNTH_INVALID_VOICE;
+  delay_bus_t *bus = &delay_bus[index];
+  bus->bits = clampi(bits, 0, 16);
+  bus->native = native ? 1 : 0;
+  delay_cache_params(bus);
+  return 0;
+}
+
+void delay_grit_get(int bus_number, int *bits, int *native) {
+  int index = delay_bus_index(bus_number);
+  if (index < 0) {
+    if (bits) *bits = 0;
+    if (native) *native = 0;
+    return;
+  }
+  delay_bus_t *bus = &delay_bus[index];
+  if (bits) *bits = bus->bits;
+  if (native) *native = bus->native;
+}
+
 int delay_time_ms_set(int bus_number, float target_ms) {
   int index = delay_bus_index(bus_number);
   if (index < 0) return SYNTH_INVALID_VOICE;
@@ -550,10 +585,10 @@ void delay_clear(void) {
 static void delay_format_bus(char *out, size_t out_size, int index) {
   delay_bus_t *bus = &delay_bus[index];
   snprintf(out, out_size,
-    "DL%d,%d,%d,%d,%d,%d,%d DD%d,%d DF%d DP%d\n",
+    "DL%d,%d,%d,%d,%d,%d,%d DD%d,%d DF%d DP%d DG%d,%d\n",
     index + 1, bus->coarse, bus->fine, bus->feedback, bus->mod_freq,
     bus->mod_depth, bus->level, bus->damping, bus->hp, bus->freeze,
-    bus->pingpong);
+    bus->pingpong, bus->bits, bus->native);
 }
 
 const char *delay_bus_format(int bus_number) {
@@ -1209,9 +1244,38 @@ void osc_trigger(int voice) {
     }
 }
 
-float quantize_bits_int(float v, int bits) {
+float quantize_bits_curve(float v, int bits, int curve, uint64_t *rng) {
   int levels = (1 << bits) - 1;
-  int iv = (int)(v * (float)levels + 0.5);
+  if (levels < 1) levels = 1;
+
+  if (curve == 1) {
+    // Cheap rational compander — no log/exp. Boosts low-level detail
+    // before quantizing, un-boosts after: turns the linear staircase
+    // into something closer to tape/cassette grit at the same bit depth.
+    const float k = 4.0f;
+    float sign = v < 0.0f ? -1.0f : 1.0f;
+    float av = fabsf(v);
+    float companded = av * (1.0f + k) / (1.0f + k * av);
+    int iv = (int)roundf(companded * (float)levels);
+    float q = (float)iv * (1.0f / (float)levels);
+    float expanded = q / (1.0f + k * (1.0f - q));
+    return sign * expanded;
+  }
+
+  if (curve == 2) {
+    // Triangular dither before rounding — quantization distortion
+    // becomes broadband noise instead of a tonal buzz.
+    float t1 = audio_rng_float(rng);
+    float t2 = audio_rng_float(rng);
+    float dither = (t1 - t2) * (0.5f / (float)levels);
+    int iv = (int)roundf((v + dither) * (float)levels);
+    return (float)iv * (1.0f / (float)levels);
+  }
+
+  // curve 0 — same math as before, just correctly rounded (was
+  // truncating-toward-zero on negative samples: (int)(x+0.5) only
+  // rounds correctly for x >= 0).
+  int iv = (int)roundf(v * (float)levels);
   return (float)iv * (1.0f / (float)levels);
 }
 
@@ -1230,6 +1294,14 @@ float mmf_process(int n, float input) {
     sv.filter[n].x1 = input;
     sv.filter[n].y2 = sv.filter[n].y1;
     sv.filter[n].y1 = output;
+    if (sv.filter[n].drive > 0.0f) {
+      // Standard cubic soft-clip: transparent near zero, compresses toward
+      // the boundary, C1-continuous at the clamp so no audible kink.
+      float d = output * sv.filter[n].drive;
+      if (d > 1.0f) d = 1.0f;
+      else if (d < -1.0f) d = -1.0f;
+      output = (d - (d * d * d) * (1.0f / 3.0f)) / sv.filter[n].drive;
+    }
 
     return output;
 }
@@ -1671,12 +1743,38 @@ void synth_capture(float *buffer, float *input, int num_frames,
         }
       }
       if (sv.sample_hold_max[n]) {
+        int sah_period = sv.sample_hold_max[n] % 1000;
+        int sah_mode = sv.sample_hold_max[n] / 1000;
+        if (sah_period < 1) sah_period = 1;
+
+        int sah_limit = sah_period;
+        if (sah_mode == 2) {
+          if (sv.sample_hold_count[n] == 0) {
+            int lo = sah_period / 2;
+            if (lo < 1) lo = 1;
+            float jitter = audio_rng_float(&synth_random);
+            sv.sample_hold_jitter_target[n] = lo + (int)(jitter * (float)sah_period);
+          }
+          sah_limit = sv.sample_hold_jitter_target[n];
+          if (sah_limit < 1) sah_limit = 1;
+        }
+
         if (sv.sample_hold_count[n] == 0) {
           sv.sample_hold[n] = f;
         }
-        sv.sample[n] = sv.sample_hold[n];
+
+        if (sah_mode == 1) {
+          float coeff = 4.0f / (float)sah_period;
+          if (coeff > 1.0f) coeff = 1.0f;
+          sv.sample_hold_smooth[n] +=
+            coeff * (sv.sample_hold[n] - sv.sample_hold_smooth[n]);
+          sv.sample[n] = sv.sample_hold_smooth[n];
+        } else {
+          sv.sample[n] = sv.sample_hold[n];
+        }
+
         sv.sample_hold_count[n]++;
-        if (sv.sample_hold_count[n] >= sv.sample_hold_max[n]) {
+        if (sv.sample_hold_count[n] >= sah_limit) {
           sv.sample_hold_count[n] = 0;
         }
       } else {
@@ -1685,7 +1783,9 @@ void synth_capture(float *buffer, float *input, int num_frames,
 
       // apply quantizer
       if (sv.quantize[n]) {
-        sv.sample[n] = quantize_bits_int(sv.sample[n], sv.quantize[n]);
+        int q_bits = sv.quantize[n] % 100;
+        int q_curve = sv.quantize[n] / 100;
+        sv.sample[n] = quantize_bits_curve(sv.sample[n], q_bits, q_curve, &synth_random);
       }
 
       // apply multi-mode filter
@@ -2203,7 +2303,11 @@ int pan_set(int voice, float f) {
 }
 
 int wave_quant(int voice, int n) {
-  sv.quantize[voice] = n;
+  int curve = n / 100;
+  int bits = n % 100;
+  bits = clampi(bits, 0, 24);
+  curve = clampi(curve, 0, 2);
+  sv.quantize[voice] = curve * 100 + bits;
   return 0;
 }
 
@@ -2366,15 +2470,24 @@ void mmf_set_params(int n, float f, float resonance) {
     sv.filter[n].last_resonance = resonance;
     sv.filter[n].last_mode = sv.filter_mode[n];
 
+    int base_mode = sv.filter_mode[n] % 10;   // 1=LP,2=HP,3=BP,4=Notch,5=Allpass
+    int character = sv.filter_mode[n] / 10;    // 0=clean,1=driven,2=screamer
+
     // Calculate filter coefficients (expensive operations only done here)
     float omega = 2.0f * (float)M_PI * f / (float)MAIN_SAMPLE_RATE;
     float sin_omega = sinf(omega);
     float cos_omega = cosf(omega);
     float alpha = sin_omega / (2.0f * resonance);
 
+    // Tier 1, free: reshapes the coefficient curve. Only runs here, on
+    // parameter change — costs nothing extra per sample.
+    if (character == 2) {
+      alpha *= 1.6f;   // "screamer": pushes the resonant peak harder
+    }
+
     float a0, b0, b1, b2, a1, a2;
 
-    switch (sv.filter_mode[n]) {
+    switch (base_mode) {
       case 0:
         return;
       default:
@@ -2429,6 +2542,14 @@ void mmf_set_params(int n, float f, float resonance) {
     sv.filter[n].b2 = b2 / a0;
     sv.filter[n].a1 = a1 / a0;
     sv.filter[n].a2 = a2 / a0;
+
+    // Tier 2, cheap: character sets a post-filter drive amount.
+    // drive == 0 lets mmf_process skip the extra work entirely.
+    switch (character) {
+      case 1:  sv.filter[n].drive = 1.5f + resonance * 0.5f; break;  // "driven"/warm
+      case 2:  sv.filter[n].drive = 1.2f; break;                       // a little bite on top of the alpha boost
+      default: sv.filter[n].drive = 0.0f; break;                        // "clean" — zero added cost
+    }
 }
 
 
@@ -2498,6 +2619,8 @@ int voice_copy(int v, int n) {
   sv.sample_hold_max[n] = sv.sample_hold_max[v];
   sv.sample_hold_count[n] = sv.sample_hold_count[v];
   sv.sample_hold[n] = sv.sample_hold[v];
+  sv.sample_hold_smooth[n] = sv.sample_hold_smooth[v];
+  sv.sample_hold_jitter_target[n] = sv.sample_hold_jitter_target[v];
   cz_set(n, sv.cz_mode[v], sv.cz_distortion[v]);
   cmod_set(n, sv.cz_mod_osc[v], sv.cz_mod_depth[v]);
   sv.use_cz_envelope[n] = sv.use_cz_envelope[v];

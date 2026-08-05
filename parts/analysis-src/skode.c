@@ -2820,6 +2820,7 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_DELAY_PINGPONG:
     case SKODE_OP_DELAY_TIME:
     case SKODE_OP_DELAY_SYNC:
+    case SKODE_OP_DELAY_GRIT:
       return 1;
     case SKODE_OP_AMP_MOD: return 1;
     case SKODE_OP_PHASE_DISTORTION:
@@ -3230,6 +3231,19 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
             !isfinite(opcode->arg[1]) || !isfinite(opcode->arg[2])) return -1;
         return delay_time_sync_set(bus, (float)opcode->arg[1],
           (float)opcode->arg[2]);
+      }
+    case SKODE_OP_DELAY_GRIT:
+      {
+        int bus = 1;
+        int bits, native;
+        if (opcode->argc < 1 || opcode->argc > 3 ||
+            !skode_opcode_int(opcode, 0, &bus)) return -1;
+        delay_grit_get(bus, &bits, &native);
+        if (opcode->argc > 1 && isfinite(opcode->arg[1]) &&
+            !skode_opcode_int(opcode, 1, &bits)) return -1;
+        if (opcode->argc > 2 && isfinite(opcode->arg[2]) &&
+            !skode_opcode_int(opcode, 2, &native)) return -1;
+        return delay_grit_set(bus, bits, native);
       }
     case SKODE_OP_RING_MOD:
       if (opcode->argc < 1 || opcode->argc > 2) return -1;
@@ -3911,6 +3925,17 @@ int skode_function(ands_t *s, int info) {
       break;
     case ATOM4('ds--'): // track-delay send amount; active only for routed, centered, unmodulated voices
       if (argc) delay_send_set(voice, arg[0]);
+      break;
+    case ATOM4('DG--'):
+      {
+        int bus = 1;
+        int bits, native;
+        if (argc > 0) skode_double_to_int(arg[0], &bus);
+        delay_grit_get(bus, &bits, &native);
+        if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &bits);
+        if (argc > 2 && isfinite(arg[2])) skode_double_to_int(arg[2], &native);
+        delay_grit_set(bus, bits, native);
+      }
       break;
     case ATOM4('DL--'): // track-delay params track coarse fine feedback mod-freq mod-depth level
       {

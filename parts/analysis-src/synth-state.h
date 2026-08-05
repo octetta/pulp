@@ -154,6 +154,8 @@ typedef struct {
     float  * restrict sample_hold;
     int    * restrict sample_hold_count;
     int    * restrict sample_hold_max;
+    float  * restrict sample_hold_smooth;
+    int    * restrict sample_hold_jitter_target;
 
     int    * restrict freq_mod_osc;
     float  * restrict freq_mod_depth;

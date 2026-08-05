@@ -1934,16 +1934,16 @@ static void test_signed_phase_distortion_and_envelope(void) {
 
   for (int mode = 1; mode <= 7; mode++) {
     for (size_t i = 0; i < sizeof(probes) / sizeof(probes[0]); i++) {
-      expect_float(test, cz_phasor(mode, probes[i], 0.0f, 256), probes[i],
-                   0.001f, "zero amount is identity");
-      float negative = cz_phasor(mode, probes[i], -0.75f, 256);
-      float positive = cz_phasor(mode, probes[i], 0.75f, 256);
+      expect_float(test, cz_phasor(mode, probes[i], 0.0f, 0.0f, 256.0f), probes[i],
+                   0.001f, "zero distortion should return identical phase");
+      float negative = cz_phasor(mode, probes[i], -0.75f, 0.0f, 256.0f);
+      float positive = cz_phasor(mode, probes[i], 0.75f, 0.0f, 256.0f);
       if (!isfinite(negative) || negative < 0.0f || negative > 256.0f ||
           !isfinite(positive) || positive < 0.0f || positive > 256.0f)
         fail(test, "signed transform escaped its phase range");
     }
-    if (fabsf(cz_phasor(mode, 47.0f, -0.75f, 256) -
-              cz_phasor(mode, 47.0f, 0.75f, 256)) < 0.001f)
+    if (fabsf(cz_phasor(mode, 47.0f, -0.75f, 0.0f, 256.0f) -
+              cz_phasor(mode, 47.0f, 0.75f, 0.0f, 256.0f)) < 0.001f)
       fail(test, "negative and positive amounts produced the same shape");
   }
 

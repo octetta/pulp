@@ -3033,7 +3033,11 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return 0;
     case SKODE_OP_SAMPLE_HOLD:
       if (!x_valid) return -1;
-      sv.sample_hold_max[voice] = x;
+      sv.sample_hold_ratio[voice] = (float)x;
+      if (opcode->argc > 1) {
+        int m;
+        if (!skode_opcode_int(opcode, 1, &m)) sv.sample_hold_mode[voice] = m;
+      }
       return 0;
     case SKODE_OP_LINK_VELOCITY:
       if (opcode->argc < 1) return -1;
@@ -3056,8 +3060,16 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return 0;
     case SKODE_OP_FILTER_MODE:
       if (!x_valid) return -1;
-      sv.filter_mode[voice] = x;
-      mmf_set_params(voice, sv.filter_freq[voice], sv.filter_res[voice]);
+      {
+        int mode = (int)x;
+        int character = sv.filter_mode[voice] / 10;
+        if (opcode->argc > 1) {
+          int c;
+          if (!skode_opcode_int(opcode, 1, &c)) character = c;
+        }
+        sv.filter_mode[voice] = (character * 10) + (mode % 10);
+        mmf_set_params(voice, sv.filter_freq[voice], sv.filter_res[voice]);
+      }
       return 0;
     case SKODE_OP_FILTER_FREQ:
       return opcode->argc == 1 ? mmf_set_freq(voice, opcode->arg[0]) : -1;
@@ -3107,7 +3119,17 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return x_valid ? pan_mod_set(voice, x, opcode->arg[1],
         opcode->argc > 2 ? opcode->arg[2] : 0) : -1;
     case SKODE_OP_QUANTIZE:
-      return x_valid ? wave_quant(voice, x) : -1;
+      if (!x_valid) return -1;
+      {
+        int bits = (int)x;
+        int curve = sv.quantize[voice] / 100;
+        if (opcode->argc > 1) {
+          int c;
+          if (!skode_opcode_int(opcode, 1, &c)) curve = c;
+        }
+        wave_quant(voice, (curve * 100) + (bits % 100));
+      }
+      return 0;
     case SKODE_OP_FILTER_RESONANCE:
       return opcode->argc == 1 ? mmf_set_res(voice, opcode->arg[0]) : -1;
     case SKODE_OP_RECORD_TRACK:
@@ -3748,8 +3770,15 @@ int skode_function(ands_t *s, int info) {
         sv.link_midi_3[voice] = links[3];
       }
       break;
-    case ATOM4('h---'): // sample-hold phase-count
-      if (argc) { sv.sample_hold_max[voice] = x; } break;
+    case ATOM4('h---'): // sample-hold ratio
+      if (argc > 0) {
+        float ratio = (float)arg[0];
+        int mode = sv.sample_hold_mode[voice];
+        if (argc > 1 && isfinite(arg[1])) mode = (int)arg[1];
+        sv.sample_hold_ratio[voice] = ratio;
+        sv.sample_hold_mode[voice] = mode;
+      }
+      break;
     case ATOM4('H---'): // link-velo voice [voice [voice [voice]]]
       if (argc) {
         int links[4] = {-1, -1, -1, -1};
@@ -3792,8 +3821,11 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('J---'): // filter-mode selector
-      if (argc) {
-        sv.filter_mode[voice] = x;
+      if (argc > 0) {
+        int mode = (int)x;
+        int character = sv.filter_mode[voice] / 10;
+        if (argc > 1 && isfinite(arg[1])) character = (int)arg[1];
+        sv.filter_mode[voice] = (character * 10) + (mode % 10);
         mmf_set_params(voice,
           sv.filter_freq[voice],
           sv.filter_res[voice]);
@@ -4031,7 +4063,12 @@ int skode_function(ands_t *s, int info) {
       }
       break;
     case ATOM4('q---'):  // bit-crush bit-depth
-      if (argc) { wave_quant(voice, x); }
+      if (argc > 0) {
+        int bits = (int)x;
+        int curve = sv.quantize[voice] / 100;
+        if (argc > 1 && isfinite(arg[1])) curve = (int)arg[1];
+        wave_quant(voice, (curve * 100) + (bits % 100));
+      }
       break;
     case ATOM4('Q---'):
       if (argc) { mmf_set_res(voice, arg[0]); }

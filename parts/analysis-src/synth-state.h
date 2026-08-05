@@ -153,7 +153,8 @@ typedef struct {
 
     float  * restrict sample_hold;
     int    * restrict sample_hold_count;
-    int    * restrict sample_hold_max;
+    float  * restrict sample_hold_ratio;
+    int    * restrict sample_hold_mode;
     float  * restrict sample_hold_smooth;
     int    * restrict sample_hold_jitter_target;
 

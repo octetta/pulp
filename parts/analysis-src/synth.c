@@ -306,6 +306,7 @@ static void delay_cache_params(delay_bus_t *bus) {
     int effective_bits = bus->bits > 0 ? bus->bits : 12;
     if (effective_bits > 16) effective_bits = 16;
     bus->quant_levels = (float)((1 << (effective_bits - 1)) - 1);
+    if (bus->quant_levels < 1.0f) bus->quant_levels = 1.0f;
   }
 }
 
@@ -704,9 +705,10 @@ static inline float fast_pow(float a, float b) {
     return u.f;
 }
 
-float cz_phasor(int n, float p, float d, int table_size) {
-    const float table_size_f = (float)table_size;
-    float phase = p / table_size_f;
+float cz_phasor(int n, float p, float d, float active_start, float active_end) {
+    const float length = active_end - active_start;
+    if (length <= 0.0f) return p;
+    float phase = (p - active_start) / length;
     d = fmaxf(-1.0f, fminf(1.0f, d));
     const float amount = fabsf(d);
 
@@ -774,7 +776,7 @@ float cz_phasor(int n, float p, float d, int table_size) {
     }
 
     phase = fmaxf(0.0f, fminf(1.0f, phase));
-    return phase * table_size_f;
+    return active_start + phase * length;
 }
 
 static inline int osc_loop_crossings(double distance, double loop_length) {
@@ -816,7 +818,7 @@ static inline double osc_cycle_phase_next(int voice, float phase_inc) {
 
 static inline float osc_sample_at_phase(int voice, double phase, float phase_offset,
     uint64_t current_sample, int table_size, float wave_range_start,
-    float wave_range_end, bool one_shot) {
+    float wave_range_end, bool one_shot, float active_start, float active_end) {
     double final_phase;
     (void)current_sample;
 
@@ -830,7 +832,7 @@ static inline float osc_sample_at_phase(int voice, double phase, float phase_off
           sv.cz_env_depth[voice];
       amount = fmaxf(-1.0f, fminf(1.0f, amount));
       final_phase = cz_phasor(sv.cz_mode[voice], (float)phase, amount,
-        table_size);
+        active_start, active_end);
     } else {
       final_phase = phase;
     }
@@ -878,7 +880,8 @@ static float osc_next_at(int voice, float phase_inc, float phase_offset,
         }
         sv.phase[voice] = phase;
         return osc_sample_at_phase(voice, phase, phase_offset, current_sample,
-            sv.table_size[voice], 0.0f, (float)sv.table_size[voice], false);
+            sv.table_size[voice], 0.0f, (float)sv.table_size[voice], false,
+            0.0f, (float)sv.table_size[voice]);
     }
 
     const int table_size = sv.table_size[voice];
@@ -1037,7 +1040,8 @@ static float osc_next_at(int voice, float phase_inc, float phase_offset,
 
     sv.phase[voice] = phase;
     return osc_sample_at_phase(voice, phase, phase_offset, current_sample,
-        table_size, wave_range_start, wave_range_end, one_shot);
+        table_size, wave_range_start, wave_range_end, one_shot,
+        (float)loop_start, (float)loop_end);
 }
 
 float osc_next(int voice, float phase_inc) {
@@ -1241,6 +1245,7 @@ float quantize_bits_curve(float v, int bits, int curve, uint64_t *rng) {
     const float k = 4.0f;
     float sign = v < 0.0f ? -1.0f : 1.0f;
     float av = fabsf(v);
+    if (av > 1.0f) av = 1.0f; // Prevent compander wrap-around and div by zero
     float companded = av * (1.0f + k) / (1.0f + k * av);
     int iv = (int)roundf(companded * (float)levels);
     float q = (float)iv * (1.0f / (float)levels);
@@ -1286,7 +1291,7 @@ float mmf_process(int n, float input) {
       float d = output * sv.filter[n].drive;
       if (d > 1.0f) d = 1.0f;
       else if (d < -1.0f) d = -1.0f;
-      output = (d - (d * d * d) * (1.0f / 3.0f)) / sv.filter[n].drive;
+      output = (d - (d * d * d) * (1.0f / 3.0f)) * 1.5f; // Scale 2/3 peak to unity, don't divide by drive!
     }
 
     return output;
@@ -1728,10 +1733,11 @@ void synth_capture(float *buffer, float *input, int num_frames,
           f *= sv.sample[sv.ring_osc[n]];
         }
       }
-      if (sv.sample_hold_max[n]) {
-        int sah_period = sv.sample_hold_max[n] % 1000;
-        int sah_mode = sv.sample_hold_max[n] / 1000;
+      if (sv.sample_hold_ratio[n] > 0.0f) {
+        float f_hz = sv.freq[n] > 0.0f ? sv.freq[n] : 440.0f;
+        int sah_period = (int)(((float)MAIN_SAMPLE_RATE / f_hz) * sv.sample_hold_ratio[n]);
         if (sah_period < 1) sah_period = 1;
+        int sah_mode = sv.sample_hold_mode[n];
 
         int sah_limit = sah_period;
         if (sah_mode == 2) {
@@ -2141,7 +2147,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             sv.cz_envelope[v].r,
             sv.cz_env_depth[v]);
 
-    if (verbose || sv.sample_hold_max[v]) APPEND(" h%d", sv.sample_hold_max[v]);
+    if (verbose || sv.sample_hold_ratio[v] > 0.0f) APPEND(" h%g,%d", sv.sample_hold_ratio[v], sv.sample_hold_mode[v]);
 
     if (verbose || sv.quantize[v]) APPEND(" q%d", sv.quantize[v]);
 
@@ -2602,7 +2608,8 @@ int voice_copy(int v, int n) {
   sv.freq_mod_feedback_z2[n] = 0.0f;
   pan_mod_set(n, sv.pan_mod_osc[v], sv.pan_mod_depth[v], sv.pan_mod_adder[v]);
   wave_quant(n, sv.quantize[v]);
-  sv.sample_hold_max[n] = sv.sample_hold_max[v];
+  sv.sample_hold_ratio[n] = sv.sample_hold_ratio[v];
+  sv.sample_hold_mode[n] = sv.sample_hold_mode[v];
   sv.sample_hold_count[n] = sv.sample_hold_count[v];
   sv.sample_hold[n] = sv.sample_hold[v];
   sv.sample_hold_smooth[n] = sv.sample_hold_smooth[v];

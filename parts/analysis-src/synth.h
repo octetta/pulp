@@ -42,7 +42,7 @@ extern float volume_smoother_higher_smoothing;
       int  mmf_set_res(int, float);
       float mmf_process(int n, float input);
 
-      float cz_phasor(int n, float p, float d, int table_size);
+      float cz_phasor(int n, float p, float d, float active_start, float active_end);
       int   cz_set(int v, int n, float f);
       int   cmod_set(int voice, int o, float f);
 

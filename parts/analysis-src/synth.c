@@ -2474,7 +2474,7 @@ void mmf_set_params(int n, float f, float resonance) {
     // Tier 1, free: reshapes the coefficient curve. Only runs here, on
     // parameter change — costs nothing extra per sample.
     if (character == 2) {
-      alpha *= 1.6f;   // "screamer": pushes the resonant peak harder
+      alpha /= 1.6f;   // "screamer": pushes the resonant peak harder by narrowing bandwidth
     }
 
     float a0, b0, b1, b2, a1, a2;

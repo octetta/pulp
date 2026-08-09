@@ -44,7 +44,7 @@ static int get_connection_index(struct sockaddr_in *addr, int array_size) {
 }
 
 static int udp_port = 0;
-static int udp_running = 1;
+static volatile int udp_running = 1;
 static SOCKET udp_socket = INVALID_SOCKET;
 static atomic_int_t udp_thread_active;
 static atomic_uint64_t udp_packets;
@@ -189,7 +189,7 @@ static void *udp_main(void *arg) {
     } else if (ready == 0) {
       // timeout
     } else {
-      if (!udp_running) break;
+      if (!udp_running || errno == EBADF) break;
       atomic_fetch_add_uint64(&udp_errors, 1);
       perror("# select");
     }

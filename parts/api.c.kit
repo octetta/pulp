@@ -1580,6 +1580,8 @@ static int audio_init_selected_device(unsigned int sample_rate) {
   config.dataCallback = synth_callback;
   config.notificationCallback = audio_device_notification;
   config.periodSizeInFrames = requested_synth_frames_per_callback;
+  config.performanceProfile = ma_performance_profile_low_latency;
+  config.wasapi.usage = ma_wasapi_usage_pro_audio;
   config.pUserData = NULL;
 
   if (ma_device_init(&synth_context, &config, &synth_device) != MA_SUCCESS) {

@@ -24,6 +24,7 @@
 
 // Include your other internal headers here 
 // (e.g., miniaudio.h, udp.h, seq.h, etc.)
+#include "miniz.h"
 
 #include "util.h"
 #include "miniaudio.h"
@@ -1947,4 +1948,67 @@ char *skred_log(void) {
 
 void skred_logger(int f) {
   w.log_enable = f;
+}
+
+// Standard Base64 Encoding Table
+static const char b64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+// Helper to base64 encode a buffer
+static void base64_encode(const unsigned char *src, size_t len, char *out) {
+    size_t i = 0, j = 0;
+    for (i = 0; i < len; i += 3) {
+        uint32_t octet_a = i < len ? src[i] : 0;
+        uint32_t octet_b = i + 1 < len ? src[i + 1] : 0;
+        uint32_t octet_c = i + 2 < len ? src[i + 2] : 0;
+        uint32_t triple = (octet_a << 16) + (octet_b << 8) + octet_c;
+
+        out[j++] = b64_table[(triple >> 18) & 0x3F];
+        out[j++] = b64_table[(triple >> 12) & 0x3F];
+        out[j++] = i + 1 < len ? b64_table[(triple >> 6) & 0x3F] : '=';
+        out[j++] = i + 2 < len ? b64_table[triple & 0x3F] : '=';
+    }
+    out[j] = '\0';
+}
+
+#define WAVE_CHUNK_SIZE 512 
+
+void skred_dump_wave_base64(int wave_idx) {
+    if (wave_idx < 0 || wave_idx >= synth_config.wave_table_max) return;
+
+    float *wave_data_f = sw.data[wave_idx];
+    size_t wave_len = sw.size[wave_idx] * sizeof(float); 
+
+    if (!wave_data_f || wave_len == 0) {
+        printf("~WAVE:START\n~WAVE:END\n");
+        fflush(stdout);
+        return;
+    }
+
+    uLongf comp_len = compressBound(wave_len);
+    unsigned char *comp_data = malloc(comp_len);
+
+    if (compress(comp_data, &comp_len, (const unsigned char*)wave_data_f, wave_len) == MZ_OK) {
+        size_t b64_len = 4 * ((comp_len + 2) / 3) + 1;
+        char *b64_str = malloc(b64_len);
+        base64_encode(comp_data, comp_len, b64_str);
+
+        size_t remaining = strlen(b64_str);
+        size_t offset = 0;
+        char chunk_buf[WAVE_CHUNK_SIZE + 32];
+
+        printf("~WAVE:START\n");
+
+        while (remaining > 0) {
+            size_t to_copy = remaining > WAVE_CHUNK_SIZE ? WAVE_CHUNK_SIZE : remaining;
+            snprintf(chunk_buf, sizeof(chunk_buf), "~WAVE:%.*s\n", (int)to_copy, b64_str + offset);
+            printf("%s", chunk_buf);
+            offset += to_copy;
+            remaining -= to_copy;
+        }
+
+        printf("~WAVE:END\n");
+        free(b64_str);
+    }
+    free(comp_data);
+    fflush(stdout);
 }

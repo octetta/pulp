@@ -127,7 +127,7 @@ analysis-check: analysis-src
 
 wasm:
 	cmake -B build_wasm -S . -DKIT_OPTS="$(WASM_KIT_OPTS)"
-	cmake --build build_wasm
+	bash -c "cmake --build build_wasm"
 	cp wasm-assets/mkwasm build_wasm/mkwasm
 	cp ../doc/index.html build_wasm/index.html
 	cp wasm-assets/test-wasm.html build_wasm/test-wasm.html

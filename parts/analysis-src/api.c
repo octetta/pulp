@@ -1970,7 +1970,7 @@ static void base64_encode(const unsigned char *src, size_t len, char *out) {
     out[j] = '\0';
 }
 
-#define WAVE_CHUNK_SIZE 512 
+#define WAVE_CHUNK_SIZE 200 
 
 void skred_dump_wave_base64(int wave_idx) {
     if (wave_idx < 0 || wave_idx >= synth_config.wave_table_max) return;

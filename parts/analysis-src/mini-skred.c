@@ -38,7 +38,7 @@ static void base64_encode(const unsigned char *src, size_t len, char *out) {
     out[j] = '\0';
 }
 
-#define WAVE_CHUNK_SIZE 512 
+#define WAVE_CHUNK_SIZE 200 
 extern void skode_log_message_raw(const char *msg); // or we use printf or skred_log directly. Wait, skred_log_append is not exposed. Let's just use printf, because mini-skred's stdout is captured by elixir! If we want it to go over UDP, we need to inject it. Wait, the user said they would rebuild. I will leave it as `printf` which goes to stdout, and they can route it to UDP if needed, OR I can use the same path they use for other logs. I'll just use printf for now, which boomboombeam captures!
 
 static int handle_wave_command(const char *line) {

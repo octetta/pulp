@@ -132,7 +132,7 @@ wasm:
 	cp ../doc/index.html build_wasm/index.html
 	cp wasm-assets/test-wasm.html build_wasm/test-wasm.html
 	cp wasm-assets/serve-wasm.sh build_wasm/serve-wasm.sh
-	cd build_wasm && $(EM_ENV) ./mkwasm
+	cd build_wasm && $(EM_ENV) bash ./mkwasm
 	node wasm-assets/test-control-dispatch.js build_wasm/skred_api.js
 	cp build_wasm/skred_api.js ../doc
 	cp build_wasm/skred_api.wasm ../doc

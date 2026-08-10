@@ -167,7 +167,9 @@ jobs:
           sudo apt-get install -y libasound2-dev ninja-build
 
       - name: Build maxed WASM API distribution
-        run: make -C parts dist-api-wasm
+        run: |
+          chmod +x parts/wasm-assets/* || true
+          make -C parts dist-api-wasm
 
       - name: Verify and name release asset
         shell: bash

@@ -1,5 +1,5 @@
 # A simple "Top-Level" Makefile to manage the CMake complexity
-.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test analysis-src analysis-check libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-kit cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows
+.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test analysis-src analysis-check libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-kit cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows dist-api-wasm
 
 ZIG_LOCAL_CACHE_DIR ?= /tmp/pulp-zig-local-cache
 ZIG_GLOBAL_CACHE_DIR ?= /tmp/pulp-zig-global-cache
@@ -22,6 +22,10 @@ DIST_WINDOWS_PLATFORM_ROOT ?= $(DIST_ROOT)/$(WINDOWS_DIST_PLATFORM)
 DIST_WINDOWS_PREFIX ?= $(DIST_WINDOWS_PLATFORM_ROOT)/skred-$(VERSION)-maxed
 DIST_WINDOWS_ARCHIVE ?= skred-$(VERSION)-maxed.zip
 WINDOWS_ARTIFACT_DIR ?= out/$(WINDOWS_DIST_PLATFORM)
+WASM_DIST_PLATFORM ?= wasm
+DIST_WASM_PLATFORM_ROOT ?= $(DIST_ROOT)/$(WASM_DIST_PLATFORM)
+DIST_WASM_PREFIX ?= $(DIST_WASM_PLATFORM_ROOT)/skred-$(VERSION)-maxed
+DIST_WASM_ARCHIVE ?= skred-$(VERSION)-maxed.zip
 CMAKE_PLATFORM_ARGS ?= $(if $(filter 1 true yes,$(MACOS_UNIVERSAL)),-DCMAKE_OSX_ARCHITECTURES="$(MACOS_UNIVERSAL_ARCHS)",)
 MAXED_KIT_OPTS = KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
 BUILD_TYPE ?= Release
@@ -96,6 +100,13 @@ windows-cross-libs: cross-windows-kit
 
 dist-api-windows: windows-cross-libs
 	cmake -E chdir $(DIST_WINDOWS_PLATFORM_ROOT) cmake -E tar cf $(DIST_WINDOWS_ARCHIVE) \
+		--format=zip skred-$(VERSION)-maxed
+
+dist-api-wasm: wasm
+	mkdir -p $(DIST_WASM_PREFIX)
+	cp build_wasm/skred_api.js $(DIST_WASM_PREFIX)/
+	cp build_wasm/skred_api.wasm $(DIST_WASM_PREFIX)/
+	cmake -E chdir $(DIST_WASM_PLATFORM_ROOT) cmake -E tar cf $(DIST_WASM_ARCHIVE) \
 		--format=zip skred-$(VERSION)-maxed
 
 analysis-src:

@@ -151,12 +151,45 @@ jobs:
           path: release-assets/*
           if-no-files-found: error
 
+  wasm:
+    needs: metadata
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.metadata.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mymindstorm/setup-emsdk@v14
+
+      - name: Build maxed WASM API distribution
+        run: make -C parts dist-api-wasm
+
+      - name: Verify and name release asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          source="dist/wasm/skred-${VERSION}-maxed.zip"
+          asset="skred-${VERSION}-maxed-wasm.zip"
+          test -f "$source"
+          unzip -l "$source" > archive-contents.txt
+          grep -q "skred-${VERSION}-maxed/skred_api.js" archive-contents.txt
+          grep -q "skred-${VERSION}-maxed/skred_api.wasm" archive-contents.txt
+          mkdir -p release-assets
+          cp "$source" "release-assets/$asset"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-wasm
+          path: release-assets/*
+          if-no-files-found: error
+
   release:
     needs:
       - metadata
       - linux
       - macos
       - windows
+      - wasm
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -183,6 +216,7 @@ jobs:
             "skred-${VERSION}-maxed-linux-x86_64.tar.gz"
             "skred-${VERSION}-maxed-macos-universal.tar.gz"
             "skred-${VERSION}-maxed-windows-x86_64.zip"
+            "skred-${VERSION}-maxed-wasm.zip"
           )
           for asset in "${expected[@]}"; do
             test -s "release-assets/$asset"

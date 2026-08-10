@@ -106,8 +106,7 @@ dist-api-wasm: wasm
 	mkdir -p $(DIST_WASM_PREFIX)
 	cp build_wasm/skred_api.js $(DIST_WASM_PREFIX)/
 	cp build_wasm/skred_api.wasm $(DIST_WASM_PREFIX)/
-	cmake -E chdir $(DIST_WASM_PLATFORM_ROOT) cmake -E tar cf $(DIST_WASM_ARCHIVE) \
-		--format=zip skred-$(VERSION)-maxed
+	bash -c "cmake -E chdir $(DIST_WASM_PLATFORM_ROOT) cmake -E tar cf $(DIST_WASM_ARCHIVE) --format=zip skred-$(VERSION)-maxed"
 
 analysis-src:
 	cmake -B $(ANALYSIS_BUILD_DIR) -S . -DKIT_OPTS="$(MAXED_KIT_OPTS)"

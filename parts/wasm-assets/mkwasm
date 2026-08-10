@@ -7,7 +7,7 @@ mkdir -p ../sk-out ../wav-out
 cp ../sk/909.sk ../sk-out     # from skred
 cp ../sk/124.sk ../sk-out     # from skred
 cp ../sk/drums-*.ks ../sk-out # from k-synth
-cp ../wav/24.mp3 ../wav-out   # thanks BBC
+cp ../wav/24.mp3 ../wav-out 2>/dev/null || true   # thanks BBC
 
 emcc -I. -I.. -I../exp-vfs \
     -DSKRED_MIDI_ENABLED=1 \

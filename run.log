@@ -1,0 +1,378 @@
+generated-source-drift	Set up job	﻿2026-08-10T06:26:33.2951616Z Current runner version: '2.336.0'
+generated-source-drift	Set up job	2026-08-10T06:26:33.2985320Z ##[group]Runner Image Provisioner
+generated-source-drift	Set up job	2026-08-10T06:26:33.2986649Z Hosted Compute Agent
+generated-source-drift	Set up job	2026-08-10T06:26:33.2987972Z Version: 20260707.563
+generated-source-drift	Set up job	2026-08-10T06:26:33.2988978Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+generated-source-drift	Set up job	2026-08-10T06:26:33.2990084Z Build Date: 2026-07-07T19:33:50Z
+generated-source-drift	Set up job	2026-08-10T06:26:33.2991259Z Worker ID: {904bb45e-225a-409f-a310-a07ba1537fbb}
+generated-source-drift	Set up job	2026-08-10T06:26:33.2992455Z Azure Region: eastus
+generated-source-drift	Set up job	2026-08-10T06:26:33.2993407Z ##[endgroup]
+generated-source-drift	Set up job	2026-08-10T06:26:33.2996053Z ##[group]Operating System
+generated-source-drift	Set up job	2026-08-10T06:26:33.2997362Z Ubuntu
+generated-source-drift	Set up job	2026-08-10T06:26:33.2998370Z 24.04.4
+generated-source-drift	Set up job	2026-08-10T06:26:33.2999194Z LTS
+generated-source-drift	Set up job	2026-08-10T06:26:33.3000017Z ##[endgroup]
+generated-source-drift	Set up job	2026-08-10T06:26:33.3000962Z ##[group]Runner Image
+generated-source-drift	Set up job	2026-08-10T06:26:33.3001938Z Image: ubuntu-24.04
+generated-source-drift	Set up job	2026-08-10T06:26:33.3002898Z Version: 20260720.247.2
+generated-source-drift	Set up job	2026-08-10T06:26:33.3004698Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260720.247/images/ubuntu/Ubuntu2404-Readme.md
+generated-source-drift	Set up job	2026-08-10T06:26:33.3007872Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260720.247
+generated-source-drift	Set up job	2026-08-10T06:26:33.3009456Z ##[endgroup]
+generated-source-drift	Set up job	2026-08-10T06:26:33.3011574Z ##[group]GITHUB_TOKEN Permissions
+generated-source-drift	Set up job	2026-08-10T06:26:33.3014461Z Contents: read
+generated-source-drift	Set up job	2026-08-10T06:26:33.3015407Z Metadata: read
+generated-source-drift	Set up job	2026-08-10T06:26:33.3016254Z Packages: read
+generated-source-drift	Set up job	2026-08-10T06:26:33.3017895Z ##[endgroup]
+generated-source-drift	Set up job	2026-08-10T06:26:33.3020821Z Secret source: Actions
+generated-source-drift	Set up job	2026-08-10T06:26:33.3022958Z Prepare workflow directory
+generated-source-drift	Set up job	2026-08-10T06:26:33.3480699Z Prepare all required actions
+generated-source-drift	Set up job	2026-08-10T06:26:33.3530775Z Getting action download info
+generated-source-drift	Set up job	2026-08-10T06:26:33.5175054Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+generated-source-drift	Set up job	2026-08-10T06:26:33.8511472Z Complete job name: generated-source-drift
+generated-source-drift	Run actions/checkout@v4	﻿2026-08-10T06:26:33.9334972Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9343995Z ##[group]Run actions/checkout@v4
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9344743Z with:
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9345174Z   repository: octetta/pulp
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9348963Z   token: ***
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9349394Z   ssh-strict: true
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9349818Z   ssh-user: git
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9350249Z   persist-credentials: true
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9350724Z   clean: true
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9351156Z   sparse-checkout-cone-mode: true
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9351670Z   fetch-depth: 1
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9352090Z   fetch-tags: false
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9352524Z   show-progress: true
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9352963Z   lfs: false
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9353359Z   submodules: false
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9353831Z   set-safe-directory: true
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9354320Z   allow-unsafe-pr-checkout: false
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:33.9355096Z ##[endgroup]
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0358997Z Syncing repository: octetta/pulp
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0361560Z ##[group]Getting Git version info
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0362669Z Working directory is '/home/runner/work/pulp/pulp'
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0364254Z [command]/usr/bin/git version
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0464133Z git version 2.54.0
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0518149Z ##[endgroup]
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0533422Z Temporarily overriding HOME='/home/runner/work/_temp/fd3fc51c-18b8-44d2-9369-90880aaab5a3' before making global git config changes
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0535741Z Adding repository directory to the temporary git global config as a safe directory
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0538779Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/pulp/pulp
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0606171Z Deleting the contents of '/home/runner/work/pulp/pulp'
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0608823Z ##[group]Initializing the repository
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0610157Z [command]/usr/bin/git init /home/runner/work/pulp/pulp
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0696159Z hint: Using 'master' as the name for the initial branch. This default branch name
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0697748Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0699135Z hint: to use in all of your new repositories, which will suppress this warning,
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0700555Z hint: call:
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0701218Z hint:
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0702032Z hint: 	git config --global init.defaultBranch <name>
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0702938Z hint:
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0703828Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0705095Z hint: 'development'. The just-created branch can be renamed via this command:
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0706464Z hint:
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0706912Z hint: 	git branch -m <name>
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0707917Z hint:
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0708765Z hint: Disable this message with "git config set advice.defaultBranchName false"
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0709785Z Initialized empty Git repository in /home/runner/work/pulp/pulp/.git/
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0757983Z [command]/usr/bin/git remote add origin https://github.com/octetta/pulp
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0760855Z ##[endgroup]
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0762157Z ##[group]Disabling automatic garbage collection
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0763457Z [command]/usr/bin/git config --local gc.auto 0
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0794827Z ##[endgroup]
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0795955Z ##[group]Setting up auth
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0802228Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.0843965Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.1216508Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.1269884Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.1485755Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.1523651Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.1743479Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.1781952Z ##[endgroup]
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.1782911Z ##[group]Fetching the repository
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:34.1792260Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +7921ae56f27343d8efcd131a047e6148d8c92c89:refs/remotes/origin/main
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:46.9928092Z From https://github.com/octetta/pulp
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:46.9929924Z  * [new ref]         7921ae56f27343d8efcd131a047e6148d8c92c89 -> origin/main
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:46.9961143Z ##[endgroup]
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:46.9962319Z ##[group]Determining the checkout info
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:46.9964508Z ##[endgroup]
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:46.9971902Z [command]/usr/bin/git sparse-checkout disable
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:47.0026670Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:47.0062494Z ##[group]Checking out the ref
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:47.0068219Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:47.9996334Z Switched to a new branch 'main'
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:47.9998346Z branch 'main' set up to track 'origin/main'.
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:48.0134019Z ##[endgroup]
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:48.0180803Z [command]/usr/bin/git log -1 --format=%H
+generated-source-drift	Run actions/checkout@v4	2026-08-10T06:26:48.0208460Z 7921ae56f27343d8efcd131a047e6148d8c92c89
+generated-source-drift	Install Linux build dependencies	﻿2026-08-10T06:26:48.0428401Z ##[group]Run sudo apt-get update
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.0428880Z [36;1msudo apt-get update[0m
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.0429281Z [36;1msudo apt-get install -y libasound2-dev ninja-build[0m
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.0477485Z shell: /usr/bin/bash -e {0}
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.0477862Z ##[endgroup]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.1307302Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.1595817Z Get:6 https://packages.microsoft.com/repos/azure-cli noble InRelease [3564 B]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.1686774Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.1880085Z Get:8 https://dl.google.com/linux/chrome-stable/deb stable InRelease [2548 B]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.2311965Z Get:9 https://packages.microsoft.com/repos/azure-cli noble/main amd64 Packages [2375 B]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.2602912Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.2617580Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.2675742Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.2698001Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.2806741Z Get:10 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [314 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.2873675Z Get:11 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [274 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.2916940Z Get:12 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.2 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.2944573Z Get:13 https://packages.microsoft.com/ubuntu/24.04/prod noble/main all Packages [643 B]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.3445448Z Get:14 https://dl.google.com/linux/chrome-stable/deb stable/main amd64 Packages [1403 B]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.4280444Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1184 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.4358108Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [281 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.4388554Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Components [180 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.4408571Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1682 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.4489948Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [335 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.4528781Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Components [388 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.4559074Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1414 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.4640596Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [320 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.4669741Z Get:23 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [45.4 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.4687777Z Get:24 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [12.3 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5139588Z Get:25 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Components [940 B]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5157595Z Get:26 http://azure.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [5776 B]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5171239Z Get:27 http://azure.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [31.0 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5188156Z Get:28 http://azure.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Components [12.6 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5329618Z Get:29 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [927 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5387713Z Get:30 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [201 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5415800Z Get:31 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Components [46.3 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5426930Z Get:32 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1199 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5497317Z Get:33 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [239 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5521536Z Get:34 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Components [76.2 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5568429Z Get:35 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1320 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5616148Z Get:36 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [302 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5643238Z Get:37 http://azure.archive.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [40.3 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:48.5659889Z Get:38 http://azure.archive.ubuntu.com/ubuntu noble-security/multiverse Translation-en [10.6 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:52.3840807Z Fetched 11.2 MB in 1s (8317 kB/s)
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.0631874Z Reading package lists...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.0934504Z Reading package lists...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.2373163Z Building dependency tree...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.2380183Z Reading state information...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.3689527Z Suggested packages:
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.3690265Z   libasound2-doc
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.3834385Z The following NEW packages will be installed:
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.3839071Z   libasound2-dev ninja-build
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.4001375Z 0 upgraded, 2 newly installed, 0 to remove and 86 not upgraded.
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.4002048Z Need to get 244 kB of archives.
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.4002798Z After this operation, 1078 kB of additional disk space will be used.
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.4003500Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.5082204Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libasound2-dev amd64 1.2.11-1ubuntu0.3 [115 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.5192997Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 ninja-build amd64 1.11.1-2 [129 kB]
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.7580579Z Fetched 244 kB in 0s (1873 kB/s)
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.7800974Z Selecting previously unselected package libasound2-dev:amd64.
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8069297Z (Reading database ... 
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8070123Z (Reading database ... 5%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8070590Z (Reading database ... 10%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8071026Z (Reading database ... 15%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8071395Z (Reading database ... 20%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8071642Z (Reading database ... 25%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8071977Z (Reading database ... 30%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8072270Z (Reading database ... 35%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8072525Z (Reading database ... 40%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8072764Z (Reading database ... 45%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8072993Z (Reading database ... 50%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.8130749Z (Reading database ... 55%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:53.9200616Z (Reading database ... 60%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:54.1277514Z (Reading database ... 65%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:54.2813734Z (Reading database ... 70%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:54.4160053Z (Reading database ... 75%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:54.5818220Z (Reading database ... 80%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:54.7886228Z (Reading database ... 85%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:54.9795111Z (Reading database ... 90%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.1367062Z (Reading database ... 95%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.1368072Z (Reading database ... 100%
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.1368571Z (Reading database ... 202954 files and directories currently installed.)
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.1411425Z Preparing to unpack .../libasound2-dev_1.2.11-1ubuntu0.3_amd64.deb ...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.1465469Z Unpacking libasound2-dev:amd64 (1.2.11-1ubuntu0.3) ...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.1805533Z Selecting previously unselected package ninja-build.
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.1929514Z Preparing to unpack .../ninja-build_1.11.1-2_amd64.deb ...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.1947859Z Unpacking ninja-build (1.11.1-2) ...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.2456305Z Setting up ninja-build (1.11.1-2) ...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.2493450Z Setting up libasound2-dev:amd64 (1.2.11-1ubuntu0.3) ...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.2523546Z Processing triggers for man-db (2.12.0-4build2) ...
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.2548929Z Not building database; man-db/auto-update is not 'true'.
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.8669809Z 
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.8670332Z Running kernel seems to be up-to-date.
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.8670700Z 
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.8671571Z No services need to be restarted.
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.8671865Z 
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.8672034Z No containers need to be restarted.
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.8672317Z 
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.8672526Z No user sessions are running outdated binaries.
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.8672868Z 
+generated-source-drift	Install Linux build dependencies	2026-08-10T06:26:55.8673402Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+generated-source-drift	Verify canonical generated C sources	﻿2026-08-10T06:26:56.7048182Z ##[group]Run make analysis-check
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:56.7048531Z [36;1mmake analysis-check[0m
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:56.7094162Z shell: /usr/bin/bash -e {0}
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:56.7094432Z ##[endgroup]
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:56.7192232Z cmake -B build_analysis -S . -DKIT_OPTS="KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1"
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:57.6424625Z -- The C compiler identification is GNU 13.3.0
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:57.8066149Z -- Detecting C compiler ABI info
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0189284Z -- Detecting C compiler ABI info - done
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0367287Z -- Check for working C compiler: /usr/bin/cc - skipped
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0425368Z -- Detecting C compile features
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0433393Z -- Detecting C compile features - done
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0671881Z -- DEBUG: Module (C) api using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0673844Z -- DEBUG: Module (C) synth using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0675694Z -- DEBUG: Module (H) synth using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0677734Z -- DEBUG: Module (C) skode using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0679558Z -- DEBUG: Module (C) polyphony using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0681354Z -- DEBUG: Module (C) synth-alloc using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0683175Z -- DEBUG: Module (C) seq using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0684273Z -- DEBUG: Module (H) seq using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0685277Z -- DEBUG: Module (C) recorder using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0686283Z -- DEBUG: Module (H) recorder using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0894004Z -- Found ALSA: /usr/lib/x86_64-linux-gnu/libasound.so (found version "1.2.11")
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0895545Z -- DEBUG: Executable Module (C) mini-skred using KIT_OPTS: KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.0958474Z -- Configuring done (0.9s)
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1424596Z -- Generating done (0.0s)
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1428352Z -- Build files have been written to: /home/runner/work/pulp/pulp/parts/build_analysis
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1504388Z cmake --build build_analysis --target api mini-skred
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1543779Z gmake[1]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1582453Z gmake[2]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1635825Z gmake[3]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1645803Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1673590Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1684695Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1701147Z ! KIT FEATURES
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1722525Z ! KIT_OPTS (Raw): KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1743731Z ! KIT_OPTS_LIST:  KSYNTH=1;MIDI=1;AM=1;XM=1;CRUSH=1;GLISS=1;FILT=1;FADSR=1;FM=1;PANMOD=1;PD=1;SAH=1;SEQ=1;SMOOTHER=1;UDP=1;RECORD=1;SCOPE=1;TRACKS=1;ADSR=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1749652Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1766657Z [  0%] Built target check_opts
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1832388Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1833341Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1834331Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.1837423Z [  2%] Building C object CMakeFiles/kit_tool.dir/kit.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3229711Z [  5%] Linking C executable kit_tool
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3442843Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3463732Z [  5%] Built target kit_tool
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3482366Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3499965Z [  8%] Generating synth-state.h
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3528572Z [ 11%] Generating synth.h
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3555801Z [ 14%] Generating api.c
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3589927Z [ 17%] Generating polyphony.c
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3619179Z [ 20%] Generating recorder.c
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3646710Z [ 23%] Generating recorder.h
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3673514Z [ 26%] Generating seq.c
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3701468Z [ 26%] Generating seq.h
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3729265Z [ 29%] Generating skode.c, skode-doc.inc
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3800790Z [ 32%] Generating synth-alloc.c
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3829227Z [ 35%] Generating synth.c
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3886006Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3903211Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.3920903Z [ 38%] Building C object CMakeFiles/api.dir/ands.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:26:58.5058545Z [ 41%] Building C object CMakeFiles/api.dir/miniaudio.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.1454833Z [ 44%] Building C object CMakeFiles/api.dir/midi.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.2960111Z [ 47%] Building C object CMakeFiles/api.dir/util.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.3221180Z [ 50%] Building C object CMakeFiles/api.dir/miniwav.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.3984403Z [ 50%] Building C object CMakeFiles/api.dir/exp-vfs/miniz.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.4414021Z [ 52%] Building C object CMakeFiles/api.dir/exp-vfs/miniz_tdef.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.5442481Z [ 55%] Building C object CMakeFiles/api.dir/exp-vfs/miniz_tinfl.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.6004466Z [ 58%] Building C object CMakeFiles/api.dir/exp-vfs/miniz_zip.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.6158080Z /home/runner/work/pulp/pulp/parts/exp-vfs/miniz_zip.c:132:9: note: ‘#pragma message: Using fopen, ftello, fseeko, stat() etc. path for file I/O - this path may not support large files.’
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.6159760Z   132 | #pragma message("Using fopen, ftello, fseeko, stat() etc. path for file I/O - this path may not support large files.")
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.6160615Z       |         ^~~~~~~
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8405205Z [ 61%] Building C object CMakeFiles/api.dir/exp-vfs/skred_vfs.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8621486Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c: In function ‘skred_chdir’:
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8623289Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c:269:62: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size between 0 and 1023 [-Wformat-truncation=]
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8625196Z   269 |         if (target_path[0]) snprintf(full, sizeof(full), "%s/%s", g_vfs.base_path, target_path);
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8626299Z       |                                                              ^~                    ~~~~~~~~~~~
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8628583Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c:269:29: note: ‘snprintf’ output between 2 and 1536 bytes into a destination of size 1024
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8629844Z   269 |         if (target_path[0]) snprintf(full, sizeof(full), "%s/%s", g_vfs.base_path, target_path);
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8630466Z       |                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8631153Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c: In function ‘skred_fopen’:
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8632451Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c:310:56: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size between 0 and 1023 [-Wformat-truncation=]
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8633614Z   310 |             snprintf(full_path, sizeof(full_path), "%s/%s", g_vfs.base_path, file->resolved_path);
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8634095Z       |                                                        ^~
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8634857Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c:310:13: note: ‘snprintf’ output between 2 and 1536 bytes into a destination of size 1024
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8635651Z   310 |             snprintf(full_path, sizeof(full_path), "%s/%s", g_vfs.base_path, file->resolved_path);
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8636168Z       |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8636731Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c: In function ‘skred_opendir’:
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8638038Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c:427:59: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 256 [-Wformat-truncation=]
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8638895Z   427 |             snprintf(dir->handle.zip.filter_prefix, 256, "%s/", target_path);
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8639315Z       |                                                           ^~    ~~~~~~~~~~~
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8640066Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c:427:13: note: ‘snprintf’ output between 2 and 513 bytes into a destination of size 256
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8640774Z   427 |             snprintf(dir->handle.zip.filter_prefix, 256, "%s/", target_path);
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8641194Z       |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8642130Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c:420:62: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size between 0 and 1023 [-Wformat-truncation=]
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8643066Z   420 |         if (target_path[0]) snprintf(path, sizeof(path), "%s/%s", g_vfs.base_path, target_path);
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8643552Z       |                                                              ^~                    ~~~~~~~~~~~
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8644311Z /home/runner/work/pulp/pulp/parts/exp-vfs/skred_vfs.c:420:29: note: ‘snprintf’ output between 2 and 1536 bytes into a destination of size 1024
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8645070Z   420 |         if (target_path[0]) snprintf(path, sizeof(path), "%s/%s", g_vfs.base_path, target_path);
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8645572Z       |                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.8942172Z [ 64%] Building C object CMakeFiles/api.dir/skode-event.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:01.9855061Z [ 67%] Building C object CMakeFiles/api.dir/skode-dict.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.0599445Z [ 70%] Building C object CMakeFiles/api.dir/skqueue.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.1054316Z [ 73%] Building C object CMakeFiles/api.dir/udp.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.1445740Z [ 76%] Building C object CMakeFiles/api.dir/scope-ipc.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.2003528Z [ 76%] Building C object CMakeFiles/api.dir/vendor/ksynth/ksynth.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.2874662Z [ 79%] Building C object CMakeFiles/api.dir/api.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.4581504Z [ 82%] Building C object CMakeFiles/api.dir/synth.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.8646642Z [ 85%] Building C object CMakeFiles/api.dir/skode.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.9849803Z /home/runner/work/pulp/pulp/parts/build_analysis/skode.c: In function ‘skode_asset_read’:
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.9851384Z /home/runner/work/pulp/pulp/parts/build_analysis/skode.c:114:54: warning: ‘snprintf’ output may be truncated before the last format character [-Wformat-truncation=]
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.9852498Z   114 |   snprintf(vfs_candidate, sizeof(vfs_candidate), "/%s", candidate);
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.9853093Z       |                                                      ^
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.9854321Z /home/runner/work/pulp/pulp/parts/build_analysis/skode.c:114:3: note: ‘snprintf’ output between 2 and 1025 bytes into a destination of size 1024
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.9855441Z   114 |   snprintf(vfs_candidate, sizeof(vfs_candidate), "/%s", candidate);
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:02.9856085Z       |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:03.3222676Z [ 88%] Building C object CMakeFiles/api.dir/polyphony.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:03.4094642Z [ 91%] Building C object CMakeFiles/api.dir/synth-alloc.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:03.4583140Z [ 94%] Building C object CMakeFiles/api.dir/seq.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:03.5235996Z [ 97%] Building C object CMakeFiles/api.dir/recorder.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:03.5999618Z [100%] Linking C static library libapi.a
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3229449Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3263940Z [100%] Built target api
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3268237Z gmake[3]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3293426Z gmake[2]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3309585Z gmake[2]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3363654Z gmake[3]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3374001Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3397218Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3408577Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3424456Z ! KIT FEATURES
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3445727Z ! KIT_OPTS (Raw): KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3465365Z ! KIT_OPTS_LIST:  KSYNTH=1;MIDI=1;AM=1;XM=1;CRUSH=1;GLISS=1;FILT=1;FADSR=1;FM=1;PANMOD=1;PD=1;SAH=1;SEQ=1;SMOOTHER=1;UDP=1;RECORD=1;SCOPE=1;TRACKS=1;ADSR=1
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3469836Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3487744Z [  0%] Built target check_opts
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3502453Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3537579Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3571510Z [  5%] Built target kit_tool
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3590040Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3690937Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3768501Z [ 91%] Built target api
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3783082Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3800766Z [ 94%] Generating mini-skred.c
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3834110Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3846189Z gmake[4]: Entering directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.3863376Z [ 97%] Building C object CMakeFiles/mini-skred.dir/mini-skred.c.o
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.4352499Z [100%] Linking C executable mini-skred
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.4819742Z gmake[4]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.4840242Z [100%] Built target mini-skred
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.4844640Z gmake[3]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.4868546Z gmake[2]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.4870757Z gmake[1]: Leaving directory '/home/runner/work/pulp/pulp/parts/build_analysis'
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.4879280Z cmake -E make_directory analysis-src
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.4894333Z cmake -E copy_if_different \
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.4896107Z 	build_analysis/api.c build_analysis/mini-skred.c build_analysis/polyphony.c build_analysis/recorder.c build_analysis/recorder.h build_analysis/seq.c build_analysis/seq.h build_analysis/skode.c build_analysis/synth-alloc.c build_analysis/synth-state.h build_analysis/synth.c build_analysis/synth.h \
+generated-source-drift	Verify canonical generated C sources	2026-08-10T06:27:04.4897772Z 	analysis-src
+generated-source-drift	Post Run actions/checkout@v4	﻿2026-08-10T06:27:06.0271823Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.0273411Z Post job cleanup.
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1090749Z [command]/usr/bin/git version
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1134933Z git version 2.54.0
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1178855Z Temporarily overriding HOME='/home/runner/work/_temp/f2e7b5d4-d533-4536-969b-4f44c184bc0f' before making global git config changes
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1179790Z Adding repository directory to the temporary git global config as a safe directory
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1185387Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/pulp/pulp
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1222981Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1258309Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1499174Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1526211Z http.https://github.com/.extraheader
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1538849Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1578300Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1837800Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+generated-source-drift	Post Run actions/checkout@v4	2026-08-10T06:27:06.1874765Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+generated-source-drift	Complete job	﻿2026-08-10T06:27:06.2279047Z Cleaning up orphan processes
+generated-source-drift	Complete job	2026-08-10T06:27:06.2602023Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

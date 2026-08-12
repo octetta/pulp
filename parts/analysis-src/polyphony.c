@@ -12,61 +12,15 @@
 #include "synth-config.h"
 #include "synth-state.h"
 
-typedef struct {
-  int valid;
-  int source;
-  int width;
-  int root_offset;
-  uint32_t generation;
-} poly_group_t;
-
 enum {
   POLY_INSTANCE_FREE = 0,
   POLY_INSTANCE_HELD = 1,
   POLY_INSTANCE_RELEASING = 2,
 };
 
-typedef struct {
-  int state;
-  int key;
-  float note;
-  float cents;
-  float velocity;
-  float bend_cents;
-  uint64_t started;
-  uint64_t released;
-  uint32_t generation;
-} poly_instance_t;
+#define poly_group (skred_global_engine.poly_group)
+#define poly_pool (skred_global_engine.poly_pool)
 
-typedef struct {
-  int used;
-  int key;
-  float note;
-  float cents;
-  float velocity;
-  float bend_cents;
-  uint64_t order;
-} poly_held_t;
-
-typedef struct {
-  int valid;
-  int group;
-  int base;
-  int count;
-  int policy;
-  int mode;
-  int priority;
-  int articulation;
-  int round_robin;
-  int mono_active_key;
-  float bend_cents;
-  uint64_t order;
-  poly_instance_t instance[VOICE_MAX_HARD_LIMIT];
-  poly_held_t held[SKRED_POLY_HELD_MAX];
-} poly_pool_t;
-
-static poly_group_t poly_group[SKRED_POLY_GROUP_MAX];
-static poly_pool_t poly_pool[SKRED_POLY_POOL_MAX];
 /* Sized for a status line for every hard-limit instance and a complete
    machine graph containing every possible per-voice relationship. */
 static char poly_status[131072];
@@ -178,7 +132,7 @@ static int clone_voice(const poly_group_t *group, int source, int dest,
      the currently sounding note and must start clean in a new instance. */
   sv.glissando_enable[dest] = sv.glissando_enable[source];
   sv.glissando_time[dest] = sv.glissando_time[source];
-  sv.phase_inc[dest] = osc_get_phase_inc(dest, sv.freq[dest]);
+  sv.phase_inc[dest] = osc_get_phase_inc(&skred_global_engine, dest, sv.freq[dest]);
   sv.glissando_target[dest] = sv.phase_inc[dest];
   sv.glissando_speed[dest] = 1.0f;
   sv.delay_send[dest] = delay_send;
@@ -193,7 +147,7 @@ static int clone_voice(const poly_group_t *group, int source, int dest,
   sv.loop_ended[dest] = 0;
   sv.finished[dest] = 0;
   sv.sample[dest] = 0;
-  osc_reclassify(dest);
+  osc_reclassify(&skred_global_engine, dest);
   sv.sample_hold[dest] = 0;
   sv.sample_hold_count[dest] = 0;
   remap_dependencies(dest, group, dest_base);

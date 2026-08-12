@@ -18,9 +18,6 @@
 #include "portable_atomic.h"
 #include "control-events.h"
 
-atomic_uint64_t synth_sample_count;
-int synth_sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
-
 #define SAMPLE_COUNT_PUT(n) atomic_store_uint64(&synth_sample_count, n)
 #define SAMPLE_COUNT_GET() atomic_load_uint64(&synth_sample_count)
 #define SAMPLE_COUNT_ADD(n) atomic_fetch_add_uint64(&synth_sample_count, n)
@@ -75,12 +72,10 @@ static int verbose = 0;
 int volume_set(float v);
 float volume_get(void);
 float envelope_step_e(envelope_t *e, uint64_t current_sample);
-extern float volume_user;
-extern float volume_final;
 static int voice_invalid(int voice);
 static int wave_invalid(int wave);
-static void delay_cache_params(delay_bus_t *bus);
-void osc_set_freq(int v, float f);
+static void delay_cache_params(skred_engine_t *engine, delay_bus_t *bus);
+void osc_set_freq(skred_engine_t *engine, int v, float f);
 static void synth_track_defaults(void);
 
 int synth_sample_rate_set(int sample_rate) {
@@ -98,7 +93,7 @@ int synth_sample_rate_set(int sample_rate) {
         if (sv.table_rate[v] == (float)old_rate) sv.table_rate[v] = (float)sample_rate;
         sv.table_size_rate[v] = (float)sv.table_size[v] / (float)sample_rate;
         float f = sv.freq[v] > 0.0f ? sv.freq[v] : 440.0f;
-        osc_set_freq(v, f);
+        osc_set_freq(&skred_global_engine, v, f);
       }
     }
   }
@@ -114,6 +109,16 @@ static int mod_voice_invalid(int voice) {
 }
 
 void synth_init(int vc) {
+  if (synth_sample_rate == 0) synth_sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
+  requested_synth_frames_per_callback = SYNTH_FRAMES_PER_CALLBACK;
+  synth_frames_per_callback = 0;
+  volume_user = VOLUME_DEFAULT;
+  volume_final = 1.0f;
+  volume_smoother_gain = 0.0f;
+  volume_smoother_smoothing = 0.002f;
+  volume_threshold = 0.05f;
+  volume_smoother_higher_smoothing = 0.3f;
+
   SAMPLE_COUNT_PUT(0);
 
   if (synth_config.wave_table_max == 0)
@@ -134,7 +139,7 @@ void synth_init(int vc) {
   volume_set(VOLUME_DEFAULT);
   memset(delay_bus, 0, sizeof(delay_bus));
   for (int bus = 0; bus < DELAY_BUS_COUNT; bus++) {
-    delay_cache_params(&delay_bus[bus]);
+    delay_cache_params(&skred_global_engine, &delay_bus[bus]);
     delay_bus[bus].base_frames = delay_bus[bus].base_frames_target;
   }
   synth_track_defaults();
@@ -219,17 +224,7 @@ const char *synth_track_name_get(int track) {
 }
 
 
-int requested_synth_frames_per_callback = SYNTH_FRAMES_PER_CALLBACK;
-int synth_frames_per_callback = 0;
-
 #define SMOOTH_DEFAULT (0.02f)
-
-float volume_user = VOLUME_DEFAULT;
-float volume_final = 1.0f;
-float volume_smoother_gain = 0.0f;
-float volume_smoother_smoothing = 0.002f;
-float volume_threshold = 0.05f;
-float volume_smoother_higher_smoothing = 0.3f;
 
 static float clampf(float value, float min_value, float max_value) {
   if (value < min_value) return min_value;
@@ -292,7 +287,7 @@ static float delay_stereo_offset_frames(const delay_bus_t *bus) {
 
 static float delay_hp_coeff(const delay_bus_t *bus);
 static float delay_damping_coeff(const delay_bus_t *bus);
-static void delay_cache_params(delay_bus_t *bus) {
+static void delay_cache_params(skred_engine_t *engine, delay_bus_t *bus) {
   bus->base_frames_target = delay_base_ms(bus) * (float)MAIN_SAMPLE_RATE * 0.001f;
   bus->feedback_gain = delay_feedback_gain(bus);
   bus->lfo_phase_inc = 2.0f * (float)M_PI * delay_lfo_hz(bus) /
@@ -341,7 +336,7 @@ static float delay_hp_coeff(const delay_bus_t *bus) {
 
 // One-pole lowpass followed by one-pole highpass on the feedback path.
 // damping = tone/darkening, hp = removes low-end buildup on long feedback chains.
-static float delay_filter_feedback(delay_bus_t *bus, int ch, float x) {
+static float delay_filter_feedback(skred_engine_t *engine, delay_bus_t *bus, int ch, float x) {
   bus->lp_state[ch] += bus->damping_coeff * (x - bus->lp_state[ch]);
   float y = bus->hp_coeff * (bus->hp_state[ch] + bus->lp_state[ch] - bus->hp_prev[ch]);
   bus->hp_prev[ch] = bus->lp_state[ch];
@@ -349,7 +344,7 @@ static float delay_filter_feedback(delay_bus_t *bus, int ch, float x) {
   return y;
 }
 
-static void delay_process(delay_bus_t *bus, float input, float *left, float *right) {
+static void delay_process(skred_engine_t *engine, delay_bus_t *bus, float input, float *left, float *right) {
   float lfo = 0.0f;
   float mod_frames;
   float delayed_left;
@@ -376,8 +371,8 @@ static void delay_process(delay_bus_t *bus, float input, float *left, float *rig
 
   float fb_left  = bus->pingpong ? delayed_right : (delayed_left + delayed_right) * 0.5f;
   float fb_right = bus->pingpong ? delayed_left  : fb_left;
-  fb_left = delay_filter_feedback(bus, 0, fb_left);
-  if (bus->pingpong) fb_right = delay_filter_feedback(bus, 1, fb_right);
+  fb_left = delay_filter_feedback(engine, bus, 0, fb_left);
+  if (bus->pingpong) fb_right = delay_filter_feedback(engine, bus, 1, fb_right);
 
   float fb_gain = bus->freeze ? 1.0f : bus->feedback_gain;
   float feed = bus->freeze ? 0.0f : input;
@@ -407,14 +402,14 @@ static void delay_process(delay_bus_t *bus, float input, float *left, float *rig
   }
 }
 
-static int delay_voice_can_send(int voice) {
+static int delay_voice_can_send(skred_engine_t *engine, int voice) {
   if (voice_invalid(voice)) return 0;
   if (fabsf(sv.pan[voice]) > 0.0001f) return 0;
   if (sv.pan_mod_osc[voice] >= 0) return 0;
   return 1;
 }
 
-int delay_send_set(int voice, float amount) {
+int delay_send_set(skred_engine_t *engine, int voice, float amount) {
   if (voice_invalid(voice) || !isfinite(amount))
     return SYNTH_INVALID_VOICE;
   if (amount > 1.0f) amount /= 15.0f;
@@ -422,7 +417,7 @@ int delay_send_set(int voice, float amount) {
   return 0;
 }
 
-int delay_params_set(int bus_number, int coarse, int fine, int feedback, int mod_freq,
+int delay_params_set(skred_engine_t *engine, int bus_number, int coarse, int fine, int feedback, int mod_freq,
                      int mod_depth, int level) {
   int index = delay_bus_index(bus_number);
   if (index < 0) return SYNTH_INVALID_VOICE;
@@ -433,11 +428,11 @@ int delay_params_set(int bus_number, int coarse, int fine, int feedback, int mod
   bus->mod_freq = clampi(mod_freq, 0, 31);
   bus->mod_depth = clampi(mod_depth, 0, 31);
   bus->level = clampi(level, 0, 15);
-  delay_cache_params(bus);
+  delay_cache_params(engine, bus);
   return 0;
 }
 
-void delay_params_get(int bus_number, int *coarse, int *fine, int *feedback, int *mod_freq,
+void delay_params_get(skred_engine_t *engine, int bus_number, int *coarse, int *fine, int *feedback, int *mod_freq,
                       int *mod_depth, int *level) {
   int index = delay_bus_index(bus_number);
   if (index < 0) {
@@ -458,31 +453,31 @@ void delay_params_get(int bus_number, int *coarse, int *fine, int *feedback, int
   if (level) *level = bus->level;
 }
 
-int delay_damping_set(int bus_number, int damping, int hp) {
+int delay_damping_set(skred_engine_t *engine, int bus_number, int damping, int hp) {
   int index = delay_bus_index(bus_number);
   if (index < 0) return SYNTH_INVALID_VOICE;
   delay_bus_t *bus = &delay_bus[index];
   bus->damping = clampi(damping, 0, 15);
   bus->hp = clampi(hp, 0, 15);
-  delay_cache_params(bus);
+  delay_cache_params(engine, bus);
   return 0;
 }
 
-int delay_freeze_set(int bus_number, int on) {
+int delay_freeze_set(skred_engine_t *engine, int bus_number, int on) {
   int index = delay_bus_index(bus_number);
   if (index < 0) return SYNTH_INVALID_VOICE;
   delay_bus[index].freeze = on ? 1 : 0;
   return 0;
 }
 
-int delay_pingpong_set(int bus_number, int on) {
+int delay_pingpong_set(skred_engine_t *engine, int bus_number, int on) {
   int index = delay_bus_index(bus_number);
   if (index < 0) return SYNTH_INVALID_VOICE;
   delay_bus[index].pingpong = on ? 1 : 0;
   return 0;
 }
 
-void delay_damping_get(int bus_number, int *damping, int *hp) {
+void delay_damping_get(skred_engine_t *engine, int bus_number, int *damping, int *hp) {
   int index = delay_bus_index(bus_number);
   if (index < 0) {
     if (damping) *damping = 0;
@@ -494,27 +489,27 @@ void delay_damping_get(int bus_number, int *damping, int *hp) {
   if (hp) *hp = bus->hp;
 }
 
-int delay_freeze_get(int bus_number) {
+int delay_freeze_get(skred_engine_t *engine, int bus_number) {
   int index = delay_bus_index(bus_number);
   return index < 0 ? 0 : delay_bus[index].freeze;
 }
 
-int delay_pingpong_get(int bus_number) {
+int delay_pingpong_get(skred_engine_t *engine, int bus_number) {
   int index = delay_bus_index(bus_number);
   return index < 0 ? 0 : delay_bus[index].pingpong;
 }
 
-int delay_grit_set(int bus_number, int bits, int native) {
+int delay_grit_set(skred_engine_t *engine, int bus_number, int bits, int native) {
   int index = delay_bus_index(bus_number);
   if (index < 0) return SYNTH_INVALID_VOICE;
   delay_bus_t *bus = &delay_bus[index];
   bus->bits = clampi(bits, 0, 16);
   bus->native = native ? 1 : 0;
-  delay_cache_params(bus);
+  delay_cache_params(engine, bus);
   return 0;
 }
 
-void delay_grit_get(int bus_number, int *bits, int *native) {
+void delay_grit_get(skred_engine_t *engine, int bus_number, int *bits, int *native) {
   int index = delay_bus_index(bus_number);
   if (index < 0) {
     if (bits) *bits = 0;
@@ -526,7 +521,7 @@ void delay_grit_get(int bus_number, int *bits, int *native) {
   if (native) *native = bus->native;
 }
 
-int delay_time_ms_set(int bus_number, float target_ms) {
+int delay_time_ms_set(skred_engine_t *engine, int bus_number, float target_ms) {
   int index = delay_bus_index(bus_number);
   if (index < 0) return SYNTH_INVALID_VOICE;
   delay_bus_t *bus = &delay_bus[index];
@@ -543,18 +538,18 @@ int delay_time_ms_set(int bus_number, float target_ms) {
 
   bus->coarse = coarse;
   bus->fine = clampi(fine, 0, 15);
-  delay_cache_params(bus);
+  delay_cache_params(engine, bus);
   return 0;
 }
 
 // division: 1.0 = quarter note, 0.5 = eighth, 0.75 = dotted eighth, 1.5 = dotted quarter, etc.
-int delay_time_sync_set(int bus_number, float bpm, float division) {
+int delay_time_sync_set(skred_engine_t *engine, int bus_number, float bpm, float division) {
   if (bpm <= 0.0f || division <= 0.0f) return SYNTH_INVALID_VOICE;
   float quarter_ms = 60000.0f / bpm;
-  return delay_time_ms_set(bus_number, quarter_ms * division);
+  return delay_time_ms_set(engine, bus_number, quarter_ms * division);
 }
 
-void delay_clear(void) {
+void delay_clear(skred_engine_t *engine) {
   for (int i = 0; i < DELAY_BUS_COUNT; i++) {
     memset(delay_bus[i].buffer, 0, sizeof(delay_bus[i].buffer));
     memset(delay_bus[i].buffer_r, 0, sizeof(delay_bus[i].buffer_r));
@@ -623,7 +618,7 @@ const char *delay_status(void) {
     sends++;
     int track = atomic_load_int(&sv.record_pending[voice]);
     if (track >= 1 && track <= RECORD_TRACK_MAX &&
-        delay_voice_can_send(voice)) {
+        delay_voice_can_send(&skred_global_engine, voice)) {
       eligible++;
     }
   }
@@ -671,7 +666,7 @@ static inline float audio_rng_raw_float(uint64_t raw) {
     return (float)((int32_t)val) / 2147483648.0f;
 }
 
-float osc_get_phase_inc(int v, float f) {
+float osc_get_phase_inc(skred_engine_t *engine, int v, float f) {
   float g = f;
   if (sv.freq_bend) {
     float semitones = sv.freq_bend[v] * sv.freq_bend_range[v] + sv.freq_bend_offset[v];
@@ -690,8 +685,8 @@ float osc_get_phase_inc(int v, float f) {
   return (g * (float)sv.table_size[v]) / (float)MAIN_SAMPLE_RATE;
 }
 
-void osc_set_freq(int v, float f) {
-  sv.phase_inc[v] = osc_get_phase_inc(v, f);
+void osc_set_freq(skred_engine_t *engine, int v, float f) {
+  sv.phase_inc[v] = osc_get_phase_inc(engine, v, f);
 }
 
 // Fast power approximation using bit manipulation
@@ -785,7 +780,7 @@ static inline int osc_loop_crossings(double distance, double loop_length) {
         INT_MAX : (int)crossings + 1;
 }
 
-void osc_reclassify(int voice) {
+void osc_reclassify(skred_engine_t *engine, int voice) {
     if (voice_invalid(voice)) return;
     sv.playback_class[voice] =
         sv.table[voice] != NULL &&
@@ -816,7 +811,7 @@ static inline double osc_cycle_phase_next(int voice, float phase_inc) {
     return phase;
 }
 
-static inline float osc_sample_at_phase(int voice, double phase, float phase_offset,
+static inline float osc_sample_at_phase(skred_engine_t *engine, int voice, double phase, float phase_offset,
     uint64_t current_sample, int table_size, float wave_range_start,
     float wave_range_end, bool one_shot, float active_start, float active_end) {
     double final_phase;
@@ -868,7 +863,7 @@ static inline float osc_sample_at_phase(int voice, double phase, float phase_off
     return sv.table[voice][idx];
 }
 
-static float osc_next_at(int voice, float phase_inc, float phase_offset,
+static float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phase_offset,
     uint64_t current_sample) {
     if (sv.finished[voice]) return 0.0f;
 
@@ -879,7 +874,7 @@ static float osc_next_at(int voice, float phase_inc, float phase_offset,
             return 0.0f;
         }
         sv.phase[voice] = phase;
-        return osc_sample_at_phase(voice, phase, phase_offset, current_sample,
+        return osc_sample_at_phase(engine, voice, phase, phase_offset, current_sample,
             sv.table_size[voice], 0.0f, (float)sv.table_size[voice], false,
             0.0f, (float)sv.table_size[voice]);
     }
@@ -1039,16 +1034,16 @@ static float osc_next_at(int voice, float phase_inc, float phase_offset,
     }
 
     sv.phase[voice] = phase;
-    return osc_sample_at_phase(voice, phase, phase_offset, current_sample,
+    return osc_sample_at_phase(engine, voice, phase, phase_offset, current_sample,
         table_size, wave_range_start, wave_range_end, one_shot,
         (float)loop_start, (float)loop_end);
 }
 
-float osc_next(int voice, float phase_inc) {
-    return osc_next_at(voice, phase_inc, 0.0f, SAMPLE_COUNT_GET());
+float osc_next(skred_engine_t *engine, int voice, float phase_inc) {
+    return osc_next_at(engine, voice, phase_inc, 0.0f, SAMPLE_COUNT_GET());
 }
 
-void osc_set_wave_table_index(int voice, int wave) {
+void osc_set_wave_table_index(skred_engine_t *engine, int voice, int wave) {
   // if we were using a r/w wave table, adjust ref count
   int old = sv.wave_table_index[voice];
   // old == -1 means voice was never assigned a wave table yet (e.g. first
@@ -1102,9 +1097,9 @@ void osc_set_wave_table_index(int voice, int wave) {
       sv.loop_length[voice] = (float)sv.table_size[voice];
     }
     if (update_freq) {
-      osc_set_freq(voice, sv.freq[voice]);
+      osc_set_freq(engine, voice, sv.freq[voice]);
     }
-    osc_reclassify(voice);
+    osc_reclassify(engine, voice);
   }
 }
 
@@ -1128,7 +1123,7 @@ int voice_wave_range_set(int voice, int start, int end) {
       voice_loop_points_apply(voice, start, end);
     }
     sv.wave_range_override[voice] = 1;
-    osc_reclassify(voice);
+    osc_reclassify(&skred_global_engine, voice);
     return 0;
 }
 
@@ -1136,7 +1131,7 @@ int voice_wave_range_reset(int voice) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
     voice_wave_range_apply(voice, 0, sv.table_size[voice]);
     sv.wave_range_override[voice] = 0;
-    osc_reclassify(voice);
+    osc_reclassify(&skred_global_engine, voice);
     return 0;
 }
 
@@ -1171,7 +1166,7 @@ int voice_loop_points_set(int voice, int start, int end) {
   }
   voice_loop_points_apply(voice, start, end);
   sv.loop_override[voice] = 1;
-  osc_reclassify(voice);
+  osc_reclassify(&skred_global_engine, voice);
   return 0;
 }
 
@@ -1182,7 +1177,7 @@ int voice_loop_points_reset(int voice) {
     return SYNTH_INVALID_VOICE;
   voice_loop_points_apply_default(voice, sw.loop_start[wave], sw.loop_end[wave]);
   sv.loop_override[voice] = 0;
-  osc_reclassify(voice);
+  osc_reclassify(&skred_global_engine, voice);
   return 0;
 }
 
@@ -1201,7 +1196,7 @@ int wave_loop_points_set(int wave, int start, int end) {
   return 0;
 }
 
-void osc_trigger(int voice) {
+void osc_trigger(skred_engine_t *engine, int voice) {
     sv.finished[voice] = 0;
     sv.loop_active[voice] = sv.loop_enabled[voice];
     sv.loop_bounded[voice] = sv.loop_count[voice] > 0;
@@ -1210,7 +1205,7 @@ void osc_trigger(int voice) {
     sv.loop_release_tail[voice] = 0;
     sv.loop_ended[voice] = 0;
     sv.pingpong_reverse[voice] = sv.direction[voice] == 1;
-    osc_reclassify(voice);
+    osc_reclassify(engine, voice);
 
     if (sv.one_shot[voice]) {
         if (sv.direction[voice] == 1) {
@@ -1272,7 +1267,7 @@ float quantize_bits_curve(float v, int bits, int curve, uint64_t *rng) {
 
 // Process a single sample through the filter - VERY FAST
 // Only multiplication and addition, no transcendental functions
-float mmf_process(int n, float input) {
+float mmf_process(skred_engine_t *engine, int n, float input) {
     // Calculate output using Direct Form II - only 5 multiplies, 4 adds
     float output = sv.filter[n].b0 * input +
                   sv.filter[n].b1 * sv.filter[n].x1 +
@@ -1571,7 +1566,7 @@ char *synth_stats(void) {
 
 
 
-void mmf_set_params(int n, float f, float resonance);
+void mmf_set_params(skred_engine_t *engine, int n, float f, float resonance);
 #define FILTER_UC (16)
 
 static float *this_capture;
@@ -1584,7 +1579,34 @@ synth_sample_t sampling = {
   .channels = 1
 };
 
-void synth_capture(float *buffer, float *input, int num_frames,
+#undef sv
+#define sv (engine->sv)
+#undef sw
+#define sw (engine->sw)
+#undef synth_config
+#define synth_config (engine->config)
+#undef synth_sample_rate
+#define synth_sample_rate (engine->sample_rate)
+#undef synth_sample_count
+#define synth_sample_count (engine->sample_count)
+#undef requested_synth_frames_per_callback
+#define requested_synth_frames_per_callback (engine->requested_frames_per_callback)
+#undef synth_frames_per_callback
+#define synth_frames_per_callback (engine->frames_per_callback)
+#undef volume_user
+#define volume_user (engine->volume_user)
+#undef volume_final
+#define volume_final (engine->volume_final)
+#undef volume_smoother_gain
+#define volume_smoother_gain (engine->volume_smoother_gain)
+#undef volume_smoother_smoothing
+#define volume_smoother_smoothing (engine->volume_smoother_smoothing)
+#undef volume_threshold
+#define volume_threshold (engine->volume_threshold)
+#undef volume_smoother_higher_smoothing
+#define volume_smoother_higher_smoothing (engine->volume_smoother_higher_smoothing)
+
+void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_frames,
                    int num_channels, int input_channels, void *user) {
   (void)input;
   synth_record_bus_t *record_bus = (synth_record_bus_t *)user;
@@ -1698,7 +1720,7 @@ void synth_capture(float *buffer, float *input, int num_frames,
                       sv.freq_mod_feedback_z2[n]) *
               sv.freq_mod_feedback[n];
           }
-          f = osc_next_at(n, sv.phase_inc[n], phase_offset, current_sample);
+          f = osc_next_at(engine, n, sv.phase_inc[n], phase_offset, current_sample);
         } else if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
           int mod = sv.freq_mod_osc[n];
           float g = sv.sample[mod] * sv.freq_mod_depth[n] + sv.freq_mod_adder[n];
@@ -1708,9 +1730,9 @@ void synth_capture(float *buffer, float *input, int num_frames,
           } else {
             inc = sv.phase_inc[n] + (sv.phase_inc[mod] * sv.freq_scale[n] * g);
           }
-          f = osc_next_at(n, inc, 0.0f, current_sample);
+          f = osc_next_at(engine, n, inc, 0.0f, current_sample);
         } else {
-          f = osc_next_at(n, sv.phase_inc[n], 0.0f, current_sample);
+          f = osc_next_at(engine, n, sv.phase_inc[n], 0.0f, current_sample);
         }
       if (sv.loop_ended[n]) {
         int release_tail = sv.one_shot[n] && sv.loop_release_tail[n];
@@ -1790,11 +1812,11 @@ void synth_capture(float *buffer, float *input, int num_frames,
             cutoff = cutoff + (env * sv.filter_env_depth[n]);
           }
           cutoff = fmaxf(20.0f, fminf(20000.0f, cutoff));
-          mmf_set_params(n, cutoff, sv.filter_res[n]);
+          mmf_set_params(engine, n, cutoff, sv.filter_res[n]);
           sv.filter_update_counter[n] = FILTER_UC;
         }
         sv.filter_update_counter[n]--;
-        sv.sample[n] = mmf_process(n, sv.sample[n]);
+        sv.sample[n] = mmf_process(engine, n, sv.sample[n]);
       }
 
       // apply amp to sample
@@ -1821,6 +1843,16 @@ void synth_capture(float *buffer, float *input, int num_frames,
       }
 
       float final = amp * env * mod;
+
+      if (env > 0.0f && sv.latency_timestamp_ns[n] > 0) {
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        uint64_t now_ns = (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+        uint64_t delta_ns = now_ns - sv.latency_timestamp_ns[n];
+        fprintf(stderr, "# command latency [v%d]: %llu ns (%.3f ms)\n", n, (unsigned long long)delta_ns, delta_ns / 1000000.0);
+        sv.latency_timestamp_ns[n] = 0;
+      }
+
 #if 0
       if (sv.smoother_enable[n]) {
         sv.smoother_gain[n] += sv.smoother_smoothing[n] * (final - sv.smoother_gain[n]);
@@ -1864,7 +1896,7 @@ void synth_capture(float *buffer, float *input, int num_frames,
       }
 
       if (sv.disconnect[n] == 0) {
-        if (sv.delay_send[n] > 0.0f && delay_voice_can_send(n)) {
+        if (sv.delay_send[n] > 0.0f && delay_voice_can_send(engine, n)) {
           int bus = -1;
           if (track >= 1 && track <= RECORD_TRACK_MAX)
             bus = track - 1;
@@ -1881,7 +1913,7 @@ void synth_capture(float *buffer, float *input, int num_frames,
       if (!delay_bus[bus].active) continue;
       float delay_left = 0.0f;
       float delay_right = 0.0f;
-      delay_process(&delay_bus[bus], delay_input[bus], &delay_left, &delay_right);
+      delay_process(engine, &delay_bus[bus], delay_input[bus], &delay_left, &delay_right);
       if (delay_bus[bus].level > 0) {
         sample_left += delay_left;
         sample_right += delay_right;
@@ -1943,13 +1975,48 @@ void synth_capture(float *buffer, float *input, int num_frames,
       output_frame[channel + 1] = record_right[track] * track_gain[track];
     }
   }
+
+  if (engine->ping_requested && num_frames > 0) {
+    for (int channel = 0; channel < num_channels; channel++) {
+      buffer[channel] = 1.0f;
+    }
+    engine->ping_requested = 0;
+  }
+
 }
 
-void synth(float *buffer, float *input, int num_frames, int num_channels,
+void synth(skred_engine_t *engine, float *buffer, float *input, int num_frames, int num_channels,
            void *user) {
-  synth_capture(buffer, input, num_frames, num_channels,
+  synth_capture(engine, buffer, input, num_frames, num_channels,
                 input ? AUDIO_CHANNELS : 0, user);
 }
+
+#undef sv
+#define sv (skred_global_engine.sv)
+#undef sw
+#define sw (skred_global_engine.sw)
+#undef synth_config
+#define synth_config (skred_global_engine.config)
+#undef synth_sample_rate
+#define synth_sample_rate (skred_global_engine.sample_rate)
+#undef synth_sample_count
+#define synth_sample_count (skred_global_engine.sample_count)
+#undef requested_synth_frames_per_callback
+#define requested_synth_frames_per_callback (skred_global_engine.requested_frames_per_callback)
+#undef synth_frames_per_callback
+#define synth_frames_per_callback (skred_global_engine.frames_per_callback)
+#undef volume_user
+#define volume_user (skred_global_engine.volume_user)
+#undef volume_final
+#define volume_final (skred_global_engine.volume_final)
+#undef volume_smoother_gain
+#define volume_smoother_gain (skred_global_engine.volume_smoother_gain)
+#undef volume_smoother_smoothing
+#define volume_smoother_smoothing (skred_global_engine.volume_smoother_smoothing)
+#undef volume_threshold
+#define volume_threshold (skred_global_engine.volume_threshold)
+#undef volume_smoother_higher_smoothing
+#define volume_smoother_higher_smoothing (skred_global_engine.volume_smoother_higher_smoothing)
 
 int envelope_is_flat(int v) {
   if (sv.amp_envelope[v].a == 0.0f &&
@@ -2253,7 +2320,7 @@ int freq_bend_set(int voice, float val) {
   if (val < -1.0f) val = -1.0f;
   if (val > 1.0f) val = 1.0f;
   sv.freq_bend[voice] = val;
-  osc_set_freq(voice, sv.freq[voice]);
+  osc_set_freq(&skred_global_engine, voice, sv.freq[voice]);
   return 0;
 }
 
@@ -2261,7 +2328,7 @@ int freq_bend_param_set(int voice, float range, float offset) {
   if (voice_invalid(voice) || !isfinite(range) || !isfinite(offset)) return SYNTH_INVALID_VOICE;
   sv.freq_bend_range[voice] = range;
   sv.freq_bend_offset[voice] = offset;
-  osc_set_freq(voice, sv.freq[voice]);
+  osc_set_freq(&skred_global_engine, voice, sv.freq[voice]);
   return 0;
 }
 
@@ -2307,7 +2374,7 @@ int freq_set(int voice, float f) {
   if (voice_invalid(voice) || !isfinite(f)) return SYNTH_INVALID_VOICE;
   if (f < 0 || f >= (double)MAIN_SAMPLE_RATE) return 101;
 
-  float target_inc = osc_get_phase_inc(voice, f);
+  float target_inc = osc_get_phase_inc(&skred_global_engine, voice, f);
 
   float glide_time = sv.glissando_time[voice];
 
@@ -2349,7 +2416,7 @@ int wave_dir(int voice, int state) {
   if (state > 2) state = 2;
   sv.direction[voice] = state;
   sv.pingpong_reverse[voice] = state == 1;
-  osc_reclassify(voice);
+  osc_reclassify(&skred_global_engine, voice);
   return 0;
 }
 
@@ -2364,7 +2431,7 @@ int pan_mod_set(int voice, int o, float f, float a) {
 int wave_set(int voice, int wave) {
   if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
   if (!wave_invalid(wave)) {
-    osc_set_wave_table_index(voice, wave);
+    osc_set_wave_table_index(&skred_global_engine, voice, wave);
   } else return 100; // <-- more LAZY!!! ERR_INVALID_WAVE;
   return 0;
 }
@@ -2430,7 +2497,7 @@ int wave_loop(int voice, int state) {
     sv.loop_bounded[voice] = 0;
     sv.loop_remaining[voice] = 0;
   }
-  osc_reclassify(voice);
+  osc_reclassify(&skred_global_engine, voice);
   return 0;
 }
 
@@ -2438,7 +2505,7 @@ int wave_loop_count(int voice, int count) {
   if (voice_invalid(voice) || count < 0) return SYNTH_INVALID_VOICE;
   sv.loop_count[voice] = count;
   sv.loop_enabled[voice] = 1;
-  osc_reclassify(voice);
+  osc_reclassify(&skred_global_engine, voice);
   return 0;
 }
 
@@ -2449,7 +2516,7 @@ int envelope_set(int voice, float a, float d, float s, float r) {
 }
 
 // Set parameters - only recalculates coefficients if values changed
-void mmf_set_params(int n, float f, float resonance) {
+void mmf_set_params(skred_engine_t *engine, int n, float f, float resonance) {
     // Only recalculate if parameters changed
     if (
       f == sv.filter[n].last_freq &&
@@ -2549,7 +2616,7 @@ void mmf_set_params(int n, float f, float resonance) {
 // freq: cutoff frequency in Hz
 // resonance: resonance factor (0.1 to 10.0, where 0.707 is no resonance)
 // sample_rate: audio sample rate in Hz
-void mmf_init(int n, float f, float resonance) {
+void mmf_init(skred_engine_t *engine, int n, float f, float resonance) {
     // Clear delay lines
     sv.filter[n].x1 = sv.filter[n].x2 = 0.0f;
     sv.filter[n].y1 = sv.filter[n].y2 = 0.0f;
@@ -2563,7 +2630,7 @@ void mmf_init(int n, float f, float resonance) {
     sv.filter_res[n] = resonance;
 
     // Calculate initial coefficients
-    mmf_set_params(n, f, resonance);
+    mmf_set_params(engine, n, f, resonance);
 }
 
 int voice_control_events_set(int voice, int enabled);
@@ -2583,7 +2650,7 @@ int voice_copy(int v, int n) {
   sv.pingpong_reverse[n] = sv.pingpong_reverse[v];
   if (sv.loop_override[v])
     voice_loop_points_set(n, sv.loop_start[v], sv.loop_end[v]);
-  osc_reclassify(n);
+  osc_reclassify(&skred_global_engine, n);
   sv.link_midi_0[n] = sv.link_midi_0[v];
   sv.link_midi_1[n] = sv.link_midi_1[v];
   sv.link_midi_2[n] = sv.link_midi_2[v];
@@ -2599,7 +2666,7 @@ int voice_copy(int v, int n) {
   sv.link_trig_samp[n] = sv.link_trig_samp[v];
   //
   pan_set(n, sv.pan[v]);
-  delay_send_set(n, sv.delay_send[v]);
+  delay_send_set(&skred_global_engine, n, sv.delay_send[v]);
   amp_mod_set(n, sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
   freq_mod_set(n, sv.freq_mod_osc[v], sv.freq_mod_depth[v], sv.freq_mod_adder[v]);
   freq_mod_mode_set(n, sv.freq_mod_mode[v]);
@@ -2622,7 +2689,7 @@ int voice_copy(int v, int n) {
     sv.cz_envelope[v].a, sv.cz_envelope[v].d,
     sv.cz_envelope[v].s, sv.cz_envelope[v].r);
   sv.filter_mode[n] = sv.filter_mode[v];
-  mmf_init(n, sv.filter_freq[v], sv.filter_res[v]);
+  mmf_init(&skred_global_engine, n, sv.filter_freq[v], sv.filter_res[v]);
   sv.phase_inc[n] = sv.phase_inc[v];
   sv.glissando_enable[n] = sv.glissando_enable[v];
   sv.glissando_speed[n] = sv.glissando_speed[v];
@@ -2675,7 +2742,7 @@ int voice_control_events_set(int voice, int enabled) {
 
 int voice_trigger(int voice) {
   if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
-  osc_trigger(voice);
+  osc_trigger(&skred_global_engine, voice);
   skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_TRIGGER,
     SAMPLE_COUNT_GET(), voice);
   return 0;
@@ -2686,7 +2753,7 @@ int wave_default(int voice) {
   float g = midi2hz((float)sv.midi_note[voice], 0);
   sv.freq[voice] = g;
   sv.note[voice] = (float)sv.midi_note[voice];
-  osc_set_freq(voice, g);
+  osc_set_freq(&skred_global_engine, voice, g);
   return 0;
 }
 
@@ -2750,7 +2817,7 @@ void voice_reset(int i) {
   sv.amp_bend[i] = 0.0f;
   sv.amp_bend_range[i] = 12.0f;
   sv.amp_bend_offset[i] = 0.0f;
-  osc_set_wave_table_index(i, WAVE_TABLE_SINE);
+  osc_set_wave_table_index(&skred_global_engine, i, WAVE_TABLE_SINE);
   //
   sv.pan[i] = 0;
   sv.pan_left[i] = 0.5f;
@@ -2774,7 +2841,7 @@ void voice_reset(int i) {
   sv.quantize[i] = 0;
   sv.filter_mode[i] = 0;
   sv.filter_update_counter[i] = FILTER_UC;
-  mmf_init(i, 8000.0f, 0.707f);
+  mmf_init(&skred_global_engine, i, 8000.0f, 0.707f);
   sv.use_filter_envelope[i]   = 0;
   sv.filter_env_depth[i]      = 0.0f;
   envelope_init_e(&sv.filter_envelope[i], 0.0f, 0.0f, 1.0f, 0.0f);
@@ -2850,7 +2917,7 @@ int envelope_velocity(int voice, float f) {
       sv.freq_mod_feedback_z1[voice] = 0.0f;
       sv.freq_mod_feedback_z2[voice] = 0.0f;
       if (sv.one_shot[voice]) {
-          osc_trigger(voice);
+          osc_trigger(&skred_global_engine, voice);
       }
       skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_TRIGGER,
         SAMPLE_COUNT_GET(), voice);
@@ -2864,16 +2931,16 @@ int envelope_velocity(int voice, float f) {
     return 0;
 }
 
-int mmf_set_freq(int n, float f) {
+int mmf_set_freq(skred_engine_t *engine, int n, float f) {
   sv.filter_freq[n] = f;
-  mmf_set_params(n, f, sv.filter_res[n]);
+  mmf_set_params(engine, n, f, sv.filter_res[n]);
   return 0;
 }
 
-int mmf_set_res(int n, float res) {
+int mmf_set_res(skred_engine_t *engine, int n, float res) {
   if (res > 0) {
     sv.filter_res[n] = res;
-    mmf_set_params(n, sv.filter_freq[n], res);
+    mmf_set_params(engine, n, sv.filter_freq[n], res);
   }
   return 0;
 }

@@ -48,6 +48,10 @@ typedef struct {
     float  * restrict table_rate;
     float  * restrict table_size_rate;
     int    * restrict playback_class;
+
+    /* Diagnostics */
+    uint64_t * restrict latency_timestamp_ns;
+
     int    * restrict one_shot;
     int    * restrict finished;
     int    * restrict direction;          /* 0 forward, 1 backward, 2 ping-pong */
@@ -250,6 +254,9 @@ typedef struct skred_engine_s {
     float volume_final;
     float volume_smoother_gain;
     float volume_smoother_smoothing;
+    
+    /* Diagnostics / Latency */
+    int ping_requested;
     float volume_threshold;
     float volume_smoother_higher_smoothing;
 

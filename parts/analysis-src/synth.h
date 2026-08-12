@@ -11,36 +11,23 @@
 #define SAMPLE_COUNT_GET() atomic_load_uint64(&synth_sample_count)
 #define SAMPLE_COUNT_ADD(n) atomic_fetch_add_uint64(&synth_sample_count, n)
 
-void synth(float *buffer, float *input, int num_frames, int num_channels, void *user);
-void synth_capture(float *buffer, float *input, int num_frames,
+void synth(skred_engine_t *engine, float *buffer, float *input, int num_frames, int num_channels, void *user);
+void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_frames,
                    int output_channels, int input_channels, void *user);
 void synth_init(int vc);
 void synth_free(void);
 
-extern int requested_synth_frames_per_callback;
-extern int synth_frames_per_callback;
-
-extern volatile uint64_t synth_sample_count;
-extern int synth_sample_rate;
-
 int synth_sample_rate_set(int sample_rate);
 int synth_sample_rate_get(void);
-
-extern float volume_user;
-extern float volume_final;
-extern float volume_smoother_gain;
-extern float volume_smoother_smoothing;
-extern float volume_threshold;
-extern float volume_smoother_higher_smoothing;
 
       int wave_quant(int voice, int n);
       float quantize_bits_curve(float v, int bits, int curve, uint64_t *rng);
 
-      void mmf_init(int, float, float);
-      void mmf_set_params(int, float, float);
-      int  mmf_set_freq(int, float);
-      int  mmf_set_res(int, float);
-      float mmf_process(int n, float input);
+      void mmf_init(skred_engine_t *engine, int, float, float);
+      void mmf_set_params(skred_engine_t *engine, int, float, float);
+      int  mmf_set_freq(skred_engine_t *engine, int, float);
+      int  mmf_set_res(skred_engine_t *engine, int, float);
+      float mmf_process(skred_engine_t *engine, int n, float input);
 
       float cz_phasor(int n, float p, float d, float active_start, float active_end);
       int   cz_set(int v, int n, float f);
@@ -57,11 +44,11 @@ extern float volume_smoother_higher_smoothing;
 void audio_rng_init(uint64_t *rng, uint64_t seed);
 uint64_t audio_rng_next(uint64_t *rng);
 float audio_rng_float(uint64_t *rng);
-float osc_get_phase_inc(int v, float f);
-void osc_set_freq(int v, float f);
-float osc_next(int voice, float phase_inc);
-void osc_set_wave_table_index(int voice, int wave);
-void osc_trigger(int voice);
+float osc_get_phase_inc(skred_engine_t *engine, int v, float f);
+void osc_set_freq(skred_engine_t *engine, int v, float f);
+float osc_next(skred_engine_t *engine, int voice, float phase_inc);
+void osc_set_wave_table_index(skred_engine_t *engine, int voice, int wave);
+void osc_trigger(skred_engine_t *engine, int voice);
 
 int volume_set(float v);
 float volume_get(void);
@@ -76,36 +63,36 @@ const char *synth_track_name_get(int track);
 
 int amp_set(int v, float f);
 int pan_set(int voice, float f);
-int delay_send_set(int voice, float amount);
-int delay_params_set(int bus, int coarse, int fine, int feedback, int mod_freq,
+int delay_send_set(skred_engine_t *engine, int voice, float amount);
+int delay_params_set(skred_engine_t *engine, int bus, int coarse, int fine, int feedback, int mod_freq,
                      int mod_depth, int level);
-void delay_params_get(int bus, int *coarse, int *fine, int *feedback, int *mod_freq,
+void delay_params_get(skred_engine_t *engine, int bus, int *coarse, int *fine, int *feedback, int *mod_freq,
                       int *mod_depth, int *level);
-int delay_damping_set(int bus, int damping, int hp);
-void delay_damping_get(int bus, int *damping, int *hp);
-int delay_freeze_set(int bus, int on);
-int delay_freeze_get(int bus);
-int delay_pingpong_set(int bus, int on);
-int delay_pingpong_get(int bus);
-int delay_grit_set(int bus, int bits, int native);
-void delay_grit_get(int bus, int *bits, int *native);
-int delay_time_ms_set(int bus, float target_ms);
-int delay_time_sync_set(int bus, float bpm, float division);
-void delay_clear(void);
+int delay_damping_set(skred_engine_t *engine, int bus, int damping, int hp);
+void delay_damping_get(skred_engine_t *engine, int bus, int *damping, int *hp);
+int delay_freeze_set(skred_engine_t *engine, int bus, int on);
+int delay_freeze_get(skred_engine_t *engine, int bus);
+int delay_pingpong_set(skred_engine_t *engine, int bus, int on);
+int delay_pingpong_get(skred_engine_t *engine, int bus);
+int delay_grit_set(skred_engine_t *engine, int bus, int bits, int native);
+void delay_grit_get(skred_engine_t *engine, int bus, int *bits, int *native);
+int delay_time_ms_set(skred_engine_t *engine, int bus, float target_ms);
+int delay_time_sync_set(skred_engine_t *engine, int bus, float bpm, float division);
+void delay_clear(skred_engine_t *engine);
 const char *delay_bus_format(int bus);
-void delay_clear(void);
+void delay_clear(skred_engine_t *engine);
 const char *delay_bus_format(int bus);
 const char *delay_format(void);
 const char *delay_status(void);
-void synth(float *buffer, float *input, int num_frames, int num_channels, void *user);
-void synth_capture(float *buffer, float *input, int num_frames,
+void synth(skred_engine_t *engine, float *buffer, float *input, int num_frames, int num_channels, void *user);
+void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_frames,
                    int output_channels, int input_channels, void *user);
 int freq_set(int v, float f);
 int voice_set(int n, int *old_voice);
 int voice_control_events_set(int voice, int enabled);
 int voice_copy(int v, int n);
 int wave_set(int voice, int wave);
-void osc_reclassify(int voice);
+void osc_reclassify(skred_engine_t *engine, int voice);
 int wave_mute(int voice, int state);
 int wave_dir(int voice, int state);
 int freq_midi(int voice, float note, float cents);

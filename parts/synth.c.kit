@@ -1924,6 +1924,16 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
       @endif
       
       float final = amp * env * mod;
+      
+      if (synth_config.trace_latency && env > 0.0f && sv.latency_timestamp_ns[n] > 0) {
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        uint64_t now_ns = (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+        uint64_t delta_ns = now_ns - sv.latency_timestamp_ns[n];
+        fprintf(stderr, "# command latency [v%d]: %llu ns (%.3f ms)\n", n, (unsigned long long)delta_ns, delta_ns / 1000000.0);
+        sv.latency_timestamp_ns[n] = 0;
+      }
+
 #if 0
       @if(SMOOTHER)
       if (sv.smoother_enable[n]) {
@@ -2062,6 +2072,14 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
     }
     @endif
   }
+
+  if (engine->ping_requested && num_frames > 0) {
+    for (int channel = 0; channel < num_channels; channel++) {
+      buffer[channel] = 1.0f;
+    }
+    engine->ping_requested = 0;
+  }
+
   @if(BENCH)
   BEN_MARK_B(bench, benchp, bencho);
   @endif

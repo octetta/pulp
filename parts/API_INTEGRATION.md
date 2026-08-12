@@ -831,3 +831,6 @@ paths you need.
 - `SKODE_USER_COMMAND_REFERENCE.md` documents the command strings hosts send.
 - `ARCHITECTURE.md` explains the runtime model and real-time boundary.
 - `mini-skred.c.kit` is the bundled native host example.
+
+### Latency Telemetry
+You can measure audio command latency and perform hardware loopback pings by setting the environment variable `SKRED_TRACE_LATENCY=1`. When enabled, the synth prints command-to-render times to stderr, and the `/png` audio command will inject a 1.0f impulse into the output buffer for measuring physical round-trip time.

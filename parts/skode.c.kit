@@ -2856,6 +2856,11 @@ void record_find_trim(int argc, float arg0, float arg1, int margin) {
 
 void skode_envelope_velocity(int voice, float x, uint64_t now) {
   if (voice < 0 || voice >= synth_config.voice_max) return;
+  if (x > 0.0f && synth_config.trace_latency) {
+      struct timespec ts;
+      clock_gettime(CLOCK_MONOTONIC, &ts);
+      sv.latency_timestamp_ns[voice] = (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+  }
   uint64_t t = sv.link_trig_samp[voice];
   if (t > 0) {
     uint64_t qt = t > UINT64_MAX - now ? UINT64_MAX : t + now;

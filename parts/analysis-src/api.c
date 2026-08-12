@@ -1288,7 +1288,7 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
       segment_bus.frames += (size_t)offset * segment_bus.channels;
       segment_capture_bus = &segment_bus;
     }
-    synth_capture(segment_output, segment_input, segment_frames,
+    synth_capture(&skred_global_engine, segment_output, segment_input, segment_frames,
           (int)pDevice->playback.channels, (int)pDevice->capture.channels,
           segment_capture_bus);
     offset += segment_frames;
@@ -1711,6 +1711,16 @@ int skred_audio_command(const char *line) {
     }
     snprintf(audio_message, sizeof(audio_message), "# %s",
              skred_audio_status());
+    return 1;
+  }
+
+  if (strcmp(command, "/png") == 0) {
+    if (fields != 1) {
+      snprintf(audio_message, sizeof(audio_message), "# usage: /png");
+      return -1;
+    }
+    skred_global_engine.ping_requested = 1;
+    snprintf(audio_message, sizeof(audio_message), "# ping queued for next audio callback");
     return 1;
   }
 

@@ -1288,6 +1288,49 @@ static void pattern_cb(int pattern, int step, const event_program_t *program) {
 }
 @endif
 
+#ifdef SKRED_USE_MA_ENGINE
+static ma_engine synth_engine;
+static const float* current_capture_input = NULL;
+
+typedef struct {
+    ma_data_source_base base;
+} skred_ma_data_source;
+
+static ma_result skred_ma_data_source_read(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead)
+{
+    (void)pDataSource;
+    
+    synth_capture(&skred_global_engine, (float *)pFramesOut, (float *)current_capture_input, (int)frameCount,
+                  AUDIO_CHANNELS, current_capture_input ? AUDIO_CHANNELS : 0, NULL);
+
+    if (pFramesRead) *pFramesRead = frameCount;
+    return MA_SUCCESS;
+}
+
+static ma_result skred_ma_data_source_get_data_format(ma_data_source* pDataSource, ma_format* pFormat, ma_uint32* pChannels, ma_uint32* pSampleRate, ma_channel* pChannelMap, size_t channelMapCapacity)
+{
+    (void)pDataSource;
+    (void)pChannelMap;
+    (void)channelMapCapacity;
+    if (pFormat) *pFormat = ma_format_f32;
+    if (pChannels) *pChannels = 2;
+    if (pSampleRate) *pSampleRate = synth_sample_rate_get();
+    return MA_SUCCESS;
+}
+
+static ma_data_source_vtable skred_ma_data_source_vtable = {
+    skred_ma_data_source_read,
+    NULL,
+    skred_ma_data_source_get_data_format,
+    NULL,
+    NULL,
+    NULL,
+    0
+};
+
+static skred_ma_data_source synth_data_source;
+#endif
+
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
   struct timespec perf_start = perf_callback_begin(pDevice, frame_count);
   static int traced_callback = 0;
@@ -1365,6 +1408,15 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
   if (scope_bus && capture_bus)
     scope_ipc_publish(capture_bus->frames, (int)frame_count);
   @endif
+
+#ifdef SKRED_USE_MA_ENGINE
+  /* Option 3 test: tick the engine into a scratch buffer so we can measure its overhead without destroying our duplex output. */
+  float scratch[8192];
+  if (frame_count * pDevice->playback.channels <= 8192) {
+      ma_engine_read_pcm_frames(&synth_engine, scratch, frame_count, NULL);
+  }
+#endif
+
   @if(RECORD)
   recorder_end_block((int)frame_count);
   @endif
@@ -1589,6 +1641,27 @@ static int audio_init_selected_device(unsigned int sample_rate) {
     return -1;
   }
   device_initialized = 1;
+
+#ifdef SKRED_USE_MA_ENGINE
+  ma_engine_config engineConfig = ma_engine_config_init();
+  engineConfig.noDevice = MA_TRUE;
+  engineConfig.channels = synth_device.playback.channels;
+  engineConfig.sampleRate = synth_device.sampleRate;
+  if (ma_engine_init(&engineConfig, &synth_engine) != MA_SUCCESS) {
+      ma_device_uninit(&synth_device);
+      return -1;
+  }
+  
+  ma_data_source_config sourceConfig = ma_data_source_config_init();
+  sourceConfig.vtable = &skred_ma_data_source_vtable;
+  if (ma_data_source_init(&sourceConfig, &synth_data_source.base) != MA_SUCCESS) {
+      ma_engine_uninit(&synth_engine);
+      ma_device_uninit(&synth_device);
+      return -1;
+  }
+  // Currently the sound source is just standing by; we will need a ma_sound or node to connect it later
+#endif
+
   ma_device_info info;
   if (ma_device_get_info(&synth_device, ma_device_type_playback, &info) == MA_SUCCESS) {
     audio_copy_name(active_output, sizeof(active_output), info.name);
@@ -1791,6 +1864,16 @@ int skred_audio_command(const char *line) {
     }
     snprintf(audio_message, sizeof(audio_message), "# %s",
              skred_audio_status());
+    return 1;
+  }
+
+  if (strcmp(command, "/png") == 0) {
+    if (fields != 1) {
+      snprintf(audio_message, sizeof(audio_message), "# usage: /png");
+      return -1;
+    }
+    skred_global_engine.ping_requested = 1;
+    snprintf(audio_message, sizeof(audio_message), "# ping queued for next audio callback");
     return 1;
   }
 

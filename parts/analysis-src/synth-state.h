@@ -31,6 +31,9 @@
 
 #include <time.h>          /* struct timespec (voice_mark_a/b) */
 
+/* To aggregate polyphony state into the engine */
+#include "polyphony.h"
+
 /* ------------------------------------------------------------------ */
 /* Voice state                                                         */
 /* ------------------------------------------------------------------ */
@@ -45,6 +48,10 @@ typedef struct {
     float  * restrict table_rate;
     float  * restrict table_size_rate;
     int    * restrict playback_class;
+
+    /* Diagnostics */
+    uint64_t * restrict latency_timestamp_ns;
+
     int    * restrict one_shot;
     int    * restrict finished;
     int    * restrict direction;          /* 0 forward, 1 backward, 2 ping-pong */
@@ -202,10 +209,75 @@ typedef struct {
 } synth_waves_t;
 
 /* ------------------------------------------------------------------ */
-/* Globals — defined in synth-alloc.c                                 */
+/* Engine Context                                                      */
 /* ------------------------------------------------------------------ */
 
-extern synth_voices_t sv;
-extern synth_waves_t  sw;
+typedef struct skred_engine_s {
+    /* Audio configuration */
+    synth_config_t config;
+    int sample_rate;
+    atomic_uint64_t sample_count;
+
+    /* Allocations */
+    synth_voices_t sv;
+    synth_waves_t sw;
+
+    /* Volumes and globals from synth.h */
+    float volume_user;
+    float volume_final;
+    float volume_smoother_gain;
+    float volume_smoother_smoothing;
+
+    /* Diagnostics / Latency */
+    int ping_requested;
+    float volume_threshold;
+    float volume_smoother_higher_smoothing;
+
+    /* Polyphony state */
+    poly_group_t poly_group[SKRED_POLY_GROUP_MAX];
+    poly_pool_t poly_pool[SKRED_POLY_POOL_MAX];
+
+    /* Buffer sizes */
+    int requested_frames_per_callback;
+    int frames_per_callback;
+} skred_engine_t;
+
+extern skred_engine_t skred_global_engine;
+
+// These macros transparently map the old globals into the new engine context.
+#define sv (skred_global_engine.sv)
+#define sw (skred_global_engine.sw)
+
+#define synth_config (skred_global_engine.config)
+#define synth_sample_rate (skred_global_engine.sample_rate)
+#define synth_sample_count (skred_global_engine.sample_count)
+#define requested_synth_frames_per_callback (skred_global_engine.requested_frames_per_callback)
+#define synth_frames_per_callback (skred_global_engine.frames_per_callback)
+
+#define volume_user (skred_global_engine.volume_user)
+#define volume_final (skred_global_engine.volume_final)
+#define volume_smoother_gain (skred_global_engine.volume_smoother_gain)
+#define volume_smoother_smoothing (skred_global_engine.volume_smoother_smoothing)
+#define volume_threshold (skred_global_engine.volume_threshold)
+#define volume_smoother_higher_smoothing (skred_global_engine.volume_smoother_higher_smoothing)
+
+/*
+ * Use this everywhere you need the voice count inside the audio callback.
+ * Loads from a local, applies an alignment hint so the compiler can emit
+ * unconditional vector code without a scalar remainder loop.
+ */
+static inline int synth_voice_count(void) {
+    int n = synth_config.voice_max;
+    /* Alignment hint — cost: zero at runtime on already-aligned data. */
+#if defined(__clang__)
+    __builtin_assume(n % VOICE_ALIGN == 0);
+#elif defined(__GNUC__) && __GNUC__ >= 13
+    __attribute__((assume(n % VOICE_ALIGN == 0)));
+#else
+    /* Mask forces low bits to zero; compiler infers no remainder loop needed. */
+    n = n & ~(VOICE_ALIGN - 1);
+#endif
+    return n;
+}
 
 #endif /* SYNTH_STATE_H */

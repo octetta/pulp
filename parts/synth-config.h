@@ -44,6 +44,7 @@
 typedef struct {
     int voice_max;       /* always a multiple of VOICE_ALIGN */
     int wave_table_max;
+    int trace_latency;   /* if 1, prints latency telemetry */
 } synth_config_t;
 
 /*

@@ -130,6 +130,9 @@ typedef struct skode_s {
   char log_pending[SKODE_LOG_LINE_MAX];
   int log_pending_len;
   char string_slot[SKODE_STRING_SLOT_MAX][SKODE_STRING_SLOT_LEN];
+  unsigned char *upload_buffer;
+  int upload_len;
+  int upload_cap;
   int flag;
   struct ks_ctx *ks;
   void *ks_result;

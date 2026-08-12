@@ -6547,6 +6547,12 @@ void skode_free(skode_t *ctx) {
     skode_dict_vocab_destroy(ctx->vocab);
     ctx->vocab = NULL;
   }
+  if (ctx->upload_buffer) {
+    free(ctx->upload_buffer);
+    ctx->upload_buffer = NULL;
+    ctx->upload_len = 0;
+    ctx->upload_cap = 0;
+  }
   if (ctx->parse) {
     ands_free(ctx->parse);
     ctx->parse = NULL;
@@ -6566,6 +6572,7 @@ void skode_free(skode_t *ctx) {
 
 /* API/device command records live after the legacy records so adding them
    cannot renumber the established numeric help categories. */
+
 
 
 /* Keep this new category after the legacy help records. Numeric help category

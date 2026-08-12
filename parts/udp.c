@@ -26,6 +26,7 @@ typedef int socklen_t;
 #include "skred.h"
 #include "skode.h"
 #include "udp.h"
+#include "api.h"
 #include "util.h"
 #include "portable_atomic.h"
 
@@ -174,10 +175,17 @@ static void *udp_main(void *arg) {
         atomic_fetch_add_uint64(&udp_packets, 1);
         line[n] = '\0';
         skode_t *w = udp_context_for(user, &client, ++use_counter);
-        if (skode_consume(line, w) >= 0)
+        int handled = 0;
+        if (line[0] == '-' || line[0] == '.') {
+          handled = skred_command_ctx(line, w);
+        }
+        if (handled) {
           atomic_fetch_add_uint64(&udp_commands, 1);
-        else
+        } else if (skode_consume(line, w) >= 0) {
+          atomic_fetch_add_uint64(&udp_commands, 1);
+        } else {
           atomic_fetch_add_uint64(&udp_errors, 1);
+        }
         //
         if (w->log_len) {
           sendto(sock, w->log, w->log_len, 0, (struct sockaddr *)&client, client_len);

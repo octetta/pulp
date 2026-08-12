@@ -7904,6 +7904,12 @@ void skode_free(skode_t *ctx) {
     skode_dict_vocab_destroy(ctx->vocab);
     ctx->vocab = NULL;
   }
+  if (ctx->upload_buffer) {
+    free(ctx->upload_buffer);
+    ctx->upload_buffer = NULL;
+    ctx->upload_len = 0;
+    ctx->upload_cap = 0;
+  }
   if (ctx->parse) {
     ands_free(ctx->parse);
     ctx->parse = NULL;
@@ -7935,6 +7941,40 @@ summary: show return registers without consuming them
 
 /* API/device command records live after the legacy records so adding them
    cannot renumber the established numeric help categories. */
+@doc
+## API Commands (Runtime & Device Integration)
+
+### Wave Upload Protocol
+Allows interactive streaming of raw wave data into a wave slot using base64.
+1. `-upwave START <compressed_size> <uncompressed_size>`
+   Allocates a temporary session buffer for the UDP connection or WASM client.
+2. `-upwave DATA <base64>`
+   Streams compressed base64 chunks directly into the session buffer.
+3. `-upwave COMMIT <slot>`
+   Safely checks if the slot is in-use. If free, decompresses the payload using miniz and commits to the slot lock-free.
+4. `-upwave CANCEL`
+   Aborts the upload and safely frees the session buffer.
+
+### Wave Download Protocol
+1. `-wave <slot>`
+   Dumps a wave slot to `stdout` in base64 format using `~WAVE:START`, `~WAVE:<data>`, and `~WAVE:END` boundaries for easy parsing by external API clients.
+@enddoc
+
+@doc(command.-restart)
+name: -restart
+category: runtime
+summary: restart the audio engine [voices=v] [frames=f] [port=p]
+@enddoc
+@doc(command.-wave)
+name: -wave
+category: runtime
+summary: dump wave slot as compressed base64
+@enddoc
+@doc(command.-upwave)
+name: -upwave
+category: runtime
+summary: stream wave data via START DATA CANCEL COMMIT
+@enddoc
 @doc(command./als)
 name: /als
 category: runtime

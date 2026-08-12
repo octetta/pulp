@@ -1749,7 +1749,14 @@ void skred_set_audio_device(int playback_idx, int capture_idx) {
   skred_audio_select(1, capture_idx < 0 ? SKRED_AUDIO_OFF : capture_idx);
 }
 
+static unsigned int saved_req = 128;
+static unsigned int saved_voices = 64;
+static int saved_port = 60440;
+
 int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
+  saved_req = req_audio_frames;
+  saved_voices = voices;
+  saved_port = port;
     // 1. Initialize synth state
   skred_startup_trace("begin");
   int req = req_audio_frames;
@@ -1823,7 +1830,92 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   return 0;
 }
 
-int skred_command(char* line) {
+static size_t base64_decode(const char *src, unsigned char *out);
+
+int skred_command_ctx(char* line, skode_t* ctx) {
+  if (strncmp(line, "-restart", 8) == 0) {
+      char *v_ptr = strstr(line, "voices=");
+      if (v_ptr) saved_voices = atoi(v_ptr + 7);
+      char *f_ptr = strstr(line, "frames=");
+      if (f_ptr) saved_req = atoi(f_ptr + 7);
+      char *p_ptr = strstr(line, "port=");
+      if (p_ptr) saved_port = atoi(p_ptr + 5);
+
+      skred_stop();
+      skred_start(saved_req, saved_voices, saved_port);
+      return 1;
+  }
+
+  if (strncmp(line, "-upwave ", 8) == 0) {
+      char *arg = line + 8;
+      if (strncmp(arg, "START ", 6) == 0) {
+          int expected_comp = 0;
+          int expected_uncomp = 0;
+          if (sscanf(arg + 6, "%d %d", &expected_comp, &expected_uncomp) == 2) {
+              if (expected_comp > 0 && expected_comp < 1024*1024*64 && expected_uncomp > 0) {
+                  if (ctx->upload_buffer) free(ctx->upload_buffer);
+                  // We'll store both uncompressed size expectation and the buffer
+                  ctx->upload_buffer = malloc(expected_comp);
+                  ctx->upload_cap = expected_comp;
+                  ctx->upload_len = 0;
+                  ctx->flag = expected_uncomp; // Hack: reuse flag for uncompressed bytes
+                  ctx->printf(ctx, "# upload started: %d comp, %d uncomp\n", expected_comp, expected_uncomp);
+              } else {
+                  ctx->printf(ctx, "# upload start failed: invalid size\n");
+              }
+          }
+      } else if (strncmp(arg, "DATA ", 5) == 0) {
+          if (ctx->upload_buffer) {
+              size_t dec_len = base64_decode(arg + 5, ctx->upload_buffer + ctx->upload_len);
+              ctx->upload_len += dec_len;
+          }
+      } else if (strncmp(arg, "CANCEL", 6) == 0) {
+          if (ctx->upload_buffer) {
+              free(ctx->upload_buffer);
+              ctx->upload_buffer = NULL;
+              ctx->upload_len = 0;
+              ctx->printf(ctx, "# upload cancelled\n");
+          }
+      } else if (strncmp(arg, "COMMIT ", 7) == 0) {
+          int slot = atoi(arg + 7);
+          if (slot < 0 || slot >= synth_config.wave_table_max) {
+              ctx->printf(ctx, "# invalid slot\n");
+          } else if (sw.refcount[slot] > 0) {
+              ctx->printf(ctx, "# slot %d is busy\n", slot);
+          } else if (ctx->upload_buffer && ctx->upload_len > 0 && ctx->flag > 0) {
+              uLongf decomp_len = ctx->flag;
+              float *decomp_data = malloc(decomp_len);
+              if (decomp_data) {
+                  if (uncompress((unsigned char*)decomp_data, &decomp_len, ctx->upload_buffer, ctx->upload_len) == MZ_OK) {
+                      wave_free_one(slot);
+                      sw.data[slot] = decomp_data;
+                      sw.size[slot] = decomp_len / sizeof(float);
+                      sw.is_heap[slot] = 1;
+                      sw.rate[slot] = MAIN_SAMPLE_RATE;
+                      sw.one_shot[slot] = 1;
+                      sw.loop_enabled[slot] = 0;
+                      sw.loop_start[slot] = 0;
+                      sw.loop_end[slot] = sw.size[slot];
+                      sw.direction[slot] = 0.0f;
+                      strncpy(sw.name[slot], "upload", WAVE_NAME_MAX);
+                      sw.name[slot][WAVE_NAME_MAX-1] = '\0';
+                      ctx->printf(ctx, "# upload committed to slot %d (%d frames)\n", slot, sw.size[slot]);
+
+                      free(ctx->upload_buffer);
+                      ctx->upload_buffer = NULL;
+                      ctx->upload_len = 0;
+                  } else {
+                      free(decomp_data);
+                      ctx->printf(ctx, "# decompression failed\n");
+                  }
+              } else {
+                  ctx->printf(ctx, "# out of memory for decompression\n");
+              }
+          }
+      }
+      return 1;
+  }
+
     /*
      * Device commands are runtime operations, not schedulable Skode
      * programs. Route them at the common API boundary and mirror their
@@ -1833,22 +1925,26 @@ int skred_command(char* line) {
      */
     int audio_result = skred_audio_command(line);
     if (audio_result != 0) {
-      skode_log_message(&w, skred_audio_message());
+      skode_log_message(ctx, skred_audio_message());
       return 0;
     }
     int midi_result = skred_midi_command(line);
     if (midi_result != 0) {
-      skode_log_message(&w, skred_midi_message());
+      skode_log_message(ctx, skred_midi_message());
       return 0;
     }
 
     // Inject a command directly into the skqueue or seq parser
     // This allows local control without hitting the UDP layer
-    int n = skode_consume(line, &w);
-    // if (w->log_len) printf("%s", w->log);
+    int n = skode_consume(line, ctx);
+    // if (ctx->log_len) printf("%s", ctx->log);
     // if (n < 0) break; // request to stop or error
     // if (n > 0) printf("# ERR:%d\n", n);
     return n;
+}
+
+int skred_command(char* line) {
+  return skred_command_ctx(line, &w);
 }
 
 void skred_stop(void) {
@@ -1968,6 +2064,33 @@ static void base64_encode(const unsigned char *src, size_t len, char *out) {
         out[j++] = i + 2 < len ? b64_table[triple & 0x3F] : '=';
     }
     out[j] = '\0';
+}
+
+static int b64_rev(char c) {
+    if (c >= 'A' && c <= 'Z') return c - 'A';
+    if (c >= 'a' && c <= 'z') return c - 'a' + 26;
+    if (c >= '0' && c <= '9') return c - '0' + 52;
+    if (c == '+') return 62;
+    if (c == '/') return 63;
+    return -1;
+}
+
+static size_t base64_decode(const char *src, unsigned char *out) {
+    size_t len = 0;
+    size_t srclen = strlen(src);
+    for (size_t i = 0; i < srclen; i += 4) {
+        int n[4] = {0,0,0,0};
+        for (int j=0; j<4; j++) {
+            if (i+j < srclen && src[i+j] != '=') {
+                n[j] = b64_rev(src[i+j]);
+                if (n[j] < 0) n[j] = 0;
+            }
+        }
+        if (i < srclen) out[len++] = (n[0] << 2) | (n[1] >> 4);
+        if (i+2 < srclen && src[i+2] != '=') out[len++] = ((n[1] & 15) << 4) | (n[2] >> 2);
+        if (i+3 < srclen && src[i+3] != '=') out[len++] = ((n[2] & 3) << 6) | n[3];
+    }
+    return len;
 }
 
 #define WAVE_CHUNK_SIZE 200 

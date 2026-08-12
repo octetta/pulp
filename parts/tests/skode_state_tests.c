@@ -398,13 +398,8 @@ static void test_command_help(void) {
   expect_substr(test, ctx.log, "# help categories", "help categories");
   expect_substr(test, ctx.log, "parser", "help parser category");
 
-#ifdef SKRED_TEST_MIDI
   const char *parser_cat_cmd = "/h 2";
   const char *wait_cmd = "/h 2,1";
-#else
-  const char *parser_cat_cmd = "/h 1";
-  const char *wait_cmd = "/h 1,1";
-#endif
 
   reset_log(&ctx);
   consume(test, &ctx, parser_cat_cmd);
@@ -644,10 +639,10 @@ static void test_cycle_playback_classification(void) {
     sv.phase[general_voice] = (double)span - 1.25;
     sv.finished[fast_voice] = 0;
     sv.finished[general_voice] = 0;
-    osc_reclassify(fast_voice);
+    osc_reclassify(&skred_global_engine,fast_voice);
     sv.playback_class[general_voice] = OSC_PLAYBACK_GENERAL;
-    float fast = osc_next(fast_voice, increments[i]);
-    float general = osc_next(general_voice, increments[i]);
+    float fast = osc_next(&skred_global_engine,fast_voice, increments[i]);
+    float general = osc_next(&skred_global_engine,general_voice, increments[i]);
     expect_float(test, fast, general, 0.0001f, "sample equivalence");
     expect_float(test, (float)sv.phase[fast_voice],
                  (float)sv.phase[general_voice], 0.0001f,
@@ -678,15 +673,15 @@ static void test_bounded_one_shot_loops(void) {
   expect_int(test, sv.loop_count[voice], 0, "updated next loop count");
   expect_int(test, sv.loop_bounded[voice], 1, "active bounded snapshot");
 
-  for (int i = 0; i < 5; i++) osc_next(voice, 1.0f);
+  for (int i = 0; i < 5; i++) osc_next(&skred_global_engine,voice, 1.0f);
   expect_float(test, sv.phase[voice], 2.0f, 0.0001f, "first wrap phase");
   expect_int(test, sv.loop_remaining[voice], 1, "first wrap remaining");
 
-  for (int i = 0; i < 3; i++) osc_next(voice, 1.0f);
+  for (int i = 0; i < 3; i++) osc_next(&skred_global_engine,voice, 1.0f);
   expect_float(test, sv.phase[voice], 2.0f, 0.0001f, "second wrap phase");
   expect_int(test, sv.loop_remaining[voice], 0, "second wrap remaining");
 
-  for (int i = 0; i < 3; i++) osc_next(voice, 1.0f);
+  for (int i = 0; i < 3; i++) osc_next(&skred_global_engine,voice, 1.0f);
   expect_float(test, sv.phase[voice], 5.0f, 0.0001f, "loop exit phase");
   expect_int(test, sv.loop_active[voice], 0, "loop exhausted");
   expect_int(test, sv.loop_ended[voice], 1, "loop exhaustion event");
@@ -694,9 +689,9 @@ static void test_bounded_one_shot_loops(void) {
   expect_int(test, sv.loop_release_tail[voice], 1,
              "bounded loop exits into sample tail");
 
-  osc_next(voice, 1.0f);
-  osc_next(voice, 1.0f);
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_int(test, sv.finished[voice], 1, "tail completion");
 
   consume(test, &ctx, "BC0 l1");
@@ -706,7 +701,7 @@ static void test_bounded_one_shot_loops(void) {
              "unbounded release stop request");
   expect_u64(test, sv.amp_envelope[voice].sample_release, UINT64_MAX,
              "one-shot loop release keeps amp envelope held");
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_int(test, sv.loop_active[voice], 0, "unbounded release loop exit");
   expect_float(test, sv.phase[voice], 5.0f, 0.0001f,
                "unbounded release exit phase");
@@ -723,7 +718,7 @@ static void test_bounded_one_shot_loops(void) {
   consume(test, &ctx, "l0");
   expect_int(test, sv.loop_stop_requested[voice], 1,
              "backward unbounded release stop request");
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_int(test, sv.loop_active[voice], 0,
              "backward unbounded release loop exit");
   expect_float(test, sv.phase[voice], 1.0f, 0.0001f,
@@ -735,21 +730,21 @@ static void test_bounded_one_shot_loops(void) {
   consume(test, &ctx, "l0");
   expect_int(test, sv.loop_stop_requested[voice], 1,
              "bounded release stop request");
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_int(test, sv.loop_active[voice], 0, "bounded release loop exit");
   expect_float(test, sv.phase[voice], 5.0f, 0.0001f,
                "bounded release exit phase");
 
   consume(test, &ctx, "BC1 l1");
   sv.phase[voice] = 4.0f;
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_int(test, sv.loop_remaining[voice], 0,
              "bounded toggle setup remaining");
   consume(test, &ctx, "BC0 B0 B1");
   expect_int(test, sv.loop_bounded[voice], 0,
              "B1 refreshes unbounded loop snapshot");
   sv.phase[voice] = 4.0f;
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_int(test, sv.loop_active[voice], 1,
              "B1 unbounded loop stays active");
   expect_float(test, sv.phase[voice], 2.0f, 0.0001f,
@@ -758,12 +753,12 @@ static void test_bounded_one_shot_loops(void) {
   configure_loop_test_voice(voice, 1);
   consume(test, &ctx, "BC1 l1");
   sv.phase[voice] = 2.0f;
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_float(test, sv.phase[voice], 4.0f, 0.0001f,
                "backward wrap phase");
   expect_int(test, sv.loop_remaining[voice], 0, "backward wrap remaining");
   sv.phase[voice] = 2.0f;
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_float(test, sv.phase[voice], 1.0f, 0.0001f,
                "backward exit phase");
   expect_int(test, sv.loop_active[voice], 0, "backward loop exhausted");
@@ -800,7 +795,7 @@ static void test_bounded_one_shot_loops(void) {
 
   configure_loop_test_voice(voice, 0);
   consume(test, &ctx, "BC1 l1");
-  osc_next(voice, 10.0f);
+  osc_next(&skred_global_engine,voice, 10.0f);
   expect_float(test, sv.phase[voice], 7.0f, 0.0001f,
                "multi-boundary exit phase");
   expect_int(test, sv.loop_remaining[voice], 0,
@@ -810,16 +805,16 @@ static void test_bounded_one_shot_loops(void) {
   configure_loop_test_voice(voice, 0);
   consume(test, &ctx, "b2 BC0 l1");
   sv.phase[voice] = 4.0f;
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_float(test, sv.phase[voice], 5.0f, 0.0001f,
                "ping-pong forward boundary phase");
   expect_int(test, sv.pingpong_reverse[voice], 1,
              "ping-pong reverses at loop end");
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_float(test, sv.phase[voice], 4.0f, 0.0001f,
                "ping-pong backward phase");
   sv.phase[voice] = 2.0f;
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_float(test, sv.phase[voice], 3.0f, 0.0001f,
                "ping-pong reverses at loop start");
   expect_int(test, sv.pingpong_reverse[voice], 0,
@@ -828,15 +823,15 @@ static void test_bounded_one_shot_loops(void) {
   configure_loop_test_voice(voice, 0);
   consume(test, &ctx, "b2 BC2 l1");
   sv.phase[voice] = 4.0f;
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_int(test, sv.loop_remaining[voice], 1,
              "ping-pong first traversal remaining");
   sv.phase[voice] = 2.0f;
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_int(test, sv.loop_remaining[voice], 0,
              "ping-pong second traversal remaining");
   sv.phase[voice] = 4.0f;
-  osc_next(voice, 1.0f);
+  osc_next(&skred_global_engine,voice, 1.0f);
   expect_int(test, sv.loop_active[voice], 0,
              "ping-pong third traversal exits loop");
   expect_int(test, sv.loop_ended[voice], 1,
@@ -965,11 +960,11 @@ static void test_wave_loop_points(void) {
 
   consume(test, &ctx, "B1 BC0 l1");
   expect_int(test, sv.loop_active[voice], 1, "VL trigger loop active");
-  for (int i = 0; i < 7; i++) osc_next(voice, 1.0f);
+  for (int i = 0; i < 7; i++) osc_next(&skred_global_engine,voice, 1.0f);
   expect_float(test, sv.phase[voice], 2.0f, 0.0001f,
                "VL affects l1 loop wrap");
   consume(test, &ctx, "l0");
-  for (int i = 0; i < 5; i++) osc_next(voice, 1.0f);
+  for (int i = 0; i < 5; i++) osc_next(&skred_global_engine,voice, 1.0f);
   expect_float(test, sv.phase[voice], 7.0f, 0.0001f,
                "VL release exits at override end");
   expect_int(test, sv.loop_active[voice], 0,
@@ -1322,7 +1317,7 @@ static void test_multichannel_capture_waves(void) {
     wave_reset(voice);
     sv.finished[voice] = 1;
   }
-  delay_clear();
+  delay_clear(&skred_global_engine);
   amp_set(0, 0.0f);
   pan_set(0, -1.0f);
   consume(test, &ctx, "v0 s0");
@@ -1972,10 +1967,10 @@ static void test_signed_phase_distortion_and_envelope(void) {
   wave_reset(0);
   sv.phase[0] = 0.25 * sv.table_size[0];
   cz_set(0, 0, 0.0f);
-  float plain = osc_next(0, 0.0f);
+  float plain = osc_next(&skred_global_engine,0, 0.0f);
   sv.phase[0] = 0.25 * sv.table_size[0];
   cz_set(0, 1, 0.8f);
-  float shaped = osc_next(0, 0.0f);
+  float shaped = osc_next(&skred_global_engine,0, 0.0f);
   if (fabsf(plain - shaped) < 0.01f)
     fail(test, "base PD did not affect audio without a C modulator");
 
@@ -2214,7 +2209,7 @@ static void configure_delay_test_voice(int voice, int track, float pan) {
   sv.pan_left[voice] = 0.0f;
   sv.pan_right[voice] = 0.0f;
   synth_record_track_set(voice, track);
-  delay_send_set(voice, 15.0f);
+  delay_send_set(&skred_global_engine,voice, 15.0f);
 }
 
 static void test_track_delay_send_requires_route_and_center_pan(void) {
@@ -2226,7 +2221,7 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   int mod_freq = -1, mod_depth = -1, level = -1;
 
   consume(test, &ctx, "r2 DL2,0,0,0,0,0,15 ds15");
-  delay_params_get(2, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+  delay_params_get(&skred_global_engine,2, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
   expect_int(test, coarse, 0, "delay coarse command");
   expect_int(test, fine, 0, "delay fine command");
   expect_int(test, feedback, 0, "delay feedback command");
@@ -2238,8 +2233,8 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
                "delay send command");
 
   voice_init();
-  delay_params_set(2, 0, 0, 0, 0, 0, 15);
-  delay_clear();
+  delay_params_set(&skred_global_engine,2, 0, 0, 0, 0, 0, 15);
+  delay_clear(&skred_global_engine);
   configure_delay_test_voice(0, 2, 0.0f);
   memset(buffer, 0, sizeof(buffer));
   synth(&skred_global_engine, buffer, NULL, frames, channels, NULL);
@@ -2247,8 +2242,8 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
              "centered voice feeds delay");
 
   voice_init();
-  delay_params_set(2, 0, 0, 0, 0, 0, 15);
-  delay_clear();
+  delay_params_set(&skred_global_engine,2, 0, 0, 0, 0, 0, 15);
+  delay_clear(&skred_global_engine);
   configure_delay_test_voice(0, 0, 0.0f);
   memset(buffer, 0, sizeof(buffer));
   synth(&skred_global_engine, buffer, NULL, frames, channels, NULL);
@@ -2256,8 +2251,8 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
              "unrouted voice does not feed track delay");
 
   voice_init();
-  delay_params_set(2, 0, 0, 0, 0, 0, 15);
-  delay_clear();
+  delay_params_set(&skred_global_engine,2, 0, 0, 0, 0, 0, 15);
+  delay_clear(&skred_global_engine);
   configure_delay_test_voice(0, 2, 1.0f);
   memset(buffer, 0, sizeof(buffer));
   synth(&skred_global_engine, buffer, NULL, frames, channels, NULL);
@@ -2265,8 +2260,8 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
              "panned voice does not feed delay");
 
   voice_init();
-  delay_params_set(3, 0, 0, 0, 0, 31, 15);
-  delay_clear();
+  delay_params_set(&skred_global_engine,3, 0, 0, 0, 0, 31, 15);
+  delay_clear(&skred_global_engine);
   configure_delay_test_voice(0, 3, 0.0f);
   memset(buffer, 0, sizeof(buffer));
   synth(&skred_global_engine, buffer, NULL, frames, channels, NULL);
@@ -2274,8 +2269,8 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
              "modulated delay returns stereo");
 
   voice_init();
-  delay_params_set(2, 0, 0, 0, 0, 0, 15);
-  delay_clear();
+  delay_params_set(&skred_global_engine,2, 0, 0, 0, 0, 0, 15);
+  delay_clear(&skred_global_engine);
   configure_delay_test_voice(0, 2, 0.0f);
 #ifdef SKRED_TEST_RECORD_SCOPE
   float record_frames[frames * RECORD_CHANNELS];
@@ -2300,9 +2295,9 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   expect_substr(test, ctx.log, "DL2,0,0,0,0,0,15",
                 "delay query is pasteable");
 
-  delay_params_set(2, 1, 2, 3, 4, 5, 6);
+  delay_params_set(&skred_global_engine,2, 1, 2, 3, 4, 5, 6);
   consume(test, &ctx, "DL2,-,12,-,20,-,10");
-  delay_params_get(2, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+  delay_params_get(&skred_global_engine,2, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
   expect_int(test, coarse, 1, "delay dash keeps coarse");
   expect_int(test, fine, 12, "delay updates fine");
   expect_int(test, feedback, 3, "delay dash keeps feedback");
@@ -2311,12 +2306,12 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   expect_int(test, level, 10, "delay updates level");
 
   event_program_t program;
-  delay_params_set(2, 1, 2, 3, 4, 5, 6);
+  delay_params_set(&skred_global_engine,2, 1, 2, 3, 4, 5, 6);
   expect_int(test, skode_compile_program("DL2,-,11,-,21,-,9", &program),
              SKODE_COMPILE_OK, "compile delay bus params");
   expect_int(test, skode_execute_program(&program, ctx.voice,
              SAMPLE_COUNT_GET(), 0), 0, "execute delay bus params");
-  delay_params_get(2, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+  delay_params_get(&skred_global_engine,2, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
   expect_int(test, coarse, 1, "delay opcode dash keeps coarse");
   expect_int(test, fine, 11, "delay opcode updates fine");
   expect_int(test, feedback, 3, "delay opcode dash keeps feedback");
@@ -3521,9 +3516,9 @@ static void test_frequency_and_amplitude_bend(void) {
   freq_set(0, 440.0f);
   freq_bend_param_set(0, 12.0f, 0.0f);
   freq_bend_set(0, 1.0f); /* +12 semitones = 1 octave = 880 Hz */
-  float inc_440 = osc_get_phase_inc(0, 440.0f);
+  float inc_440 = osc_get_phase_inc(&skred_global_engine,0, 440.0f);
   freq_bend_set(0, 0.0f);
-  float inc_base = osc_get_phase_inc(0, 440.0f);
+  float inc_base = osc_get_phase_inc(&skred_global_engine,0, 440.0f);
   expect_float(test, inc_440, inc_base * 2.0f, 1e-4f, "1 octave frequency bend doubles phase_inc");
 
   /* SKode command execution for ab and abp */
@@ -3608,7 +3603,7 @@ static void test_rec_load_k_to_data_to_rec(void) {
   expect_int(test, sw.size[100], 4, "wave 100 size is 4");
   expect_int(test, sw.one_shot[100], 1, "wave 100 is one_shot");
   consume(test, &ctx, "v0 w100 f440 n69,0");
-  float phase_inc = osc_get_phase_inc(0, 440.0f);
+  float phase_inc = osc_get_phase_inc(&skred_global_engine,0, 440.0f);
   expect_int(test, phase_inc > 0.0f ? 1 : 0, 1, "phase_inc is positive for rec_load one-shot wave");
 }
 

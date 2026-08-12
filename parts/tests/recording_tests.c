@@ -45,7 +45,7 @@ static void test_track_routing(void) {
   synth_record_track_set(1, 2);
   envelope_velocity(1, 1.0f);
 
-  synth(output, NULL, FRAMES, AUDIO_CHANNELS, &bus);
+  synth(&skred_global_engine, output, NULL, FRAMES, AUDIO_CHANNELS, &bus);
 
   int track1_nonzero = 0;
   int track2_nonzero = 0;
@@ -80,7 +80,7 @@ static void test_track_routing(void) {
   memset(output, 0, sizeof(output));
   memset(recorded, 0, sizeof(recorded));
   synth_record_track_set(0, 3);
-  synth(output, NULL, FRAMES, AUDIO_CHANNELS, &bus);
+  synth(&skred_global_engine, output, NULL, FRAMES, AUDIO_CHANNELS, &bus);
 
   int old_track_nonzero = 0;
   int new_track_nonzero = 0;
@@ -127,7 +127,7 @@ static void test_muted_voice_remains_on_stem(void) {
   if (skode_consume(mute, &ctx) != 0 || sv.disconnect[0] != 1)
     fail(test, "m1 did not mute the voice");
 
-  synth(output, NULL, FRAMES, AUDIO_CHANNELS, &bus);
+  synth(&skred_global_engine, output, NULL, FRAMES, AUDIO_CHANNELS, &bus);
 
   int stem_nonzero = 0;
   for (int frame = 0; frame < FRAMES; frame++) {
@@ -178,7 +178,7 @@ static void test_multichannel_device_track_routing(void) {
     envelope_velocity(voice, 1.0f);
   }
 
-  synth(output, NULL, FRAMES, RECORD_CHANNELS, &bus);
+  synth(&skred_global_engine, output, NULL, FRAMES, RECORD_CHANNELS, &bus);
 
   int track_nonzero[RECORD_TRACK_COUNT] = {0};
   for (int frame = 0; frame < FRAMES; frame++) {
@@ -208,7 +208,7 @@ static void test_multichannel_device_track_routing(void) {
   }
 
   float odd_output[FRAMES * 5] = {0};
-  synth(odd_output, NULL, FRAMES, 5, NULL);
+  synth(&skred_global_engine, odd_output, NULL, FRAMES, 5, NULL);
   int leftover_nonzero = 0;
   for (int frame = 0; frame < FRAMES; frame++) {
     int frame_index = frame * 5;
@@ -237,13 +237,13 @@ static void test_sub_block_record_offsets(void) {
   envelope_velocity(0, 1.0f);
 
   synth_record_bus_t first = {recorded, RECORD_CHANNELS};
-  synth(output, NULL, SPLIT, AUDIO_CHANNELS, &first);
+  synth(&skred_global_engine, output, NULL, SPLIT, AUDIO_CHANNELS, &first);
 
   synth_record_bus_t second = {
     recorded + ((size_t)SPLIT * RECORD_CHANNELS),
     RECORD_CHANNELS
   };
-  synth(output + (SPLIT * AUDIO_CHANNELS), NULL, FRAMES - SPLIT,
+  synth(&skred_global_engine, output + (SPLIT * AUDIO_CHANNELS), NULL, FRAMES - SPLIT,
         AUDIO_CHANNELS, &second);
 
   for (int frame = 0; frame < FRAMES; frame++) {

@@ -143,7 +143,7 @@ int main(void) {
   for (int f = 0; f < 375; f++) {
     float buf[256];
     memset(buf, 0, sizeof(buf));
-    synth(buf, NULL, 128, 2, NULL);
+    synth(&skred_global_engine, buf, NULL, 128, 2, NULL);
     for (int i = 0; i < 256; i++) {
       float a = buf[i] < 0 ? -buf[i] : buf[i];
       if (a > 1e-5f) non_zero_samples++;
@@ -175,7 +175,7 @@ int main(void) {
     float d_max = 0.0f;
     for (int f = 0; f < 500; f++) {
       float buf[256]; memset(buf, 0, sizeof(buf));
-      synth(buf, NULL, 128, 2, NULL);
+      synth(&skred_global_engine, buf, NULL, 128, 2, NULL);
       for (int i = 0; i < 256; i++) {
         float a = buf[i] < 0 ? -buf[i] : buf[i];
         if (a > d_max) d_max = a;

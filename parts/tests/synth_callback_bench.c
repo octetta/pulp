@@ -89,13 +89,13 @@ int main(int argc, char **argv) {
   }
 
   for (int i = 0; i < BENCH_WARMUP_CALLBACKS; i++)
-    synth(output, NULL, BENCH_FRAMES, BENCH_CHANNELS, NULL);
+    synth(&skred_global_engine, output, NULL, BENCH_FRAMES, BENCH_CHANNELS, NULL);
 
   for (int i = 0; i < callbacks; i++) {
     struct timespec start;
     struct timespec end;
     clock_gettime(CLOCK_MONOTONIC, &start);
-    synth(output, NULL, BENCH_FRAMES, BENCH_CHANNELS, NULL);
+    synth(&skred_global_engine, output, NULL, BENCH_FRAMES, BENCH_CHANNELS, NULL);
     clock_gettime(CLOCK_MONOTONIC, &end);
 
     uint64_t callback_ns = elapsed_ns(&start, &end);

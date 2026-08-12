@@ -1617,7 +1617,34 @@ synth_sample_t sampling = {
   .channels = 1
 };
 
-void synth_capture(float *buffer, float *input, int num_frames,
+#undef sv
+#define sv (engine->sv)
+#undef sw
+#define sw (engine->sw)
+#undef synth_config
+#define synth_config (engine->config)
+#undef synth_sample_rate
+#define synth_sample_rate (engine->sample_rate)
+#undef synth_sample_count
+#define synth_sample_count (engine->sample_count)
+#undef requested_synth_frames_per_callback
+#define requested_synth_frames_per_callback (engine->requested_frames_per_callback)
+#undef synth_frames_per_callback
+#define synth_frames_per_callback (engine->frames_per_callback)
+#undef volume_user
+#define volume_user (engine->volume_user)
+#undef volume_final
+#define volume_final (engine->volume_final)
+#undef volume_smoother_gain
+#define volume_smoother_gain (engine->volume_smoother_gain)
+#undef volume_smoother_smoothing
+#define volume_smoother_smoothing (engine->volume_smoother_smoothing)
+#undef volume_threshold
+#define volume_threshold (engine->volume_threshold)
+#undef volume_smoother_higher_smoothing
+#define volume_smoother_higher_smoothing (engine->volume_smoother_higher_smoothing)
+
+void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_frames,
                    int num_channels, int input_channels, void *user) {
   (void)input;
   @if(RECORD || SCOPE)
@@ -2040,11 +2067,38 @@ void synth_capture(float *buffer, float *input, int num_frames,
   @endif
 }
 
-void synth(float *buffer, float *input, int num_frames, int num_channels,
+void synth(skred_engine_t *engine, float *buffer, float *input, int num_frames, int num_channels,
            void *user) {
-  synth_capture(buffer, input, num_frames, num_channels,
+  synth_capture(engine, buffer, input, num_frames, num_channels,
                 input ? AUDIO_CHANNELS : 0, user);
 }
+
+#undef sv
+#define sv (skred_global_engine.sv)
+#undef sw
+#define sw (skred_global_engine.sw)
+#undef synth_config
+#define synth_config (skred_global_engine.config)
+#undef synth_sample_rate
+#define synth_sample_rate (skred_global_engine.sample_rate)
+#undef synth_sample_count
+#define synth_sample_count (skred_global_engine.sample_count)
+#undef requested_synth_frames_per_callback
+#define requested_synth_frames_per_callback (skred_global_engine.requested_frames_per_callback)
+#undef synth_frames_per_callback
+#define synth_frames_per_callback (skred_global_engine.frames_per_callback)
+#undef volume_user
+#define volume_user (skred_global_engine.volume_user)
+#undef volume_final
+#define volume_final (skred_global_engine.volume_final)
+#undef volume_smoother_gain
+#define volume_smoother_gain (skred_global_engine.volume_smoother_gain)
+#undef volume_smoother_smoothing
+#define volume_smoother_smoothing (skred_global_engine.volume_smoother_smoothing)
+#undef volume_threshold
+#define volume_threshold (skred_global_engine.volume_threshold)
+#undef volume_smoother_higher_smoothing
+#define volume_smoother_higher_smoothing (skred_global_engine.volume_smoother_higher_smoothing)
 
 int envelope_is_flat(int v) {
   if (sv.amp_envelope[v].a == 0.0f &&

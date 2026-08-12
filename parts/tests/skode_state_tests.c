@@ -775,7 +775,7 @@ static void test_bounded_one_shot_loops(void) {
   sv.phase[voice] = 4.0f;
   sv.phase_inc[voice] = 1.0f;
   sv.loop_remaining[voice] = 0;
-  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, output, NULL, 1, AUDIO_CHANNELS, NULL);
   expect_int(test, skred_control_event_poll(events, 4), 1,
              "loop exhaustion release event count");
   expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_VOICE_RELEASE,
@@ -794,7 +794,7 @@ static void test_bounded_one_shot_loops(void) {
              "l0 immediate release event count");
   expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_VOICE_RELEASE,
              "l0 immediate release event type");
-  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, output, NULL, 1, AUDIO_CHANNELS, NULL);
   expect_int(test, skred_control_event_poll(events, 4), 0,
              "l0 boundary release event is not duplicated");
 
@@ -1291,7 +1291,7 @@ static void test_record_voice_selection(void) {
   expect_int(test, sampling.channels, 2, "master recording is stereo");
   {
     float output[44 * AUDIO_CHANNELS] = {0};
-    synth(output, NULL, 44, AUDIO_CHANNELS, NULL);
+    synth(&skred_global_engine, output, NULL, 44, AUDIO_CHANNELS, NULL);
     for (int i = 0; i < 44 * AUDIO_CHANNELS; i++) {
       expect_float(test, sampling.where[i], output[i], 0.000001f,
                    "master recording matches stereo output");
@@ -1337,7 +1337,7 @@ static void test_multichannel_capture_waves(void) {
     output[0] = output[1] = 0.0f;
     wave_set(0, WAVE_TABLE_CAPTURE_FIRST + channel);
     sv.finished[0] = 0;
-    synth_capture(output, input, 1, AUDIO_CHANNELS,
+    synth_capture(&skred_global_engine, output, input, 1, AUDIO_CHANNELS,
                   WAVE_TABLE_CAPTURE_CHANNELS, NULL);
     expect_float(test, output[0], input[channel], 0.0001f,
                  "capture wave selects matching input channel");
@@ -1346,7 +1346,7 @@ static void test_multichannel_capture_waves(void) {
   output[0] = output[1] = 1.0f;
   wave_set(0, WAVE_TABLE_CAP_8);
   sv.finished[0] = 0;
-  synth_capture(output, input, 1, AUDIO_CHANNELS, 2, NULL);
+  synth_capture(&skred_global_engine, output, input, 1, AUDIO_CHANNELS, 2, NULL);
   expect_float(test, output[0], 0.0f, 0.0001f,
                "unavailable capture channel is silent");
 }
@@ -1371,7 +1371,7 @@ static void test_bounded_loop_preserves_tail_envelopes(void) {
   sv.phase_inc[voice] = 1.0f;
   sv.loop_remaining[voice] = 0;
   SAMPLE_COUNT_PUT(saved_sample_count + 100);
-  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, output, NULL, 1, AUDIO_CHANNELS, NULL);
 
   voice_format(voice, formatted, sizeof(formatted), 1);
   if (strstr(formatted, "amp_env_release:18446744073709551615") == NULL ||
@@ -2045,12 +2045,12 @@ static void test_phase_modulation_and_feedback(void) {
 
   configure_fm_pair(1, 0.0f);
   float carrier_inc = sv.phase_inc[1];
-  synth(pm, NULL, 64, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, pm, NULL, 64, AUDIO_CHANNELS, NULL);
   expect_float(test, (float)sv.phase[1], carrier_inc * 64.0f, 0.001f,
                "FF2 preserves carrier phase accumulator");
 
   configure_fm_pair(0, 0.0f);
-  synth(plain, NULL, 64, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, plain, NULL, 64, AUDIO_CHANNELS, NULL);
   float difference = 0.0f;
   for (size_t i = 0; i < sizeof(pm) / sizeof(pm[0]); i++)
     difference += fabsf(pm[i] - plain[i]);
@@ -2065,7 +2065,7 @@ static void test_phase_modulation_and_feedback(void) {
   configure_fm_pair(0, 3.0f);
   wave_mute(0, 0);
   wave_mute(1, 1);
-  synth(feedback_audio, NULL, 64, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, feedback_audio, NULL, 64, AUDIO_CHANNELS, NULL);
   if (fabsf(sv.freq_mod_feedback_z1[0]) < 0.0001f &&
       fabsf(sv.freq_mod_feedback_z2[0]) < 0.0001f)
     fail(test, "feedback history did not capture operator output");
@@ -2073,7 +2073,7 @@ static void test_phase_modulation_and_feedback(void) {
   configure_fm_pair(0, 0.0f);
   wave_mute(0, 0);
   wave_mute(1, 1);
-  synth(no_feedback_audio, NULL, 64, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, no_feedback_audio, NULL, 64, AUDIO_CHANNELS, NULL);
   difference = 0.0f;
   for (size_t i = 0; i < sizeof(feedback_audio) / sizeof(feedback_audio[0]); i++)
     difference += fabsf(feedback_audio[i] - no_feedback_audio[i]);
@@ -2242,7 +2242,7 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   delay_clear();
   configure_delay_test_voice(0, 2, 0.0f);
   memset(buffer, 0, sizeof(buffer));
-  synth(buffer, NULL, frames, channels, NULL);
+  synth(&skred_global_engine, buffer, NULL, frames, channels, NULL);
   expect_int(test, buffer_channel_nonzero(buffer, frames, channels, 0), 1,
              "centered voice feeds delay");
 
@@ -2251,7 +2251,7 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   delay_clear();
   configure_delay_test_voice(0, 0, 0.0f);
   memset(buffer, 0, sizeof(buffer));
-  synth(buffer, NULL, frames, channels, NULL);
+  synth(&skred_global_engine, buffer, NULL, frames, channels, NULL);
   expect_int(test, buffer_channel_nonzero(buffer, frames, channels, 0), 0,
              "unrouted voice does not feed track delay");
 
@@ -2260,7 +2260,7 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   delay_clear();
   configure_delay_test_voice(0, 2, 1.0f);
   memset(buffer, 0, sizeof(buffer));
-  synth(buffer, NULL, frames, channels, NULL);
+  synth(&skred_global_engine, buffer, NULL, frames, channels, NULL);
   expect_int(test, buffer_channel_nonzero(buffer, frames, channels, 0), 0,
              "panned voice does not feed delay");
 
@@ -2269,7 +2269,7 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   delay_clear();
   configure_delay_test_voice(0, 3, 0.0f);
   memset(buffer, 0, sizeof(buffer));
-  synth(buffer, NULL, frames, channels, NULL);
+  synth(&skred_global_engine, buffer, NULL, frames, channels, NULL);
   expect_int(test, buffer_channels_differ(buffer, frames, channels), 1,
              "modulated delay returns stereo");
 
@@ -2282,7 +2282,7 @@ static void test_track_delay_send_requires_route_and_center_pan(void) {
   synth_record_bus_t record_bus = {record_frames, RECORD_CHANNELS};
   memset(buffer, 0, sizeof(buffer));
   memset(record_frames, 0, sizeof(record_frames));
-  synth(buffer, NULL, frames, channels, &record_bus);
+  synth(&skred_global_engine, buffer, NULL, frames, channels, &record_bus);
   expect_int(test, buffer_channel_nonzero(record_frames, frames,
              RECORD_CHANNELS, 4), 1,
              "track delay return is included in matching stem");
@@ -3123,7 +3123,7 @@ static void test_silent_voice_fast_path(void) {
 
   wave_reset(7);
   float phase = sv.phase[7];
-  synth(output, NULL, FRAMES, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, output, NULL, FRAMES, AUDIO_CHANNELS, NULL);
 
   expect_float(test, sv.phase[7], phase, 0.0f,
                "reset voice oscillator remains idle");
@@ -3272,7 +3272,7 @@ static void test_control_plane_voice_events(void) {
   sv.phase[5] = 4.0f;
   sv.phase_inc[5] = 1.0f;
   sv.loop_remaining[5] = 0;
-  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, output, NULL, 1, AUDIO_CHANNELS, NULL);
   (void)skred_control_dispatch_pump(8);
   expect_int(test, sv.wave_range_start[5], 1,
              "release response updates same voice range start");
@@ -3286,7 +3286,7 @@ static void test_control_plane_voice_events(void) {
   sv.phase[5] = (double)sv.loop_end[5] - 1.0;
   sv.phase_inc[5] = 1.0f;
   sv.loop_remaining[5] = 0;
-  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, output, NULL, 1, AUDIO_CHANNELS, NULL);
   (void)skred_control_dispatch_pump(8);
   expect_int(test, sv.wave_range_start[5], 2,
              "second release response updates same voice range start");
@@ -3309,7 +3309,7 @@ static void test_control_plane_voice_events(void) {
   skred_control_event_clear();
   sv.phase[5] = 1.0;
   sv.phase_inc[5] = 1.0f;
-  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, output, NULL, 1, AUDIO_CHANNELS, NULL);
   (void)skred_control_dispatch_pump(8);
   expect_int(test, sv.wave_range_start[5], 2,
              "finished response sets middle range start");
@@ -3325,7 +3325,7 @@ static void test_control_plane_voice_events(void) {
   sv.phase[5] = 4.0;
   sv.phase_inc[5] = 1.0f;
   sv.loop_remaining[5] = 0;
-  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, output, NULL, 1, AUDIO_CHANNELS, NULL);
   (void)skred_control_dispatch_pump(8);
   expect_int(test, sv.wave_range_start[5], 5,
              "release response sets outro range start");
@@ -3458,7 +3458,7 @@ static void test_control_plane_voice_events(void) {
              "finite ADSR trigger event count");
   SAMPLE_COUNT_PUT(sv.amp_envelope[0].sample_start +
                    (uint64_t)(2 * MAIN_SAMPLE_RATE));
-  synth(output, NULL, 1, AUDIO_CHANNELS, NULL);
+  synth(&skred_global_engine, output, NULL, 1, AUDIO_CHANNELS, NULL);
   expect_int(test, skred_control_event_poll(events, 4), 1,
              "finite ADSR finished event count");
   expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_VOICE_FINISHED,

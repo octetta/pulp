@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     for (int frame = 0; frame < PROBE_FRAMES; frame += PROBE_BLOCK) {
       if (mode == 2 && frame == PROBE_FRAMES / 2) amp_set(2, -12.0f);
       memset(output, 0, sizeof(output));
-      synth(output, input, PROBE_BLOCK, AUDIO_CHANNELS, NULL);
+      synth(&skred_global_engine, output, input, PROBE_BLOCK, AUDIO_CHANNELS, NULL);
       hash = hash_bytes(hash, output, sizeof(output));
     }
     hash = hash_bytes(hash, sv.phase, 8 * sizeof(*sv.phase));

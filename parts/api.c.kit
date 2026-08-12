@@ -1340,11 +1340,11 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
       segment_bus.frames += (size_t)offset * segment_bus.channels;
       segment_capture_bus = &segment_bus;
     }
-    synth_capture(segment_output, segment_input, segment_frames,
+    synth_capture(&skred_global_engine, segment_output, segment_input, segment_frames,
           (int)pDevice->playback.channels, (int)pDevice->capture.channels,
           segment_capture_bus);
     @else
-    synth_capture(segment_output, segment_input, segment_frames,
+    synth_capture(&skred_global_engine, segment_output, segment_input, segment_frames,
           (int)pDevice->playback.channels, (int)pDevice->capture.channels,
           pDevice->pUserData);
     @endif
@@ -1352,11 +1352,11 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
   }
   @else
   @if(RECORD || SCOPE)
-  synth_capture((float *)output, (float *)input, (int)frame_count,
+  synth_capture(&skred_global_engine, (float *)output, (float *)input, (int)frame_count,
         (int)pDevice->playback.channels, (int)pDevice->capture.channels,
         capture_bus);
   @else
-  synth_capture((float *)output, (float *)input, (int)frame_count,
+  synth_capture(&skred_global_engine, (float *)output, (float *)input, (int)frame_count,
         (int)pDevice->playback.channels, (int)pDevice->capture.channels,
         pDevice->pUserData);
   @endif

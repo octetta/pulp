@@ -42,7 +42,7 @@ int main(void) {
   snprintf(sv.text[0], sizeof(sv.text[0]), "prototype");
   sv.wave_range_override[8] = 1;
   sv.loop_override[8] = 1;
-  delay_send_set(8, 0.75f);
+  delay_send_set(&skred_global_engine,8, 0.75f);
   voice_control_events_set(8, 1);
 #ifdef SKRED_TEST_TRACKS
   synth_record_track_set(8, 3);

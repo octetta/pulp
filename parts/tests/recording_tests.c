@@ -119,8 +119,8 @@ static void test_muted_voice_remains_on_stem(void) {
   amp_set(0, 0.0f);
   pan_set(0, 0.0f);
   synth_record_track_set(0, 1);
-  delay_send_set(0, 1.0f);
-  delay_params_set(1, 0, 0, 0, 0, 0, 15);
+  delay_send_set(&skred_global_engine,0, 1.0f);
+  delay_params_set(&skred_global_engine,1, 0, 0, 0, 0, 0, 15);
   envelope_velocity(0, 1.0f);
 
   char mute[] = "v0 m1";

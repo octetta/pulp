@@ -3239,11 +3239,11 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
           if (!skode_opcode_int(opcode, 1, &c)) character = c;
         }
         sv.filter_mode[voice] = (character * 10) + (mode % 10);
-        mmf_set_params(voice, sv.filter_freq[voice], sv.filter_res[voice]);
+        mmf_set_params(&skred_global_engine, voice, sv.filter_freq[voice], sv.filter_res[voice]);
       }
       return 0;
     case SKODE_OP_FILTER_FREQ:
-      return opcode->argc == 1 ? mmf_set_freq(voice, opcode->arg[0]) : -1;
+      return opcode->argc == 1 ? mmf_set_freq(&skred_global_engine, voice, opcode->arg[0]) : -1;
     @endif
     case SKODE_OP_ENVELOPE_MODE:
       if (!x_valid) return -1;
@@ -3308,7 +3308,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
     @endif
     @if(FILT)
     case SKODE_OP_FILTER_RESONANCE:
-      return opcode->argc == 1 ? mmf_set_res(voice, opcode->arg[0]) : -1;
+      return opcode->argc == 1 ? mmf_set_res(&skred_global_engine, voice, opcode->arg[0]) : -1;
     @endif
     @if(RECORD || SCOPE || TRACKS)
     case SKODE_OP_RECORD_TRACK:
@@ -3350,7 +3350,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         if (!skode_opcode_int(opcode, 2, &value)) return -1;
         sv.one_shot[voice] = value != 0;
       } else sv.one_shot[voice] = sw.one_shot[x];
-      osc_reclassify(voice);
+      osc_reclassify(&skred_global_engine, voice);
       return 0;
     case SKODE_OP_VOICE_COPY:
       return x_valid && skode_voice_valid(x) ? voice_copy(voice, x) : -1;
@@ -3369,7 +3369,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         int coarse, fine, feedback, mod_freq, mod_depth, level;
         if (opcode->argc < 1 || opcode->argc > 7 ||
             !skode_opcode_int(opcode, 0, &bus)) return -1;
-        delay_params_get(bus, &coarse, &fine, &feedback, &mod_freq,
+        delay_params_get(&skred_global_engine, bus, &coarse, &fine, &feedback, &mod_freq,
           &mod_depth, &level);
         if (opcode->argc > 1 && isfinite(opcode->arg[1]) &&
             !skode_opcode_int(opcode, 1, &coarse)) return -1;
@@ -3383,7 +3383,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
             !skode_opcode_int(opcode, 5, &mod_depth)) return -1;
         if (opcode->argc > 6 && isfinite(opcode->arg[6]) &&
             !skode_opcode_int(opcode, 6, &level)) return -1;
-        return delay_params_set(bus, coarse, fine, feedback, mod_freq,
+        return delay_params_set(&skred_global_engine, bus, coarse, fine, feedback, mod_freq,
           mod_depth, level);
       }
     case SKODE_OP_DELAY_DAMPING:
@@ -3392,12 +3392,12 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         int damping, hp;
         if (opcode->argc < 1 || opcode->argc > 3 ||
             !skode_opcode_int(opcode, 0, &bus)) return -1;
-        delay_damping_get(bus, &damping, &hp);
+        delay_damping_get(&skred_global_engine, bus, &damping, &hp);
         if (opcode->argc > 1 && isfinite(opcode->arg[1]) &&
             !skode_opcode_int(opcode, 1, &damping)) return -1;
         if (opcode->argc > 2 && isfinite(opcode->arg[2]) &&
             !skode_opcode_int(opcode, 2, &hp)) return -1;
-        return delay_damping_set(bus, damping, hp);
+        return delay_damping_set(&skred_global_engine, bus, damping, hp);
       }
     case SKODE_OP_DELAY_FREEZE:
       {
@@ -3405,10 +3405,10 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         int on;
         if (opcode->argc < 1 || opcode->argc > 2 ||
             !skode_opcode_int(opcode, 0, &bus)) return -1;
-        on = delay_freeze_get(bus);
+        on = delay_freeze_get(&skred_global_engine, bus);
         if (opcode->argc > 1 && isfinite(opcode->arg[1]) &&
             !skode_opcode_int(opcode, 1, &on)) return -1;
-        return delay_freeze_set(bus, on);
+        return delay_freeze_set(&skred_global_engine, bus, on);
       }
     case SKODE_OP_DELAY_PINGPONG:
       {
@@ -3416,24 +3416,24 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         int on;
         if (opcode->argc < 1 || opcode->argc > 2 ||
             !skode_opcode_int(opcode, 0, &bus)) return -1;
-        on = delay_pingpong_get(bus);
+        on = delay_pingpong_get(&skred_global_engine, bus);
         if (opcode->argc > 1 && isfinite(opcode->arg[1]) &&
             !skode_opcode_int(opcode, 1, &on)) return -1;
-        return delay_pingpong_set(bus, on);
+        return delay_pingpong_set(&skred_global_engine, bus, on);
       }
     case SKODE_OP_DELAY_TIME:
       {
         int bus;
         if (opcode->argc != 2 || !skode_opcode_int(opcode, 0, &bus) ||
             !isfinite(opcode->arg[1])) return -1;
-        return delay_time_ms_set(bus, (float)opcode->arg[1]);
+        return delay_time_ms_set(&skred_global_engine, bus, (float)opcode->arg[1]);
       }
     case SKODE_OP_DELAY_SYNC:
       {
         int bus;
         if (opcode->argc != 3 || !skode_opcode_int(opcode, 0, &bus) ||
             !isfinite(opcode->arg[1]) || !isfinite(opcode->arg[2])) return -1;
-        return delay_time_sync_set(bus, (float)opcode->arg[1],
+        return delay_time_sync_set(&skred_global_engine, bus, (float)opcode->arg[1],
           (float)opcode->arg[2]);
       }
     case SKODE_OP_DELAY_GRIT:
@@ -3442,12 +3442,12 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         int bits, native;
         if (opcode->argc < 1 || opcode->argc > 3 ||
             !skode_opcode_int(opcode, 0, &bus)) return -1;
-        delay_grit_get(bus, &bits, &native);
+        delay_grit_get(&skred_global_engine, bus, &bits, &native);
         if (opcode->argc > 1 && isfinite(opcode->arg[1]) &&
             !skode_opcode_int(opcode, 1, &bits)) return -1;
         if (opcode->argc > 2 && isfinite(opcode->arg[2]) &&
             !skode_opcode_int(opcode, 2, &native)) return -1;
-        return delay_grit_set(bus, bits, native);
+        return delay_grit_set(&skred_global_engine, bus, bits, native);
       }
     @if(XM)
     case SKODE_OP_RING_MOD:
@@ -4289,7 +4289,7 @@ neutral `ct 0 0 1 0` disables it.
         int character = sv.filter_mode[voice] / 10;
         if (argc > 1 && isfinite(arg[1])) character = (int)arg[1];
         sv.filter_mode[voice] = (character * 10) + (mode % 10);
-        mmf_set_params(voice,
+        mmf_set_params(&skred_global_engine, voice,
           sv.filter_freq[voice],
           sv.filter_res[voice]);
       }
@@ -4300,7 +4300,7 @@ neutral `ct 0 0 1 0` disables it.
     summary: filter-cutoff freq
     @enddoc
     case ATOM4('K---'): // filter-cutoff freq
-      if (argc) { mmf_set_freq(voice, arg[0]); }
+      if (argc) { mmf_set_freq(&skred_global_engine, voice, arg[0]); }
       break;
     @endif
     @if(KSYNTH)
@@ -4531,7 +4531,7 @@ neutral `ct 0 0 1 0` disables it.
     summary: track-delay send amount; active only for routed, centered, unmodulated voices
     @enddoc
     case ATOM4('ds--'): // track-delay send amount; active only for routed, centered, unmodulated voices
-      if (argc) delay_send_set(voice, arg[0]);
+      if (argc) delay_send_set(&skred_global_engine, voice, arg[0]);
       break;
     @doc(command.DG)
     name: DG
@@ -4543,10 +4543,10 @@ neutral `ct 0 0 1 0` disables it.
         int bus = 1;
         int bits, native;
         if (argc > 0) skode_double_to_int(arg[0], &bus);
-        delay_grit_get(bus, &bits, &native);
+        delay_grit_get(&skred_global_engine, bus, &bits, &native);
         if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &bits);
         if (argc > 2 && isfinite(arg[2])) skode_double_to_int(arg[2], &native);
-        delay_grit_set(bus, bits, native);
+        delay_grit_set(&skred_global_engine, bus, bits, native);
       }
       break;
     @doc(command.DL)
@@ -4559,14 +4559,14 @@ neutral `ct 0 0 1 0` disables it.
         int bus = 1;
         int coarse, fine, feedback, mod_freq, mod_depth, level;
         if (argc > 0) skode_double_to_int(arg[0], &bus);
-        delay_params_get(bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+        delay_params_get(&skred_global_engine, bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
         if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &coarse);
         if (argc > 2 && isfinite(arg[2])) skode_double_to_int(arg[2], &fine);
         if (argc > 3 && isfinite(arg[3])) skode_double_to_int(arg[3], &feedback);
         if (argc > 4 && isfinite(arg[4])) skode_double_to_int(arg[4], &mod_freq);
         if (argc > 5 && isfinite(arg[5])) skode_double_to_int(arg[5], &mod_depth);
         if (argc > 6 && isfinite(arg[6])) skode_double_to_int(arg[6], &level);
-        delay_params_set(bus, coarse, fine, feedback, mod_freq, mod_depth, level);
+        delay_params_set(&skred_global_engine, bus, coarse, fine, feedback, mod_freq, mod_depth, level);
       }
       break;
     @doc(command.DL?)
@@ -4593,10 +4593,10 @@ neutral `ct 0 0 1 0` disables it.
         int bus = 1;
         int damping, hp;
         if (argc > 0) skode_double_to_int(arg[0], &bus);
-        delay_damping_get(bus, &damping, &hp);
+        delay_damping_get(&skred_global_engine, bus, &damping, &hp);
         if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &damping);
         if (argc > 2 && isfinite(arg[2])) skode_double_to_int(arg[2], &hp);
-        delay_damping_set(bus, damping, hp);
+        delay_damping_set(&skred_global_engine, bus, damping, hp);
       }
       break;
     @doc(command.DF)
@@ -4609,9 +4609,9 @@ neutral `ct 0 0 1 0` disables it.
         int bus = 1;
         int on;
         if (argc > 0) skode_double_to_int(arg[0], &bus);
-        on = delay_freeze_get(bus);
+        on = delay_freeze_get(&skred_global_engine, bus);
         if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &on);
-        delay_freeze_set(bus, on);
+        delay_freeze_set(&skred_global_engine, bus, on);
       }
       break;
     @doc(command.DP)
@@ -4624,9 +4624,9 @@ neutral `ct 0 0 1 0` disables it.
         int bus = 1;
         int on;
         if (argc > 0) skode_double_to_int(arg[0], &bus);
-        on = delay_pingpong_get(bus);
+        on = delay_pingpong_get(&skred_global_engine, bus);
         if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &on);
-        delay_pingpong_set(bus, on);
+        delay_pingpong_set(&skred_global_engine, bus, on);
       }
       break;
     @doc(command.DT)
@@ -4638,7 +4638,7 @@ neutral `ct 0 0 1 0` disables it.
       if (argc == 2) {
         int bus;
         if (skode_double_to_int(arg[0], &bus) && isfinite(arg[1]))
-          delay_time_ms_set(bus, (float)arg[1]);
+          delay_time_ms_set(&skred_global_engine, bus, (float)arg[1]);
       }
       break;
     @doc(command.DS)
@@ -4650,7 +4650,7 @@ neutral `ct 0 0 1 0` disables it.
       if (argc == 3) {
         int bus;
         if (skode_double_to_int(arg[0], &bus) && isfinite(arg[1]) && isfinite(arg[2]))
-          delay_time_sync_set(bus, (float)arg[1], (float)arg[2]);
+          delay_time_sync_set(&skred_global_engine, bus, (float)arg[1], (float)arg[2]);
       }
       break;
     @doc(command.GS)
@@ -4721,7 +4721,7 @@ neutral `ct 0 0 1 0` disables it.
     summary: filter resonance
     @enddoc
     case ATOM4('Q---'):
-      if (argc) { mmf_set_res(voice, arg[0]); }
+      if (argc) { mmf_set_res(&skred_global_engine, voice, arg[0]); }
       break;
     @endif
     @if(RECORD || SCOPE || TRACKS)
@@ -5040,7 +5040,7 @@ neutral `ct 0 0 1 0` disables it.
         if (argc > 2) {
           if (skode_double_to_int(arg[2], &n)) sv.one_shot[voice] = n != 0;
         } else sv.one_shot[voice] = sw.one_shot[x];
-        osc_reclassify(voice);
+        osc_reclassify(&skred_global_engine, voice);
       }
       break;
     @doc(command.=d)

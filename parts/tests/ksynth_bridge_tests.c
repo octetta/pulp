@@ -189,11 +189,11 @@ static void test_ksynth_sample_rate_binding_and_scaling(void) {
   consume(test, &ctx, "k>w302,22050,1");
   consume(test, &ctx, "v0 w302,1");
   float expected_ratio = 22050.0f / 48000.0f;
-  float phase_inc = osc_get_phase_inc(0, 440.0f);
+  float phase_inc = osc_get_phase_inc(&skred_global_engine,0, 440.0f);
   if (fabsf(phase_inc - expected_ratio) > 0.001f) {
     fail(test, "sample playback rate ratio was not applied for table_rate != system_rate");
   }
-  float phase_inc_220 = osc_get_phase_inc(0, 220.0f);
+  float phase_inc_220 = osc_get_phase_inc(&skred_global_engine,0, 220.0f);
   if (fabsf(phase_inc_220 - (expected_ratio * 0.5f)) > 0.001f) {
     fail(test, "untuned k>w drum sample did not scale phase increment proportionally with frequency");
   }

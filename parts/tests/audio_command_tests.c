@@ -150,8 +150,8 @@ int main(void) {
       if (a > max_val) max_val = a;
     }
   }
-  float inc_440 = osc_get_phase_inc(0, 440.0f);
-  float inc_220 = osc_get_phase_inc(0, 220.0f);
+  float inc_440 = osc_get_phase_inc(&skred_global_engine,0, 440.0f);
+  float inc_220 = osc_get_phase_inc(&skred_global_engine,0, 220.0f);
   expect(fabsf(inc_220 - (inc_440 * 0.5f)) < 1e-4f, "halving frequency halves phase increment for drum patch");
   expect(max_val > 0.1f, "2023.sk renders strong audio amplitude");
   skode_free(&audio_skode2);

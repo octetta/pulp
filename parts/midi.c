@@ -585,6 +585,12 @@ static void midi_publish(int type, int channel, int data1, int data2) {
 }
 
 #if defined(SKRED_MIDI_ENABLED)
+#ifdef sv
+#undef sv
+#endif
+#ifdef sw
+#undef sw
+#endif
 #define MINIMIDIO_IMPLEMENTATION
 #include "vendor/minimidio/minimidio.h"
 

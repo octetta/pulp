@@ -18,9 +18,6 @@
 #include "portable_atomic.h"
 #include "control-events.h"
 
-atomic_uint64_t synth_sample_count;
-int synth_sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
-
 #define SAMPLE_COUNT_PUT(n) atomic_store_uint64(&synth_sample_count, n)
 #define SAMPLE_COUNT_GET() atomic_load_uint64(&synth_sample_count)
 #define SAMPLE_COUNT_ADD(n) atomic_fetch_add_uint64(&synth_sample_count, n)
@@ -75,8 +72,6 @@ static int verbose = 0;
 int volume_set(float v);
 float volume_get(void);
 float envelope_step_e(envelope_t *e, uint64_t current_sample);
-extern float volume_user;
-extern float volume_final;
 static int voice_invalid(int voice);
 static int wave_invalid(int wave);
 static void delay_cache_params(delay_bus_t *bus);
@@ -118,6 +113,16 @@ static int mod_voice_invalid(int voice) {
 @endif
 
 void synth_init(int vc) {
+  if (synth_sample_rate == 0) synth_sample_rate = SKRED_DEFAULT_SAMPLE_RATE;
+  requested_synth_frames_per_callback = SYNTH_FRAMES_PER_CALLBACK;
+  synth_frames_per_callback = 0;
+  volume_user = VOLUME_DEFAULT;
+  volume_final = 1.0f;
+  volume_smoother_gain = 0.0f;
+  volume_smoother_smoothing = 0.002f;
+  volume_threshold = 0.05f;
+  volume_smoother_higher_smoothing = 0.3f;
+
   SAMPLE_COUNT_PUT(0);
 
   if (synth_config.wave_table_max == 0)
@@ -227,17 +232,7 @@ const char *synth_track_name_get(int track) {
 @endif
 
 
-int requested_synth_frames_per_callback = SYNTH_FRAMES_PER_CALLBACK;
-int synth_frames_per_callback = 0;
-
 #define SMOOTH_DEFAULT (0.02f)
-
-float volume_user = VOLUME_DEFAULT;
-float volume_final = 1.0f;
-float volume_smoother_gain = 0.0f;
-float volume_smoother_smoothing = 0.002f;
-float volume_threshold = 0.05f;
-float volume_smoother_higher_smoothing = 0.3f;
 
 static float clampf(float value, float min_value, float max_value) {
   if (value < min_value) return min_value;

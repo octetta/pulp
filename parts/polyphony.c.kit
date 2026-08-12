@@ -12,61 +12,15 @@
 #include "synth-config.h"
 #include "synth-state.h"
 
-typedef struct {
-  int valid;
-  int source;
-  int width;
-  int root_offset;
-  uint32_t generation;
-} poly_group_t;
-
 enum {
   POLY_INSTANCE_FREE = 0,
   POLY_INSTANCE_HELD = 1,
   POLY_INSTANCE_RELEASING = 2,
 };
 
-typedef struct {
-  int state;
-  int key;
-  float note;
-  float cents;
-  float velocity;
-  float bend_cents;
-  uint64_t started;
-  uint64_t released;
-  uint32_t generation;
-} poly_instance_t;
+#define poly_group (skred_global_engine.poly_group)
+#define poly_pool (skred_global_engine.poly_pool)
 
-typedef struct {
-  int used;
-  int key;
-  float note;
-  float cents;
-  float velocity;
-  float bend_cents;
-  uint64_t order;
-} poly_held_t;
-
-typedef struct {
-  int valid;
-  int group;
-  int base;
-  int count;
-  int policy;
-  int mode;
-  int priority;
-  int articulation;
-  int round_robin;
-  int mono_active_key;
-  float bend_cents;
-  uint64_t order;
-  poly_instance_t instance[VOICE_MAX_HARD_LIMIT];
-  poly_held_t held[SKRED_POLY_HELD_MAX];
-} poly_pool_t;
-
-static poly_group_t poly_group[SKRED_POLY_GROUP_MAX];
-static poly_pool_t poly_pool[SKRED_POLY_POOL_MAX];
 /* Sized for a status line for every hard-limit instance and a complete
    machine graph containing every possible per-voice relationship. */
 static char poly_status[131072];

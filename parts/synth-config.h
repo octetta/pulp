@@ -46,8 +46,6 @@ typedef struct {
     int wave_table_max;
 } synth_config_t;
 
-extern synth_config_t synth_config;
-
 /*
  * Call synth_config_defaults() before synth_init().
  * synth_config_set_voices() / synth_config_set_waves() may be called
@@ -58,23 +56,6 @@ void synth_config_defaults(void);
 void synth_config_set_voices(int n);
 void synth_config_set_waves(int n);
 
-/*
- * Use this everywhere you need the voice count inside the audio callback.
- * Loads from a local, applies an alignment hint so the compiler can emit
- * unconditional vector code without a scalar remainder loop.
- */
-static inline int synth_voice_count(void) {
-    int n = synth_config.voice_max;
-    /* Alignment hint — cost: zero at runtime on already-aligned data. */
-#if defined(__clang__)
-    __builtin_assume(n % VOICE_ALIGN == 0);
-#elif defined(__GNUC__) && __GNUC__ >= 13
-    __attribute__((assume(n % VOICE_ALIGN == 0)));
-#else
-    /* Mask forces low bits to zero; compiler infers no remainder loop needed. */
-    n = n & ~(VOICE_ALIGN - 1);
-#endif
-    return n;
-}
+
 
 #endif /* SYNTH_CONFIG_H */

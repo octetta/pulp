@@ -17,21 +17,8 @@ void synth_capture(float *buffer, float *input, int num_frames,
 void synth_init(int vc);
 void synth_free(void);
 
-extern int requested_synth_frames_per_callback;
-extern int synth_frames_per_callback;
-
-extern volatile uint64_t synth_sample_count;
-extern int synth_sample_rate;
-
 int synth_sample_rate_set(int sample_rate);
 int synth_sample_rate_get(void);
-
-extern float volume_user;
-extern float volume_final;
-extern float volume_smoother_gain;
-extern float volume_smoother_smoothing;
-extern float volume_threshold;
-extern float volume_smoother_higher_smoothing;
 
 @if(CRUSH)
       int wave_quant(int voice, int n);

@@ -13,6 +13,55 @@ extern "C" {
 #define SKRED_POLY_GROUP_VOICE_MAX 64
 #define SKRED_POLY_HELD_MAX 256
 
+#include "synth-config.h"
+
+typedef struct {
+  int valid;
+  int source;
+  int width;
+  int root_offset;
+  uint32_t generation;
+} poly_group_t;
+
+typedef struct {
+  int state;
+  int key;
+  float note;
+  float cents;
+  float velocity;
+  float bend_cents;
+  uint64_t started;
+  uint64_t released;
+  uint32_t generation;
+} poly_instance_t;
+
+typedef struct {
+  int used;
+  int key;
+  float note;
+  float cents;
+  float velocity;
+  float bend_cents;
+  uint64_t order;
+} poly_held_t;
+
+typedef struct {
+  int valid;
+  int group;
+  int base;
+  int count;
+  int policy;
+  int mode;
+  int priority;
+  int articulation;
+  int round_robin;
+  int mono_active_key;
+  float bend_cents;
+  uint64_t order;
+  poly_instance_t instance[VOICE_MAX_HARD_LIMIT];
+  poly_held_t held[SKRED_POLY_HELD_MAX];
+} poly_pool_t;
+
 typedef enum {
   SKRED_POLY_STEAL_RELEASE_OLDEST = 0,
   SKRED_POLY_STEAL_OLDEST = 1,

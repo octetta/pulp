@@ -71,6 +71,8 @@ static void *synth_alloc(int n, size_t sz, const char *name) {
 void synth_config_defaults(void) {
     synth_config.voice_max      = VOICE_ALIGN_UP(VOICE_MAX_DEFAULT);
     synth_config.wave_table_max = WAVE_TABLE_MAX_DEFAULT;
+    const char *trace = getenv("SKRED_TRACE_LATENCY");
+    synth_config.trace_latency = (trace && trace[0] && strcmp(trace, "0") != 0) ? 1 : 0;
 }
 
 void synth_config_set_voices(int n) {

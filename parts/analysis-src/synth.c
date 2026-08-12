@@ -1844,7 +1844,7 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
 
       float final = amp * env * mod;
 
-      if (env > 0.0f && sv.latency_timestamp_ns[n] > 0) {
+      if (synth_config.trace_latency && env > 0.0f && sv.latency_timestamp_ns[n] > 0) {
         struct timespec ts;
         clock_gettime(CLOCK_MONOTONIC, &ts);
         uint64_t now_ns = (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;

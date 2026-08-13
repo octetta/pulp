@@ -261,9 +261,9 @@ Skred's audio engine is built for extreme low-latency performance. By default, i
 Because the engine runs "on the razor's edge," you might occasionally hear audio glitches or clicks if your Operating System fails to schedule the audio thread in time (which is common on desktop Linux). If you experience glitching or sequence-step lag, you can balance latency and stability using the following OS-specific tips:
 
 ### 1. Increase the Hardware Frame Buffer
-You can manually increase the requested frame size at startup using the `-p` flag:
+You can manually increase the requested frame size at startup using the `-r` flag (no space):
 ```sh
-./mini-skred -p 512
+./mini-skred -r512
 ```
 A larger frame buffer (e.g., 512 or 1024) gives the OS significantly more time to wake up the audio thread, eliminating glitches at the cost of slightly higher interactive latency (e.g. playing a MIDI keyboard). Note that the internal sequencer is sample-accurate and its timing is completely unaffected by the frame buffer size.
 

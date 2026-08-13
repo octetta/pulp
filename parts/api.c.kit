@@ -2073,6 +2073,23 @@ void skred_process_stereo(float *out_left, float *out_right, unsigned int frame_
   }
 }
 
+int skred_execute_opcode(int voice, int opcode, int argc, const double *args) {
+  if (!engine_started) return -1;
+  
+  opcode_event_t event;
+  memset(&event, 0, sizeof(event));
+  event.code = opcode;
+  event.argc = argc > SEQ_OPCODE_ARG_MAX ? SEQ_OPCODE_ARG_MAX : argc;
+  event.mode = 0;
+  event.var_mask = 0;
+  
+  for (int i = 0; i < event.argc; i++) {
+    event.arg[i] = args[i];
+  }
+  
+  return skode_execute_voice_opcode(&event, voice);
+}
+
 static size_t base64_decode(const char *src, unsigned char *out);
 
 int skred_command_ctx(char* line, skode_t* ctx) {

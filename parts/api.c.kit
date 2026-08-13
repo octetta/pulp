@@ -2056,18 +2056,32 @@ int skred_start_headless(unsigned int voices, int sample_rate) {
 
 #define HEADLESS_MAX_CHUNK 256
 void skred_process_stereo(float *out_left, float *out_right, unsigned int frame_count) {
+  skred_process_stereo_with_input(out_left, out_right, NULL, NULL, frame_count);
+}
+
+void skred_process_stereo_with_input(float *out_left, float *out_right, const float *in_left, const float *in_right, unsigned int frame_count) {
   if (!engine_started) return;
   float buffer[HEADLESS_MAX_CHUNK * 2];
+  float in_buffer[HEADLESS_MAX_CHUNK * 2];
   unsigned int offset = 0;
   while (offset < frame_count) {
       unsigned int chunk = frame_count - offset;
       if (chunk > HEADLESS_MAX_CHUNK) chunk = HEADLESS_MAX_CHUNK;
       
-      internal_synth_process(buffer, NULL, (int)chunk, 2, 0, NULL);
+      int in_channels = 0;
+      if (in_left || in_right) {
+          in_channels = 2;
+          for (unsigned int i = 0; i < chunk; i++) {
+              in_buffer[i * 2] = in_left ? in_left[offset + i] : 0.0f;
+              in_buffer[i * 2 + 1] = in_right ? in_right[offset + i] : 0.0f;
+          }
+      }
+      
+      internal_synth_process(buffer, in_channels ? in_buffer : NULL, (int)chunk, 2, in_channels, NULL);
       
       for (unsigned int i = 0; i < chunk; i++) {
-          out_left[offset + i] = buffer[i * 2];
-          out_right[offset + i] = buffer[i * 2 + 1];
+          if (out_left) out_left[offset + i] = buffer[i * 2];
+          if (out_right) out_right[offset + i] = buffer[i * 2 + 1];
       }
       offset += chunk;
   }

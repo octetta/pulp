@@ -18,6 +18,7 @@ int skred_start_headless(unsigned int voices, int sample_rate);
 
 // Process a chunk of stereo audio in headless mode
 void skred_process_stereo(float *out_left, float *out_right, unsigned int frame_count);
+void skred_process_stereo_with_input(float *out_left, float *out_right, const float *in_left, const float *in_right, unsigned int frame_count);
 
 // Fast-path API to execute a Skode opcode instantly (bypassing text parsing)
 // Note: opcode is the skode_opcode_t enum (e.g. SKODE_OP_ENVELOPE_ATTACK)

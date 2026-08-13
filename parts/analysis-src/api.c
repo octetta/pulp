@@ -1559,8 +1559,24 @@ static int audio_init_selected_device(unsigned int sample_rate) {
   config.dataCallback = synth_callback;
   config.notificationCallback = audio_device_notification;
   config.periodSizeInFrames = requested_synth_frames_per_callback;
+
+  /* Disable miniaudio's internal ringbuffer. Skred can handle arbitrary frame counts, 
+     so we can eliminate the intermediate buffer and drop latency significantly on all platforms. */
+  config.noFixedSizedCallback = MA_TRUE;
+
+  /* Force double-buffering (default is often 3) */
+  config.periods = 2;
+
   config.performanceProfile = ma_performance_profile_low_latency;
   config.wasapi.usage = ma_wasapi_usage_pro_audio;
+
+  /* Disable OS-level software resampling/format conversions which add hidden latency */
+  config.alsa.noAutoFormat = MA_TRUE;
+  config.alsa.noAutoChannels = MA_TRUE;
+  config.alsa.noAutoResample = MA_TRUE;
+  config.wasapi.noAutoConvertSRC = MA_TRUE;
+  config.wasapi.noDefaultQualitySRC = MA_TRUE;
+
   config.pUserData = NULL;
 
   if (ma_device_init(&synth_context, &config, &synth_device) != MA_SUCCESS) {

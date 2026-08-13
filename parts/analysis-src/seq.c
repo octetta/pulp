@@ -136,9 +136,6 @@ void do_event(uint64_t now, void (*event_fn)(const event_t *event)) {
   static uint64_t last_ts = 0;
   while (1) {
     if (queue_get_filtered(&seq_q, now, &item)) {
-      if (item.timestamp < last_ts) {
-        printf("OUT OF ORDER\n");
-      }
       last_ts = item.timestamp;
       event_fn(&item.event);
     } else {

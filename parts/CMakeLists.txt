@@ -268,6 +268,22 @@ install(TARGETS api api_shared mini-skred
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
+add_custom_command(
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md"
+  COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/gen_docs.py"
+          "${CMAKE_CURRENT_SOURCE_DIR}/skode-dict.c"
+          "${CMAKE_CURRENT_SOURCE_DIR}/skode.c.kit"
+          "${CMAKE_CURRENT_SOURCE_DIR}/skode.h"
+          "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md"
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/skode-dict.c"
+          "${CMAKE_CURRENT_SOURCE_DIR}/skode.c.kit"
+          "${CMAKE_CURRENT_SOURCE_DIR}/skode.h"
+          "${CMAKE_CURRENT_SOURCE_DIR}/gen_docs.py"
+  COMMENT "Generating SKODE_DOCS.md..."
+)
+add_custom_target(generate_docs ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md")
+add_dependencies(api generate_docs)
+
 install(FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/api.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/polyphony.h"
@@ -279,6 +295,7 @@ install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/seq.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/exp-vfs/skred_vfs.h"
   "${SKRED_VERSION_H}"
+  "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/skred"
 )
 

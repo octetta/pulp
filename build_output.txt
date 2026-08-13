@@ -1,0 +1,5 @@
+make: Entering directory '/home/stewartj/book/pulp/parts'
+cmake --preset ninja-release
+make: cmake: No such file or directory
+make: *** [Makefile:80: cross-windows-kit] Error 127
+make: Leaving directory '/home/stewartj/book/pulp/parts'

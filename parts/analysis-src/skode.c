@@ -21,8 +21,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#include "portable_win.h"
+#else
 #include <unistd.h>
+#endif
 #include <dirent.h>
 #include "exp-vfs/skred_vfs.h"
 #include "exp-vfs/miniz_zip.h"

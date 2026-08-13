@@ -254,6 +254,27 @@ with `[my-scope]/sg3,.25` and read with
 `./build_maxed/scope_reader my-scope 2048`. WAV recording and scope
 publication may run at the same time.
 
+## Audio Latency and Real-Time Performance
+
+Skred's audio engine is built for extreme low-latency performance. By default, it bypasses safety buffers and OS-level resampling to give you the lowest possible latency between a command and sound output.
+
+Because the engine runs "on the razor's edge," you might occasionally hear audio glitches or clicks if your Operating System fails to schedule the audio thread in time (which is common on desktop Linux). If you experience glitching or sequence-step lag, you can balance latency and stability using the following OS-specific tips:
+
+### 1. Increase the Hardware Frame Buffer
+You can manually increase the requested frame size at startup using the `-p` flag:
+```sh
+./mini-skred -p 512
+```
+A larger frame buffer (e.g., 512 or 1024) gives the OS significantly more time to wake up the audio thread, eliminating glitches at the cost of slightly higher interactive latency (e.g. playing a MIDI keyboard). Note that the internal sequencer is sample-accurate and its timing is completely unaffected by the frame buffer size.
+
+### 2. Linux (ALSA / PulseAudio)
+Standard Linux kernels are notoriously bad at real-time thread scheduling. If you run Skred directly on ALSA and hear dropouts:
+- **Use JACK or PipeWire:** Launching Skred through a properly configured JACK or PipeWire daemon is highly recommended. These daemons have Real-Time (RT) privileges and force the OS to respect audio thread timings.
+- **Configure RT Privileges:** Ensure your user is in the `audio` group and that `/etc/security/limits.d/audio.conf` grants `rtprio` limits so Miniaudio can elevate the audio thread priority.
+
+### 3. WebAssembly (WASM)
+WASM builds automatically use the WebAudio `interactive` latency hint and bypass internal buffers. For the absolute lowest WASM latency, ensure your browser is not heavily throttled and consider compiling Skred with Emscripten's `AUDIO_WORKLET` support in the future to move audio processing off the main UI thread.
+
 ## Validation
 
 ```sh

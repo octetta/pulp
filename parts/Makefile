@@ -136,6 +136,9 @@ wasm:
 	cp build_wasm/skred_api.js ../doc
 	cp build_wasm/skred_api.wasm ../doc
 	cp wasm-assets/serve-wasm.sh ../doc
+	@VERSION=$$(cat ../VERSION | tr -d '[:space:]'); \
+	echo "Stamping html files with version $$VERSION..."; \
+	perl -pi -e "s/skred_api\\.js(\\?v=[^\"]*)?/skred_api.js?v=$$VERSION/g" ../doc/*.html
 
 wasm-test:
 	node wasm-assets/test-control-dispatch.js build_wasm/skred_api.js

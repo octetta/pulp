@@ -13,6 +13,12 @@ extern "C" {
 // Initialize the audio engine, state, and networking
 int skred_start(unsigned int req_audio_frames, unsigned int voices, int port);
 
+// Initialize the engine in headless mode (no audio device opened)
+int skred_start_headless(unsigned int voices, int sample_rate);
+
+// Process a chunk of stereo audio in headless mode
+void skred_process_stereo(float *out_left, float *out_right, unsigned int frame_count);
+
 // Send an ASCII control protocol message to the engine. Audio-device commands
 // (/als, /aout, /ain, /a? and /m* MIDI management) are handled here before
 // other text reaches Skode.

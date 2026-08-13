@@ -1287,15 +1287,7 @@ static ma_data_source_vtable skred_ma_data_source_vtable = {
 static skred_ma_data_source synth_data_source;
 #endif
 
-static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
-  struct timespec perf_start = perf_callback_begin(pDevice, frame_count);
-  static int traced_callback = 0;
-  if (!traced_callback && skred_env_enabled("SKRED_TRACE_CALLBACK")) {
-    traced_callback = 1;
-    fprintf(stderr, "# callback: frames=%u playback_channels=%u capture_channels=%u input=%s\n",
-            frame_count, pDevice->playback.channels, pDevice->capture.channels,
-            input ? "yes" : "no");
-  }
+static void internal_synth_process(float* output, const float* input, int frame_count, int out_channels, int in_channels, void* userData) {
   synth_record_bus_t *capture_bus = NULL;
   synth_record_bus_t *record_bus = recorder_begin_block((int)frame_count);
   if (record_bus) capture_bus = record_bus;
@@ -1320,10 +1312,8 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
         segment_frames = (int)until_boundary;
     }
 
-    float *segment_output = (float *)output +
-      ((size_t)offset * pDevice->playback.channels);
-    float *segment_input = input ? (float *)input +
-      ((size_t)offset * pDevice->capture.channels) : NULL;
+    float *segment_output = (float *)output + ((size_t)offset * out_channels);
+    float *segment_input = input ? (float *)input + ((size_t)offset * in_channels) : NULL;
     synth_record_bus_t segment_bus;
     synth_record_bus_t *segment_capture_bus = NULL;
     if (capture_bus) {
@@ -1332,12 +1322,27 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
       segment_capture_bus = &segment_bus;
     }
     synth_capture(&skred_global_engine, segment_output, segment_input, segment_frames,
-          (int)pDevice->playback.channels, (int)pDevice->capture.channels,
-          segment_capture_bus);
+          out_channels, in_channels, segment_capture_bus);
     offset += segment_frames;
   }
   if (scope_bus && capture_bus)
     scope_ipc_publish(capture_bus->frames, (int)frame_count);
+  recorder_end_block((int)frame_count);
+}
+
+static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
+  struct timespec perf_start = perf_callback_begin(pDevice, frame_count);
+  static int traced_callback = 0;
+  if (!traced_callback && skred_env_enabled("SKRED_TRACE_CALLBACK")) {
+    traced_callback = 1;
+    fprintf(stderr, "# callback: frames=%u playback_channels=%u capture_channels=%u input=%s\n",
+            frame_count, pDevice->playback.channels, pDevice->capture.channels,
+            input ? "yes" : "no");
+  }
+
+  internal_synth_process((float*)output, (const float*)input, (int)frame_count, 
+                         (int)pDevice->playback.channels, (int)pDevice->capture.channels, 
+                         pDevice->pUserData);
 
 #ifdef SKRED_USE_MA_ENGINE
   /* Option 3 test: tick the engine into a scratch buffer so we can measure its overhead without destroying our duplex output. */
@@ -1927,6 +1932,53 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   skred_startup_trace("started");
 
   return 0;
+}
+
+int skred_start_headless(unsigned int voices, int sample_rate) {
+  saved_voices = voices;
+  saved_req = 128;
+  saved_port = 0;
+
+  skred_performance_reset();
+  skred_control_dispatch_metrics_reset();
+  skred_control_event_reset();
+
+  synth_sample_rate_set(sample_rate);
+
+  synth_init(voices);
+  wave_table_init(0);
+  voice_init();
+  skred_poly_reset();
+
+  seq_init();
+  tempo_set(120.0);
+  memset(pattern_voice, 0, sizeof(pattern_voice));
+  for (int p = 0; p < PATTERNS_MAX; p++)
+    pattern_voice_generation[p] = seq_pattern_generation(p);
+
+  audio_copy_name(active_output, sizeof(active_output), "headless");
+  audio_copy_name(active_input, sizeof(active_input), "headless");
+  engine_started = 1;
+  return 0;
+}
+
+#define HEADLESS_MAX_CHUNK 256
+void skred_process_stereo(float *out_left, float *out_right, unsigned int frame_count) {
+  if (!engine_started) return;
+  float buffer[HEADLESS_MAX_CHUNK * 2];
+  unsigned int offset = 0;
+  while (offset < frame_count) {
+      unsigned int chunk = frame_count - offset;
+      if (chunk > HEADLESS_MAX_CHUNK) chunk = HEADLESS_MAX_CHUNK;
+
+      internal_synth_process(buffer, NULL, (int)chunk, 2, 0, NULL);
+
+      for (unsigned int i = 0; i < chunk; i++) {
+          out_left[offset + i] = buffer[i * 2];
+          out_right[offset + i] = buffer[i * 2 + 1];
+      }
+      offset += chunk;
+  }
 }
 
 static size_t base64_decode(const char *src, unsigned char *out);

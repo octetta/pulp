@@ -271,6 +271,7 @@ install(TARGETS api api_shared mini-skred
 install(FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/api.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/polyphony.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/synth-config.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/exp-vfs/skred_vfs.h"
   "${SKRED_VERSION_H}"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/skred"

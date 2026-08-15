@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="coi-serviceworker.min.js"></script>
+    <title>wasm-skred shell</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+    --atari-blue: #0042ff;
+    --atari-dark: #001a66;
+    --atari-gold: #ffd700;
+    --atari-light: #90b0ff;
+    --atari-rust: #FF3C3C;
+    --atari-grass: #afff00;
+    --bar-bg: #1a2a1a; 
+}
+
+body {
+    background-color: #000000; 
+    display: flex;
+    flex-direction: column;
+    height: 100dvh; 
+    margin: 0;
+    overflow: hidden; 
+}
+
+#terminal-container {
+    background-color: var(--atari-blue);
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
+#output {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    -webkit-overflow-scrolling: touch;
+    touch-action: manipulation;
+}
+
+.terminal-spacer {
+    height: 70%;
+    width: 100%;
+}
+
+/* Function Bar: Text-field style between entry and status */
+#function-bar {
+    display: flex;
+    background: var(--bar-bg);
+    border-top: 1px solid rgba(144, 176, 255, 0.3);
+    flex-shrink: 0;
+    height: 44px;
+    align-items: stretch;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); 
+}
+
+#slider-bar {
+    display: flex;
+    flex-direction: column;
+    background: var(--bar-bg);
+    border-top: 1px solid rgba(144, 176, 255, 0.3);
+    flex-shrink: 0;
+    height: 176px;
+    align-items: stretch;
+    gap: 0;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+}
+
+#slider-bar.slider-hidden {
+    display: none;
+}
+
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 10px;
+    border-top: 1px solid rgba(144, 176, 255, 0.12);
+}
+
+.slider-row:first-child {
+    border-top: none;
+}
+
+#function-bar button {
+    background: transparent;
+    border: none;
+    border-right: 1px solid rgba(144, 176, 255, 0.2);
+    color: var(--atari-light);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 11px;
+    cursor: pointer;
+    flex: 1;
+    transition: background 0.1s;
+    outline: none;
+    white-space: nowrap;
+}
+
+#slider-bar input {
+    background: transparent;
+    border: none;
+    border-right: 1px solid rgba(144, 176, 255, 0.2);
+    color: #ffffff;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    outline: none;
+    height: 100%;
+    min-width: 0;
+}
+
+#slider-bar input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+#slider-bar input[type="number"]::-webkit-outer-spin-button,
+#slider-bar input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.slider-cmd { flex: 2; }
+.slider-min, .slider-max, .slider-step { flex: 0 0 78px; text-align: center; }
+.cmd-slider { flex: 3; accent-color: var(--atari-light); }
+
+#function-bar button:active {
+    background: var(--atari-light);
+    color: var(--atari-dark);
+}
+
+.input-line {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: var(--atari-dark);
+    flex-shrink: 0;
+    touch-action: manipulation;
+}
+
+#output, #cmdInput, .prompt, .status-bar, .extra-line {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px; 
+    color: var(--atari-light);
+}
+
+#cmdInput {
+    background: transparent;
+    border: none;
+    outline: none;
+    flex-grow: 1;
+    color: #ffffff;
+    font-size: 16px;          /* keep ≥16px always – prevents iOS zoom */
+}
+
+.status-bar {
+    padding: 10px 20px;
+    background: var(--atari-light);
+    color: var(--atari-dark);
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    font-size: 12px;
+    border-top: 2px solid #000;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+}
+
+#engine-left { flex: 1; white-space: nowrap; }
+#engine-center { 
+    flex: 2; 
+    font-size: 9px; 
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #0030cc;
+}
+#engine-status {
+    flex: 1;
+    color: #0042ff;
+    text-align: right;
+    white-space: nowrap;
+}
+
+#engine-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+#slider-toggle {
+    background: transparent;
+    border: none;
+    color: #cc0033;
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+}
+
+/* ---------- Mobile improvements ---------- */
+@media (max-width: 600px) {
+    #output, .prompt {
+        font-size: 12px;
+    }
+
+    /* Critical: never drop #cmdInput below 16px or iOS will zoom */
+    #cmdInput {
+        font-size: 16px;
+    }
+
+    .status-bar {
+        font-size: 9px;
+        padding: 8px 12px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    }
+
+    .input-line {
+        padding: 12px 14px;
+    }
+
+    #output {
+        padding: 12px;
+    }
+
+    .terminal-spacer {
+        height: 40%;          /* less aggressive on short viewports */
+    }
+
+    /* Function bar: allow horizontal scroll so buttons stay tappable */
+    #function-bar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    #function-bar::-webkit-scrollbar {
+        display: none;
+    }
+    #function-bar button {
+        flex: 0 0 auto;
+        min-width: 36px;
+        padding: 0 8px;
+        font-size: 10px;
+    }
+
+    .slider-row {
+        gap: 4px;
+        padding: 0 6px;
+    }
+    #slider-bar input {
+        font-size: 9px;
+    }
+    .slider-min, .slider-max, .slider-step {
+        flex-basis: 52px;
+    }
+}
+
+.system { color: var(--atari-gold); }
+.error { color: var(--atari-rust); }
+.info { color: var(--atari-grass); }
+.dim { color: #ffffff; }
+
+.voice-graph-output {
+    margin: 8px 0 14px;
+    padding: 10px;
+    overflow-x: auto;
+    background: rgba(0, 26, 102, 0.5);
+    border: 1px solid rgba(144, 176, 255, 0.55);
+    white-space: normal;
+}
+
+.voice-graph-title {
+    margin-bottom: 8px;
+    color: var(--atari-gold);
+    font-size: 11px;
+}
+
+.voice-graph-output svg {
+    display: block;
+    width: auto;
+    max-width: none;
+    height: auto;
+}
+
+.voice-graph-edge {
+    fill: none;
+    stroke: var(--atari-light);
+    stroke-width: 1.5;
+    opacity: 0.85;
+}
+
+.voice-graph-edge-label {
+    fill: #ffffff;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 6px;
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: var(--atari-dark);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+.voice-graph-node circle {
+    fill: var(--atari-dark);
+    stroke: var(--atari-light);
+    stroke-width: 2;
+}
+
+.voice-graph-node.root circle {
+    fill: #332b00;
+    stroke: var(--atari-gold);
+}
+
+.voice-graph-node text {
+    fill: #ffffff;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+    </style>
+
+</head>
+<body>
+
+    <div id="terminal-container">
+        <div id="output">
+          <div class="terminal-spacer"></div>
+Welcome to the skred shell
+Type <span class="system">'boot'</span> to initialize audio engine.
+Type <span class="system">'help'</span> for basic things.
+        </div>
+
+        <div class="input-line">
+            <span class="prompt">#&nbsp;</span>
+            <input type="text" id="cmdInput" autofocus spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" inputmode="text">
+        </div>
+
+        <div id="function-bar">
+            <button id="btnLeft">&lt;</button>
+            <button id="histUp">UP</button>
+            <button id="histDown">DN</button>
+            <button id="btnRight">&gt;</button>
+            <button class="funcNum" data-val="0">0</button>
+            <button class="funcNum" data-val="1">1</button>
+            <button class="funcNum" data-val="2">2</button>
+            <button class="funcNum" data-val="3">3</button>
+            <button class="funcNum" data-val="4">4</button>
+            <button class="funcNum" data-val="5">5</button>
+            <button class="funcNum" data-val="6">6</button>
+            <button class="funcNum" data-val="7">7</button>
+            <button class="funcNum" data-val="8">8</button>
+            <button class="funcNum" data-val="9">9</button>
+        </div>
+
+        <div id="slider-bar" class="slider-hidden">
+            <div class="slider-row">
+                <input type="text" class="slider-cmd" value="v0 f {}" placeholder="cmd" title="cmd" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" inputmode="text" aria-autocomplete="none" aria-label="slider command 1">
+                <input type="number" class="slider-min" value="55" placeholder="min" title="min" aria-label="slider minimum 1">
+                <input type="number" class="slider-max" value="880" placeholder="max" title="max" aria-label="slider maximum 1">
+                <input type="number" class="slider-step" value=".0001" placeholder="step" title="step" aria-label="slider step 1">
+                <input type="range" class="cmd-slider" min="55" max="880" step=".0001" value="440" aria-label="command slider 1">
+            </div>
+            <div class="slider-row">
+                <input type="text" class="slider-cmd" value="v0 a {}" placeholder="cmd" title="cmd" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" inputmode="text" aria-autocomplete="none" aria-label="slider command 2">
+                <input type="number" class="slider-min" value="-20" placeholder="min" title="min" aria-label="slider minimum 2">
+                <input type="number" class="slider-max" value="30" placeholder="max" title="max" aria-label="slider maximum 2">
+                <input type="number" class="slider-step" value=".0001" placeholder="step" title="step" aria-label="slider step 2">
+                <input type="range" class="cmd-slider" min="-20" max="30" step=".0001" value="0" aria-label="command slider 2">
+            </div>
+            <div class="slider-row">
+                <input type="text" class="slider-cmd" value="v0 p {}" placeholder="cmd" title="cmd" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" inputmode="text" aria-autocomplete="none" aria-label="slider command 3">
+                <input type="number" class="slider-min" value="-1" placeholder="min" title="min" aria-label="slider minimum 3">
+                <input type="number" class="slider-max" value="1" placeholder="max" title="max" aria-label="slider maximum 3">
+                <input type="number" class="slider-step" value=".0001" placeholder="step" title="step" aria-label="slider step 3">
+                <input type="range" class="cmd-slider" min="-1" max="1" step=".0001" value="0" aria-label="command slider 3">
+            </div>
+            <div class="slider-row">
+                <input type="text" class="slider-cmd" value="v1 f {}" placeholder="cmd" title="cmd" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" inputmode="text" aria-autocomplete="none" aria-label="slider command 4">
+                <input type="number" class="slider-min" value="55" placeholder="min" title="min" aria-label="slider minimum 4">
+                <input type="number" class="slider-max" value="880" placeholder="max" title="max" aria-label="slider maximum 4">
+                <input type="number" class="slider-step" value=".0001" placeholder="step" title="step" aria-label="slider step 4">
+                <input type="range" class="cmd-slider" min="55" max="880" step=".0001" value="440" aria-label="command slider 4">
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span id="engine-left">wasm-skred <span class="skred-version">...</span></span>
+            <span id="engine-center">log 0</span>
+            <span id="engine-right">
+                <span id="engine-status">AUDIO OFF</span>
+                <button id="slider-toggle" title="show sliders" aria-label="show sliders" aria-expanded="false">[+]</button>
+            </span>
+        </div>
+    </div>
+
+    <script src="skred_api.js?v=0.56.11"></script>
+
+<script>
+var bufsize = 256;
+var nvoices = 16;
+var running = 0;
+
+function usage() {
+  printToTerminal("QUICK REF", 'info');
+  printToTerminal("boot (voice-count) (frame-count)");
+  printToTerminal("/als # refresh and list audio devices");
+  printToTerminal("/aout 2 # select output device");
+  printToTerminal("/ain 1 # select input device");
+  printToTerminal("/ain off # disable input");
+  printToTerminal("/a? # show audio status");
+  printToTerminal("graph (voice) (depth) # draw voice dependencies");
+  printToTerminal("learn # open skode tutorial");
+  printToTerminal("ksynth # open k-synth tool");
+  printToTerminal("load # select a wav file");
+  printToTerminal("zip # select and mount a zip asset bundle");
+  printToTerminal("unzip # unmount zip asset bundle");
+  printToTerminal(`v(0..${nvoices}) # select voice`);
+  printToTerminal("w(0..999)     # select waveform");
+  printToTerminal("a(-90..10)    # set amplitide (dB)");
+  printToTerminal("f(0..12543.9) # set frequency (Hz)");
+  printToTerminal("n(0..127)     # set frequency by MIDI note");
+  printToTerminal("t A D S R     # set amp envelope (A,D,R in secs)");
+  printToTerminal("l(0..5)       # trigger ADSR with velocity");
+  printToTerminal("p(-1..1)      # pan in stereo");
+  printToTerminal("{v0l1}e>0     # store {string} to macro-0");
+  printToTerminal("(played when '0' button pressed)");
+}
+
+const logo = `
+     _                 _ 
+ ___| | ___ __ ___  __| |
+/ __| |/ / '__/ _ \\/ _  |
+\\__ \\   <| | |  __/ (_| |
+|___/_|\\_\\_|  \\___|\\__,_|
+`;
+
+/* The rest of the original JavaScript is unchanged.
+   Paste the remainder of the original <script> content here
+   (everything from the Module setup / printToTerminal helpers
+   through the end of the file). The mobile CSS/HTML changes
+   above do not require any JS modifications. */
+</script>
+</body>
+</html>

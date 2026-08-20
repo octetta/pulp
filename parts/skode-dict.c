@@ -457,6 +457,9 @@ static int word_exec_R_show(const skode_word_t *self, skode_t *ctx, ands_t *s,
   return 0;
 }
 
+static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc);
+static int word_compile_x(const struct skode_word *self, ands_t *parser, double *arg, int argc, event_program_t *program);
+
 /* Auto-sized: no manually-maintained count to drift out of sync with the
    actual entry count (see WORD_COUNT below, derived from this array's
    real size rather than hand-tracked). Designated initializers throughout
@@ -472,6 +475,11 @@ static skode_word_t word_table[] = {
   { WID("?R"), .execute = word_exec_R_show,
     .safety = WORD_IMMEDIATE_ONLY, .category = "parser",
     .summary = "show return registers without consuming them" },
+
+  { WID("x"), .execute = word_exec_x, .compile = word_compile_x,
+    .min_args = 1, .max_args = 1 + SEQ_OPCODE_ARG_MAX,
+    .safety = WORD_REAL_TIME_SAFE, .category = "parser",
+    .summary = "numeric opcode escape" },
 
   { WID("v"), .execute = word_exec_v, .opcode_id = SKODE_OP_VOICE,
     .min_args = 1, .max_args = 1,
@@ -515,6 +523,60 @@ static skode_word_t word_table[] = {
     .summary = "amp bend range (dB) [offset]" },
 };
 #define WORD_COUNT ((int)(sizeof(word_table) / sizeof(word_table[0])))
+
+static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s,
+    double *arg, int argc) {
+  (void)self;
+  if (argc == 0) return -1;
+  int opcode_num = (int)arg[0];
+  if (!skode_opcode_is_realtime((skode_opcode_t)opcode_num) ||
+      !skode_opcode_supported((skode_opcode_t)opcode_num)) {
+    return -1;
+  }
+  
+  const skode_word_t *target = NULL;
+  for (int i = 0; i < WORD_COUNT; i++) {
+    if (word_table[i].opcode_id == opcode_num) {
+      target = &word_table[i];
+      break;
+    }
+  }
+  if (!target || !target->execute) return -1;
+  
+  int inner_argc = argc - 1;
+  if (inner_argc < target->min_args || inner_argc > target->max_args) return -1;
+  
+  double inner_args[SEQ_OPCODE_ARG_MAX] = {0};
+  for (int i = 0; i < inner_argc; i++) inner_args[i] = arg[i+1];
+  
+  return target->execute(target, ctx, s, inner_args, inner_argc);
+}
+
+static int word_compile_x(const struct skode_word *self,
+    ands_t *parser, double *arg, int argc, event_program_t *program) {
+  (void)self;
+  if (argc == 0) return -1;
+  int opcode_num = (int)arg[0];
+  if (!skode_opcode_is_realtime((skode_opcode_t)opcode_num) ||
+      !skode_opcode_supported((skode_opcode_t)opcode_num)) {
+    return -1;
+  }
+  
+  const skode_word_t *target = NULL;
+  for (int i = 0; i < WORD_COUNT; i++) {
+    if (word_table[i].opcode_id == opcode_num) {
+      target = &word_table[i];
+      break;
+    }
+  }
+  if (!target) return -1;
+  
+  int inner_argc = argc - 1;
+  if (inner_argc < target->min_args || inner_argc > target->max_args) return -1;
+  
+  return skode_program_push_ex(program, (skode_opcode_t)opcode_num, parser,
+    arg + 1, inner_argc, 1, 0, target->default_mask);
+}
 
 /* Forward declaration -- defined in the macro-promotion section below;
    skode_dict_init()'s startup self-check needs it. */

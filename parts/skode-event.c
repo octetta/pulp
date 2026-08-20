@@ -55,8 +55,8 @@ static int event_voice_valid(int voice) {
   return voice >= 0 && voice < synth_config.voice_max;
 }
 
-int skode_program_push(event_program_t *program, skode_opcode_t code,
-    ands_t *parser, const double *arg, int argc, char mode,
+int skode_program_push_ex(event_program_t *program, skode_opcode_t code,
+    ands_t *parser, const double *arg, int argc, int arg_offset, char mode,
     uint8_t default_mask) {
   if (program->count >= SEQ_PROGRAM_OP_MAX) return -1;
   if (!skode_opcode_is_realtime(code)) return -1;
@@ -66,7 +66,7 @@ int skode_program_push(event_program_t *program, skode_opcode_t code,
   op->opcode.argc = (uint8_t)argc;
   op->opcode.mode = mode;
   for (int i = 0; i < argc; i++) {
-    int variable = parser ? ands_arg_var(parser, i) : -1;
+    int variable = parser ? ands_arg_var(parser, i + arg_offset) : -1;
     if (variable >= 0) {
       op->opcode.var_mask |= (uint8_t)(1U << i);
       op->opcode.arg[i] = (float)variable;
@@ -81,6 +81,12 @@ int skode_program_push(event_program_t *program, skode_opcode_t code,
   if (code != SKODE_OP_DELAY) op->opcode.mode = (char)default_mask;
   program->count++;
   return 0;
+}
+
+int skode_program_push(event_program_t *program, skode_opcode_t code,
+    ands_t *parser, const double *arg, int argc, char mode,
+    uint8_t default_mask) {
+  return skode_program_push_ex(program, code, parser, arg, argc, 0, mode, default_mask);
 }
 
 static skode_compile_result_t compile_program_inner(const char *text,

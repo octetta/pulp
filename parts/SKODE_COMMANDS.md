@@ -238,6 +238,11 @@ resets every voice; `S100` therefore acts as reset-all with the default voice
 limit. This sentinel behavior is retained for compatibility but is not a
 dedicated reset-all command.
 
+### Numeric Escape
+
+`x id [args...]` Direct execution/compilation of opcode `id` (0-255).
+Re-uses the argument arity and execution path of the underlying opcode.
+
 ## Scheduling and Queue Commands
 
 These commands run on the control thread but compile their string contents

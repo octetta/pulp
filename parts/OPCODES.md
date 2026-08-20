@@ -1,8 +1,22 @@
 # Skode Scheduled Opcodes
 
+## Architecture: Logical vs Realtime
+
+The Skode ISA features a strict separation between logical and realtime opcodes:
+- **Logical Opcodes** (`skode_opcode_t` / `uint16_t`): The overarching 16-bit namespace encompassing all possible opcodes, allowing for future expansion beyond 256.
+- **Realtime Opcodes** (`skode_realtime_opcode_t` / `uint8_t`): The subset of opcodes (0-255) that are eligible for scheduling, queuing, and execution in the audio callback.
+
+This structural invariant ensures that `opcode_event_t`, `event_t`, and `event_program_t` memory layouts remain compact and optimized for the audio thread. Opcodes outside the 0-255 range will be categorically rejected at compilation time when attempting to push them to a sequence, queue, or defer block.
+
 Scheduled work executed by the audio callback consists only of fixed-size
 numeric opcode events. Skode text is parsed and compiled on a command or UDP
 thread before it enters a queue, defer, repeat, or sequence.
+
+### Numeric Opcode Escape (`x`)
+
+Skode supports direct, backward-compatible invocation of numeric opcodes via the `x` escape command (e.g. `x 3 -6.0` to set the amplitude using `SKODE_OP_AMP`).
+The `x` command parses the opcode number, strictly validates it against the realtime 0-255 bounds and feature support list, and seamlessly routes the remaining arguments into the existing compilation and execution pathways.
+This allows numeric debugging, cross-toolchain interactions, and testing without requiring mnemonic strings.
 
 Commands that require a string, data array, parser-owned memory, file access,
 or other control-thread state are immediate-only. Compilation rejects the

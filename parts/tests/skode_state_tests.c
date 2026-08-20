@@ -3607,6 +3607,26 @@ static void test_rec_load_k_to_data_to_rec(void) {
   expect_int(test, phase_inc > 0.0f ? 1 : 0, 1, "phase_inc is positive for rec_load one-shot wave");
 }
 
+static void test_x_opcode_escape(void) {
+  const char *test = "x numeric opcode escape";
+  skode_t ctx = new_ctx();
+  ctx.voice = 0;
+  consume(test, &ctx, "v 0");
+  consume(test, &ctx, "a -1000.0"); // essentially 0
+  expect_float(test, sv.user_amp[0], -1000.0f, 1e-4f, "a -1000 sets user_amp to -1000");
+  
+  // SKODE_OP_AMP is 3
+  consume(test, &ctx, "x 3 -6.0");
+  expect_float(test, sv.user_amp[0], -6.0f, 1e-4f, "x 3 -6 sets user_amp to -6");
+  
+  // Negative tests
+  event_program_t program;
+  expect_int(test, skode_compile_program("x", &program), -1, "bare x rejected");
+  expect_int(test, skode_compile_program("x 250", &program), -1, "x 250 unmapped rejected");
+  expect_int(test, skode_compile_program("x 9999", &program), -1, "x 9999 out of range rejected");
+  expect_int(test, skode_compile_program("x 256", &program), -1, "x 256 out of range rejected");
+}
+
 int main(int argc, char **argv) {
   synth_init(8);
   wave_table_init(0);
@@ -3678,6 +3698,7 @@ int main(int argc, char **argv) {
 #endif
   test_909_load_rejects_too_small_wave_table();
   test_multichannel_capture_waves();
+  test_x_opcode_escape();
 
   synth_free();
 

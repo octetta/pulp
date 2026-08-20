@@ -447,11 +447,619 @@ const logo = `
 |___/_|\\_\\_|  \\___|\\__,_|
 `;
 
-/* The rest of the original JavaScript is unchanged.
-   Paste the remainder of the original <script> content here
-   (everything from the Module setup / printToTerminal helpers
-   through the end of the file). The mobile CSS/HTML changes
-   above do not require any JS modifications. */
+
+const output = document.getElementById('output');
+const cmdInput = document.getElementById('cmdInput');
+const statusSpan = document.getElementById('engine-status');
+const centerSpan = document.getElementById('engine-center');
+const sliderBar = document.getElementById('slider-bar');
+const sliderToggle = document.getElementById('slider-toggle');
+const sliderRows = Array.from(document.querySelectorAll('.slider-row'));
+
+let commandHistory = [];
+let historyIndex = -1;
+
+function setSkredVersion(version) {
+    document.querySelectorAll('.skred-version').forEach(el => {
+        el.textContent = version;
+    });
+}
+
+function setSkredVersionFromWasm() {
+    if (typeof Module === "undefined" || !Module._skred_version ||
+        !Module.UTF8ToString) return false;
+    const ptr = Module._skred_version();
+    if (!ptr) return false;
+    setSkredVersion(Module.UTF8ToString(ptr));
+    return true;
+}
+
+if (typeof Module !== "undefined") {
+    const previousRuntimeInitialized = Module.onRuntimeInitialized;
+    Module.onRuntimeInitialized = function() {
+        if (typeof previousRuntimeInitialized === "function")
+            previousRuntimeInitialized();
+        setSkredVersionFromWasm();
+    };
+    setSkredVersionFromWasm();
+}
+
+function outputNearBottom() {
+    return output.scrollHeight - output.scrollTop - output.clientHeight < 24;
+}
+
+function printToTerminal(text, className = '') {
+    const shouldFollow = outputNearBottom();
+    const line = document.createElement('div');
+    if (className) line.className = className;
+    line.textContent = text;
+    output.appendChild(line);
+    if (shouldFollow) output.scrollTop = output.scrollHeight;
+}
+
+function skredLogString() {
+    const ptr = Module._skred_log();
+    return ptr ? Module.UTF8ToString(ptr) : "";
+}
+
+function parseVoiceGraph(text) {
+    const graph = { version: 0, root: -1, nodes: [], edges: [] };
+    const nodes = new Set();
+    for (const line of text.trim().split(/\r?\n/)) {
+        const field = line.trim().split(/\s+/);
+        switch (field[0]) {
+            case 'skred-voice-graph':
+                graph.version = Number(field[1]);
+                break;
+            case 'root':
+                graph.root = Number(field[1]);
+                nodes.add(graph.root);
+                break;
+            case 'node':
+                nodes.add(Number(field[1]));
+                break;
+            case 'edge': {
+                const edge = {
+                    from: Number(field[1]),
+                    to: Number(field[2]),
+                    type: Number(field[3]),
+                    label: field[4]
+                };
+                graph.edges.push(edge);
+                nodes.add(edge.from);
+                nodes.add(edge.to);
+                break;
+            }
+        }
+    }
+    if (graph.version !== 1 || graph.root < 0)
+        throw new Error('unsupported voice graph response');
+    graph.nodes = Array.from(nodes).sort((a, b) => a - b);
+    return graph;
+}
+
+function voiceGraphLayout(graph) {
+    const level = new Map([[graph.root, 0]]);
+    for (let pass = 0; pass < graph.nodes.length; pass++) {
+        let changed = false;
+        for (const edge of graph.edges) {
+            if (!level.has(edge.from) || level.has(edge.to)) continue;
+            level.set(edge.to, level.get(edge.from) + 1);
+            changed = true;
+        }
+        if (!changed) break;
+    }
+    const knownMax = Math.max(0, ...level.values());
+    for (const voice of graph.nodes)
+        if (!level.has(voice)) level.set(voice, knownMax + 1);
+
+    const columns = new Map();
+    for (const voice of graph.nodes) {
+        const column = level.get(voice);
+        if (!columns.has(column)) columns.set(column, []);
+        columns.get(column).push(voice);
+    }
+    const maxLevel = Math.max(0, ...columns.keys());
+    const maxRows = Math.max(1, ...Array.from(columns.values(), x => x.length));
+    const width = Math.max(150, 80 + maxLevel * 110);
+    const height = Math.max(90, 36 + maxRows * 56);
+    const position = new Map();
+    for (const [column, voices] of columns) {
+        voices.forEach((voice, row) => position.set(voice, {
+            x: maxLevel ? 40 + column * (width - 80) / maxLevel : width / 2,
+            y: (row + 1) * height / (voices.length + 1)
+        }));
+    }
+    return { width, height, position };
+}
+
+function svgElement(name, attributes = {}) {
+    const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+    for (const [key, value] of Object.entries(attributes))
+        element.setAttribute(key, value);
+    return element;
+}
+
+let voiceGraphSequence = 0;
+
+function appendVoiceGraph(graph) {
+    const shouldFollow = outputNearBottom();
+    const layout = voiceGraphLayout(graph);
+    const container = document.createElement('div');
+    container.className = 'voice-graph-output';
+    const title = document.createElement('div');
+    title.className = 'voice-graph-title';
+    title.textContent = `voice graph v${graph.root} · ${graph.nodes.length} nodes · ${graph.edges.length} links`;
+    container.appendChild(title);
+
+    const svg = svgElement('svg', {
+        viewBox: `0 0 ${layout.width} ${layout.height}`,
+        width: layout.width,
+        height: layout.height,
+        role: 'img',
+        'aria-label': `Dependency graph for voice ${graph.root}`
+    });
+    const markerId = `voice-graph-arrow-${++voiceGraphSequence}`;
+    const defs = svgElement('defs');
+    const marker = svgElement('marker', {
+        id: markerId, markerWidth: 6, markerHeight: 6,
+        refX: 5, refY: 3, orient: 'auto', markerUnits: 'strokeWidth'
+    });
+    marker.appendChild(svgElement('path', { d: 'M0,0 L6,3 L0,6 Z', fill: '#90b0ff' }));
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
+    const parallel = new Map();
+    for (const edge of graph.edges) {
+        const key = `${edge.from}:${edge.to}`;
+        if (!parallel.has(key)) parallel.set(key, []);
+        parallel.get(key).push(edge);
+    }
+    const edgeLabels = [];
+    for (const edge of graph.edges) {
+        const from = layout.position.get(edge.from);
+        const to = layout.position.get(edge.to);
+        if (!from || !to) continue;
+        const siblings = parallel.get(`${edge.from}:${edge.to}`);
+        const offset = (siblings.indexOf(edge) - (siblings.length - 1) / 2) * 14;
+        const shortLabel = {
+            'pitch': 'pitch', 'gate': 'gate', 'amp-mod': 'amp',
+            'freq-mod': 'freq', 'pan-mod': 'pan',
+            'phase-mod': 'phase', 'ring-mod': 'ring'
+        };
+        if (edge.from === edge.to) {
+            const spread = 25 + siblings.indexOf(edge) * 8;
+            const path = svgElement('path', {
+                d: `M ${from.x - 10} ${from.y - 15} C ${from.x - spread} ${from.y - spread - 8}, ${from.x + spread} ${from.y - spread - 8}, ${from.x + 10} ${from.y - 15}`,
+                class: 'voice-graph-edge',
+                'marker-end': `url(#${markerId})`
+            });
+            const pathTitle = svgElement('title');
+            pathTitle.textContent = `${edge.label}: v${edge.from} to itself`;
+            path.appendChild(pathTitle);
+            svg.appendChild(path);
+            const label = svgElement('text', {
+                x: from.x, y: from.y - spread - 10,
+                class: 'voice-graph-edge-label'
+            });
+            label.textContent = shortLabel[edge.label] || edge.label;
+            edgeLabels.push(label);
+            continue;
+        }
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const length = Math.hypot(dx, dy) || 1;
+        const nx = -dy / length;
+        const ny = dx / length;
+        const startX = from.x + dx / length * 20;
+        const startY = from.y + dy / length * 20;
+        const endX = to.x - dx / length * 23;
+        const endY = to.y - dy / length * 23;
+        const controlX = (from.x + to.x) / 2 + nx * offset;
+        const controlY = (from.y + to.y) / 2 + ny * offset;
+        const path = svgElement('path', {
+            d: `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`,
+            class: 'voice-graph-edge',
+            'marker-end': `url(#${markerId})`
+        });
+        const pathTitle = svgElement('title');
+        pathTitle.textContent = `${edge.label}: v${edge.from} to v${edge.to}`;
+        path.appendChild(pathTitle);
+        svg.appendChild(path);
+        const label = svgElement('text', {
+            x: controlX, y: controlY - 3, class: 'voice-graph-edge-label'
+        });
+        label.textContent = shortLabel[edge.label] || edge.label;
+        edgeLabels.push(label);
+    }
+
+    for (const voice of graph.nodes) {
+        const point = layout.position.get(voice);
+        const node = svgElement('g', {
+            class: `voice-graph-node${voice === graph.root ? ' root' : ''}`,
+            transform: `translate(${point.x} ${point.y})`
+        });
+        node.appendChild(svgElement('circle', { r: 18 }));
+        const label = svgElement('text');
+        label.textContent = `v${voice}`;
+        node.appendChild(label);
+        svg.appendChild(node);
+    }
+    for (const label of edgeLabels) svg.appendChild(label);
+    container.appendChild(svg);
+    output.appendChild(container);
+    if (shouldFollow) output.scrollTop = output.scrollHeight;
+}
+
+function showVoiceGraph(voice, depth) {
+    if (!running) {
+        printToTerminal("Error: Engine must be 'boot'ed first.", 'error');
+        return;
+    }
+    if (!Number.isInteger(voice) || voice < 0 || voice >= nvoices ||
+        !Number.isInteger(depth) || depth < 0) {
+        printToTerminal('Usage: graph [voice [depth]]', 'error');
+        return;
+    }
+    try {
+        const ptr = Module._skred_voice_graph(voice, 1, depth);
+        if (!ptr) throw new Error('voice graph unavailable');
+        appendVoiceGraph(parseVoiceGraph(Module.UTF8ToString(ptr)));
+    } catch (error) {
+        printToTerminal(`Error: ${error.message}`, 'error');
+    }
+}
+
+function wasmHeapU8() {
+    return typeof Module !== "undefined" ?
+        (Module.HEAPU8 || globalThis.HEAPU8) : null;
+}
+
+cmdInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const rawCmd = cmdInput.value.trim();
+        if (!rawCmd) return;
+        if (commandHistory[commandHistory.length - 1] !== rawCmd) commandHistory.push(rawCmd);
+        historyIndex = -1;
+        printToTerminal(rawCmd, 'dim');
+        processCommand(rawCmd);
+        cmdInput.value = '';
+    } 
+    else if (e.key === 'ArrowUp') {
+        if (commandHistory.length > 0) {
+            if (historyIndex === -1) historyIndex = commandHistory.length - 1;
+            else if (historyIndex > 0) historyIndex--;
+            cmdInput.value = commandHistory[historyIndex];
+            setTimeout(() => cmdInput.setSelectionRange(cmdInput.value.length, cmdInput.value.length), 0);
+        }
+        e.preventDefault();
+    } 
+    else if (e.key === 'ArrowDown') {
+        if (historyIndex !== -1) {
+            if (historyIndex < commandHistory.length - 1) {
+                historyIndex++;
+                cmdInput.value = commandHistory[historyIndex];
+            } else {
+                historyIndex = -1;
+                cmdInput.value = '';
+            }
+        }
+        e.preventDefault();
+    }
+});
+
+function processCommand(cmd) {
+    const action = cmd.split(' ')[0].toLowerCase();
+    var arg = cmd.split(' ');
+
+    switch(action) {
+        case 'boot':
+            if (running) {
+                printToTerminal(`Error: already running.`, 'error');
+                return;
+            }
+            // Module._skred_enumerate_devices(0);
+            // Module._skred_enumerate_devices(1);
+            printToTerminal(logo, 'info');
+            if (arg.length > 1) {
+                var n = Number(arg[1]);
+                if (n > 0 && n <= 64) nvoices = n;
+                if (arg.length > 2) {
+                    n = Number(arg[2]);
+                    if (n >= 128) bufsize = n;
+                }
+            }
+            try {
+                const result = Module._skred_start(bufsize, nvoices, 0); 
+                printToTerminal(`skred_start() = ${result}`, 'system');
+                statusSpan.innerText = `AUDIO ON ${nvoices} ${bufsize}`;
+                statusSpan.style.color = "#0042ff";
+                const ptr = Module._skred_features();
+                printToTerminal(`${Module.UTF8ToString(ptr)}`);
+                Module.ccall('skred_command', null, ['string'], ["log 1"]);
+                centerSpan.innerText = "log 1";
+                running = 1;
+            } catch(e) {
+                printToTerminal(`Error: Could not boot.`, 'error');
+            }
+            break;
+
+        case 'stop':
+            if (!running) {
+                printToTerminal("Error: Engine is not running.", "error");
+                return;
+            }
+            Module._skred_stop();
+            printToTerminal("System: Engine stopped.", "system");
+            statusSpan.innerText = "AUDIO OFF";
+            statusSpan.style.color = "#0042ff";
+            running = 0;
+            break;
+        case 'help': usage(); break;
+        case 'load':
+            if (!running) {
+                printToTerminal("Error: Engine must be 'boot'ed first.", "error");
+                return;
+            }
+            addWavViaDialog();
+            break;
+        case 'zip':
+            mountZipViaDialog();
+            break;
+        case 'unzip':
+            unmountZipBundle();
+            break;
+        case 'clear': output.innerHTML = ''; break;
+        case 'graph':
+            showVoiceGraph(arg.length > 1 ? Number(arg[1]) : 0,
+                arg.length > 2 ? Number(arg[2]) : 0);
+            break;
+        case 'learn':
+          window.open('https://octetta.github.io/pulp/doc/learn.html', "_blank");
+          break;
+        case 'ksynth':
+          window.open('https://octetta.github.io/k-synth', "_blank");
+          break;
+
+        default:
+            if (!running) {
+                printToTerminal("Error: Engine must be 'boot'ed first.");
+            } else {
+                Module.ccall('skred_command', null, ['string'], [cmd]);
+                const log = skredLogString();
+                if (log != "") printToTerminal(log, 'info');
+            }
+            break;
+    }
+}
+
+function sendSkredCommand(cmd) {
+    if (!running) {
+        printToTerminal("Error: Engine must be 'boot'ed first.", "error");
+        return false;
+    }
+    Module.ccall('skred_command', null, ['string'], [cmd]);
+    const log = skredLogString();
+    if (log !== "") {
+        printToTerminal(log, 'info');
+    }
+    return true;
+}
+
+function formatSliderValue(value, step) {
+    const n = Number(value);
+    const s = Number(step);
+    if (!Number.isFinite(n)) return "0";
+    if (!Number.isFinite(s) || s <= 0) return `${n}`;
+    const text = `${s}`;
+    const dot = text.indexOf('.');
+    const places = dot >= 0 ? Math.min(8, text.length - dot - 1) : 0;
+    const formatted = n.toFixed(places);
+    return formatted.includes('.') ? formatted.replace(/\.?0+$/, '') : formatted;
+}
+
+function sliderParts(row) {
+    return {
+        cmd: row.querySelector('.slider-cmd'),
+        min: row.querySelector('.slider-min'),
+        max: row.querySelector('.slider-max'),
+        step: row.querySelector('.slider-step'),
+        slider: row.querySelector('.cmd-slider')
+    };
+}
+
+function updateCommandSliderRange(row) {
+    const parts = sliderParts(row);
+    let min = Number(parts.min.value);
+    let max = Number(parts.max.value);
+    let step = Number(parts.step.value);
+    if (!Number.isFinite(min)) min = 0;
+    if (!Number.isFinite(max)) max = 1;
+    if (max < min) {
+        const tmp = max;
+        max = min;
+        min = tmp;
+    }
+    if (!Number.isFinite(step) || step <= 0) step = 1;
+    parts.slider.min = min;
+    parts.slider.max = max;
+    parts.slider.step = step;
+    if (Number(parts.slider.value) < min) parts.slider.value = min;
+    if (Number(parts.slider.value) > max) parts.slider.value = max;
+}
+
+function sendSliderCommand(row) {
+    const parts = sliderParts(row);
+    updateCommandSliderRange(row);
+    const value = formatSliderValue(parts.slider.value, parts.slider.step);
+    const template = parts.cmd.value.trim();
+    if (!template) return;
+    const cmd = template.includes('{}') ? template.replaceAll('{}', value) : `${template}${value}`;
+    if (sendSkredCommand(cmd)) centerSpan.innerText = cmd;
+}
+
+sliderRows.forEach(row => {
+    const parts = sliderParts(row);
+    parts.min.addEventListener('change', () => updateCommandSliderRange(row));
+    parts.max.addEventListener('change', () => updateCommandSliderRange(row));
+    parts.step.addEventListener('change', () => updateCommandSliderRange(row));
+    parts.slider.addEventListener('input', () => sendSliderCommand(row));
+});
+
+sliderToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const shouldFollow = outputNearBottom();
+    const hidden = sliderBar.classList.toggle('slider-hidden');
+    sliderToggle.textContent = hidden ? '[+]' : '[-]';
+    sliderToggle.title = hidden ? 'show sliders' : 'hide sliders';
+    sliderToggle.setAttribute('aria-label', sliderToggle.title);
+    sliderToggle.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    if (shouldFollow) {
+        requestAnimationFrame(() => {
+            output.scrollTop = output.scrollHeight;
+        });
+    }
+});
+
+function handleFuncBtn(action) {
+    let pos = cmdInput.selectionStart;
+    switch(action) {
+        case 'left':
+            if (pos > 0) cmdInput.setSelectionRange(pos - 1, pos - 1);
+            break;
+        case 'right':
+            if (pos < cmdInput.value.length) cmdInput.setSelectionRange(pos + 1, pos + 1);
+            break;
+        case 'up':
+            cmdInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
+            break;
+        case 'down':
+            cmdInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+            break;
+        case '0': case '1': case '2': case '3': case '4': 
+        case '5': case '6': case '7': case '8': case '9':
+            // send e!# which does whatever
+            // {v0l1}e>0 for example...
+            sendSkredCommand(`e!${action}`);
+            break;
+    }
+    cmdInput.focus();
+}
+
+document.getElementById('btnLeft').addEventListener('pointerdown', (e) => { e.preventDefault(); handleFuncBtn('left'); });
+document.getElementById('btnRight').addEventListener('pointerdown', (e) => { e.preventDefault(); handleFuncBtn('right'); });
+document.getElementById('histUp').addEventListener('pointerdown', (e) => { e.preventDefault(); handleFuncBtn('up'); });
+document.getElementById('histDown').addEventListener('pointerdown', (e) => { e.preventDefault(); handleFuncBtn('down'); });
+document.querySelectorAll('.funcNum').forEach(btn => {
+    btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        handleFuncBtn(btn.getAttribute('data-val'));
+    });
+});
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('#slider-bar')) return;
+    if (e.target.closest('#output')) return;
+    cmdInput.focus();
+});
+
+let waveFileCounter = 900;
+const MIN_WAV = 900;
+const MAX_WAV = 999;
+
+async function addWavViaDialog() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.mp3,.wav';
+    input.multiple = false;
+
+    input.onchange = async (e) => {
+        const files = e.target.files;
+        if (!files.length) return;
+        const file = files[0];
+        
+        try {
+            const buffer = await file.arrayBuffer();
+            const fileName = `${waveFileCounter}.wav`;
+            Module.FS.writeFile(fileName, new Uint8Array(buffer));
+            
+            // Re-applying the explicit display string
+            // centerSpan.innerText = `{${file.name}} /ws ${waveFileCounter}`;
+            printToTerminal(`{${file.name}} /ws ${waveFileCounter}`, 'info');
+
+            
+            if (sendSkredCommand(`/w${waveFileCounter},${waveFileCounter}`)) {
+                waveFileCounter++;
+                if (waveFileCounter > MAX_WAV) waveFileCounter = MIN_WAV;
+            }
+        } catch (err) {
+            console.error(`Failed to load ${file.name}:`, err);
+        }
+    };
+    input.click();
+}
+
+async function mountZipViaDialog() {
+    const heapU8 = wasmHeapU8();
+    if (typeof Module === "undefined" || !Module._malloc ||
+        !Module._free || !heapU8 ||
+        !Module._skred_vfs_mount_zip_memory) {
+        printToTerminal("Error: zip mount support is not ready.", "error");
+        return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.zip,application/zip,application/x-zip-compressed';
+    input.multiple = false;
+
+    input.onchange = async (e) => {
+        const files = e.target.files;
+        if (!files.length) return;
+        const file = files[0];
+        let ptr = 0;
+
+        try {
+            const bytes = new Uint8Array(await file.arrayBuffer());
+            ptr = Module._malloc(bytes.length);
+            if (!ptr) throw new Error("malloc failed");
+            heapU8.set(bytes, ptr);
+
+            const ok = Module.ccall(
+                'skred_vfs_mount_zip_memory',
+                'number',
+                ['number', 'number', 'string'],
+                [ptr, bytes.length, file.name]
+            );
+            if (!ok) {
+                printToTerminal(`# cannot mount ${file.name}`, "error");
+                return;
+            }
+            const statusPtr = Module._skred_vfs_status();
+            const status = statusPtr ? Module.UTF8ToString(statusPtr) : file.name;
+            printToTerminal(`# vfs ${status}`, "system");
+            centerSpan.innerText = `%z ${file.name}`;
+        } catch (err) {
+            console.error(`Failed to mount ${file.name}:`, err);
+            printToTerminal(`# zip mount failed: ${file.name}`, "error");
+        } finally {
+            if (ptr) Module._free(ptr);
+        }
+    };
+    input.click();
+}
+
+function unmountZipBundle() {
+    if (typeof Module === "undefined" || !Module._skred_vfs_unmount) {
+        printToTerminal("Error: zip mount support is not ready.", "error");
+        return;
+    }
+    Module._skred_vfs_unmount();
+    const statusPtr = Module._skred_vfs_status ? Module._skred_vfs_status() : 0;
+    const status = statusPtr ? Module.UTF8ToString(statusPtr) : "disk";
+    printToTerminal(`# vfs ${status}`, "system");
+    centerSpan.innerText = "%zu";
+}
 </script>
 </body>
 </html>

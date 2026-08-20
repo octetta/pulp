@@ -90,6 +90,12 @@ enum {
 typedef uint16_t skode_opcode_t;
 typedef uint8_t skode_realtime_opcode_t;
 
+#define SKODE_OPCODE_REALTIME_MAX 255
+
+static inline int skode_opcode_is_realtime(skode_opcode_t code) {
+  return code <= SKODE_OPCODE_REALTIME_MAX;
+}
+
 typedef enum {
   SKODE_COMPILE_OK = 0,
   SKODE_COMPILE_IMMEDIATE_ONLY,

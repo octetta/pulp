@@ -3075,6 +3075,7 @@ static void skode_opcode_links(const opcode_event_t *opcode,
 
 int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
   if (!opcode || !skode_voice_valid(voice) ||
+      opcode->code > SKODE_OPCODE_REALTIME_MAX ||
       opcode->argc > SEQ_OPCODE_ARG_MAX || opcode->var_mask != 0) return -1;
   uint8_t default_mask =
     opcode->code == SKODE_OP_MIDI_NOTE ||

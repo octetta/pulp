@@ -59,6 +59,7 @@ int skode_program_push(event_program_t *program, skode_opcode_t code,
     ands_t *parser, const double *arg, int argc, char mode,
     uint8_t default_mask) {
   if (program->count >= SEQ_PROGRAM_OP_MAX) return -1;
+  if (!skode_opcode_is_realtime(code)) return -1;
   program_op_t *op = &program->op[program->count];
   memset(op, 0, sizeof(*op));
   op->opcode.code = (uint8_t)code;
@@ -417,6 +418,7 @@ int skode_linked_velocity(int voice, float velocity, uint64_t sample) {
 
 static int execute_opcode(const opcode_event_t *opcode, int voice) {
   if (!opcode || !event_voice_valid(voice)) return -1;
+  if (opcode->code > SKODE_OPCODE_REALTIME_MAX) return -1;
   if (opcode->argc > SEQ_OPCODE_ARG_MAX) return -1;
   opcode_event_t resolved = *opcode;
   for (int i = 0; i < opcode->argc; i++) {

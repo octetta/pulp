@@ -20,7 +20,7 @@ typedef struct {
 #include "ands.h"
 #include "seq.h"
 
-typedef enum {
+enum {
   SKODE_OP_NONE = 0,
   SKODE_OP_DELAY,
   SKODE_OP_VOICE,
@@ -85,7 +85,10 @@ typedef enum {
   SKODE_OP_DELAY_TIME,
   SKODE_OP_DELAY_SYNC,
   SKODE_OP_DELAY_GRIT,
-} skode_opcode_t;
+};
+
+typedef uint16_t skode_opcode_t;
+typedef uint8_t skode_realtime_opcode_t;
 
 typedef enum {
   SKODE_COMPILE_OK = 0,

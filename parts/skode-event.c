@@ -38,8 +38,8 @@ const char *skode_opcode_name(uint8_t opcode) {
     "DELAY_DAMPING", "DELAY_FREEZE", "DELAY_PINGPONG", "DELAY_TIME",
     "DELAY_SYNC", "DELAY_GRIT",
   };
-  return opcode < sizeof(names) / sizeof(names[0]) ?
-    names[opcode] : "UNKNOWN";
+  if (opcode >= sizeof(names) / sizeof(names[0])) return NULL;
+  return names[opcode];
 }
 
 typedef struct {

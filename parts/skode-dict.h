@@ -227,6 +227,7 @@ typedef struct skode_word {
   word_safety_t safety;
   const char *category;       /* mirrors the existing @doc "category:" field */
   const char *summary;        /* mirrors the existing @doc "summary:" field */
+  const char *help_detail;    /* replaces the extended @doc text blocks */
   struct skode_word *next;    /* bucket-chain link -- distinct atoms only; see
                                   skode_dict_override()/skode_dict_revert() */
   struct skode_word *shadow;  /* previous registration for the SAME atom, or

@@ -555,6 +555,20 @@ static void skode_help_show_doc(skode_t *ctx, const skode_doc_entry_t *doc) {
   
   ctx->puts(ctx, "");
   if (summary[0]) ctx->printf(ctx, "#   %s\n", summary);
+  if (word && word->help_detail) {
+    ctx->printf(ctx, "#\n");
+    const char *p = word->help_detail;
+    while (*p) {
+      const char *end = strchr(p, '\n');
+      if (end) {
+        ctx->printf(ctx, "#   %.*s\n", (int)(end - p), p);
+        p = end + 1;
+      } else {
+        ctx->printf(ctx, "#   %s\n", p);
+        break;
+      }
+    }
+  }
   if (doc->file) ctx->printf(ctx, "#   %s:%d\n", doc->file, doc->line);
 }
 

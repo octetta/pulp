@@ -479,7 +479,10 @@ static skode_word_t word_table[] = {
   { WID("EXEC"), .execute = word_exec_x, .compile = word_compile_x,
     .min_args = 1, .max_args = 1 + SEQ_OPCODE_ARG_MAX,
     .safety = WORD_REAL_TIME_SAFE, .category = "parser",
-    .summary = "numeric opcode escape" },
+    .summary = "numeric opcode escape",
+    .help_detail = "Usage: EXEC <opcode_id> [args...]\n"
+                   "Directly executes a numeric opcode.\n"
+                   "Useful for CLAP host automation bridging." },
 
   { WID("v"), .execute = word_exec_v, .opcode_id = SKODE_OP_VOICE,
     .min_args = 1, .max_args = 1,

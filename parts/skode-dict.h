@@ -284,6 +284,8 @@ void skode_dict_vocab_destroy(skode_vocab_t *vocab);
 const skode_word_t *skode_dict_lookup(skode_vocab_t *private_vocab,
   uint32_t atom);
 
+const skode_word_t *skode_dict_find_by_name(skode_vocab_t *vocab, const char *name);
+
 /*
  * Registers a single word. Returns 0 on success, -1 if the atom is already
  * registered (duplicate atoms are a programming error, not a runtime

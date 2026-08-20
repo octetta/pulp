@@ -535,6 +535,24 @@ static void skode_help_show_doc(skode_t *ctx, const skode_doc_entry_t *doc) {
   skode_help_field(doc, "summary", summary, sizeof(summary));
   ctx->printf(ctx, "# help %s", name[0] ? name : doc->key);
   if (category[0]) ctx->printf(ctx, " [%s]", category);
+  
+  // Check skode_dict for arity
+  const char *lookup_name = name[0] ? name : doc->key;
+  const skode_word_t *word = skode_dict_find_by_name(ctx->vocab, lookup_name);
+  if (word) {
+    if (word->min_args == word->max_args) {
+      if (word->min_args == 0) {
+        ctx->printf(ctx, " [arity: 0 args]");
+      } else if (word->min_args == 1) {
+        ctx->printf(ctx, " [arity: 1 arg]");
+      } else {
+        ctx->printf(ctx, " [arity: %d args]", word->min_args);
+      }
+    } else {
+      ctx->printf(ctx, " [arity: %d-%d args]", word->min_args, word->max_args);
+    }
+  }
+  
   ctx->puts(ctx, "");
   if (summary[0]) ctx->printf(ctx, "#   %s\n", summary);
   if (doc->file) ctx->printf(ctx, "#   %s:%d\n", doc->file, doc->line);
@@ -5562,6 +5580,11 @@ neutral `ct 0 0 1 0` disables it.
         seq_edit_unlock();
       }
       break;
+    @doc(command.EXEC)
+    name: EXEC
+    category: parser
+    summary: numeric opcode escape
+    @enddoc
     @doc(command.x)
     name: x
     category: sequencer

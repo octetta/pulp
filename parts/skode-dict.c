@@ -833,6 +833,10 @@ static uint32_t pack_atom_runtime(const char *name, int len) {
   return v;
 }
 
+const skode_word_t *skode_dict_find_by_name(skode_vocab_t *vocab, const char *name) {
+  return skode_dict_lookup(vocab, pack_atom_runtime(name, (int)strlen(name)));
+}
+
 int skode_dict_unpromote_macro(skode_vocab_t *vocab, const char *name) {
   if (!vocab || !name || !name[0]) return 0;
   uint32_t atom = pack_atom_runtime(name, (int)strlen(name));

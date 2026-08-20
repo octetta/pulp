@@ -1997,10 +1997,11 @@ void skred_process_stereo_with_input(float *out_left, float *out_right, const fl
 
 int skred_execute_opcode(int voice, int opcode, int argc, const double *args) {
   if (!engine_started) return -1;
+  if (!skode_opcode_is_realtime((skode_opcode_t)opcode)) return -1;
 
   opcode_event_t event;
   memset(&event, 0, sizeof(event));
-  event.code = opcode;
+  event.code = (uint8_t)opcode;
   event.argc = argc > SEQ_OPCODE_ARG_MAX ? SEQ_OPCODE_ARG_MAX : argc;
   event.mode = 0;
   event.var_mask = 0;

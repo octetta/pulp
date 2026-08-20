@@ -523,6 +523,24 @@ static void skode_help_show_doc(skode_t *ctx, const skode_doc_entry_t *doc) {
   skode_help_field(doc, "summary", summary, sizeof(summary));
   ctx->printf(ctx, "# help %s", name[0] ? name : doc->key);
   if (category[0]) ctx->printf(ctx, " [%s]", category);
+
+  // Check skode_dict for arity
+  const char *lookup_name = name[0] ? name : doc->key;
+  const skode_word_t *word = skode_dict_find_by_name(ctx->vocab, lookup_name);
+  if (word) {
+    if (word->min_args == word->max_args) {
+      if (word->min_args == 0) {
+        ctx->printf(ctx, " [arity: 0 args]");
+      } else if (word->min_args == 1) {
+        ctx->printf(ctx, " [arity: 1 arg]");
+      } else {
+        ctx->printf(ctx, " [arity: %d args]", word->min_args);
+      }
+    } else {
+      ctx->printf(ctx, " [arity: %d-%d args]", word->min_args, word->max_args);
+    }
+  }
+
   ctx->puts(ctx, "");
   if (summary[0]) ctx->printf(ctx, "#   %s\n", summary);
   if (doc->file) ctx->printf(ctx, "#   %s:%d\n", doc->file, doc->line);
@@ -855,7 +873,7 @@ static void control_event_show(skode_t *ctx, int consume) {
     skred_control_event_t *event = &events[i];
     ctx->printf(ctx,
       "# control %02d seq:%" PRIu64 " type:%s sample:%" PRIu64
-      " voice:%d pattern:%d step:%d tag:%d opcode:%s\n",
+      " voice:%d pattern:%d step:%d tag:%d opcode:%d%s%s\n",
       i,
       event->sequence,
       control_event_type_name(event->type),
@@ -864,7 +882,9 @@ static void control_event_show(skode_t *ctx, int consume) {
       event->pattern,
       event->step,
       event->tag,
-      skode_opcode_name((uint8_t)event->opcode));
+      (int)event->opcode,
+      skode_opcode_name((uint8_t)event->opcode) ? " " : "",
+      skode_opcode_name((uint8_t)event->opcode) ? skode_opcode_name((uint8_t)event->opcode) : "");
     if (event->type == SKRED_CONTROL_EVENT_USER) {
       ctx->printf(ctx, "#   id:%d", event->id);
       for (uint32_t a = 0; a < event->value_count && a < 3; a++)
@@ -888,8 +908,9 @@ static void opcode_arg_show(skode_t *ctx, const opcode_event_t *opcode,
 
 static void opcode_show(skode_t *ctx, int index,
     const opcode_event_t *opcode) {
-  ctx->printf(ctx, "#   %02d %s", index,
-    skode_opcode_name(opcode->code));
+  const char *name = skode_opcode_name(opcode->code);
+  ctx->printf(ctx, "#   %02d %d%s%s", index,
+    opcode->code, name ? " " : "", name ? name : "");
   if (opcode->code == SKODE_OP_DELAY)
     ctx->printf(ctx, " %c", opcode->mode);
   for (int i = 0; i < opcode->argc; i++)
@@ -928,7 +949,8 @@ static void opcode_queue_show(skode_t *ctx) {
     };
     for (int i = 0; i < SEQ_OPCODE_ARG_MAX; i++)
       opcode.arg[i] = event->opcode_arg[i];
-    ctx->printf(ctx, " %s", skode_opcode_name(opcode.code));
+    const char *name = skode_opcode_name(opcode.code);
+    ctx->printf(ctx, " %d%s%s", opcode.code, name ? " " : "", name ? name : "");
     for (int i = 0; i < opcode.argc; i++)
       opcode_arg_show(ctx, &opcode, i);
     ctx->puts(ctx, "");
@@ -2917,6 +2939,7 @@ static void skode_opcode_links(const opcode_event_t *opcode,
 
 int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
   if (!opcode || !skode_voice_valid(voice) ||
+      opcode->code > SKODE_OPCODE_REALTIME_MAX ||
       opcode->argc > SEQ_OPCODE_ARG_MAX || opcode->var_mask != 0) return -1;
   uint8_t default_mask =
     opcode->code == SKODE_OP_MIDI_NOTE ||

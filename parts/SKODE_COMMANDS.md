@@ -240,7 +240,7 @@ dedicated reset-all command.
 
 ### Numeric Escape
 
-`x id [args...]` Direct execution/compilation of opcode `id` (0-255).
+`EXEC id [args...]` Direct execution/compilation of opcode `id` (0-255).
 Re-uses the argument arity and execution path of the underlying opcode.
 
 ## Scheduling and Queue Commands

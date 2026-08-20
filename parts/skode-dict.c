@@ -476,7 +476,7 @@ static skode_word_t word_table[] = {
     .safety = WORD_IMMEDIATE_ONLY, .category = "parser",
     .summary = "show return registers without consuming them" },
 
-  { WID("x"), .execute = word_exec_x, .compile = word_compile_x,
+  { WID("EXEC"), .execute = word_exec_x, .compile = word_compile_x,
     .min_args = 1, .max_args = 1 + SEQ_OPCODE_ARG_MAX,
     .safety = WORD_REAL_TIME_SAFE, .category = "parser",
     .summary = "numeric opcode escape" },

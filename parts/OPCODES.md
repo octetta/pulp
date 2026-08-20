@@ -12,9 +12,9 @@ Scheduled work executed by the audio callback consists only of fixed-size
 numeric opcode events. Skode text is parsed and compiled on a command or UDP
 thread before it enters a queue, defer, repeat, or sequence.
 
-### Numeric Opcode Escape (`x`)
+### Numeric Opcode Escape (`EXEC`)
 
-Skode supports direct, backward-compatible invocation of numeric opcodes via the `x` escape command (e.g. `x 3 -6.0` to set the amplitude using `SKODE_OP_AMP`).
+Skode supports direct, backward-compatible invocation of numeric opcodes via the `x` escape command (e.g. `EXEC 3 -6.0` to set the amplitude using `SKODE_OP_AMP`).
 The `x` command parses the opcode number, strictly validates it against the realtime 0-255 bounds and feature support list, and seamlessly routes the remaining arguments into the existing compilation and execution pathways.
 This allows numeric debugging, cross-toolchain interactions, and testing without requiring mnemonic strings.
 

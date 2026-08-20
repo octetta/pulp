@@ -1040,14 +1040,14 @@ Use `/ss` to mark the mapping inactive and unlink its name. An already-mapped
 reader can observe the inactive flag and close cleanly. Scope publication and
 multichannel WAV recording can be active simultaneously.
 
-## Numeric Opcode Escape (`x`)
+## Numeric Opcode Escape (`EXEC`)
 
-The `x` command provides direct access to Skode's internal numeric opcodes. It takes an opcode ID (0-255) followed by its arguments. This is an advanced compiler escape rather than an ordinary command.
+The `EXEC` command provides direct access to Skode's internal numeric opcodes. It takes an opcode ID (0-255) followed by its arguments. This is an advanced compiler escape rather than an ordinary command.
 
-`x {opcode_id} {args...}`
+`EXEC {opcode_id} {args...}`
 
 ```text
-v0 x 3 -6.0      // sets amplitude to -6 dB using SKODE_OP_AMP (3)
+v0 EXEC 3 -6.0      // sets amplitude to -6 dB using SKODE_OP_AMP (3)
 ```
 
 Opcodes > 255 are rejected at compile time as they fall outside the real-time executable namespace limit.

@@ -3608,7 +3608,7 @@ static void test_rec_load_k_to_data_to_rec(void) {
 }
 
 static void test_x_opcode_escape(void) {
-  const char *test = "x numeric opcode escape";
+  const char *test = "EXEC numeric opcode escape";
   skode_t ctx = new_ctx();
   ctx.voice = 0;
   consume(test, &ctx, "v 0");
@@ -3616,15 +3616,15 @@ static void test_x_opcode_escape(void) {
   expect_float(test, sv.user_amp[0], -1000.0f, 1e-4f, "a -1000 sets user_amp to -1000");
   
   // SKODE_OP_AMP is 3
-  consume(test, &ctx, "x 3 -6.0");
-  expect_float(test, sv.user_amp[0], -6.0f, 1e-4f, "x 3 -6 sets user_amp to -6");
+  consume(test, &ctx, "EXEC 3 -6.0");
+  expect_float(test, sv.user_amp[0], -6.0f, 1e-4f, "EXEC 3 -6 sets user_amp to -6");
   
   // Negative tests
   event_program_t program;
-  expect_int(test, skode_compile_program("x", &program), -1, "bare x rejected");
-  expect_int(test, skode_compile_program("x 250", &program), -1, "x 250 unmapped rejected");
-  expect_int(test, skode_compile_program("x 9999", &program), -1, "x 9999 out of range rejected");
-  expect_int(test, skode_compile_program("x 256", &program), -1, "x 256 out of range rejected");
+  expect_int(test, skode_compile_program("EXEC", &program), -1, "bare EXEC rejected");
+  expect_int(test, skode_compile_program("EXEC 250", &program), -1, "EXEC 250 unmapped rejected");
+  expect_int(test, skode_compile_program("EXEC 9999", &program), -1, "EXEC 9999 out of range rejected");
+  expect_int(test, skode_compile_program("EXEC 256", &program), -1, "EXEC 256 out of range rejected");
 }
 
 int main(int argc, char **argv) {

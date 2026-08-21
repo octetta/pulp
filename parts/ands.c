@@ -657,12 +657,14 @@ static void action_finish_number(ands_t *s) {
     buffer_clear(&s->num);
 }
 
-static void action_finish_atom(ands_t *s) {
+static int action_finish_atom(ands_t *s) {
     if (s->trace) printf("# ATOM %s\n", buffer_str(&s->atom));
 
     if (s->atom_num != ATOM_NIL) {
         ands_return_clear(s);
-        if (s->fn(s, FUNCTION) == 0) {
+        int ret = s->fn(s, FUNCTION);
+        if (ret < 0) return ret;
+        if (ret == 0) {
             s->arg_len = 0;  // Clear args
         }
         s->string_fresh = 0;
@@ -671,6 +673,7 @@ static void action_finish_atom(ands_t *s) {
 
     atom_finish(s);
     buffer_clear(&s->atom);
+    return 0;
 }
 
 static void action_finish_defer(ands_t *s) {
@@ -688,12 +691,13 @@ static void action_finish_array(ands_t *s) {
     }
 }
 
-static void action_chunk_end(ands_t *s) {
+static int action_chunk_end(ands_t *s) {
     // Handle leftover atom
     if (s->atom_num != ATOM_NIL) {
         if (s->trace) printf("# left-over ATOM\n");
         ands_return_clear(s);
-        s->fn(s, FUNCTION);
+        int ret = s->fn(s, FUNCTION);
+        if (ret < 0) return ret;
         s->string_fresh = 0;
         atom_reset(s);
     }
@@ -701,13 +705,16 @@ static void action_chunk_end(ands_t *s) {
     // Handle leftover defer
     if (s->defer.len > 0) {
         if (s->trace) printf("# left-over DEFER\n");
-        s->fn(s, DEFER);
+        int ret = s->fn(s, DEFER);
+        if (ret < 0) return ret;
         buffer_clear(&s->defer);
     }
 
     if (s->trace) printf("# CHUNK_END\n");
-    s->fn(s, CHUNK_END);
+    int ret = s->fn(s, CHUNK_END);
+    if (ret < 0) return ret;
     s->arg_len = 0;  // Clear args
+    return 0;
 }
 
 // ============================================================================
@@ -719,6 +726,7 @@ int ands_consume(ands_t *s, char *line) {
     char *parse_line = line;
     char *ptr;
     char *end;
+    int parse_err = 0;
 
     buffer_init(&expanded, (int)strlen(line) + 1);
     if (expanded.data && ands_preprocess_macros(s, line, &expanded, 0)) {
@@ -732,7 +740,7 @@ int ands_consume(ands_t *s, char *line) {
         if (ptr >= end) {
             switch (s->state) {
                 case GET_ATOM:
-                    action_finish_atom(s);
+                    if ((parse_err = action_finish_atom(s)) < 0) goto consume_end;
                     s->state = START;
                     break;
                 case GET_NUMBER:
@@ -755,7 +763,7 @@ int ands_consume(ands_t *s, char *line) {
                 }
                 else if (IS_SEPARATOR(*ptr)) { /* skip */ }
                 else if (IS_STRING(*ptr))    {
-                  action_finish_atom(s);
+                  if ((parse_err = action_finish_atom(s)) < 0) goto consume_end;
                   buffer_clear(&s->string[s->string_idx]);
                   s->state = GET_STRING;
                 }
@@ -931,7 +939,7 @@ int ands_consume(ands_t *s, char *line) {
                 if (IS_ATOM(*ptr)) {
                     buffer_push(&s->atom, *ptr);
                 } else {
-                    action_finish_atom(s);
+                    if ((parse_err = action_finish_atom(s)) < 0) goto consume_end;
                     s->state = START;
                     goto reprocess;
                 }
@@ -945,10 +953,11 @@ int ands_consume(ands_t *s, char *line) {
         ptr++;
     }
 
-    action_chunk_end(s);
+    consume_end:
+    if (parse_err == 0) parse_err = action_chunk_end(s);
     s->state = START;
     buffer_free(&expanded);
-    return 0;
+    return parse_err;
 }
 
 // ============================================================================

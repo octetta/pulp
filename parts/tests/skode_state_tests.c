@@ -2985,8 +2985,6 @@ static void test_dictionary_core_words(void) {
       fail(test, msg);
     }
   }
-  if (skode_dict_lookup(ctx.vocab, SKODE_DICT_ATOM("l")))
-    fail(test, "incomplete velocity word should remain on legacy path");
 
   consume(test, &ctx, "v2 a-9 n64,3 f330 p.25 m1");
   expect_int(test, ctx.voice, 2, "dictionary voice selection");

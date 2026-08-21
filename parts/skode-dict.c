@@ -235,8 +235,9 @@ int skode_compile_word(ands_t *parser, uint32_t atom, double *arg, int argc,
   if (!w) return 0;
 
   if (w->safety == WORD_IMMEDIATE_ONLY) {
-    if (out_compile_result) *out_compile_result = SKODE_COMPILE_IMMEDIATE_ONLY;
-    return 1;
+    // If it's in the dictionary but immediate-only, it MIGHT be a legacy opcode
+    // that we haven't fully migrated yet. Return 0 to let skode-event.c handle it.
+    return 0;
   }
 
   if (w->compile) {
@@ -589,6 +590,8 @@ void skode_dict_init(void) {
   if (dict_initialized) return;
   memset(&global_vocab, 0, sizeof(global_vocab));
   dict_initialized = 1;
+  void skode_register_immediate_words(skode_vocab_t*);
+  skode_register_immediate_words(&global_vocab);
 
   /* pack_atom_runtime() (used by skode_dict_promote_macro() to turn a
      runtime macro-name string into the same 32-bit encoding ATOM4()

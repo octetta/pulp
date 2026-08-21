@@ -1,6 +1,6 @@
 CMAKE ?= cmake
 # A simple "Top-Level" Makefile to manage the CMake complexity
-.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test analysis-src analysis-check libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows dist-api-wasm
+.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows dist-api-wasm
 
 ZIG_LOCAL_CACHE_DIR ?= /tmp/pulp-zig-local-cache
 ZIG_GLOBAL_CACHE_DIR ?= /tmp/pulp-zig-global-cache
@@ -29,22 +29,6 @@ DIST_WASM_PREFIX ?= $(DIST_WASM_PLATFORM_ROOT)/skred-$(VERSION)-maxed
 DIST_WASM_ARCHIVE ?= skred-$(VERSION)-maxed.zip
 CMAKE_PLATFORM_ARGS ?= $(if $(filter 1 true yes,$(MACOS_UNIVERSAL)),-DCMAKE_OSX_ARCHITECTURES="$(MACOS_UNIVERSAL_ARCHS)",)
 BUILD_TYPE ?= Release
-ANALYSIS_BUILD_DIR ?= build_analysis
-ANALYSIS_SRC_DIR ?= analysis-src
-ANALYSIS_GENERATED = \
-	api.c \
-	mini-skred.c \
-	polyphony.c \
-	recorder.c \
-	recorder.h \
-	seq.c \
-	seq.h \
-	skode.c \
-	synth-alloc.c \
-	synth-state.h \
-	synth.c \
-	synth.h
-
 all: native # pi
 
 maxed:
@@ -101,21 +85,7 @@ dist-api-wasm: wasm
 	cp build_wasm/skred_api.wasm $(DIST_WASM_PREFIX)/
 	bash -c "$(CMAKE) -E chdir $(DIST_WASM_PLATFORM_ROOT) $(CMAKE) -E tar cf $(DIST_WASM_ARCHIVE) --format=zip skred-$(VERSION)-maxed"
 
-analysis-src:
-	$(CMAKE) -B $(ANALYSIS_BUILD_DIR) -S . 
-	$(CMAKE) --build $(ANALYSIS_BUILD_DIR) --target api mini-skred
-	$(CMAKE) -E make_directory $(ANALYSIS_SRC_DIR)
-	$(CMAKE) -E copy_if_different \
-		$(addprefix $(ANALYSIS_BUILD_DIR)/,$(ANALYSIS_GENERATED)) \
-		$(ANALYSIS_SRC_DIR)
 
-analysis-check: analysis-src
-	@status="$$(git status --porcelain -- $(ANALYSIS_SRC_DIR))"; \
-	if [ -n "$$status" ]; then \
-		printf '%s\n' "$$status"; \
-		printf '%s\n' "analysis sources are stale; run 'make analysis-src' and commit the result"; \
-		exit 1; \
-	fi
 
 wasm:
 	$(CMAKE) -B build_wasm -S . 
@@ -166,4 +136,4 @@ clean:
 	rm -rf build_native build_pi build_warn build_warn_maxed build_maxed build_wasm build_pi_check build build_cross_windows_zig_maxed
 
 very-all:
-	make clean maxed dist-api analysis-src wasm
+	make clean maxed dist-api wasm

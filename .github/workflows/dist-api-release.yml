@@ -48,7 +48,7 @@ jobs:
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libasound2-dev ninja-build
+          sudo apt-get install -y libasound2-dev ninja-build cmake
 
       - name: Build maxed Linux API distribution
         run: make -C parts dist-api
@@ -164,7 +164,7 @@ jobs:
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libasound2-dev ninja-build
+          sudo apt-get install -y libasound2-dev ninja-build cmake
 
       - name: Build maxed WASM API distribution
         run: |

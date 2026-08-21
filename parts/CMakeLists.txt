@@ -28,7 +28,7 @@ if(SKRED_UDP)
 endif()
 
 # 1. Build the tool
-if(NOT SCOPE_FEATURE_INDEX EQUAL -1 AND WIN32)
+if(SKRED_SCOPE AND WIN32)
     message(FATAL_ERROR "SCOPE=1 currently requires POSIX shared memory")
 endif()
 

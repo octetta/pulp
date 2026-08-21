@@ -1,5 +1,5 @@
 # A simple "Top-Level" Makefile to manage the CMake complexity
-.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test analysis-src analysis-check libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-kit cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows dist-api-wasm
+.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test analysis-src analysis-check libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows dist-api-wasm
 
 ZIG_LOCAL_CACHE_DIR ?= /tmp/pulp-zig-local-cache
 ZIG_GLOBAL_CACHE_DIR ?= /tmp/pulp-zig-global-cache
@@ -72,14 +72,11 @@ generated-sources: native
 clean-generated: native
 	cmake --build build_native --target clean-generated
 
-cross-windows-kit:
-	cmake --preset ninja-release
-
-cross-windows-zig-maxed: cross-windows-kit
+cross-windows-zig-maxed:
 	$(ZIG_ENV) cmake --preset cross-windows-zig-maxed
 	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target mini-skred
 
-cross-windows-zig-maxed-refresh: cross-windows-kit
+cross-windows-zig-maxed-refresh:
 	$(ZIG_ENV) cmake --preset cross-windows-zig-maxed
 	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target clean-generated
 	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target mini-skred
@@ -88,7 +85,7 @@ mini-skred-windows: cross-windows-zig-maxed
 	cmake -E make_directory $(WINDOWS_ARTIFACT_DIR)
 	cmake -E copy_if_different build_cross_windows_zig_maxed/mini-skred.exe $(WINDOWS_ARTIFACT_DIR)/mini-skred.exe
 
-windows-cross-libs: cross-windows-kit
+windows-cross-libs:
 	$(ZIG_ENV) cmake --preset cross-windows-zig-maxed
 	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target api api_shared mini-skred
 	cmake --install build_cross_windows_zig_maxed --prefix $(DIST_WINDOWS_PREFIX)

@@ -17,9 +17,7 @@
       "description": "Ninja release build with the canonical maxed feature set. SCOPE requires POSIX.",
       "inherits": "ninja-release",
       "binaryDir": "${sourceDir}/build_ninja_maxed",
-      "cacheVariables": {
-        "KIT_OPTS": "KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1"
-      }
+      "cacheVariables": {}
     },
     {
       "name": "windows-zig-ninja",
@@ -44,7 +42,7 @@
       "inherits": "windows-zig-ninja",
       "binaryDir": "${sourceDir}/build_windows_zig_maxed",
       "cacheVariables": {
-        "KIT_OPTS": "KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1"
+        "SKRED_SCOPE": "OFF"
       }
     },
     {
@@ -61,9 +59,7 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "ZIG_TARGET": "x86_64-windows-gnu",
-        "USE_EXTERNAL_KIT": "ON",
-        "KIT_TOOL_PATH": "${sourceDir}/build_ninja/kit_tool"
+        "ZIG_TARGET": "x86_64-windows-gnu"
       }
     },
     {
@@ -73,7 +69,7 @@
       "inherits": "cross-windows-zig-ninja",
       "binaryDir": "${sourceDir}/build_cross_windows_zig_maxed",
       "cacheVariables": {
-        "KIT_OPTS": "KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1"
+        "SKRED_SCOPE": "OFF"
       }
     }
   ],

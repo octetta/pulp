@@ -956,7 +956,8 @@ int ands_consume(ands_t *s, char *line) {
     consume_end:
     if (parse_err == 0) {
         parse_err = action_chunk_end(s);
-    } else {
+    }
+    if (parse_err < 0) {
         atom_reset(s);
         s->arg_len = 0;
         buffer_clear(&s->atom);

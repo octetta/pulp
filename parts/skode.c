@@ -561,7 +561,7 @@ static void skode_help_show_doc(skode_t *ctx, const skode_doc_entry_t *doc) {
         p = end + 1;
       } else {
         ctx->printf(ctx, "#   %s\n", p);
-        return -1;
+        break;
       }
     }
   }
@@ -1298,7 +1298,7 @@ static int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
       if (r != 0) {
         ctx->printf(ctx, "# error in patch %s:%d status=%d\n",
           label ? label : "(unknown)", line_no, r);
-        return -1;
+        break;
       }
     }
   } else {
@@ -2813,7 +2813,7 @@ void record_find_trim(int argc, float arg0, float arg1, int margin) {
   for (int i = 0; i <= sampling.len - run; i++) {
     if (record_trim_run_above(i, run, tleft)) {
       first_audible = i;
-      return -1;
+      break;
     }
   }
 
@@ -2823,7 +2823,7 @@ void record_find_trim(int argc, float arg0, float arg1, int margin) {
     // Look backward into silence/margin to find the closest zero crossing.
     while (lead0 > 0) {
       if (record_frames_cross_zero(lead0, lead0 - 1)) {
-        return -1;
+        break;
       }
       lead0--;
     }
@@ -2836,7 +2836,7 @@ void record_find_trim(int argc, float arg0, float arg1, int margin) {
   for (int i = sampling.len - run; i >= 0; i--) {
     if (record_trim_run_above(i, run, tright)) {
       last_audible = i + run - 1;
-      return -1;
+      break;
     }
   }
 
@@ -2846,7 +2846,7 @@ void record_find_trim(int argc, float arg0, float arg1, int margin) {
     // Look forward into silence/margin to find the closest zero crossing.
     while (end_idx < sampling.len - 1) {
       if (record_frames_cross_zero(end_idx, end_idx + 1)) {
-        return -1;
+        break;
       }
       end_idx++;
     }
@@ -4348,7 +4348,7 @@ static int word_exec_MO(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
           if (!skode_double_to_int(arg[i], &byte) || byte < 0 || byte > 255 ||
               arg[i] != (double)byte) {
             valid = 0;
-            return -1;
+            break;
           }
           bytes[i] = (uint8_t)byte;
         }
@@ -6110,7 +6110,7 @@ static int word_exec_d_gtMO(const skode_word_t *self, skode_t *ctx, ands_t *s, d
           if (!skode_double_to_int(data[i], &byte) || byte < 0 || byte > 255 ||
               data[i] != (double)byte) {
             valid = 0;
-            return -1;
+            break;
           }
           bytes[i] = (uint8_t)byte;
         }
@@ -7855,7 +7855,7 @@ static int word_exec__slashs(const skode_word_t *self, skode_t *ctx, ands_t *s, 
                   ctx->printf(ctx, "# [%s] e>%d\n", EXTRA_PTR(i), i);
               }
               simple_mutex_unlock(&skode_extra_mutex);
-              return -1;
+              break;
             case 1: show_threads(ctx); break;
             case 4: show_stats(ctx); break;
             case 6: ctx->printf(ctx, "%s", seq_stats()); break;
@@ -8143,22 +8143,22 @@ static int word_exec_W_star(const skode_word_t *self, skode_t *ctx, ands_t *s, d
         switch (param) {
           case 0: // wavetable size
             val = sw.size[wave];
-            return -1;
+            break;
           case 1: // wavetable rate
             val = sw.rate[wave];
-            return -1;
+            break;
           case 2: // wavetable size / rate
             val = (float)sw.size[wave] / sw.rate[wave];
-            return -1;
+            break;
           case 3: // loop start boundary
             val = sw.loop_start[wave];
-            return -1;
+            break;
           case 4: // loop end boundary
             val = sw.loop_end[wave];
-            return -1;
+            break;
           default:
             argc = 0; // hack to do-nothing on unknown parameter
-            return -1;
+            break;
         }
         if (argc > 2) {
           int variable;
@@ -8191,16 +8191,16 @@ static int word_exec_v_star(const skode_word_t *self, skode_t *ctx, ands_t *s, d
         switch (x) {
           case 0: // wavetable index
             val = sv.wave_table_index[voice];
-            return -1;
+            break;
           case 1: // amplitide
             val = sv.user_amp[voice];
-            return -1;
+            break;
           case 2: // freq
             val = sv.freq[voice];
-            return -1;
+            break;
           default:
             argc = 0; // hack to do-nothing on unknown parameter
-            return -1;
+            break;
         }
         if (argc > 1) {
           int y;
@@ -8443,7 +8443,7 @@ static int word_exec__pctcat(const skode_word_t *self, skode_t *ctx, ands_t *s, 
             for (size_t i = 0; i < len; i++) {
               if (!isprint((unsigned char)line[i]) && line[i] != '\t') {
                 line[i] = '\0';
-                return -1;
+                break;
               }
             }
             ctx->printf(ctx, "%s\n", line);
@@ -8515,28 +8515,28 @@ static int word_exec__pctls(const skode_word_t *self, skode_t *ctx, ands_t *s, d
               default:
               case -1:
                 f = 1;
-                return -1;
+                break;
               case 0:
                 f = (strstr(name, ".sk") != NULL);
-                return -1;
+                break;
               case 1:
                 f = (strstr(name, ".wav") != NULL);
-                return -1;
+                break;
               case 2:
                 f = (strstr(name, ".mp3") != NULL);
-                return -1;
+                break;
               case 3:
                 f = (strstr(name, ".ks") != NULL);
-                return -1;
+                break;
               case 4:
                 f = (strstr(name, ".flac") != NULL);
-                return -1;
+                break;
               case 5:
                 f = (strstr(name, ".zip") != NULL);
-                return -1;
+                break;
               case 6:
                 f = (strstr(name, ".pnl") != NULL);
-                return -1;
+                break;
             }
             if (f) {
               if (index == -100) {
@@ -9070,7 +9070,7 @@ int skode_function(ands_t *s, int info) {
   switch (atom) {
   default:
     ctx->printf(ctx, "# SKODE_UNKNOWN_FUNCTION %d [%x] :: %d", info, atom, argc);
-    return -1;
+    break;
 }
   return 0;
 }
@@ -9161,7 +9161,7 @@ int skode_callback(ands_t *s, int info) {
             status == ANDS_MACRO_IMMEDIATE ? "immediate" :
             status == ANDS_MACRO_TOO_LARGE ? "too-large" : "invalid");
       }
-      return -1;
+      break;
     }
     case MACRO_REMOVING: {
       int index = ands_last_macro_index(s);
@@ -9169,7 +9169,7 @@ int skode_callback(ands_t *s, int info) {
       if (index >= 0 && ands_macro_get(s, index, name, sizeof(name),
           NULL, 0, NULL))
         skode_dict_unpromote_macro(skode_dict_global_vocab(), name);
-      return -1;
+      break;
     }
     default: return skode_unknown(ctx, s, info);
   }
@@ -9242,7 +9242,7 @@ static int skode_session_buffer_reserve(skode_session_buffer_t *buffer,
   while (capacity < needed) {
     if (capacity > SIZE_MAX / 2) {
       capacity = needed;
-      return -1;
+      break;
     }
     capacity *= 2;
   }
@@ -9440,7 +9440,7 @@ static int skode_session_save(skode_t *ctx, const char *filename) {
     char command[STRING_BUF_LEN];
     if (skode_extra_copy(i, command, sizeof(command)) != 0) {
       ok = 0;
-      return -1;
+      break;
     }
     if (!command[0]) continue;
     snprintf(entry, sizeof(entry), "external/%03d.sk", i);

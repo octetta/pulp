@@ -13,9 +13,9 @@ set(PULP_VERSION_PATCH "${CMAKE_MATCH_3}")
 project(mini-skred VERSION "${PULP_VERSION}" LANGUAGES C)
 include(GNUInstallDirs)
 
-option(SKRED_KSYNTH "Enable KSynth integration" OFF)
-option(SKRED_SCOPE "Enable SCOPE IPC" OFF)
-option(SKRED_UDP "Enable UDP networking" OFF)
+option(SKRED_KSYNTH "Enable KSynth integration" ON)
+option(SKRED_SCOPE "Enable SCOPE IPC" ON)
+option(SKRED_UDP "Enable UDP networking" ON)
 
 if(SKRED_KSYNTH)
     add_compile_definitions(KSYNTH=1)

@@ -169,7 +169,7 @@ jobs:
       - name: Build maxed WASM API distribution
         run: |
           chmod +x parts/wasm-assets/* || true
-          make -C parts dist-api-wasm
+          make -C parts dist-api-wasm CMAKE=/usr/bin/cmake
 
       - name: Verify and name release asset
         shell: bash

@@ -1,10 +1,11 @@
+CMAKE ?= cmake
 # A simple "Top-Level" Makefile to manage the CMake complexity
 .PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test analysis-src analysis-check libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows dist-api-wasm
 
 ZIG_LOCAL_CACHE_DIR ?= /tmp/pulp-zig-local-cache
 ZIG_GLOBAL_CACHE_DIR ?= /tmp/pulp-zig-global-cache
 EM_CACHE ?= /tmp/pulp-em-cache
-ZIG_ENV = cmake -E env ZIG_LOCAL_CACHE_DIR=$(ZIG_LOCAL_CACHE_DIR) ZIG_GLOBAL_CACHE_DIR=$(ZIG_GLOBAL_CACHE_DIR)
+ZIG_ENV = $(CMAKE) -E env ZIG_LOCAL_CACHE_DIR=$(ZIG_LOCAL_CACHE_DIR) ZIG_GLOBAL_CACHE_DIR=$(ZIG_GLOBAL_CACHE_DIR)
 EM_ENV = env EM_CACHE=$(EM_CACHE)
 VERSION := $(shell cat ../VERSION)
 DIST_ROOT ?= ../dist
@@ -47,64 +48,64 @@ ANALYSIS_GENERATED = \
 all: native # pi
 
 maxed:
-	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
-	cmake --build build_maxed
+	$(CMAKE) -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
+	$(CMAKE) --build build_maxed
 
 libs: native-libs
 
 native-libs:
-	cmake -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
-	cmake --build build_native --target api api_shared mini-skred
-	cmake --install build_native --prefix $(DIST_NATIVE_PREFIX)
+	$(CMAKE) -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
+	$(CMAKE) --build build_native --target api api_shared mini-skred
+	$(CMAKE) --install build_native --prefix $(DIST_NATIVE_PREFIX)
 
 maxed-libs:
-	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
-	cmake --build build_maxed --target api api_shared mini-skred
-	cmake --install build_maxed --prefix $(DIST_MAXED_PREFIX)
+	$(CMAKE) -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
+	$(CMAKE) --build build_maxed --target api api_shared mini-skred
+	$(CMAKE) --install build_maxed --prefix $(DIST_MAXED_PREFIX)
 
 dist-api: maxed-libs
-	cmake -E chdir $(DIST_PLATFORM_ROOT) cmake -E tar czf $(DIST_MAXED_ARCHIVE) \
+	$(CMAKE) -E chdir $(DIST_PLATFORM_ROOT) $(CMAKE) -E tar czf $(DIST_MAXED_ARCHIVE) \
 		--format=gnutar skred-$(VERSION)-maxed
 
 generated-sources: native
-	cmake --build build_native --target generated-sources
+	$(CMAKE) --build build_native --target generated-sources
 
 clean-generated: native
-	cmake --build build_native --target clean-generated
+	$(CMAKE) --build build_native --target clean-generated
 
 cross-windows-zig-maxed:
-	$(ZIG_ENV) cmake --preset cross-windows-zig-maxed
-	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target mini-skred
+	$(ZIG_ENV) $(CMAKE) --preset cross-windows-zig-maxed
+	$(ZIG_ENV) $(CMAKE) --build --preset cross-windows-zig-maxed --target mini-skred
 
 cross-windows-zig-maxed-refresh:
-	$(ZIG_ENV) cmake --preset cross-windows-zig-maxed
-	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target clean-generated
-	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target mini-skred
+	$(ZIG_ENV) $(CMAKE) --preset cross-windows-zig-maxed
+	$(ZIG_ENV) $(CMAKE) --build --preset cross-windows-zig-maxed --target clean-generated
+	$(ZIG_ENV) $(CMAKE) --build --preset cross-windows-zig-maxed --target mini-skred
 
 mini-skred-windows: cross-windows-zig-maxed
-	cmake -E make_directory $(WINDOWS_ARTIFACT_DIR)
-	cmake -E copy_if_different build_cross_windows_zig_maxed/mini-skred.exe $(WINDOWS_ARTIFACT_DIR)/mini-skred.exe
+	$(CMAKE) -E make_directory $(WINDOWS_ARTIFACT_DIR)
+	$(CMAKE) -E copy_if_different build_cross_windows_zig_maxed/mini-skred.exe $(WINDOWS_ARTIFACT_DIR)/mini-skred.exe
 
 windows-cross-libs:
-	$(ZIG_ENV) cmake --preset cross-windows-zig-maxed
-	$(ZIG_ENV) cmake --build --preset cross-windows-zig-maxed --target api api_shared mini-skred
-	cmake --install build_cross_windows_zig_maxed --prefix $(DIST_WINDOWS_PREFIX)
+	$(ZIG_ENV) $(CMAKE) --preset cross-windows-zig-maxed
+	$(ZIG_ENV) $(CMAKE) --build --preset cross-windows-zig-maxed --target api api_shared mini-skred
+	$(CMAKE) --install build_cross_windows_zig_maxed --prefix $(DIST_WINDOWS_PREFIX)
 
 dist-api-windows: windows-cross-libs
-	cmake -E chdir $(DIST_WINDOWS_PLATFORM_ROOT) cmake -E tar cf $(DIST_WINDOWS_ARCHIVE) \
+	$(CMAKE) -E chdir $(DIST_WINDOWS_PLATFORM_ROOT) $(CMAKE) -E tar cf $(DIST_WINDOWS_ARCHIVE) \
 		--format=zip skred-$(VERSION)-maxed
 
 dist-api-wasm: wasm
 	mkdir -p $(DIST_WASM_PREFIX)
 	cp build_wasm/skred_api.js $(DIST_WASM_PREFIX)/
 	cp build_wasm/skred_api.wasm $(DIST_WASM_PREFIX)/
-	bash -c "cmake -E chdir $(DIST_WASM_PLATFORM_ROOT) cmake -E tar cf $(DIST_WASM_ARCHIVE) --format=zip skred-$(VERSION)-maxed"
+	bash -c "$(CMAKE) -E chdir $(DIST_WASM_PLATFORM_ROOT) $(CMAKE) -E tar cf $(DIST_WASM_ARCHIVE) --format=zip skred-$(VERSION)-maxed"
 
 analysis-src:
-	cmake -B $(ANALYSIS_BUILD_DIR) -S . 
-	cmake --build $(ANALYSIS_BUILD_DIR) --target api mini-skred
-	cmake -E make_directory $(ANALYSIS_SRC_DIR)
-	cmake -E copy_if_different \
+	$(CMAKE) -B $(ANALYSIS_BUILD_DIR) -S . 
+	$(CMAKE) --build $(ANALYSIS_BUILD_DIR) --target api mini-skred
+	$(CMAKE) -E make_directory $(ANALYSIS_SRC_DIR)
+	$(CMAKE) -E copy_if_different \
 		$(addprefix $(ANALYSIS_BUILD_DIR)/,$(ANALYSIS_GENERATED)) \
 		$(ANALYSIS_SRC_DIR)
 
@@ -117,8 +118,8 @@ analysis-check: analysis-src
 	fi
 
 wasm:
-	cmake -B build_wasm -S . 
-	bash -c "cmake --build build_wasm"
+	$(CMAKE) -B build_wasm -S . 
+	bash -c "$(CMAKE) --build build_wasm"
 	cp wasm-assets/mkwasm build_wasm/mkwasm
 	cp ../doc/index.html build_wasm/index.html
 	cp wasm-assets/test-wasm.html build_wasm/test-wasm.html
@@ -136,30 +137,30 @@ wasm-test:
 	node wasm-assets/test-control-dispatch.js build_wasm/skred_api.js
 
 native:
-	cmake -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
-	cmake --build build_native
+	$(CMAKE) -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
+	$(CMAKE) --build build_native
 
 test: native
 	ctest --test-dir build_native --output-on-failure
 
 warn:
-	cmake -B build_warn -S . -DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror'
-	cmake --build build_warn
+	$(CMAKE) -B build_warn -S . -DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror'
+	$(CMAKE) --build build_warn
 	ctest --test-dir build_warn --output-on-failure
 
 warn-maxed:
-	cmake -B build_warn_maxed -S . \
+	$(CMAKE) -B build_warn_maxed -S . \
 		-DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror'
-	cmake --build build_warn_maxed
+	$(CMAKE) --build build_warn_maxed
 	ctest --test-dir build_warn_maxed --output-on-failure
 
 pi: native
-	$(ZIG_ENV) cmake -B build_pi -S . \
+	$(ZIG_ENV) $(CMAKE) -B build_pi -S . \
 		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf" \
 		-DUSE_EXTERNAL_KIT=ON \
 		-DKIT_TOOL_PATH=$(shell pwd)/build_native/kit_tool
-	$(ZIG_ENV) cmake --build build_pi
+	$(ZIG_ENV) $(CMAKE) --build build_pi
 
 clean:
 	rm -rf build_native build_pi build_warn build_warn_maxed build_maxed build_wasm build_pi_check build build_cross_windows_zig_maxed

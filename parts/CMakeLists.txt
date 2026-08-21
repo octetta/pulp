@@ -13,6 +13,20 @@ set(PULP_VERSION_PATCH "${CMAKE_MATCH_3}")
 project(mini-skred VERSION "${PULP_VERSION}" LANGUAGES C)
 include(GNUInstallDirs)
 
+option(SKRED_KSYNTH "Enable KSynth integration" OFF)
+option(SKRED_SCOPE "Enable SCOPE IPC" OFF)
+option(SKRED_UDP "Enable UDP networking" OFF)
+
+if(SKRED_KSYNTH)
+    add_compile_definitions(KSYNTH=1)
+endif()
+if(SKRED_SCOPE)
+    add_compile_definitions(SCOPE=1)
+endif()
+if(SKRED_UDP)
+    add_compile_definitions(UDP=1)
+endif()
+
 # 1. Build the tool
 if(NOT SCOPE_FEATURE_INDEX EQUAL -1 AND WIN32)
     message(FATAL_ERROR "SCOPE=1 currently requires POSIX shared memory")
@@ -58,11 +72,11 @@ set(API_PLAIN_SOURCES
         recorder.c
     )
     
-if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
+if(SKRED_SCOPE)
     list(APPEND API_PLAIN_SOURCES scope-ipc.c)
 endif()
 
-if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
+if(SKRED_KSYNTH)
     list(APPEND API_PLAIN_SOURCES vendor/ksynth/ksynth.c)
 endif()
 
@@ -103,14 +117,6 @@ target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/exp-vf
     target_compile_definitions(api PUBLIC SKRED_MIDI_ENABLED=1)
     target_compile_definitions(api_shared PUBLIC SKRED_MIDI_ENABLED=1)
 
-if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
-    target_compile_definitions(api PUBLIC SCOPE=1)
-    target_compile_definitions(api_shared PUBLIC SCOPE=1)
-endif()
-if(NOT UDP_FEATURE_INDEX EQUAL -1)
-    target_compile_definitions(api PUBLIC UDP=1)
-    target_compile_definitions(api_shared PUBLIC UDP=1)
-endif()
 
     if(EMSCRIPTEN)
         target_link_libraries(api PUBLIC "-sASYNCIFY")
@@ -212,14 +218,11 @@ target_compile_definitions(skode_state_tests PRIVATE
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_RECORD_SCOPE=1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_PD=1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_FM=1)
-if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
+if(SKRED_KSYNTH)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_KSYNTH=1)
 endif()
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_MIDI=1)
-if(NOT PD_FEATURE_INDEX EQUAL -1 AND
-   NOT FILT_FEATURE_INDEX EQUAL -1 AND
-   NOT FADSR_FEATURE_INDEX EQUAL -1 AND
-   NOT KSYNTH_FEATURE_INDEX EQUAL -1)
+if(SKRED_KSYNTH)
   target_compile_definitions(skode_state_tests PRIVATE
     SKRED_TEST_INSPIRED_BANKS=1)
 endif()
@@ -267,7 +270,7 @@ add_test(
 
 add_executable(ksynth_bridge_tests tests/ksynth_bridge_tests.c)
 target_link_libraries(ksynth_bridge_tests PRIVATE api)
-if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
+if(SKRED_KSYNTH)
   target_compile_definitions(ksynth_bridge_tests PRIVATE SKRED_TEST_KSYNTH=1)
 else()
   target_sources(ksynth_bridge_tests PRIVATE vendor/ksynth/ksynth.c)
@@ -296,7 +299,7 @@ target_link_libraries(synth_callback_bench PRIVATE api)
     COMMAND recording_tests
   )
 
-if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
+if(SKRED_SCOPE)
   add_executable(scope_reader scope-reader.c)
   target_link_libraries(scope_reader PRIVATE api)
 

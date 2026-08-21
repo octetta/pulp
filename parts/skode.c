@@ -4813,6 +4813,16 @@ static int word_exec_ks(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 
+      {
+        int len = 0;
+        char *cmd = ands_string(ctx->parse);
+        if (cmd) len = strlen(cmd);
+        if (ctx->trace) {
+          ctx->printf(ctx, "cmd:[%s] len:%d\n", cmd, len);
+        }
+        if (len) skode_ks_eval(ctx, cmd, len);
+      }
+      return 0;
 }
 static skode_word_t word_ks = { WID("ks"), .execute = word_exec_ks, .safety = WORD_IMMEDIATE_ONLY };
 #endif

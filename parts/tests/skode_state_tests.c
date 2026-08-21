@@ -1827,7 +1827,7 @@ static void test_909_sequence_programs(void) {
   consume(test, &ctx, "?o");
   if (strstr(ctx.log, "# opcode queue size:1") == NULL ||
       strstr(ctx.log, "tag:17") == NULL ||
-      strstr(ctx.log, "voice:$2 MIDI_NOTE $3") == NULL) {
+      strstr(ctx.log, "voice:$2 5 MIDI_NOTE $3") == NULL) {
     fail(test, "queued opcode diagnostic output mismatch");
   }
   ctx.log[0] = '\0';
@@ -2789,6 +2789,7 @@ static void test_session_zip_round_trip(void) {
     expect_float(test, (float)ctx.ks->vars[0]->f[2], 3.0f, 0.0001f,
                  "KSynth A value restored");
   }
+  if (!ctx.ks) fail(test, "KSynth context missing");
   if (!ctx.ks_result || ((K)ctx.ks_result)->n != 3)
     fail(test, "KSynth latest result was not restored");
   if (!ctx.ks->vars[1] || !k_is_func(ctx.ks->vars[1]) ||

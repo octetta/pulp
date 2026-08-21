@@ -9070,7 +9070,7 @@ int skode_function(ands_t *s, int info) {
   switch (atom) {
   default:
     ctx->printf(ctx, "# SKODE_UNKNOWN_FUNCTION %d [%x] :: %d", info, atom, argc);
-    break;
+    return -1;
 }
   return 0;
 }

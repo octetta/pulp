@@ -1568,7 +1568,7 @@ char *synth_stats(void) {
 void synth_voice_bench(int voice) {
   sv.mark_b[voice].tv_sec = 0;
   sv.mark_b[voice].tv_nsec = 0;
-  clock_gettime(VOICE_CLOCK, &sv.mark_a[voice]);
+  //clock_gettime(VOICE_CLOCK, &sv.mark_a[voice]);
   sv.mark_go[voice] = 1;
 }
 
@@ -1644,7 +1644,7 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
   this_capture = input;
   this_capture_channels = input && input_channels > 0 ? input_channels : 0;
 
-  BEN_MARK_A(bench, benchp, num_frames, bencho);
+  //BEN_MARK_A(bench, benchp, num_frames, bencho);
 
   uint64_t callback_sample = SAMPLE_COUNT_ADD(num_frames);
   for (int i = 0; i < num_frames; i++) {
@@ -1673,7 +1673,7 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
     int whiteish_ready = 0;
     for (int n = 0; n < nvoices; n++) {
       if (sv.mark_go[n]) {
-        clock_gettime(VOICE_CLOCK, &sv.mark_b[n]);
+        //clock_gettime(VOICE_CLOCK, &sv.mark_b[n]);
         sv.mark_go[n] = 0;
       }
       if (sv.finished[n]) {
@@ -1996,7 +1996,7 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
     engine->ping_requested = 0;
   }
 
-  BEN_MARK_B(bench, benchp, bencho);
+  //BEN_MARK_B(bench, benchp, bencho);
 }
 
 void synth(skred_engine_t *engine, float *buffer, float *input, int num_frames, int num_channels,
@@ -2310,8 +2310,8 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             sv.amp_envelope[v].release_time);
         APPEND(" amp_env_release:%llu",
             (unsigned long long)sv.amp_envelope[v].sample_release);
-        APPEND(" latency:%.2fms",
-            (double)ts_diff_ns(&sv.mark_a[v], &sv.mark_b[v]) / 1000000.0);
+        //APPEND(" latency:%.2fms",
+            //(double)ts_diff_ns(&sv.mark_a[v], &sv.mark_b[v]) / 1000000.0);
     }
 
 #undef APPEND

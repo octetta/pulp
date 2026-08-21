@@ -27,9 +27,7 @@ DIST_WASM_PLATFORM_ROOT ?= $(DIST_ROOT)/$(WASM_DIST_PLATFORM)
 DIST_WASM_PREFIX ?= $(DIST_WASM_PLATFORM_ROOT)/skred-$(VERSION)-maxed
 DIST_WASM_ARCHIVE ?= skred-$(VERSION)-maxed.zip
 CMAKE_PLATFORM_ARGS ?= $(if $(filter 1 true yes,$(MACOS_UNIVERSAL)),-DCMAKE_OSX_ARCHITECTURES="$(MACOS_UNIVERSAL_ARCHS)",)
-MAXED_KIT_OPTS = KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 UDP=1 RECORD=1 SCOPE=1
 BUILD_TYPE ?= Release
-WASM_KIT_OPTS = KSYNTH=1 MIDI=1 SEQ=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SMOOTHER=1 TRACKS=1
 ANALYSIS_BUILD_DIR ?= build_analysis
 ANALYSIS_SRC_DIR ?= analysis-src
 ANALYSIS_GENERATED = \
@@ -49,8 +47,7 @@ ANALYSIS_GENERATED = \
 all: native # pi
 
 maxed:
-	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS) \
-		-DKIT_OPTS="$(MAXED_KIT_OPTS)"
+	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
 	cmake --build build_maxed
 
 libs: native-libs
@@ -61,8 +58,7 @@ native-libs:
 	cmake --install build_native --prefix $(DIST_NATIVE_PREFIX)
 
 maxed-libs:
-	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS) \
-		-DKIT_OPTS="$(MAXED_KIT_OPTS)"
+	cmake -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
 	cmake --build build_maxed --target api api_shared mini-skred
 	cmake --install build_maxed --prefix $(DIST_MAXED_PREFIX)
 
@@ -108,7 +104,7 @@ dist-api-wasm: wasm
 	bash -c "cmake -E chdir $(DIST_WASM_PLATFORM_ROOT) cmake -E tar cf $(DIST_WASM_ARCHIVE) --format=zip skred-$(VERSION)-maxed"
 
 analysis-src:
-	cmake -B $(ANALYSIS_BUILD_DIR) -S . -DKIT_OPTS="$(MAXED_KIT_OPTS)"
+	cmake -B $(ANALYSIS_BUILD_DIR) -S . 
 	cmake --build $(ANALYSIS_BUILD_DIR) --target api mini-skred
 	cmake -E make_directory $(ANALYSIS_SRC_DIR)
 	cmake -E copy_if_different \
@@ -124,7 +120,7 @@ analysis-check: analysis-src
 	fi
 
 wasm:
-	cmake -B build_wasm -S . -DKIT_OPTS="$(WASM_KIT_OPTS)"
+	cmake -B build_wasm -S . 
 	bash -c "cmake --build build_wasm"
 	cp wasm-assets/mkwasm build_wasm/mkwasm
 	cp ../doc/index.html build_wasm/index.html
@@ -156,8 +152,7 @@ warn:
 
 warn-maxed:
 	cmake -B build_warn_maxed -S . \
-		-DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror' \
-		-DKIT_OPTS="$(MAXED_KIT_OPTS)"
+		-DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror'
 	cmake --build build_warn_maxed
 	ctest --test-dir build_warn_maxed --output-on-failure
 

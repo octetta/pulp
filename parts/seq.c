@@ -310,12 +310,12 @@ void seq(uint64_t now, void (*event_fn)(const event_t *event),
   struct timespec ts1, ts2;
   clock_gettime(CLOCK_MONOTONIC, &ts1);
 
-  BEN_MARK_A(bench, benchp, 0, bencho);
+  //BEN_MARK_A(bench, benchp, 0, bencho);
 
   do_event(now, event_fn);
   do_pattern(now, program_fn);
 
-  BEN_MARK_B(bench, benchp, bencho);
+  //BEN_MARK_B(bench, benchp, bencho);
 
   clock_gettime(CLOCK_MONOTONIC, &ts2);
   uint64_t ns = (uint64_t)(ts2.tv_sec - ts1.tv_sec) * 1000000000ULL + (uint64_t)(ts2.tv_nsec - ts1.tv_nsec);

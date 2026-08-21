@@ -14,23 +14,6 @@ project(mini-skred VERSION "${PULP_VERSION}" LANGUAGES C)
 include(GNUInstallDirs)
 
 # 1. Build the tool
-set(KIT_OPTS "MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 RECORD=1 TRACKS=1 ADSR=1" CACHE STRING "Selected features for the native build")
-separate_arguments(KIT_OPTS_LIST NATIVE_COMMAND "${KIT_OPTS}")
-list(FIND KIT_OPTS_LIST "RECORD=1" RECORD_FEATURE_INDEX)
-list(FIND KIT_OPTS_LIST "SCOPE=1" SCOPE_FEATURE_INDEX)
-list(FIND KIT_OPTS_LIST "TRACKS=1" TRACKS_FEATURE_INDEX)
-list(FIND KIT_OPTS_LIST "KSYNTH=1" KSYNTH_FEATURE_INDEX)
-list(FIND KIT_OPTS_LIST "MIDI=1" MIDI_FEATURE_INDEX)
-list(FIND KIT_OPTS_LIST "PD=1" PD_FEATURE_INDEX)
-list(FIND KIT_OPTS_LIST "FM=1" FM_FEATURE_INDEX)
-list(FIND KIT_OPTS_LIST "FILT=1" FILT_FEATURE_INDEX)
-list(FIND KIT_OPTS_LIST "FADSR=1" FADSR_FEATURE_INDEX)
-if((NOT RECORD_FEATURE_INDEX EQUAL -1 OR NOT SCOPE_FEATURE_INDEX EQUAL -1) AND TRACKS_FEATURE_INDEX EQUAL -1)
-    list(APPEND KIT_OPTS_LIST "TRACKS=1")
-    set(TRACKS_FEATURE_INDEX 0)
-endif()
-list(APPEND KIT_OPTS_LIST "ADSR=1")
-list(REMOVE_DUPLICATES KIT_OPTS_LIST)
 if(NOT SCOPE_FEATURE_INDEX EQUAL -1 AND WIN32)
     message(FATAL_ERROR "SCOPE=1 currently requires POSIX shared memory")
 endif()
@@ -168,16 +151,8 @@ if(WIN32)
     target_link_libraries(api_shared PUBLIC ws2_32 ole32 uuid user32 advapi32 winmm)
 endif()
 
-add_custom_target(check_opts
-  COMMAND ${CMAKE_COMMAND} -E echo "! KIT FEATURES"
-  COMMAND ${CMAKE_COMMAND} -E echo "! KIT_OPTS (Raw): ${KIT_OPTS}"
-  COMMAND ${CMAKE_COMMAND} -E echo "! KIT_OPTS_LIST:  ${KIT_OPTS_LIST}"
-  VERBATIM
-)
 
-# Hook the check_opts to the library so it always runs
-add_dependencies(api check_opts)
-add_dependencies(api_shared check_opts)
+
 
 install(TARGETS api api_shared mini-skred
   ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"

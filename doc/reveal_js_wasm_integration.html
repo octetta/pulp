@@ -213,11 +213,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/highlight.min.js"></script>
 
     <!-- UNCOMMENT THIS SCRIPT TAG WHEN USING YOUR REAL EMSCRIPTEN WASM LOCALLY -->
-    <!-- <script src="skred_api.js?v=0.57.0"></script> -->
+    <!-- <script src="skred_api.js?v=0.58.0"></script> -->
 
     <script>
-        let isProduction = true; // Set to true when skred_api.js?v=0.57.0
-        function stopEqualizer() {
+        let isProduction = true; // Set to true when skred_api.js?v=0.58.0        function stopEqualizer() {
             clearInterval(animInterval);
             document.querySelectorAll('.eq-bar').forEach(bar => bar.style.height = '4px');
         }

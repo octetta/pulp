@@ -129,7 +129,9 @@ static int skode_asset_read(const char *path, skode_asset_kind_t kind,
   return 0;
 }
 
+#ifdef KSYNTH
 #include "vendor/ksynth/ksynth.h"
+#endif
 #include "recorder.h"
 #ifdef SCOPE
 #include "scope-ipc.h"
@@ -348,7 +350,9 @@ static skode_t *skode_ctx[SKODE_CTX_MAX];
 static char _skode_extra[STRING_BUF_IDX_MAX][STRING_BUF_LEN];
 static char _skode_extra_invalid[STRING_BUF_LEN];
 static simple_mutex_t skode_extra_mutex;
+#ifdef KSYNTH
 static simple_mutex_t skode_ks_eval_mutex;
+#endif
 static atomic_int_t skode_global_state;
 static int skode_extra_valid(int n) { return n >= 0 && n < STRING_BUF_IDX_MAX; }
 static char *skode_extra_ptr(int n) {
@@ -364,7 +368,9 @@ static void skode_global_init(void) {
   int expected = 0;
   if (atomic_compare_exchange_int(&skode_global_state, &expected, 1)) {
     simple_mutex_init(&skode_extra_mutex);
+    #ifdef KSYNTH
     simple_mutex_init(&skode_ks_eval_mutex);
+    #endif
     for (int i = 0; i < SKODE_CTX_MAX; i++) skode_ctx[i] = NULL;
     _skode_extra_invalid[0] = '\0';
     for (int i = 0; i < STRING_BUF_IDX_MAX; i++) _skode_extra[i][0] = '\0';
@@ -1121,6 +1127,7 @@ void show_threads(skode_t *ctx) {
 #endif
 }
 
+#ifdef KSYNTH
 static ks_ctx *skode_ks_ctx(skode_t *ctx) {
   if (!ctx) return NULL;
   if (!ctx->ks) {
@@ -1259,6 +1266,7 @@ int ksynth_load(skode_t *ctx, int n, int verbose) {
   skred_vfs_free_file(data);
   return r;
 }
+#endif
 
 static int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
     const char *label,
@@ -4745,6 +4753,7 @@ static int word_exec_K(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_K = { WID("K"), .execute = word_exec_K, .safety = WORD_IMMEDIATE_ONLY };
 
+#ifdef KSYNTH
     @doc(command./ks)
     name: /ks
     category: ksynth
@@ -4767,7 +4776,9 @@ static int word_exec__slashks(const skode_word_t *self, skode_t *ctx, ands_t *s,
       return 0;
 }
 static skode_word_t word__slashks = { WID("/ks"), .execute = word_exec__slashks, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
+#ifdef KSYNTH
     @doc(command./k)
     name: /k
     category: ksynth
@@ -4787,7 +4798,9 @@ static int word_exec__slashk(const skode_word_t *self, skode_t *ctx, ands_t *s, 
       return 0;
 }
 static skode_word_t word__slashk = { WID("/k"), .execute = word_exec__slashk, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
+#ifdef KSYNTH
     @doc(command.ks)
     name: ks
     category: ksynth
@@ -4802,7 +4815,9 @@ static int word_exec_ks(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 
 }
 static skode_word_t word_ks = { WID("ks"), .execute = word_exec_ks, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
+#ifdef KSYNTH
     @doc(command.k!)
     name: k!
     category: ksynth
@@ -4826,7 +4841,9 @@ static int word_exec_k_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
       return 0;
 }
 static skode_word_t word_k_bang = { WID("k!"), .execute = word_exec_k_bang, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
+#ifdef KSYNTH
     @doc(command.kw)
     name: kw
     category: ksynth
@@ -4844,7 +4861,9 @@ static int word_exec_kw(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       return 0;
 }
 static skode_word_t word_kw = { WID("kw"), .execute = word_exec_kw, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
+#ifdef KSYNTH
     @doc(command.kw>)
     name: kw>
     category: ksynth
@@ -4863,7 +4882,9 @@ static int word_exec_kw_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 static skode_word_t word_kw_gt = { WID("kw>"), .execute = word_exec_kw_gt, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
+#ifdef KSYNTH
     @doc(command.k?)
     name: k?
     category: ksynth
@@ -4883,7 +4904,9 @@ static int word_exec_k_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       return 0;
 }
 static skode_word_t word_k_q = { WID("k?"), .execute = word_exec_k_q, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
+#ifdef KSYNTH
     @doc(command.k>d)
     name: k>d
     category: ksynth
@@ -4901,7 +4924,9 @@ static int word_exec_k_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 static skode_word_t word_k_gtd = { WID("k>d"), .execute = word_exec_k_gtd, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
+#ifdef KSYNTH
     @doc(command.k>w)
     name: k>w
     category: ksynth
@@ -4928,6 +4953,7 @@ static int word_exec_k_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 static skode_word_t word_k_gtw = { WID("k>w"), .execute = word_exec_k_gtw, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
     @doc(command.k)
     name: k
@@ -6097,6 +6123,7 @@ static int word_exec_d_gtMO(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word_d_gtMO = { WID("d>MO"), .execute = word_exec_d_gtMO, .safety = WORD_IMMEDIATE_ONLY };
 
+#ifdef KSYNTH
     @doc(command.d>k)
     name: d>k
     category: ksynth
@@ -6118,7 +6145,9 @@ static int word_exec_d_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 static skode_word_t word_d_gtk = { WID("d>k"), .execute = word_exec_d_gtk, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
+#ifdef KSYNTH
     @doc(command.w>k)
     name: w>k
     category: ksynth
@@ -6156,6 +6185,7 @@ static int word_exec_w_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 static skode_word_t word_w_gtk = { WID("w>k"), .execute = word_exec_w_gtk, .safety = WORD_IMMEDIATE_ONLY };
+#endif
 
     @doc(command.w>d)
     name: w>d
@@ -8668,23 +8698,41 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word_K);
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word__slashks);
+#endif
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word__slashk);
+#endif
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word_ks);
+#endif
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word_k_bang);
+#endif
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word_kw);
+#endif
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word_kw_gt);
+#endif
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word_k_q);
+#endif
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word_k_gtd);
+#endif
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word_k_gtw);
+#endif
 
   skode_dict_register(vocab, &word_k);
 
@@ -8788,9 +8836,13 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word_d_gtMO);
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word_d_gtk);
+#endif
 
+#ifdef KSYNTH
   skode_dict_register(vocab, &word_w_gtk);
+#endif
 
   skode_dict_register(vocab, &word_w_gtd);
 
@@ -9263,6 +9315,7 @@ static int skode_session_zip_has(mz_zip_archive *zip, const char *name) {
     mz_zip_reader_locate_file(zip, name, NULL, 0) >= 0;
 }
 
+#ifdef KSYNTH
 static int skode_session_k_valid(const void *data, size_t size) {
   if (!data || size < sizeof(skode_session_k_t)) return 0;
   skode_session_k_t header;
@@ -9337,6 +9390,7 @@ static K skode_session_read_k(ks_ctx *ks, const void *data, size_t size) {
   }
   return NULL;
 }
+#endif
 
 static int skode_session_save(skode_t *ctx, const char *filename) {
   if (!ctx || !ctx->parse || !filename || !filename[0]) return -1;
@@ -9400,6 +9454,7 @@ static int skode_session_save(skode_t *ctx, const char *filename) {
       strlen(ctx->string_slot[i]));
   }
 
+  #ifdef KSYNTH
   if (ok && ctx->ks) {
     simple_mutex_lock(&skode_ks_eval_mutex);
     for (int i = 0; ok && i < 26; i++) {
@@ -9413,6 +9468,7 @@ static int skode_session_save(skode_t *ctx, const char *filename) {
         (K)ctx->ks_result);
     simple_mutex_unlock(&skode_ks_eval_mutex);
   }
+  #endif
 
   for (int wave = 0; ok && wave < synth_config.wave_table_max; wave++) {
     if (!sw.data[wave] || sw.size[wave] <= 0 || sw.readonly[wave]) continue;
@@ -9532,6 +9588,7 @@ static int skode_session_parse_manifest(const char *manifest, size_t size,
 }
 
 static int skode_session_restore_k(skode_t *ctx, mz_zip_archive *zip) {
+  #ifdef KSYNTH
   int any = skode_session_zip_has(zip, "ksynth/result.ksv");
   char entry[64];
   for (int i = 0; i < 26 && !any; i++) {
@@ -9570,6 +9627,11 @@ static int skode_session_restore_k(skode_t *ctx, mz_zip_archive *zip) {
   }
   simple_mutex_unlock(&skode_ks_eval_mutex);
   return ok;
+  #else
+  (void)ctx;
+  return !skode_session_zip_has(zip, "ksynth/result.ksv") &&
+    !skode_session_zip_has(zip, "ksynth/A.ksv");
+  #endif
 }
 
 static int skode_session_load(skode_t *ctx, const char *filename) {
@@ -9729,6 +9791,7 @@ static int skode_session_load(skode_t *ctx, const char *filename) {
     ok = data && size == sizeof(skode_session_midi_settings_t);
     mz_free(data);
   }
+  #ifdef KSYNTH
   for (int i = 0; ok && i < 26; i++) {
     char entry[64];
     snprintf(entry, sizeof(entry), "ksynth/%c.ksv", 'A' + i);
@@ -9744,6 +9807,16 @@ static int skode_session_load(skode_t *ctx, const char *filename) {
     ok = skode_session_k_valid(data, size);
     mz_free(data);
   }
+  #else
+  if (ok) {
+    for (int i = 0; i < 26; i++) {
+      char entry[64];
+      snprintf(entry, sizeof(entry), "ksynth/%c.ksv", 'A' + i);
+      if (skode_session_zip_has(&zip, entry)) ok = 0;
+    }
+    if (skode_session_zip_has(&zip, "ksynth/result.ksv")) ok = 0;
+  }
+  #endif
   if (!ok) {
     mz_zip_reader_end(&zip);
     skred_vfs_free_file(archive);
@@ -10063,6 +10136,7 @@ void skode_free(skode_t *ctx) {
     ands_free(ctx->parse);
     ctx->parse = NULL;
   }
+  #ifdef KSYNTH
   if (ctx->ks_result && ctx->ks) {
     k_free(ctx->ks, (K)ctx->ks_result);
     ctx->ks_result = NULL;
@@ -10071,6 +10145,7 @@ void skode_free(skode_t *ctx) {
     ks_destroy(ctx->ks);
     ctx->ks = NULL;
   }
+  #endif
 }
 
 /* Dictionary command documentation remains here so kit_tool includes it in

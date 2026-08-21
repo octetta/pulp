@@ -14,7 +14,7 @@ project(mini-skred VERSION "${PULP_VERSION}" LANGUAGES C)
 include(GNUInstallDirs)
 
 # 1. Build the tool
-set(KIT_OPTS "KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 RECORD=1 TRACKS=1 ADSR=1" CACHE STRING "Selected features for the native build")
+set(KIT_OPTS "MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 RECORD=1 TRACKS=1 ADSR=1" CACHE STRING "Selected features for the native build")
 separate_arguments(KIT_OPTS_LIST NATIVE_COMMAND "${KIT_OPTS}")
 list(FIND KIT_OPTS_LIST "RECORD=1" RECORD_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "SCOPE=1" SCOPE_FEATURE_INDEX)
@@ -105,7 +105,9 @@ if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
     list(APPEND API_PLAIN_SOURCES scope-ipc.c)
 endif()
 
+if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
     list(APPEND API_PLAIN_SOURCES vendor/ksynth/ksynth.c)
+endif()
 
 set(API_GEN_SOURCES "")
 
@@ -330,10 +332,17 @@ target_compile_definitions(skode_state_tests PRIVATE
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_RECORD_SCOPE=1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_PD=1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_FM=1)
+if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_KSYNTH=1)
+endif()
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_MIDI=1)
+if(NOT PD_FEATURE_INDEX EQUAL -1 AND
+   NOT FILT_FEATURE_INDEX EQUAL -1 AND
+   NOT FADSR_FEATURE_INDEX EQUAL -1 AND
+   NOT KSYNTH_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE
     SKRED_TEST_INSPIRED_BANKS=1)
+endif()
 add_test(
   NAME skode.command-state
   COMMAND skode_state_tests
@@ -378,7 +387,11 @@ add_test(
 
 add_executable(ksynth_bridge_tests tests/ksynth_bridge_tests.c)
 target_link_libraries(ksynth_bridge_tests PRIVATE api)
+if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(ksynth_bridge_tests PRIVATE SKRED_TEST_KSYNTH=1)
+else()
+  target_sources(ksynth_bridge_tests PRIVATE vendor/ksynth/ksynth.c)
+endif()
 
 add_test(
   NAME ksynth.array-bridge

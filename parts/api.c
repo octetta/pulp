@@ -1347,8 +1347,6 @@ static void internal_synth_process(float* output, const float* input, int frame_
           out_channels, in_channels, segment_capture_bus);
     offset += segment_frames;
   }
-  synth_capture(&skred_global_engine, (float *)output, (float *)input, (int)frame_count,
-        out_channels, in_channels, capture_bus);
   #ifdef SCOPE
   if (scope_bus && capture_bus)
     scope_ipc_publish(capture_bus->frames, (int)frame_count);

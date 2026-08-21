@@ -2602,77 +2602,77 @@ int skode_sample_go(int frames, int source, int voice) {
 
 #include "miniaudio.h"
 
-@doc
+/* @doc
 ## enabled features
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### time-based ampltude envelope (ADSR)
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### amplitude modulation (AM)
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### phase distortion (CZ)
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### frequency modulation
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### multi-mode resonant filtering
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### time-based filter envelope (ADSR)
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### frequency sweeping (glide or portamento)
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### sample-and-hold
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### pan modulation
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### bit-depth reduction (bit-crush)
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### amplitude slew-rate (smoother)
-@enddoc
+@enddoc */
 
-@doc
+/* @doc
 ### recording
-@enddoc
+@enddoc */
 
 #ifdef UDP
-@doc
+/* @doc
 ### skode UDP server
-@enddoc
+@enddoc */
 #endif
 
-@doc
+/* @doc
 ### patterns and events
-@enddoc
+@enddoc */
 
 #ifdef SCOPE
-@doc
+/* @doc
 ### waveform scope shared memory
-@enddoc
+@enddoc */
 #endif
 
-@doc
+/* @doc
 ### benchmarking tools
-@enddoc
+@enddoc */
 
 void normalize_buffer(float* pSamples, ma_uint32 frameCount, ma_uint32 channels) {
     float maxAmp = 0.0f;
@@ -3550,11 +3550,11 @@ static int word_exec__slashmi(const skode_word_t *self, skode_t *ctx, ands_t *s,
 static skode_word_t word__slashmi = { WID("/mi"), .execute = word_exec__slashmi, .safety = WORD_IMMEDIATE_ONLY };
 static skode_word_t word__slashmo = { WID("/mo"), .execute = word_exec__slashmi, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./md)
+    /* @doc(command./md)
     name: /md
     category: runtime
     summary: midi-debug-mode bool
-    @enddoc
+    @enddoc */
 static int word_exec__slashmd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -3944,11 +3944,11 @@ static int word_exec_pb(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_pb = { WID("pb"), .execute = word_exec_pb, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.wait)
+    /* @doc(command.wait)
     name: wait
     category: parser
     summary: blocking msec wait
-    @enddoc
+    @enddoc */
 static int word_exec_wait(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -3960,11 +3960,11 @@ static int word_exec_wait(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_wait = { WID("wait"), .execute = word_exec_wait, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.clr)
+    /* @doc(command.clr)
     name: clr
     category: parser
     summary: clear parser argument stack
-    @enddoc
+    @enddoc */
 static int word_exec_clr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -3976,11 +3976,11 @@ static int word_exec_clr(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_clr = { WID("clr"), .execute = word_exec_clr, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.drop)
+    /* @doc(command.drop)
     name: drop
     category: parser
     summary: drop first parser argument
-    @enddoc
+    @enddoc */
 static int word_exec_drop(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -3992,11 +3992,11 @@ static int word_exec_drop(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_drop = { WID("drop"), .execute = word_exec_drop, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.dup)
+    /* @doc(command.dup)
     name: dup
     category: parser
     summary: duplicate first parser argument
-    @enddoc
+    @enddoc */
 static int word_exec_dup(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4008,11 +4008,11 @@ static int word_exec_dup(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_dup = { WID("dup"), .execute = word_exec_dup, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.over)
+    /* @doc(command.over)
     name: over
     category: parser
     summary: duplicate second parser argument to front
-    @enddoc
+    @enddoc */
 static int word_exec_over(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4024,11 +4024,11 @@ static int word_exec_over(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_over = { WID("over"), .execute = word_exec_over, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.rot)
+    /* @doc(command.rot)
     name: rot
     category: parser
     summary: rotate first three parser arguments left
-    @enddoc
+    @enddoc */
 static int word_exec_rot(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4040,11 +4040,11 @@ static int word_exec_rot(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_rot = { WID("rot"), .execute = word_exec_rot, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.swap)
+    /* @doc(command.swap)
     name: swap
     category: parser
     summary: swap first two parser arguments
-    @enddoc
+    @enddoc */
 static int word_exec_swap(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4056,51 +4056,51 @@ static int word_exec_swap(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_swap = { WID("swap"), .execute = word_exec_swap, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.a)
+    /* @doc(command.a)
     name: a
     category: voice
     summary: amp loudness
-    @enddoc
-@doc
+    @enddoc */
+/* @doc
 `a` set voice loudness (amplitude) in dB
-@enddoc
-    @doc(command.ab)
+@enddoc */
+    /* @doc(command.ab)
     name: ab
     category: voice
     summary: amp bend (-1..1)
-    @enddoc
+    @enddoc */
 static int word_exec_ab(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `ab val` set voice amplitude bend normalized value (-1.0 to 1.0)
 
-@enddoc
+@enddoc */
       if (argc) amp_bend_set(voice, (float)arg[0]);
       return 0;
 }
 static skode_word_t word_ab = { WID("ab"), .execute = word_exec_ab, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.abp)
+    /* @doc(command.abp)
     name: abp
     category: voice
     summary: amp bend range (dB) [offset]
-    @enddoc
+    @enddoc */
 static int word_exec_abp(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `abp range[,offset]` set voice amplitude bend range in dB and optional offset
 
-@enddoc
+@enddoc */
       if (argc) {
         float range = (float)arg[0];
         float offset = argc > 1 ? (float)arg[1] : 0.0f;
@@ -4110,22 +4110,22 @@ static int word_exec_abp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_abp = { WID("abp"), .execute = word_exec_abp, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.A)
+    /* @doc(command.A)
     name: A
     category: modulation
     summary: AM voice depth
-    @enddoc
+    @enddoc */
 static int word_exec_A(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `A x,y,z` set voice amplitude modulation (AM) using voice `x`, depth 'y', and offset 'z'
 
-@enddoc
+@enddoc */
       if (argc < 2) {
         amp_mod_set(voice, -1, 0, 0);
       } else if (x_valid) {
@@ -4137,80 +4137,80 @@ static int word_exec_A(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_A = { WID("A"), .execute = word_exec_A, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.b)
+    /* @doc(command.b)
     name: b
     category: wave
     summary: wave-direction mode
-    @enddoc
+    @enddoc */
 static int word_exec_b(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `b [0|1|2]` set voice waveform playback direction:
 0=forward, 1=backward, 2=ping-pong
 
-@enddoc
+@enddoc */
       if (argc == 0) { wave_dir(voice, -1); } else { wave_dir(voice, x); } return 0;
 }
 static skode_word_t word_b = { WID("b"), .execute = word_exec_b, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.B)
+    /* @doc(command.B)
     name: B
     category: wave
     summary: wave-loop bool
-    @enddoc
+    @enddoc */
 static int word_exec_B(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `B [0|1]` set voice waveform looping 0=off, 1=on
 
-@enddoc
+@enddoc */
       if (argc == 0) { wave_loop(voice, -1); } else { wave_loop(voice, x); } return 0;
 }
 static skode_word_t word_B = { WID("B"), .execute = word_exec_B, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.BC)
+    /* @doc(command.BC)
     name: BC
     category: wave
     summary: bounded one-shot loop count
-    @enddoc
+    @enddoc */
 static int word_exec_BC(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `BC count` set the number of one-shot loop repeats; 0 means unlimited
 
-@enddoc
+@enddoc */
       if (argc && x_valid) wave_loop_count(voice, x);
       return 0;
 }
 static skode_word_t word_BC = { WID("BC"), .execute = word_exec_BC, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.c)
+    /* @doc(command.c)
     name: c
     category: modulation
     summary: phase-distortion algo distortion
-    @enddoc
+    @enddoc */
 static int word_exec_c(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `c mode, amount` set voice CZ / phase distortion with `mode` (below) and a
 signed `amount` from -1.0 to 1.0. 0.0 is the undistorted phase for every mode.
@@ -4223,7 +4223,7 @@ signed `amount` from -1.0 to 1.0. 0.0 is the undistorted phase for every mode.
   6 = resonant 1
   7 = resonant 2
 
-@enddoc
+@enddoc */
       if (argc == 0) {
         cz_set(voice, 0, 0);
       } else if (argc == 1) {
@@ -4235,11 +4235,11 @@ signed `amount` from -1.0 to 1.0. 0.0 is the undistorted phase for every mode.
 }
 static skode_word_t word_c = { WID("c"), .execute = word_exec_c, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.C)
+    /* @doc(command.C)
     name: C
     category: modulation
     summary: PD-mod voice depth
-    @enddoc
+    @enddoc */
 static int word_exec_C(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4255,23 +4255,23 @@ static int word_exec_C(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_C = { WID("C"), .execute = word_exec_C, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.ct)
+    /* @doc(command.ct)
     name: ct
     category: modulation
     summary: phase-distortion ADSR A D S R
-    @enddoc
+    @enddoc */
 static int word_exec_ct(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `ct attack,decay,sustain,release` sets the phase-distortion envelope. The
 neutral `ct 0 0 1 0` disables it.
 
-@enddoc
+@enddoc */
       if (argc == 4) {
         float a = arg[0];
         float d = arg[1];
@@ -4284,32 +4284,32 @@ neutral `ct 0 0 1 0` disables it.
 }
 static skode_word_t word_ct = { WID("ct"), .execute = word_exec_ct, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.cd)
+    /* @doc(command.cd)
     name: cd
     category: modulation
     summary: phase-distortion envelope depth
-    @enddoc
+    @enddoc */
 static int word_exec_cd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `cd depth` sets the signed amount added by the phase-distortion envelope.
 
-@enddoc
+@enddoc */
       if (argc) sv.cz_env_depth[voice] = arg[0];
       return 0;
 }
 static skode_word_t word_cd = { WID("cd"), .execute = word_exec_cd, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.D)
+    /* @doc(command.D)
     name: D
     category: data
     summary: data-size
-    @enddoc
+    @enddoc */
 static int word_exec_D(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4325,11 +4325,11 @@ static int word_exec_D(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_D = { WID("D"), .execute = word_exec_D, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.MO)
+    /* @doc(command.MO)
     name: MO
     category: midi
     summary: send one to three raw MIDI bytes
-    @enddoc
+    @enddoc */
 static int word_exec_MO(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4360,11 +4360,11 @@ static int word_exec_MO(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_MO = { WID("MO"), .execute = word_exec_MO, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.ce)
+    /* @doc(command.ce)
     name: ce
     category: events
     summary: control-plane user event id [value0 [value1 [value2]]]
-    @enddoc
+    @enddoc */
 static int word_exec_ce(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4383,11 +4383,11 @@ static int word_exec_ce(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_ce = { WID("ce"), .execute = word_exec_ce, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.?d)
+    /* @doc(command.?d)
     name: ?d
     category: data
     summary: show-skode-data (summary)
-    @enddoc
+    @enddoc */
 static int word_exec__qd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4403,48 +4403,48 @@ static int word_exec__qd(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word__qd = { WID("?d"), .execute = word_exec__qd, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.f)
+    /* @doc(command.f)
     name: f
     category: voice
     summary: freq hz
-    @enddoc
-    @doc(command.fb)
+    @enddoc */
+    /* @doc(command.fb)
     name: fb
     category: voice
     summary: freq bend (-1..1)
-    @enddoc
+    @enddoc */
 static int word_exec_fb(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `fb val` set voice frequency bend normalized value (-1.0 to 1.0)
 
-@enddoc
+@enddoc */
       if (argc) freq_bend_set(voice, (float)arg[0]);
       return 0;
 }
 static skode_word_t word_fb = { WID("fb"), .execute = word_exec_fb, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.fbp)
+    /* @doc(command.fbp)
     name: fbp
     category: voice
     summary: freq bend range (semitones) [offset]
-    @enddoc
+    @enddoc */
 static int word_exec_fbp(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-@doc
+/* @doc
 
 `fbp range[,offset]` set voice frequency bend range in semitones and optional offset
 
-@enddoc
+@enddoc */
       if (argc) {
         float range = (float)arg[0];
         float offset = argc > 1 ? (float)arg[1] : 0.0f;
@@ -4454,11 +4454,11 @@ static int word_exec_fbp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_fbp = { WID("fbp"), .execute = word_exec_fbp, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.ft)
+    /* @doc(command.ft)
     name: ft
     category: filter
     summary: filter-adsr A D S R
-    @enddoc
+    @enddoc */
 static int word_exec_ft(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4477,11 +4477,11 @@ static int word_exec_ft(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_ft = { WID("ft"), .execute = word_exec_ft, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.fd)
+    /* @doc(command.fd)
     name: fd
     category: filter
     summary: filter-adsr depth
-    @enddoc
+    @enddoc */
 static int word_exec_fd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4493,11 +4493,11 @@ static int word_exec_fd(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_fd = { WID("fd"), .execute = word_exec_fd, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.F)
+    /* @doc(command.F)
     name: F
     category: modulation
     summary: FM voice depth
-    @enddoc
+    @enddoc */
 static int word_exec_F(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4515,11 +4515,11 @@ static int word_exec_F(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_F = { WID("F"), .execute = word_exec_F, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.FF)
+    /* @doc(command.FF)
     name: FF
     category: modulation
     summary: FM mode
-    @enddoc
+    @enddoc */
 static int word_exec_FF(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4531,11 +4531,11 @@ static int word_exec_FF(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_FF = { WID("FF"), .execute = word_exec_FF, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.FB)
+    /* @doc(command.FB)
     name: FB
     category: modulation
     summary: FF2 operator feedback amount
-    @enddoc
+    @enddoc */
 static int word_exec_FB(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4547,11 +4547,11 @@ static int word_exec_FB(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_FB = { WID("FB"), .execute = word_exec_FB, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.g)
+    /* @doc(command.g)
     name: g
     category: modulation
     summary: glissando speed
-    @enddoc
+    @enddoc */
 static int word_exec_g(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4571,11 +4571,11 @@ static int word_exec_g(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_g = { WID("g"), .execute = word_exec_g, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.G)
+    /* @doc(command.G)
     name: G
     category: modulation
     summary: link-midi voice [voice]
-    @enddoc
+    @enddoc */
 static int word_exec_G(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4598,11 +4598,11 @@ static int word_exec_G(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_G = { WID("G"), .execute = word_exec_G, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.h)
+    /* @doc(command.h)
     name: h
     category: wave
     summary: sample-hold ratio [ratio] [mode]; if mode omitted, keeps current. ratio 0.0-1.0+, mode 0=hard, 1=smoothed, 2=jittered
-    @enddoc
+    @enddoc */
 static int word_exec_h(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4620,11 +4620,11 @@ static int word_exec_h(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_h = { WID("h"), .execute = word_exec_h, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.H)
+    /* @doc(command.H)
     name: H
     category: modulation
     summary: link-velo voice [voice [voice [voice]]]
-    @enddoc
+    @enddoc */
 static int word_exec_H(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4648,11 +4648,11 @@ static int word_exec_H(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_H = { WID("H"), .execute = word_exec_H, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./D)
+    /* @doc(command./D)
     name: /D
     category: data
     summary: resize-data count
-    @enddoc
+    @enddoc */
 static int word_exec__slashD(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4671,11 +4671,11 @@ static int word_exec__slashD(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashD = { WID("/D"), .execute = word_exec__slashD, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.I)
+    /* @doc(command.I)
     name: I
     category: runtime
     summary: log-event bool
-    @enddoc
+    @enddoc */
 static int word_exec_I(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4686,11 +4686,11 @@ static int word_exec_I(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_I = { WID("I"), .execute = word_exec_I, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.L)
+    /* @doc(command.L)
     name: L
     category: modulation
     summary: link-trigger-delay seconds
-    @enddoc
+    @enddoc */
 static int word_exec_L(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4713,11 +4713,11 @@ static int word_exec_L(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_L = { WID("L"), .execute = word_exec_L, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.J)
+    /* @doc(command.J)
     name: J
     category: filter
     summary: filter-mode selector [mode] [character]; if character omitted, keeps current. mode 1=LP, 2=HP, 3=BP, 4=Notch, 5=Allpass. character 0=clean, 1=driven, 2=screamer
-    @enddoc
+    @enddoc */
 static int word_exec_J(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4737,11 +4737,11 @@ static int word_exec_J(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_J = { WID("J"), .execute = word_exec_J, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.K)
+    /* @doc(command.K)
     name: K
     category: filter
     summary: filter-cutoff freq
-    @enddoc
+    @enddoc */
 static int word_exec_K(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4754,11 +4754,11 @@ static int word_exec_K(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 static skode_word_t word_K = { WID("K"), .execute = word_exec_K, .safety = WORD_IMMEDIATE_ONLY };
 
 #ifdef KSYNTH
-    @doc(command./ks)
+    /* @doc(command./ks)
     name: /ks
     category: ksynth
     summary: ksynth-load num (verbose)
-    @enddoc
+    @enddoc */
 static int word_exec__slashks(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4779,11 +4779,11 @@ static skode_word_t word__slashks = { WID("/ks"), .execute = word_exec__slashks,
 #endif
 
 #ifdef KSYNTH
-    @doc(command./k)
+    /* @doc(command./k)
     name: /k
     category: ksynth
     summary: ksynth-load num (verbose)
-    @enddoc
+    @enddoc */
 static int word_exec__slashk(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4801,11 +4801,11 @@ static skode_word_t word__slashk = { WID("/k"), .execute = word_exec__slashk, .s
 #endif
 
 #ifdef KSYNTH
-    @doc(command.ks)
+    /* @doc(command.ks)
     name: ks
     category: ksynth
     summary: run ksynth code in string buffer
-    @enddoc
+    @enddoc */
 static int word_exec_ks(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4818,11 +4818,11 @@ static skode_word_t word_ks = { WID("ks"), .execute = word_exec_ks, .safety = WO
 #endif
 
 #ifdef KSYNTH
-    @doc(command.k!)
+    /* @doc(command.k!)
     name: k!
     category: ksynth
     summary: run ksynth code in string buffer
-    @enddoc
+    @enddoc */
 static int word_exec_k_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4844,11 +4844,11 @@ static skode_word_t word_k_bang = { WID("k!"), .execute = word_exec_k_bang, .saf
 #endif
 
 #ifdef KSYNTH
-    @doc(command.kw)
+    /* @doc(command.kw)
     name: kw
     category: ksynth
     summary: wait for last ksynth request [timeout-ms]
-    @enddoc
+    @enddoc */
 static int word_exec_kw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4864,11 +4864,11 @@ static skode_word_t word_kw = { WID("kw"), .execute = word_exec_kw, .safety = WO
 #endif
 
 #ifdef KSYNTH
-    @doc(command.kw>)
+    /* @doc(command.kw>)
     name: kw>
     category: ksynth
     summary: compatibility: copy latest ksynth result to data
-    @enddoc
+    @enddoc */
 static int word_exec_kw_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4885,11 +4885,11 @@ static skode_word_t word_kw_gt = { WID("kw>"), .execute = word_exec_kw_gt, .safe
 #endif
 
 #ifdef KSYNTH
-    @doc(command.k?)
+    /* @doc(command.k?)
     name: k?
     category: ksynth
     summary: k show last results
-    @enddoc
+    @enddoc */
 static int word_exec_k_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4907,11 +4907,11 @@ static skode_word_t word_k_q = { WID("k?"), .execute = word_exec_k_q, .safety = 
 #endif
 
 #ifdef KSYNTH
-    @doc(command.k>d)
+    /* @doc(command.k>d)
     name: k>d
     category: ksynth
     summary: k results to d?
-    @enddoc
+    @enddoc */
 static int word_exec_k_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4927,11 +4927,11 @@ static skode_word_t word_k_gtd = { WID("k>d"), .execute = word_exec_k_gtd, .safe
 #endif
 
 #ifdef KSYNTH
-    @doc(command.k>w)
+    /* @doc(command.k>w)
     name: k>w
     category: ksynth
     summary: load latest ksynth result into wave slot rate? mode? offset?
-    @enddoc
+    @enddoc */
 static int word_exec_k_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4955,11 +4955,11 @@ static int word_exec_k_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 static skode_word_t word_k_gtw = { WID("k>w"), .execute = word_exec_k_gtw, .safety = WORD_IMMEDIATE_ONLY };
 #endif
 
-    @doc(command.k)
+    /* @doc(command.k)
     name: k
     category: misc
     summary: adsr-mode bool
-    @enddoc
+    @enddoc */
 static int word_exec_k(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4971,11 +4971,11 @@ static int word_exec_k(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 static skode_word_t word_k = { WID("k"), .execute = word_exec_k, .safety = WORD_IMMEDIATE_ONLY };
 
 #ifdef UDP
-    @doc(command.udp)
+    /* @doc(command.udp)
     name: udp
     category: runtime
     summary: show-udp
-    @enddoc
+    @enddoc */
 static int word_exec_udp(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -4990,11 +4990,11 @@ static int word_exec_udp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 static skode_word_t word_udp = { WID("udp"), .execute = word_exec_udp, .safety = WORD_IMMEDIATE_ONLY };
 #endif
 
-    @doc(command.log)
+    /* @doc(command.log)
     name: log
     category: runtime
     summary: log-enable bool
-    @enddoc
+    @enddoc */
 static int word_exec_log(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5008,11 +5008,11 @@ static int word_exec_log(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_log = { WID("log"), .execute = word_exec_log, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.___l)
+    /* @doc(command.___l)
     name: ___l
     category: voice
     summary: delayed velocity amount (doesn't propogate)
-    @enddoc
+    @enddoc */
 static int word_exec____l(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5024,11 +5024,11 @@ static int word_exec____l(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word____l = { WID("___l"), .execute = word_exec____l, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.l)
+    /* @doc(command.l)
     name: l
     category: voice
     summary: velocity amount
-    @enddoc
+    @enddoc */
 static int word_exec_l(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5056,16 +5056,16 @@ static int word_exec_l(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_l = { WID("l"), .execute = word_exec_l, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.m)
+    /* @doc(command.m)
     name: m
     category: voice
     summary: mute-audio bool
-    @enddoc
-    @doc(command.M)
+    @enddoc */
+    /* @doc(command.M)
     name: M
     category: sequencer
     summary: tempo bpm
-    @enddoc
+    @enddoc */
 static int word_exec_M(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5085,16 +5085,16 @@ static int word_exec_M(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_M = { WID("M"), .execute = word_exec_M, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.n)
+    /* @doc(command.n)
     name: n
     category: voice
     summary: midi-freq note-number (cents)
-    @enddoc
-    @doc(command.N)
+    @enddoc */
+    /* @doc(command.N)
     name: N
     category: voice
     summary: detune-midi key cents
-    @enddoc
+    @enddoc */
 static int word_exec_N(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5113,16 +5113,16 @@ static int word_exec_N(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_N = { WID("N"), .execute = word_exec_N, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.p)
+    /* @doc(command.p)
     name: p
     category: voice
     summary: pan value
-    @enddoc
-    @doc(command.ds)
+    @enddoc */
+    /* @doc(command.ds)
     name: ds
     category: modulation
     summary: track-delay send amount; active only for routed, centered, unmodulated voices
-    @enddoc
+    @enddoc */
 static int word_exec_ds(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5134,11 +5134,11 @@ static int word_exec_ds(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_ds = { WID("ds"), .execute = word_exec_ds, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.DG)
+    /* @doc(command.DG)
     name: DG
     category: modulation
     summary: track-delay grit track [bits] [native]; bits=0 default(12), 1-16 explicit depth, native=1 bypasses quantization entirely
-    @enddoc
+    @enddoc */
 static int word_exec_DG(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5158,11 +5158,11 @@ static int word_exec_DG(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_DG = { WID("DG"), .execute = word_exec_DG, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.DL)
+    /* @doc(command.DL)
     name: DL
     category: modulation
     summary: track-delay params track coarse fine feedback mod-freq mod-depth level
-    @enddoc
+    @enddoc */
 static int word_exec_DL(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5186,11 +5186,11 @@ static int word_exec_DL(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_DL = { WID("DL"), .execute = word_exec_DL, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.DL?)
+    /* @doc(command.DL?)
     name: DL?
     category: modulation
     summary: show track delay params
-    @enddoc
+    @enddoc */
 static int word_exec_DL_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5208,11 +5208,11 @@ static int word_exec_DL_q(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_DL_q = { WID("DL?"), .execute = word_exec_DL_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.DD)
+    /* @doc(command.DD)
     name: DD
     category: modulation
     summary: track-delay damping track [damping] [hp]; darkens/thins the feedback repeats
-    @enddoc
+    @enddoc */
 static int word_exec_DD(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5232,11 +5232,11 @@ static int word_exec_DD(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_DD = { WID("DD"), .execute = word_exec_DD, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.DF)
+    /* @doc(command.DF)
     name: DF
     category: modulation
     summary: track-delay freeze track [0|1]; holds the current loop, stops writing new input
-    @enddoc
+    @enddoc */
 static int word_exec_DF(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5255,11 +5255,11 @@ static int word_exec_DF(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_DF = { WID("DF"), .execute = word_exec_DF, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.DP)
+    /* @doc(command.DP)
     name: DP
     category: modulation
     summary: track-delay pingpong track [0|1]; cross-feeds L/R feedback
-    @enddoc
+    @enddoc */
 static int word_exec_DP(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5278,11 +5278,11 @@ static int word_exec_DP(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_DP = { WID("DP"), .execute = word_exec_DP, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.DT)
+    /* @doc(command.DT)
     name: DT
     category: modulation
     summary: track-delay time-ms track ms; sets delay time directly in milliseconds
-    @enddoc
+    @enddoc */
 static int word_exec_DT(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5298,11 +5298,11 @@ static int word_exec_DT(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_DT = { WID("DT"), .execute = word_exec_DT, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.DS)
+    /* @doc(command.DS)
     name: DS
     category: modulation
     summary: track-delay tempo-sync track bpm division; 1.0=quarter, 0.5=eighth, 0.75=dotted-eighth
-    @enddoc
+    @enddoc */
 static int word_exec_DS(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5318,11 +5318,11 @@ static int word_exec_DS(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_DS = { WID("DS"), .execute = word_exec_DS, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.GS)
+    /* @doc(command.GS)
     name: GS
     category: voice
     summary: show global synth status
-    @enddoc
+    @enddoc */
 static int word_exec_GS(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5334,11 +5334,11 @@ static int word_exec_GS(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_GS = { WID("GS"), .execute = word_exec_GS, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.GS>)
+    /* @doc(command.GS>)
     name: GS>
     category: files
     summary: save complete repl session zip using parser string filename
-    @enddoc
+    @enddoc */
 static int word_exec_GS_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5353,11 +5353,11 @@ static int word_exec_GS_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word_GS_gt = { WID("GS>"), .execute = word_exec_GS_gt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.GS<)
+    /* @doc(command.GS<)
     name: GS<
     category: files
     summary: restore complete repl session zip using parser string filename
-    @enddoc
+    @enddoc */
 static int word_exec_GS_lt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5372,11 +5372,11 @@ static int word_exec_GS_lt(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word_GS_lt = { WID("GS<"), .execute = word_exec_GS_lt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.P)
+    /* @doc(command.P)
     name: P
     category: modulation
     summary: pan-mod voice depth
-    @enddoc
+    @enddoc */
 static int word_exec_P(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5394,11 +5394,11 @@ static int word_exec_P(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_P = { WID("P"), .execute = word_exec_P, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.q)
+    /* @doc(command.q)
     name: q
     category: wave
     summary: bit-crush bit-depth [bits] [curve]; if curve omitted, keeps current. curve 0=linear, 1=companded, 2=dithered
-    @enddoc
+    @enddoc */
 static int word_exec_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5415,11 +5415,11 @@ static int word_exec_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_q = { WID("q"), .execute = word_exec_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.Q)
+    /* @doc(command.Q)
     name: Q
     category: filter
     summary: filter resonance
-    @enddoc
+    @enddoc */
 static int word_exec_Q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5431,11 +5431,11 @@ static int word_exec_Q(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_Q = { WID("Q"), .execute = word_exec_Q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.r)
+    /* @doc(command.r)
     name: r
     category: routing
     summary: route voice to track, 0=master only, 1..4=track/delay bus
-    @enddoc
+    @enddoc */
 static int word_exec_r(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5447,11 +5447,11 @@ static int word_exec_r(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_r = { WID("r"), .execute = word_exec_r, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.rt)
+    /* @doc(command.rt)
     name: rt
     category: routing
     summary: track-name track
-    @enddoc
+    @enddoc */
 static int word_exec_rt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5469,11 +5469,11 @@ static int word_exec_rt(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_rt = { WID("rt"), .execute = word_exec_rt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.rv)
+    /* @doc(command.rv)
     name: rv
     category: routing
     summary: track-volume track dB
-    @enddoc
+    @enddoc */
 static int word_exec_rv(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5491,11 +5491,11 @@ static int word_exec_rv(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_rv = { WID("rv"), .execute = word_exec_rv, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.R!)
+    /* @doc(command.R!)
     name: R!
     category: sequencer
     summary: remove-events tag
-    @enddoc
+    @enddoc */
 static int word_exec_R_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5510,11 +5510,11 @@ static int word_exec_R_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word_R_bang = { WID("R!"), .execute = word_exec_R_bang, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.R!!)
+    /* @doc(command.R!!)
     name: R!!
     category: sequencer
     summary: remove all queued events
-    @enddoc
+    @enddoc */
 static int word_exec_R_bang_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5526,11 +5526,11 @@ static int word_exec_R_bang_bang(const skode_word_t *self, skode_t *ctx, ands_t 
 }
 static skode_word_t word_R_bang_bang = { WID("R!!"), .execute = word_exec_R_bang_bang, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.RR)
+    /* @doc(command.RR)
     name: RR
     category: sequencer
     summary: repeat-string-tempo count delay [tag]
-    @enddoc
+    @enddoc */
 static int word_exec_RR(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5550,11 +5550,11 @@ static int word_exec_RR(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_RR = { WID("RR"), .execute = word_exec_RR, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.eRR)
+    /* @doc(command.eRR)
     name: eRR
     category: sequencer
     summary: repeat-external-macro-tempo macro count beats [tag]
-    @enddoc
+    @enddoc */
 static int word_exec_eRR(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5566,11 +5566,11 @@ static int word_exec_eRR(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_eRR = { WID("eRR"), .execute = word_exec_eRR, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.eR)
+    /* @doc(command.eR)
     name: eR
     category: sequencer
     summary: repeat-external-macro macro count seconds [tag]
-    @enddoc
+    @enddoc */
 static int word_exec_eR(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5582,11 +5582,11 @@ static int word_exec_eR(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_eR = { WID("eR"), .execute = word_exec_eR, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.DO?)
+    /* @doc(command.DO?)
     name: DO?
     category: sequencer
     summary: conditional-string-if-gt-zero number [tag]
-    @enddoc
+    @enddoc */
 static int word_exec_DO_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5605,11 +5605,11 @@ static int word_exec_DO_q(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_DO_q = { WID("DO?"), .execute = word_exec_DO_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.R)
+    /* @doc(command.R)
     name: R
     category: sequencer
     summary: repeat-string count delay [tag]
-    @enddoc
+    @enddoc */
 static int word_exec_R(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5628,11 +5628,11 @@ static int word_exec_R(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_R = { WID("R"), .execute = word_exec_R, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.s)
+    /* @doc(command.s)
     name: s
     category: modulation
     summary: volume-smooth bool
-    @enddoc
+    @enddoc */
 static int word_exec_s(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5651,11 +5651,11 @@ static int word_exec_s(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_s = { WID("s"), .execute = word_exec_s, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.S)
+    /* @doc(command.S)
     name: S
     category: voice
     summary: voice-reset voice
-    @enddoc
+    @enddoc */
 static int word_exec_S(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5667,11 +5667,11 @@ static int word_exec_S(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_S = { WID("S"), .execute = word_exec_S, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.t)
+    /* @doc(command.t)
     name: t
     category: voice
     summary: adsr-set attack decay sustain release
-    @enddoc
+    @enddoc */
 static int word_exec_t(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5683,11 +5683,11 @@ static int word_exec_t(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_t = { WID("t"), .execute = word_exec_t, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.T)
+    /* @doc(command.T)
     name: T
     category: voice
     summary: trigger
-    @enddoc
+    @enddoc */
 static int word_exec_T(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5705,16 +5705,16 @@ static int word_exec_T(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_T = { WID("T"), .execute = word_exec_T, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.v)
+    /* @doc(command.v)
     name: v
     category: voice
     summary: voice-select voice
-    @enddoc
-    @doc(command.vc)
+    @enddoc */
+    /* @doc(command.vc)
     name: vc
     category: voice
     summary: voice control-plane event publication bool
-    @enddoc
+    @enddoc */
 static int word_exec_vc(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5726,11 +5726,11 @@ static int word_exec_vc(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_vc = { WID("vc"), .execute = word_exec_vc, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.V)
+    /* @doc(command.V)
     name: V
     category: voice
     summary: main-volume loudness
-    @enddoc
+    @enddoc */
 static int word_exec_V(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5748,11 +5748,11 @@ static int word_exec_V(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_V = { WID("V"), .execute = word_exec_V, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.vt)
+    /* @doc(command.vt)
     name: vt
     category: voice
     summary: [name] voice-text-set
-    @enddoc
+    @enddoc */
 static int word_exec_vt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5764,11 +5764,11 @@ static int word_exec_vt(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_vt = { WID("vt"), .execute = word_exec_vt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.wt)
+    /* @doc(command.wt)
     name: wt
     category: misc
     summary: [name] wave-text-set wave-number
-    @enddoc
+    @enddoc */
 static int word_exec_wt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5782,11 +5782,11 @@ static int word_exec_wt(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_wt = { WID("wt"), .execute = word_exec_wt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.WL)
+    /* @doc(command.WL)
     name: WL
     category: wave
     summary: wave-loop-points wave start end
-    @enddoc
+    @enddoc */
 static int word_exec_WL(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5804,11 +5804,11 @@ static int word_exec_WL(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_WL = { WID("WL"), .execute = word_exec_WL, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.VS)
+    /* @doc(command.VS)
     name: VS
     category: wave
     summary: voice-set-points start end; no args resets from wave
-    @enddoc
+    @enddoc */
 static int word_exec_VS(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5832,11 +5832,11 @@ static int word_exec_VS(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_VS = { WID("VS"), .execute = word_exec_VS, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.VL)
+    /* @doc(command.VL)
     name: VL
     category: wave
     summary: voice-loop-points start end; no args resets from wave
-    @enddoc
+    @enddoc */
 static int word_exec_VL(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5861,11 +5861,11 @@ static int word_exec_VL(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_VL = { WID("VL"), .execute = word_exec_VL, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.VW)
+    /* @doc(command.VW)
     name: VW
     category: wave
     summary: voice-wave-show [voice] [width height]
-    @enddoc
+    @enddoc */
 static int word_exec_VW(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5903,11 +5903,11 @@ static int word_exec_VW(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_VW = { WID("VW"), .execute = word_exec_VW, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.w)
+    /* @doc(command.w)
     name: w
     category: wave
     summary: wave-select which-wave interpolate? mode-override?
-    @enddoc
+    @enddoc */
 static int word_exec_w(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5928,11 +5928,11 @@ static int word_exec_w(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_w = { WID("w"), .execute = word_exec_w, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.=d)
+    /* @doc(command.=d)
     name: =d
     category: data
     summary: assign a variable from an element of the d array =d var d-index
-    @enddoc
+    @enddoc */
 static int word_exec__eqd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5953,11 +5953,11 @@ static int word_exec__eqd(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word__eqd = { WID("=d"), .execute = word_exec__eqd, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.d*)
+    /* @doc(command.d*)
     name: d*
     category: data
     summary: show an element from d array
-    @enddoc
+    @enddoc */
 static int word_exec_d_star(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -5979,11 +5979,11 @@ static int word_exec_d_star(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word_d_star = { WID("d*"), .execute = word_exec_d_star, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.d>r)
+    /* @doc(command.d>r)
     name: d>r
     category: data
     summary: data-to-rec
-    @enddoc
+    @enddoc */
 static int word_exec_d_gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6016,11 +6016,11 @@ static int word_exec_d_gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word_d_gtr = { WID("d>r"), .execute = word_exec_d_gtr, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.r>d)
+    /* @doc(command.r>d)
     name: r>d
     category: data
     summary: recording-to-data channel
-    @enddoc
+    @enddoc */
 static int word_exec_r_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6081,11 +6081,11 @@ static int word_exec_r_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word_r_gtd = { WID("r>d"), .execute = word_exec_r_gtd, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.d>MO)
+    /* @doc(command.d>MO)
     name: d>MO
     category: midi
     summary: send the data array as raw MIDI bytes
-    @enddoc
+    @enddoc */
 static int word_exec_d_gtMO(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6124,11 +6124,11 @@ static int word_exec_d_gtMO(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 static skode_word_t word_d_gtMO = { WID("d>MO"), .execute = word_exec_d_gtMO, .safety = WORD_IMMEDIATE_ONLY };
 
 #ifdef KSYNTH
-    @doc(command.d>k)
+    /* @doc(command.d>k)
     name: d>k
     category: ksynth
     summary: data-to-ksynth-variable
-    @enddoc
+    @enddoc */
 static int word_exec_d_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6148,11 +6148,11 @@ static skode_word_t word_d_gtk = { WID("d>k"), .execute = word_exec_d_gtk, .safe
 #endif
 
 #ifdef KSYNTH
-    @doc(command.w>k)
+    /* @doc(command.w>k)
     name: w>k
     category: ksynth
     summary: wavetable-to-ksynth-variable
-    @enddoc
+    @enddoc */
 static int word_exec_w_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6187,11 +6187,11 @@ static int word_exec_w_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 static skode_word_t word_w_gtk = { WID("w>k"), .execute = word_exec_w_gtk, .safety = WORD_IMMEDIATE_ONLY };
 #endif
 
-    @doc(command.w>d)
+    /* @doc(command.w>d)
     name: w>d
     category: wave
     summary: wave-to-data
-    @enddoc
+    @enddoc */
 static int word_exec_w_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6209,11 +6209,11 @@ static int word_exec_w_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word_w_gtd = { WID("w>d"), .execute = word_exec_w_gtd, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.w>r)
+    /* @doc(command.w>r)
     name: w>r
     category: wave
     summary: wave-to-rec
-    @enddoc
+    @enddoc */
 static int word_exec_w_gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6244,11 +6244,11 @@ static int word_exec_w_gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word_w_gtr = { WID("w>r"), .execute = word_exec_w_gtr, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.w>w)
+    /* @doc(command.w>w)
     name: w>w
     category: wave
     summary: write wavetable to string-named WAV file
-    @enddoc
+    @enddoc */
 static int word_exec_w_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6275,11 +6275,11 @@ static int word_exec_w_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word_w_gtw = { WID("w>w"), .execute = word_exec_w_gtw, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.w!)
+    /* @doc(command.w!)
     name: w!
     category: wave
     summary: wave-lock
-    @enddoc
+    @enddoc */
 static int word_exec_w_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6307,11 +6307,11 @@ static int word_exec_w_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word_w_bang = { WID("w!"), .execute = word_exec_w_bang, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.w*)
+    /* @doc(command.w*)
     name: w*
     category: wave
     summary: wave-nudge-reset
-    @enddoc
+    @enddoc */
 static int word_exec_w_star(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6328,11 +6328,11 @@ static int word_exec_w_star(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word_w_star = { WID("w*"), .execute = word_exec_w_star, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.w>)
+    /* @doc(command.w>)
     name: w>
     category: wave
     summary: wave-nudge-start
-    @enddoc
+    @enddoc */
 static int word_exec_w_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6356,11 +6356,11 @@ static int word_exec_w_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_w_gt = { WID("w>"), .execute = word_exec_w_gt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.w<)
+    /* @doc(command.w<)
     name: w<
     category: wave
     summary: wave-nudge-len
-    @enddoc
+    @enddoc */
 static int word_exec_w_lt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6384,11 +6384,11 @@ static int word_exec_w_lt(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_w_lt = { WID("w<"), .execute = word_exec_w_lt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.w<>)
+    /* @doc(command.w<>)
     name: w<>
     category: wave
     summary: wave-auto-trim
-    @enddoc
+    @enddoc */
 static int word_exec_w_lt_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6408,11 +6408,11 @@ static int word_exec_w_lt_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word_w_lt_gt = { WID("w<>"), .execute = word_exec_w_lt_gt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.WS)
+    /* @doc(command.WS)
     name: WS
     category: wave-specto
     summary: wave-show which-wave
-    @enddoc
+    @enddoc */
 static int word_exec_WS(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6428,11 +6428,11 @@ static int word_exec_WS(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_WS = { WID("WS"), .execute = word_exec_WS, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.W)
+    /* @doc(command.W)
     name: W
     category: wave
     summary: wave-show which-wave
-    @enddoc
+    @enddoc */
 static int word_exec_W(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6522,11 +6522,11 @@ static int word_exec_W(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_W = { WID("W"), .execute = word_exec_W, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.xg)
+    /* @doc(command.xg)
     name: xg
     category: sequencer
     summary: goto-step #
-    @enddoc
+    @enddoc */
 static int word_exec_xg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6537,11 +6537,11 @@ static int word_exec_xg(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_xg = { WID("xg"), .execute = word_exec_xg, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.>x)
+    /* @doc(command.>x)
     name: >x
     category: sequencer
     summary: goto-step #
-    @enddoc
+    @enddoc */
 static int word_exec__gtx(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6553,11 +6553,11 @@ static int word_exec__gtx(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word__gtx = { WID(">x"), .execute = word_exec__gtx, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.xa)
+    /* @doc(command.xa)
     name: xa
     category: sequencer
     summary: append step
-    @enddoc
+    @enddoc */
 static int word_exec_xa(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6580,11 +6580,11 @@ static int word_exec_xa(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_xa = { WID("xa"), .execute = word_exec_xa, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.<x)
+    /* @doc(command.<x)
     name: <x
     category: sequencer
     summary: (pattern) step-string-to-skode step-number
-    @enddoc
+    @enddoc */
 static int word_exec__ltx(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6602,16 +6602,16 @@ static int word_exec__ltx(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word__ltx = { WID("<x"), .execute = word_exec__ltx, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.EXEC)
+    /* @doc(command.EXEC)
     name: EXEC
     category: parser
     summary: numeric opcode escape
-    @enddoc
-    @doc(command.x)
+    @enddoc */
+    /* @doc(command.x)
     name: x
     category: sequencer
     summary: set-step-string step
-    @enddoc
+    @enddoc */
 static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6643,11 +6643,11 @@ static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_x = { WID("x"), .execute = word_exec_x, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.y)
+    /* @doc(command.y)
     name: y
     category: sequencer
     summary: select-pattern which
-    @enddoc
+    @enddoc */
 static int word_exec_y(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6666,11 +6666,11 @@ static int word_exec_y(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_y = { WID("y"), .execute = word_exec_y, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.ys?)
+    /* @doc(command.ys?)
     name: ys?
     category: sequencer
     summary: pattern dump for skrepl grid state
-    @enddoc
+    @enddoc */
 static int word_exec_ys_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6686,11 +6686,11 @@ static int word_exec_ys_q(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 static skode_word_t word_ys_q = { WID("ys?"), .execute = word_exec_ys_q, .safety = WORD_IMMEDIATE_ONLY };
 static skode_word_t word_ys = { WID("ys"), .execute = word_exec_ys_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.yt)
+    /* @doc(command.yt)
     name: yt
     category: sequencer
     summary: {note} pattern-text
-    @enddoc
+    @enddoc */
 static int word_exec_yt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6706,11 +6706,11 @@ static int word_exec_yt(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_yt = { WID("yt"), .execute = word_exec_yt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.ym)
+    /* @doc(command.ym)
     name: ym
     category: sequencer
     summary: pattern-mute 0/1
-    @enddoc
+    @enddoc */
 static int word_exec_ym(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6725,11 +6725,11 @@ static int word_exec_ym(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_ym = { WID("ym"), .execute = word_exec_ym, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.yc)
+    /* @doc(command.yc)
     name: yc
     category: sequencer
     summary: pattern control-plane event publication bool
-    @enddoc
+    @enddoc */
 static int word_exec_yc(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6741,11 +6741,11 @@ static int word_exec_yc(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_yc = { WID("yc"), .execute = word_exec_yc, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.Y)
+    /* @doc(command.Y)
     name: Y
     category: sequencer
     summary: clear-pattern which
-    @enddoc
+    @enddoc */
 static int word_exec_Y(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6759,11 +6759,11 @@ static int word_exec_Y(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_Y = { WID("Y"), .execute = word_exec_Y, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.z)
+    /* @doc(command.z)
     name: z
     category: sequencer
     summary: one-pattern-play-mode bool
-    @enddoc
+    @enddoc */
 static int word_exec_z(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6777,11 +6777,11 @@ static int word_exec_z(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_z = { WID("z"), .execute = word_exec_z, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.zg)
+    /* @doc(command.zg)
     name: zg
     category: sequencer
     summary: goto-pattern-step step
-    @enddoc
+    @enddoc */
 static int word_exec_zg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6795,11 +6795,11 @@ static int word_exec_zg(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_zg = { WID("zg"), .execute = word_exec_zg, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.zq)
+    /* @doc(command.zq)
     name: zq
     category: sequencer
     summary: queue-pattern-start-stop mode
-    @enddoc
+    @enddoc */
 static int word_exec_zq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6814,11 +6814,11 @@ static int word_exec_zq(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_zq = { WID("zq"), .execute = word_exec_zq, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.z?)
+    /* @doc(command.z?)
     name: z?
     category: sequencer
     summary: one-pattern-play-mode bool
-    @enddoc
+    @enddoc */
 static int word_exec_z_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6830,11 +6830,11 @@ static int word_exec_z_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_z_q = { WID("z?"), .execute = word_exec_z_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.Z)
+    /* @doc(command.Z)
     name: Z
     category: sequencer
     summary: all-pattern-play-mode bool
-    @enddoc
+    @enddoc */
 static int word_exec_Z(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6854,11 +6854,11 @@ static int word_exec_Z(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_Z = { WID("Z"), .execute = word_exec_Z, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.z??)
+    /* @doc(command.z??)
     name: z??
     category: sequencer
     summary: show all patterns
-    @enddoc
+    @enddoc */
 static int word_exec_z_q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6869,11 +6869,11 @@ static int word_exec_z_q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s,
 }
 static skode_word_t word_z_q_bs_q = { WID("z?\?"), .execute = word_exec_z_q_bs_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.Z?)
+    /* @doc(command.Z?)
     name: Z?
     category: sequencer
     summary: show all patterns
-    @enddoc
+    @enddoc */
 static int word_exec_Z_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6889,11 +6889,11 @@ static int word_exec_Z_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_Z_q = { WID("Z?"), .execute = word_exec_Z_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.XM)
+    /* @doc(command.XM)
     name: XM
     category: modulation
     summary: ring modulation osc amount
-    @enddoc
+    @enddoc */
 static int word_exec_XM(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6909,11 +6909,11 @@ static int word_exec_XM(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_XM = { WID("XM"), .execute = word_exec_XM, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.v?)
+    /* @doc(command.v?)
     name: v?
     category: voice
     summary: show-voice
-    @enddoc
+    @enddoc */
 static int word_exec_v_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6924,11 +6924,11 @@ static int word_exec_v_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_v_q = { WID("v?"), .execute = word_exec_v_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.?)
+    /* @doc(command.?)
     name: ?
     category: voice
     summary: show-voice
-    @enddoc
+    @enddoc */
 static int word_exec__q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6939,11 +6939,11 @@ static int word_exec__q(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word__q = { WID("?"), .execute = word_exec__q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.backslash)
+    /* @doc(command.backslash)
     name: \
     category: voice
     summary: verbose-show-voice
-    @enddoc
+    @enddoc */
 static int word_exec__bs_bs(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6954,11 +6954,11 @@ static int word_exec__bs_bs(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word__bs_bs = { WID("\\"), .execute = word_exec__bs_bs, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.v??)
+    /* @doc(command.v??)
     name: v??
     category: voice
     summary: show-active-voices
-    @enddoc
+    @enddoc */
 static int word_exec_v_q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6969,11 +6969,11 @@ static int word_exec_v_q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s,
 }
 static skode_word_t word_v_q_bs_q = { WID("v?\?"), .execute = word_exec_v_q_bs_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.??)
+    /* @doc(command.??)
     name: ??
     category: voice
     summary: show-active-voices
-    @enddoc
+    @enddoc */
 static int word_exec__q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6984,11 +6984,11 @@ static int word_exec__q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__q_bs_q = { WID("?\?"), .execute = word_exec__q_bs_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.?r)
+    /* @doc(command.?r)
     name: ?r
     category: routing
     summary: show track routing
-    @enddoc
+    @enddoc */
 static int word_exec__qr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -6999,11 +6999,11 @@ static int word_exec__qr(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word__qr = { WID("?r"), .execute = word_exec__qr, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.?s)
+    /* @doc(command.?s)
     name: ?s
     category: misc
     summary: show-skode-string
-    @enddoc
+    @enddoc */
 static int word_exec__qs(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7015,11 +7015,11 @@ static int word_exec__qs(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word__qs = { WID("?s"), .execute = word_exec__qs, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.s?)
+    /* @doc(command.s?)
     name: s?
     category: macros
     summary: show parser-local string slot [index]
-    @enddoc
+    @enddoc */
 static int word_exec_s_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7039,11 +7039,11 @@ static int word_exec_s_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_s_q = { WID("s?"), .execute = word_exec_s_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.?m)
+    /* @doc(command.?m)
     name: ?m
     category: macros
     summary: show-ands-macros
-    @enddoc
+    @enddoc */
 static int word_exec__qm(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7055,11 +7055,11 @@ static int word_exec__qm(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word__qm = { WID("?m"), .execute = word_exec__qm, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.?ce)
+    /* @doc(command.?ce)
     name: ?ce
     category: events
     summary: show control-plane event snapshot
-    @enddoc
+    @enddoc */
 static int word_exec__qce(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7071,11 +7071,11 @@ static int word_exec__qce(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word__qce = { WID("?ce"), .execute = word_exec__qce, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.?ce!)
+    /* @doc(command.?ce!)
     name: ?ce!
     category: events
     summary: clear outstanding control-plane events
-    @enddoc
+    @enddoc */
 static int word_exec__qce_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7088,11 +7088,11 @@ static int word_exec__qce_bang(const skode_word_t *self, skode_t *ctx, ands_t *s
 }
 static skode_word_t word__qce_bang = { WID("?ce!"), .execute = word_exec__qce_bang, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.?q)
+    /* @doc(command.?q)
     name: ?q
     category: sequencer
     summary: show scheduled opcode queue
-    @enddoc
+    @enddoc */
 static int word_exec__qq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7104,11 +7104,11 @@ static int word_exec__qq(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word__qq = { WID("?q"), .execute = word_exec__qq, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.?o)
+    /* @doc(command.?o)
     name: ?o
     category: sequencer
     summary: show compiled opcode queue or pattern
-    @enddoc
+    @enddoc */
 static int word_exec__qo(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7135,11 +7135,11 @@ static int word_exec__qo(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word__qo = { WID("?o"), .execute = word_exec__qo, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./m_)
+    /* @doc(command./m_)
     name: /m_
     category: runtime
     summary: benchmark voice
-    @enddoc
+    @enddoc */
 static int word_exec__slashm_(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7151,11 +7151,11 @@ static int word_exec__slashm_(const skode_word_t *self, skode_t *ctx, ands_t *s,
 }
 static skode_word_t word__slashm_ = { WID("/m_"), .execute = word_exec__slashm_, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./q)
+    /* @doc(command./q)
     name: /q
     category: runtime
     summary: quit
-    @enddoc
+    @enddoc */
 static int word_exec__slashq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7168,11 +7168,11 @@ static int word_exec__slashq(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 static skode_word_t word__slashq = { WID("/q"), .execute = word_exec__slashq, .safety = WORD_IMMEDIATE_ONLY };
 
 #ifdef SCOPE
-    @doc(command./sg)
+    /* @doc(command./sg)
     name: /sg
     category: scope
     summary: start shared-memory scope publication
-    @enddoc
+    @enddoc */
 static int word_exec__slashsg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7216,11 +7216,11 @@ static skode_word_t word__slashsg = { WID("/sg"), .execute = word_exec__slashsg,
 #endif
 
 #ifdef SCOPE
-    @doc(command./ss)
+    /* @doc(command./ss)
     name: /ss
     category: scope
     summary: stop shared-memory scope publication
-    @enddoc
+    @enddoc */
 static int word_exec__slashss(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7235,11 +7235,11 @@ static skode_word_t word__slashss = { WID("/ss"), .execute = word_exec__slashss,
 #endif
 
 #ifdef SCOPE
-    @doc(command./s?)
+    /* @doc(command./s?)
     name: /s?
     category: scope
     summary: shared-memory scope status
-    @enddoc
+    @enddoc */
 static int word_exec__slashs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7264,11 +7264,11 @@ static int word_exec__slashs_q(const skode_word_t *self, skode_t *ctx, ands_t *s
 static skode_word_t word__slashs_q = { WID("/s?"), .execute = word_exec__slashs_q, .safety = WORD_IMMEDIATE_ONLY };
 #endif
 
-    @doc(command./rg)
+    /* @doc(command./rg)
     name: /rg
     category: recording
     summary: start multitrack file recording
-    @enddoc
+    @enddoc */
 static int word_exec__slashrg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7297,11 +7297,11 @@ static int word_exec__slashrg(const skode_word_t *self, skode_t *ctx, ands_t *s,
 }
 static skode_word_t word__slashrg = { WID("/rg"), .execute = word_exec__slashrg, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./rs)
+    /* @doc(command./rs)
     name: /rs
     category: recording
     summary: stop multitrack file recording
-    @enddoc
+    @enddoc */
 static int word_exec__slashrs(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7317,11 +7317,11 @@ static int word_exec__slashrs(const skode_word_t *self, skode_t *ctx, ands_t *s,
 }
 static skode_word_t word__slashrs = { WID("/rs"), .execute = word_exec__slashrs, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./r?)
+    /* @doc(command./r?)
     name: /r?
     category: recording
     summary: multitrack file recording status
-    @enddoc
+    @enddoc */
 static int word_exec__slashr_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7345,11 +7345,11 @@ static int word_exec__slashr_q(const skode_word_t *self, skode_t *ctx, ands_t *s
 }
 static skode_word_t word__slashr_q = { WID("/r?"), .execute = word_exec__slashr_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./r)
+    /* @doc(command./r)
     name: /r
     category: recording
     summary: sample-to-wave slot mode channel
-    @enddoc
+    @enddoc */
 static int word_exec__slashr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7380,11 +7380,11 @@ static int word_exec__slashr(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashr = { WID("/r"), .execute = word_exec__slashr, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./d)
+    /* @doc(command./d)
     name: /d
     category: data
     summary: data-to-wave slot rate mode offset
-    @enddoc
+    @enddoc */
 static int word_exec__slashd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7406,11 +7406,11 @@ static int word_exec__slashd(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashd = { WID("/d"), .execute = word_exec__slashd, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./f)
+    /* @doc(command./f)
     name: /f
     category: runtime
     summary: flag-mode num
-    @enddoc
+    @enddoc */
 static int word_exec__slashf(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7423,11 +7423,11 @@ static int word_exec__slashf(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashf = { WID("/f"), .execute = word_exec__slashf, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./ff)
+    /* @doc(command./ff)
     name: /ff
     category: runtime
     summary: foreign C function slot arg...
-    @enddoc
+    @enddoc */
 static int word_exec__slashff(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7445,11 +7445,11 @@ static int word_exec__slashff(const skode_word_t *self, skode_t *ctx, ands_t *s,
 }
 static skode_word_t word__slashff = { WID("/ff"), .execute = word_exec__slashff, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./m)
+    /* @doc(command./m)
     name: /m
     category: macros
     summary: remove-ands-macro [name]
-    @enddoc
+    @enddoc */
 static int word_exec__slashm(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7469,11 +7469,11 @@ static int word_exec__slashm(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashm = { WID("/m"), .execute = word_exec__slashm, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./m!)
+    /* @doc(command./m!)
     name: /m!
     category: macros
     summary: clear-ands-macros
-    @enddoc
+    @enddoc */
 static int word_exec__slashm_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7486,11 +7486,11 @@ static int word_exec__slashm_bang(const skode_word_t *self, skode_t *ctx, ands_t
 }
 static skode_word_t word__slashm_bang = { WID("/m!"), .execute = word_exec__slashm_bang, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./t)
+    /* @doc(command./t)
     name: /t
     category: runtime
     summary: trace-mode num
-    @enddoc
+    @enddoc */
 static int word_exec__slasht(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7504,11 +7504,11 @@ static int word_exec__slasht(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slasht = { WID("/t"), .execute = word_exec__slasht, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./v)
+    /* @doc(command./v)
     name: /v
     category: runtime
     summary: verbose-mode num
-    @enddoc
+    @enddoc */
 static int word_exec__slashv(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7521,11 +7521,11 @@ static int word_exec__slashv(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashv = { WID("/v"), .execute = word_exec__slashv, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./cer)
+    /* @doc(command./cer)
     name: /cer
     category: events
     summary: control-event responder bool
-    @enddoc
+    @enddoc */
 static int word_exec__slashcer(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7538,11 +7538,11 @@ static int word_exec__slashcer(const skode_word_t *self, skode_t *ctx, ands_t *s
 }
 static skode_word_t word__slashcer = { WID("/cer"), .execute = word_exec__slashcer, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./ce?)
+    /* @doc(command./ce?)
     name: /ce?
     category: events
     summary: control-event responder status
-    @enddoc
+    @enddoc */
 static int word_exec__slashce_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7554,11 +7554,11 @@ static int word_exec__slashce_q(const skode_word_t *self, skode_t *ctx, ands_t *
 }
 static skode_word_t word__slashce_q = { WID("/ce?"), .execute = word_exec__slashce_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./th?)
+    /* @doc(command./th?)
     name: /th?
     category: runtime
     summary: skred service/thread health
-    @enddoc
+    @enddoc */
 static int word_exec__slashth_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7570,11 +7570,11 @@ static int word_exec__slashth_q(const skode_word_t *self, skode_t *ctx, ands_t *
 }
 static skode_word_t word__slashth_q = { WID("/th?"), .execute = word_exec__slashth_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./th!)
+    /* @doc(command./th!)
     name: /th!
     category: runtime
     summary: reset skred performance counters and peak load tracking
-    @enddoc
+    @enddoc */
 static int word_exec__slashth_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7587,11 +7587,11 @@ static int word_exec__slashth_bang(const skode_word_t *self, skode_t *ctx, ands_
 }
 static skode_word_t word__slashth_bang = { WID("/th!"), .execute = word_exec__slashth_bang, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./ce!)
+    /* @doc(command./ce!)
     name: /ce!
     category: events
     summary: control-event responder remove/clear
-    @enddoc
+    @enddoc */
 static int word_exec__slashce_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7612,11 +7612,11 @@ static int word_exec__slashce_bang(const skode_word_t *self, skode_t *ctx, ands_
 }
 static skode_word_t word__slashce_bang = { WID("/ce!"), .execute = word_exec__slashce_bang, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./ceb)
+    /* @doc(command./ceb)
     name: /ceb
     category: events
     summary: bind parser string to control event type key
-    @enddoc
+    @enddoc */
 static int word_exec__slashceb(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7640,11 +7640,11 @@ static int word_exec__slashceb(const skode_word_t *self, skode_t *ctx, ands_t *s
 }
 static skode_word_t word__slashceb = { WID("/ceb"), .execute = word_exec__slashceb, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./cex)
+    /* @doc(command./cex)
     name: /cex
     category: events
     summary: bind external string slot to control event type key
-    @enddoc
+    @enddoc */
 static int word_exec__slashcex(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7671,11 +7671,11 @@ static int word_exec__slashcex(const skode_word_t *self, skode_t *ctx, ands_t *s
 }
 static skode_word_t word__slashcex = { WID("/cex"), .execute = word_exec__slashcex, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.<s)
+    /* @doc(command.<s)
     name: <s
     category: macros
     summary: parser-local string slot to parser string
-    @enddoc
+    @enddoc */
 static int word_exec__lts(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7690,11 +7690,11 @@ static int word_exec__lts(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word__lts = { WID("<s"), .execute = word_exec__lts, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.s>)
+    /* @doc(command.s>)
     name: s>
     category: macros
     summary: parser string to parser-local string slot
-    @enddoc
+    @enddoc */
 static int word_exec_s_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7709,11 +7709,11 @@ static int word_exec_s_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_s_gt = { WID("s>"), .execute = word_exec_s_gt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.s%)
+    /* @doc(command.s%)
     name: s%
     category: macros
     summary: format parser string with numeric args
-    @enddoc
+    @enddoc */
 static int word_exec_s_pct(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7730,11 +7730,11 @@ static int word_exec_s_pct(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word_s_pct = { WID("s%"), .execute = word_exec_s_pct, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.<e)
+    /* @doc(command.<e)
     name: <e
     category: macros
     summary: external-string-to-skode external-index
-    @enddoc
+    @enddoc */
 static int word_exec__lte(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7750,11 +7750,11 @@ static int word_exec__lte(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word__lte = { WID("<e"), .execute = word_exec__lte, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.e>)
+    /* @doc(command.e>)
     name: e>
     category: macros
     summary: skode-string-to-external external-index
-    @enddoc
+    @enddoc */
 static int word_exec_e_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7771,11 +7771,11 @@ static int word_exec_e_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_e_gt = { WID("e>"), .execute = word_exec_e_gt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.e!)
+    /* @doc(command.e!)
     name: e!
     category: macros
     summary: execute-string num
-    @enddoc
+    @enddoc */
 static int word_exec_e_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7802,11 +7802,11 @@ static int word_exec_e_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word_e_bang = { WID("e!"), .execute = word_exec_e_bang, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.e?)
+    /* @doc(command.e?)
     name: e?
     category: macros
     summary: show-execute-string [num]
-    @enddoc
+    @enddoc */
 static int word_exec_e_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7827,11 +7827,11 @@ static int word_exec_e_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_e_q = { WID("e?"), .execute = word_exec_e_q, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./s)
+    /* @doc(command./s)
     name: /s
     category: runtime
     summary: system-show num
-    @enddoc
+    @enddoc */
 static int word_exec__slashs(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7866,11 +7866,11 @@ static int word_exec__slashs(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashs = { WID("/s"), .execute = word_exec__slashs, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./h)
+    /* @doc(command./h)
     name: /h
     category: runtime
     summary: show command help
-    @enddoc
+    @enddoc */
 static int word_exec__slashh(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7882,11 +7882,11 @@ static int word_exec__slashh(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashh = { WID("/h"), .execute = word_exec__slashh, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./l)
+    /* @doc(command./l)
     name: /l
     category: files
     summary: skode-load num
-    @enddoc
+    @enddoc */
 static int word_exec__slashl(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7902,11 +7902,11 @@ static int word_exec__slashl(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashl = { WID("/l"), .execute = word_exec__slashl, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./ls)
+    /* @doc(command./ls)
     name: /ls
     category: files
     summary: skode-load-string filename
-    @enddoc
+    @enddoc */
 static int word_exec__slashls(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7924,11 +7924,11 @@ static int word_exec__slashls(const skode_word_t *self, skode_t *ctx, ands_t *s,
 }
 static skode_word_t word__slashls = { WID("/ls"), .execute = word_exec__slashls, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./ws)
+    /* @doc(command./ws)
     name: /ws
     category: files
     summary: wave-load-string wave channel
-    @enddoc
+    @enddoc */
 static int word_exec__slashws(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7953,11 +7953,11 @@ static int word_exec__slashws(const skode_word_t *self, skode_t *ctx, ands_t *s,
 }
 static skode_word_t word__slashws = { WID("/ws"), .execute = word_exec__slashws, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./w)
+    /* @doc(command./w)
     name: /w
     category: files
     summary: wave-load num wave channel
-    @enddoc
+    @enddoc */
 static int word_exec__slashw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -7982,11 +7982,11 @@ static int word_exec__slashw(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashw = { WID("/w"), .execute = word_exec__slashw, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.>r)
+    /* @doc(command.>r)
     name: >r
     category: recording
     summary: normalize recording to string-named WAV file
-    @enddoc
+    @enddoc */
 static int word_exec__gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8011,11 +8011,11 @@ static int word_exec__gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word__gtr = { WID(">r"), .execute = word_exec__gtr, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.^r)
+    /* @doc(command.^r)
     name: ^r
     category: recording
     summary: record duration source voice ... markdown/html doesn't like <
-    @enddoc
+    @enddoc */
 static int word_exec__hatr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8026,11 +8026,11 @@ static int word_exec__hatr(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word__hatr = { WID("^r"), .execute = word_exec__hatr, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.<r)
+    /* @doc(command.<r)
     name: <r
     category: recording
     summary: record duration source voice
-    @enddoc
+    @enddoc */
 static int word_exec__ltr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8076,11 +8076,11 @@ static int word_exec__ltr(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word__ltr = { WID("<r"), .execute = word_exec__ltr, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.>)
+    /* @doc(command.>)
     name: >
     category: voice
     summary: copy-voice dest-voice
-    @enddoc
+    @enddoc */
 static int word_exec__gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8092,11 +8092,11 @@ static int word_exec__gt(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word__gt = { WID(">"), .execute = word_exec__gt, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./)
+    /* @doc(command./)
     name: /
     category: wave
     summary: default-wave voice
-    @enddoc
+    @enddoc */
 static int word_exec__slash(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8108,11 +8108,11 @@ static int word_exec__slash(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word__slash = { WID("/"), .execute = word_exec__slash, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.%)
+    /* @doc(command.%)
     name: %
     category: sequencer
     summary: pattern-modulus num
-    @enddoc
+    @enddoc */
 static int word_exec__pct(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8124,11 +8124,11 @@ static int word_exec__pct(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word__pct = { WID("%"), .execute = word_exec__pct, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.W*)
+    /* @doc(command.W*)
     name: W*
     category: data
     summary: get a wavetable parameter to a variable
-    @enddoc
+    @enddoc */
 static int word_exec_W_star(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8175,11 +8175,11 @@ static int word_exec_W_star(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word_W_star = { WID("W*"), .execute = word_exec_W_star, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.v*)
+    /* @doc(command.v*)
     name: v*
     category: data
     summary: get a voice parameter to a variable
-    @enddoc
+    @enddoc */
 static int word_exec_v_star(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8217,11 +8217,11 @@ static int word_exec_v_star(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word_v_star = { WID("v*"), .execute = word_exec_v_star, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.*=)
+    /* @doc(command.*=)
     name: *=
     category: data
     summary: variable-times-equal slot val0 val1
-    @enddoc
+    @enddoc */
 static int word_exec__star_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8239,11 +8239,11 @@ static int word_exec__star_eq(const skode_word_t *self, skode_t *ctx, ands_t *s,
 }
 static skode_word_t word__star_eq = { WID("*="), .execute = word_exec__star_eq, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./=)
+    /* @doc(command./=)
     name: /=
     category: data
     summary: variable-divide-equal slot val0 val1
-    @enddoc
+    @enddoc */
 static int word_exec__slash_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8261,11 +8261,11 @@ static int word_exec__slash_eq(const skode_word_t *self, skode_t *ctx, ands_t *s
 }
 static skode_word_t word__slash_eq = { WID("/="), .execute = word_exec__slash_eq, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.a=)
+    /* @doc(command.a=)
     name: a=
     category: data
     summary: variable-plus-equal slot val0 val1
-    @enddoc
+    @enddoc */
 static int word_exec_a_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8283,11 +8283,11 @@ static int word_exec_a_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_a_eq = { WID("a="), .execute = word_exec_a_eq, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.s=)
+    /* @doc(command.s=)
     name: s=
     category: data
     summary: variable-sub-equal slot val0 val1
-    @enddoc
+    @enddoc */
 static int word_exec_s_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8305,11 +8305,11 @@ static int word_exec_s_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word_s_eq = { WID("s="), .execute = word_exec_s_eq, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.=)
+    /* @doc(command.=)
     name: =
     category: data
     summary: variable-set slot value
-    @enddoc
+    @enddoc */
 static int word_exec__eq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8339,11 +8339,11 @@ static int word_exec__eq(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word__eq = { WID("="), .execute = word_exec__eq, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command./wex)
+    /* @doc(command./wex)
     name: /wex
     category: wave
     summary: wave-expand wave
-    @enddoc
+    @enddoc */
 static int word_exec__slashwex(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8355,11 +8355,11 @@ static int word_exec__slashwex(const skode_word_t *self, skode_t *ctx, ands_t *s
 }
 static skode_word_t word__slashwex = { WID("/wex"), .execute = word_exec__slashwex, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.%z)
+    /* @doc(command.%z)
     name: %z
     category: files
     summary: mount zip-or-directory asset root
-    @enddoc
+    @enddoc */
 static int word_exec__pctz(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8378,11 +8378,11 @@ static int word_exec__pctz(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word__pctz = { WID("%z"), .execute = word_exec__pctz, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.%zu)
+    /* @doc(command.%zu)
     name: %zu
     category: files
     summary: unmount zip asset root
-    @enddoc
+    @enddoc */
 static int word_exec__pctzu(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8395,11 +8395,11 @@ static int word_exec__pctzu(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word__pctzu = { WID("%zu"), .execute = word_exec__pctzu, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.%pwd)
+    /* @doc(command.%pwd)
     name: %pwd
     category: files
     summary: show vfs working directory
-    @enddoc
+    @enddoc */
 static int word_exec__pctpwd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8411,11 +8411,11 @@ static int word_exec__pctpwd(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__pctpwd = { WID("%pwd"), .execute = word_exec__pctpwd, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.%cat)
+    /* @doc(command.%cat)
     name: %cat
     category: files
     summary: print a text file
-    @enddoc
+    @enddoc */
 static int word_exec__pctcat(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8455,11 +8455,11 @@ static int word_exec__pctcat(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__pctcat = { WID("%cat"), .execute = word_exec__pctcat, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.%cd)
+    /* @doc(command.%cd)
     name: %cd
     category: files
     summary: change directory
-    @enddoc
+    @enddoc */
 static int word_exec__pctcd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -8476,11 +8476,11 @@ static int word_exec__pctcd(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word__pctcd = { WID("%cd"), .execute = word_exec__pctcd, .safety = WORD_IMMEDIATE_ONLY };
 
-    @doc(command.%ls)
+    /* @doc(command.%ls)
     name: %ls
     category: files
     summary: list directory [match-type [index|-1] ]
-    @enddoc
+    @enddoc */
 static int word_exec__pctls(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -10150,20 +10150,20 @@ void skode_free(skode_t *ctx) {
 
 /* Dictionary command documentation remains here so kit_tool includes it in
    the generated command reference alongside the legacy switch commands. */
-@doc(command.*R)
+/* @doc(command.*R)
 name: *R
 category: parser
 summary: return arguments as @0 through @9
-@enddoc
-@doc(command.?R)
+@enddoc */
+/* @doc(command.?R)
 name: ?R
 category: parser
 summary: show return registers without consuming them
-@enddoc
+@enddoc */
 
 /* API/device command records live after the legacy records so adding them
    cannot renumber the established numeric help categories. */
-@doc
+/* @doc
 ## API Commands (Runtime & Device Integration)
 
 ### Wave Upload Protocol
@@ -10180,189 +10180,189 @@ Allows interactive streaming of raw wave data into a wave slot using base64.
 ### Wave Download Protocol
 1. `-wave <slot>`
    Dumps a wave slot to `stdout` in base64 format using `~WAVE:START`, `~WAVE:<data>`, and `~WAVE:END` boundaries for easy parsing by external API clients.
-@enddoc
+@enddoc */
 
-@doc(command.-restart)
+/* @doc(command.-restart)
 name: -restart
 category: runtime
 summary: restart the audio engine [voices=v] [frames=f] [port=p]
-@enddoc
-@doc(command.-wave)
+@enddoc */
+/* @doc(command.-wave)
 name: -wave
 category: runtime
 summary: dump wave slot as compressed base64
-@enddoc
-@doc(command.-upwave)
+@enddoc */
+/* @doc(command.-upwave)
 name: -upwave
 category: runtime
 summary: stream wave data via START DATA CANCEL COMMIT
-@enddoc
-@doc(command./als)
+@enddoc */
+/* @doc(command./als)
 name: /als
 category: runtime
 summary: refresh and list audio input and output devices
-@enddoc
-@doc(command./a?)
+@enddoc */
+/* @doc(command./a?)
 name: /a?
 category: runtime
 summary: show audio device and performance status
-@enddoc
-@doc(command./ai)
+@enddoc */
+/* @doc(command./ai)
 name: /ai
 category: runtime
 summary: select audio input index (-1 default, -2 off)
-@enddoc
-@doc(command./ao)
+@enddoc */
+/* @doc(command./ao)
 name: /ao
 category: runtime
 summary: select audio output index (-1 default)
-@enddoc
+@enddoc */
 
-@doc(command./mL)
+/* @doc(command./mL)
 name: /mL
 category: midi
 summary: initialize MIDI and list input and output ports
-@enddoc
-@doc(command./m?)
+@enddoc */
+/* @doc(command./m?)
 name: /m?
 category: midi
 summary: show MIDI ports, mask, routes, and binding counts
-@enddoc
-@doc(command./mi)
+@enddoc */
+/* @doc(command./mi)
 name: /mi
 category: midi
 summary: open enumerated MIDI input port index
-@enddoc
-@doc(command./mo)
+@enddoc */
+/* @doc(command./mo)
 name: /mo
 category: midi
 summary: open enumerated MIDI output port index
-@enddoc
-@doc(command./miV)
+@enddoc */
+/* @doc(command./miV)
 name: /miV
 category: midi
 summary: create virtual MIDI input using parser string name
-@enddoc
-@doc(command./moV)
+@enddoc */
+/* @doc(command./moV)
 name: /moV
 category: midi
 summary: create virtual MIDI output using parser string name
-@enddoc
-@doc(command./mic)
+@enddoc */
+/* @doc(command./mic)
 name: /mic
 category: midi
 summary: close active MIDI input
-@enddoc
-@doc(command./moc)
+@enddoc */
+/* @doc(command./moc)
 name: /moc
 category: midi
 summary: close active MIDI output
-@enddoc
-@doc(command./mv)
+@enddoc */
+/* @doc(command./mv)
 name: /mv
 category: midi
 summary: route MIDI channel note and bend input to voice
-@enddoc
-@doc(command./mp)
+@enddoc */
+/* @doc(command./mp)
 name: /mp
 category: midi
 summary: route MIDI channel note and bend input to poly pool
-@enddoc
-@doc(command./mvd)
+@enddoc */
+/* @doc(command./mvd)
 name: /mvd
 category: midi
 summary: delete MIDI channel-to-voice route
-@enddoc
-@doc(command./mpd)
+@enddoc */
+/* @doc(command./mpd)
 name: /mpd
 category: midi
 summary: delete MIDI channel-to-pool route
-@enddoc
-@doc(command./mR)
+@enddoc */
+/* @doc(command./mR)
 name: /mR
 category: midi
 summary: list MIDI note and bend routes
-@enddoc
-@doc(command./mC)
+@enddoc */
+/* @doc(command./mC)
 name: /mC
 category: midi
 summary: clear all MIDI note and bend routes
-@enddoc
-@doc(command./mb)
+@enddoc */
+/* @doc(command./mb)
 name: /mb
 category: midi
 summary: bind parser string Skode template to filtered MIDI event
-@enddoc
-@doc(command./mbd)
+@enddoc */
+/* @doc(command./mbd)
 name: /mbd
 category: midi
 summary: delete filtered MIDI-to-Skode binding
-@enddoc
-@doc(command./mb?)
+@enddoc */
+/* @doc(command./mb?)
 name: /mb?
 category: midi
 summary: list MIDI-to-Skode bindings
-@enddoc
-@doc(command./mbC)
+@enddoc */
+/* @doc(command./mbC)
 name: /mbC
 category: midi
 summary: clear all MIDI-to-Skode bindings
-@enddoc
+@enddoc */
 
 /* Keep this new category after the legacy help records. Numeric help category
    indices are part of the command interface and must remain stable. */
-@doc(command./pg)
+/* @doc(command./pg)
 name: /pg
 category: polyphony
 summary: define voice group group source width [root-offset]
-@enddoc
-@doc(command./pg!)
+@enddoc */
+/* @doc(command./pg!)
 name: /pg!
 category: polyphony
 summary: refresh free instances using voice group
-@enddoc
-@doc(command./pp)
+@enddoc */
+/* @doc(command./pp)
 name: /pp
 category: polyphony
 summary: define pool pool group base count [steal-policy]
-@enddoc
-@doc(command./pp!)
+@enddoc */
+/* @doc(command./pp!)
 name: /pp!
 category: polyphony
 summary: refresh free instances in pool
-@enddoc
-@doc(command./pm)
+@enddoc */
+/* @doc(command./pm)
 name: /pm
 category: polyphony
 summary: pool mode pool mode [priority [articulation]]
-@enddoc
-@doc(command.?pg)
+@enddoc */
+/* @doc(command.?pg)
 name: ?pg
 category: polyphony
 summary: show voice groups
-@enddoc
-@doc(command.?pp)
+@enddoc */
+/* @doc(command.?pp)
 name: ?pp
 category: polyphony
 summary: show voice pools and allocations
-@enddoc
-@doc(command./vg)
+@enddoc */
+/* @doc(command./vg)
 name: /vg
 category: polyphony
 summary: voice dependency graph voice [format [depth]]
-@enddoc
-@doc(command.pn)
+@enddoc */
+/* @doc(command.pn)
 name: pn
 category: polyphony
 summary: pool note-on pool key note velocity [cents]
-@enddoc
-@doc(command.pr)
+@enddoc */
+/* @doc(command.pr)
 name: pr
 category: polyphony
 summary: pool note release pool key [release-velocity]
-@enddoc
-@doc(command.pb)
+@enddoc */
+/* @doc(command.pb)
 name: pb
 category: polyphony
 summary: pool pitch bend pool key semitones [cents]
-@enddoc
+@enddoc */

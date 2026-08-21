@@ -78,7 +78,6 @@ clean-generated: native
 
 cross-windows-kit:
 	cmake --preset ninja-release
-	cmake --build --preset ninja-release --target kit_tool
 
 cross-windows-zig-maxed: cross-windows-kit
 	$(ZIG_ENV) cmake --preset cross-windows-zig-maxed
@@ -145,7 +144,6 @@ wasm-test:
 
 native:
 	cmake -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
-	cmake --build build_native --target kit_tool
 	cmake --build build_native
 
 test: native

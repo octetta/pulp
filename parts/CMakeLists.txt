@@ -34,42 +34,17 @@ list(REMOVE_DUPLICATES KIT_OPTS_LIST)
 if(NOT SCOPE_FEATURE_INDEX EQUAL -1 AND WIN32)
     message(FATAL_ERROR "SCOPE=1 currently requires POSIX shared memory")
 endif()
-option(USE_EXTERNAL_KIT "Use an existing native kit_tool binary" OFF)
-set(KIT_TOOL_PATH "" CACHE FILEPATH "Path to a prebuilt native kit_tool")
 
-if(USE_EXTERNAL_KIT)
-    if(NOT KIT_TOOL_PATH)
-        message(FATAL_ERROR "USE_EXTERNAL_KIT=ON requires KIT_TOOL_PATH")
-    endif()
-    set(KIT_TOOL_EXE "${KIT_TOOL_PATH}")
-else()
-    add_executable(kit_tool kit.c)
-    set(KIT_TOOL_EXE $<TARGET_FILE:kit_tool>)
-endif()
 
-function(add_kit_generated_file output input)
-    add_custom_command(
-        OUTPUT "${output}"
-        COMMAND "${KIT_TOOL_EXE}" ${KIT_OPTS_LIST} --input "${input}" --output "${output}"
-        DEPENDS "${input}" "${ARGN}"
-        VERBATIM
-    )
-endfunction()
 
-# 1.1 Define the absolute paths for the generator
-set(SYNTH_STATE_KIT "${CMAKE_CURRENT_SOURCE_DIR}/synth-state.h.kit")
-set(SYNTH_STATE_H   "${CMAKE_CURRENT_BINARY_DIR}/synth-state.h")
+
+
 set(SKRED_VERSION_H "${CMAKE_CURRENT_BINARY_DIR}/skred-version.h")
-
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/skred-version.h.in"
     "${SKRED_VERSION_H}"
     @ONLY
 )
-
-# 1.2 The Command: This is the ONLY place that runs the kit_tool for this header
-add_kit_generated_file("${SYNTH_STATE_H}" "${SYNTH_STATE_KIT}" ${KIT_TOOL_EXE})
-set_property(SOURCE "${SYNTH_STATE_H}" PROPERTY GENERATED TRUE)
 
 # 2. Hand-written (plain) source files for the API library
 set(API_PLAIN_SOURCES
@@ -89,18 +64,17 @@ set(API_PLAIN_SOURCES
     udp.c
 )
 
-# 3. List your .kit modules intended ONLY for the library
-set(API_KIT_MODULES 
-    api
-    synth
-    skode
-    polyphony
-    synth-alloc
-    seq
-)
-
-    list(APPEND API_KIT_MODULES recorder)
-
+# 3. List modules
+    list(APPEND API_PLAIN_SOURCES
+        api.c
+        synth.c
+        skode.c
+        polyphony.c
+        synth-alloc.c
+        seq.c
+        recorder.c
+    )
+    
 if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
     list(APPEND API_PLAIN_SOURCES scope-ipc.c)
 endif()
@@ -109,58 +83,22 @@ if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
     list(APPEND API_PLAIN_SOURCES vendor/ksynth/ksynth.c)
 endif()
 
-set(API_GEN_SOURCES "")
 
-foreach(MOD ${API_KIT_MODULES})
-    # Logic for .c.kit
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit")
-        message(STATUS "DEBUG: Module (C) ${MOD} using KIT_OPTS: ${KIT_OPTS}")
-        set(OUT_C "${CMAKE_CURRENT_BINARY_DIR}/${MOD}.c")
-        if(MOD STREQUAL "skode")
-          set(SKODE_DOC_INC "${CMAKE_CURRENT_BINARY_DIR}/skode-doc.inc")
-          add_custom_command(
-              OUTPUT "${OUT_C}" "${SKODE_DOC_INC}"
-              COMMAND "${KIT_TOOL_EXE}" ${KIT_OPTS_LIST}
-                --input "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit"
-                --output "${OUT_C}"
-                --doc "${SKODE_DOC_INC}"
-              DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" ${KIT_TOOL_EXE} "${SYNTH_STATE_H}"
-              VERBATIM
-          )
-          set_property(SOURCE "${SKODE_DOC_INC}" PROPERTY GENERATED TRUE)
-        else()
-          add_kit_generated_file("${OUT_C}" "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.c.kit" ${KIT_TOOL_EXE} "${SYNTH_STATE_H}")
-        endif()
-        set_property(SOURCE "${OUT_C}" PROPERTY GENERATED TRUE)
-        if(MOD STREQUAL "skode")
-          set_source_files_properties("${OUT_C}" PROPERTIES COMPILE_FLAGS "-Wno-multichar")
-        endif()
-        list(APPEND API_GEN_SOURCES "${OUT_C}")
-    endif()
 
-    # Logic for .h.kit
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit")
-        message(STATUS "DEBUG: Module (H) ${MOD} using KIT_OPTS: ${KIT_OPTS}")
-        set(OUT_H "${CMAKE_CURRENT_BINARY_DIR}/${MOD}.h")
-        add_kit_generated_file("${OUT_H}" "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.h.kit" ${KIT_TOOL_EXE} "${SYNTH_STATE_H}")
-        set_property(SOURCE "${OUT_H}" PROPERTY GENERATED TRUE)
-        list(APPEND API_GEN_SOURCES "${OUT_H}")
-    endif()
-endforeach()
 
 # 4. Generate the API Static Library
 add_library(api STATIC
   ${API_PLAIN_SOURCES}
-  ${API_GEN_SOURCES}
-  "${SYNTH_STATE_H}"
+  
+  
 )
 
 set_target_properties(api PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_library(api_shared SHARED
   ${API_PLAIN_SOURCES}
-  ${API_GEN_SOURCES}
-  "${SYNTH_STATE_H}"
+  
+  
 )
 
 set_target_properties(api_shared PROPERTIES
@@ -208,34 +146,7 @@ endif()
 endif()
 
 # 6. Setup the main mini-skred executable module
-set(EXE_MOD "mini-skred")
-set(EXE_GEN_SOURCES "")
-
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${EXE_MOD}.c.kit")
-    message(STATUS "DEBUG: Executable Module (C) ${EXE_MOD} using KIT_OPTS: ${KIT_OPTS}")
-    set(OUT_C "${CMAKE_CURRENT_BINARY_DIR}/${EXE_MOD}.c")
-    add_kit_generated_file("${OUT_C}" "${CMAKE_CURRENT_SOURCE_DIR}/${EXE_MOD}.c.kit" ${KIT_TOOL_EXE} "${SYNTH_STATE_H}")
-    set_property(SOURCE "${OUT_C}" PROPERTY GENERATED TRUE)
-    list(APPEND EXE_GEN_SOURCES "${OUT_C}")
-endif()
-
-set(ALL_KIT_GENERATED_SOURCES
-  ${API_GEN_SOURCES}
-  ${EXE_GEN_SOURCES}
-  "${SYNTH_STATE_H}"
-)
-
-add_custom_target(generated-sources
-  DEPENDS ${ALL_KIT_GENERATED_SOURCES}
-)
-
-add_custom_target(clean-generated
-  COMMAND ${CMAKE_COMMAND} -E remove -f ${ALL_KIT_GENERATED_SOURCES}
-  VERBATIM
-)
-
-# Final App: Build executable and link to the library
-add_executable(mini-skred ${EXE_GEN_SOURCES})
+add_executable(mini-skred mini-skred.c)
 target_link_libraries(mini-skred PRIVATE api)
 
 # 7. Find the library portably
@@ -275,17 +186,18 @@ install(TARGETS api api_shared mini-skred
 )
 
 add_custom_command(
-  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md"
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md" "${CMAKE_CURRENT_BINARY_DIR}/skode-doc.inc"
   COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/gen_docs.py"
           "${CMAKE_CURRENT_SOURCE_DIR}/skode-dict.c"
-          "${CMAKE_CURRENT_SOURCE_DIR}/skode.c.kit"
+          "${CMAKE_CURRENT_SOURCE_DIR}/skode.c"
           "${CMAKE_CURRENT_SOURCE_DIR}/skode.h"
           "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md"
+          "${CMAKE_CURRENT_BINARY_DIR}/skode-doc.inc"
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/skode-dict.c"
-          "${CMAKE_CURRENT_SOURCE_DIR}/skode.c.kit"
+          "${CMAKE_CURRENT_SOURCE_DIR}/skode.c"
           "${CMAKE_CURRENT_SOURCE_DIR}/skode.h"
           "${CMAKE_CURRENT_SOURCE_DIR}/gen_docs.py"
-  COMMENT "Generating SKODE_DOCS.md..."
+  COMMENT "Generating SKODE_DOCS.md and skode-doc.inc..."
 )
 add_custom_target(generate_docs ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md")
 add_dependencies(api generate_docs)
@@ -307,14 +219,7 @@ install(FILES
 
 enable_testing()
 
-add_test(
-  NAME smoke.build-artifacts
-  COMMAND ${CMAKE_COMMAND}
-    -DPROJECT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-    -DPROJECT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}
-    -DKIT_TOOL_EXE=${KIT_TOOL_EXE}
-    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/SmokeTest.cmake
-)
+
 
 add_executable(ands_parser_tests tests/ands_parser_tests.c)
 target_link_libraries(ands_parser_tests PRIVATE api)
@@ -428,3 +333,4 @@ if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
     COMMAND scope_ipc_tests
   )
 endif()
+set_source_files_properties(skode.c PROPERTIES COMPILE_FLAGS "-Wno-multichar")

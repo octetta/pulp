@@ -3,13 +3,24 @@ import re
 import sys
 import os
 
-def generate_docs(dict_file, kit_file, header_file, output_file):
+def generate_docs(dict_file, kit_file, header_file, output_file, inc_file=None):
     with open(kit_file, 'r') as f:
         kit_content = f.read()
     with open(dict_file, 'r') as f:
         dict_content = f.read()
     with open(header_file, 'r') as f:
         header_content = f.read()
+
+    if inc_file:
+        with open(inc_file, 'w') as f:
+            for match in re.finditer(r'/\*\s*@doc(?:(?:\((.*?)\))?)\n(.*?)\n\s*@enddoc\s*\*/', kit_content, re.DOTALL):
+                key = match.group(1) or ""
+                body = match.group(2)
+                f.write(f'KIT_DOC_BEGIN("{key}", "{key}", "skode.c", 0)\n')
+                for line in body.split('\n'):
+                    line_escaped = line.replace('"', '\\"') + '\\n'
+                    f.write(f'KIT_DOC_LINE("{key}", "{line_escaped}")\n')
+                f.write(f'KIT_DOC_END("{key}")\n')
 
     # Parse skode.h for skode_opcode_t values
     enum_map = {}
@@ -50,7 +61,7 @@ def generate_docs(dict_file, kit_file, header_file, output_file):
             
         dict_map[cmd_name] = props
 
-    blocks = re.finditer(r'@doc\((.*?)\)\n(.*?)\n\s*@enddoc', kit_content, re.DOTALL)
+    blocks = re.finditer(r'/\*\s*@doc\((.*?)\)\n(.*?)\n\s*@enddoc\s*\*/', kit_content, re.DOTALL)
     docs = {}
     for match in blocks:
         key = match.group(1).strip()
@@ -73,7 +84,7 @@ def generate_docs(dict_file, kit_file, header_file, output_file):
             if cat not in docs: docs[cat] = []
             docs[cat].append(entry)
 
-    long_docs = re.finditer(r'@doc\n(.*?)\n\s*@enddoc', kit_content, re.DOTALL)
+    long_docs = re.finditer(r'/\*\s*@doc\n(.*?)\n\s*@enddoc\s*\*/', kit_content, re.DOTALL)
     long_doc_map = {}
     for match in long_docs:
         body = match.group(1).strip()
@@ -110,6 +121,6 @@ def generate_docs(dict_file, kit_file, header_file, output_file):
 
 if __name__ == '__main__':
     if len(sys.argv) < 5:
-        print("Usage: gen_docs.py <skode-dict.c> <skode.c.kit> <skode.h> <output.md>")
+        print("Usage: gen_docs.py <skode-dict.c> <skode.c> <skode.h> <output.md> [output.inc]")
         sys.exit(1)
-    generate_docs(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    generate_docs(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] if len(sys.argv) >= 6 else None)

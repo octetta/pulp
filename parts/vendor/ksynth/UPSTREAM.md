@@ -11,7 +11,7 @@ suitable for propagation to the upstream repository.
 
 PULP-specific Skode integration remains outside this directory in:
 
-- `skode.c.kit`
+- `skode.c`
 
 ## Updating
 

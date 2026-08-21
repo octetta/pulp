@@ -28,7 +28,7 @@ The June 6 implementation read the fourth argument. It now reads `arg[2]`, so
 
 Relevant code:
 
-- `parts/skode.c.kit:2092`
+- `parts/skode.c:2092`
 
 ### Former conditional `w>r` transfer bug - Resolved
 
@@ -37,7 +37,7 @@ enough, allocating it first only when necessary.
 
 Relevant code:
 
-- `parts/skode.c.kit:1874`
+- `parts/skode.c:1874`
 
 ### Former `x-` default-argument bug - Resolved
 
@@ -46,7 +46,7 @@ The `x` command now uses `isnan(arg[0])`, so placeholders such as `x-` and
 
 Relevant code:
 
-- `parts/skode.c.kit:2004`
+- `parts/skode.c:2004`
 
 ## Medium Priority
 
@@ -61,8 +61,8 @@ relying on an out-of-range value.
 
 Relevant code:
 
-- `parts/skode.c.kit`
-- `parts/synth.c.kit`
+- `parts/skode.c`
+- `parts/synth.c`
 
 ### Former partial `G` and `H` link replacement - Resolved
 
@@ -71,9 +71,9 @@ positions clear old MIDI and velocity links.
 
 Relevant code:
 
-- `parts/skode.c.kit:1525`
-- `parts/skode.c.kit:1537`
-- `parts/synth.c.kit:872`
+- `parts/skode.c:1525`
+- `parts/skode.c:1537`
+- `parts/synth.c:872`
 
 ### Voice serialization is not a complete round trip - Open
 
@@ -83,8 +83,8 @@ therefore produce different playback behavior.
 
 Relevant code:
 
-- `parts/skode.c.kit:1814`
-- `parts/synth.c.kit:849`
+- `parts/skode.c:1814`
+- `parts/synth.c:849`
 
 ### Former string-syntax documentation mismatch - Resolved
 
@@ -102,7 +102,7 @@ Relevant code:
 
 Relevant code:
 
-- `parts/skode.c.kit:1394`
+- `parts/skode.c:1394`
 
 ## Low Priority
 
@@ -151,7 +151,7 @@ per-voice attenuation.
 
 Relevant code and documentation:
 
-- `parts/synth.c.kit`
+- `parts/synth.c`
 - `doc/adc-tokyo-2026-beeps-and-ports.md`
 
 ## Inferred Design Conventions

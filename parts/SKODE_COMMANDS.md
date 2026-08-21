@@ -1,7 +1,7 @@
 # Skode Commands and Their Implementation
 
 This document describes the Skode command language implemented by
-`skode.c.kit`, `skode-event.c`, and the synth and sequencer modules behind
+`skode.c`, `skode-event.c`, and the synth and sequencer modules behind
 them.
 
 Skode is compact by design. A command name is usually one to four punctuation
@@ -594,7 +594,7 @@ event logger.
 
 ## Build Features
 
-Commands enclosed by `@if(...)` in the `.kit` sources only exist when those
+Commands enclosed by `#ifdef ...` in the C sources only exist when those
 features are enabled. Important command features include:
 
 | Feature | Commands |
@@ -632,13 +632,13 @@ The normal WASM build enables the voice and sequence features listed in
 | Area | Source |
 | --- | --- |
 | Parser context and public Skode API | `skode.h` |
-| Immediate command dispatch | `skode.c.kit`, `skode_function()` |
+| Immediate command dispatch | `skode.c`, `skode_function()` |
 | Scheduled command compiler | `skode-event.c`, `skode_compile_program()` |
 | Event and program execution | `skode-event.c`, `run_program()` |
-| Voice opcode dispatch | `skode.c.kit`, `skode_execute_voice_opcode()` |
-| Synth functions and state | `synth.c.kit`, `synth.h.kit` |
+| Voice opcode dispatch | `skode.c`, `skode_execute_voice_opcode()` |
+| Synth functions and state | `synth.c`, `synth.h` |
 | Queue implementation | `skqueue.c`, `skqueue.h` |
-| Sequence implementation | `seq.c.kit`, `seq.h.kit` |
+| Sequence implementation | `seq.c`, `seq.h` |
 | Parser implementation | `ands.c`, `ands.h` |
 | Scheduled-opcode design notes | `OPCODES.md` |
 
@@ -647,7 +647,7 @@ When adding a new schedulable command, update all of the following:
 1. `skode_opcode_t` in `skode.h`.
 2. `skode_opcode_name()` in `skode-event.c`.
 3. `skode_compile_callback()` in `skode-event.c`.
-4. `skode_opcode_supported()` in `skode.c.kit`.
-5. `skode_execute_voice_opcode()` in `skode.c.kit`.
+4. `skode_opcode_supported()` in `skode.c`.
+5. `skode_execute_voice_opcode()` in `skode.c`.
 6. The immediate command path in `skode_function()`.
 7. Tests and this command reference.

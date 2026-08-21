@@ -43,7 +43,7 @@ restored, and `main.c` frees direct eval results after optional display.
 
 - `ks_eval()` returns an owned `K` that callers release with `k_free()`.
 - `ks_bind_vector()` copies host-owned doubles into persistent `A`-`Z` vars.
-- Pulp's `parts/api.c.kit` is the source for generated API code.
+- Pulp's `parts/api.c` is the source for generated API code.
 - `parts/analysis-src/api.c` should stay aligned with generated maxed output.
 - In wasm, `/cer 0` must not block the browser thread on `pthread_join()`.
 - MIDI backend callbacks only publish bounded control events; they do not run
@@ -54,9 +54,9 @@ restored, and `main.c` frees direct eval results after optional display.
 ## Recent Pulp Changes
 
 - MIDI implementation/API/help: `parts/midi.c`, `parts/midi.h`,
-  `parts/api.c.kit`, `parts/api.h`, and Skode documentation.
-- Signed PD and envelope: `parts/synth.c.kit`, `parts/synth-state.h.kit`,
-  `parts/synth-alloc.c.kit`, `parts/skode.c.kit`, `parts/skode-event.c`, and
+  `parts/api.c`, `parts/api.h`, and Skode documentation.
+- Signed PD and envelope: `parts/synth.c`, `parts/synth-state.h`,
+  `parts/synth-alloc.c`, `parts/skode.c`, `parts/skode-event.c`, and
   `parts/skode.h`.
 - Validation support: `parts/tests/midi_tests.c`,
   `parts/tests/skode_state_tests.c`, and `parts/tests/synth_callback_bench.c`.
@@ -153,7 +153,7 @@ fixing the wasm control-plane `/cer 0` hang path.
   configures the delay attached to that track.
 - Delay returns should remain in the main mix and also be included in the
   matching record/scope stem.
-- Implemented the track-aligned model in `synth.c.kit`, `skode.c.kit`, and
+- Implemented the track-aligned model in `synth.c`, `skode.c`, and
   generated analysis sources: removed per-voice delay-bus state, made `ds`
   set only amount, derive the active delay from `r1`..`r4`, and add wet returns
   to the matching stem.

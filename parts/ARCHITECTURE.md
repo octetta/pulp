@@ -30,7 +30,7 @@ void skred_stop(void);
 inspection, command logging, audio-device selection, runtime service health,
 and optional recording and shared-memory scope control.
 
-The optional voice-pool layer is implemented in `polyphony.c.kit`. It stores
+The optional voice-pool layer is implemented in `polyphony.c`. It stores
 fixed group layouts, pool allocators, monophonic held-note ledgers, and graph
 formatting buffers. Structural commands run on the control thread. Performance
 commands compile to `SKODE_OP_POLY_NOTE`, `SKODE_OP_POLY_RELEASE`, and
@@ -174,7 +174,7 @@ edited later.
 
 ### Features Produce Different C Programs
 
-Files ending in `.c.kit` and `.h.kit` are source templates processed by
+Files ending in `.c` and `.h` are source templates processed by
 `kit.c`. Directives such as:
 
 ```c
@@ -188,17 +188,6 @@ selects features structurally rather than merely disabling them at runtime.
 
 This keeps small builds genuinely small, but it means contributors must test
 more than one feature configuration. Generated files in build directories are
-disposable. The `.kit` templates are authoritative.
-
-`analysis-src/` is the checked-in generated view for the canonical
-`MAXED_KIT_OPTS` preset used by source analysis services. Do not edit it
-directly; regenerate it with:
-
-```sh
-make analysis-src
-```
-
-### Synth State Uses Parallel Arrays
 
 Voice state is stored in `synth_voices_t sv` as a struct of pointers to
 parallel arrays:
@@ -222,7 +211,7 @@ it. The audio RNG still advances exactly once per frame to preserve the noise
 stream across silent intervals, but conversion to a floating-point noise sample
 is deferred until an active noise voice requests it.
 
-The allocator has a strict ownership rule: `synth-alloc.c.kit` is the only
+The allocator has a strict ownership rule: `synth-alloc.c` is the only
 module that allocates and frees the main synth state. The audio callback must
 not call it.
 
@@ -249,14 +238,14 @@ Tempo is accepted from 1 through 960 BPM. At four sequence steps per beat,
 Files:
 
 - `api.h`
-- `api.c.kit`
-- `mini-skred.c.kit`
+- `api.c`
+- `mini-skred.c`
 
 `api.h` is the preferred integration boundary. Its core control API is
 `skred_start()`, `skred_command()`, and `skred_stop()`, with additional helpers
 for feature/version inspection, logging, audio-device management, and optional
 recording and shared-memory scope control. It also exposes polling APIs for
-control-plane notifications and scheduled-event queue snapshots. `api.c.kit`
+control-plane notifications and scheduled-event queue snapshots. `api.c`
 owns the singleton engine, miniaudio context, active device, command context,
 control-event ring, optional UDP service, recorder, and shared-memory scope
 publisher.
@@ -278,7 +267,7 @@ exact; fractional tempo boundaries are rounded forward to the next sample, so
 normal sequencing error is less than one sample. Audio-device buffering and
 hardware latency are unchanged.
 
-`mini-skred.c.kit` is a thin example host. It supports an interactive editor,
+`mini-skred.c` is a thin example host. It supports an interactive editor,
 line-oriented subprocess operation, audio-device selection, and UDP startup. It
 also provides diagnostic service commands: `?ce` snapshots control-plane
 notifications, `?ce!` clears them, and `?q` shows pending scheduled opcode
@@ -297,7 +286,7 @@ atoms, bracketed strings, numeric arrays, comments, chunk separators, and the
 
 The parser emits callback events such as `FUNCTION`, `DEFER`, `GOT_STRING`,
 and `CHUNK_END`. It does not know synthesizer semantics. That separation makes
-ANDS useful as a small syntax layer while `skode.c.kit` owns the command
+ANDS useful as a small syntax layer while `skode.c` owns the command
 vocabulary.
 
 Each `skode_t` has its own parser and editing state. Local API control and UDP
@@ -309,7 +298,7 @@ and parser state while sharing the engine.
 Files:
 
 - `skode.h`
-- `skode.c.kit`
+- `skode.c`
 
 `skode_consume()` feeds text to ANDS. Parser callbacks arrive at
 `skode_callback()`, and ordinary command atoms are dispatched by
@@ -335,7 +324,7 @@ Files:
 
 - `skode-event.c`
 - `skode.h`
-- `seq.h.kit`
+- `seq.h`
 
 `skode_compile_program()` invokes a separate ANDS parser configured with a
 compiler callback. The result is an `event_program_t` containing no more than
@@ -354,8 +343,8 @@ bridge from the generic opcode representation to synth functions and state.
 
 Files:
 
-- `seq.h.kit`
-- `seq.c.kit`
+- `seq.h`
+- `seq.c`
 
 The sequencer owns:
 
@@ -403,10 +392,10 @@ clearing events.
 
 Files:
 
-- `synth.c.kit`
-- `synth.h.kit`
-- `synth-state.h.kit`
-- `synth-alloc.c.kit`
+- `synth.c`
+- `synth.h`
+- `synth-state.h`
+- `synth-alloc.c`
 - `synth-config.h`
 - `synth-types.h`
 
@@ -535,8 +524,8 @@ cycle and is explicitly delayed by its two-sample history.
 
 Files:
 
-- `recorder.c.kit`
-- `recorder.h.kit`
+- `recorder.c`
+- `recorder.h`
 
 With `RECORD=1`, the synth can produce a ten-channel bus: stereo master plus
 four stereo stems. The audio callback writes blocks into a miniaudio PCM ring.
@@ -696,7 +685,6 @@ Useful validation targets:
 ```sh
 make warn         # strict default-feature build
 make warn-maxed   # strict canonical maxed-preset build
-make analysis-src # regenerate checked-in generated C
 make wasm         # rebuild browser artifacts
 ```
 
@@ -726,7 +714,6 @@ native generator first, then configure the Windows target:
 ```sh
 cd parts
 cmake --preset ninja-release
-cmake --build --preset ninja-release --target kit_tool
 cmake --preset cross-windows-zig-ninja
 cmake --build --preset cross-windows-zig-ninja --target mini-skred
 ```
@@ -770,16 +757,12 @@ A practical reading order is:
 3. Follow `skred_command()` to `skode_consume()` and `skode_function()`.
 4. Read `OPCODES.md`, then follow `skode_compile_program()` through
    `run_program()`.
-5. Read `seq.h.kit` and the central `seq()` function.
-6. Read `synth-state.h.kit` before entering the larger `synth.c.kit`.
-7. Read `CMakeLists.txt` and `kit.c` before changing feature generation.
+5. Read `seq.h` and the central `seq()` function.
+6. Read `synth-state.h` before entering the larger `synth.c`.
+7. Read `CMakeLists.txt` before changing feature generation.
 
 The generated files under `build_*` can be easier to navigate with a debugger,
-but changes belong in the corresponding `.kit` template or plain source file.
-Use `analysis-src/` as a readable maxed-preset snapshot, not as an editing
-target.
-
-## Adoption Strategies
+but changes belong in the corresponding source file.
 
 ### Embed the Existing API
 
@@ -914,16 +897,16 @@ Asyncify; non-MIDI builds do not acquire that cost.
 | Goal | Primary files |
 | --- | --- |
 | Add or change Skode syntax | `ands.c`, `ands.h` |
-| Add an immediate command | `skode.c.kit` |
-| Add a schedulable command | `skode.h`, `skode-event.c`, `skode.c.kit` |
-| Change patterns or tempo | `seq.c.kit`, `seq.h.kit` |
+| Add an immediate command | `skode.c` |
+| Add a schedulable command | `skode.h`, `skode-event.c`, `skode.c` |
+| Change patterns or tempo | `seq.c`, `seq.h` |
 | Change queue behavior | `skqueue.c`, `skqueue.h` |
-| Add a synth feature | `synth.c.kit`, `synth-state.h.kit`, `synth-alloc.c.kit` |
-| Change embedding or devices | `api.c.kit`, `api.h` |
-| Change the native host | `mini-skred.c.kit` |
+| Add a synth feature | `synth.c`, `synth-state.h`, `synth-alloc.c` |
+| Change embedding or devices | `api.c`, `api.h` |
+| Change the native host | `mini-skred.c` |
 | Change WASM packaging | `wasm-assets/mkwasm` |
-| Change feature generation | `kit.c`, `CMakeLists.txt` |
-| Add recording behavior | `recorder.c.kit`, `recorder.h.kit` |
+| Change feature generation | `CMakeLists.txt` |
+| Add recording behavior | `recorder.c`, `recorder.h` |
 
 For a new schedulable synth command, the typical sequence is:
 
@@ -934,7 +917,7 @@ For a new schedulable synth command, the typical sequence is:
 5. Document it in `SKODE_COMMANDS.md` and `OPCODES.md`.
 6. Add compilation and execution tests.
 7. Run strict default and maxed-preset builds.
-8. Regenerate `analysis-src/` and WASM artifacts when applicable.
+8. Regenerate WASM artifacts when applicable.
 
 ## Design Direction
 

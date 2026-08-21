@@ -149,14 +149,10 @@ cmake --build build_windows_zig
 ### Cross-Build Windows From Linux
 
 Zig can also build the Windows executable from Linux without a Windows SDK.
-Because SKRED generates C sources with `kit_tool`, first build a native Linux
-`kit_tool`, then run the Windows cross preset:
+Simply run the Windows cross preset:
 
 ```sh
 cd parts
-cmake --preset ninja-release
-cmake --build --preset ninja-release --target kit_tool
-
 cmake --preset cross-windows-zig-ninja
 cmake --build --preset cross-windows-zig-ninja --target mini-skred
 file build_cross_windows_zig/mini-skred.exe
@@ -170,11 +166,6 @@ make -C parts cross-windows-zig-maxed
 
 The same `SCOPE=1` exclusion applies to the Windows cross maxed preset.
 
-If generated `.kit` outputs look stale, use the refresh target. It removes the
-generated C files inside the cross-build directory before rebuilding:
-
-```sh
-make -C parts cross-windows-zig-maxed-refresh
 ```
 
 To keep the Windows executable in a stable repo-local directory, run:
@@ -295,18 +286,13 @@ average deadline load, and the number of measured deadline overruns.
 
 ## Static Analysis
 
-The project authors feature-gated C in `.c.kit` and `.h.kit` files. Generate
+The project authors feature-gated C in `.c` and `.h` files. Generate
 the canonical `MAXED_KIT_OPTS` C source tree for source-only analysis services
 with:
 
 ```sh
-make analysis-src
 ```
 
-Commit changes under `parts/analysis-src`. CI runs `make analysis-check` and
-fails when those files no longer match the templates. Configure repository
-scanners such as CodeVerify to include ordinary source files under `parts/`
-and use `parts/analysis-src/` for the generated modules. Build directories
 under `parts/build_*` remain disposable and ignored.
 
 ## WASM Build
@@ -323,7 +309,7 @@ ARM 32-bit Linux:
 make pi
 ```
 
-This reuses the native `kit_tool` for code generation and writes Zig cache data under `/tmp`.
+This writes Zig cache data under `/tmp`.
 
 If you want to invoke Zig directly with CMake, the equivalent compiler flag looks like:
 
@@ -331,6 +317,5 @@ If you want to invoke Zig directly with CMake, the equivalent compiler flag look
 cmake -B build_pi -S . \
   -DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf" \
   -DUSE_EXTERNAL_KIT=ON \
-  -DKIT_TOOL_PATH="$PWD/build_native/kit_tool"
 cmake --build build_pi
 ```

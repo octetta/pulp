@@ -63,7 +63,7 @@ Relevant code:
 
 Relevant code:
 
-- `parts/skode.c.kit`
+- `parts/skode.c`
 - `parts/udp.c`
 
 ## Medium
@@ -78,7 +78,7 @@ Relevant code:
 Relevant code:
 
 - `parts/ands.c`
-- `parts/skode.c.kit`
+- `parts/skode.c`
 - `parts/udp.c`
 
 ### Handle initialization and allocation failures - Partially Resolved
@@ -92,7 +92,7 @@ Relevant code:
 Relevant code:
 
 - `parts/ands.c`
-- `parts/api.c.kit`
+- `parts/api.c`
 
 ## Verification Work
 

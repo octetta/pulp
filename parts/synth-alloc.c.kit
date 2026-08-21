@@ -174,24 +174,17 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(wave_table_index, int);
     VALLOC(disconnect,       int);
     VALLOC(control_events,   int);
-    @if(RECORD || SCOPE || TRACKS)
     VALLOC(record,           int);
     VALLOC(record_pending,   atomic_int_t);
-    @endif
     VALLOC(interpolate,      int);
     VALLOC(phase_reset,      int);
 
-    @if(BENCH)
     VALLOC(mark_go,          int);
     VALLOC(mark_a,           struct timespec);
     VALLOC(mark_b,           struct timespec);
-    @endif
 
-    @if(CRUSH)
     VALLOC(quantize,         int);
-    @endif
 
-    @if(PD)
     VALLOC(cz_mode,          int);
     VALLOC(cz_distortion,    float);
     VALLOC(cz_mod_osc,       int);
@@ -199,9 +192,7 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(cz_envelope,      envelope_t);
     VALLOC(use_cz_envelope,  int);
     VALLOC(cz_env_depth,     float);
-    @endif
 
-    @if(FILT)
     VALLOC(filter_freq,      float);
     VALLOC(filter_res,       float);
     VALLOC(filter_mode,      int);
@@ -210,35 +201,27 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(use_filter_envelope,   int);
     VALLOC(filter_env_depth,      float);
     VALLOC(filter_update_counter, int);
-    @endif
 
     VALLOC(amp_envelope,      envelope_t);
     VALLOC(amp_envelope_mode, int);
     VALLOC(use_amp_envelope,  int);
 
-    @if(GLISS)
     VALLOC(glissando_enable,  int);
     VALLOC(glissando_speed,   float);
     VALLOC(glissando_target,  float);
     VALLOC(glissando_time,    float);
-    @endif
 
-    @if(SMOOTHER)
     VALLOC(smoother_enable,    int);
     VALLOC(smoother_gain,      float);
     VALLOC(smoother_smoothing, float);
-    @endif
 
-    @if(SAH)
     VALLOC(sample_hold,        float);
     VALLOC(sample_hold_count,  int);
     VALLOC(sample_hold_ratio,  float);
     VALLOC(sample_hold_mode,   int);
     VALLOC(sample_hold_smooth,        float);
     VALLOC(sample_hold_jitter_target, int);
-    @endif
 
-    @if(FM)
     VALLOC(freq_mod_osc,    int);
     VALLOC(freq_mod_depth,  float);
     VALLOC(freq_mod_adder,  float);
@@ -246,24 +229,17 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(freq_mod_feedback, float);
     VALLOC(freq_mod_feedback_z1, float);
     VALLOC(freq_mod_feedback_z2, float);
-    @endif
     
-    @if(PANMOD)
     VALLOC(pan_mod_osc,     int);
     VALLOC(pan_mod_depth,   float);
     VALLOC(pan_mod_adder,   float);
-    @endif
     
-    @if(AM)
     VALLOC(amp_mod_osc,     int);
     VALLOC(amp_mod_depth,   float);
     VALLOC(amp_mod_adder,   float);
-    @endif
 
-    @if(XM)
     VALLOC(ring_osc,        int);
     VALLOC(ring_amount,     float);
-    @endif
 
     VALLOC(text,            text_t);
 }
@@ -306,58 +282,34 @@ void synth_free_voices(void) {
     VFREE(freq_bend);        VFREE(freq_bend_range); VFREE(freq_bend_offset);
     VFREE(amp_bend);         VFREE(amp_bend_range);  VFREE(amp_bend_offset);
     VFREE(wave_table_index); VFREE(disconnect);      VFREE(control_events);
-    @if(RECORD || SCOPE || TRACKS)
     VFREE(record);
     free((void *)sv.record_pending);
     sv.record_pending = NULL;
-    @endif
     VFREE(interpolate);      VFREE(phase_reset);
-    @if(BENCH)
     VFREE(mark_go);          VFREE(mark_a);          VFREE(mark_b);
-    @endif
 
-    @if(CRUSH)
     VFREE(quantize);
-    @endif
 
-    @if(PD)
     VFREE(cz_mode);          VFREE(cz_distortion);
     VFREE(cz_mod_osc);       VFREE(cz_mod_depth);
     VFREE(cz_envelope);      VFREE(use_cz_envelope);
     VFREE(cz_env_depth);
-    @endif
-    @if(FILT)
     VFREE(filter_freq);      VFREE(filter_res);
     VFREE(filter_mode);      VFREE(filter);
     VFREE(filter_envelope);
     VFREE(use_filter_envelope);
     VFREE(filter_env_depth);
     VFREE(filter_update_counter);
-    @endif
     VFREE(amp_envelope);     VFREE(amp_envelope_mode); VFREE(use_amp_envelope);
-    @if(GLISS)
     VFREE(glissando_enable); VFREE(glissando_speed); VFREE(glissando_target); VFREE(glissando_time);
-    @endif
-    @if(SMOOTHER)
     VFREE(smoother_enable);  VFREE(smoother_gain);   VFREE(smoother_smoothing);
-    @endif
-    @if(SAH)
     VFREE(sample_hold);      VFREE(sample_hold_count); VFREE(sample_hold_ratio); VFREE(sample_hold_mode);
     VFREE(sample_hold_smooth); VFREE(sample_hold_jitter_target);
-    @endif
-    @if(FM)
     VFREE(freq_mod_osc);     VFREE(freq_mod_depth); VFREE(freq_mod_adder); VFREE(freq_mod_mode);
     VFREE(freq_mod_feedback); VFREE(freq_mod_feedback_z1); VFREE(freq_mod_feedback_z2);
-    @endif
-    @if(PANMOD)
     VFREE(pan_mod_osc);      VFREE(pan_mod_depth);  VFREE(pan_mod_adder);
-    @endif
-    @if(AM)
     VFREE(amp_mod_osc);      VFREE(amp_mod_depth);  VFREE(amp_mod_adder);
-    @endif
-    @if(XM)
     VFREE(ring_osc); VFREE(ring_amount);
-    @endif
 
     VFREE(text);
 }

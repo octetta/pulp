@@ -543,6 +543,20 @@ static void skode_help_show_doc(skode_t *ctx, const skode_doc_entry_t *doc) {
 
   ctx->puts(ctx, "");
   if (summary[0]) ctx->printf(ctx, "#   %s\n", summary);
+  if (word && word->help_detail) {
+    ctx->printf(ctx, "#\n");
+    const char *p = word->help_detail;
+    while (*p) {
+      const char *end = strchr(p, '\n');
+      if (end) {
+        ctx->printf(ctx, "#   %.*s\n", (int)(end - p), p);
+        p = end + 1;
+      } else {
+        ctx->printf(ctx, "#   %s\n", p);
+        break;
+      }
+    }
+  }
   if (doc->file) ctx->printf(ctx, "#   %s:%d\n", doc->file, doc->line);
 }
 
@@ -3336,37 +3350,37 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
   }
 }
 
-int skode_function(ands_t *s, int info) {
+static int word_exec__slashals(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
-  int argc = ands_arg_len(s);
-  skode_t *ctx = (skode_t*)ands_user(s);
-  double *arg = ands_arg(s);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
-  if (ctx->trace) {
-    ctx->printf(ctx, "# SKODE_FUNCTION ");
-    ctx->printf(ctx, "%s", ands_atom_string(s));
-    if (argc) {
-      for (int i=0; i<argc; i++) ctx->printf(ctx, " %g", arg[i]);
-    }
-    ctx->puts(ctx, "");
-  }
-  int dict_result;
-  if (skode_execute_word(ctx, s, atom, arg, argc, &dict_result))
-    return dict_result;
-  switch (atom) {
-    case ATOM4('/als'):
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         (void)skred_audio_command("/als");
         ctx->printf(ctx, "%s\n", skred_audio_message());
       }
-      break;
-    case ATOM4('/a?-'):
+      return 0;
+}
+static skode_word_t word__slashals = { WID("/als"), .execute = word_exec__slashals, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slasha_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) ctx->printf(ctx, "# %s\n", skred_audio_status());
-      break;
-    case ATOM4('/ai-'):
-    case ATOM4('/ao-'):
+      return 0;
+}
+static skode_word_t word__slasha_q = { WID("/a?"), .execute = word_exec__slasha_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashai(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 1 && x_valid) {
         int is_capture = atom == ATOM4('/ai-');
         int result = 0;
@@ -3380,8 +3394,17 @@ int skode_function(ands_t *s, int info) {
           atom == ATOM4('/ai-') ? 'i' : 'o',
           atom == ATOM4('/ai-') ? ", -2 off" : "");
       }
-      break;
-    case ATOM4('/mL-'):
+      return 0;
+}
+static skode_word_t word__slashai = { WID("/ai"), .execute = word_exec__slashai, .safety = WORD_IMMEDIATE_ONLY };
+static skode_word_t word__slashao = { WID("/ao"), .execute = word_exec__slashai, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmL(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         int result = skred_midi_init("pulp");
         if (result == 0) {
@@ -3401,26 +3424,57 @@ int skode_function(ands_t *s, int info) {
           }
         } else ctx->printf(ctx, "# MIDI init failed (%d)\n", result);
       }
-      break;
-    case ATOM4('/m?-'):
+      return 0;
+}
+static skode_word_t word__slashmL = { WID("/mL"), .execute = word_exec__slashmL, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashm_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# %s\n", skred_midi_status());
-      break;
-    case ATOM4('/mi-'):
-    case ATOM4('/mo-'):
+      return 0;
+}
+static skode_word_t word__slashm_q = { WID("/m?"), .execute = word_exec__slashm_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmi(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 1 && x_valid) {
         int result = skred_midi_init("pulp");
         if (result == 0) result = atom == ATOM4('/mi-') ?
           skred_midi_input_open(x) : skred_midi_output_open(x);
         if (result != 0) ctx->printf(ctx, "# MIDI open failed (%d)\n", result);
       }
-      break;
-    case ATOM4('/md-'):
+      return 0;
+}
+static skode_word_t word__slashmi = { WID("/mi"), .execute = word_exec__slashmi, .safety = WORD_IMMEDIATE_ONLY };
+static skode_word_t word__slashmo = { WID("/mo"), .execute = word_exec__slashmi, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) x = skred_midi_debug_get() ? 0 : 1;
       skred_midi_debug_set(x);
       ctx->printf(ctx, "# midi debug %s\n", skred_midi_debug_get() ? "on" : "off");
-      break;
-    case ATOM4('/miV'):
-    case ATOM4('/moV'):
+      return 0;
+}
+static skode_word_t word__slashmd = { WID("/md"), .execute = word_exec__slashmd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmiV(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         const char *name = ands_string(ctx->parse);
         int result = skred_midi_init(name[0] ? name : "pulp");
@@ -3430,17 +3484,41 @@ int skode_function(ands_t *s, int info) {
         if (result != 0)
           ctx->printf(ctx, "# MIDI virtual open failed (%d)\n", result);
       }
-      break;
-    case ATOM4('/mic'):
+      return 0;
+}
+static skode_word_t word__slashmiV = { WID("/miV"), .execute = word_exec__slashmiV, .safety = WORD_IMMEDIATE_ONLY };
+static skode_word_t word__slashmoV = { WID("/moV"), .execute = word_exec__slashmiV, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmic(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0 && skred_midi_input_close() != 0)
         ctx->printf(ctx, "# MIDI input close failed\n");
-      break;
-    case ATOM4('/moc'):
+      return 0;
+}
+static skode_word_t word__slashmic = { WID("/mic"), .execute = word_exec__slashmic, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmoc(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0 && skred_midi_output_close() != 0)
         ctx->printf(ctx, "# MIDI output close failed\n");
-      break;
-    case ATOM4('/mv-'):
-    case ATOM4('/mp-'):
+      return 0;
+}
+static skode_word_t word__slashmoc = { WID("/moc"), .execute = word_exec__slashmoc, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmv(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int channel = -1, target;
         float bend = 2.0f;
@@ -3458,9 +3536,17 @@ int skode_function(ands_t *s, int info) {
         } else ctx->printf(ctx, "# usage: /m%c channel target [bend]\n",
           atom == ATOM4('/mv-') ? 'v' : 'p');
       }
-      break;
-    case ATOM4('/mvd'):
-    case ATOM4('/mpd'):
+      return 0;
+}
+static skode_word_t word__slashmv = { WID("/mv"), .execute = word_exec__slashmv, .safety = WORD_IMMEDIATE_ONLY };
+static skode_word_t word__slashmp = { WID("/mp"), .execute = word_exec__slashmv, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmvd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int channel = -1, target;
         if (argc == 2 &&
@@ -3472,15 +3558,40 @@ int skode_function(ands_t *s, int info) {
             skred_midi_route_remove(channel, kind, target));
         }
       }
-      break;
-    case ATOM4('/mR-'):
+      return 0;
+}
+static skode_word_t word__slashmvd = { WID("/mvd"), .execute = word_exec__slashmvd, .safety = WORD_IMMEDIATE_ONLY };
+static skode_word_t word__slashmpd = { WID("/mpd"), .execute = word_exec__slashmvd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmR(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_midi_route_status());
-      break;
-    case ATOM4('/mC-'):
+      return 0;
+}
+static skode_word_t word__slashmR = { WID("/mR"), .execute = word_exec__slashmR, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmC(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skred_midi_route_clear();
       ctx->printf(ctx, "# MIDI routes cleared\n");
-      break;
-    case ATOM4('/mb-'):
+      return 0;
+}
+static skode_word_t word__slashmC = { WID("/mC"), .execute = word_exec__slashmC, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmb(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int type, channel = -1, data1 = -1;
         if (argc == 3 && skode_double_to_int(arg[0], &type) &&
@@ -3494,8 +3605,16 @@ int skode_function(ands_t *s, int info) {
         else ctx->printf(ctx,
           "# usage: [skode-command] /mb type channel data1\n");
       }
-      break;
-    case ATOM4('/mbd'):
+      return 0;
+}
+static skode_word_t word__slashmb = { WID("/mb"), .execute = word_exec__slashmb, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmbd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int type, channel = -1, data1 = -1;
         if (argc == 3 && skode_double_to_int(arg[0], &type) &&
@@ -3504,15 +3623,39 @@ int skode_function(ands_t *s, int info) {
           ctx->printf(ctx, "# MIDI Skode bindings removed: %d\n",
             skred_midi_binding_remove(type, channel, data1));
       }
-      break;
-    case ATOM4('/mb?'):
+      return 0;
+}
+static skode_word_t word__slashmbd = { WID("/mbd"), .execute = word_exec__slashmbd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmb_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_midi_binding_status());
-      break;
-    case ATOM4('/mbC'):
+      return 0;
+}
+static skode_word_t word__slashmb_q = { WID("/mb?"), .execute = word_exec__slashmb_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashmbC(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skred_midi_binding_clear();
       ctx->printf(ctx, "# MIDI Skode bindings cleared\n");
-      break;
-    case ATOM4('/pg-'):
+      return 0;
+}
+static skode_word_t word__slashmbC = { WID("/mbC"), .execute = word_exec__slashmbC, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashpg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int group, source, width, root = 0;
         if (argc < 3 || argc > 4 ||
@@ -3524,12 +3667,28 @@ int skode_function(ands_t *s, int info) {
           ctx->printf(ctx, "# usage: /pg group,source,width[,root-offset]\n");
         }
       }
-      break;
-    case ATOM4('/pg!'):
+      return 0;
+}
+static skode_word_t word__slashpg = { WID("/pg"), .execute = word_exec__slashpg, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashpg_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!x_valid || argc != 1 || skred_poly_group_refresh(x) != 0)
         ctx->printf(ctx, "# usage: /pg! group\n");
-      break;
-    case ATOM4('/pp-'):
+      return 0;
+}
+static skode_word_t word__slashpg_bang = { WID("/pg!"), .execute = word_exec__slashpg_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashpp(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int pool, group, base, count, policy = SKRED_POLY_STEAL_RELEASE_OLDEST;
         if (argc < 4 || argc > 5 ||
@@ -3543,12 +3702,28 @@ int skode_function(ands_t *s, int info) {
             "# usage: /pp pool,group,base,count[,steal-policy]\n");
         }
       }
-      break;
-    case ATOM4('/pp!'):
+      return 0;
+}
+static skode_word_t word__slashpp = { WID("/pp"), .execute = word_exec__slashpp, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashpp_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!x_valid || argc != 1 || skred_poly_pool_refresh(x) != 0)
         ctx->printf(ctx, "# usage: /pp! pool\n");
-      break;
-    case ATOM4('/pm-'):
+      return 0;
+}
+static skode_word_t word__slashpp_bang = { WID("/pp!"), .execute = word_exec__slashpp_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashpm(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int pool, mode, priority = SKRED_POLY_PRIORITY_LAST;
         int articulation = SKRED_POLY_ARTICULATION_RETRIGGER;
@@ -3562,14 +3737,38 @@ int skode_function(ands_t *s, int info) {
             "# usage: /pm pool,mode[,priority[,articulation]]\n");
         }
       }
-      break;
-    case ATOM4('?pg-'):
+      return 0;
+}
+static skode_word_t word__slashpm = { WID("/pm"), .execute = word_exec__slashpm, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__qpg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_poly_group_status(x_valid ? x : -1));
-      break;
-    case ATOM4('?pp-'):
+      return 0;
+}
+static skode_word_t word__qpg = { WID("?pg"), .execute = word_exec__qpg, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__qpp(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_poly_pool_status(x_valid ? x : -1));
-      break;
-    case ATOM4('/vg-'):
+      return 0;
+}
+static skode_word_t word__qpp = { WID("?pp"), .execute = word_exec__qpp, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashvg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int graph_voice, format = 0, depth = 0;
         if (argc < 1 || argc > 3 ||
@@ -3581,8 +3780,16 @@ int skode_function(ands_t *s, int info) {
           ctx->printf(ctx, "%s", skred_voice_graph(graph_voice, format, depth));
         }
       }
-      break;
-    case ATOM4('pn--'):
+      return 0;
+}
+static skode_word_t word__slashvg = { WID("/vg"), .execute = word_exec__slashvg, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_pn(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int pool, key;
         int result = -1;
@@ -3598,8 +3805,16 @@ int skode_function(ands_t *s, int info) {
         else if (result > 0)
           ctx->printf(ctx, "# poly pool %d is full (no-steal policy)\n", pool);
       }
-      break;
-    case ATOM4('pr--'):
+      return 0;
+}
+static skode_word_t word_pn = { WID("pn"), .execute = word_exec_pn, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_pr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int pool, key;
         if (argc < 2 || argc > 3 ||
@@ -3608,8 +3823,16 @@ int skode_function(ands_t *s, int info) {
             skred_poly_release(pool, key, argc > 2 ? arg[2] : 0) != 0)
           ctx->printf(ctx, "# usage: pr pool,key[,release-velocity]\n");
       }
-      break;
-    case ATOM4('pb--'):
+      return 0;
+}
+static skode_word_t word_pr = { WID("pr"), .execute = word_exec_pr, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_pb(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int pool, key;
         if (argc < 3 || argc > 4 ||
@@ -3618,39 +3841,119 @@ int skode_function(ands_t *s, int info) {
             skred_poly_bend(pool, key, arg[2], argc > 3 ? arg[3] : 0) != 0)
           ctx->printf(ctx, "# usage: pb pool,key,semitones[,cents]\n");
       }
-      break;
-    case ATOM4('wait'): // blocking msec wait
+      return 0;
+}
+static skode_word_t word_pb = { WID("pb"), .execute = word_exec_pb, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_wait(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (x_valid && x >= 0) sk_sleep(x);
-      break;
-    case ATOM4('clr-'): // clear parser argument stack
+      return 0;
+}
+static skode_word_t word_wait = { WID("wait"), .execute = word_exec_wait, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_clr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_clear(s);
       return 1;
-    case ATOM4('drop'): // drop first parser argument
+}
+static skode_word_t word_clr = { WID("clr"), .execute = word_exec_clr, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_drop(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_drop(s);
       return 1;
-    case ATOM4('dup-'): // duplicate first parser argument
+}
+static skode_word_t word_drop = { WID("drop"), .execute = word_exec_drop, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_dup(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_dup(s);
       return 1;
-    case ATOM4('over'): // duplicate second parser argument to front
+}
+static skode_word_t word_dup = { WID("dup"), .execute = word_exec_dup, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_over(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_over(s);
       return 1;
-    case ATOM4('rot-'): // rotate first three parser arguments left
+}
+static skode_word_t word_over = { WID("over"), .execute = word_exec_over, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_rot(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_rot(s);
       return 1;
-    case ATOM4('swap'): // swap first two parser arguments
+}
+static skode_word_t word_rot = { WID("rot"), .execute = word_exec_rot, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_swap(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_swap(s);
       return 1;
-    case ATOM4('ab--'): // amp bend
+}
+static skode_word_t word_swap = { WID("swap"), .execute = word_exec_swap, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_ab(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) amp_bend_set(voice, (float)arg[0]);
-      break;
-    case ATOM4('abp-'): // amp bend range/offset
+      return 0;
+}
+static skode_word_t word_ab = { WID("ab"), .execute = word_exec_ab, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_abp(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         float range = (float)arg[0];
         float offset = argc > 1 ? (float)arg[1] : 0.0f;
         amp_bend_param_set(voice, range, offset);
       }
-      break;
-    case ATOM4('A---'): // AM voice depth
+      return 0;
+}
+static skode_word_t word_abp = { WID("abp"), .execute = word_exec_abp, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_A(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc < 2) {
         amp_mod_set(voice, -1, 0, 0);
       } else if (x_valid) {
@@ -3658,15 +3961,47 @@ int skode_function(ands_t *s, int info) {
         if (argc > 2) a = arg[2];
         amp_mod_set(voice, x, arg[1], a);
       }
-      break;
-    case ATOM4('b---'): // wave-direction bool
-      if (argc == 0) { wave_dir(voice, -1); } else { wave_dir(voice, x); } break;
-    case ATOM4('B---'): // wave-loop bool
-      if (argc == 0) { wave_loop(voice, -1); } else { wave_loop(voice, x); } break;
-    case ATOM4('BC--'): // bounded one-shot loop count
+      return 0;
+}
+static skode_word_t word_A = { WID("A"), .execute = word_exec_A, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_b(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      if (argc == 0) { wave_dir(voice, -1); } else { wave_dir(voice, x); } return 0;
+}
+static skode_word_t word_b = { WID("b"), .execute = word_exec_b, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_B(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      if (argc == 0) { wave_loop(voice, -1); } else { wave_loop(voice, x); } return 0;
+}
+static skode_word_t word_B = { WID("B"), .execute = word_exec_B, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_BC(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x_valid) wave_loop_count(voice, x);
-      break;
-    case ATOM4('c---'): // phase-distortion algo distortion
+      return 0;
+}
+static skode_word_t word_BC = { WID("BC"), .execute = word_exec_BC, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_c(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         cz_set(voice, 0, 0);
       } else if (argc == 1) {
@@ -3674,15 +4009,31 @@ int skode_function(ands_t *s, int info) {
       } else {
         cz_set(voice, x, arg[1]);
       }
-      break;
-    case ATOM4('C---'): // PD-mod voice depth
+      return 0;
+}
+static skode_word_t word_c = { WID("c"), .execute = word_exec_c, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_C(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc < 2) {
         cmod_set(voice, -1, 0);
       } else if (x_valid) {
         cmod_set(voice, x, arg[1]);
       }
-      break;
-    case ATOM4('ct--'): // phase-distortion ADSR A D S R
+      return 0;
+}
+static skode_word_t word_C = { WID("C"), .execute = word_exec_C, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_ct(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 4) {
         float a = arg[0];
         float d = arg[1];
@@ -3691,23 +4042,47 @@ int skode_function(ands_t *s, int info) {
         envelope_configure_e(&sv.cz_envelope[voice], a, d, s, r);
         sv.use_cz_envelope[voice] = !(a == 0 && d == 0 && s == 1 && r == 0);
       }
-      break;
-    case ATOM4('cd--'): // phase-distortion envelope depth
+      return 0;
+}
+static skode_word_t word_ct = { WID("ct"), .execute = word_exec_ct, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_cd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) sv.cz_env_depth[voice] = arg[0];
-      break;
-    case ATOM4('D---'): // data-size
+      return 0;
+}
+static skode_word_t word_cd = { WID("cd"), .execute = word_exec_cd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_D(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (x > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, x);
       } else {
         ctx->printf(ctx, "# D[%d]\n", ands_data_cap(ctx->parse));
       }
-      break;
-    case ATOM4('MO--'): // MIDI output bytes
+      return 0;
+}
+static skode_word_t word_D = { WID("D"), .execute = word_exec_D, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_MO(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         uint8_t bytes[3];
         if (argc < 1 || argc > 3) {
           ctx->printf(ctx, "# usage: MO status[,data1[,data2]]\n");
-          break;
+          return 0;
         }
         int valid = 1;
         for (int i = 0; i < argc; i++) {
@@ -3723,8 +4098,16 @@ int skode_function(ands_t *s, int info) {
         if (result != 0)
           ctx->printf(ctx, "# MIDI output failed (%d)\n", result);
       }
-      break;
-    case ATOM4('ce--'): // control-plane user event id [value0 [value1 [value2]]]
+      return 0;
+}
+static skode_word_t word_MO = { WID("MO"), .execute = word_exec_MO, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_ce(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 0 && argc <= 4) {
         opcode_event_t opcode = {
           .code = SKODE_OP_CONTROL_EVENT,
@@ -3733,25 +4116,57 @@ int skode_function(ands_t *s, int info) {
         for (int i = 0; i < argc; i++) opcode.arg[i] = (float)arg[i];
         skode_emit_control_event_opcode(&opcode, voice, -1, -1, -1);
       }
-      break;
-    case ATOM4('?d--'): // show-skode-data (summary)
+      return 0;
+}
+static skode_word_t word_ce = { WID("ce"), .execute = word_exec_ce, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__qd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         double *data = ands_data(ctx->parse);
         int data_len = ands_data_len(ctx->parse);
         skode_double_dump(ctx, data, data_len);
       }
-      break;
-    case ATOM4('fb--'): // freq bend
+      return 0;
+}
+static skode_word_t word__qd = { WID("?d"), .execute = word_exec__qd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_fb(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) freq_bend_set(voice, (float)arg[0]);
-      break;
-    case ATOM4('fbp-'): // freq bend range/offset
+      return 0;
+}
+static skode_word_t word_fb = { WID("fb"), .execute = word_exec_fb, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_fbp(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         float range = (float)arg[0];
         float offset = argc > 1 ? (float)arg[1] : 0.0f;
         freq_bend_param_set(voice, range, offset);
       }
-      break;
-    case ATOM4('ft--'): // filter-adsr A D S R
+      return 0;
+}
+static skode_word_t word_fbp = { WID("fbp"), .execute = word_exec_fbp, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_ft(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 4) {
         float a = arg[0];
         float d = arg[1];
@@ -3760,11 +4175,27 @@ int skode_function(ands_t *s, int info) {
         envelope_configure_e(&sv.filter_envelope[voice], a, d, s, r);
         sv.use_filter_envelope[voice] = !(a==0 && d==0 && s==1 && r==0);
       }
-      break;
-    case ATOM4('fd--'): // filter-adsr depth
+      return 0;
+}
+static skode_word_t word_ft = { WID("ft"), .execute = word_exec_ft, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_fd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) sv.filter_env_depth[voice] = arg[0];
-      break;
-    case ATOM4('F---'): // FM voice depth
+      return 0;
+}
+static skode_word_t word_fd = { WID("fd"), .execute = word_exec_fd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_F(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc <= 1) {
         freq_mod_set(voice, -1, 0, 0);
       } else if (x_valid) {
@@ -3772,14 +4203,38 @@ int skode_function(ands_t *s, int info) {
         if (argc > 2) a = arg[2];
         freq_mod_set(voice, x, arg[1], a);
       }
-      break;
-    case ATOM4('FF--'): // FM mode
+      return 0;
+}
+static skode_word_t word_F = { WID("F"), .execute = word_exec_F, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_FF(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) freq_mod_mode_set(voice, x);
-      break;
-    case ATOM4('FB--'): // FF2 operator feedback amount
+      return 0;
+}
+static skode_word_t word_FF = { WID("FF"), .execute = word_exec_FF, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_FB(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) freq_feedback_set(voice, arg[0]);
-      break;
-    case ATOM4('g---'): // glissando speed
+      return 0;
+}
+static skode_word_t word_FB = { WID("FB"), .execute = word_exec_FB, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_g(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (arg[0] <= 0) {
           sv.glissando_enable[voice] = 0;
@@ -3789,8 +4244,16 @@ int skode_function(ands_t *s, int info) {
           sv.glissando_time[voice] = arg[0];
         }
       }
-      break;
-    case ATOM4('G---'): // link-midi voice [voice]
+      return 0;
+}
+static skode_word_t word_g = { WID("g"), .execute = word_exec_g, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_G(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int links[4] = {-1, -1, -1, -1};
         for (int i = 0; i < argc && i < 4; i++) {
@@ -3803,8 +4266,16 @@ int skode_function(ands_t *s, int info) {
         sv.link_midi_2[voice] = links[2];
         sv.link_midi_3[voice] = links[3];
       }
-      break;
-    case ATOM4('h---'): // sample-hold ratio
+      return 0;
+}
+static skode_word_t word_G = { WID("G"), .execute = word_exec_G, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_h(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 0) {
         float ratio = (float)arg[0];
         int mode = sv.sample_hold_mode[voice];
@@ -3812,8 +4283,16 @@ int skode_function(ands_t *s, int info) {
         sv.sample_hold_ratio[voice] = ratio;
         sv.sample_hold_mode[voice] = mode;
       }
-      break;
-    case ATOM4('H---'): // link-velo voice [voice [voice [voice]]]
+      return 0;
+}
+static skode_word_t word_h = { WID("h"), .execute = word_exec_h, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_H(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int links[4] = {-1, -1, -1, -1};
         for (int i = 0; i < argc && i < 4; i++) {
@@ -3826,9 +4305,17 @@ int skode_function(ands_t *s, int info) {
         sv.link_velo_2[voice] = links[2];
         sv.link_velo_3[voice] = links[3];
       }
-      break;
+      return 0;
     // TODO re-allocate the data/array buffer with the arg
-    case ATOM4('/D--'): // resize-data count
+}
+static skode_word_t word_H = { WID("H"), .execute = word_exec_H, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashD(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         // free and re-allocate...
         if (x > 0) ands_data_resize(ctx->parse, x);
@@ -3837,10 +4324,26 @@ int skode_function(ands_t *s, int info) {
         ands_data(ctx->parse),
         ands_data_cap(ctx->parse),
         ands_data_len(ctx->parse));
-      break;
-    case ATOM4('I---'): // log-event bool
-      if (argc) {} break; // TODO en/dis-able send timestamp wire to the event logger
-    case ATOM4('L---'): // link-trigger-delay seconds
+      return 0;
+}
+static skode_word_t word__slashD = { WID("/D"), .execute = word_exec__slashD, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_I(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      if (argc) {} return 0; // TODO en/dis-able send timestamp wire to the event logger
+}
+static skode_word_t word_I = { WID("I"), .execute = word_exec_I, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_L(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         double seconds = arg[0];
         if (!isfinite(seconds) || seconds <= 0.0) {
@@ -3853,8 +4356,16 @@ int skode_function(ands_t *s, int info) {
             samples >= (long double)UINT64_MAX ? UINT64_MAX : (uint64_t)samples;
         }
       }
-      break;
-    case ATOM4('J---'): // filter-mode selector
+      return 0;
+}
+static skode_word_t word_L = { WID("L"), .execute = word_exec_L, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_J(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 0) {
         int mode = (int)x;
         int character = sv.filter_mode[voice] / 10;
@@ -3864,11 +4375,27 @@ int skode_function(ands_t *s, int info) {
           sv.filter_freq[voice],
           sv.filter_res[voice]);
       }
-      break;
-    case ATOM4('K---'): // filter-cutoff freq
+      return 0;
+}
+static skode_word_t word_J = { WID("J"), .execute = word_exec_J, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_K(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) { mmf_set_freq(&skred_global_engine, voice, arg[0]); }
-      break;
-    case ATOM4('/ks-'): // ksynth-load num (verbose)
+      return 0;
+}
+static skode_word_t word_K = { WID("K"), .execute = word_exec_K, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashks(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         char *file = ands_string(ctx->parse);
         int verbose = 0;
@@ -3877,16 +4404,41 @@ int skode_function(ands_t *s, int info) {
           ksynth_load_name(ctx, file, verbose);
         }
       }
-      break;
-    case ATOM4('/k--'): // ksynth-load num (verbose)
+      return 0;
+}
+static skode_word_t word__slashks = { WID("/ks"), .execute = word_exec__slashks, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashk(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int verbose = 0;
         if (argc > 1) skode_double_to_int(arg[1], &verbose);
         ksynth_load(ctx, x, verbose);
       }
-      break;
-    case ATOM4('ks--'): // run ksynth code in string buffer
-    case ATOM4('k!--'): // run ksynth code in string buffer
+      return 0;
+}
+static skode_word_t word__slashk = { WID("/k"), .execute = word_exec__slashk, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_ks(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+
+}
+static skode_word_t word_ks = { WID("ks"), .execute = word_exec_ks, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_k_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int len = 0;
         char *cmd = ands_string(ctx->parse);
@@ -3896,60 +4448,140 @@ int skode_function(ands_t *s, int info) {
         }
         if (len) skode_ks_eval(ctx, cmd, len);
       }
-      break;
-    case ATOM4('kw--'): // wait for last ksynth request [timeout-ms]
+      return 0;
+}
+static skode_word_t word_k_bang = { WID("k!"), .execute = word_exec_k_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_kw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         (void)x;
       }
-      break;
-    case ATOM4('kw>-'): // compatibility: copy latest ksynth result to data
+      return 0;
+}
+static skode_word_t word_kw = { WID("kw"), .execute = word_exec_kw, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_kw_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         (void)x;
         skode_ks_result_to_data(ctx);
       }
-      break;
-    case ATOM4('k?--'): // k show last results
+      return 0;
+}
+static skode_word_t word_kw_gt = { WID("kw>"), .execute = word_exec_kw_gt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_k_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         K result = (K)ctx->ks_result;
         if (result && !k_is_func(result))
           skode_double_dump(ctx, result->f, (size_t)result->n);
       }
-      break;
-    case ATOM4('k>d-'): // k results to d?
+      return 0;
+}
+static skode_word_t word_k_q = { WID("k?"), .execute = word_exec_k_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_k_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         skode_ks_result_to_data(ctx);
       }
-      break;
-    case ATOM4('k>w-'):
+      return 0;
+}
+static skode_word_t word_k_gtd = { WID("k>d"), .execute = word_exec_k_gtd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_k_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int wave_slot = EXT_SAMPLE_000;
         int one_shot = 0;
         float rate = (float)MAIN_SAMPLE_RATE;
         float offset = 0.0f;
-        if (argc && !skode_double_to_int(arg[0], &wave_slot)) break;
+        if (argc && !skode_double_to_int(arg[0], &wave_slot)) return 0;
         if (argc > 1) rate = arg[1];
         if (argc > 2) skode_double_to_int(arg[2], &one_shot);
         if (argc > 3) offset = arg[3];
         if (skode_ks_result_to_data(ctx))
           data_load(ctx, wave_slot, one_shot, rate, offset);
       }
-      break;
-    case ATOM4('k---'): // adsr-mode bool
-      if (argc) { sv.amp_envelope_mode[voice] = x; } break;
-    case ATOM4('udp-'): // show-udp
+      return 0;
+}
+static skode_word_t word_k_gtw = { WID("k>w"), .execute = word_exec_k_gtw, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_k(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      if (argc) { sv.amp_envelope_mode[voice] = x; } return 0;
+}
+static skode_word_t word_k = { WID("k"), .execute = word_exec_k, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_udp(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         ctx->printf(ctx, "# udp [%d] %d/%d\n", ctx->which, ctx->ip, ctx->port);
       }
-      break;
-    case ATOM4('log-'): // log-enable bool
+      return 0;
+}
+static skode_word_t word_udp = { WID("udp"), .execute = word_exec_udp, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_log(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }
       }
-      break;
-    case ATOM4('___l'): // delayed velocity amount (doesn't propogate)
+      return 0;
+}
+static skode_word_t word_log = { WID("log"), .execute = word_exec_log, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec____l(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && isfinite(arg[0])) envelope_velocity(voice, arg[0]);
-      break;
-    case ATOM4('l---'): // velocity amount
+      return 0;
+}
+static skode_word_t word____l = { WID("___l"), .execute = word_exec____l, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_l(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
     #if 1
       if (argc) skode_linked_velocity(voice, arg[0], SAMPLE_COUNT_GET());
     #else
@@ -3967,8 +4599,16 @@ int skode_function(ands_t *s, int info) {
         if (d >= 0) skode_envelope_velocity(d, vel, now);
       }
     #endif
-      break;
-    case ATOM4('M---'): // tempo bpm [subdivision]
+      return 0;
+}
+static skode_word_t word_l = { WID("l"), .execute = word_exec_l, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_M(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         float bpm = arg[0];
         float sub = (argc >= 2 && arg[1] > 0.0f) ? arg[1] : 16.0f;
@@ -3978,8 +4618,16 @@ int skode_function(ands_t *s, int info) {
         else
           skred_control_pattern_event(SKRED_CONTROL_EVENT_TEMPO_CHANGE, SAMPLE_COUNT_GET(), -1, 0);
       }
-      break;
-    case ATOM4('N---'): // detune-midi key cents
+      return 0;
+}
+static skode_word_t word_M = { WID("M"), .execute = word_exec_M, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_N(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (isnan(arg[0])) {
           // do nothing
@@ -3988,11 +4636,27 @@ int skode_function(ands_t *s, int info) {
         }
         if (argc > 1) sv.midi_cents[voice] = arg[1];
       }
-      break;
-    case ATOM4('ds--'): // track-delay send amount; active only for routed, centered, unmodulated voices
+      return 0;
+}
+static skode_word_t word_N = { WID("N"), .execute = word_exec_N, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_ds(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) delay_send_set(&skred_global_engine, voice, arg[0]);
-      break;
-    case ATOM4('DG--'):
+      return 0;
+}
+static skode_word_t word_ds = { WID("ds"), .execute = word_exec_ds, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_DG(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int bus = 1;
         int bits, native;
@@ -4002,8 +4666,16 @@ int skode_function(ands_t *s, int info) {
         if (argc > 2 && isfinite(arg[2])) skode_double_to_int(arg[2], &native);
         delay_grit_set(&skred_global_engine, bus, bits, native);
       }
-      break;
-    case ATOM4('DL--'): // track-delay params track coarse fine feedback mod-freq mod-depth level
+      return 0;
+}
+static skode_word_t word_DG = { WID("DG"), .execute = word_exec_DG, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_DL(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int bus = 1;
         int coarse, fine, feedback, mod_freq, mod_depth, level;
@@ -4017,8 +4689,16 @@ int skode_function(ands_t *s, int info) {
         if (argc > 6 && isfinite(arg[6])) skode_double_to_int(arg[6], &level);
         delay_params_set(&skred_global_engine, bus, coarse, fine, feedback, mod_freq, mod_depth, level);
       }
-      break;
-    case ATOM4('DL?-'): // show track delay params
+      return 0;
+}
+static skode_word_t word_DL = { WID("DL"), .execute = word_exec_DL, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_DL_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int bus = 1;
         skode_double_to_int(arg[0], &bus);
@@ -4026,8 +4706,16 @@ int skode_function(ands_t *s, int info) {
       } else {
         ctx->printf(ctx, "%s", delay_format());
       }
-      break;
-    case ATOM4('DD--'):
+      return 0;
+}
+static skode_word_t word_DL_q = { WID("DL?"), .execute = word_exec_DL_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_DD(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int bus = 1;
         int damping, hp;
@@ -4037,8 +4725,16 @@ int skode_function(ands_t *s, int info) {
         if (argc > 2 && isfinite(arg[2])) skode_double_to_int(arg[2], &hp);
         delay_damping_set(&skred_global_engine, bus, damping, hp);
       }
-      break;
-    case ATOM4('DF--'):
+      return 0;
+}
+static skode_word_t word_DD = { WID("DD"), .execute = word_exec_DD, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_DF(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int bus = 1;
         int on;
@@ -4047,8 +4743,16 @@ int skode_function(ands_t *s, int info) {
         if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &on);
         delay_freeze_set(&skred_global_engine, bus, on);
       }
-      break;
-    case ATOM4('DP--'):
+      return 0;
+}
+static skode_word_t word_DF = { WID("DF"), .execute = word_exec_DF, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_DP(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int bus = 1;
         int on;
@@ -4057,37 +4761,85 @@ int skode_function(ands_t *s, int info) {
         if (argc > 1 && isfinite(arg[1])) skode_double_to_int(arg[1], &on);
         delay_pingpong_set(&skred_global_engine, bus, on);
       }
-      break;
-    case ATOM4('DT--'):
+      return 0;
+}
+static skode_word_t word_DP = { WID("DP"), .execute = word_exec_DP, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_DT(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 2) {
         int bus;
         if (skode_double_to_int(arg[0], &bus) && isfinite(arg[1]))
           delay_time_ms_set(&skred_global_engine, bus, (float)arg[1]);
       }
-      break;
-    case ATOM4('DS--'):
+      return 0;
+}
+static skode_word_t word_DT = { WID("DT"), .execute = word_exec_DT, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_DS(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 3) {
         int bus;
         if (skode_double_to_int(arg[0], &bus) && isfinite(arg[1]) && isfinite(arg[2]))
           delay_time_sync_set(&skred_global_engine, bus, (float)arg[1], (float)arg[2]);
       }
-      break;
-    case ATOM4('GS--'): // show global synth status
+      return 0;
+}
+static skode_word_t word_DS = { WID("DS"), .execute = word_exec_DS, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_GS(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       global_status_show(ctx, argc > 0 && arg[0] > 0.0);
-      break;
-    case ATOM4('GS>-'):
+      return 0;
+}
+static skode_word_t word_GS = { WID("GS"), .execute = word_exec_GS, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_GS_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!ands_string_fresh(ctx->parse) || !ands_string(ctx->parse)[0])
         ctx->printf(ctx, "# GS> requires [filename.zip]\n");
       else
         (void)skode_session_save(ctx, ands_string(ctx->parse));
-      break;
-    case ATOM4('GS<-'):
+      return 0;
+}
+static skode_word_t word_GS_gt = { WID("GS>"), .execute = word_exec_GS_gt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_GS_lt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!ands_string_fresh(ctx->parse) || !ands_string(ctx->parse)[0])
         ctx->printf(ctx, "# GS< requires [filename.zip]\n");
       else
         (void)skode_session_load(ctx, ands_string(ctx->parse));
-      break;
-    case ATOM4('P---'): // pan-mod voice depth
+      return 0;
+}
+static skode_word_t word_GS_lt = { WID("GS<"), .execute = word_exec_GS_lt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_P(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc < 2) {
         pan_mod_set(voice, -1, 0, 0);
       } else if (x_valid) {
@@ -4095,82 +4847,186 @@ int skode_function(ands_t *s, int info) {
         if (argc > 2) a = arg[2];
         pan_mod_set(voice, x, arg[1], a);
       }
-      break;
-    case ATOM4('q---'):  // bit-crush bit-depth
+      return 0;
+}
+static skode_word_t word_P = { WID("P"), .execute = word_exec_P, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 0) {
         int bits = (int)x;
         int curve = sv.quantize[voice] / 100;
         if (argc > 1 && isfinite(arg[1])) curve = (int)arg[1];
         wave_quant(voice, (curve * 100) + (bits % 100));
       }
-      break;
-    case ATOM4('Q---'):
+      return 0;
+}
+static skode_word_t word_q = { WID("q"), .execute = word_exec_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_Q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) { mmf_set_res(&skred_global_engine, voice, arg[0]); }
-      break;
-    case ATOM4('r---'): // route voice to track, 0=master only, 1..4=track/delay bus
+      return 0;
+}
+static skode_word_t word_Q = { WID("Q"), .execute = word_exec_Q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_r(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) synth_record_track_set(voice, x);
-      break;
-    case ATOM4('rt--'): // track-name track
+      return 0;
+}
+static skode_word_t word_r = { WID("r"), .execute = word_exec_r, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_rt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x > 0 && x <= RECORD_TRACK_MAX) {
         synth_track_name_set(x, ands_string(ctx->parse));
         scope_ipc_track_metadata_set(x, synth_track_name_get(x),
           synth_track_volume_db_get(x));
       }
-      break;
-    case ATOM4('rv--'): // track-volume track dB
+      return 0;
+}
+static skode_word_t word_rt = { WID("rt"), .execute = word_exec_rt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_rv(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x > 0 && x <= RECORD_TRACK_MAX) {
         synth_track_volume_set(x, arg[1]);
         scope_ipc_track_metadata_set(x, synth_track_name_get(x),
           synth_track_volume_db_get(x));
       }
-      break;
-    case ATOM4('R!--'):  // remove-events tag
+      return 0;
+}
+static skode_word_t word_rv = { WID("rv"), .execute = word_exec_rv, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_R_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int tag = x;
         seq_kill_by_tag(tag);
       }
-      break;
-    case ATOM4('R!!-'):
+      return 0;
+}
+static skode_word_t word_R_bang = { WID("R!"), .execute = word_exec_R_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_R_bang_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       seq_kill_all();
-      break;
-    case ATOM4('RR--'): // repeat-string-tempo count delay [tag]
+      return 0;
+}
+static skode_word_t word_R_bang_bang = { WID("R!!"), .execute = word_exec_R_bang_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_RR(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x_valid && x > 0 && x <= QUEUE_SIZE &&
           isfinite(arg[1]) && arg[1] >= 0.0) {
         event_program_t program;
         if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
-          break;
+          return 0;
         int tag = 0;
         if (argc > 2) skode_double_to_int(arg[2], &tag);
         double seconds = tempo_step_seconds_get() * 4.0f * arg[1];
         skode_queue_repeated(&program, ctx->voice, x, seconds, tag);
-      } break;
-    case ATOM4('eRR-'): // repeat-external-macro-tempo macro count beats [tag]
+      } return 0;
+}
+static skode_word_t word_RR = { WID("RR"), .execute = word_exec_RR, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_eRR(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skode_repeat_macro(ctx, arg, argc, 1);
-      break;
-    case ATOM4('eR--'): // repeat-external-macro macro count seconds [tag]
+      return 0;
+}
+static skode_word_t word_eRR = { WID("eRR"), .execute = word_exec_eRR, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_eR(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skode_repeat_macro(ctx, arg, argc, 0);
-      break;
-    case ATOM4('DO?-'): // conditional-string-if-gt-zero number [tag]
+      return 0;
+}
+static skode_word_t word_eR = { WID("eR"), .execute = word_exec_eR, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_DO_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x>0) {
         event_program_t program;
         if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
-          break;
+          return 0;
         int tag = 0;
         if (argc > 1) skode_double_to_int(arg[1], &tag);
         uint64_t qt = SAMPLE_COUNT_GET();
         skode_queue_program(&program, ctx->voice, qt, tag);
-      } break;
-    case ATOM4('R---'): // repeat-string count delay [tag]
+      } return 0;
+}
+static skode_word_t word_DO_q = { WID("DO?"), .execute = word_exec_DO_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_R(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x_valid && x > 0 && x <= QUEUE_SIZE &&
           isfinite(arg[1]) && arg[1] >= 0.0) {
         event_program_t program;
         if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program))
-          break;
+          return 0;
         int tag = 0;
         if (argc > 2) skode_double_to_int(arg[2], &tag);
         skode_queue_repeated(&program, ctx->voice, x, arg[1], tag);
-      } break;
-    case ATOM4('s---'): // volume-smooth bool
+      } return 0;
+}
+static skode_word_t word_R = { WID("R"), .execute = word_exec_R, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_s(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (arg[0] <= 0) {
           sv.smoother_enable[voice] = 0;
@@ -4179,14 +5035,38 @@ int skode_function(ands_t *s, int info) {
           sv.smoother_smoothing[voice] = arg[0];
         }
       }
-      break;
-    case ATOM4('S---'): // voice-reset voice
+      return 0;
+}
+static skode_word_t word_s = { WID("s"), .execute = word_exec_s, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_S(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) wave_reset(x);
-      break;
-    case ATOM4('t---'): // adsr-set attack decay sustain release
+      return 0;
+}
+static skode_word_t word_S = { WID("S"), .execute = word_exec_S, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_t(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 3) envelope_set(voice, arg[0], arg[1], arg[2], arg[3]);
-      break;
-    case ATOM4('T---'): // trigger
+      return 0;
+}
+static skode_word_t word_t = { WID("t"), .execute = word_exec_t, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_T(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         envelope_velocity(voice, 1);
         if (sv.link_velo_0[voice] >= 0) envelope_velocity(sv.link_velo_0[voice], 1);
@@ -4194,26 +5074,66 @@ int skode_function(ands_t *s, int info) {
         if (sv.link_velo_2[voice] >= 0) envelope_velocity(sv.link_velo_2[voice], 1);
         if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1);
       }
-      break;
-    case ATOM4('vc--'): // voice control-plane event publication bool
+      return 0;
+}
+static skode_word_t word_T = { WID("T"), .execute = word_exec_T, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_vc(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) voice_control_events_set(voice, x != 0);
-      break;
-    case ATOM4('V---'): // main-volume loudness
+      return 0;
+}
+static skode_word_t word_vc = { WID("vc"), .execute = word_exec_vc, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_V(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         volume_set(arg[0]);
         scope_ipc_track_metadata_set(0, synth_track_name_get(0),
           synth_track_volume_db_get(0));
       }
-      break;
-    case ATOM4('vt--'): // [name] voice-text-set
+      return 0;
+}
+static skode_word_t word_V = { WID("V"), .execute = word_exec_V, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_vt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skode_copy_string(sv.text[voice], TEXT_MAX, ands_string(ctx->parse));
-      break;
-    case ATOM4('wt--'): // [name] wave-text-set wave-number
+      return 0;
+}
+static skode_word_t word_vt = { WID("vt"), .execute = word_exec_vt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_wt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && skode_wave_valid(x)) {
         skode_copy_string(sw.name[x], WAVE_NAME_MAX, ands_string(ctx->parse));
       }
-      break;
-    case ATOM4('WL--'): // wave-loop-points wave start end
+      return 0;
+}
+static skode_word_t word_wt = { WID("wt"), .execute = word_exec_wt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_WL(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2 && x_valid && skode_wave_valid(x)) {
         int start, end;
         if (skode_double_to_int(arg[1], &start) &&
@@ -4221,8 +5141,16 @@ int skode_function(ands_t *s, int info) {
           wave_loop_points_set(x, start, end);
         }
       }
-      break;
-    case ATOM4('VS--'): // voice-set-points start end; no args resets from wave
+      return 0;
+}
+static skode_word_t word_WL = { WID("WL"), .execute = word_exec_WL, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_VS(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc >= 2) {
         int start, end;
         if (skode_double_to_int(arg[0], &start) &&
@@ -4236,8 +5164,16 @@ int skode_function(ands_t *s, int info) {
       } else if (argc == 0) {
         voice_wave_range_reset(voice);
       }
-      break;
-    case ATOM4('VL--'): // voice-loop-points start end; no args resets from wave
+      return 0;
+}
+static skode_word_t word_VS = { WID("VS"), .execute = word_exec_VS, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_VL(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc >= 2) {
         int start, end;
         if (skode_double_to_int(arg[0], &start) &&
@@ -4252,8 +5188,16 @@ int skode_function(ands_t *s, int info) {
       } else if (argc == 0) {
         voice_loop_points_reset(voice);
       }
-      break;
-    case ATOM4('VW--'): // voice-wave-show [voice] [width height]
+      return 0;
+}
+static skode_word_t word_VL = { WID("VL"), .execute = word_exec_VL, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_VW(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int target_voice = voice;
         int w = WAVE_DISPLAY_DEFAULT_WIDTH;
@@ -4281,8 +5225,16 @@ int skode_function(ands_t *s, int info) {
           }
         }
       }
-      break;
-    case ATOM4('w---'): // wave-select which-wave interpolate? mode-override?
+      return 0;
+}
+static skode_word_t word_VW = { WID("VW"), .execute = word_exec_VW, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_w(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && wave_set(voice, x) == 0) {
         int n;
         if (argc > 1) {
@@ -4293,8 +5245,16 @@ int skode_function(ands_t *s, int info) {
         } else sv.one_shot[voice] = sw.one_shot[x];
         osc_reclassify(&skred_global_engine, voice);
       }
-      break;
-    case ATOM4('=d--'): // assign a variable from an element of the d array =d var d-index
+      return 0;
+}
+static skode_word_t word_w = { WID("w"), .execute = word_exec_w, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__eqd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x_valid) {
         int y;
         double *data = ands_data(ctx->parse);
@@ -4305,8 +5265,16 @@ int skode_function(ands_t *s, int info) {
           ands_set_local(ctx->parse, x, data[y]);
         }
       }
-      break;
-    case ATOM4('d*--'): // show an element from d array
+      return 0;
+}
+static skode_word_t word__eqd = { WID("=d"), .execute = word_exec__eqd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_d_star(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         double *data = ands_data(ctx->parse);
         int data_len = ands_data_len(ctx->parse);
@@ -4318,22 +5286,30 @@ int skode_function(ands_t *s, int info) {
           return 1;
         }
       }
-      break;
-    case ATOM4('d>r-'): // data-to-rec
+      return 0;
+}
+static skode_word_t word_d_star = { WID("d*"), .execute = word_exec_d_star, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_d_gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         double *data = ands_data(ctx->parse);
         int data_len = ands_data_len(ctx->parse);
-        if (!data || data_len <= 0) break;
+        if (!data || data_len <= 0) return 0;
         int sample_state = atomic_load_int(&sampling.state);
         if (sample_state == SAMPLE_STATE_ARMED ||
             sample_state == SAMPLE_STATE_RECORDING) {
           ctx->printf(ctx, "# recording buffer busy\n");
-          break;
+          return 0;
         }
         if (data_len > sampling.capacity) skode_sample_alloc(data_len);
         if (!sampling.where || data_len > sampling.capacity) {
           ctx->printf(ctx, "# recording buffer allocation failed\n");
-          break;
+          return 0;
         }
         for (int i=0; i<data_len; i++) sampling.where[i] = (float)data[i];
         sampling.len = data_len;
@@ -4342,43 +5318,51 @@ int skode_function(ands_t *s, int info) {
         sampling.trim = 0;
         atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
       }
-      break;
-    case ATOM4('r>d-'): // recording-to-data [channel]
+      return 0;
+}
+static skode_word_t word_d_gtr = { WID("d>r"), .execute = word_exec_d_gtr, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_r_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int channel = -1;
         if (argc > 1) {
           ctx->printf(ctx, "# usage: r>d [channel]\n");
-          break;
+          return 0;
         }
-        if (argc == 1 && !skode_double_to_int(arg[0], &channel)) break;
+        if (argc == 1 && !skode_double_to_int(arg[0], &channel)) return 0;
         if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE) {
           ctx->printf(ctx, "# recording buffer is not complete\n");
-          break;
+          return 0;
         }
         if (!sampling.where || sampling.len > sampling.capacity ||
             sampling.offset < 0 || sampling.trim < 0 ||
             sampling.offset > sampling.len ||
             sampling.trim > sampling.len - sampling.offset) {
           ctx->printf(ctx, "# invalid recording bounds\n");
-          break;
+          return 0;
         }
         int channels = sampling.channels == 2 ? 2 : 1;
         if (channel < -1 || channel >= channels) {
           ctx->printf(ctx, "# recording channel must be -1..%d\n",
                       channels - 1);
-          break;
+          return 0;
         }
         int data_len = sampling.len - sampling.offset - sampling.trim;
         if (data_len <= 0) {
           ctx->printf(ctx, "# recording buffer is empty\n");
-          break;
+          return 0;
         }
         if (data_len > ands_data_cap(ctx->parse))
           ands_data_resize(ctx->parse, data_len);
         double *data = ands_data(ctx->parse);
         if (!data || data_len > ands_data_cap(ctx->parse)) {
           ctx->printf(ctx, "# data array allocation failed\n");
-          break;
+          return 0;
         }
         for (int i = 0; i < data_len; i++) {
           size_t frame =
@@ -4394,19 +5378,27 @@ int skode_function(ands_t *s, int info) {
         }
         ands_data_len_set(ctx->parse, data_len);
       }
-      break;
-    case ATOM4('d>MO'): // data-to-MIDI-output
+      return 0;
+}
+static skode_word_t word_r_gtd = { WID("r>d"), .execute = word_exec_r_gtd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_d_gtMO(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         double *data = ands_data(ctx->parse);
         int data_len = ands_data_len(ctx->parse);
         if (!data || data_len <= 0 || data_len > 65536) {
           ctx->printf(ctx, "# d>MO requires 1..65536 data bytes\n");
-          break;
+          return 0;
         }
         uint8_t *bytes = (uint8_t*)malloc((size_t)data_len);
         if (!bytes) {
           ctx->printf(ctx, "# d>MO allocation failed\n");
-          break;
+          return 0;
         }
         int valid = 1;
         for (int i = 0; i < data_len; i++) {
@@ -4423,8 +5415,16 @@ int skode_function(ands_t *s, int info) {
         if (result != 0)
           ctx->printf(ctx, "# MIDI output failed (%d)\n", result);
       }
-      break;
-    case ATOM4('d>k-'): // data-to-ksynth-variable
+      return 0;
+}
+static skode_word_t word_d_gtMO = { WID("d>MO"), .execute = word_exec_d_gtMO, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_d_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int variable;
         if (skode_double_to_int(arg[0], &variable)) {
@@ -4432,8 +5432,16 @@ int skode_function(ands_t *s, int info) {
                                (size_t)ands_data_len(ctx->parse));
         }
       }
-      break;
-    case ATOM4('w>k-'): // wavetable-to-ksynth-variable
+      return 0;
+}
+static skode_word_t word_d_gtk = { WID("d>k"), .execute = word_exec_d_gtk, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_w_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1) {
         int wave;
         int variable;
@@ -4441,33 +5449,49 @@ int skode_function(ands_t *s, int info) {
             !skode_double_to_int(arg[1], &variable) ||
             !skode_wave_valid(wave) || !sw.data[wave] || sw.size[wave] <= 0) {
           ctx->printf(ctx, "# invalid wavetable for w>k\n");
-          break;
+          return 0;
         }
         size_t len = (size_t)sw.size[wave];
         if (len > 1000000 || len > SIZE_MAX / sizeof(double)) {
           ctx->printf(ctx, "# ksynth vector too large: %zu\n", len);
-          break;
+          return 0;
         }
         double *values = malloc(len * sizeof(double));
         if (!values) {
           ctx->printf(ctx, "# allocation failed\n");
-          break;
+          return 0;
         }
         for (size_t i = 0; i < len; i++) values[i] = sw.data[wave][i];
         skode_ks_bind_values(ctx, variable, values, len);
         free(values);
       }
-      break;
-    case ATOM4('w>d-'): // wave-to-data
+      return 0;
+}
+static skode_word_t word_w_gtk = { WID("w>k"), .execute = word_exec_w_gtk, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_w_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (x_valid && skode_wave_valid(x) && sw.data[x] && sw.size[x] > 0) {
         if (sw.size[x] > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, sw.size[x]);
         double *data = ands_data(ctx->parse);
-        if (!data || sw.size[x] > ands_data_cap(ctx->parse)) break;
+        if (!data || sw.size[x] > ands_data_cap(ctx->parse)) return 0;
         for (int i=0; i<sw.size[x]; i++) data[i] = sw.data[x][i];
         ands_data_len_set(ctx->parse, sw.size[x]);
       }
-      break;
-    case ATOM4('w>r-'): // wave-to-rec
+      return 0;
+}
+static skode_word_t word_w_gtd = { WID("w>d"), .execute = word_exec_w_gtd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_w_gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (x_valid && skode_wave_valid(x) && sw.data[x] && sw.size[x] > 0) {
         int valid = 1;
         int sample_state = atomic_load_int(&sampling.state);
@@ -4488,8 +5512,16 @@ int skode_function(ands_t *s, int info) {
           atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
         }
       }
-      break;
-    case ATOM4('w>w-'): // wave-to-wav-file
+      return 0;
+}
+static skode_word_t word_w_gtr = { WID("w>r"), .execute = word_exec_w_gtr, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_w_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!ands_string_fresh(ctx->parse) ||
           !ands_string(ctx->parse)[0]) {
         ctx->printf(ctx, "# w>w requires [filename]\n");
@@ -4506,15 +5538,23 @@ int skode_function(ands_t *s, int info) {
         skode_write_wav(ctx, ands_string(ctx->parse), sw.data[x],
                         sw.size[x], 1, sample_rate, 0);
       }
-      break;
-    case ATOM4('w!--'): // wave-lock
+      return 0;
+}
+static skode_word_t word_w_gtw = { WID("w>w"), .execute = word_exec_w_gtw, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_w_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE ||
             !sampling.where || sampling.offset < 0 || sampling.trim < 0 ||
             sampling.offset > sampling.len ||
             sampling.trim > sampling.len - sampling.offset) {
           ctx->printf(ctx, "# invalid recording bounds\n");
-          break;
+          return 0;
         }
         int channels = sampling.channels == 2 ? 2 : 1;
         int new_len = sampling.len - sampling.offset - sampling.trim;
@@ -4525,19 +5565,35 @@ int skode_function(ands_t *s, int info) {
         sampling.trim = 0;
         sampling.offset = 0;
       }
-      break;
-    case ATOM4('w*--'): // wave-nudge-reset
+      return 0;
+}
+static skode_word_t word_w_bang = { WID("w!"), .execute = word_exec_w_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_w_star(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (atomic_load_int(&sampling.state) == SAMPLE_STATE_COMPLETE) {
         sampling.offset = 0;
         sampling.trim = 0;
       } else {
         ctx->printf(ctx, "# recording buffer is not complete\n");
       }
-      break;
-    case ATOM4('w>--'): // wave-nudge-start
+      return 0;
+}
+static skode_word_t word_w_star = { WID("w*"), .execute = word_exec_w_star, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_w_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE) {
         ctx->printf(ctx, "# recording buffer is not complete\n");
-        break;
+        return 0;
       }
       if (argc == 0) x = 1;
       if (argc == 0 || x_valid) {
@@ -4548,11 +5604,19 @@ int skode_function(ands_t *s, int info) {
         if (sampling.trim > sampling.len - sampling.offset)
           sampling.trim = sampling.len - sampling.offset;
       }
-      break;
-    case ATOM4('w<--'): // wave-nudge-len
+      return 0;
+}
+static skode_word_t word_w_gt = { WID("w>"), .execute = word_exec_w_gt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_w_lt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE) {
         ctx->printf(ctx, "# recording buffer is not complete\n");
-        break;
+        return 0;
       }
       if (argc == 0) x = 1;
       if (argc == 0 || x_valid) {
@@ -4563,8 +5627,16 @@ int skode_function(ands_t *s, int info) {
         if (next > max_trim) next = max_trim;
         sampling.trim = (int)next;
       }
-      break;
-    case ATOM4('w<>-'): // wave-auto-trim
+      return 0;
+}
+static skode_word_t word_w_lt = { WID("w<"), .execute = word_exec_w_lt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_w_lt_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         float arg0 = -1;
         float arg1 = -1;
@@ -4574,15 +5646,31 @@ int skode_function(ands_t *s, int info) {
         if (argc > 2) skode_double_to_int(arg[2], &margin);
         record_find_trim(argc, arg0, arg1, margin);
       }
-      break;
-    case ATOM4('WS--'): // wave-spectro which-wave
+      return 0;
+}
+static skode_word_t word_w_lt_gt = { WID("w<>"), .execute = word_exec_w_lt_gt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_WS(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && arg[0] >= 0) {
         int w = WAVE_DISPLAY_DEFAULT_WIDTH;
         int h = WAVE_DISPLAY_DEFAULT_HEIGHT / 2;
         wavetable_spectrogram_show(ctx, x, w, h, sw.loop_start[x], sw.loop_end[x], NULL);
       }
-      break;
-    case ATOM4('W---'): // wave-show which-wave
+      return 0;
+}
+static skode_word_t word_WS = { WID("WS"), .execute = word_exec_WS, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_W(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int w = WAVE_DISPLAY_DEFAULT_WIDTH;
         int h = WAVE_DISPLAY_DEFAULT_HEIGHT;
@@ -4662,12 +5750,37 @@ int skode_function(ands_t *s, int info) {
           c++;
         }
       }
-      break;
-    case ATOM4('xg--'): // goto-step #
-    case ATOM4('>x--'): // goto-step #
+      return 0;
+}
+static skode_word_t word_W = { WID("W"), .execute = word_exec_W, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_xg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+
+}
+static skode_word_t word_xg = { WID("xg"), .execute = word_exec_xg, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__gtx(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       seq_step_goto(ctx->pattern, x);
-      break;
-    case ATOM4('xa--'): // append step
+      return 0;
+}
+static skode_word_t word__gtx = { WID(">x"), .execute = word_exec__gtx, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_xa(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         const char *source = ands_string(ctx->parse);
         event_program_t program;
@@ -4680,8 +5793,16 @@ int skode_function(ands_t *s, int info) {
           ctx->printf(ctx, "# sequence command is not schedulable (%d)\n", result);
         }
       }
-      break;
-    case ATOM4('<x--'): // (pattern) step-string-to-skode step-number
+      return 0;
+}
+static skode_word_t word_xa = { WID("xa"), .execute = word_exec_xa, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__ltx(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (arg == 0) {
       } else {
         seq_edit_lock();
@@ -4689,8 +5810,16 @@ int skode_function(ands_t *s, int info) {
         ands_string_from_external(ctx->parse, s, strlen(s));
         seq_edit_unlock();
       }
-      break;
-    case ATOM4('x---'): // set-step-string step
+      return 0;
+}
+static skode_word_t word__ltx = { WID("<x"), .execute = word_exec__ltx, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (isnan(arg[0]) || !x_valid || x < 0) {
           ctx->step++;
@@ -4712,8 +5841,16 @@ int skode_function(ands_t *s, int info) {
           }
         }
       }
-      break;
-    case ATOM4('y---'): // select-pattern which
+      return 0;
+}
+static skode_word_t word_x = { WID("x"), .execute = word_exec_x, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_y(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x >= 0 && x < PATTERNS_MAX) {
         int old_p = ctx->pattern;
         ctx->pattern = x;
@@ -4722,55 +5859,135 @@ int skode_function(ands_t *s, int info) {
           skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_CHANGE, SAMPLE_COUNT_GET(), x, 0);
         }
       }
-      break;
-    case ATOM4('ys?-'):
-    case ATOM4('ys--'):
+      return 0;
+}
+static skode_word_t word_y = { WID("y"), .execute = word_exec_y, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_ys_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int p = (argc && x >= 0 && x < PATTERNS_MAX) ? x : ctx->pattern;
         pattern_show(ctx, p, 1);
       }
-      break;
-    case ATOM4('yt--'): // {note} pattern-text
+      return 0;
+}
+static skode_word_t word_ys_q = { WID("ys?"), .execute = word_exec_ys_q, .safety = WORD_IMMEDIATE_ONLY };
+static skode_word_t word_ys = { WID("ys"), .execute = word_exec_ys_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_yt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (ctx->pattern >= 0 && ctx->pattern < PATTERNS_MAX) {
         seq_edit_lock();
         skode_copy_string(seq_text[ctx->pattern], TEXT_MAX, ands_string(ctx->parse));
         seq_edit_unlock();
       }
-      break;
-    case ATOM4('ym--'): // pattern-mute 0/1
+      return 0;
+}
+static skode_word_t word_yt = { WID("yt"), .execute = word_exec_yt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_ym(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         seq_mute_set(ctx->pattern, x);
         skred_control_pattern_event(SKRED_CONTROL_EVENT_MUTE_CHANGE, SAMPLE_COUNT_GET(), ctx->pattern, x);
       }
-      break;
-    case ATOM4('yc--'): // pattern control-plane event publication bool
+      return 0;
+}
+static skode_word_t word_ym = { WID("ym"), .execute = word_exec_ym, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_yc(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) seq_control_events_set(ctx->pattern, x);
-      break;
-    case ATOM4('Y---'): // clear-pattern which
+      return 0;
+}
+static skode_word_t word_yc = { WID("yc"), .execute = word_exec_yc, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_Y(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x >= 0 && x < PATTERNS_MAX) {
         pattern_reset(x);
       }
-      break;
-    case ATOM4('z---'): // one-pattern-play-mode bool
+      return 0;
+}
+static skode_word_t word_Y = { WID("Y"), .execute = word_exec_Y, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_z(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         seq_state_set(ctx->pattern, x);
       } else pattern_show(ctx, ctx->pattern, 1);
-      break;
-    case ATOM4('zg--'): // goto-pattern-step step
+      return 0;
+}
+static skode_word_t word_z = { WID("z"), .execute = word_exec_z, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_zg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x >= 0 && x < SEQ_STEPS_MAX) {
         seq_step_goto(ctx->pattern, x);
       }
-      break;
-    case ATOM4('zq--'): // queue-pattern-start-stop mode
+      return 0;
+}
+static skode_word_t word_zg = { WID("zg"), .execute = word_exec_zg, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_zq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         seq_state_queue(ctx->pattern, x);
         skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_QUEUE, SAMPLE_COUNT_GET(), ctx->pattern, x);
       }
-      break;
-    case ATOM4('z?--'): // one-pattern-play-mode bool
+      return 0;
+}
+static skode_word_t word_zq = { WID("zq"), .execute = word_exec_zq, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_z_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       pattern_show(ctx, ctx->pattern, 1);
-      break;
-    case ATOM4('Z---'): // all-pattern-play-mode bool
+      return 0;
+}
+static skode_word_t word_z_q = { WID("z?"), .execute = word_exec_z_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_Z(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         seq_state_all(x);
       } else {
@@ -4780,36 +5997,127 @@ int skode_function(ands_t *s, int info) {
             pattern_show(ctx, p, 0);
         }
       }
-      break;
-    case ATOM4('z?\?-'): // show all patterns
-    case ATOM4('Z?--'): // show all patterns
+      return 0;
+}
+static skode_word_t word_Z = { WID("Z"), .execute = word_exec_Z, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_z_q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+
+}
+static skode_word_t word_z_q_bs_q = { WID("z?\?"), .execute = word_exec_z_q_bs_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_Z_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "M%g\n", tempo_bpm_get());
       for (int p = 0; p < PATTERNS_MAX; p++) {
         if (seq_pattern_length[p] > 0 || seq_text[p][0] != '\0')
           pattern_show(ctx, p, 1);
       }
-      break;
-    case ATOM4('XM--'): // ring modulation osc amount
+      return 0;
+}
+static skode_word_t word_Z_q = { WID("Z?"), .execute = word_exec_Z_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_XM(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         sv.ring_osc[voice] = x_valid && skode_voice_valid(x) ? x : -1;
         if (argc > 1) sv.ring_amount[voice] = arg[1];
         else sv.ring_amount[voice] = 0.0;
       }
-      break;
-    case ATOM4('v?--'): // show-voice
-    case ATOM4('?---'): // show-voice
-      voice_show(ctx, voice, ' ', ctx->verbose); break;
-    case ATOM4('\\---'): // verbose-show-voice
-      voice_show(ctx, voice, ' ', 1); break;
-    case ATOM4('v?\?-'): // show-active-voices
-    case ATOM4('?\?--'): // show-active-voices
-      voice_show_all(ctx, voice, ctx->verbose); break;
-    case ATOM4('?r--'): // show track routing
-      record_tracks_show(ctx); break;
-    case ATOM4('?s--'): // show-skode-string
+      return 0;
+}
+static skode_word_t word_XM = { WID("XM"), .execute = word_exec_XM, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_v_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+
+}
+static skode_word_t word_v_q = { WID("v?"), .execute = word_exec_v_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      voice_show(ctx, voice, ' ', ctx->verbose); return 0;
+}
+static skode_word_t word__q = { WID("?"), .execute = word_exec__q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__bs_bs(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      voice_show(ctx, voice, ' ', 1); return 0;
+}
+static skode_word_t word__bs_bs = { WID("\\"), .execute = word_exec__bs_bs, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_v_q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+
+}
+static skode_word_t word_v_q_bs_q = { WID("v?\?"), .execute = word_exec_v_q_bs_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      voice_show_all(ctx, voice, ctx->verbose); return 0;
+}
+static skode_word_t word__q_bs_q = { WID("?\?"), .execute = word_exec__q_bs_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__qr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      record_tracks_show(ctx); return 0;
+}
+static skode_word_t word__qr = { WID("?r"), .execute = word_exec__qr, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__qs(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
-      break;
-    case ATOM4('s?--'): // show parser-local string slot [index]
+      return 0;
+}
+static skode_word_t word__qs = { WID("?s"), .execute = word_exec__qs, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_s_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x_valid) {
         if (x >= 0 && x < SKODE_STRING_SLOT_MAX)
           ctx->printf(ctx, "# s%d [%s]\n", x, ctx->string_slot[x]);
@@ -4819,42 +6127,99 @@ int skode_function(ands_t *s, int info) {
             ctx->printf(ctx, "# s%d [%s]\n", i, ctx->string_slot[i]);
         }
       }
-      break;
-    case ATOM4('?m--'): // show-ands-macros
+      return 0;
+}
+static skode_word_t word_s_q = { WID("s?"), .execute = word_exec_s_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__qm(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skode_macros_show(ctx, 0);
-      break;
-    case ATOM4('?ce-'): // show control-plane event snapshot
+      return 0;
+}
+static skode_word_t word__qm = { WID("?m"), .execute = word_exec__qm, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__qce(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       control_event_show(ctx, 0);
-      break;
-    case ATOM4('?ce!'): // clear outstanding control-plane events
+      return 0;
+}
+static skode_word_t word__qce = { WID("?ce"), .execute = word_exec__qce, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__qce_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# control events cleared:%d\n",
         skred_control_event_clear());
-      break;
-    case ATOM4('?q--'): // show scheduled opcode queue
+      return 0;
+}
+static skode_word_t word__qce_bang = { WID("?ce!"), .execute = word_exec__qce_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__qq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       opcode_queue_show(ctx);
-      break;
-    case ATOM4('?o--'): // show compiled opcode queue or pattern
+      return 0;
+}
+static skode_word_t word__qq = { WID("?q"), .execute = word_exec__qq, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__qo(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         opcode_queue_show(ctx);
       } else {
         if (!x_valid) {
           ctx->printf(ctx, "# invalid opcode pattern\n");
-          break;
+          return 0;
         }
         int pattern = x;
         int step = -1;
         if (pattern == -1) pattern = ctx->pattern;
         if (argc > 1 && !skode_double_to_int(arg[1], &step)) {
           ctx->printf(ctx, "# invalid opcode step\n");
-          break;
+          return 0;
         }
         opcode_pattern_show(ctx, pattern, step);
       }
-      break;
-    case ATOM4('/q--'): // quit
+      return 0;
+}
+static skode_word_t word__qo = { WID("?o"), .execute = word_exec__qo, .safety = WORD_IMMEDIATE_ONLY };
+
+
+static int word_exec__slashq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->quit = -1;
       return 0;
-    case ATOM4('/sg-'): // start shared-memory scope publication
+}
+static skode_word_t word__slashq = { WID("/q"), .execute = word_exec__slashq, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashsg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         const char *name = ands_string_fresh(ctx->parse)
           ? ands_string(ctx->parse) : SKRED_SCOPE_DEFAULT_NAME;
@@ -4867,7 +6232,7 @@ int skode_function(ands_t *s, int info) {
               (uint32_t)mask > SKRED_SCOPE_ALL_CHANNELS) {
             ctx->printf(ctx, "# /sg channel mask must be 1..%u\n",
                         SKRED_SCOPE_ALL_CHANNELS);
-            break;
+            return 0;
           }
           channel_mask = (uint32_t)mask;
         }
@@ -4886,12 +6251,28 @@ int skode_function(ands_t *s, int info) {
           ctx->printf(ctx, "# scope start failed [%s]\n", name);
         }
       }
-      break;
-    case ATOM4('/ss-'): // stop shared-memory scope publication
+      return 0;
+}
+static skode_word_t word__slashsg = { WID("/sg"), .execute = word_exec__slashsg, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashss(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       scope_ipc_stop();
       ctx->printf(ctx, "# scope stopped\n");
-      break;
-    case ATOM4('/s?-'): // shared-memory scope status
+      return 0;
+}
+static skode_word_t word__slashss = { WID("/ss"), .execute = word_exec__slashss, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         skred_scope_status_t status;
         scope_ipc_status(&status);
@@ -4905,8 +6286,16 @@ int skode_function(ands_t *s, int info) {
           ctx->printf(ctx, "# scope state=stopped\n");
         }
       }
-      break;
-    case ATOM4('/rg-'): // start multitrack file recording
+      return 0;
+}
+static skode_word_t word__slashs_q = { WID("/s?"), .execute = word_exec__slashs_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashrg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         const char *filename = ands_string(ctx->parse);
         double max_seconds = argc ? arg[0] : 0.0;
@@ -4925,15 +6314,31 @@ int skode_function(ands_t *s, int info) {
           ctx->printf(ctx, "# recording start failed [%s]\n", filename);
         }
       }
-      break;
-    case ATOM4('/rs-'): // stop multitrack file recording
+      return 0;
+}
+static skode_word_t word__slashrg = { WID("/rg"), .execute = word_exec__slashrg, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashrs(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (recorder_stop() == 0) {
         ctx->printf(ctx, "# recording stopped\n");
       } else {
         ctx->printf(ctx, "# recording stop failed\n");
       }
-      break;
-    case ATOM4('/r?-'): // multitrack file recording status
+      return 0;
+}
+static skode_word_t word__slashrs = { WID("/rs"), .execute = word_exec__slashrs, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashr_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         const char *state = "unknown";
         switch (recorder_state()) {
@@ -4947,56 +6352,96 @@ int skode_function(ands_t *s, int info) {
                     (unsigned long long)recorder_frames_written(),
                     (unsigned long long)recorder_dropped_frames());
       }
-      break;
-    case ATOM4('/r--'): // sample-to-wave slot one_shot channel
+      return 0;
+}
+static skode_word_t word__slashr_q = { WID("/r?"), .execute = word_exec__slashr_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int wave_slot = EXT_SAMPLE_000;
         int one_shot = 1;
         int channel = -1;
-        if (argc && !skode_double_to_int(arg[0], &wave_slot)) break;
+        if (argc && !skode_double_to_int(arg[0], &wave_slot)) return 0;
         if (argc > 1 &&
             (!skode_double_to_int(arg[1], &one_shot) ||
              (one_shot != 0 && one_shot != 1))) {
           ctx->printf(ctx, "# /r mode must be 0=cycle or 1=one-shot\n");
-          break;
+          return 0;
         }
-        if (argc > 2 && !skode_double_to_int(arg[2], &channel)) break;
+        if (argc > 2 && !skode_double_to_int(arg[2], &channel)) return 0;
         if (argc > 3) {
           ctx->printf(ctx, "# usage: /r slot[,mode[,channel]]\n");
-          break;
+          return 0;
         }
         rec_load(ctx, wave_slot, one_shot, channel);
       }
-      break;
+      return 0;
                         //              x/0  1     2        3
                         //              300  rate one-shot offset
-    case ATOM4('/d--'): // data-to-wave slot rate  one-shot offset
+}
+static skode_word_t word__slashr = { WID("/r"), .execute = word_exec__slashr, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int wave_slot = EXT_SAMPLE_000;
         int one_shot = 0;
         float rate = (float)MAIN_SAMPLE_RATE;
         float offset = 0.0;
-        if (argc && !skode_double_to_int(arg[0], &wave_slot)) break;
+        if (argc && !skode_double_to_int(arg[0], &wave_slot)) return 0;
         if (argc > 1) rate = arg[1];
         if (argc > 2) skode_double_to_int(arg[2], &one_shot);
         if (argc > 3) offset = arg[3];
         data_load(ctx, wave_slot, one_shot, rate, offset);
       }
-      break;
-    case ATOM4('/f--'): // flag-mode num
+      return 0;
+}
+static skode_word_t word__slashd = { WID("/d"), .execute = word_exec__slashd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashf(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) { ctx->flag = x; }
       else { ctx->printf(ctx, "# /f%d\n", ctx->flag); }
-      break;
-    case ATOM4('/ff-'): // foreign C function slot arg...
+      return 0;
+}
+static skode_word_t word__slashf = { WID("/f"), .execute = word_exec__slashf, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashff(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
-        if (!argc) break;
+        if (!argc) return 0;
         int index;
         if (!skode_double_to_int(arg[0], &index) ||
-            index < 0 || index >= SKRED_FOREIGN_FUNCTION_MAX) break;
+            index < 0 || index >= SKRED_FOREIGN_FUNCTION_MAX) return 0;
         (void)skode_foreign_function(ctx, index, arg + 1, argc - 1);
       }
-      break;
-    case ATOM4('/m--'): // remove-ands-macro [name]
+      return 0;
+}
+static skode_word_t word__slashff = { WID("/ff"), .execute = word_exec__slashff, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashm(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : "";
         if (name && name[0]) {
@@ -5006,35 +6451,99 @@ int skode_function(ands_t *s, int info) {
           ctx->printf(ctx, "# /m requires [name]\n");
         }
       }
-      break;
-    case ATOM4('/m!-'): // clear-ands-macros
+      return 0;
+}
+static skode_word_t word__slashm = { WID("/m"), .execute = word_exec__slashm, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashm_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_macro_clear(ctx->parse);
       ctx->printf(ctx, "# macros cleared\n");
-      break;
-    case ATOM4('/t--'): // trace-mode num
+      return 0;
+}
+static skode_word_t word__slashm_bang = { WID("/m!"), .execute = word_exec__slashm_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slasht(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) x = (ctx->trace) ? 0 : 1;
       ctx->trace = x;
       ands_trace_set(s, x > 1);
-      break;
-    case ATOM4('/v--'): // verbose-mode num
+      return 0;
+}
+static skode_word_t word__slasht = { WID("/t"), .execute = word_exec__slasht, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashv(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) x = (ctx->verbose) ? 0 : 1;
       ctx->verbose = x;
-      break;
-    case ATOM4('/cer'): // control-event responder bool
+      return 0;
+}
+static skode_word_t word__slashv = { WID("/v"), .execute = word_exec__slashv, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashcer(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x_valid) skred_control_response_set_enabled(x != 0);
       ctx->printf(ctx, "%s", skred_control_response_status());
-      break;
-    case ATOM4('/ce?'): // control-event responder status
+      return 0;
+}
+static skode_word_t word__slashcer = { WID("/cer"), .execute = word_exec__slashcer, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashce_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_control_response_status());
-      break;
-    case ATOM4('/th?'): // skred service/thread health
+      return 0;
+}
+static skode_word_t word__slashce_q = { WID("/ce?"), .execute = word_exec__slashce_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashth_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_thread_status());
-      break;
-    case ATOM4('/th!'): // reset skred performance counters and peak load tracking
+      return 0;
+}
+static skode_word_t word__slashth_q = { WID("/th?"), .execute = word_exec__slashth_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashth_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skred_performance_reset();
       ctx->printf(ctx, "# performance counters reset\n");
-      break;
-    case ATOM4('/ce!'): // control-event responder remove/clear
+      return 0;
+}
+static skode_word_t word__slashth_bang = { WID("/th!"), .execute = word_exec__slashth_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashce_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         skred_control_response_clear();
         ctx->printf(ctx, "# ce bindings cleared\n");
@@ -5045,8 +6554,16 @@ int skode_function(ands_t *s, int info) {
           ctx->printf(ctx, "# ce bindings removed %d\n", removed);
         }
       }
-      break;
-    case ATOM4('/ceb'): // bind parser string to control event type key
+      return 0;
+}
+static skode_word_t word__slashce_bang = { WID("/ce!"), .execute = word_exec__slashce_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashceb(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x_valid && ands_string_len(ctx->parse) > 0) {
         int key;
         if (skode_double_to_int(arg[1], &key) &&
@@ -5060,8 +6577,16 @@ int skode_function(ands_t *s, int info) {
       } else {
         ctx->printf(ctx, "# usage: [skode-command] /ceb type key\n");
       }
-      break;
-    case ATOM4('/cex'): // bind external string slot to control event type key
+      return 0;
+}
+static skode_word_t word__slashceb = { WID("/ceb"), .execute = word_exec__slashceb, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashcex(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2 && x_valid) {
         int index, type, key;
         char command[STRING_BUF_LEN];
@@ -5078,20 +6603,44 @@ int skode_function(ands_t *s, int info) {
       } else {
         ctx->printf(ctx, "# usage: /cex external type key\n");
       }
-      break;
-    case ATOM4('<s--'): // parser-local string slot to parser string
+      return 0;
+}
+static skode_word_t word__slashcex = { WID("/cex"), .execute = word_exec__slashcex, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__lts(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x_valid && x >= 0 && x < SKODE_STRING_SLOT_MAX) {
         ands_string_from_external(ctx->parse, ctx->string_slot[x],
                                   strlen(ctx->string_slot[x]));
       }
-      break;
-    case ATOM4('s>--'): // parser string to parser-local string slot
+      return 0;
+}
+static skode_word_t word__lts = { WID("<s"), .execute = word_exec__lts, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_s_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x_valid && x >= 0 && x < SKODE_STRING_SLOT_MAX) {
         skode_copy_string(ctx->string_slot[x], SKODE_STRING_SLOT_LEN,
                           ands_string(ctx->parse));
       }
-      break;
-    case ATOM4('s%--'): // format parser string with numeric args
+      return 0;
+}
+static skode_word_t word_s_gt = { WID("s>"), .execute = word_exec_s_gt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_s_pct(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         char formatted[SKODE_STRING_SLOT_LEN];
         skode_format_string_args(formatted, sizeof(formatted),
@@ -5099,22 +6648,46 @@ int skode_function(ands_t *s, int info) {
         ands_string_from_external(ctx->parse, formatted, strlen(formatted));
         return 1;
       }
-    case ATOM4('<e--'): // external-string-to-skode external-index
+}
+static skode_word_t word_s_pct = { WID("s%"), .execute = word_exec_s_pct, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__lte(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && skode_extra_valid(x)) {
         char macro[STRING_BUF_LEN];
         if (skode_extra_copy(x, macro, sizeof(macro)) == 0)
           ands_string_from_external(ctx->parse, macro, strlen(macro));
       }
-      break;
-    case ATOM4('e>--'): // skode-string-to-external external-index
+      return 0;
+}
+static skode_word_t word__lte = { WID("<e"), .execute = word_exec__lte, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_e_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && skode_extra_valid(x)) {
         char *s = ands_string(ctx->parse);
         simple_mutex_lock(&skode_extra_mutex);
         skode_copy_string(EXTRA_PTR(x), STRING_BUF_LEN, s);
         simple_mutex_unlock(&skode_extra_mutex);
       }
-      break;
-    case ATOM4('e!--'): // execute-string num
+      return 0;
+}
+static skode_word_t word_e_gt = { WID("e>"), .execute = word_exec_e_gt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_e_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         char macro[STRING_BUF_LEN] = "";
         const char *s = "";
@@ -5125,14 +6698,22 @@ int skode_function(ands_t *s, int info) {
         }
         if (s[0] != '\0') {
           event_program_t program;
-          if (!skode_compile_scheduled(ctx, s, &program)) break;
+          if (!skode_compile_scheduled(ctx, s, &program)) return 0;
           uint64_t now = SAMPLE_COUNT_GET();
           int tag = 0;
           skode_queue_program(&program, voice, now, tag);
         }
       }
-      break;
-    case ATOM4('e?--'): // show-execute-string [num]
+      return 0;
+}
+static skode_word_t word_e_bang = { WID("e!"), .execute = word_exec_e_bang, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_e_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       simple_mutex_lock(&skode_extra_mutex);
       if (argc) {
         if (skode_extra_valid(x)) ctx->printf(ctx, "# [%s] e>%d\n", EXTRA_PTR(x), x);
@@ -5143,8 +6724,16 @@ int skode_function(ands_t *s, int info) {
         }
       }
       simple_mutex_unlock(&skode_extra_mutex);
-      break;
-    case ATOM4('/s--'): // system-show num
+      return 0;
+}
+static skode_word_t word_e_q = { WID("e?"), .execute = word_exec_e_q, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashs(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         if (argc == 0) {
           system_show(ctx);
@@ -5166,18 +6755,42 @@ int skode_function(ands_t *s, int info) {
           }
         }
       }
-      break;
-    case ATOM4('/h--'): // show command help
+      return 0;
+}
+static skode_word_t word__slashs = { WID("/s"), .execute = word_exec__slashs, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashh(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skode_help(ctx, arg, argc);
-      break;
-    case ATOM4('/l--'): // skode-load num
+      return 0;
+}
+static skode_word_t word__slashh = { WID("/h"), .execute = word_exec__slashh, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashl(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int verbose = 0;
         if (argc > 1) skode_double_to_int(arg[1], &verbose);
         skode_load(ctx, voice, x, verbose);
       }
-      break;
-    case ATOM4('/ls-'): // skode-load-string filename
+      return 0;
+}
+static skode_word_t word__slashl = { WID("/l"), .execute = word_exec__slashl, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashls(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (strlen(ands_string(ctx->parse))) {
         int verbose = 0;
         if (argc > 0) skode_double_to_int(arg[0], &verbose);
@@ -5185,15 +6798,23 @@ int skode_function(ands_t *s, int info) {
       } else {
         ctx->printf(ctx, "# /ls requires [filename]\n");
       }
-      break;
-    case ATOM4('/ws-'): // wave-load-string wave channel
+      return 0;
+}
+static skode_word_t word__slashls = { WID("/ls"), .execute = word_exec__slashls, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashws(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# [%s] /ws\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
         char *file_name = ands_string(ctx->parse);
         int wave_slot = EXT_SAMPLE_000;
         int ch = -1;
         if (argc >= 1) {
-          if (!skode_double_to_int(arg[0], &wave_slot)) break;
+          if (!skode_double_to_int(arg[0], &wave_slot)) return 0;
           if (argc > 1) {
             if (!skode_double_to_int(arg[1], &ch)) ch = -1;
           }
@@ -5201,24 +6822,40 @@ int skode_function(ands_t *s, int info) {
         ctx->printf(ctx, "# [%s] /ws %d %d\n", ands_string(ctx->parse), wave_slot, ch);
         wave_load_string(ctx, file_name, wave_slot, ch, 1);
       }
-      break;
-    case ATOM4('/w--'): // wave-load num wave channel
+      return 0;
+}
+static skode_word_t word__slashws = { WID("/ws"), .execute = word_exec__slashws, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int file_num = 0;
         int wave_slot = EXT_SAMPLE_000;
         int ch = -1;
         if (argc >= 2) {
           if (!skode_double_to_int(arg[0], &file_num) ||
-              !skode_double_to_int(arg[1], &wave_slot)) break;
+              !skode_double_to_int(arg[1], &wave_slot)) return 0;
           if (argc > 2 && !skode_double_to_int(arg[2], &ch)) ch = -1;
         } else if (argc == 1) {
-          if (!skode_double_to_int(arg[0], &file_num)) break;
+          if (!skode_double_to_int(arg[0], &file_num)) return 0;
           wave_slot = EXT_SAMPLE_000;
         }
         if (argc) wave_load(ctx, file_num, wave_slot, ch, 1);
       }
-      break;
-    case ATOM4('>r--'): // record to file
+      return 0;
+}
+static skode_word_t word__slashw = { WID("/w"), .execute = word_exec__slashw, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!ands_string_fresh(ctx->parse) ||
           !ands_string(ctx->parse)[0]) {
         ctx->printf(ctx, "# >r requires [filename]\n");
@@ -5233,31 +6870,48 @@ int skode_function(ands_t *s, int info) {
                           MAIN_SAMPLE_RATE, 1);
         }
       }
-      break;
-    case ATOM4('^r--'): // record duration ... markdown/html doesn't like <
-    case ATOM4('<r--'): // record duration source voice
+      return 0;
+}
+static skode_word_t word__gtr = { WID(">r"), .execute = word_exec__gtr, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__hatr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+
+}
+static skode_word_t word__hatr = { WID("^r"), .execute = word_exec__hatr, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__ltr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && isfinite(arg[0]) && arg[0] > 0.0 &&
           arg[0] <= (double)(INT_MAX / AUDIO_CHANNELS) / MAIN_SAMPLE_RATE) {
         int source = SAMPLE_SOURCE_DRY;
         int sample_voice = -1;
         if (argc > 1 && !skode_double_to_int(arg[1], &source)) {
           ctx->printf(ctx, "# <r source must be 0=dry, 1=voice, or 2=master\n");
-          break;
+          return 0;
         }
         if (source < SAMPLE_SOURCE_DRY || source > SAMPLE_SOURCE_MASTER) {
           ctx->printf(ctx, "# <r source must be 0=dry, 1=voice, or 2=master\n");
-          break;
+          return 0;
         }
         if (source == SAMPLE_SOURCE_VOICE) {
           if (argc != 3 ||
               !skode_double_to_int(arg[2], &sample_voice) ||
               !skode_voice_valid(sample_voice)) {
             ctx->printf(ctx, "# usage: <r seconds,1,voice\n");
-            break;
+            return 0;
           }
         } else if (argc > 2) {
           ctx->printf(ctx, "# usage: <r seconds[,source[,voice]]\n");
-          break;
+          return 0;
         }
         if (!skode_sample_go((int)(arg[0] * (double)MAIN_SAMPLE_RATE),
                              source, sample_voice)) {
@@ -5271,21 +6925,53 @@ int skode_function(ands_t *s, int info) {
                     state == SAMPLE_STATE_COMPLETE ? sampling.len : 0,
                     sampling.channels);
       }
-      break;
-    case ATOM4('>---'): // copy-voice dest-voice
+      return 0;
+}
+static skode_word_t word__ltr = { WID("<r"), .execute = word_exec__ltr, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (x_valid && skode_voice_valid(x)) voice_copy(voice, x);
-      break;
-    case ATOM4('/---'): // default-wave voice
+      return 0;
+}
+static skode_word_t word__gt = { WID(">"), .execute = word_exec__gt, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slash(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       wave_default(voice);
-      break;
-    case ATOM4('%---'): // pattern-modulus num
+      return 0;
+}
+static skode_word_t word__slash = { WID("/"), .execute = word_exec__slash, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__pct(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) seq_modulo_set(ctx->pattern, x);
-      break;
-    case ATOM4('W*--'):  // get a wavetable parameter to a variable
+      return 0;
+}
+static skode_word_t word__pct = { WID("%"), .execute = word_exec__pct, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_W_star(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x_valid && skode_wave_valid(x)) {
         int wave = x;
         int param;
-        if (!skode_double_to_int(arg[1], &param)) break;
+        if (!skode_double_to_int(arg[1], &param)) return 0;
         double val = 0.0;
         switch (param) {
           case 0: // wavetable size
@@ -5318,8 +7004,16 @@ int skode_function(ands_t *s, int info) {
           return 1;
         }
       }
-      break;
-    case ATOM4('v*--'):  // get a voice parameter to a variable
+      return 0;
+}
+static skode_word_t word_W_star = { WID("W*"), .execute = word_exec_W_star, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_v_star(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         double val = 0.0;
         switch (x) {
@@ -5347,8 +7041,16 @@ int skode_function(ands_t *s, int info) {
           return 1;
         }
       }
-      break;
-    case ATOM4('*=--'):  // variable-times-equal slot val0 val1
+      return 0;
+}
+static skode_word_t word_v_star = { WID("v*"), .execute = word_exec_v_star, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__star_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2) {
         double val = arg[1] * arg[2];
         ands_set_local(ctx->parse, x, val);
@@ -5356,8 +7058,16 @@ int skode_function(ands_t *s, int info) {
         ands_arg_push(s, val);
         return 1;
       }
-      break;
-    case ATOM4('/=--'):  // variable-divide-equal slot val0 val1
+      return 0;
+}
+static skode_word_t word__star_eq = { WID("*="), .execute = word_exec__star_eq, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slash_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2 && arg[2] != 0.0) {
         double val = arg[1] / arg[2];
         ands_set_local(ctx->parse, x, val);
@@ -5365,8 +7075,16 @@ int skode_function(ands_t *s, int info) {
         ands_arg_push(s, val);
         return 1;
       }
-      break;
-    case ATOM4('a=--'):  // variable-plus-equal slot val0 val1
+      return 0;
+}
+static skode_word_t word__slash_eq = { WID("/="), .execute = word_exec__slash_eq, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_a_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2) {
         double val = arg[1] + arg[2];
         ands_set_local(ctx->parse, x, val);
@@ -5374,8 +7092,16 @@ int skode_function(ands_t *s, int info) {
         ands_arg_push(s, val);
         return 1;
       }
-      break;
-    case ATOM4('s=--'):  // variable-sub-equal slot val0 val1
+      return 0;
+}
+static skode_word_t word_a_eq = { WID("a="), .execute = word_exec_a_eq, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec_s_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2) {
         double val = arg[1] - arg[2];
         ands_set_local(ctx->parse, x, val);
@@ -5383,8 +7109,16 @@ int skode_function(ands_t *s, int info) {
         ands_arg_push(s, val);
         return 1;
       }
-      break;
-    case ATOM4('=---'):  // variable-set slot value
+      return 0;
+}
+static skode_word_t word_s_eq = { WID("s="), .execute = word_exec_s_eq, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__eq(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1) {
         ands_set_local(ctx->parse, x, arg[1]);
         ands_arg_clear(s);
@@ -5404,11 +7138,27 @@ int skode_function(ands_t *s, int info) {
           if (f != 0.0) ctx->printf(ctx, "# $%d %g\n", i, f);
         }
       }
-      break;
-    case ATOM4('/wex'): // wave-expand wave
+      return 0;
+}
+static skode_word_t word__eq = { WID("="), .execute = word_exec__eq, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__slashwex(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x >= 200 && x <=999) wave_table_dynamic_expand(x);
-      break;
-    case ATOM4('%z--'): // mount zip-or-directory asset root
+      return 0;
+}
+static skode_word_t word__slashwex = { WID("/wex"), .execute = word_exec__slashwex, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__pctz(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (strlen(ands_string(ctx->parse))) {
         if (skred_vfs_mount(ands_string(ctx->parse)))
           ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
@@ -5417,15 +7167,39 @@ int skode_function(ands_t *s, int info) {
       } else {
         ctx->printf(ctx, "# %%z requires [zip-or-directory]\n");
       }
-      break;
-    case ATOM4('%zu-'): // unmount zip asset root
+      return 0;
+}
+static skode_word_t word__pctz = { WID("%z"), .execute = word_exec__pctz, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__pctzu(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skred_vfs_unmount();
       ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
-      break;
-    case ATOM4('%pwd'): // show vfs working directory
+      return 0;
+}
+static skode_word_t word__pctzu = { WID("%zu"), .execute = word_exec__pctzu, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__pctpwd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
-      break;
-    case ATOM4('%cat'): // print a text file
+      return 0;
+}
+static skode_word_t word__pctpwd = { WID("%pwd"), .execute = word_exec__pctpwd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__pctcat(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (strlen(ands_string(ctx->parse))) {
         void *data = NULL;
         size_t size = 0;
@@ -5455,16 +7229,32 @@ int skode_function(ands_t *s, int info) {
           skred_vfs_free_file(data);
         }
       }
-      break;
-    case ATOM4('%cd-'): // change directory
+      return 0;
+}
+static skode_word_t word__pctcat = { WID("%cat"), .execute = word_exec__pctcat, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__pctcd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# [%s] %%cd\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
         if (!skred_chdir(ands_string(ctx->parse)))
           ctx->printf(ctx, "# cannot cd %s\n", ands_string(ctx->parse));
       }
       ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
-      break;
-    case ATOM4('%ls-'): // list directory (match-type) (index)
+      return 0;
+}
+static skode_word_t word__pctcd = { WID("%cd"), .execute = word_exec__pctcd, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__pctls(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
       /*
           types
@@ -5538,16 +7328,487 @@ int skode_function(ands_t *s, int info) {
           skred_closedir(dp);
         }
       }
-      break;
-    default:
-      ctx->printf(ctx, "# unknown atom\n");
-      if (ctx->trace) {
-        ctx->printf(ctx, "# SKODE_UNKNOWN_FUNCTION %d [%x] :: %d", info, atom, argc);
-        ctx->printf(ctx, " v%d", ctx->voice);
-        ctx->puts(ctx, "");
-      }
-      break;
+      return 0;
+}
+static skode_word_t word__pctls = { WID("%ls"), .execute = word_exec__pctls, .safety = WORD_IMMEDIATE_ONLY };
+
+void skode_register_immediate_words(skode_vocab_t *vocab) {
+  skode_dict_register(vocab, &word__slashals);
+
+  skode_dict_register(vocab, &word__slasha_q);
+
+  skode_dict_register(vocab, &word__slashai);
+  skode_dict_register(vocab, &word__slashao);
+
+  skode_dict_register(vocab, &word__slashmL);
+
+  skode_dict_register(vocab, &word__slashm_q);
+
+  skode_dict_register(vocab, &word__slashmi);
+  skode_dict_register(vocab, &word__slashmo);
+
+  skode_dict_register(vocab, &word__slashmd);
+
+  skode_dict_register(vocab, &word__slashmiV);
+  skode_dict_register(vocab, &word__slashmoV);
+
+  skode_dict_register(vocab, &word__slashmic);
+
+  skode_dict_register(vocab, &word__slashmoc);
+
+  skode_dict_register(vocab, &word__slashmv);
+  skode_dict_register(vocab, &word__slashmp);
+
+  skode_dict_register(vocab, &word__slashmvd);
+  skode_dict_register(vocab, &word__slashmpd);
+
+  skode_dict_register(vocab, &word__slashmR);
+
+  skode_dict_register(vocab, &word__slashmC);
+
+  skode_dict_register(vocab, &word__slashmb);
+
+  skode_dict_register(vocab, &word__slashmbd);
+
+  skode_dict_register(vocab, &word__slashmb_q);
+
+  skode_dict_register(vocab, &word__slashmbC);
+
+  skode_dict_register(vocab, &word__slashpg);
+
+  skode_dict_register(vocab, &word__slashpg_bang);
+
+  skode_dict_register(vocab, &word__slashpp);
+
+  skode_dict_register(vocab, &word__slashpp_bang);
+
+  skode_dict_register(vocab, &word__slashpm);
+
+  skode_dict_register(vocab, &word__qpg);
+
+  skode_dict_register(vocab, &word__qpp);
+
+  skode_dict_register(vocab, &word__slashvg);
+
+  skode_dict_register(vocab, &word_pn);
+
+  skode_dict_register(vocab, &word_pr);
+
+  skode_dict_register(vocab, &word_pb);
+
+  skode_dict_register(vocab, &word_wait);
+
+  skode_dict_register(vocab, &word_clr);
+
+  skode_dict_register(vocab, &word_drop);
+
+  skode_dict_register(vocab, &word_dup);
+
+  skode_dict_register(vocab, &word_over);
+
+  skode_dict_register(vocab, &word_rot);
+
+  skode_dict_register(vocab, &word_swap);
+
+
+
+  skode_dict_register(vocab, &word_A);
+
+  skode_dict_register(vocab, &word_b);
+
+  skode_dict_register(vocab, &word_B);
+
+  skode_dict_register(vocab, &word_BC);
+
+  skode_dict_register(vocab, &word_c);
+
+  skode_dict_register(vocab, &word_C);
+
+  skode_dict_register(vocab, &word_ct);
+
+  skode_dict_register(vocab, &word_cd);
+
+  skode_dict_register(vocab, &word_D);
+
+  skode_dict_register(vocab, &word_MO);
+
+  skode_dict_register(vocab, &word_ce);
+
+  skode_dict_register(vocab, &word__qd);
+
+
+
+  skode_dict_register(vocab, &word_ft);
+
+  skode_dict_register(vocab, &word_fd);
+
+  skode_dict_register(vocab, &word_F);
+
+  skode_dict_register(vocab, &word_FF);
+
+  skode_dict_register(vocab, &word_FB);
+
+  skode_dict_register(vocab, &word_g);
+
+  skode_dict_register(vocab, &word_G);
+
+  skode_dict_register(vocab, &word_h);
+
+  skode_dict_register(vocab, &word_H);
+
+  skode_dict_register(vocab, &word__slashD);
+
+  skode_dict_register(vocab, &word_I);
+
+  skode_dict_register(vocab, &word_L);
+
+  skode_dict_register(vocab, &word_J);
+
+  skode_dict_register(vocab, &word_K);
+
+  skode_dict_register(vocab, &word__slashks);
+
+  skode_dict_register(vocab, &word__slashk);
+
+  skode_dict_register(vocab, &word_ks);
+
+  skode_dict_register(vocab, &word_k_bang);
+
+  skode_dict_register(vocab, &word_kw);
+
+  skode_dict_register(vocab, &word_kw_gt);
+
+  skode_dict_register(vocab, &word_k_q);
+
+  skode_dict_register(vocab, &word_k_gtd);
+
+  skode_dict_register(vocab, &word_k_gtw);
+
+  skode_dict_register(vocab, &word_k);
+
+  skode_dict_register(vocab, &word_udp);
+
+  skode_dict_register(vocab, &word_log);
+
+  skode_dict_register(vocab, &word____l);
+
+  skode_dict_register(vocab, &word_l);
+
+  skode_dict_register(vocab, &word_M);
+
+  skode_dict_register(vocab, &word_N);
+
+  skode_dict_register(vocab, &word_ds);
+
+  skode_dict_register(vocab, &word_DG);
+
+  skode_dict_register(vocab, &word_DL);
+
+  skode_dict_register(vocab, &word_DL_q);
+
+  skode_dict_register(vocab, &word_DD);
+
+  skode_dict_register(vocab, &word_DF);
+
+  skode_dict_register(vocab, &word_DP);
+
+  skode_dict_register(vocab, &word_DT);
+
+  skode_dict_register(vocab, &word_DS);
+
+  skode_dict_register(vocab, &word_GS);
+
+  skode_dict_register(vocab, &word_GS_gt);
+
+  skode_dict_register(vocab, &word_GS_lt);
+
+  skode_dict_register(vocab, &word_P);
+
+  skode_dict_register(vocab, &word_q);
+
+  skode_dict_register(vocab, &word_Q);
+
+  skode_dict_register(vocab, &word_r);
+
+  skode_dict_register(vocab, &word_rt);
+
+  skode_dict_register(vocab, &word_rv);
+
+  skode_dict_register(vocab, &word_R_bang);
+
+  skode_dict_register(vocab, &word_R_bang_bang);
+
+  skode_dict_register(vocab, &word_RR);
+
+  skode_dict_register(vocab, &word_eRR);
+
+  skode_dict_register(vocab, &word_eR);
+
+  skode_dict_register(vocab, &word_DO_q);
+
+  skode_dict_register(vocab, &word_R);
+
+  skode_dict_register(vocab, &word_s);
+
+  skode_dict_register(vocab, &word_S);
+
+  skode_dict_register(vocab, &word_t);
+
+  skode_dict_register(vocab, &word_T);
+
+  skode_dict_register(vocab, &word_vc);
+
+  skode_dict_register(vocab, &word_V);
+
+  skode_dict_register(vocab, &word_vt);
+
+  skode_dict_register(vocab, &word_wt);
+
+  skode_dict_register(vocab, &word_WL);
+
+  skode_dict_register(vocab, &word_VS);
+
+  skode_dict_register(vocab, &word_VL);
+
+  skode_dict_register(vocab, &word_VW);
+
+  skode_dict_register(vocab, &word_w);
+
+  skode_dict_register(vocab, &word__eqd);
+
+  skode_dict_register(vocab, &word_d_star);
+
+  skode_dict_register(vocab, &word_d_gtr);
+
+  skode_dict_register(vocab, &word_r_gtd);
+
+  skode_dict_register(vocab, &word_d_gtMO);
+
+  skode_dict_register(vocab, &word_d_gtk);
+
+  skode_dict_register(vocab, &word_w_gtk);
+
+  skode_dict_register(vocab, &word_w_gtd);
+
+  skode_dict_register(vocab, &word_w_gtr);
+
+  skode_dict_register(vocab, &word_w_gtw);
+
+  skode_dict_register(vocab, &word_w_bang);
+
+  skode_dict_register(vocab, &word_w_star);
+
+  skode_dict_register(vocab, &word_w_gt);
+
+  skode_dict_register(vocab, &word_w_lt);
+
+  skode_dict_register(vocab, &word_w_lt_gt);
+
+  skode_dict_register(vocab, &word_WS);
+
+  skode_dict_register(vocab, &word_W);
+
+  skode_dict_register(vocab, &word_xg);
+
+  skode_dict_register(vocab, &word__gtx);
+
+  skode_dict_register(vocab, &word_xa);
+
+  skode_dict_register(vocab, &word__ltx);
+
+  skode_dict_register(vocab, &word_x);
+
+  skode_dict_register(vocab, &word_y);
+
+  skode_dict_register(vocab, &word_ys_q);
+  skode_dict_register(vocab, &word_ys);
+
+  skode_dict_register(vocab, &word_yt);
+
+  skode_dict_register(vocab, &word_ym);
+
+  skode_dict_register(vocab, &word_yc);
+
+  skode_dict_register(vocab, &word_Y);
+
+  skode_dict_register(vocab, &word_z);
+
+  skode_dict_register(vocab, &word_zg);
+
+  skode_dict_register(vocab, &word_zq);
+
+  skode_dict_register(vocab, &word_z_q);
+
+  skode_dict_register(vocab, &word_Z);
+
+  skode_dict_register(vocab, &word_z_q_bs_q);
+
+  skode_dict_register(vocab, &word_Z_q);
+
+  skode_dict_register(vocab, &word_XM);
+
+  skode_dict_register(vocab, &word_v_q);
+
+  skode_dict_register(vocab, &word__q);
+
+  skode_dict_register(vocab, &word__bs_bs);
+
+  skode_dict_register(vocab, &word_v_q_bs_q);
+
+  skode_dict_register(vocab, &word__q_bs_q);
+
+  skode_dict_register(vocab, &word__qr);
+
+  skode_dict_register(vocab, &word__qs);
+
+  skode_dict_register(vocab, &word_s_q);
+
+  skode_dict_register(vocab, &word__qm);
+
+  skode_dict_register(vocab, &word__qce);
+
+  skode_dict_register(vocab, &word__qce_bang);
+
+  skode_dict_register(vocab, &word__qq);
+
+  skode_dict_register(vocab, &word__qo);
+
+
+  skode_dict_register(vocab, &word__slashq);
+
+  skode_dict_register(vocab, &word__slashsg);
+
+  skode_dict_register(vocab, &word__slashss);
+
+  skode_dict_register(vocab, &word__slashs_q);
+
+  skode_dict_register(vocab, &word__slashrg);
+
+  skode_dict_register(vocab, &word__slashrs);
+
+  skode_dict_register(vocab, &word__slashr_q);
+
+  skode_dict_register(vocab, &word__slashr);
+
+  skode_dict_register(vocab, &word__slashd);
+
+  skode_dict_register(vocab, &word__slashf);
+
+  skode_dict_register(vocab, &word__slashff);
+
+  skode_dict_register(vocab, &word__slashm);
+
+  skode_dict_register(vocab, &word__slashm_bang);
+
+  skode_dict_register(vocab, &word__slasht);
+
+  skode_dict_register(vocab, &word__slashv);
+
+  skode_dict_register(vocab, &word__slashcer);
+
+  skode_dict_register(vocab, &word__slashce_q);
+
+  skode_dict_register(vocab, &word__slashth_q);
+
+  skode_dict_register(vocab, &word__slashth_bang);
+
+  skode_dict_register(vocab, &word__slashce_bang);
+
+  skode_dict_register(vocab, &word__slashceb);
+
+  skode_dict_register(vocab, &word__slashcex);
+
+  skode_dict_register(vocab, &word__lts);
+
+  skode_dict_register(vocab, &word_s_gt);
+
+  skode_dict_register(vocab, &word_s_pct);
+
+  skode_dict_register(vocab, &word__lte);
+
+  skode_dict_register(vocab, &word_e_gt);
+
+  skode_dict_register(vocab, &word_e_bang);
+
+  skode_dict_register(vocab, &word_e_q);
+
+  skode_dict_register(vocab, &word__slashs);
+
+  skode_dict_register(vocab, &word__slashh);
+
+  skode_dict_register(vocab, &word__slashl);
+
+  skode_dict_register(vocab, &word__slashls);
+
+  skode_dict_register(vocab, &word__slashws);
+
+  skode_dict_register(vocab, &word__slashw);
+
+  skode_dict_register(vocab, &word__gtr);
+
+  skode_dict_register(vocab, &word__hatr);
+
+  skode_dict_register(vocab, &word__ltr);
+
+  skode_dict_register(vocab, &word__gt);
+
+  skode_dict_register(vocab, &word__slash);
+
+  skode_dict_register(vocab, &word__pct);
+
+  skode_dict_register(vocab, &word_W_star);
+
+  skode_dict_register(vocab, &word_v_star);
+
+  skode_dict_register(vocab, &word__star_eq);
+
+  skode_dict_register(vocab, &word__slash_eq);
+
+  skode_dict_register(vocab, &word_a_eq);
+
+  skode_dict_register(vocab, &word_s_eq);
+
+  skode_dict_register(vocab, &word__eq);
+
+  skode_dict_register(vocab, &word__slashwex);
+
+  skode_dict_register(vocab, &word__pctz);
+
+  skode_dict_register(vocab, &word__pctzu);
+
+  skode_dict_register(vocab, &word__pctpwd);
+
+  skode_dict_register(vocab, &word__pctcat);
+
+  skode_dict_register(vocab, &word__pctcd);
+
+  skode_dict_register(vocab, &word__pctls);
+
+}
+int skode_function(ands_t *s, int info) {
+  uint32_t atom = ands_atom_num(s);
+  int argc = ands_arg_len(s);
+  skode_t *ctx = (skode_t*)ands_user(s);
+  double *arg = ands_arg(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  if (ctx->trace) {
+    ctx->printf(ctx, "# SKODE_FUNCTION ");
+    ctx->printf(ctx, "%s", ands_atom_string(s));
+    if (argc) {
+      for (int i=0; i<argc; i++) ctx->printf(ctx, " %g", arg[i]);
+    }
+    ctx->puts(ctx, "");
   }
+  int dict_result;
+  if (skode_execute_word(ctx, s, atom, arg, argc, &dict_result))
+    return dict_result;
+  switch (atom) {
+  default:
+    ctx->printf(ctx, "# SKODE_UNKNOWN_FUNCTION %d [%x] :: %d", info, atom, argc);
+    break;
+}
   return 0;
 }
 

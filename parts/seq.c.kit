@@ -116,7 +116,6 @@ uint64_t seq_master_tick(void) {
   return tick;
 }
 
-@if(BENCH)
 #include "util.h"
 
 static sben_t bench[BENLEN] = {};
@@ -137,11 +136,6 @@ char *seq_stats(void) {
   }
   return _stats;
 }
-@else
-char *seq_stats(void) {
-  return "";
-}
-@endif
 
 static int pattern_length_compute(int p) {
   for (int s = SEQ_STEPS_MAX - 1; s >= 0; s--) {
@@ -316,16 +310,12 @@ void seq(uint64_t now, void (*event_fn)(const event_t *event),
   struct timespec ts1, ts2;
   clock_gettime(CLOCK_MONOTONIC, &ts1);
 
-  @if(BENCH)
-  BEN_MARK_A(bench, benchp, frame_count, bencho);
-  @endif
+  BEN_MARK_A(bench, benchp, 0, bencho);
 
   do_event(now, event_fn);
   do_pattern(now, program_fn);
 
-  @if(BENCH)
   BEN_MARK_B(bench, benchp, bencho);
-  @endif
 
   clock_gettime(CLOCK_MONOTONIC, &ts2);
   uint64_t ns = (uint64_t)(ts2.tv_sec - ts1.tv_sec) * 1000000000ULL + (uint64_t)(ts2.tv_nsec - ts1.tv_nsec);

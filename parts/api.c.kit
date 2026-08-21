@@ -34,18 +34,14 @@
 #include "polyphony.h"
 #include "portable_atomic.h"
 #include "midi.h"
-@if(SEQ)
 #include "seq.h"
-@endif
-@if(UDP)
+#ifdef UDP
 #include "udp.h"
-@endif
-@if(RECORD)
+#endif
 #include "recorder.h"
-@endif
-@if(SCOPE)
+#ifdef SCOPE
 #include "scope-ipc.h"
-@endif
+#endif
 
 #define ONE_FRAME_MAX (64 * 1024)
 #define SKRED_CONTROL_EVENT_CAPACITY 1024
@@ -1018,12 +1014,10 @@ char *skred_performance_status(void) {
 
 static const char *skred_recorder_state_name(int state) {
   switch (state) {
-    @if(RECORD)
     case RECORDER_STOPPED: return "stopped";
     case RECORDER_RECORDING: return "recording";
     case RECORDER_STOPPING: return "stopping";
     case RECORDER_ERROR: return "error";
-    @endif
     default: return "unavailable";
   }
 }
@@ -1077,7 +1071,6 @@ char *skred_thread_status(void) {
   ptr += written;
   left -= (size_t)written;
 
-  @if(MIDI)
   written = snprintf(ptr, left,
     "\n#   %s",
     skred_midi_status());
@@ -1085,15 +1078,8 @@ char *skred_thread_status(void) {
   if ((size_t)written >= left) return thread_status;
   ptr += written;
   left -= (size_t)written;
-  @else
-  written = snprintf(ptr, left, "\n#   midi: unavailable");
-  if (written < 0) return thread_status;
-  if ((size_t)written >= left) return thread_status;
-  ptr += written;
-  left -= (size_t)written;
-  @endif
 
-  @if(UDP)
+  #ifdef UDP
   skred_udp_metrics_t udp;
   if (udp_metrics(&udp) == 0) {
     written = snprintf(ptr, left,
@@ -1108,15 +1094,14 @@ char *skred_thread_status(void) {
     ptr += written;
     left -= (size_t)written;
   }
-  @else
+  #else
   written = snprintf(ptr, left, "\n#   udp: unavailable");
   if (written < 0) return thread_status;
   if ((size_t)written >= left) return thread_status;
   ptr += written;
   left -= (size_t)written;
-  @endif
+  #endif
 
-  @if(RECORD)
   int recorder = recorder_state();
   written = snprintf(ptr, left,
     "\n#   recorder: %s frames:%llu dropped:%llu",
@@ -1127,15 +1112,8 @@ char *skred_thread_status(void) {
   if ((size_t)written >= left) return thread_status;
   ptr += written;
   left -= (size_t)written;
-  @else
-  written = snprintf(ptr, left, "\n#   recorder: unavailable");
-  if (written < 0) return thread_status;
-  if ((size_t)written >= left) return thread_status;
-  ptr += written;
-  left -= (size_t)written;
-  @endif
 
-  @if(SCOPE)
+  #ifdef SCOPE
   skred_scope_status_t scope;
   scope_ipc_status(&scope);
   written = snprintf(ptr, left,
@@ -1148,13 +1126,13 @@ char *skred_thread_status(void) {
   if ((size_t)written >= left) return thread_status;
   ptr += written;
   left -= (size_t)written;
-  @else
+  #else
   written = snprintf(ptr, left, "\n#   scope: unavailable");
   if (written < 0) return thread_status;
   if ((size_t)written >= left) return thread_status;
   ptr += written;
   left -= (size_t)written;
-  @endif
+  #endif
 
   snprintf(ptr, left, "\n");
   return thread_status;
@@ -1268,7 +1246,6 @@ static void skred_startup_trace(const char *phase) {
     fprintf(stderr, "# startup: %s\n", phase);
 }
 
-@if(SEQ)
 static int pattern_voice[PATTERNS_MAX];
 static int pattern_voice_generation[PATTERNS_MAX];
 
@@ -1286,7 +1263,6 @@ static void pattern_cb(int pattern, int step, const event_program_t *program) {
   skode_execute_program_state(program, &pattern_voice[pattern],
     SAMPLE_COUNT_GET(), -1, pattern, step);
 }
-@endif
 
 #ifdef SKRED_USE_MA_ENGINE
 static ma_engine synth_engine;
@@ -1332,18 +1308,13 @@ static skred_ma_data_source synth_data_source;
 #endif
 
 static void internal_synth_process(float* output, const float* input, int frame_count, int out_channels, int in_channels, void* userData) {
-  @if(RECORD || SCOPE)
   synth_record_bus_t *capture_bus = NULL;
-  @endif
-  @if(RECORD)
   synth_record_bus_t *record_bus = recorder_begin_block((int)frame_count);
   if (record_bus) capture_bus = record_bus;
-  @endif
-  @if(SCOPE)
+  #ifdef SCOPE
   synth_record_bus_t *scope_bus = scope_ipc_begin_block((int)frame_count);
   if (!capture_bus && scope_bus) capture_bus = scope_bus;
-  @endif
-  @if(SEQ)
+  #endif
   uint64_t block_end = SAMPLE_COUNT_GET() + (uint64_t)frame_count;
   int offset = 0;
   while (offset < (int)frame_count) {
@@ -1365,7 +1336,6 @@ static void internal_synth_process(float* output, const float* input, int frame_
 
     float *segment_output = (float *)output + ((size_t)offset * out_channels);
     float *segment_input = input ? (float *)input + ((size_t)offset * in_channels) : NULL;
-    @if(RECORD || SCOPE)
     synth_record_bus_t segment_bus;
     synth_record_bus_t *segment_capture_bus = NULL;
     if (capture_bus) {
@@ -1375,28 +1345,15 @@ static void internal_synth_process(float* output, const float* input, int frame_
     }
     synth_capture(&skred_global_engine, segment_output, segment_input, segment_frames,
           out_channels, in_channels, segment_capture_bus);
-    @else
-    synth_capture(&skred_global_engine, segment_output, segment_input, segment_frames,
-          out_channels, in_channels, userData);
-    @endif
     offset += segment_frames;
   }
-  @else
-  @if(RECORD || SCOPE)
   synth_capture(&skred_global_engine, (float *)output, (float *)input, (int)frame_count,
         out_channels, in_channels, capture_bus);
-  @else
-  synth_capture(&skred_global_engine, (float *)output, (float *)input, (int)frame_count,
-        out_channels, in_channels, userData);
-  @endif
-  @endif
-  @if(SCOPE)
+  #ifdef SCOPE
   if (scope_bus && capture_bus)
     scope_ipc_publish(capture_bus->frames, (int)frame_count);
-  @endif
-  @if(RECORD)
+  #endif
   recorder_end_block((int)frame_count);
-  @endif
 }
 
 static void synth_callback(ma_device* pDevice, void* output, const void* input, ma_uint32 frame_count) {
@@ -1421,9 +1378,7 @@ static void synth_callback(ma_device* pDevice, void* output, const void* input, 
   }
 #endif
 
-  @if(RECORD)
   recorder_end_block((int)frame_count);
-  @endif
   perf_inspect_output((float *)output, frame_count, pDevice->playback.channels);
   perf_callback_end(&perf_start, pDevice, frame_count);
 }
@@ -1435,9 +1390,9 @@ static ma_device synth_device;
 static int device_initialized = 0;
 static int engine_started = 0;
 
-@if(UDP)
+#ifdef UDP
 static int udp_port = 60440;
-@endif
+#endif
 
 static int ensure_context_initialized(void) {
     if (!context_initialized) {
@@ -1776,19 +1731,15 @@ char *skred_audio_status(void) {
   double buffer_ms = sample_rate
     ? (double)buffer_frames * 1000.0 / (double)sample_rate : 0.0;
   unsigned int output_pairs = output_channels / AUDIO_CHANNELS;
-  @if(RECORD || SCOPE || TRACKS)
   unsigned int skred_pairs = RECORD_TRACK_COUNT;
   unsigned int stem_pairs = output_pairs > 0 ? output_pairs - 1 : 0;
   if (stem_pairs > RECORD_TRACK_MAX) stem_pairs = RECORD_TRACK_MAX;
-  @endif
   snprintf(audio_status, sizeof(audio_status),
            "audio: %s\n"
            "out: [%s]\n"
            "  requested: [%s]\n"
            "  channels: %u pairs: %u"
-           @if(RECORD || SCOPE || TRACKS)
            " skred-pairs: %u stem-pairs: %u"
-           @endif
            "\n"
            "in: [%s]\n"
            "  requested: [%s]\n"
@@ -1801,9 +1752,7 @@ char *skred_audio_status(void) {
            running ? "running" : "stopped",
            active_output, selected_output.name,
            output_channels, output_pairs
-           @if(RECORD || SCOPE || TRACKS)
            , skred_pairs, stem_pairs
-           @endif
            , active_input, selected_input.name,
            input_channels, usable_input_channels,
            (unsigned int)WAVE_TABLE_CAPTURE_CHANNELS,
@@ -1940,9 +1889,9 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   saved_req = req_audio_frames;
   saved_voices = voices;
   saved_port = port;
-  @if(!UDP)
+  #ifndef UDP
   (void)port;
-  @endif
+  #endif
     // 1. Initialize synth state
   skred_startup_trace("begin");
   int req = req_audio_frames;
@@ -1970,7 +1919,6 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   skred_startup_trace("voice_init");
   voice_init();
   skred_poly_reset();
-  @if(SEQ)
   skred_startup_trace("seq_init");
   seq_init();
   skred_startup_trace("tempo_set");
@@ -1978,32 +1926,29 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   memset(pattern_voice, 0, sizeof(pattern_voice));
   for (int p = 0; p < PATTERNS_MAX; p++)
     pattern_voice_generation[p] = seq_pattern_generation(p);
-  @endif
 
     // 2. Start UDP listening thread
-  @if(UDP)
+  #ifdef UDP
   skred_startup_trace("udp_start");
   udp_port = port;
   if (udp_port > 0) {
     int r = udp_start(udp_port);
     if (r != udp_port) udp_port = 0;
   }
-  @endif
+  #endif
 
-  @if(RECORD)
   skred_startup_trace("recorder_init");
   if (recorder_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) {
     if (!audio_disabled) skred_audio_disconnect();
     return -1;
   }
-  @endif
-  @if(SCOPE)
+  #ifdef SCOPE
   skred_startup_trace("scope_ipc_init");
   if (scope_ipc_init(ONE_FRAME_MAX, MAIN_SAMPLE_RATE) != 0) {
     if (!audio_disabled) skred_audio_disconnect();
     return -1;
   }
-  @endif
+  #endif
 
   if (audio_disabled) {
     audio_copy_name(active_output, sizeof(active_output), "disabled");
@@ -2040,13 +1985,11 @@ int skred_start_headless(unsigned int voices, int sample_rate) {
   voice_init();
   skred_poly_reset();
   
-  @if(SEQ)
   seq_init();
   tempo_set(120.0);
   memset(pattern_voice, 0, sizeof(pattern_voice));
   for (int p = 0; p < PATTERNS_MAX; p++)
     pattern_voice_generation[p] = seq_pattern_generation(p);
-  @endif
 
   audio_copy_name(active_output, sizeof(active_output), "headless");
   audio_copy_name(active_input, sizeof(active_input), "headless");
@@ -2225,19 +2168,17 @@ int skred_command(char* line) {
 void skred_stop(void) {
   skred_control_dispatch_stop();
   skred_midi_uninit();
-  @if(UDP)
+  #ifdef UDP
   udp_stop();
-  @endif
+  #endif
   // turn down volume smoothly to avoid clicks
   volume_set(-90);
   skred_audio_disconnect();
   engine_started = 0;
-  @if(RECORD)
   recorder_uninit();
-  @endif
-  @if(SCOPE)
+  #ifdef SCOPE
   scope_ipc_uninit();
-  @endif
+  #endif
   if (context_initialized) {
     ma_context_uninit(&synth_context);
     context_initialized = 0;
@@ -2249,65 +2190,43 @@ void skred_stop(void) {
 }
 
 int skred_record_start(const char *filename, double max_seconds) {
-  @if(RECORD)
   return recorder_start(filename, max_seconds);
-  @else
-  (void)filename;
-  (void)max_seconds;
-  return -1;
-  @endif
 }
 
 int skred_record_stop(void) {
-  @if(RECORD)
   return recorder_stop();
-  @else
-  return -1;
-  @endif
 }
 
 int skred_record_state(void) {
-  @if(RECORD)
   return recorder_state();
-  @else
-  return -1;
-  @endif
 }
 
 uint64_t skred_record_frames_written(void) {
-  @if(RECORD)
   return recorder_frames_written();
-  @else
-  return 0;
-  @endif
 }
 
 uint64_t skred_record_dropped_frames(void) {
-  @if(RECORD)
   return recorder_dropped_frames();
-  @else
-  return 0;
-  @endif
 }
 
 int skred_scope_start(const char *name, uint32_t channel_mask,
                       double buffer_seconds) {
-  @if(SCOPE)
+  #ifdef SCOPE
   return scope_ipc_start(name, channel_mask, buffer_seconds);
-  @else
+  #else
   (void)name;
   (void)channel_mask;
   (void)buffer_seconds;
   return -1;
-  @endif
+  #endif
 }
 
 int skred_scope_stop(void) {
-  @if(SCOPE)
+  #ifdef SCOPE
   return scope_ipc_stop();
-  @else
+  #else
   return -1;
-  @endif
+  #endif
 }
 
 static char _features_[65536] = {0};
@@ -2315,63 +2234,29 @@ static char _features_[65536] = {0};
 char *skred_features(void) {
 _features_[0] = '\0';
 CAT(ADSR)
-@if(AM)
 CAT(AM)
-@endif
-@if(XM)
 CAT(XM)
-@endif
-@if(BENCH)
 CAT(BENCH)
-@endif
-@if(CRUSH)
 CAT(CRUSH)
-@endif
-@if(FADSR)
 CAT(FADSR)
-@endif
-@if(FILT)
 CAT(FILT)
-@endif
-@if(FM)
 CAT(FM)
-@endif
-@if(GLISS)
 CAT(GLISS)
-@endif
-@if(PANMOD)
 CAT(PANMOD)
-@endif
-@if(PD)
 CAT(PD)
-@endif
-@if(SAH)
 CAT(SAH)
-@endif
-@if(SEQ)
 CAT(SEQ)
-@endif
-@if(SMOOTHER)
 CAT(SMOOTHER)
-@endif
-@if(UDP)
+#ifdef UDP
 CAT(UDP)
-@endif
-@if(KSYNTH)
+#endif
 CAT(KSYNTH)
-@endif
-@if(MIDI)
 CAT(MIDI)
-@endif
-@if(RECORD)
 CAT(RECORD)
-@endif
-@if(SCOPE)
+#ifdef SCOPE
 CAT(SCOPE)
-@endif
-@if(TRACKS)
+#endif
 CAT(TRACKS)
-@endif
 return _features_;
 }
 

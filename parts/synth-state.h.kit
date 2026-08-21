@@ -119,25 +119,18 @@ typedef struct {
     int    * restrict wave_table_index;
     int    * restrict disconnect;
     int    * restrict control_events;
-    @if(RECORD || SCOPE || TRACKS)
     /* 0 = master only; 1..RECORD_TRACK_MAX = additional stereo stem. */
     int    * restrict record;
     atomic_int_t * restrict record_pending;
-    @endif
     int    * restrict interpolate;
     int    * restrict phase_reset;
 
-    @if(BENCH)
     int             * restrict mark_go;
     struct timespec * restrict mark_a;
     struct timespec * restrict mark_b;
-    @endif
 
-    @if(CRUSH)
     int    * restrict quantize;
-    @endif
 
-    @if(PD)
     int    * restrict cz_mode;
     float  * restrict cz_distortion;
     int    * restrict cz_mod_osc;
@@ -145,9 +138,7 @@ typedef struct {
     envelope_t * restrict cz_envelope;
     int        * restrict use_cz_envelope;
     float      * restrict cz_env_depth;
-    @endif
 
-    @if(FILT)
     float  * restrict filter_freq;
     float  * restrict filter_res;
     int    * restrict filter_mode;
@@ -156,35 +147,27 @@ typedef struct {
     int        * restrict use_filter_envelope;
     float      * restrict filter_env_depth;
     int        * restrict filter_update_counter;
-    @endif
 
     envelope_t * restrict amp_envelope;
     int        * restrict amp_envelope_mode;
     int        * restrict use_amp_envelope;
 
-    @if(GLISS)
     int    * restrict glissando_enable;
     float  * restrict glissando_speed;
     float  * restrict glissando_target;
     float  * restrict glissando_time;
-    @endif
 
-    @if(SMOOTHER)
     int    * restrict smoother_enable;
     float  * restrict smoother_gain;
     float  * restrict smoother_smoothing;
-    @endif
 
-    @if(SAH)
     float  * restrict sample_hold;
     int    * restrict sample_hold_count;
     float  * restrict sample_hold_ratio;
     int    * restrict sample_hold_mode;
     float  * restrict sample_hold_smooth;
     int    * restrict sample_hold_jitter_target;
-    @endif
 
-    @if(FM)
     int    * restrict freq_mod_osc;
     float  * restrict freq_mod_depth;
     float  * restrict freq_mod_adder;
@@ -192,22 +175,15 @@ typedef struct {
     float  * restrict freq_mod_feedback;
     float  * restrict freq_mod_feedback_z1;
     float  * restrict freq_mod_feedback_z2;
-    @endif
-    @if(PANMOD)
     int    * restrict pan_mod_osc;
     float  * restrict pan_mod_depth;
     float  * restrict pan_mod_adder;
-    @endif
-    @if(AM)
     int    * restrict amp_mod_osc;
     float  * restrict amp_mod_depth;
     float  * restrict amp_mod_adder;
-    @endif
 
-    @if(XM)
     int    * restrict ring_osc;
     float  * restrict ring_amount;
-    @endif
 
     text_t * restrict text;
 } synth_voices_t;

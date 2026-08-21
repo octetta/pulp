@@ -5,7 +5,6 @@
 
 #include "synth-types.h"
 
-@if(RECORD)
 
 enum {
   RECORDER_STOPPED = 0,
@@ -24,6 +23,5 @@ uint64_t recorder_dropped_frames(void);
 synth_record_bus_t *recorder_begin_block(int frame_count);
 void recorder_end_block(int frame_count);
 
-@endif
 
 #endif

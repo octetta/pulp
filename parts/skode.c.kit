@@ -129,15 +129,11 @@ static int skode_asset_read(const char *path, skode_asset_kind_t kind,
   return 0;
 }
 
-@if(KSYNTH)
 #include "vendor/ksynth/ksynth.h"
-@endif
-@if(RECORD)
 #include "recorder.h"
-@endif
-@if(SCOPE)
+#ifdef SCOPE
 #include "scope-ipc.h"
-@endif
+#endif
 
 static void skode_log_reset(skode_t *ctx) {
   if (!ctx) return;
@@ -330,7 +326,6 @@ int voice_show_all(skode_t *ctx, int voice, int verbose) {
   return 0;
 }
 
-@if(RECORD || SCOPE || TRACKS)
 static void record_tracks_show(skode_t *ctx) {
   for (int track = 1; track <= RECORD_TRACK_MAX; track++) {
     const char *name = synth_track_name_get(track);
@@ -344,7 +339,6 @@ static void record_tracks_show(skode_t *ctx) {
     ctx->puts(ctx, "");
   }
 }
-@endif
 
 #define SKODE_CTX_MAX (100)
 static skode_t *skode_ctx[SKODE_CTX_MAX];
@@ -354,9 +348,7 @@ static skode_t *skode_ctx[SKODE_CTX_MAX];
 static char _skode_extra[STRING_BUF_IDX_MAX][STRING_BUF_LEN];
 static char _skode_extra_invalid[STRING_BUF_LEN];
 static simple_mutex_t skode_extra_mutex;
-@if(KSYNTH)
 static simple_mutex_t skode_ks_eval_mutex;
-@endif
 static atomic_int_t skode_global_state;
 static int skode_extra_valid(int n) { return n >= 0 && n < STRING_BUF_IDX_MAX; }
 static char *skode_extra_ptr(int n) {
@@ -372,9 +364,7 @@ static void skode_global_init(void) {
   int expected = 0;
   if (atomic_compare_exchange_int(&skode_global_state, &expected, 1)) {
     simple_mutex_init(&skode_extra_mutex);
-    @if(KSYNTH)
     simple_mutex_init(&skode_ks_eval_mutex);
-    @endif
     for (int i = 0; i < SKODE_CTX_MAX; i++) skode_ctx[i] = NULL;
     _skode_extra_invalid[0] = '\0';
     for (int i = 0; i < STRING_BUF_IDX_MAX; i++) _skode_extra[i][0] = '\0';
@@ -672,7 +662,6 @@ static void skode_help(skode_t *ctx, double *arg, int argc) {
     categories[category_number - 1], command_number));
 }
 
-@if(SEQ)
 static int skode_seconds_to_samples(double seconds, uint64_t *out) {
   if (!out || !isfinite(seconds) || seconds < 0.0) return 0;
   long double samples = (long double)seconds * (long double)MAIN_SAMPLE_RATE;
@@ -683,7 +672,6 @@ static int skode_seconds_to_samples(double seconds, uint64_t *out) {
 static uint64_t skode_u64_add(uint64_t a, uint64_t b) {
   return a > UINT64_MAX - b ? UINT64_MAX : a + b;
 }
-@endif
 
 static void skode_copy_string(char *dst, size_t dst_size, const char *src) {
   if (!dst || dst_size == 0) return;
@@ -781,9 +769,9 @@ void skode_show(skode_t *ctx) {
   }
 }
 
-@if(UDP)
+#ifdef UDP
 #include "udp.h"
-@endif
+#endif
 
 void system_show(skode_t *ctx) {
   skode_t wprime;
@@ -791,9 +779,9 @@ void system_show(skode_t *ctx) {
     ctx = &wprime;
     skode_init(ctx);
   }
-  @if(UDP)
+  #ifdef UDP
   ctx->printf(ctx, "# udp_port %d\n", udp_info());
-  @endif
+  #endif
 }
 
 static void skode_macros_show(skode_t *ctx, int pasteable) {
@@ -857,9 +845,7 @@ void global_status_show(skode_t *ctx, int full) {
   ctx->printf(ctx, "# wavetable sample data is not embedded in this text snapshot\n");
   skode_macros_show(ctx, 1);
   wave_labels_show(ctx);
-  @if(RECORD || SCOPE || TRACKS)
   record_tracks_show(ctx);
-  @endif
   voice_show_all(ctx, ctx->voice, 0);
   ctx->printf(ctx, "%s", skred_poly_group_status(-1));
   ctx->printf(ctx, "%s", skred_poly_pool_status(-1));
@@ -869,7 +855,6 @@ void global_status_show(skode_t *ctx, int full) {
   }
 }
 
-@if(BENCH)
 int show_stats_cb(int n, uint64_t timestamp, uint64_t id, int tag, const event_t *e, void *user) {
   uint64_t now = SAMPLE_COUNT_GET();
   uint64_t then = timestamp - now;
@@ -895,7 +880,6 @@ void show_stats(skode_t *ctx) {
   ctx->printf(ctx, "# queue_size %d\n", seq_queued());
   seq_foreach(show_stats_cb, ctx);
 }
-@endif
 
 static const char *control_event_type_name(uint32_t type) {
   switch (type) {
@@ -955,7 +939,6 @@ static void control_event_show(skode_t *ctx, int consume) {
   }
 }
 
-@if(SEQ)
 static void opcode_arg_show(skode_t *ctx, const opcode_event_t *opcode,
     int n) {
   if (opcode->var_mask & (1U << n)) {
@@ -1056,7 +1039,6 @@ static void opcode_pattern_show(skode_t *ctx, int pattern, int step) {
     opcode_pattern_step_show(ctx, pattern, s);
   seq_edit_unlock();
 }
-@endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -1139,7 +1121,6 @@ void show_threads(skode_t *ctx) {
 #endif
 }
 
-@if(KSYNTH)
 static ks_ctx *skode_ks_ctx(skode_t *ctx) {
   if (!ctx) return NULL;
   if (!ctx->ks) {
@@ -1278,7 +1259,6 @@ int ksynth_load(skode_t *ctx, int n, int verbose) {
   skred_vfs_free_file(data);
   return r;
 }
-@endif
 
 static int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
     const char *label,
@@ -2622,95 +2602,69 @@ int skode_sample_go(int frames, int source, int voice) {
 ### time-based ampltude envelope (ADSR)
 @enddoc
 
-@if(AM)
 @doc
 ### amplitude modulation (AM)
 @enddoc
-@endif
 
-@if(PD)
 @doc
 ### phase distortion (CZ)
 @enddoc
-@endif
 
-@if(FM)
 @doc
 ### frequency modulation
 @enddoc
-@endif
 
-@if(FILT)
 @doc
 ### multi-mode resonant filtering
 @enddoc
-@endif
 
-@if(FADSR)
 @doc
 ### time-based filter envelope (ADSR)
 @enddoc
-@endif
 
-@if(GLISS)
 @doc
 ### frequency sweeping (glide or portamento)
 @enddoc
-@endif
 
-@if(SAH)
 @doc
 ### sample-and-hold
 @enddoc
-@endif
 
-@if(PANMOD)
 @doc
 ### pan modulation
 @enddoc
-@endif
 
-@if(CRUSH)
 @doc
 ### bit-depth reduction (bit-crush)
 @enddoc
-@endif
 
-@if(SMOOTHER)
 @doc
 ### amplitude slew-rate (smoother)
 @enddoc
-@endif
 
-@if(RECORD)
 @doc
 ### recording
 @enddoc
-@endif
 
-@if(UDP)
+#ifdef UDP
 @doc
 ### skode UDP server
 @enddoc
-@endif
+#endif
 
-@if(SEQ)
 @doc
 ### patterns and events
 @enddoc
-@endif
 
-@if(SCOPE)
+#ifdef SCOPE
 @doc
 ### waveform scope shared memory
 @enddoc
-@endif
+#endif
 
-@if(BENCH)
 @doc
 ### benchmarking tools
 @enddoc
-@endif
 
 void normalize_buffer(float* pSamples, ma_uint32 frameCount, ma_uint32 channels) {
     float maxAmp = 0.0f;
@@ -2926,7 +2880,6 @@ static int skode_compile_scheduled(skode_t *ctx, const char *text,
   return 0;
 }
 
-@if(SEQ)
 static void skode_queue_repeated(const event_program_t *program, int voice,
     int count, double seconds, int tag) {
   uint64_t dt;
@@ -2969,7 +2922,6 @@ static void skode_repeat_macro(skode_t *ctx, const double *arg, int argc,
   if (tempo_relative) seconds *= tempo_step_seconds_get() * 4.0f;
   skode_queue_repeated(&program, ctx->voice, count, seconds, tag);
 }
-@endif
 
 int skode_opcode_supported(skode_opcode_t opcode) {
   switch (opcode) {
@@ -3003,57 +2955,33 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_DELAY_SYNC:
     case SKODE_OP_DELAY_GRIT:
       return 1;
-    @if(AM)
     case SKODE_OP_AMP_MOD: return 1;
-    @endif
-    @if(PD)
     case SKODE_OP_PHASE_DISTORTION:
     case SKODE_OP_PHASE_MOD:
     case SKODE_OP_PHASE_ENVELOPE:
     case SKODE_OP_PHASE_ENVELOPE_DEPTH:
       return 1;
-    @endif
-    @if(FILT && FADSR)
     case SKODE_OP_FILTER_ENVELOPE:
     case SKODE_OP_FILTER_ENVELOPE_DEPTH:
       return 1;
-    @endif
-    @if(FM)
     case SKODE_OP_FREQ_MOD:
     case SKODE_OP_FREQ_MOD_MODE:
     case SKODE_OP_FREQ_FEEDBACK:
       return 1;
-    @endif
-    @if(GLISS)
     case SKODE_OP_GLISSANDO: return 1;
-    @endif
-    @if(SAH)
     case SKODE_OP_SAMPLE_HOLD: return 1;
-    @endif
-    @if(FILT)
     case SKODE_OP_FILTER_MODE:
     case SKODE_OP_FILTER_FREQ:
     case SKODE_OP_FILTER_RESONANCE:
       return 1;
-    @endif
     case SKODE_OP_ENVELOPE_MODE:
     case SKODE_OP_ENVELOPE:
       return 1;
-    @if(PANMOD)
     case SKODE_OP_PAN_MOD: return 1;
-    @endif
-    @if(CRUSH)
     case SKODE_OP_QUANTIZE: return 1;
-    @endif
-    @if(RECORD || SCOPE || TRACKS)
     case SKODE_OP_RECORD_TRACK: return 1;
-    @endif
-    @if(SMOOTHER)
     case SKODE_OP_SMOOTHER: return 1;
-    @endif
-    @if(XM)
     case SKODE_OP_RING_MOD: return 1;
-    @endif
     case SKODE_OP_WAVE_RANGE_SET:
     case SKODE_OP_WAVE_LOOP_SET:
     case SKODE_OP_POLY_NOTE:
@@ -3165,12 +3093,10 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         : -1;
     case SKODE_OP_AMP:
       return opcode->argc == 1 ? amp_set(voice, opcode->arg[0]) : -1;
-    @if(AM)
     case SKODE_OP_AMP_MOD:
       if (opcode->argc < 2) return amp_mod_set(voice, -1, 0, 0);
       return x_valid ? amp_mod_set(voice, x, opcode->arg[1],
         opcode->argc > 2 ? opcode->arg[2] : 0) : -1;
-    @endif
     case SKODE_OP_WAVE_DIRECTION:
       return opcode->argc == 0 ? wave_dir(voice, -1) :
         (x_valid ? wave_dir(voice, x) : -1);
@@ -3179,7 +3105,6 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         (x_valid ? wave_loop(voice, x) : -1);
     case SKODE_OP_WAVE_LOOP_COUNT:
       return x_valid ? wave_loop_count(voice, x) : -1;
-    @if(PD)
     case SKODE_OP_PHASE_DISTORTION:
       if (opcode->argc == 0) return cz_set(voice, 0, 0.0f);
       if (!x_valid) return -1;
@@ -3200,10 +3125,8 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       if (opcode->argc != 1) return -1;
       sv.cz_env_depth[voice] = opcode->arg[0];
       return 0;
-    @endif
     case SKODE_OP_FREQ:
       return opcode->argc == 1 ? freq_set(voice, opcode->arg[0]) : -1;
-    @if(FILT && FADSR)
     case SKODE_OP_FILTER_ENVELOPE:
       if (opcode->argc != 4) return -1;
       envelope_configure_e(&sv.filter_envelope[voice], opcode->arg[0],
@@ -3216,8 +3139,6 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       if (opcode->argc != 1) return -1;
       sv.filter_env_depth[voice] = opcode->arg[0];
       return 0;
-    @endif
-    @if(FM)
     case SKODE_OP_FREQ_MOD:
       if (opcode->argc <= 1) return freq_mod_set(voice, -1, 0, 0);
       return x_valid ? freq_mod_set(voice, x, opcode->arg[1],
@@ -3228,8 +3149,6 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
     case SKODE_OP_FREQ_FEEDBACK:
       if (opcode->argc != 1) return -1;
       return freq_feedback_set(voice, opcode->arg[0]);
-    @endif
-    @if(GLISS)
     case SKODE_OP_GLISSANDO:
       if (opcode->argc != 1) return -1;
       if (opcode->arg[0] <= 0) {
@@ -3240,14 +3159,12 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         sv.glissando_time[voice] = opcode->arg[0];
       }
       return 0;
-    @endif
     case SKODE_OP_LINK_MIDI:
       if (opcode->argc < 1) return -1;
       skode_opcode_links(opcode, &sv.link_midi_0[voice],
         &sv.link_midi_1[voice], &sv.link_midi_2[voice],
         &sv.link_midi_3[voice]);
       return 0;
-    @if(SAH)
     case SKODE_OP_SAMPLE_HOLD:
       if (!x_valid) return -1;
       sv.sample_hold_ratio[voice] = (float)x;
@@ -3256,7 +3173,6 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         if (!skode_opcode_int(opcode, 1, &m)) sv.sample_hold_mode[voice] = m;
       }
       return 0;
-    @endif
     case SKODE_OP_LINK_VELOCITY:
       if (opcode->argc < 1) return -1;
       skode_opcode_links(opcode, &sv.link_velo_0[voice],
@@ -3276,7 +3192,6 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
           UINT64_MAX : (uint64_t)samples;
       }
       return 0;
-    @if(FILT)
     case SKODE_OP_FILTER_MODE:
       if (!x_valid) return -1;
       {
@@ -3292,7 +3207,6 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return 0;
     case SKODE_OP_FILTER_FREQ:
       return opcode->argc == 1 ? mmf_set_freq(&skred_global_engine, voice, opcode->arg[0]) : -1;
-    @endif
     case SKODE_OP_ENVELOPE_MODE:
       if (!x_valid) return -1;
       sv.amp_envelope_mode[voice] = x;
@@ -3334,13 +3248,10 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return 0;
     case SKODE_OP_PAN:
       return opcode->argc == 1 ? pan_set(voice, opcode->arg[0]) : -1;
-    @if(PANMOD)
     case SKODE_OP_PAN_MOD:
       if (opcode->argc < 2) return pan_mod_set(voice, -1, 0, 0);
       return x_valid ? pan_mod_set(voice, x, opcode->arg[1],
         opcode->argc > 2 ? opcode->arg[2] : 0) : -1;
-    @endif
-    @if(CRUSH)
     case SKODE_OP_QUANTIZE:
       if (!x_valid) return -1;
       {
@@ -3353,16 +3264,10 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         wave_quant(voice, (curve * 100) + (bits % 100));
       }
       return 0;
-    @endif
-    @if(FILT)
     case SKODE_OP_FILTER_RESONANCE:
       return opcode->argc == 1 ? mmf_set_res(&skred_global_engine, voice, opcode->arg[0]) : -1;
-    @endif
-    @if(RECORD || SCOPE || TRACKS)
     case SKODE_OP_RECORD_TRACK:
       return x_valid ? synth_record_track_set(voice, x) : -1;
-    @endif
-    @if(SMOOTHER)
     case SKODE_OP_SMOOTHER:
       if (opcode->argc != 1) return -1;
       if (opcode->arg[0] <= 0) {
@@ -3372,7 +3277,6 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         sv.smoother_smoothing[voice] = opcode->arg[0];
       }
       return 0;
-    @endif
     case SKODE_OP_VOICE_RESET:
       return x_valid ? wave_reset(x) : -1;
     case SKODE_OP_ENVELOPE:
@@ -3497,7 +3401,6 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
             !skode_opcode_int(opcode, 2, &native)) return -1;
         return delay_grit_set(&skred_global_engine, bus, bits, native);
       }
-    @if(XM)
     case SKODE_OP_RING_MOD:
       if (opcode->argc < 1 || opcode->argc > 2) return -1;
       sv.ring_osc[voice] =
@@ -3505,7 +3408,6 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       sv.ring_amount[voice] =
         opcode->argc > 1 ? opcode->arg[1] : 0;
       return 0;
-    @endif
     case SKODE_OP_WAVE_RANGE_SET:
       if (opcode->argc == 2) {
         voice_wave_range_set(voice, opcode->arg[0], opcode->arg[1]);
@@ -4200,7 +4102,6 @@ static int word_exec_abp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_abp = { WID("abp"), .execute = word_exec_abp, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(AM)
     @doc(command.A)
     name: A
     category: modulation
@@ -4227,7 +4128,6 @@ static int word_exec_A(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_A = { WID("A"), .execute = word_exec_A, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.b)
     name: b
@@ -4291,7 +4191,6 @@ static int word_exec_BC(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_BC = { WID("BC"), .execute = word_exec_BC, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(PD)
     @doc(command.c)
     name: c
     category: modulation
@@ -4327,9 +4226,7 @@ signed `amount` from -1.0 to 1.0. 0.0 is the undistorted phase for every mode.
       return 0;
 }
 static skode_word_t word_c = { WID("c"), .execute = word_exec_c, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(PD)
     @doc(command.C)
     name: C
     category: modulation
@@ -4349,9 +4246,7 @@ static int word_exec_C(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_C = { WID("C"), .execute = word_exec_C, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(PD)
     @doc(command.ct)
     name: ct
     category: modulation
@@ -4380,9 +4275,7 @@ neutral `ct 0 0 1 0` disables it.
       return 0;
 }
 static skode_word_t word_ct = { WID("ct"), .execute = word_exec_ct, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(PD)
     @doc(command.cd)
     name: cd
     category: modulation
@@ -4403,7 +4296,6 @@ static int word_exec_cd(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       return 0;
 }
 static skode_word_t word_cd = { WID("cd"), .execute = word_exec_cd, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.D)
     name: D
@@ -4554,7 +4446,6 @@ static int word_exec_fbp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_fbp = { WID("fbp"), .execute = word_exec_fbp, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(FILT && FADSR)
     @doc(command.ft)
     name: ft
     category: filter
@@ -4577,9 +4468,7 @@ static int word_exec_ft(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       return 0;
 }
 static skode_word_t word_ft = { WID("ft"), .execute = word_exec_ft, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(FILT && FADSR)
     @doc(command.fd)
     name: fd
     category: filter
@@ -4595,9 +4484,7 @@ static int word_exec_fd(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       return 0;
 }
 static skode_word_t word_fd = { WID("fd"), .execute = word_exec_fd, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(FM)
     @doc(command.F)
     name: F
     category: modulation
@@ -4619,9 +4506,7 @@ static int word_exec_F(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_F = { WID("F"), .execute = word_exec_F, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(FM)
     @doc(command.FF)
     name: FF
     category: modulation
@@ -4637,9 +4522,7 @@ static int word_exec_FF(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       return 0;
 }
 static skode_word_t word_FF = { WID("FF"), .execute = word_exec_FF, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(FM)
     @doc(command.FB)
     name: FB
     category: modulation
@@ -4655,9 +4538,7 @@ static int word_exec_FB(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       return 0;
 }
 static skode_word_t word_FB = { WID("FB"), .execute = word_exec_FB, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(GLISS)
     @doc(command.g)
     name: g
     category: modulation
@@ -4681,7 +4562,6 @@ static int word_exec_g(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_g = { WID("g"), .execute = word_exec_g, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.G)
     name: G
@@ -4710,7 +4590,6 @@ static int word_exec_G(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_G = { WID("G"), .execute = word_exec_G, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(SAH)
     @doc(command.h)
     name: h
     category: wave
@@ -4732,7 +4611,6 @@ static int word_exec_h(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_h = { WID("h"), .execute = word_exec_h, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.H)
     name: H
@@ -4827,7 +4705,6 @@ static int word_exec_L(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_L = { WID("L"), .execute = word_exec_L, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(FILT)
     @doc(command.J)
     name: J
     category: filter
@@ -4851,9 +4728,7 @@ static int word_exec_J(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_J = { WID("J"), .execute = word_exec_J, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(FILT)
     @doc(command.K)
     name: K
     category: filter
@@ -4869,9 +4744,7 @@ static int word_exec_K(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_K = { WID("K"), .execute = word_exec_K, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(KSYNTH)
     @doc(command./ks)
     name: /ks
     category: ksynth
@@ -4894,9 +4767,7 @@ static int word_exec__slashks(const skode_word_t *self, skode_t *ctx, ands_t *s,
       return 0;
 }
 static skode_word_t word__slashks = { WID("/ks"), .execute = word_exec__slashks, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(KSYNTH)
     @doc(command./k)
     name: /k
     category: ksynth
@@ -4916,9 +4787,7 @@ static int word_exec__slashk(const skode_word_t *self, skode_t *ctx, ands_t *s, 
       return 0;
 }
 static skode_word_t word__slashk = { WID("/k"), .execute = word_exec__slashk, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(KSYNTH)
     @doc(command.ks)
     name: ks
     category: ksynth
@@ -4933,9 +4802,7 @@ static int word_exec_ks(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 
 }
 static skode_word_t word_ks = { WID("ks"), .execute = word_exec_ks, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(KSYNTH)
     @doc(command.k!)
     name: k!
     category: ksynth
@@ -4959,9 +4826,7 @@ static int word_exec_k_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
       return 0;
 }
 static skode_word_t word_k_bang = { WID("k!"), .execute = word_exec_k_bang, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(KSYNTH)
     @doc(command.kw)
     name: kw
     category: ksynth
@@ -4979,9 +4844,7 @@ static int word_exec_kw(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       return 0;
 }
 static skode_word_t word_kw = { WID("kw"), .execute = word_exec_kw, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(KSYNTH)
     @doc(command.kw>)
     name: kw>
     category: ksynth
@@ -5000,9 +4863,7 @@ static int word_exec_kw_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 static skode_word_t word_kw_gt = { WID("kw>"), .execute = word_exec_kw_gt, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(KSYNTH)
     @doc(command.k?)
     name: k?
     category: ksynth
@@ -5022,9 +4883,7 @@ static int word_exec_k_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       return 0;
 }
 static skode_word_t word_k_q = { WID("k?"), .execute = word_exec_k_q, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(KSYNTH)
     @doc(command.k>d)
     name: k>d
     category: ksynth
@@ -5042,9 +4901,7 @@ static int word_exec_k_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 static skode_word_t word_k_gtd = { WID("k>d"), .execute = word_exec_k_gtd, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(KSYNTH)
     @doc(command.k>w)
     name: k>w
     category: ksynth
@@ -5071,7 +4928,6 @@ static int word_exec_k_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 static skode_word_t word_k_gtw = { WID("k>w"), .execute = word_exec_k_gtw, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.k)
     name: k
@@ -5088,7 +4944,7 @@ static int word_exec_k(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_k = { WID("k"), .execute = word_exec_k, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(UDP)
+#ifdef UDP
     @doc(command.udp)
     name: udp
     category: runtime
@@ -5106,7 +4962,7 @@ static int word_exec_udp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       return 0;
 }
 static skode_word_t word_udp = { WID("udp"), .execute = word_exec_udp, .safety = WORD_IMMEDIATE_ONLY };
-@endif
+#endif
 
     @doc(command.log)
     name: log
@@ -5174,7 +5030,6 @@ static int word_exec_l(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_l = { WID("l"), .execute = word_exec_l, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(SEQ)
     @doc(command.m)
     name: m
     category: voice
@@ -5203,7 +5058,6 @@ static int word_exec_M(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_M = { WID("M"), .execute = word_exec_M, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.n)
     name: n
@@ -5492,7 +5346,6 @@ static int word_exec_GS_lt(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 }
 static skode_word_t word_GS_lt = { WID("GS<"), .execute = word_exec_GS_lt, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(PANMOD)
     @doc(command.P)
     name: P
     category: modulation
@@ -5514,9 +5367,7 @@ static int word_exec_P(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_P = { WID("P"), .execute = word_exec_P, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(CRUSH)
     @doc(command.q)
     name: q
     category: wave
@@ -5537,9 +5388,7 @@ static int word_exec_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_q = { WID("q"), .execute = word_exec_q, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(FILT)
     @doc(command.Q)
     name: Q
     category: filter
@@ -5555,9 +5404,7 @@ static int word_exec_Q(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_Q = { WID("Q"), .execute = word_exec_Q, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(RECORD || SCOPE || TRACKS)
     @doc(command.r)
     name: r
     category: routing
@@ -5573,9 +5420,7 @@ static int word_exec_r(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_r = { WID("r"), .execute = word_exec_r, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(RECORD || SCOPE || TRACKS)
     @doc(command.rt)
     name: rt
     category: routing
@@ -5589,17 +5434,15 @@ static int word_exec_rt(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x > 0 && x <= RECORD_TRACK_MAX) {
         synth_track_name_set(x, ands_string(ctx->parse));
-        @if(SCOPE)
+        #ifdef SCOPE
         scope_ipc_track_metadata_set(x, synth_track_name_get(x),
           synth_track_volume_db_get(x));
-        @endif
+        #endif
       }
       return 0;
 }
 static skode_word_t word_rt = { WID("rt"), .execute = word_exec_rt, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(RECORD || SCOPE || TRACKS)
     @doc(command.rv)
     name: rv
     category: routing
@@ -5613,17 +5456,15 @@ static int word_exec_rv(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x > 0 && x <= RECORD_TRACK_MAX) {
         synth_track_volume_set(x, arg[1]);
-        @if(SCOPE)
+        #ifdef SCOPE
         scope_ipc_track_metadata_set(x, synth_track_name_get(x),
           synth_track_volume_db_get(x));
-        @endif
+        #endif
       }
       return 0;
 }
 static skode_word_t word_rv = { WID("rv"), .execute = word_exec_rv, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(SEQ)
     @doc(command.R!)
     name: R!
     category: sequencer
@@ -5642,9 +5483,7 @@ static int word_exec_R_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
       return 0;
 }
 static skode_word_t word_R_bang = { WID("R!"), .execute = word_exec_R_bang, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(SEQ)
     @doc(command.R!!)
     name: R!!
     category: sequencer
@@ -5660,9 +5499,7 @@ static int word_exec_R_bang_bang(const skode_word_t *self, skode_t *ctx, ands_t 
       return 0;
 }
 static skode_word_t word_R_bang_bang = { WID("R!!"), .execute = word_exec_R_bang_bang, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(SEQ)
     @doc(command.RR)
     name: RR
     category: sequencer
@@ -5686,9 +5523,7 @@ static int word_exec_RR(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       } return 0;
 }
 static skode_word_t word_RR = { WID("RR"), .execute = word_exec_RR, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(SEQ)
     @doc(command.eRR)
     name: eRR
     category: sequencer
@@ -5704,9 +5539,7 @@ static int word_exec_eRR(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       return 0;
 }
 static skode_word_t word_eRR = { WID("eRR"), .execute = word_exec_eRR, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(SEQ)
     @doc(command.eR)
     name: eR
     category: sequencer
@@ -5722,9 +5555,7 @@ static int word_exec_eR(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       return 0;
 }
 static skode_word_t word_eR = { WID("eR"), .execute = word_exec_eR, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(SEQ)
     @doc(command.DO?)
     name: DO?
     category: sequencer
@@ -5747,9 +5578,7 @@ static int word_exec_DO_q(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
       } return 0;
 }
 static skode_word_t word_DO_q = { WID("DO?"), .execute = word_exec_DO_q, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(SEQ)
     @doc(command.R)
     name: R
     category: sequencer
@@ -5772,9 +5601,7 @@ static int word_exec_R(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       } return 0;
 }
 static skode_word_t word_R = { WID("R"), .execute = word_exec_R, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(SMOOTHER)
     @doc(command.s)
     name: s
     category: modulation
@@ -5797,7 +5624,6 @@ static int word_exec_s(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       return 0;
 }
 static skode_word_t word_s = { WID("s"), .execute = word_exec_s, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.S)
     name: S
@@ -5887,10 +5713,10 @@ static int word_exec_V(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         volume_set(arg[0]);
-        @if(SCOPE)
+        #ifdef SCOPE
         scope_ipc_track_metadata_set(0, synth_track_name_get(0),
           synth_track_volume_db_get(0));
-        @endif
+        #endif
       }
       return 0;
 }
@@ -6271,7 +6097,6 @@ static int word_exec_d_gtMO(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word_d_gtMO = { WID("d>MO"), .execute = word_exec_d_gtMO, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(KSYNTH)
     @doc(command.d>k)
     name: d>k
     category: ksynth
@@ -6293,9 +6118,7 @@ static int word_exec_d_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 static skode_word_t word_d_gtk = { WID("d>k"), .execute = word_exec_d_gtk, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(KSYNTH)
     @doc(command.w>k)
     name: w>k
     category: ksynth
@@ -6333,7 +6156,6 @@ static int word_exec_w_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 static skode_word_t word_w_gtk = { WID("w>k"), .execute = word_exec_w_gtk, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.w>d)
     name: w>d
@@ -7037,7 +6859,6 @@ static int word_exec_Z_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_Z_q = { WID("Z?"), .execute = word_exec_Z_q, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(XM)
     @doc(command.XM)
     name: XM
     category: modulation
@@ -7057,7 +6878,6 @@ static int word_exec_XM(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       return 0;
 }
 static skode_word_t word_XM = { WID("XM"), .execute = word_exec_XM, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.v?)
     name: v?
@@ -7134,7 +6954,6 @@ static int word_exec__q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__q_bs_q = { WID("?\?"), .execute = word_exec__q_bs_q, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(RECORD || SCOPE || TRACKS)
     @doc(command.?r)
     name: ?r
     category: routing
@@ -7149,7 +6968,6 @@ static int word_exec__qr(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       record_tracks_show(ctx); return 0;
 }
 static skode_word_t word__qr = { WID("?r"), .execute = word_exec__qr, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.?s)
     name: ?s
@@ -7240,7 +7058,6 @@ static int word_exec__qce_bang(const skode_word_t *self, skode_t *ctx, ands_t *s
 }
 static skode_word_t word__qce_bang = { WID("?ce!"), .execute = word_exec__qce_bang, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(SEQ)
     @doc(command.?q)
     name: ?q
     category: sequencer
@@ -7256,9 +7073,7 @@ static int word_exec__qq(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       return 0;
 }
 static skode_word_t word__qq = { WID("?q"), .execute = word_exec__qq, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(SEQ)
     @doc(command.?o)
     name: ?o
     category: sequencer
@@ -7289,9 +7104,7 @@ static int word_exec__qo(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       return 0;
 }
 static skode_word_t word__qo = { WID("?o"), .execute = word_exec__qo, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(BENCH)
     @doc(command./m_)
     name: /m_
     category: runtime
@@ -7307,7 +7120,6 @@ static int word_exec__slashm_(const skode_word_t *self, skode_t *ctx, ands_t *s,
       return 0;
 }
 static skode_word_t word__slashm_ = { WID("/m_"), .execute = word_exec__slashm_, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command./q)
     name: /q
@@ -7325,7 +7137,7 @@ static int word_exec__slashq(const skode_word_t *self, skode_t *ctx, ands_t *s, 
 }
 static skode_word_t word__slashq = { WID("/q"), .execute = word_exec__slashq, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(SCOPE)
+#ifdef SCOPE
     @doc(command./sg)
     name: /sg
     category: scope
@@ -7371,9 +7183,9 @@ static int word_exec__slashsg(const skode_word_t *self, skode_t *ctx, ands_t *s,
       return 0;
 }
 static skode_word_t word__slashsg = { WID("/sg"), .execute = word_exec__slashsg, .safety = WORD_IMMEDIATE_ONLY };
-@endif
+#endif
 
-@if(SCOPE)
+#ifdef SCOPE
     @doc(command./ss)
     name: /ss
     category: scope
@@ -7390,9 +7202,9 @@ static int word_exec__slashss(const skode_word_t *self, skode_t *ctx, ands_t *s,
       return 0;
 }
 static skode_word_t word__slashss = { WID("/ss"), .execute = word_exec__slashss, .safety = WORD_IMMEDIATE_ONLY };
-@endif
+#endif
 
-@if(SCOPE)
+#ifdef SCOPE
     @doc(command./s?)
     name: /s?
     category: scope
@@ -7420,9 +7232,8 @@ static int word_exec__slashs_q(const skode_word_t *self, skode_t *ctx, ands_t *s
       return 0;
 }
 static skode_word_t word__slashs_q = { WID("/s?"), .execute = word_exec__slashs_q, .safety = WORD_IMMEDIATE_ONLY };
-@endif
+#endif
 
-@if(RECORD)
     @doc(command./rg)
     name: /rg
     category: recording
@@ -7455,9 +7266,7 @@ static int word_exec__slashrg(const skode_word_t *self, skode_t *ctx, ands_t *s,
       return 0;
 }
 static skode_word_t word__slashrg = { WID("/rg"), .execute = word_exec__slashrg, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(RECORD)
     @doc(command./rs)
     name: /rs
     category: recording
@@ -7477,9 +7286,7 @@ static int word_exec__slashrs(const skode_word_t *self, skode_t *ctx, ands_t *s,
       return 0;
 }
 static skode_word_t word__slashrs = { WID("/rs"), .execute = word_exec__slashrs, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
-@if(RECORD)
     @doc(command./r?)
     name: /r?
     category: recording
@@ -7507,7 +7314,6 @@ static int word_exec__slashr_q(const skode_word_t *self, skode_t *ctx, ands_t *s
       return 0;
 }
 static skode_word_t word__slashr_q = { WID("/r?"), .execute = word_exec__slashr_q, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command./r)
     name: /r
@@ -8020,11 +7826,9 @@ static int word_exec__slashs(const skode_word_t *self, skode_t *ctx, ands_t *s, 
               }
               simple_mutex_unlock(&skode_extra_mutex);
               break;
-            @if(BENCH)
             case 1: show_threads(ctx); break;
             case 4: show_stats(ctx); break;
             case 6: ctx->printf(ctx, "%s", seq_stats()); break;
-            @endif
           }
         }
       }
@@ -8274,7 +8078,6 @@ static int word_exec__slash(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 static skode_word_t word__slash = { WID("/"), .execute = word_exec__slash, .safety = WORD_IMMEDIATE_ONLY };
 
-@if(SEQ)
     @doc(command.%)
     name: %
     category: sequencer
@@ -8290,7 +8093,6 @@ static int word_exec__pct(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
       return 0;
 }
 static skode_word_t word__pct = { WID("%"), .execute = word_exec__pct, .safety = WORD_IMMEDIATE_ONLY };
-@endif
 
     @doc(command.W*)
     name: W*
@@ -8812,9 +8614,7 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
 
 
-@if(AM)
   skode_dict_register(vocab, &word_A);
-@endif
 
   skode_dict_register(vocab, &word_b);
 
@@ -8822,21 +8622,13 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word_BC);
 
-@if(PD)
   skode_dict_register(vocab, &word_c);
-@endif
 
-@if(PD)
   skode_dict_register(vocab, &word_C);
-@endif
 
-@if(PD)
   skode_dict_register(vocab, &word_ct);
-@endif
 
-@if(PD)
   skode_dict_register(vocab, &word_cd);
-@endif
 
   skode_dict_register(vocab, &word_D);
 
@@ -8848,35 +8640,21 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
 
 
-@if(FILT && FADSR)
   skode_dict_register(vocab, &word_ft);
-@endif
 
-@if(FILT && FADSR)
   skode_dict_register(vocab, &word_fd);
-@endif
 
-@if(FM)
   skode_dict_register(vocab, &word_F);
-@endif
 
-@if(FM)
   skode_dict_register(vocab, &word_FF);
-@endif
 
-@if(FM)
   skode_dict_register(vocab, &word_FB);
-@endif
 
-@if(GLISS)
   skode_dict_register(vocab, &word_g);
-@endif
 
   skode_dict_register(vocab, &word_G);
 
-@if(SAH)
   skode_dict_register(vocab, &word_h);
-@endif
 
   skode_dict_register(vocab, &word_H);
 
@@ -8886,55 +8664,33 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word_L);
 
-@if(FILT)
   skode_dict_register(vocab, &word_J);
-@endif
 
-@if(FILT)
   skode_dict_register(vocab, &word_K);
-@endif
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word__slashks);
-@endif
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word__slashk);
-@endif
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word_ks);
-@endif
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word_k_bang);
-@endif
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word_kw);
-@endif
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word_kw_gt);
-@endif
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word_k_q);
-@endif
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word_k_gtd);
-@endif
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word_k_gtw);
-@endif
 
   skode_dict_register(vocab, &word_k);
 
-@if(UDP)
+#ifdef UDP
   skode_dict_register(vocab, &word_udp);
-@endif
+#endif
 
   skode_dict_register(vocab, &word_log);
 
@@ -8942,9 +8698,7 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word_l);
 
-@if(SEQ)
   skode_dict_register(vocab, &word_M);
-@endif
 
   skode_dict_register(vocab, &word_N);
 
@@ -8972,61 +8726,33 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word_GS_lt);
 
-@if(PANMOD)
   skode_dict_register(vocab, &word_P);
-@endif
 
-@if(CRUSH)
   skode_dict_register(vocab, &word_q);
-@endif
 
-@if(FILT)
   skode_dict_register(vocab, &word_Q);
-@endif
 
-@if(RECORD || SCOPE || TRACKS)
   skode_dict_register(vocab, &word_r);
-@endif
 
-@if(RECORD || SCOPE || TRACKS)
   skode_dict_register(vocab, &word_rt);
-@endif
 
-@if(RECORD || SCOPE || TRACKS)
   skode_dict_register(vocab, &word_rv);
-@endif
 
-@if(SEQ)
   skode_dict_register(vocab, &word_R_bang);
-@endif
 
-@if(SEQ)
   skode_dict_register(vocab, &word_R_bang_bang);
-@endif
 
-@if(SEQ)
   skode_dict_register(vocab, &word_RR);
-@endif
 
-@if(SEQ)
   skode_dict_register(vocab, &word_eRR);
-@endif
 
-@if(SEQ)
   skode_dict_register(vocab, &word_eR);
-@endif
 
-@if(SEQ)
   skode_dict_register(vocab, &word_DO_q);
-@endif
 
-@if(SEQ)
   skode_dict_register(vocab, &word_R);
-@endif
 
-@if(SMOOTHER)
   skode_dict_register(vocab, &word_s);
-@endif
 
   skode_dict_register(vocab, &word_S);
 
@@ -9062,13 +8788,9 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word_d_gtMO);
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word_d_gtk);
-@endif
 
-@if(KSYNTH)
   skode_dict_register(vocab, &word_w_gtk);
-@endif
 
   skode_dict_register(vocab, &word_w_gtd);
 
@@ -9127,9 +8849,7 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word_Z_q);
 
-@if(XM)
   skode_dict_register(vocab, &word_XM);
-@endif
 
   skode_dict_register(vocab, &word_v_q);
 
@@ -9141,9 +8861,7 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word__q_bs_q);
 
-@if(RECORD || SCOPE || TRACKS)
   skode_dict_register(vocab, &word__qr);
-@endif
 
   skode_dict_register(vocab, &word__qs);
 
@@ -9155,43 +8873,31 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word__qce_bang);
 
-@if(SEQ)
   skode_dict_register(vocab, &word__qq);
-@endif
 
-@if(SEQ)
   skode_dict_register(vocab, &word__qo);
-@endif
 
-@if(BENCH)
   skode_dict_register(vocab, &word__slashm_);
-@endif
 
   skode_dict_register(vocab, &word__slashq);
 
-@if(SCOPE)
+#ifdef SCOPE
   skode_dict_register(vocab, &word__slashsg);
-@endif
+#endif
 
-@if(SCOPE)
+#ifdef SCOPE
   skode_dict_register(vocab, &word__slashss);
-@endif
+#endif
 
-@if(SCOPE)
+#ifdef SCOPE
   skode_dict_register(vocab, &word__slashs_q);
-@endif
+#endif
 
-@if(RECORD)
   skode_dict_register(vocab, &word__slashrg);
-@endif
 
-@if(RECORD)
   skode_dict_register(vocab, &word__slashrs);
-@endif
 
-@if(RECORD)
   skode_dict_register(vocab, &word__slashr_q);
-@endif
 
   skode_dict_register(vocab, &word__slashr);
 
@@ -9259,9 +8965,7 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word__slash);
 
-@if(SEQ)
   skode_dict_register(vocab, &word__pct);
-@endif
 
   skode_dict_register(vocab, &word_W_star);
 
@@ -9319,7 +9023,6 @@ int skode_function(ands_t *s, int info) {
   return 0;
 }
 
-@if(SEQ)
 int skode_defer(ands_t *s, int info) {
   (void)info;
   skode_t *ctx = (skode_t*)ands_user(s);
@@ -9356,7 +9059,6 @@ int skode_defer(ands_t *s, int info) {
   ctx->defer_last = t;
   return 0;
 }
-@endif
 
 int skode_chunk_end(ands_t *s, int info) {
   skode_t *ctx = (skode_t*)ands_user(s);
@@ -9376,9 +9078,7 @@ int skode_callback(ands_t *s, int info) {
   skode_t *ctx = (skode_t*)ands_user(s);
   switch (info) {
     case FUNCTION: return skode_function(s, info);
-    @if(SEQ)
     case DEFER: return skode_defer(s, info);
-    @endif
     case CHUNK_END: return skode_chunk_end(s, info);
     case GOT_STRING: { if (ctx->trace) ctx->printf(ctx, "# -> [%s]\n", ands_string(s)); } break;
     case GOT_ARRAY: { if (ctx->trace) ctx->printf(ctx, "# -> (..%d..)\n", ands_data_len(s)); } break;
@@ -9563,7 +9263,6 @@ static int skode_session_zip_has(mz_zip_archive *zip, const char *name) {
     mz_zip_reader_locate_file(zip, name, NULL, 0) >= 0;
 }
 
-@if(KSYNTH)
 static int skode_session_k_valid(const void *data, size_t size) {
   if (!data || size < sizeof(skode_session_k_t)) return 0;
   skode_session_k_t header;
@@ -9638,7 +9337,6 @@ static K skode_session_read_k(ks_ctx *ks, const void *data, size_t size) {
   }
   return NULL;
 }
-@endif
 
 static int skode_session_save(skode_t *ctx, const char *filename) {
   if (!ctx || !ctx->parse || !filename || !filename[0]) return -1;
@@ -9702,7 +9400,6 @@ static int skode_session_save(skode_t *ctx, const char *filename) {
       strlen(ctx->string_slot[i]));
   }
 
-  @if(KSYNTH)
   if (ok && ctx->ks) {
     simple_mutex_lock(&skode_ks_eval_mutex);
     for (int i = 0; ok && i < 26; i++) {
@@ -9716,7 +9413,6 @@ static int skode_session_save(skode_t *ctx, const char *filename) {
         (K)ctx->ks_result);
     simple_mutex_unlock(&skode_ks_eval_mutex);
   }
-  @endif
 
   for (int wave = 0; ok && wave < synth_config.wave_table_max; wave++) {
     if (!sw.data[wave] || sw.size[wave] <= 0 || sw.readonly[wave]) continue;
@@ -9836,7 +9532,6 @@ static int skode_session_parse_manifest(const char *manifest, size_t size,
 }
 
 static int skode_session_restore_k(skode_t *ctx, mz_zip_archive *zip) {
-  @if(KSYNTH)
   int any = skode_session_zip_has(zip, "ksynth/result.ksv");
   char entry[64];
   for (int i = 0; i < 26 && !any; i++) {
@@ -9875,11 +9570,6 @@ static int skode_session_restore_k(skode_t *ctx, mz_zip_archive *zip) {
   }
   simple_mutex_unlock(&skode_ks_eval_mutex);
   return ok;
-  @else
-  (void)ctx;
-  return !skode_session_zip_has(zip, "ksynth/result.ksv") &&
-    !skode_session_zip_has(zip, "ksynth/A.ksv");
-  @endif
 }
 
 static int skode_session_load(skode_t *ctx, const char *filename) {
@@ -10039,7 +9729,6 @@ static int skode_session_load(skode_t *ctx, const char *filename) {
     ok = data && size == sizeof(skode_session_midi_settings_t);
     mz_free(data);
   }
-  @if(KSYNTH)
   for (int i = 0; ok && i < 26; i++) {
     char entry[64];
     snprintf(entry, sizeof(entry), "ksynth/%c.ksv", 'A' + i);
@@ -10055,16 +9744,6 @@ static int skode_session_load(skode_t *ctx, const char *filename) {
     ok = skode_session_k_valid(data, size);
     mz_free(data);
   }
-  @else
-  if (ok) {
-    for (int i = 0; i < 26; i++) {
-      char entry[64];
-      snprintf(entry, sizeof(entry), "ksynth/%c.ksv", 'A' + i);
-      if (skode_session_zip_has(&zip, entry)) ok = 0;
-    }
-    if (skode_session_zip_has(&zip, "ksynth/result.ksv")) ok = 0;
-  }
-  @endif
   if (!ok) {
     mz_zip_reader_end(&zip);
     skred_vfs_free_file(archive);
@@ -10384,7 +10063,6 @@ void skode_free(skode_t *ctx) {
     ands_free(ctx->parse);
     ctx->parse = NULL;
   }
-  @if(KSYNTH)
   if (ctx->ks_result && ctx->ks) {
     k_free(ctx->ks, (K)ctx->ks_result);
     ctx->ks_result = NULL;
@@ -10393,7 +10071,6 @@ void skode_free(skode_t *ctx) {
     ks_destroy(ctx->ks);
     ctx->ks = NULL;
   }
-  @endif
 }
 
 /* Dictionary command documentation remains here so kit_tool includes it in

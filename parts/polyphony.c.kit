@@ -85,26 +85,16 @@ static void remap_dependencies(int voice, const poly_group_t *group,
   sv.link_velo_1[voice] = remap_link(sv.link_velo_1[voice], group, dest_base);
   sv.link_velo_2[voice] = remap_link(sv.link_velo_2[voice], group, dest_base);
   sv.link_velo_3[voice] = remap_link(sv.link_velo_3[voice], group, dest_base);
-  @if(AM)
   if (sv.amp_mod_osc[voice] >= 0)
     sv.amp_mod_osc[voice] = remap_voice(sv.amp_mod_osc[voice], group, dest_base);
-  @endif
-  @if(FM)
   if (sv.freq_mod_osc[voice] >= 0)
     sv.freq_mod_osc[voice] = remap_voice(sv.freq_mod_osc[voice], group, dest_base);
-  @endif
-  @if(PANMOD)
   if (sv.pan_mod_osc[voice] >= 0)
     sv.pan_mod_osc[voice] = remap_voice(sv.pan_mod_osc[voice], group, dest_base);
-  @endif
-  @if(PD)
   if (sv.cz_mod_osc[voice] >= 0)
     sv.cz_mod_osc[voice] = remap_voice(sv.cz_mod_osc[voice], group, dest_base);
-  @endif
-  @if(XM)
   if (sv.ring_osc[voice] >= 0)
     sv.ring_osc[voice] = remap_voice(sv.ring_osc[voice], group, dest_base);
-  @endif
 }
 
 static int clone_voice(const poly_group_t *group, int source, int dest,
@@ -112,9 +102,7 @@ static int clone_voice(const poly_group_t *group, int source, int dest,
   if (!group || !poly_voice_valid(source) || !poly_voice_valid(dest)) return -1;
   float delay_send = sv.delay_send[dest];
   int control_events = sv.control_events[dest];
-  @if(RECORD || SCOPE || TRACKS)
   int track = synth_record_track_get(dest);
-  @endif
   if (source != dest) {
     /* voice_copy() intentionally leaves a destination override in place when
        the source uses its wave defaults. Clear those two sticky settings so a
@@ -131,22 +119,15 @@ static int clone_voice(const poly_group_t *group, int source, int dest,
     sv.amp_envelope[source].s, sv.amp_envelope[source].r);
   sv.amp_envelope_mode[dest] = sv.amp_envelope_mode[source];
   memcpy(sv.text[dest], sv.text[source], sizeof(sv.text[dest]));
-  @if(FADSR)
   sv.use_filter_envelope[dest] = sv.use_filter_envelope[source];
   sv.filter_env_depth[dest] = sv.filter_env_depth[source];
   envelope_init_e(&sv.filter_envelope[dest], sv.filter_envelope[source].a,
     sv.filter_envelope[source].d, sv.filter_envelope[source].s,
     sv.filter_envelope[source].r);
-  @endif
-  @if(FM)
   sv.freq_mod_mode[dest] = sv.freq_mod_mode[source];
-  @endif
-  @if(SMOOTHER)
   sv.smoother_enable[dest] = sv.smoother_enable[source];
   sv.smoother_smoothing[dest] = sv.smoother_smoothing[source];
   sv.smoother_gain[dest] = sv.amp[dest];
-  @endif
-  @if(GLISS)
   /* Glide enable/time are configuration; phase, target and speed belong to
      the currently sounding note and must start clean in a new instance. */
   sv.glissando_enable[dest] = sv.glissando_enable[source];
@@ -154,12 +135,9 @@ static int clone_voice(const poly_group_t *group, int source, int dest,
   sv.phase_inc[dest] = osc_get_phase_inc(&skred_global_engine, dest, sv.freq[dest]);
   sv.glissando_target[dest] = sv.phase_inc[dest];
   sv.glissando_speed[dest] = 1.0f;
-  @endif
   sv.delay_send[dest] = delay_send;
   voice_control_events_set(dest, control_events);
-  @if(RECORD || SCOPE || TRACKS)
   synth_record_track_set(dest, track);
-  @endif
   sv.pingpong_reverse[dest] = 0;
   sv.loop_bounded[dest] = 0;
   sv.loop_remaining[dest] = 0;
@@ -170,10 +148,8 @@ static int clone_voice(const poly_group_t *group, int source, int dest,
   sv.finished[dest] = 0;
   sv.sample[dest] = 0;
   osc_reclassify(&skred_global_engine, dest);
-  @if(SAH)
   sv.sample_hold[dest] = 0;
   sv.sample_hold_count[dest] = 0;
-  @endif
   remap_dependencies(dest, group, dest_base);
   return 0;
 }
@@ -664,26 +640,16 @@ static int graph_edges(int voice, graph_edge_t *edge, int max) {
   for (int i = 0; i < 4; i++)
     count = graph_add(edge, count, max, (int)gate[i],
       SKRED_VOICE_EDGE_GATE, "gate");
-  @if(AM)
   count = graph_add(edge, count, max, sv.amp_mod_osc[voice],
     SKRED_VOICE_EDGE_AMP_MOD, "amp-mod");
-  @endif
-  @if(FM)
   count = graph_add(edge, count, max, sv.freq_mod_osc[voice],
     SKRED_VOICE_EDGE_FREQ_MOD, "freq-mod");
-  @endif
-  @if(PANMOD)
   count = graph_add(edge, count, max, sv.pan_mod_osc[voice],
     SKRED_VOICE_EDGE_PAN_MOD, "pan-mod");
-  @endif
-  @if(PD)
   count = graph_add(edge, count, max, sv.cz_mod_osc[voice],
     SKRED_VOICE_EDGE_PHASE_MOD, "phase-mod");
-  @endif
-  @if(XM)
   count = graph_add(edge, count, max, sv.ring_osc[voice],
     SKRED_VOICE_EDGE_RING_MOD, "ring-mod");
-  @endif
   return count;
 }
 

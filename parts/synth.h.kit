@@ -20,24 +20,18 @@ void synth_free(void);
 int synth_sample_rate_set(int sample_rate);
 int synth_sample_rate_get(void);
 
-@if(CRUSH)
       int wave_quant(int voice, int n);
       float quantize_bits_curve(float v, int bits, int curve, uint64_t *rng);
-@endif
 
-@if(FILT)
       void mmf_init(skred_engine_t *engine, int, float, float);
       void mmf_set_params(skred_engine_t *engine, int, float, float);
       int  mmf_set_freq(skred_engine_t *engine, int, float);
       int  mmf_set_res(skred_engine_t *engine, int, float);
       float mmf_process(skred_engine_t *engine, int n, float input);
-@endif
 
-@if(PD)
       float cz_phasor(int n, float p, float d, float active_start, float active_end);
       int   cz_set(int v, int n, float f);
       int   cmod_set(int voice, int o, float f);
-@endif
 
       void  envelope_init(int v, float a, float d, float s, float r);
       void  amp_envelope_trigger(int v, float f);
@@ -59,7 +53,6 @@ void osc_trigger(skred_engine_t *engine, int voice);
 int volume_set(float v);
 float volume_get(void);
 
-@if(RECORD || SCOPE || TRACKS)
 int synth_record_track_set(int voice, int track);
 int synth_record_track_get(int voice);
 int synth_track_volume_set(int track, float db);
@@ -67,7 +60,6 @@ float synth_track_volume_db_get(int track);
 float synth_track_volume_linear_get(int track);
 int synth_track_name_set(int track, const char *name);
 const char *synth_track_name_get(int track);
-@endif
 
 int amp_set(int v, float f);
 int pan_set(int voice, float f);
@@ -109,21 +101,15 @@ int freq_bend_param_set(int voice, float range, float offset);
 int amp_bend_set(int voice, float val);
 int amp_bend_param_set(int voice, float range, float offset);
 
-@if(AM)
 int amp_mod_set(int voice, int o, float f, float a);
-@endif
 
 int wave_reset(int voice);
 
-@if(FM)
 int freq_mod_set(int voice, int o, float f, float a);
 int freq_mod_mode_set(int voice, int mode);
 int freq_feedback_set(int voice, float amount);
-@endif
 
-@if(PANMOD)
 int pan_mod_set(int voice, int o, float f, float a);
-@endif
 
 char *voice_format(int v, char *out, size_t out_size, int verbose);
 int voice_trigger(int voice);

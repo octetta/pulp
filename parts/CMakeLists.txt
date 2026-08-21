@@ -14,7 +14,7 @@ project(mini-skred VERSION "${PULP_VERSION}" LANGUAGES C)
 include(GNUInstallDirs)
 
 # 1. Build the tool
-set(KIT_OPTS "" CACHE STRING "Extra flags for the kit tool")
+set(KIT_OPTS "KSYNTH=1 MIDI=1 AM=1 XM=1 CRUSH=1 GLISS=1 FILT=1 FADSR=1 FM=1 PANMOD=1 PD=1 SAH=1 SEQ=1 SMOOTHER=1 RECORD=1 TRACKS=1 ADSR=1" CACHE STRING "Selected features for the native build")
 separate_arguments(KIT_OPTS_LIST NATIVE_COMMAND "${KIT_OPTS}")
 list(FIND KIT_OPTS_LIST "RECORD=1" RECORD_FEATURE_INDEX)
 list(FIND KIT_OPTS_LIST "SCOPE=1" SCOPE_FEATURE_INDEX)
@@ -99,17 +99,13 @@ set(API_KIT_MODULES
     seq
 )
 
-if(NOT RECORD_FEATURE_INDEX EQUAL -1)
     list(APPEND API_KIT_MODULES recorder)
-endif()
 
 if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
     list(APPEND API_PLAIN_SOURCES scope-ipc.c)
 endif()
 
-if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
     list(APPEND API_PLAIN_SOURCES vendor/ksynth/ksynth.c)
-endif()
 
 set(API_GEN_SOURCES "")
 
@@ -181,9 +177,18 @@ target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/exp-vfs")
 
-if(NOT MIDI_FEATURE_INDEX EQUAL -1)
     target_compile_definitions(api PUBLIC SKRED_MIDI_ENABLED=1)
     target_compile_definitions(api_shared PUBLIC SKRED_MIDI_ENABLED=1)
+
+if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
+    target_compile_definitions(api PUBLIC SCOPE=1)
+    target_compile_definitions(api_shared PUBLIC SCOPE=1)
+endif()
+if(NOT UDP_FEATURE_INDEX EQUAL -1)
+    target_compile_definitions(api PUBLIC UDP=1)
+    target_compile_definitions(api_shared PUBLIC UDP=1)
+endif()
+
     if(EMSCRIPTEN)
         target_link_libraries(api PUBLIC "-sASYNCIFY")
         target_link_libraries(api_shared PUBLIC "-sASYNCIFY")
@@ -198,7 +203,6 @@ if(NOT MIDI_FEATURE_INDEX EQUAL -1)
         target_include_directories(api_shared PRIVATE ${ALSA_INCLUDE_DIRS})
         target_link_libraries(api PUBLIC ${ALSA_LIBRARIES})
         target_link_libraries(api_shared PUBLIC ${ALSA_LIBRARIES})
-    endif()
 endif()
 
 # 6. Setup the main mini-skred executable module
@@ -322,31 +326,14 @@ add_executable(skode_state_tests tests/skode_state_tests.c)
 target_link_libraries(skode_state_tests PRIVATE api)
 target_compile_definitions(skode_state_tests PRIVATE
   SKRED_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-if(NOT TRACKS_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_TRACKS=1)
-endif()
-if(NOT RECORD_FEATURE_INDEX EQUAL -1 OR NOT SCOPE_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_RECORD_SCOPE=1)
-endif()
-if(NOT PD_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_PD=1)
-endif()
-if(NOT FM_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_FM=1)
-endif()
-if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_KSYNTH=1)
-endif()
-if(NOT MIDI_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE SKRED_TEST_MIDI=1)
-endif()
-if(NOT PD_FEATURE_INDEX EQUAL -1 AND
-   NOT FILT_FEATURE_INDEX EQUAL -1 AND
-   NOT FADSR_FEATURE_INDEX EQUAL -1 AND
-   NOT KSYNTH_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(skode_state_tests PRIVATE
     SKRED_TEST_INSPIRED_BANKS=1)
-endif()
 add_test(
   NAME skode.command-state
   COMMAND skode_state_tests
@@ -382,9 +369,7 @@ add_test(
 
 add_executable(polyphony_tests tests/polyphony_tests.c)
 target_link_libraries(polyphony_tests PRIVATE api)
-if(NOT TRACKS_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(polyphony_tests PRIVATE SKRED_TEST_TRACKS=1)
-endif()
 
 add_test(
   NAME polyphony.groups-pools-and-graphs
@@ -393,11 +378,7 @@ add_test(
 
 add_executable(ksynth_bridge_tests tests/ksynth_bridge_tests.c)
 target_link_libraries(ksynth_bridge_tests PRIVATE api)
-if(NOT KSYNTH_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(ksynth_bridge_tests PRIVATE SKRED_TEST_KSYNTH=1)
-else()
-  target_sources(ksynth_bridge_tests PRIVATE vendor/ksynth/ksynth.c)
-endif()
 
 add_test(
   NAME ksynth.array-bridge
@@ -411,14 +392,9 @@ target_link_libraries(render_equivalence_probe PRIVATE api)
 add_executable(synth_callback_bench EXCLUDE_FROM_ALL
   tests/synth_callback_bench.c)
 target_link_libraries(synth_callback_bench PRIVATE api)
-if(NOT PD_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(synth_callback_bench PRIVATE SKRED_BENCH_PD=1)
-endif()
-if(NOT FM_FEATURE_INDEX EQUAL -1)
   target_compile_definitions(synth_callback_bench PRIVATE SKRED_BENCH_FM=1)
-endif()
 
-if(NOT RECORD_FEATURE_INDEX EQUAL -1)
   add_executable(recording_tests tests/recording_tests.c)
   target_link_libraries(recording_tests PRIVATE api)
 
@@ -426,7 +402,6 @@ if(NOT RECORD_FEATURE_INDEX EQUAL -1)
     NAME recording.track-routing
     COMMAND recording_tests
   )
-endif()
 
 if(NOT SCOPE_FEATURE_INDEX EQUAL -1)
   add_executable(scope_reader scope-reader.c)

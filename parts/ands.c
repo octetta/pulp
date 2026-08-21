@@ -954,7 +954,19 @@ int ands_consume(ands_t *s, char *line) {
     }
 
     consume_end:
-    if (parse_err == 0) parse_err = action_chunk_end(s);
+    if (parse_err == 0) {
+        parse_err = action_chunk_end(s);
+    } else {
+        atom_reset(s);
+        s->arg_len = 0;
+        buffer_clear(&s->atom);
+        buffer_clear(&s->defer);
+        buffer_clear(&s->num);
+        s->string_fresh = 0;
+        s->defer_num = 0;
+        s->defer_mode = '?';
+        s->defer_var = -1;
+    }
     s->state = START;
     buffer_free(&expanded);
     return parse_err;

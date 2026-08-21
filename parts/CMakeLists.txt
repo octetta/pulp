@@ -191,7 +191,7 @@ install(FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/portable_atomic.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/skode.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/ands.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/seq.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/seq.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/exp-vfs/skred_vfs.h"
   "${SKRED_VERSION_H}"
   "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md"

@@ -1308,6 +1308,7 @@ static skred_ma_data_source synth_data_source;
 #endif
 
 static void internal_synth_process(float* output, const float* input, int frame_count, int out_channels, int in_channels, void* userData) {
+  (void)userData;
   synth_record_bus_t *capture_bus = NULL;
   synth_record_bus_t *record_bus = recorder_begin_block((int)frame_count);
   if (record_bus) capture_bus = record_bus;

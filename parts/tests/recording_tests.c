@@ -331,7 +331,7 @@ static void test_ring_writer(void) {
   if (read_u16_le(header + 22) != RECORD_CHANNELS) {
     fail(test, "WAV channel count is not 10");
   }
-  if (read_u32_le(header + 24) != MAIN_SAMPLE_RATE) {
+  if (read_u32_le(header + 24) != (uint32_t)MAIN_SAMPLE_RATE) {
     fail(test, "WAV sample rate mismatch");
   }
 }

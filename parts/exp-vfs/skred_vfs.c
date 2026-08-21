@@ -49,7 +49,7 @@ struct SkredDir {
         struct {
             unsigned int current_index;
             unsigned int total_files;
-            char filter_prefix[256];
+            char filter_prefix[1024];
             size_t prefix_len;
             char seen[256][256];
             unsigned int seen_count;
@@ -265,7 +265,7 @@ bool skred_chdir(const char *path) {
     }
 
     if (g_vfs.mode == VFS_MODE_DISK) {
-        char full[1024];
+        char full[2048];
         if (target_path[0]) snprintf(full, sizeof(full), "%s/%s", g_vfs.base_path, target_path);
         else snprintf(full, sizeof(full), "%s", g_vfs.base_path);
         DIR *d = opendir(full);
@@ -300,7 +300,7 @@ SkredFile* skred_fopen(const char *filepath, const char *mode) {
     file->is_writing = (strchr(mode, 'w') || strchr(mode, 'a'));
 
     if (file->mode == VFS_MODE_DISK) {
-        char full_path[1024];
+        char full_path[2048];
         if (filepath && filepath[0] == '/') {
             snprintf(file->resolved_path, sizeof(file->resolved_path), "%s", filepath);
             snprintf(full_path, sizeof(full_path), "%s", filepath);
@@ -416,7 +416,7 @@ SkredDir* skred_opendir(const char *dirpath) {
     dir->mode = g_vfs.mode;
 
     if (dir->mode == VFS_MODE_DISK) {
-        char path[1024];
+        char path[2048];
         if (target_path[0]) snprintf(path, sizeof(path), "%s/%s", g_vfs.base_path, target_path);
         else snprintf(path, sizeof(path), "%s", g_vfs.base_path);
         dir->handle.disk_dir = opendir(path);
@@ -424,7 +424,7 @@ SkredDir* skred_opendir(const char *dirpath) {
     } else {
         dir->handle.zip.total_files = mz_zip_reader_get_num_files(&g_vfs.archive);
         if (strlen(target_path) > 0) {
-            snprintf(dir->handle.zip.filter_prefix, 256, "%s/", target_path);
+            snprintf(dir->handle.zip.filter_prefix, 1024, "%s/", target_path);
             dir->handle.zip.prefix_len = strlen(dir->handle.zip.filter_prefix);
         }
     }

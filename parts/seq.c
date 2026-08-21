@@ -119,8 +119,6 @@ uint64_t seq_master_tick(void) {
 #include "util.h"
 
 static sben_t bench[BENLEN] = {};
-static int benchp = 0;
-static int64_t bencho = 0;
 static char _stats[65536] = "";
 
 char *seq_stats(void) {
@@ -150,10 +148,8 @@ static int seq_q_ready = 0;
 void do_event(uint64_t now, void (*event_fn)(const event_t *event)) {
   // Run expired (ready) queued events.
   item_t item;
-  static uint64_t last_ts = 0;
   while (1) {
     if (queue_get_filtered(&seq_q, now, &item)) {
-      last_ts = item.timestamp;
       event_fn(&item.event);
     } else {
       break;

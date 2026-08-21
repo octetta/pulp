@@ -424,7 +424,7 @@ int skode_linked_velocity(int voice, float velocity, uint64_t sample) {
 
 static int execute_opcode(const opcode_event_t *opcode, int voice) {
   if (!opcode || !event_voice_valid(voice)) return -1;
-  if (opcode->code > SKODE_OPCODE_REALTIME_MAX) return -1;
+  
   if (opcode->argc > SEQ_OPCODE_ARG_MAX) return -1;
   opcode_event_t resolved = *opcode;
   for (int i = 0; i < opcode->argc; i++) {

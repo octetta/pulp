@@ -1534,8 +1534,6 @@ void amp_envelope_schedule_one_shot_release(int v) {
 #include "util.h"
 
 static sben_t bench[BENLEN] = {};
-static int benchp = 0;
-static int64_t bencho = 0;
 static char _stats[65536] = "";
 
 char *synth_stats(void) {

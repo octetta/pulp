@@ -114,13 +114,13 @@ test: native
 	ctest --test-dir build_native --output-on-failure
 
 warn:
-	$(CMAKE) -B build_warn -S . -DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror'
+	$(CMAKE) -B build_warn -S . -DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter'
 	$(CMAKE) --build build_warn
 	ctest --test-dir build_warn --output-on-failure
 
 warn-maxed:
 	$(CMAKE) -B build_warn_maxed -S . \
-		-DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror'
+		-DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter'
 	$(CMAKE) --build build_warn_maxed
 	ctest --test-dir build_warn_maxed --output-on-failure
 

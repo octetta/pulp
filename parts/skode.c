@@ -116,7 +116,7 @@ static int skode_asset_read(const char *path, skode_asset_kind_t kind,
       resolved, resolved_size)) {
     return 1;
   }
-  char vfs_candidate[1024];
+  char vfs_candidate[2048];
   snprintf(vfs_candidate, sizeof(vfs_candidate), "/%s", candidate);
   if (skode_asset_try_read(vfs_candidate, 0, data, size,
       resolved, resolved_size)) {
@@ -1864,7 +1864,7 @@ static int skode_wave_display_use_braille(void) {
 #endif
 }
 
-static const char *skode_wave_display_name(void) {
+__attribute__((unused)) static const char *skode_wave_display_name(void) {
     return skode_wave_display_use_braille() ? "braille" : "ascii";
 }
 
@@ -3047,7 +3047,7 @@ static void skode_opcode_links(const opcode_event_t *opcode,
 
 int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
   if (!opcode || !skode_voice_valid(voice) ||
-      opcode->code > SKODE_OPCODE_REALTIME_MAX ||
+      
       opcode->argc > SEQ_OPCODE_ARG_MAX || opcode->var_mask != 0) return -1;
   uint8_t default_mask =
     opcode->code == SKODE_OP_MIDI_NOTE ||
@@ -3449,6 +3449,8 @@ static int word_exec__slashals(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         (void)skred_audio_command("/als");
@@ -3463,6 +3465,8 @@ static int word_exec__slasha_q(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) ctx->printf(ctx, "# %s\n", skred_audio_status());
       return 0;
@@ -3474,6 +3478,8 @@ static int word_exec__slashai(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 1 && x_valid) {
         int is_capture = atom == ATOM4('/ai-');
@@ -3498,6 +3504,8 @@ static int word_exec__slashmL(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         int result = skred_midi_init("pulp");
@@ -3527,6 +3535,8 @@ static int word_exec__slashm_q(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# %s\n", skred_midi_status());
       return 0;
@@ -3538,6 +3548,8 @@ static int word_exec__slashmi(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 1 && x_valid) {
         int result = skred_midi_init("pulp");
@@ -3560,6 +3572,8 @@ static int word_exec__slashmd(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) x = skred_midi_debug_get() ? 0 : 1;
       skred_midi_debug_set(x);
@@ -3573,6 +3587,8 @@ static int word_exec__slashmiV(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         const char *name = ands_string(ctx->parse);
@@ -3593,6 +3609,8 @@ static int word_exec__slashmic(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0 && skred_midi_input_close() != 0)
         ctx->printf(ctx, "# MIDI input close failed\n");
@@ -3605,6 +3623,8 @@ static int word_exec__slashmoc(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0 && skred_midi_output_close() != 0)
         ctx->printf(ctx, "# MIDI output close failed\n");
@@ -3617,6 +3637,8 @@ static int word_exec__slashmv(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int channel = -1, target;
@@ -3645,6 +3667,8 @@ static int word_exec__slashmvd(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int channel = -1, target;
@@ -3667,6 +3691,8 @@ static int word_exec__slashmR(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_midi_route_status());
       return 0;
@@ -3678,6 +3704,8 @@ static int word_exec__slashmC(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skred_midi_route_clear();
       ctx->printf(ctx, "# MIDI routes cleared\n");
@@ -3690,6 +3718,8 @@ static int word_exec__slashmb(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int type, channel = -1, data1 = -1;
@@ -3713,6 +3743,8 @@ static int word_exec__slashmbd(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int type, channel = -1, data1 = -1;
@@ -3731,6 +3763,8 @@ static int word_exec__slashmb_q(const skode_word_t *self, skode_t *ctx, ands_t *
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_midi_binding_status());
       return 0;
@@ -3742,6 +3776,8 @@ static int word_exec__slashmbC(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skred_midi_binding_clear();
       ctx->printf(ctx, "# MIDI Skode bindings cleared\n");
@@ -3754,6 +3790,8 @@ static int word_exec__slashpg(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int group, source, width, root = 0;
@@ -3775,6 +3813,8 @@ static int word_exec__slashpg_bang(const skode_word_t *self, skode_t *ctx, ands_
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!x_valid || argc != 1 || skred_poly_group_refresh(x) != 0)
         ctx->printf(ctx, "# usage: /pg! group\n");
@@ -3787,6 +3827,8 @@ static int word_exec__slashpp(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int pool, group, base, count, policy = SKRED_POLY_STEAL_RELEASE_OLDEST;
@@ -3810,6 +3852,8 @@ static int word_exec__slashpp_bang(const skode_word_t *self, skode_t *ctx, ands_
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!x_valid || argc != 1 || skred_poly_pool_refresh(x) != 0)
         ctx->printf(ctx, "# usage: /pp! pool\n");
@@ -3822,6 +3866,8 @@ static int word_exec__slashpm(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int pool, mode, priority = SKRED_POLY_PRIORITY_LAST;
@@ -3845,6 +3891,8 @@ static int word_exec__qpg(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_poly_group_status(x_valid ? x : -1));
       return 0;
@@ -3856,6 +3904,8 @@ static int word_exec__qpp(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_poly_pool_status(x_valid ? x : -1));
       return 0;
@@ -3867,6 +3917,8 @@ static int word_exec__slashvg(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int graph_voice, format = 0, depth = 0;
@@ -3888,6 +3940,8 @@ static int word_exec_pn(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int pool, key;
@@ -3913,6 +3967,8 @@ static int word_exec_pr(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int pool, key;
@@ -3931,6 +3987,8 @@ static int word_exec_pb(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int pool, key;
@@ -3954,6 +4012,8 @@ static int word_exec_wait(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (x_valid && x >= 0) sk_sleep(x);
       return 0;
@@ -3970,6 +4030,8 @@ static int word_exec_clr(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_clear(s);
       return 1;
@@ -3986,6 +4048,8 @@ static int word_exec_drop(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_drop(s);
       return 1;
@@ -4002,6 +4066,8 @@ static int word_exec_dup(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_dup(s);
       return 1;
@@ -4018,6 +4084,8 @@ static int word_exec_over(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_over(s);
       return 1;
@@ -4034,6 +4102,8 @@ static int word_exec_rot(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_rot(s);
       return 1;
@@ -4050,6 +4120,8 @@ static int word_exec_swap(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_arg_swap(s);
       return 1;
@@ -4074,6 +4146,8 @@ static int word_exec_ab(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4083,7 +4157,7 @@ static int word_exec_ab(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       if (argc) amp_bend_set(voice, (float)arg[0]);
       return 0;
 }
-static skode_word_t word_ab = { WID("ab"), .execute = word_exec_ab, .safety = WORD_IMMEDIATE_ONLY };
+__attribute__((unused)) static skode_word_t word_ab = { WID("ab"), .execute = word_exec_ab, .safety = WORD_IMMEDIATE_ONLY };
 
     /* @doc(command.abp)
     name: abp
@@ -4095,6 +4169,8 @@ static int word_exec_abp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4108,7 +4184,7 @@ static int word_exec_abp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       }
       return 0;
 }
-static skode_word_t word_abp = { WID("abp"), .execute = word_exec_abp, .safety = WORD_IMMEDIATE_ONLY };
+__attribute__((unused)) static skode_word_t word_abp = { WID("abp"), .execute = word_exec_abp, .safety = WORD_IMMEDIATE_ONLY };
 
     /* @doc(command.A)
     name: A
@@ -4120,6 +4196,8 @@ static int word_exec_A(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4147,6 +4225,8 @@ static int word_exec_b(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4168,6 +4248,8 @@ static int word_exec_B(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4188,6 +4270,8 @@ static int word_exec_BC(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4209,6 +4293,8 @@ static int word_exec_c(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4245,6 +4331,8 @@ static int word_exec_C(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc < 2) {
         cmod_set(voice, -1, 0);
@@ -4265,6 +4353,8 @@ static int word_exec_ct(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4294,6 +4384,8 @@ static int word_exec_cd(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4315,6 +4407,8 @@ static int word_exec_D(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (x > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, x);
@@ -4335,6 +4429,8 @@ static int word_exec_MO(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         uint8_t bytes[3];
@@ -4370,6 +4466,8 @@ static int word_exec_ce(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 0 && argc <= 4) {
         opcode_event_t opcode = {
@@ -4393,6 +4491,8 @@ static int word_exec__qd(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         double *data = ands_data(ctx->parse);
@@ -4418,6 +4518,8 @@ static int word_exec_fb(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4427,7 +4529,7 @@ static int word_exec_fb(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       if (argc) freq_bend_set(voice, (float)arg[0]);
       return 0;
 }
-static skode_word_t word_fb = { WID("fb"), .execute = word_exec_fb, .safety = WORD_IMMEDIATE_ONLY };
+__attribute__((unused)) static skode_word_t word_fb = { WID("fb"), .execute = word_exec_fb, .safety = WORD_IMMEDIATE_ONLY };
 
     /* @doc(command.fbp)
     name: fbp
@@ -4439,6 +4541,8 @@ static int word_exec_fbp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 /* @doc
 
@@ -4452,7 +4556,7 @@ static int word_exec_fbp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       }
       return 0;
 }
-static skode_word_t word_fbp = { WID("fbp"), .execute = word_exec_fbp, .safety = WORD_IMMEDIATE_ONLY };
+__attribute__((unused)) static skode_word_t word_fbp = { WID("fbp"), .execute = word_exec_fbp, .safety = WORD_IMMEDIATE_ONLY };
 
     /* @doc(command.ft)
     name: ft
@@ -4464,6 +4568,8 @@ static int word_exec_ft(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 4) {
         float a = arg[0];
@@ -4487,6 +4593,8 @@ static int word_exec_fd(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) sv.filter_env_depth[voice] = arg[0];
       return 0;
@@ -4503,6 +4611,8 @@ static int word_exec_F(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc <= 1) {
         freq_mod_set(voice, -1, 0, 0);
@@ -4525,6 +4635,8 @@ static int word_exec_FF(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) freq_mod_mode_set(voice, x);
       return 0;
@@ -4541,6 +4653,8 @@ static int word_exec_FB(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) freq_feedback_set(voice, arg[0]);
       return 0;
@@ -4557,6 +4671,8 @@ static int word_exec_g(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (arg[0] <= 0) {
@@ -4581,6 +4697,8 @@ static int word_exec_G(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int links[4] = {-1, -1, -1, -1};
@@ -4608,6 +4726,8 @@ static int word_exec_h(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 0) {
         float ratio = (float)arg[0];
@@ -4630,6 +4750,8 @@ static int word_exec_H(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int links[4] = {-1, -1, -1, -1};
@@ -4658,6 +4780,8 @@ static int word_exec__slashD(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         // free and re-allocate...
@@ -4681,6 +4805,8 @@ static int word_exec_I(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {} return 0; // TODO en/dis-able send timestamp wire to the event logger
 }
@@ -4696,6 +4822,8 @@ static int word_exec_L(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         double seconds = arg[0];
@@ -4723,6 +4851,8 @@ static int word_exec_J(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 0) {
         int mode = (int)x;
@@ -4747,6 +4877,8 @@ static int word_exec_K(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) { mmf_set_freq(&skred_global_engine, voice, arg[0]); }
       return 0;
@@ -4764,6 +4896,8 @@ static int word_exec__slashks(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         char *file = ands_string(ctx->parse);
@@ -4789,6 +4923,8 @@ static int word_exec__slashk(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int verbose = 0;
@@ -4811,6 +4947,8 @@ static int word_exec_ks(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 
       {
@@ -4838,6 +4976,8 @@ static int word_exec_k_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int len = 0;
@@ -4864,6 +5004,8 @@ static int word_exec_kw(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         (void)x;
@@ -4884,6 +5026,8 @@ static int word_exec_kw_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         (void)x;
@@ -4905,6 +5049,8 @@ static int word_exec_k_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         K result = (K)ctx->ks_result;
@@ -4927,6 +5073,8 @@ static int word_exec_k_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         skode_ks_result_to_data(ctx);
@@ -4947,6 +5095,8 @@ static int word_exec_k_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int wave_slot = EXT_SAMPLE_000;
@@ -4975,6 +5125,8 @@ static int word_exec_k(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) { sv.amp_envelope_mode[voice] = x; } return 0;
 }
@@ -4991,6 +5143,8 @@ static int word_exec_udp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         ctx->printf(ctx, "# udp [%d] %d/%d\n", ctx->which, ctx->ip, ctx->port);
@@ -5010,6 +5164,8 @@ static int word_exec_log(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (x) { ctx->log_enable = 1; } else { ctx->log_enable = 0; }
@@ -5028,6 +5184,8 @@ static int word_exec____l(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && isfinite(arg[0])) envelope_velocity(voice, arg[0]);
       return 0;
@@ -5044,6 +5202,8 @@ static int word_exec_l(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
     #if 1
       if (argc) skode_linked_velocity(voice, arg[0], SAMPLE_COUNT_GET());
@@ -5081,6 +5241,8 @@ static int word_exec_M(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         float bpm = arg[0];
@@ -5110,6 +5272,8 @@ static int word_exec_N(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (isnan(arg[0])) {
@@ -5138,6 +5302,8 @@ static int word_exec_ds(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) delay_send_set(&skred_global_engine, voice, arg[0]);
       return 0;
@@ -5154,6 +5320,8 @@ static int word_exec_DG(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int bus = 1;
@@ -5178,6 +5346,8 @@ static int word_exec_DL(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int bus = 1;
@@ -5206,6 +5376,8 @@ static int word_exec_DL_q(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int bus = 1;
@@ -5228,6 +5400,8 @@ static int word_exec_DD(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int bus = 1;
@@ -5252,6 +5426,8 @@ static int word_exec_DF(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int bus = 1;
@@ -5275,6 +5451,8 @@ static int word_exec_DP(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int bus = 1;
@@ -5298,6 +5476,8 @@ static int word_exec_DT(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 2) {
         int bus;
@@ -5318,6 +5498,8 @@ static int word_exec_DS(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 3) {
         int bus;
@@ -5338,6 +5520,8 @@ static int word_exec_GS(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       global_status_show(ctx, argc > 0 && arg[0] > 0.0);
       return 0;
@@ -5354,6 +5538,8 @@ static int word_exec_GS_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!ands_string_fresh(ctx->parse) || !ands_string(ctx->parse)[0])
         ctx->printf(ctx, "# GS> requires [filename.zip]\n");
@@ -5373,6 +5559,8 @@ static int word_exec_GS_lt(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!ands_string_fresh(ctx->parse) || !ands_string(ctx->parse)[0])
         ctx->printf(ctx, "# GS< requires [filename.zip]\n");
@@ -5392,6 +5580,8 @@ static int word_exec_P(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc < 2) {
         pan_mod_set(voice, -1, 0, 0);
@@ -5414,6 +5604,8 @@ static int word_exec_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 0) {
         int bits = (int)x;
@@ -5435,6 +5627,8 @@ static int word_exec_Q(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) { mmf_set_res(&skred_global_engine, voice, arg[0]); }
       return 0;
@@ -5451,6 +5645,8 @@ static int word_exec_r(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) synth_record_track_set(voice, x);
       return 0;
@@ -5467,6 +5663,8 @@ static int word_exec_rt(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x > 0 && x <= RECORD_TRACK_MAX) {
         synth_track_name_set(x, ands_string(ctx->parse));
@@ -5489,6 +5687,8 @@ static int word_exec_rv(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x > 0 && x <= RECORD_TRACK_MAX) {
         synth_track_volume_set(x, arg[1]);
@@ -5511,6 +5711,8 @@ static int word_exec_R_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int tag = x;
@@ -5530,6 +5732,8 @@ static int word_exec_R_bang_bang(const skode_word_t *self, skode_t *ctx, ands_t 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       seq_kill_all();
       return 0;
@@ -5546,6 +5750,8 @@ static int word_exec_RR(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x_valid && x > 0 && x <= QUEUE_SIZE &&
           isfinite(arg[1]) && arg[1] >= 0.0) {
@@ -5570,6 +5776,8 @@ static int word_exec_eRR(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skode_repeat_macro(ctx, arg, argc, 1);
       return 0;
@@ -5586,6 +5794,8 @@ static int word_exec_eR(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skode_repeat_macro(ctx, arg, argc, 0);
       return 0;
@@ -5602,6 +5812,8 @@ static int word_exec_DO_q(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x>0) {
         event_program_t program;
@@ -5625,6 +5837,8 @@ static int word_exec_R(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x_valid && x > 0 && x <= QUEUE_SIZE &&
           isfinite(arg[1]) && arg[1] >= 0.0) {
@@ -5648,6 +5862,8 @@ static int word_exec_s(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (arg[0] <= 0) {
@@ -5671,6 +5887,8 @@ static int word_exec_S(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) wave_reset(x);
       return 0;
@@ -5687,6 +5905,8 @@ static int word_exec_t(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 3) envelope_set(voice, arg[0], arg[1], arg[2], arg[3]);
       return 0;
@@ -5703,6 +5923,8 @@ static int word_exec_T(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         envelope_velocity(voice, 1);
@@ -5730,6 +5952,8 @@ static int word_exec_vc(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) voice_control_events_set(voice, x != 0);
       return 0;
@@ -5746,6 +5970,8 @@ static int word_exec_V(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         volume_set(arg[0]);
@@ -5768,6 +5994,8 @@ static int word_exec_vt(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skode_copy_string(sv.text[voice], TEXT_MAX, ands_string(ctx->parse));
       return 0;
@@ -5784,6 +6012,8 @@ static int word_exec_wt(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && skode_wave_valid(x)) {
         skode_copy_string(sw.name[x], WAVE_NAME_MAX, ands_string(ctx->parse));
@@ -5802,6 +6032,8 @@ static int word_exec_WL(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2 && x_valid && skode_wave_valid(x)) {
         int start, end;
@@ -5824,6 +6056,8 @@ static int word_exec_VS(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc >= 2) {
         int start, end;
@@ -5852,6 +6086,8 @@ static int word_exec_VL(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc >= 2) {
         int start, end;
@@ -5881,6 +6117,8 @@ static int word_exec_VW(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int target_voice = voice;
@@ -5923,6 +6161,8 @@ static int word_exec_w(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && wave_set(voice, x) == 0) {
         int n;
@@ -5948,6 +6188,8 @@ static int word_exec__eqd(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x_valid) {
         int y;
@@ -5973,6 +6215,8 @@ static int word_exec_d_star(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         double *data = ands_data(ctx->parse);
@@ -5999,6 +6243,8 @@ static int word_exec_d_gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         double *data = ands_data(ctx->parse);
@@ -6036,6 +6282,8 @@ static int word_exec_r_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int channel = -1;
@@ -6101,6 +6349,8 @@ static int word_exec_d_gtMO(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         double *data = ands_data(ctx->parse);
@@ -6144,6 +6394,8 @@ static int word_exec_d_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int variable;
@@ -6168,6 +6420,8 @@ static int word_exec_w_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1) {
         int wave;
@@ -6207,6 +6461,8 @@ static int word_exec_w_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (x_valid && skode_wave_valid(x) && sw.data[x] && sw.size[x] > 0) {
         if (sw.size[x] > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, sw.size[x]);
@@ -6229,6 +6485,8 @@ static int word_exec_w_gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (x_valid && skode_wave_valid(x) && sw.data[x] && sw.size[x] > 0) {
         int valid = 1;
@@ -6264,6 +6522,8 @@ static int word_exec_w_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!ands_string_fresh(ctx->parse) ||
           !ands_string(ctx->parse)[0]) {
@@ -6295,6 +6555,8 @@ static int word_exec_w_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE ||
@@ -6327,6 +6589,8 @@ static int word_exec_w_star(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (atomic_load_int(&sampling.state) == SAMPLE_STATE_COMPLETE) {
         sampling.offset = 0;
@@ -6348,6 +6612,8 @@ static int word_exec_w_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE) {
         ctx->printf(ctx, "# recording buffer is not complete\n");
@@ -6376,6 +6642,8 @@ static int word_exec_w_lt(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (atomic_load_int(&sampling.state) != SAMPLE_STATE_COMPLETE) {
         ctx->printf(ctx, "# recording buffer is not complete\n");
@@ -6404,6 +6672,8 @@ static int word_exec_w_lt_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         float arg0 = -1;
@@ -6428,6 +6698,8 @@ static int word_exec_WS(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && arg[0] >= 0) {
         int w = WAVE_DISPLAY_DEFAULT_WIDTH;
@@ -6448,6 +6720,8 @@ static int word_exec_W(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int w = WAVE_DISPLAY_DEFAULT_WIDTH;
@@ -6542,8 +6816,11 @@ static int word_exec_xg(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 
+  return 0;
 }
 static skode_word_t word_xg = { WID("xg"), .execute = word_exec_xg, .safety = WORD_IMMEDIATE_ONLY };
 
@@ -6557,6 +6834,8 @@ static int word_exec__gtx(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       seq_step_goto(ctx->pattern, x);
       return 0;
@@ -6573,6 +6852,8 @@ static int word_exec_xa(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         const char *source = ands_string(ctx->parse);
@@ -6600,6 +6881,8 @@ static int word_exec__ltx(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (arg == 0) {
       } else {
@@ -6627,6 +6910,8 @@ static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         if (isnan(arg[0]) || !x_valid || x < 0) {
@@ -6663,6 +6948,8 @@ static int word_exec_y(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x >= 0 && x < PATTERNS_MAX) {
         int old_p = ctx->pattern;
@@ -6686,6 +6973,8 @@ static int word_exec_ys_q(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int p = (argc && x >= 0 && x < PATTERNS_MAX) ? x : ctx->pattern;
@@ -6706,6 +6995,8 @@ static int word_exec_yt(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (ctx->pattern >= 0 && ctx->pattern < PATTERNS_MAX) {
         seq_edit_lock();
@@ -6726,6 +7017,8 @@ static int word_exec_ym(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         seq_mute_set(ctx->pattern, x);
@@ -6745,6 +7038,8 @@ static int word_exec_yc(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) seq_control_events_set(ctx->pattern, x);
       return 0;
@@ -6761,6 +7056,8 @@ static int word_exec_Y(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x >= 0 && x < PATTERNS_MAX) {
         pattern_reset(x);
@@ -6779,6 +7076,8 @@ static int word_exec_z(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         seq_state_set(ctx->pattern, x);
@@ -6797,6 +7096,8 @@ static int word_exec_zg(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x >= 0 && x < SEQ_STEPS_MAX) {
         seq_step_goto(ctx->pattern, x);
@@ -6815,6 +7116,8 @@ static int word_exec_zq(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         seq_state_queue(ctx->pattern, x);
@@ -6834,6 +7137,8 @@ static int word_exec_z_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       pattern_show(ctx, ctx->pattern, 1);
       return 0;
@@ -6850,6 +7155,8 @@ static int word_exec_Z(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         seq_state_all(x);
@@ -6874,8 +7181,11 @@ static int word_exec_z_q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 
+  return 0;
 }
 static skode_word_t word_z_q_bs_q = { WID("z?\?"), .execute = word_exec_z_q_bs_q, .safety = WORD_IMMEDIATE_ONLY };
 
@@ -6889,6 +7199,8 @@ static int word_exec_Z_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "M%g\n", tempo_bpm_get());
       for (int p = 0; p < PATTERNS_MAX; p++) {
@@ -6909,6 +7221,8 @@ static int word_exec_XM(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         sv.ring_osc[voice] = x_valid && skode_voice_valid(x) ? x : -1;
@@ -6929,8 +7243,11 @@ static int word_exec_v_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 
+  return 0;
 }
 static skode_word_t word_v_q = { WID("v?"), .execute = word_exec_v_q, .safety = WORD_IMMEDIATE_ONLY };
 
@@ -6944,6 +7261,8 @@ static int word_exec__q(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       voice_show(ctx, voice, ' ', ctx->verbose); return 0;
 }
@@ -6959,6 +7278,8 @@ static int word_exec__bs_bs(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       voice_show(ctx, voice, ' ', 1); return 0;
 }
@@ -6974,8 +7295,11 @@ static int word_exec_v_q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 
+  return 0;
 }
 static skode_word_t word_v_q_bs_q = { WID("v?\?"), .execute = word_exec_v_q_bs_q, .safety = WORD_IMMEDIATE_ONLY };
 
@@ -6989,6 +7313,8 @@ static int word_exec__q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       voice_show_all(ctx, voice, ctx->verbose); return 0;
 }
@@ -7004,6 +7330,8 @@ static int word_exec__qr(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       record_tracks_show(ctx); return 0;
 }
@@ -7019,6 +7347,8 @@ static int word_exec__qs(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
       return 0;
@@ -7035,6 +7365,8 @@ static int word_exec_s_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x_valid) {
         if (x >= 0 && x < SKODE_STRING_SLOT_MAX)
@@ -7059,6 +7391,8 @@ static int word_exec__qm(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skode_macros_show(ctx, 0);
       return 0;
@@ -7075,6 +7409,8 @@ static int word_exec__qce(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       control_event_show(ctx, 0);
       return 0;
@@ -7091,6 +7427,8 @@ static int word_exec__qce_bang(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# control events cleared:%d\n",
         skred_control_event_clear());
@@ -7108,6 +7446,8 @@ static int word_exec__qq(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       opcode_queue_show(ctx);
       return 0;
@@ -7124,6 +7464,8 @@ static int word_exec__qo(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         opcode_queue_show(ctx);
@@ -7155,6 +7497,8 @@ static int word_exec__slashm_(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       synth_voice_bench(voice);
       return 0;
@@ -7171,6 +7515,8 @@ static int word_exec__slashq(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->quit = -1;
       return 0;
@@ -7188,6 +7534,8 @@ static int word_exec__slashsg(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         const char *name = ands_string_fresh(ctx->parse)
@@ -7236,6 +7584,8 @@ static int word_exec__slashss(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       scope_ipc_stop();
       ctx->printf(ctx, "# scope stopped\n");
@@ -7255,6 +7605,8 @@ static int word_exec__slashs_q(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         skred_scope_status_t status;
@@ -7284,6 +7636,8 @@ static int word_exec__slashrg(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         const char *filename = ands_string(ctx->parse);
@@ -7317,6 +7671,8 @@ static int word_exec__slashrs(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (recorder_stop() == 0) {
         ctx->printf(ctx, "# recording stopped\n");
@@ -7337,6 +7693,8 @@ static int word_exec__slashr_q(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         const char *state = "unknown";
@@ -7365,6 +7723,8 @@ static int word_exec__slashr(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int wave_slot = EXT_SAMPLE_000;
@@ -7400,6 +7760,8 @@ static int word_exec__slashd(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int wave_slot = EXT_SAMPLE_000;
@@ -7426,6 +7788,8 @@ static int word_exec__slashf(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) { ctx->flag = x; }
       else { ctx->printf(ctx, "# /f%d\n", ctx->flag); }
@@ -7443,6 +7807,8 @@ static int word_exec__slashff(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         if (!argc) return 0;
@@ -7465,6 +7831,8 @@ static int word_exec__slashm(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : "";
@@ -7489,6 +7857,8 @@ static int word_exec__slashm_bang(const skode_word_t *self, skode_t *ctx, ands_t
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ands_macro_clear(ctx->parse);
       ctx->printf(ctx, "# macros cleared\n");
@@ -7506,6 +7876,8 @@ static int word_exec__slasht(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) x = (ctx->trace) ? 0 : 1;
       ctx->trace = x;
@@ -7524,6 +7896,8 @@ static int word_exec__slashv(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) x = (ctx->verbose) ? 0 : 1;
       ctx->verbose = x;
@@ -7541,6 +7915,8 @@ static int word_exec__slashcer(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x_valid) skred_control_response_set_enabled(x != 0);
       ctx->printf(ctx, "%s", skred_control_response_status());
@@ -7558,6 +7934,8 @@ static int word_exec__slashce_q(const skode_word_t *self, skode_t *ctx, ands_t *
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_control_response_status());
       return 0;
@@ -7574,6 +7952,8 @@ static int word_exec__slashth_q(const skode_word_t *self, skode_t *ctx, ands_t *
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "%s", skred_thread_status());
       return 0;
@@ -7590,6 +7970,8 @@ static int word_exec__slashth_bang(const skode_word_t *self, skode_t *ctx, ands_
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skred_performance_reset();
       ctx->printf(ctx, "# performance counters reset\n");
@@ -7607,6 +7989,8 @@ static int word_exec__slashce_bang(const skode_word_t *self, skode_t *ctx, ands_
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc == 0) {
         skred_control_response_clear();
@@ -7632,6 +8016,8 @@ static int word_exec__slashceb(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x_valid && ands_string_len(ctx->parse) > 0) {
         int key;
@@ -7660,6 +8046,8 @@ static int word_exec__slashcex(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2 && x_valid) {
         int index, type, key;
@@ -7691,6 +8079,8 @@ static int word_exec__lts(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x_valid && x >= 0 && x < SKODE_STRING_SLOT_MAX) {
         ands_string_from_external(ctx->parse, ctx->string_slot[x],
@@ -7710,6 +8100,8 @@ static int word_exec_s_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x_valid && x >= 0 && x < SKODE_STRING_SLOT_MAX) {
         skode_copy_string(ctx->string_slot[x], SKODE_STRING_SLOT_LEN,
@@ -7729,6 +8121,8 @@ static int word_exec_s_pct(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         char formatted[SKODE_STRING_SLOT_LEN];
@@ -7750,6 +8144,8 @@ static int word_exec__lte(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && skode_extra_valid(x)) {
         char macro[STRING_BUF_LEN];
@@ -7770,6 +8166,8 @@ static int word_exec_e_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && skode_extra_valid(x)) {
         char *s = ands_string(ctx->parse);
@@ -7791,6 +8189,8 @@ static int word_exec_e_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         char macro[STRING_BUF_LEN] = "";
@@ -7822,6 +8222,8 @@ static int word_exec_e_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       simple_mutex_lock(&skode_extra_mutex);
       if (argc) {
@@ -7847,6 +8249,8 @@ static int word_exec__slashs(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         if (argc == 0) {
@@ -7886,6 +8290,8 @@ static int word_exec__slashh(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skode_help(ctx, arg, argc);
       return 0;
@@ -7902,6 +8308,8 @@ static int word_exec__slashl(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         int verbose = 0;
@@ -7922,6 +8330,8 @@ static int word_exec__slashls(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (strlen(ands_string(ctx->parse))) {
         int verbose = 0;
@@ -7944,6 +8354,8 @@ static int word_exec__slashws(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# [%s] /ws\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
@@ -7973,6 +8385,8 @@ static int word_exec__slashw(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
         int file_num = 0;
@@ -8002,6 +8416,8 @@ static int word_exec__gtr(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (!ands_string_fresh(ctx->parse) ||
           !ands_string(ctx->parse)[0]) {
@@ -8031,8 +8447,11 @@ static int word_exec__hatr(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
 
+  return 0;
 }
 static skode_word_t word__hatr = { WID("^r"), .execute = word_exec__hatr, .safety = WORD_IMMEDIATE_ONLY };
 
@@ -8046,6 +8465,8 @@ static int word_exec__ltr(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && isfinite(arg[0]) && arg[0] > 0.0 &&
           arg[0] <= (double)(INT_MAX / AUDIO_CHANNELS) / MAIN_SAMPLE_RATE) {
@@ -8096,6 +8517,8 @@ static int word_exec__gt(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (x_valid && skode_voice_valid(x)) voice_copy(voice, x);
       return 0;
@@ -8112,6 +8535,8 @@ static int word_exec__slash(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       wave_default(voice);
       return 0;
@@ -8128,6 +8553,8 @@ static int word_exec__pct(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) seq_modulo_set(ctx->pattern, x);
       return 0;
@@ -8144,6 +8571,8 @@ static int word_exec_W_star(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1 && x_valid && skode_wave_valid(x)) {
         int wave = x;
@@ -8195,6 +8624,8 @@ static int word_exec_v_star(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
         double val = 0.0;
@@ -8237,6 +8668,8 @@ static int word_exec__star_eq(const skode_word_t *self, skode_t *ctx, ands_t *s,
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2) {
         double val = arg[1] * arg[2];
@@ -8259,6 +8692,8 @@ static int word_exec__slash_eq(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2 && arg[2] != 0.0) {
         double val = arg[1] / arg[2];
@@ -8281,6 +8716,8 @@ static int word_exec_a_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2) {
         double val = arg[1] + arg[2];
@@ -8303,6 +8740,8 @@ static int word_exec_s_eq(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 2) {
         double val = arg[1] - arg[2];
@@ -8325,6 +8764,8 @@ static int word_exec__eq(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc > 1) {
         ands_set_local(ctx->parse, x, arg[1]);
@@ -8359,6 +8800,8 @@ static int word_exec__slashwex(const skode_word_t *self, skode_t *ctx, ands_t *s
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc && x >= 200 && x <=999) wave_table_dynamic_expand(x);
       return 0;
@@ -8375,6 +8818,8 @@ static int word_exec__pctz(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (strlen(ands_string(ctx->parse))) {
         if (skred_vfs_mount(ands_string(ctx->parse)))
@@ -8398,6 +8843,8 @@ static int word_exec__pctzu(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       skred_vfs_unmount();
       ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
@@ -8415,6 +8862,8 @@ static int word_exec__pctpwd(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
       return 0;
@@ -8431,6 +8880,8 @@ static int word_exec__pctcat(const skode_word_t *self, skode_t *ctx, ands_t *s, 
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (strlen(ands_string(ctx->parse))) {
         void *data = NULL;
@@ -8475,6 +8926,8 @@ static int word_exec__pctcd(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       ctx->printf(ctx, "# [%s] %%cd\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
@@ -8496,6 +8949,8 @@ static int word_exec__pctls(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       {
       /*
@@ -9066,6 +9521,8 @@ int skode_function(ands_t *s, int info) {
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
   if (ctx->trace) {
     ctx->printf(ctx, "# SKODE_FUNCTION ");
     ctx->printf(ctx, "%s", ands_atom_string(s));

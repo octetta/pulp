@@ -10572,7 +10572,7 @@ void skode_stream_pos(void *ctx, int n, int pos) {
 double skode_stream_pull(void *ctx, int n) {
     if (n < 0 || n >= 128) return NAN;
     skode_stream_t *s = &global_stream[n];
-    if (s->len <= 0 || !s->data) return 0.0;
+    if (s->len <= 0 ) return 0.0;
     
     double val = s->data[s->pos];
     

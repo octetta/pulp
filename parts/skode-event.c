@@ -68,8 +68,13 @@ int skode_program_push_ex(event_program_t *program, skode_opcode_t code,
   for (int i = 0; i < argc; i++) {
     int variable = parser ? ands_arg_var(parser, i + arg_offset) : -1;
     if (variable >= 0) {
-      op->opcode.var_mask |= (uint8_t)(1U << i);
-      op->opcode.arg[i] = (float)variable;
+      if (variable & ANDS_STREAM_FLAG) {
+        op->opcode.stream_mask |= (uint8_t)(1U << i);
+        op->opcode.arg[i] = (float)(variable & ~ANDS_STREAM_FLAG);
+      } else {
+        op->opcode.var_mask |= (uint8_t)(1U << i);
+        op->opcode.arg[i] = (float)variable;
+      }
     } else {
       op->opcode.arg[i] = (float)arg[i];
       if (!isfinite(op->opcode.arg[i]) &&

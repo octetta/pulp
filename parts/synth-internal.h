@@ -5,6 +5,7 @@
 #include "synth-state.h"
 #include "util.h"
 #include <math.h>
+#include <limits.h>
 
 #define DELAY_MAX_FRAMES (65536)
 #define DELAY_BUS_COUNT (4)

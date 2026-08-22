@@ -42,12 +42,13 @@
 #define IS_STRING_END(c) (c == ']')
 #define IS_ARRAY(c) (c == '(')
 #define IS_ARRAY_END(c) (c == ')')
+#define IS_STREAM(c) (c == '&')
 #define IS_VARIABLE(c) (c == '$')
 #define IS_RETURN(c) (c == '@')
 #define IS_COMMENT(c) (c == '#')
 #define IS_CHUNK_END(c) (c == ';' || c == 0x04) // 0x04 ASCII EOT / end of xmit
 #define IS_DEFER(c) (c == '+' || c == '~')
-#define IS_ATOM(c) (isalpha(c) || strchr("!%^&*_=:\"'<>?/", c))
+#define IS_ATOM(c) (isalpha(c) || strchr("!%^*_=:\"'<>?/", c))
 #define IS_NUMBER_EX(c) (isxdigit(c) || strchr("-.eExX", c))
 
 static double ands_strtod(char *s) {
@@ -773,6 +774,7 @@ int ands_consume(ands_t *s, char *line) {
                   s->state = GET_ARRAY;
                 }
                 else if (IS_VARIABLE(*ptr))  { s->state = GET_VARIABLE; }
+                else if (IS_STREAM(*ptr))    { s->state = GET_STREAM; }
                 else if (IS_RETURN(*ptr) && ptr + 1 < end &&
                          isdigit((unsigned char)ptr[1])) {
                   s->state = GET_RETURN;
@@ -835,6 +837,31 @@ int ands_consume(ands_t *s, char *line) {
                     s->state = START;
                 } else if (*ptr == '\n') {
                     s->state = START;
+                }
+                break;
+
+            
+            
+
+            
+            
+
+            
+            case GET_STREAM:
+                if (isdigit(*ptr) || isalpha(*ptr)) {
+                    int stream = ands_var_parse(&ptr, end);
+                    if (s->arg_len < s->arg_cap) {
+                        s->arg[s->arg_len] = 0.0;
+                        s->arg_var[s->arg_len] = stream | ANDS_STREAM_FLAG;
+                        s->arg_len++;
+                    }
+                    if (s->trace) printf("# GET_STREAM %d\n", stream);
+                    s->state = START;
+                    ptr--;
+                } else {
+                    if (s->trace) puts("# not a stream");
+                    s->state = START;
+                    goto reprocess;
                 }
                 break;
 
@@ -1306,3 +1333,8 @@ char *ands_string_to_external(ands_t *s, char *dst, int len) {
   snprintf(dst, (size_t)len, "%s", buffer_str(&s->string[s->string_read_idx]));
   return dst;
 }
+
+
+
+
+

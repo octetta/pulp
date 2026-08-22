@@ -7,6 +7,7 @@ enum {
   START = 0, // 0
   GET_NUMBER,
   GET_VARIABLE,
+  GET_STREAM,
   GET_RETURN,
   GET_DEFER_NUMBER,
   GET_DEFER_STRING,
@@ -40,6 +41,7 @@ typedef struct ands_s ands_t;
 typedef uint32_t atom_t;
 
 #define ANDS_VAR_MAX (128)
+#define ANDS_STREAM_FLAG (0x10000)
 #define ANDS_MACRO_NAME_LEN (5)
 #define ANDS_MACRO_BODY_LEN (512)
 #define ANDS_RETURN_MAX (10)  /* @0 .. @9 */
@@ -92,6 +94,11 @@ void ands_data_resize(ands_t *s, int len);
 void ands_data_len_set(ands_t *s, int n);
 int ands_data_cap(ands_t *s);
 double ands_get_local(ands_t *s, int n);
+
+void ands_stream_set(ands_t *s, int n, double *data, int len);
+void ands_stream_mode(ands_t *s, int n, int mode);
+void ands_stream_pos(ands_t *s, int n, int pos);
+double ands_stream_pull(ands_t *s, int n);
 
 /*
  * Return-value registers (@0..@9), read from skode text via the GET_RETURN

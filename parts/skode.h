@@ -113,6 +113,18 @@ typedef enum {
 
 #define SPECTRO_LOG_LINE_BUDGET SKODE_LOG_LINE_MAX - 32
 
+
+typedef struct {
+  double *data;
+  int len;
+  int cap;
+  int pos;
+  int dir;
+  int mode;
+} skode_stream_t;
+
+extern skode_stream_t global_stream[128];
+
 typedef struct skode_s {
   int voice;
   voice_stack_t stack;

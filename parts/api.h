@@ -375,6 +375,7 @@ typedef struct skred_scheduled_event {
   uint8_t opcode_argc;
   char opcode_mode;
   uint8_t opcode_var_mask;
+  uint8_t opcode_stream_mask;
   float opcode_arg[8];
 } skred_scheduled_event_t;
 

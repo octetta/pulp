@@ -28,6 +28,7 @@ typedef struct {
   uint8_t argc;
   char mode;
   uint8_t var_mask;
+  uint8_t stream_mask;
   float arg[SEQ_OPCODE_ARG_MAX];
 } opcode_event_t;
 

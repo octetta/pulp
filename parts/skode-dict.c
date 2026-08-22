@@ -350,6 +350,35 @@ void skode_dict_report_macro_safety(skode_t *ctx, const char *name,
  * legacy switch.
  */
 
+
+extern void skode_stream_set(void *ctx, int n, const double *data, int len);
+extern void skode_stream_mode(void *ctx, int n, int mode);
+extern void skode_stream_pos(void *ctx, int n, int pos);
+
+static int word_exec_stream_set(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc >= 1) {
+    int stream_idx = (int)arg[0];
+    double *data = s ? ands_data(s) : NULL;
+    int len = s ? ands_data_len(s) : 0;
+    skode_stream_set(ctx, stream_idx, data, len); printf("\nSTREAM SET idx=%d len=%d\n", stream_idx, len); 
+  }
+  return 0;
+}
+
+static int word_exec_stream_mode(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc >= 2) {
+    skode_stream_mode(ctx, (int)arg[0], (int)arg[1]);
+  }
+  return 0;
+}
+
+static int word_exec_stream_pos(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc >= 2) {
+    skode_stream_pos(ctx, (int)arg[0], (int)arg[1]);
+  }
+  return 0;
+}
+
 static int word_exec_v(const skode_word_t *self, skode_t *ctx, ands_t *s,
     double *arg, int argc) {
   (void)self; (void)s;
@@ -484,6 +513,20 @@ static skode_word_t word_table[] = {
     .help_detail = "Usage: EXEC <opcode_id> [args...]\n"
                    "Directly executes a numeric opcode.\n"
                    "Useful for CLAP host automation bridging." },
+
+
+  { WID("/SS"), .execute = word_exec_stream_set,
+    .min_args = 1, .max_args = 1,
+    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
+    .summary = "set stream array from stack data" },
+  { WID("/SM"), .execute = word_exec_stream_mode,
+    .min_args = 2, .max_args = 2,
+    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
+    .summary = "set stream mode (0=wrap, 1=pingpong, 2=clamp)" },
+  { WID("/SP"), .execute = word_exec_stream_pos,
+    .min_args = 2, .max_args = 2,
+    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
+    .summary = "set stream position" },
 
   { WID("v"), .execute = word_exec_v, .opcode_id = SKODE_OP_VOICE,
     .min_args = 1, .max_args = 1,

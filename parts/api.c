@@ -871,6 +871,7 @@ static int skred_scheduled_event_snapshot_cb(int n, uint64_t timestamp,
     out->opcode_argc = event->opcode.argc;
     out->opcode_mode = event->opcode.mode;
     out->opcode_var_mask = event->opcode.var_mask;
+    out->opcode_stream_mask = event->opcode.stream_mask;
     for (int i = 0; i < 8; i++) out->opcode_arg[i] = event->opcode.arg[i];
   }
   snapshot->count++;

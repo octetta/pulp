@@ -10512,6 +10512,61 @@ static int skode_session_load(skode_t *ctx, const char *filename) {
 }
 
 double global_var[ANDS_VAR_MAX];
+skode_stream_t global_stream[ANDS_VAR_MAX];
+
+void skode_stream_set(void *ctx, int n, const double *data, int len) {
+    if (n < 0 || n >= 128) return;
+    if (len > global_stream[n].cap) {
+        global_stream[n].data = (double *)realloc(global_stream[n].data, len * sizeof(double));
+        global_stream[n].cap = len;
+    }
+    if (len > 0 && data) {
+        memcpy(global_stream[n].data, data, len * sizeof(double));
+    }
+    global_stream[n].len = len;
+    global_stream[n].pos = 0;
+    global_stream[n].dir = 1;
+}
+
+void skode_stream_mode(void *ctx, int n, int mode) {
+    if (n >= 0 && n < 128) global_stream[n].mode = mode;
+}
+
+void skode_stream_pos(void *ctx, int n, int pos) {
+    if (n < 0 || n >= 128) return;
+    global_stream[n].pos = pos;
+    if (pos >= 0 && global_stream[n].len > 0) {
+        global_stream[n].pos = pos % global_stream[n].len;
+    } else {
+        global_stream[n].pos = 0;
+    }
+    global_stream[n].dir = 1;
+}
+
+double skode_stream_pull(void *ctx, int n) {
+    if (n < 0 || n >= 128) return NAN;
+    skode_stream_t *s = &global_stream[n];
+    if (s->len <= 0 || !s->data) return 0.0;
+    
+    double val = s->data[s->pos];
+    
+    if (s->mode == 0) { // wrap
+        s->pos = (s->pos + 1) % s->len;
+    } else if (s->mode == 1) { // ping-pong
+        s->pos += s->dir;
+        if (s->pos >= s->len) {
+            s->pos = s->len > 1 ? s->len - 2 : 0;
+            s->dir = -1;
+        } else if (s->pos < 0) {
+            s->pos = s->len > 1 ? 1 : 0;
+            s->dir = 1;
+        }
+    } else if (s->mode == 2) { // clamp
+        if (s->pos < s->len - 1) s->pos++;
+    }
+    return val;
+}
+
 
 
 int skode_consume(char *line, skode_t *ctx) {

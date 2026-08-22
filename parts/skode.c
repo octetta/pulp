@@ -878,7 +878,7 @@ void global_status_show(skode_t *ctx, int full) {
       if (global_stream[i].pos != 0) {
         ctx->printf(ctx, "/SP %d %d ", i, global_stream[i].pos);
       }
-      ctx->printf(ctx, "# len=%d mode=%d pos=%d\n", global_stream[i].len, global_stream[i].mode, global_stream[i].pos);
+      ctx->printf(ctx, "# len=%d\n", global_stream[i].len);
     }
   }
 }

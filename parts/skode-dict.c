@@ -397,7 +397,7 @@ static int word_exec_stream_show(const skode_word_t *self, skode_t *ctx, ands_t 
         if (stream->pos != 0) {
           ctx->printf(ctx, "/SP %d %d ", stream_idx, stream->pos);
         }
-        ctx->printf(ctx, "# len=%d mode=%d pos=%d\n", stream->len, stream->mode, stream->pos);
+        ctx->printf(ctx, "# len=%d\n", stream->len);
       } else if (argc >= 1) {
          ctx->printf(ctx, "# stream %d is empty\n", stream_idx);
       }

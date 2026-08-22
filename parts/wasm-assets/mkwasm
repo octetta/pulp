@@ -33,6 +33,12 @@ emcc -I. -I.. -I../exp-vfs \
     ../seq.c \
     ../api.c \
     ../synth.c \
+    ../synth-delay.c \
+    ../synth-osc.c \
+    ../synth-filter.c \
+    ../synth-env.c \
+    ../synth-voice.c \
+    ../synth-wave.c \
     ../skode.c \
     ../polyphony.c \
     ../synth-alloc.c \

@@ -9,6 +9,7 @@ cp ../sk/124.sk ../sk-out     # from skred
 cp ../sk/20??.sk ../sk-out     # from skred
 cp ../sk/*.ks ../sk-out # from k-synth
 cp ../wav/24.mp3 ../wav-out 2>/dev/null || true   # thanks BBC
+cp ../stream.sk ../sk-out
 
 emcc -I. -I.. -I../exp-vfs \
     -DSKRED_MIDI_ENABLED=1 \

@@ -377,7 +377,7 @@ static int word_exec_stream_show(const skode_word_t *self, skode_t *ctx, ands_t 
         for (int i = 0; i < stream->len; i++) {
           ctx->printf(ctx, "%g ", stream->data[i]);
         }
-        ctx->printf(ctx, ") /SS %d # len=%d mode=%d pos=%d\n", stream_idx, stream->len, stream->mode, stream->pos);
+        ctx->printf(ctx, ") %d /SS # len=%d mode=%d pos=%d\n", stream_idx, stream->len, stream->mode, stream->pos);
         if (stream->mode != 0) {
           ctx->printf(ctx, "%d %d /SM\n", stream_idx, stream->mode);
         }

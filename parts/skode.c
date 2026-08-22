@@ -871,7 +871,7 @@ void global_status_show(skode_t *ctx, int full) {
       for (int j = 0; j < global_stream[i].len; j++) {
         ctx->printf(ctx, "%g ", global_stream[i].data[j]);
       }
-      ctx->printf(ctx, ") /SS %d # len=%d mode=%d pos=%d\n", i, global_stream[i].len, global_stream[i].mode, global_stream[i].pos);
+      ctx->printf(ctx, ") %d /SS # len=%d mode=%d pos=%d\n", i, global_stream[i].len, global_stream[i].mode, global_stream[i].pos);
       if (global_stream[i].mode != 0) {
         ctx->printf(ctx, "%d %d /SM\n", i, global_stream[i].mode);
       }

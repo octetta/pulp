@@ -10528,7 +10528,7 @@ void skode_stream_set(void *ctx, int n, const double *data, int len) {
         memcpy(global_stream[n].data, data, len * sizeof(double));
     }
     global_stream[n].len = len;
-    global_stream[n].pos = 0;
+    global_stream[n].pos = 0; global_stream[n].dir = 1;
 }
 
 void skode_stream_mode(void *ctx, int n, int mode) {
@@ -10541,7 +10541,7 @@ void skode_stream_pos(void *ctx, int n, int pos) {
     if (pos >= 0 && global_stream[n].len > 0) {
         global_stream[n].pos = pos % global_stream[n].len;
     } else {
-        global_stream[n].pos = 0;
+        global_stream[n].pos = 0; global_stream[n].dir = 1;
     }
     global_stream[n].dir = 1;
 }

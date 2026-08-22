@@ -383,6 +383,13 @@ static int word_exec_stream_show(const skode_word_t *self, skode_t *ctx, ands_t 
     category: sequencer
     summary: set stream array from stack data
     @enddoc */
+    /* @doc
+`/SS`
+Populates a stream array with values parsed from the current stack context.
+The maximum number of items that can be assigned to a stream is dictated by
+`SKODE_STREAM_MAX_LEN` (default: 1024). Any elements beyond this limit will
+be truncated to avoid realtime allocation faults.
+    @enddoc */
 static int word_exec_stream_set(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   if (argc >= 1) {
     int stream_idx = (int)arg[0];

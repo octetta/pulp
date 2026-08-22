@@ -114,7 +114,9 @@ typedef enum {
 #define SPECTRO_LOG_LINE_BUDGET SKODE_LOG_LINE_MAX - 32
 
 
+#ifndef SKODE_STREAM_MAX_LEN
 #define SKODE_STREAM_MAX_LEN 1024
+#endif
 typedef struct {
   double data[SKODE_STREAM_MAX_LEN];
   int len;

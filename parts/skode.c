@@ -3551,6 +3551,7 @@ static int word_exec__slashmL(const skode_word_t *self, skode_t *ctx, ands_t *s,
       return 0;
 }
 static skode_word_t word__slashmL = { WID("/mL"), .execute = word_exec__slashmL, .safety = WORD_IMMEDIATE_ONLY };
+static skode_word_t word__slashmls = { WID("/mls"), .execute = word_exec__slashmL, .safety = WORD_IMMEDIATE_ONLY };
 
 static int word_exec__slashm_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
@@ -9060,6 +9061,7 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word__slashao);
 
   skode_dict_register(vocab, &word__slashmL);
+  skode_dict_register(vocab, &word__slashmls);
 
   skode_dict_register(vocab, &word__slashm_q);
 
@@ -10770,6 +10772,12 @@ summary: select audio output index (-1 default)
 name: /mL
 category: midi
 summary: initialize MIDI and list input and output ports
+@enddoc */
+
+/* @doc(command./mls)
+name: /mls
+category: midi
+summary: initialize MIDI and list input and output ports (alias for /mL)
 @enddoc */
 /* @doc(command./m?)
 name: /m?

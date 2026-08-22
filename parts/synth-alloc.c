@@ -16,8 +16,11 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
+#include "control-events.h"
 #include <string.h>
 #include <stdio.h>
+#include "control-events.h"
 #include <time.h>
 
 #include "synth-config.h"

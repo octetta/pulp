@@ -122,7 +122,7 @@ int voice_wave_range_reset(int voice);
 int voice_loop_points_set(int voice, int start, int end);
 int voice_loop_points_reset(int voice);
 int voice_copy(int v, int n);
-float midi2hz(float f);
+double midi2hz(float midi_note, double cents);
 int voice_set(int n, int *old_voice);
 int voice_trigger(int voice);
 int wave_default(int voice);

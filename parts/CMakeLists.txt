@@ -64,7 +64,7 @@ set(API_PLAIN_SOURCES
 # 3. List modules
     list(APPEND API_PLAIN_SOURCES
         api.c
-        synth.c
+        synth.c synth-delay.c synth-osc.c synth-filter.c synth-env.c synth-voice.c synth-wave.c
         skode.c
         polyphony.c
         synth-alloc.c
@@ -77,7 +77,7 @@ if(SKRED_SCOPE)
 endif()
 
 if(SKRED_KSYNTH)
-    list(APPEND API_PLAIN_SOURCES vendor/ksynth/ksynth.c)
+    list(APPEND API_PLAIN_SOURCES vendor/ksynth/ksynth.c synth-delay.c synth-osc.c synth-filter.c synth-env.c synth-voice.c synth-wave.c)
 endif()
 
 
@@ -273,7 +273,7 @@ target_link_libraries(ksynth_bridge_tests PRIVATE api)
 if(SKRED_KSYNTH)
   target_compile_definitions(ksynth_bridge_tests PRIVATE SKRED_TEST_KSYNTH=1)
 else()
-  target_sources(ksynth_bridge_tests PRIVATE vendor/ksynth/ksynth.c)
+  target_sources(ksynth_bridge_tests PRIVATE vendor/ksynth/ksynth.c synth-delay.c synth-osc.c synth-filter.c synth-env.c synth-voice.c synth-wave.c)
 endif()
 
 add_test(

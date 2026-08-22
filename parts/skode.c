@@ -10553,9 +10553,11 @@ double skode_stream_pull(void *ctx, int n) {
     
     double val = s->data[s->pos];
     
-    if (s->mode == 0) { // wrap
+    if (s->mode == 0) { // wrap forward
         s->pos = (s->pos + 1) % s->len;
-    } else if (s->mode == 1) { // ping-pong
+    } else if (s->mode == 1) { // wrap backward
+        s->pos = (s->pos - 1 + s->len) % s->len;
+    } else if (s->mode == 2) { // ping-pong
         s->pos += s->dir;
         if (s->pos >= s->len) {
             s->pos = s->len > 1 ? s->len - 2 : 0;
@@ -10564,7 +10566,7 @@ double skode_stream_pull(void *ctx, int n) {
             s->pos = s->len > 1 ? 1 : 0;
             s->dir = 1;
         }
-    } else if (s->mode == 2) { // clamp
+    } else if (s->mode == 3) { // clamp forward
         if (s->pos < s->len - 1) s->pos++;
     }
     return val;

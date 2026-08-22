@@ -396,7 +396,7 @@ static int word_exec_stream_set(const skode_word_t *self, skode_t *ctx, ands_t *
     /* @doc(command./SM)
     name: /SM
     category: sequencer
-    summary: set stream mode (0=wrap, 1=pingpong, 2=clamp)
+    summary: set stream mode (0=wrap fwd, 1=wrap rev, 2=pingpong, 3=clamp)
     @enddoc */
 static int word_exec_stream_mode(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   if (argc >= 2) {
@@ -564,7 +564,7 @@ static skode_word_t word_table[] = {
   { WID("/SM"), .execute = word_exec_stream_mode,
     .min_args = 2, .max_args = 2,
     .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
-    .summary = "set stream mode (0=wrap, 1=pingpong, 2=clamp)" },
+    .summary = "set stream mode (0=wrap fwd, 1=wrap rev, 2=pingpong, 3=clamp)" },
   { WID("/SP"), .execute = word_exec_stream_pos,
     .min_args = 2, .max_args = 2,
     .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",

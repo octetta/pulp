@@ -13,7 +13,7 @@ def generate_docs(dict_file, kit_file, header_file, output_file, inc_file=None):
 
     if inc_file:
         with open(inc_file, 'w') as f:
-            for match in re.finditer(r'/\*\s*@doc(?:(?:\((.*?)\))?)\n(.*?)\n\s*@enddoc\s*\*/', kit_content, re.DOTALL):
+            for match in re.finditer(r'/\*\s*@doc(?:(?:\((.*?)\))?)\n(.*?)\n\s*@enddoc\s*\*/', kit_content + '\n' + dict_content, re.DOTALL):
                 key = match.group(1) or ""
                 body = match.group(2)
                 f.write(f'KIT_DOC_BEGIN("{key}", "{key}", "skode.c", 0)\n')
@@ -61,7 +61,7 @@ def generate_docs(dict_file, kit_file, header_file, output_file, inc_file=None):
             
         dict_map[cmd_name] = props
 
-    blocks = re.finditer(r'/\*\s*@doc\((.*?)\)\n(.*?)\n\s*@enddoc\s*\*/', kit_content, re.DOTALL)
+    blocks = re.finditer(r'/\*\s*@doc\((.*?)\)\n(.*?)\n\s*@enddoc\s*\*/', kit_content + '\n' + dict_content, re.DOTALL)
     docs = {}
     for match in blocks:
         key = match.group(1).strip()
@@ -84,7 +84,7 @@ def generate_docs(dict_file, kit_file, header_file, output_file, inc_file=None):
             if cat not in docs: docs[cat] = []
             docs[cat].append(entry)
 
-    long_docs = re.finditer(r'/\*\s*@doc\n(.*?)\n\s*@enddoc\s*\*/', kit_content, re.DOTALL)
+    long_docs = re.finditer(r'/\*\s*@doc\n(.*?)\n\s*@enddoc\s*\*/', kit_content + '\n' + dict_content, re.DOTALL)
     long_doc_map = {}
     for match in long_docs:
         body = match.group(1).strip()

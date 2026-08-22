@@ -860,6 +860,26 @@ void global_status_show(skode_t *ctx, int full) {
     if (seq_pattern_length[pattern] > 0 || seq_state[pattern] != 0)
       pattern_show(ctx, pattern, 1);
   }
+  for (int i = 0; i < ANDS_VAR_MAX; i++) {
+    if (global_var[i] != 0.0) {
+      ctx->printf(ctx, "%d %g =\n", i, global_var[i]);
+    }
+  }
+  for (int i = 0; i < ANDS_VAR_MAX; i++) {
+    if (global_stream[i].len > 0) {
+      ctx->printf(ctx, "( ");
+      for (int j = 0; j < global_stream[i].len; j++) {
+        ctx->printf(ctx, "%g ", global_stream[i].data[j]);
+      }
+      ctx->printf(ctx, ") /SS %d # len=%d mode=%d pos=%d\n", i, global_stream[i].len, global_stream[i].mode, global_stream[i].pos);
+      if (global_stream[i].mode != 0) {
+        ctx->printf(ctx, "%d %d /SM\n", i, global_stream[i].mode);
+      }
+      if (global_stream[i].pos != 0) {
+        ctx->printf(ctx, "%d %d /SP\n", i, global_stream[i].pos);
+      }
+    }
+  }
 }
 
 int show_stats_cb(int n, uint64_t timestamp, uint64_t id, int tag, const event_t *e, void *user) {

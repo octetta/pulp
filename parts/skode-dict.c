@@ -361,17 +361,31 @@ extern void skode_stream_pos(void *ctx, int n, int pos);
     summary: show stream state and data
     @enddoc */
 static int word_exec_stream_show(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  int start_idx = 0;
+  int end_idx = 127;
+  
   if (argc >= 1) {
-    int stream_idx = (int)arg[0];
+    start_idx = (int)arg[0];
+    end_idx = start_idx;
+  }
+  
+  for (int stream_idx = start_idx; stream_idx <= end_idx; stream_idx++) {
     if (stream_idx >= 0 && stream_idx < 128) {
       skode_stream_t *stream = &global_stream[stream_idx];
-      ctx->printf(ctx, "# stream %d: mode=%d pos=%d len=%d\n", stream_idx, stream->mode, stream->pos, stream->len);
       if (stream->len > 0) {
-        ctx->printf(ctx, "# data: ");
+        ctx->printf(ctx, "( ");
         for (int i = 0; i < stream->len; i++) {
           ctx->printf(ctx, "%g ", stream->data[i]);
         }
-        ctx->printf(ctx, "\n");
+        ctx->printf(ctx, ") /SS %d # len=%d mode=%d pos=%d\n", stream_idx, stream->len, stream->mode, stream->pos);
+        if (stream->mode != 0) {
+          ctx->printf(ctx, "%d %d /SM\n", stream_idx, stream->mode);
+        }
+        if (stream->pos != 0) {
+          ctx->printf(ctx, "%d %d /SP\n", stream_idx, stream->pos);
+        }
+      } else if (argc >= 1) {
+         ctx->printf(ctx, "# stream %d is empty\n", stream_idx);
       }
     }
   }
@@ -561,7 +575,7 @@ static skode_word_t word_table[] = {
 
 
   { WID("?S"), .execute = word_exec_stream_show,
-    .min_args = 1, .max_args = 1,
+    .min_args = 0, .max_args = 1,
     .safety = WORD_IMMEDIATE_ONLY, .category = "sequencer",
     .summary = "show stream state and data" },
   { WID("/SS"), .execute = word_exec_stream_set,

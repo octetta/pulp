@@ -871,13 +871,14 @@ void global_status_show(skode_t *ctx, int full) {
       for (int j = 0; j < global_stream[i].len; j++) {
         ctx->printf(ctx, "%g ", global_stream[i].data[j]);
       }
-      ctx->printf(ctx, ") %d /SS # len=%d mode=%d pos=%d\n", i, global_stream[i].len, global_stream[i].mode, global_stream[i].pos);
+      ctx->printf(ctx, ") /SS %d ", i);
       if (global_stream[i].mode != 0) {
-        ctx->printf(ctx, "%d %d /SM\n", i, global_stream[i].mode);
+        ctx->printf(ctx, "/SM %d %d ", i, global_stream[i].mode);
       }
       if (global_stream[i].pos != 0) {
-        ctx->printf(ctx, "%d %d /SP\n", i, global_stream[i].pos);
+        ctx->printf(ctx, "/SP %d %d ", i, global_stream[i].pos);
       }
+      ctx->printf(ctx, "# len=%d mode=%d pos=%d\n", global_stream[i].len, global_stream[i].mode, global_stream[i].pos);
     }
   }
 }

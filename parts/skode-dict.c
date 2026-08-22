@@ -360,6 +360,19 @@ extern void skode_stream_pos(void *ctx, int n, int pos);
     category: sequencer
     summary: show stream state and data
     @enddoc */
+static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  skode_vocab_t *vocab = skode_dict_global_vocab();
+  for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
+    for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
+      if (w->name) {
+        ctx->printf(ctx, "%s ", w->name);
+      }
+    }
+  }
+  ctx->printf(ctx, "\n");
+  return 0;
+}
+
 static int word_exec_stream_show(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   int start_idx = 0;
   int end_idx = 127;
@@ -377,13 +390,14 @@ static int word_exec_stream_show(const skode_word_t *self, skode_t *ctx, ands_t 
         for (int i = 0; i < stream->len; i++) {
           ctx->printf(ctx, "%g ", stream->data[i]);
         }
-        ctx->printf(ctx, ") %d /SS # len=%d mode=%d pos=%d\n", stream_idx, stream->len, stream->mode, stream->pos);
+        ctx->printf(ctx, ") /SS %d ", stream_idx);
         if (stream->mode != 0) {
-          ctx->printf(ctx, "%d %d /SM\n", stream_idx, stream->mode);
+          ctx->printf(ctx, "/SM %d %d ", stream_idx, stream->mode);
         }
         if (stream->pos != 0) {
-          ctx->printf(ctx, "%d %d /SP\n", stream_idx, stream->pos);
+          ctx->printf(ctx, "/SP %d %d ", stream_idx, stream->pos);
         }
+        ctx->printf(ctx, "# len=%d mode=%d pos=%d\n", stream->len, stream->mode, stream->pos);
       } else if (argc >= 1) {
          ctx->printf(ctx, "# stream %d is empty\n", stream_idx);
       }
@@ -574,6 +588,10 @@ static skode_word_t word_table[] = {
                    "Useful for CLAP host automation bridging." },
 
 
+  { WID("?M"), .execute = word_exec_dict_show,
+    .min_args = 0, .max_args = 0,
+    .safety = WORD_IMMEDIATE_ONLY, .category = "dictionary",
+    .summary = "show all dictionary names" },
   { WID("?S"), .execute = word_exec_stream_show,
     .min_args = 0, .max_args = 1,
     .safety = WORD_IMMEDIATE_ONLY, .category = "sequencer",

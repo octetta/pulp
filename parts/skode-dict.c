@@ -223,7 +223,7 @@ int skode_execute_word(skode_t *ctx, ands_t *s, uint32_t atom, double *arg,
     for (int i = 0; i < argc; i++) ctx->printf(ctx, " %g", arg[i]);
     ctx->puts(ctx, "");
   }
-  int r = w->execute(w, ctx, s, arg, argc);
+  printf("EXECUTE WORD %s arg0=%f\n", w->name, argc > 0 ? arg[0] : 0.0); int r = w->execute(w, ctx, s, arg, argc);
   if (out_result) *out_result = r;
   return 1;
 }

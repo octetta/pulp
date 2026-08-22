@@ -1,3 +1,4 @@
+double skode_stream_pull(void *ctx, int n);
 #include "skred.h"
 #include "api.h"
 #include "skode.h"
@@ -9530,6 +9531,12 @@ int skode_function(ands_t *s, int info) {
       for (int i=0; i<argc; i++) ctx->printf(ctx, " %g", arg[i]);
     }
     ctx->puts(ctx, "");
+  }
+  for (int i=0; i<argc; i++) {\
+    int var = ands_arg_var(s, i);\
+    if (var >= 0 && (var & ANDS_STREAM_FLAG)) {\
+      arg[i] = skode_stream_pull(ctx, var & ~ANDS_STREAM_FLAG);\
+    }\
   }
   int dict_result;
   if (skode_execute_word(ctx, s, atom, arg, argc, &dict_result))

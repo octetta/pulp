@@ -422,13 +422,20 @@ int skode_linked_velocity(int voice, float velocity, uint64_t sample) {
   return 0;
 }
 
+extern double skode_stream_pull(void *ctx, int n);
+
 static int execute_opcode(const opcode_event_t *opcode, int voice) {
   if (!opcode || !event_voice_valid(voice)) return -1;
   
   if (opcode->argc > SEQ_OPCODE_ARG_MAX) return -1;
   opcode_event_t resolved = *opcode;
   for (int i = 0; i < opcode->argc; i++) {
-    if (opcode->var_mask & (1U << i)) {
+    if (opcode->stream_mask & (1U << i)) {
+      int stream_idx = (int)opcode->arg[i];
+      if (stream_idx >= 0 && stream_idx < ANDS_VAR_MAX) {
+        resolved.arg[i] = (float)skode_stream_pull(NULL, stream_idx);
+      }
+    } else if (opcode->var_mask & (1U << i)) {
       int variable = (int)opcode->arg[i];
       if (variable < 0 || variable >= ANDS_VAR_MAX) return -1;
       resolved.arg[i] = (float)global_var[variable];
@@ -440,6 +447,7 @@ static int execute_opcode(const opcode_event_t *opcode, int voice) {
     }
   }
   resolved.var_mask = 0;
+  resolved.stream_mask = 0;
   return skode_execute_voice_opcode(&resolved, voice);
 }
 
@@ -450,7 +458,12 @@ int skode_emit_control_event_opcode(const opcode_event_t *opcode, int voice,
       opcode->argc < 1 || opcode->argc > 4) return -1;
   double arg[4] = {0};
   for (int i = 0; i < opcode->argc; i++) {
-    if (opcode->var_mask & (1U << i)) {
+    if (opcode->stream_mask & (1U << i)) {
+      int stream_idx = (int)opcode->arg[i];
+      if (stream_idx >= 0 && stream_idx < ANDS_VAR_MAX) {
+        arg[i] = skode_stream_pull(NULL, stream_idx);
+      }
+    } else if (opcode->var_mask & (1U << i)) {
       int variable = (int)opcode->arg[i];
       if (variable < 0 || variable >= ANDS_VAR_MAX) return -1;
       arg[i] = global_var[variable];
@@ -507,7 +520,12 @@ static int delay_to_samples(char mode, double delay, uint64_t *samples) {
 static int resolve_program_arg(const opcode_event_t *opcode, int n,
     double *value) {
   if (!opcode || !value || n < 0 || n >= opcode->argc) return -1;
-  if (opcode->var_mask & (1U << n)) {
+  if (opcode->stream_mask & (1U << n)) {
+    int stream_idx = (int)opcode->arg[n];
+    if (stream_idx >= 0 && stream_idx < ANDS_VAR_MAX) {
+      *value = skode_stream_pull(NULL, stream_idx);
+    }
+  } else if (opcode->var_mask & (1U << n)) {
     int variable = (int)opcode->arg[n];
     if (variable < 0 || variable >= ANDS_VAR_MAX) return -1;
     *value = global_var[variable];

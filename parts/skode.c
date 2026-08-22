@@ -10523,16 +10523,12 @@ skode_stream_t global_stream[ANDS_VAR_MAX];
 
 void skode_stream_set(void *ctx, int n, const double *data, int len) {
     if (n < 0 || n >= 128) return;
-    if (len > global_stream[n].cap) {
-        global_stream[n].data = (double *)realloc(global_stream[n].data, len * sizeof(double));
-        global_stream[n].cap = len;
-    }
+    if (len > SKODE_STREAM_MAX_LEN) len = SKODE_STREAM_MAX_LEN;
     if (len > 0 && data) {
         memcpy(global_stream[n].data, data, len * sizeof(double));
     }
     global_stream[n].len = len;
     global_stream[n].pos = 0;
-    global_stream[n].dir = 1;
 }
 
 void skode_stream_mode(void *ctx, int n, int mode) {

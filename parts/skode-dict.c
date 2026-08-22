@@ -355,6 +355,34 @@ extern void skode_stream_set(void *ctx, int n, const double *data, int len);
 extern void skode_stream_mode(void *ctx, int n, int mode);
 extern void skode_stream_pos(void *ctx, int n, int pos);
 
+    /* @doc(command.?S)
+    name: ?S
+    category: sequencer
+    summary: show stream state and data
+    @enddoc */
+static int word_exec_stream_show(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc >= 1) {
+    int stream_idx = (int)arg[0];
+    if (stream_idx >= 0 && stream_idx < 128) {
+      skode_stream_t *stream = &global_stream[stream_idx];
+      ctx->printf(ctx, "# stream %d: mode=%d pos=%d len=%d\n", stream_idx, stream->mode, stream->pos, stream->len);
+      if (stream->len > 0) {
+        ctx->printf(ctx, "# data: ");
+        for (int i = 0; i < stream->len; i++) {
+          ctx->printf(ctx, "%g ", stream->data[i]);
+        }
+        ctx->printf(ctx, "\n");
+      }
+    }
+  }
+  return 0;
+}
+
+    /* @doc(command./SS)
+    name: /SS
+    category: sequencer
+    summary: set stream array from stack data
+    @enddoc */
 static int word_exec_stream_set(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   if (argc >= 1) {
     int stream_idx = (int)arg[0];
@@ -365,6 +393,11 @@ static int word_exec_stream_set(const skode_word_t *self, skode_t *ctx, ands_t *
   return 0;
 }
 
+    /* @doc(command./SM)
+    name: /SM
+    category: sequencer
+    summary: set stream mode (0=wrap, 1=pingpong, 2=clamp)
+    @enddoc */
 static int word_exec_stream_mode(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   if (argc >= 2) {
     skode_stream_mode(ctx, (int)arg[0], (int)arg[1]);
@@ -372,6 +405,11 @@ static int word_exec_stream_mode(const skode_word_t *self, skode_t *ctx, ands_t 
   return 0;
 }
 
+    /* @doc(command./SP)
+    name: /SP
+    category: sequencer
+    summary: set stream position
+    @enddoc */
 static int word_exec_stream_pos(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   if (argc >= 2) {
     skode_stream_pos(ctx, (int)arg[0], (int)arg[1]);
@@ -515,6 +553,10 @@ static skode_word_t word_table[] = {
                    "Useful for CLAP host automation bridging." },
 
 
+  { WID("?S"), .execute = word_exec_stream_show,
+    .min_args = 1, .max_args = 1,
+    .safety = WORD_IMMEDIATE_ONLY, .category = "sequencer",
+    .summary = "show stream state and data" },
   { WID("/SS"), .execute = word_exec_stream_set,
     .min_args = 1, .max_args = 1,
     .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",

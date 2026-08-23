@@ -369,6 +369,17 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
       }
     }
   }
+  
+  if (ctx->parse) {
+    int mcount = ands_macro_count(ctx->parse);
+    for (int i = 0; i < mcount; i++) {
+      char mname[16];
+      if (ands_macro_get(ctx->parse, i, mname, sizeof(mname), NULL, 0, NULL)) {
+        ctx->printf(ctx, "[%s] ", mname);
+      }
+    }
+  }
+  
   ctx->printf(ctx, "\n");
   return 0;
 }

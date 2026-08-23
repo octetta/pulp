@@ -473,3 +473,22 @@ fixing the wasm control-plane `/cer 0` hang path.
   Linux 0.49.1 maxed archive passes the exact archive/header/static-library
   MIDI-symbol validation used by the workflow. No release, tag, push, or other
   Git history operation was performed locally.
+
+## Handoff from Gemini (August 23, 2026)
+
+### Work Accomplished
+- **ANDS Parser Updates:** Standardized `IS_ATOM` character checks to include backslash `\`, vertical pipe `|`, and backquote `` ` ``. Documented this in `ands_parser_guide.md`.
+- **`?M` Command Restructure:** Fixed a major bug where `?M` was omitting most words due to missing `.category` properties at runtime. It now uses `skode_help_category_for_word` (which queries `skode_doc_entries`) to perfectly align its categorization with the output of `/h`. 
+- **`?M` Filtering:** Added numerical filters to `?M`. 
+  - `?M` / `0 ?M`: Shows all categorized words and user-defined macros.
+  - `1 ?M`: Filters words for real-time safety. **Note**: Legacy hardcoded opcodes (like `DL?`, `c`, `fb`, etc. defined in `skode-event.c`) are explicitly cross-referenced via a new `skode_is_legacy_realtime_opcode` helper since their structs declare them `WORD_IMMEDIATE_ONLY`.
+  - `2 ?M`: Filters for immediate-only words (like `/mL`, `drop`, `%ls`).
+- **Parser Documentation Rewrite:** Overhauled `ands_parser_guide.md`. Ensured all examples follow "Command Argument" notation (e.g. `/SS 0` rather than `0 /SS`). Documented the chunk terminator `;`, NaN placeholders `-` / `.`, and a new section on meta-commands (`-` and `.` prefixed lines handled by the host). Fixed section numbering (1-12 followed by the Addendum).
+
+### Known State / Quirks
+- The `w->safety` metadata inside `skode.c` does NOT tell the full story about real-time schedulability. Hardcoded legacy commands in `skode-event.c` report `WORD_IMMEDIATE_ONLY` in memory to prevent the dictionary compiler from choking on them. The `skode_is_legacy_realtime_opcode()` bridge function in `skode-event.c` maintains this mapping.
+- All temporary Python patch scripts from this session are quarantined inside the `.ai-scratch/` directory.
+
+### Next Steps for Incoming Model
+- The user is preparing to record demo videos of the parser and the `?M` command.
+- Ensure any further changes to `?M` maintain the exact `# [num] [category]` formatting to match `/h`.

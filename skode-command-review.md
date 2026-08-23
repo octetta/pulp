@@ -8,8 +8,12 @@ existing patch files.
 
 ## Status Update
 
-Reviewed against the implementation on July 17, 2026.
+Reviewed against the implementation on July 17, 2026. Further updated August 23, 2026.
 
+- **Resolved:** The major recommendation to "Create a machine-readable command
+  table" was fulfilled by the Skode dictionary migration. Commands are now
+  registered in `skode-dict.c` with `@doc` annotations, which generate both the
+  canonical `SKODE_DOCS.md` and the interactive `?M` / `/h` help system.
 - **Resolved:** `/r` offset indexing, `w>r` transfer behavior, `x-` handling,
   `G`/`H` link replacement, square-bracket documentation, bare `wait`, and the
   presentation's amplitude examples.
@@ -178,6 +182,11 @@ sentinel values, silent argument failures, and uneven query forms now make its
 intent harder to infer.
 
 ## Recommended Design Work
+
+> **Update (August 2026):** This recommendation has been completed. The Skode
+> dictionary migration (`skode-dict.c`) introduced a formalized structure for
+> command registration, categorization, and `@doc` annotations, which directly
+> powers the generated `SKODE_DOCS.md` and the interactive `?M` dictionary.
 
 Create a machine-readable command table with these fields:
 

@@ -563,3 +563,6 @@ skode_word_t *skode_dict_free_promoted_macro(skode_word_t *word);
 #endif
 
 const char *skode_help_category_for_word(const char *name);
+
+
+int skode_help_categories(char categories[][96], int max_categories);

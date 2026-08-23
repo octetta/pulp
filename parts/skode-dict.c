@@ -364,30 +364,12 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
   skode_vocab_t *vocab = skode_dict_global_vocab();
   
   if (argc > 0) {
-    const char *categories[32];
-    int cat_count = 0;
-    
-    // First pass: collect unique categories
-    for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
-      for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
-        const char *cat = w->category ? w->category : skode_help_category_for_word(w->name);
-        if (!cat) cat = "uncategorized";
-        int found = 0;
-        for (int j = 0; j < cat_count; j++) {
-          if (strcmp(categories[j], cat) == 0) {
-            found = 1; break;
-          }
-        }
-        if (!found && cat_count < 32) {
-          // Store a copy since the buffer from skode_help_category_for_word is static
-          categories[cat_count++] = strdup(cat);
-        }
-      }
-    }
+    char categories[32][96];
+    int cat_count = skode_help_categories(categories, 32);
     
     // Second pass: print words by category
     for (int c = 0; c < cat_count; c++) {
-      ctx->printf(ctx, "-- %s --\n", categories[c]);
+      ctx->printf(ctx, "# %d %s\n", c + 1, categories[c]);
       for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
         for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
           const char *cat = w->category ? w->category : skode_help_category_for_word(w->name);

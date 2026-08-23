@@ -486,7 +486,7 @@ static int skode_help_category_index(char categories[][SKODE_HELP_FIELD_MAX],
   return -1;
 }
 
-static int skode_help_categories(char categories[][SKODE_HELP_FIELD_MAX],
+int skode_help_categories(char categories[][96],
                                  int max_categories) {
   int count = 0;
   for (int i = 0; skode_doc_entries[i].key; i++) {

@@ -135,40 +135,6 @@ When the parser sees one of these, it doesn't treat it as a standalone command (
 
 ---
 
-## 12. Meta-Commands (The `-` and `.` prefixes)
-
-There is an emerging idiom in the broader ecosystem regarding lines that begin with `.` (period) or `-` (dash) after initial whitespace. 
-
-Because a line starting with `.` or `-` would ordinarily parse as a floating-point number, it is safely treated as an out-of-band **meta-command flag** by the surrounding environment (e.g., the editor or wrapper script) and is **not sent** to the Skode/Skred engine at all.
-
-For example, a line like:
-```text
--restart
-```
-...is intercepted by the host environment to shut down and restart the current Skode/Skred instance with different parameters, bypassing the internal parser entirely.
-
-## Addendum: ANDS vs. Forth, Tcl, Lisp, and Erlang/Elixir
-
-If you are coming from other text-oriented languages, the `ands` parser will feel familiar but possesses some fundamental differences.
-
-### vs. Forth
-- **Similarities:** Space-separated tokens, seemingly postfix syntax (`1 2 +`), no mandatory grouping or punctuation.
-- **Differences:** **ANDS is not stack-based!** In Forth, you push numbers to a global data stack, and commands consume them. In ANDS, numeric arguments are buffered locally for the *currently pending atom*. Once the atom executes, the numeric argument buffer is wiped. Additionally, Forth executes words immediately; ANDS uses the delayed "one-step-behind" execution model.
-
-### vs. Tcl
-- **Similarities:** Both treat macros and substitution as pure text manipulation operations that happen before the code is "run."
-- **Differences:** Tcl evaluates nested commands in-place (e.g., `set x [expr 1 + 2]`). ANDS macros (`$$N`) are purely text copy-paste operations, and runtime evaluation (like `s%`) requires explicit commands to modify the active state buffers. ANDS does not evaluate arbitrary strings inline.
-
-
-### vs. Erlang / Elixir
-- **Similarities:** Skode shares a fundamental architectural philosophy with the BEAM VM: a strong separation between the interactive layer and concurrent "processes." When you use defer sigils (`+`, `~`), Skode compiles your command into an isolated event program and "sends it as a message" to be executed by a specific synthesizer voice on the real-time audio thread, much like sending a message to a PID in Erlang.
-- **Differences (Parsing):** Elixir uses a sophisticated Abstract Syntax Tree (AST) where everything is an expression that returns a value. Skode has **no expressions and no AST**. In Skode, parsing is a destructive, mutable process: executing a command permanently consumes the numeric arguments buffered for it, and there is no concept of "returning a value" to an outer function (except manually pushing numbers into the return array `@N`). Furthermore, Elixir evaluates eagerly, whereas Skode's token evaluation is strictly delayed by one step.
-
-### vs. Lisp
-- **Similarities:** Prefix commands are supported (e.g., `/SS 0`).
-- **Differences:** Lisp uses parentheses to define a deeply nested Abstract Syntax Tree (AST) where expressions evaluate into other expressions. ANDS has **no AST**. The execution model is completely flat and linear from left to right. In ANDS, parentheses `( ... )` simply load numbers into an array buffer—they do not dictate execution order or scoping.
-
-
 ## 9. The Compiler vs. The Interpreter
 
 In Skode, execution happens in two distinctly different modes depending on how you invoke a command. Understanding the pass-off between the live interpreter and the background compiler is critical for advanced sequencing.
@@ -221,4 +187,41 @@ The following symbols are structurally reserved by the parser. **They cannot be 
 | `#` | Comment (ignores the rest of the line). |
 | `{ }` | Reserved for future block-scoping use (currently invalid). |
 | `,` | Alias for space / whitespace token separator. |
+
+
+
+## 12. Meta-Commands (The `-` and `.` prefixes)
+
+There is an emerging idiom in the broader ecosystem regarding lines that begin with `.` (period) or `-` (dash) after initial whitespace. 
+
+Because a line starting with `.` or `-` would ordinarily parse as a floating-point number, it is safely treated as an out-of-band **meta-command flag** by the surrounding environment (e.g., the editor or wrapper script) and is **not sent** to the Skode/Skred engine at all.
+
+For example, a line like:
+```text
+-restart
+```
+...is intercepted by the host environment to shut down and restart the current Skode/Skred instance with different parameters, bypassing the internal parser entirely.
+
+
+## Addendum: ANDS vs. Forth, Tcl, Lisp, and Erlang/Elixir
+
+If you are coming from other text-oriented languages, the `ands` parser will feel familiar but possesses some fundamental differences.
+
+### vs. Forth
+- **Similarities:** Space-separated tokens, seemingly postfix syntax (`1 2 +`), no mandatory grouping or punctuation.
+- **Differences:** **ANDS is not stack-based!** In Forth, you push numbers to a global data stack, and commands consume them. In ANDS, numeric arguments are buffered locally for the *currently pending atom*. Once the atom executes, the numeric argument buffer is wiped. Additionally, Forth executes words immediately; ANDS uses the delayed "one-step-behind" execution model.
+
+### vs. Tcl
+- **Similarities:** Both treat macros and substitution as pure text manipulation operations that happen before the code is "run."
+- **Differences:** Tcl evaluates nested commands in-place (e.g., `set x [expr 1 + 2]`). ANDS macros (`$$N`) are purely text copy-paste operations, and runtime evaluation (like `s%`) requires explicit commands to modify the active state buffers. ANDS does not evaluate arbitrary strings inline.
+
+
+### vs. Erlang / Elixir
+- **Similarities:** Skode shares a fundamental architectural philosophy with the BEAM VM: a strong separation between the interactive layer and concurrent "processes." When you use defer sigils (`+`, `~`), Skode compiles your command into an isolated event program and "sends it as a message" to be executed by a specific synthesizer voice on the real-time audio thread, much like sending a message to a PID in Erlang.
+- **Differences (Parsing):** Elixir uses a sophisticated Abstract Syntax Tree (AST) where everything is an expression that returns a value. Skode has **no expressions and no AST**. In Skode, parsing is a destructive, mutable process: executing a command permanently consumes the numeric arguments buffered for it, and there is no concept of "returning a value" to an outer function (except manually pushing numbers into the return array `@N`). Furthermore, Elixir evaluates eagerly, whereas Skode's token evaluation is strictly delayed by one step.
+
+### vs. Lisp
+- **Similarities:** Prefix commands are supported (e.g., `/SS 0`).
+- **Differences:** Lisp uses parentheses to define a deeply nested Abstract Syntax Tree (AST) where expressions evaluate into other expressions. ANDS has **no AST**. The execution model is completely flat and linear from left to right. In ANDS, parentheses `( ... )` simply load numbers into an array buffer—they do not dictate execution order or scoping.
+
 

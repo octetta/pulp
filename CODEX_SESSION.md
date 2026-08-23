@@ -492,3 +492,24 @@ fixing the wasm control-plane `/cer 0` hang path.
 ### Next Steps for Incoming Model
 - The user is preparing to record demo videos of the parser and the `?M` command.
 - Ensure any further changes to `?M` maintain the exact `# [num] [category]` formatting to match `/h`.
+
+## Handoff from Claude (August 23, 2026)
+
+### Work Accomplished
+- **Documentation Audit:** Executed a massive repository-wide documentation audit requested by the user, deleting stale prototypes and aligning all markdown guides with the current codebase.
+- **Deletions:**
+  - Removed `vfs/` completely (unlinked prototype). The active implementation lives in `parts/exp-vfs/`.
+  - Removed `parts/tmp/` completely (obsolete dict migration artifacts).
+- **Documentation Fixes:**
+  - `README.md`: Fixed the broken empty Static Analysis section to document `make maxed`.
+  - `ARCHITECTURE.md`: Updated 'Where to Make Changes' to emphasize `skode-dict.c`, and removed stale references to the deleted `vfs/` directory.
+  - `SKODE_COMMANDS.md`: Added `skode-dict.c`, `skode-dict.h`, and `skode_is_legacy_realtime_opcode` to the source map. Updated the command-addition instructions.
+  - `SKODE_USER_COMMAND_REFERENCE.md`: Documented the new `?M` filters (`1 ?M`, `2 ?M`) in the Inspection table. Updated macro naming rules to explicitly include `\`, `|`, and `` ` ``.
+  - `quality-review-actions.md`: Updated status to August 2026, marking test debt as an accepted fixture gap and clarifying UDP shutdown as the primary remaining open item.
+  - `skode-command-review.md`: Marked the primary recommendation ("Create a machine-readable command table") as resolved, fulfilled by the Skode dictionary migration.
+  - `ands_parser_guide.md`: Added a new Section 10 explaining the Dictionary, Global vs. Private Vocabularies, Shadowing, and Native-Speed Promoted Macros.
+- **Command Verification:** Verified that undocumented `z*`, `z%`, `zq`, and `Z` syntax described in the sequencing guide are completely valid and intentionally implemented in the compiler layer (`skode-event.c`), successfully mapping to `SKODE_OP_RATCHET` and `SKODE_OP_PATTERN_MODULO`. They just bypass the generic dictionary interface by design.
+
+### Next Steps for Incoming Model
+- The documentation is fully synchronized with the C implementation, including edge cases like legacy opcodes, vocabularies, and hidden real-time pattern operators.
+- No dangling tasks remain from the documentation audit. Await next user directive.

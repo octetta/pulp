@@ -362,25 +362,73 @@ extern void skode_stream_pos(void *ctx, int n, int pos);
     @enddoc */
 static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   skode_vocab_t *vocab = skode_dict_global_vocab();
-  for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
-    for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
-      if (w->name) {
-        ctx->printf(ctx, "%s ", w->name);
+  
+  if (argc > 0) {
+    const char *categories[32];
+    int cat_count = 0;
+    
+    // First pass: collect unique categories
+    for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
+      for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
+        if (!w->category) continue;
+        int found = 0;
+        for (int j = 0; j < cat_count; j++) {
+          if (strcmp(categories[j], w->category) == 0) {
+            found = 1; break;
+          }
+        }
+        if (!found && cat_count < 32) {
+          categories[cat_count++] = w->category;
+        }
       }
     }
-  }
-  
-  if (ctx->parse) {
-    int mcount = ands_macro_count(ctx->parse);
-    for (int i = 0; i < mcount; i++) {
-      char mname[16];
-      if (ands_macro_get(ctx->parse, i, mname, sizeof(mname), NULL, 0, NULL)) {
-        ctx->printf(ctx, "[%s] ", mname);
+    
+    // Second pass: print words by category
+    for (int c = 0; c < cat_count; c++) {
+      ctx->printf(ctx, "-- %s --\n", categories[c]);
+      for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
+        for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
+          if (w->name && w->category && strcmp(w->category, categories[c]) == 0) {
+            ctx->printf(ctx, "%s ", w->name);
+          }
+        }
+      }
+      ctx->printf(ctx, "\n");
+    }
+    
+    // Print macros
+    if (ctx->parse) {
+      ctx->printf(ctx, "-- macros --\n");
+      int mcount = ands_macro_count(ctx->parse);
+      for (int i = 0; i < mcount; i++) {
+        char mname[16];
+        if (ands_macro_get(ctx->parse, i, mname, sizeof(mname), NULL, 0, NULL)) {
+          ctx->printf(ctx, "[%s] ", mname);
+        }
+      }
+      ctx->printf(ctx, "\n");
+    }
+  } else {
+    // Flat print
+    for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
+      for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
+        if (w->name) {
+          ctx->printf(ctx, "%s ", w->name);
+        }
       }
     }
+    
+    if (ctx->parse) {
+      int mcount = ands_macro_count(ctx->parse);
+      for (int i = 0; i < mcount; i++) {
+        char mname[16];
+        if (ands_macro_get(ctx->parse, i, mname, sizeof(mname), NULL, 0, NULL)) {
+          ctx->printf(ctx, "[%s] ", mname);
+        }
+      }
+    }
+    ctx->printf(ctx, "\n");
   }
-  
-  ctx->printf(ctx, "\n");
   return 0;
 }
 
@@ -600,7 +648,7 @@ static skode_word_t word_table[] = {
 
 
   { WID("?M"), .execute = word_exec_dict_show,
-    .min_args = 0, .max_args = 0,
+    .min_args = 0, .max_args = 1,
     .safety = WORD_IMMEDIATE_ONLY, .category = "dictionary",
     .summary = "show all dictionary names" },
   { WID("?S"), .execute = word_exec_stream_show,

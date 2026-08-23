@@ -369,6 +369,24 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
     
     // Second pass: print words by category
     for (int c = 0; c < cat_count; c++) {
+      int has_words = 0;
+      for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
+        for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
+          const char *cat = w->category ? w->category : skode_help_category_for_word(w->name);
+          if (!cat) cat = "uncategorized";
+          if (strcmp(cat, categories[c]) != 0) continue;
+          
+          int mode = (int)arg[0];
+          int show = 1;
+          if (mode == 1 && w->safety != WORD_REAL_TIME_SAFE) show = 0;
+          if (mode == 2 && w->safety != WORD_IMMEDIATE_ONLY) show = 0;
+          if (show) { has_words = 1; break; }
+        }
+        if (has_words) break;
+      }
+      
+      if (!has_words) continue;
+      
       ctx->printf(ctx, "# %d %s\n", c + 1, categories[c]);
       for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
         for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {

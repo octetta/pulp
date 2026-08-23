@@ -374,7 +374,12 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
         for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
           const char *cat = w->category ? w->category : skode_help_category_for_word(w->name);
           if (!cat) cat = "uncategorized";
-          if (w->name && strcmp(cat, categories[c]) == 0) {
+          
+          int mode = (int)arg[0];
+          int show = 1;
+          if (mode == 1 && w->safety != WORD_REAL_TIME_SAFE) show = 0;
+          if (mode == 2 && w->safety != WORD_IMMEDIATE_ONLY) show = 0;
+          if (show && w->name && strcmp(cat, categories[c]) == 0) {
             ctx->printf(ctx, "%s ", w->name);
           }
         }
@@ -383,7 +388,7 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
     }
     
     // Print macros
-    if (ctx->parse) {
+    if (ctx->parse && (int)arg[0] == 0) {
       ctx->printf(ctx, "# user defined macros\n");
       int mcount = ands_macro_count(ctx->parse);
       for (int i = 0; i < mcount; i++) {

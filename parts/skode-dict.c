@@ -218,7 +218,7 @@ int skode_execute_word(skode_t *ctx, ands_t *s, uint32_t atom, double *arg,
     int argc, int *out_result) {
   const skode_word_t *w = skode_dict_lookup(ctx->vocab, atom);
   if (!w || !w->execute) return 0;
-  if (ctx->trace) {
+  if (1) {
     ctx->printf(ctx, "# SKODE_DICT %s", w->name);
     for (int i = 0; i < argc; i++) ctx->printf(ctx, " %g", arg[i]);
     ctx->puts(ctx, "");

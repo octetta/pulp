@@ -764,7 +764,6 @@ int ands_consume(ands_t *s, char *line) {
                 }
                 else if (IS_SEPARATOR(*ptr)) { /* skip */ }
                 else if (IS_STRING(*ptr))    {
-                  if ((parse_err = action_finish_atom(s)) < 0) goto consume_end;
                   buffer_clear(&s->string[s->string_idx]);
                   s->state = GET_STRING;
                 }

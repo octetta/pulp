@@ -378,8 +378,9 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
           
           int mode = (int)arg[0];
           int show = 1;
-          if (mode == 1 && w->safety != WORD_REAL_TIME_SAFE) show = 0;
-          if (mode == 2 && w->safety != WORD_IMMEDIATE_ONLY) show = 0;
+          int is_realtime = (w->safety == WORD_REAL_TIME_SAFE) || skode_is_legacy_realtime_opcode(w->atom);
+          if (mode == 1 && !is_realtime) show = 0;
+          if (mode == 2 && is_realtime) show = 0;
           if (show) { has_words = 1; break; }
         }
         if (has_words) break;
@@ -395,8 +396,9 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
           
           int mode = (int)arg[0];
           int show = 1;
-          if (mode == 1 && w->safety != WORD_REAL_TIME_SAFE) show = 0;
-          if (mode == 2 && w->safety != WORD_IMMEDIATE_ONLY) show = 0;
+          int is_realtime = (w->safety == WORD_REAL_TIME_SAFE) || skode_is_legacy_realtime_opcode(w->atom);
+          if (mode == 1 && !is_realtime) show = 0;
+          if (mode == 2 && is_realtime) show = 0;
           if (show && w->name && strcmp(cat, categories[c]) == 0) {
             ctx->printf(ctx, "%s ", w->name);
           }

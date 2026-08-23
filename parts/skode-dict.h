@@ -566,3 +566,5 @@ const char *skode_help_category_for_word(const char *name);
 
 
 int skode_help_categories(char categories[][96], int max_categories);
+
+int skode_is_legacy_realtime_opcode(uint32_t atom);

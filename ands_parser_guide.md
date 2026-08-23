@@ -154,7 +154,27 @@ The compiler's job is to translate that text into a highly optimized sequence of
 
 If you ever see the error `# command is not schedulable`, it means you tried to defer or schedule a line of code that contained an array, a string, a return read, or an immediate-only dictionary word!
 
-## 10. The Semicolon (Chunk Terminator)
+## 10. Vocabularies & Promoted Macros
+
+As of the Skode dictionary migration, commands and macros are managed through a structured **Vocabulary** system, which replaces older hardcoded C switches. This brings powerful namespace and optimization capabilities to the parser.
+
+### Global vs. Private Vocabularies
+- **Global Vocabulary:** The shared, process-wide dictionary containing all built-in commands (`v`, `n`, `w`, `/SS`, etc.).
+- **Private Vocabularies:** Every execution context (a UDP client, a browser session, or your local terminal) gets its own isolated *private vocabulary*. 
+
+When the parser looks up a command, it checks your private vocabulary first. If it's not found, it falls back to the global vocabulary. This allows you to **shadow** or override built-in commands safely without affecting other clients connected to the same audio engine.
+
+### Promoted Macros (Native Speed)
+By default, named macros (e.g., `[kik]: v0 l$$0;`) run via text-substitution. Every time you type `kik`, the parser expands the text and parses the resulting string from scratch.
+
+However, the dictionary system automatically **promotes** macros that are completely Real-Time Safe. If your macro's body consists entirely of safe, schedulable commands (like pitches, filters, and envelopes, with no strings or immediate-only commands), the engine will:
+1. Pre-compile your macro into a highly optimized binary opcode template (`event_program_t`).
+2. Replace the `$$N` parameters with special `NaN` placeholders in the binary.
+3. Register the new command directly into your private vocabulary.
+
+Once a macro is promoted, calling it skips the text-parser entirely! It executes at native C speed, just like built-in audio commands. You can verify if a macro was promoted by running `?m` — it will list its capability status as `realtime` rather than `immediate`.
+
+## 11. The Semicolon (Chunk Terminator)
 While the semicolon `;` is critical for terminating a `+` or `~` defer block, its primary role is as a **Chunk Terminator**. 
 
 Because `ands` executes atoms one step behind, an atom doesn't execute until the parser hits the *next* token, a newline, or a semicolon. The semicolon explicitly ends the current chunk of execution. 
@@ -162,7 +182,7 @@ Because `ands` executes atoms one step behind, an atom doesn't execute until the
 - In macro definitions (`[name] : body ;`), the semicolon tells the parser to stop recording the macro body and return to normal execution.
 
 
-## 11. Complete ASCII Symbol Reference
+## 12. Complete ASCII Symbol Reference
 The parser categorizes all printable ASCII symbols into two strict groups: **Allowed** (can be used to name macros and atoms) and **Forbidden** (reserved by the parser for special syntax). 
 
 ### Allowed (Valid Atom Characters)
@@ -190,7 +210,7 @@ The following symbols are structurally reserved by the parser. **They cannot be 
 
 
 
-## 12. Meta-Commands (The `-` and `.` prefixes)
+## 13. Meta-Commands (The `-` and `.` prefixes)
 
 There is an emerging idiom in the broader ecosystem regarding lines that begin with `.` (period) or `-` (dash) after initial whitespace. 
 

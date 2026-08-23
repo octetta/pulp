@@ -384,7 +384,7 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
     
     // Print macros
     if (ctx->parse) {
-      ctx->printf(ctx, "-- macros --\n");
+      ctx->printf(ctx, "# user defined macros\n");
       int mcount = ands_macro_count(ctx->parse);
       for (int i = 0; i < mcount; i++) {
         char mname[16];

@@ -811,9 +811,11 @@ Named macros are global four-character commands defined directly in Skode:
 [name]: body;
 ```
 
-Names longer than four characters are truncated. Parameters are written as
-`$$0` through `$$7`; `@N` is not a parameter alias—it reads a return value.
-For example:
+Names longer than four characters are truncated. Valid name characters are
+letters, punctuation, and the symbols `\`, `|`, and `` ` `` (backslash,
+vertical pipe, and backquote). Names cannot contain digits. Parameters are
+written as `$$0` through `$$7`; `@N` is not a parameter alias—it reads a
+return value. For example:
 
 ```text
 [tone]: v $$0 n $$1 a $$2;
@@ -1294,6 +1296,9 @@ SysEx. These commands execute immediately and are not pattern-schedulable.
 | `/m_` | None | Benchmarks the selected voice. Requires `BENCH`. |
 | `I value` | Numeric value | Reserved event-logging stub. It currently has no effect. |
 | `/h [category[,entry]]` | Optional help indices; current string may select by name | Displays generated command help. Use `[term] /h` to search. |
+| `?M` | None (shows all) | Displays the full categorized dictionary grouped by category number, matching `/h` numbering. The final section lists user-defined macros. |
+| `1 ?M` | Category mode `1` | Displays only real-time-safe commands — those safe for patterns, defers, and the event queue. |
+| `2 ?M` | Category mode `2` | Displays only immediate-only commands — those that run on the control thread and cannot be scheduled. |
 | `/q` | None | Requests exit from the interactive shell. |
 
 `W` reports the selected renderer as `display braille` or `display ascii`.

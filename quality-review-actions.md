@@ -4,24 +4,27 @@ Recorded June 6, 2026.
 
 ## Status Update
 
-Reviewed against the implementation on July 17, 2026.
+Reviewed against the implementation on July 17, 2026. Further updated August 23, 2026.
 
 - **Resolved:** `ks_eval()` result ownership.
 - **Resolved:** event queue publication ordering; covered by
   `skqueue_tests.c`.
 - **Still open:** deterministic UDP worker shutdown. The worker remains
   detached, and `udp_stop()` closes its socket without joining it.
+  `udp_running` uses a plain cross-thread integer rather than a portable
+  atomic. This is the main remaining item from the original June review.
 - **Resolved:** `skode_free()` now owns parser, dictionary-vocabulary, and
   optional Ksynth cleanup. UDP client contexts call it before reuse and at
   worker exit.
 - **Partially resolved:** audio device initialization and startup failures now
   propagate from `skred_start()`, but complete unwind coverage for every
   partial-start failure remains follow-up work.
-- **Known test debt:** the state suite currently has three wavetable-display
+- **Known test debt (accepted):** the state suite has three wavetable-display
   assertions and, in track-enabled builds, delay assertions whose synthetic
   voice fixture does not initialize the newer wave-range fields. Normal
   `w`-selected voices initialize those fields through
-  `osc_set_wave_table_index()`.
+  `osc_set_wave_table_index()`. This is a fixture gap, not a regression, and
+  is not being treated as a blocking issue.
 
 Line references below describe the June 6 snapshot and may have moved.
 

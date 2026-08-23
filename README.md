@@ -286,14 +286,18 @@ average deadline load, and the number of measured deadline overruns.
 
 ## Static Analysis
 
-The project authors feature-gated C in `.c` and `.h` files. Generate
-the canonical `MAXED_KIT_OPTS` C source tree for source-only analysis services
-with:
+The project uses feature-gated C source templates. `make maxed` generates a
+fully expanded `MAXED_KIT_OPTS` source tree under `parts/build_maxed/`. This
+directory contains the canonical expanded `.c` and `.h` files suitable for
+static analysis tools (e.g. clang-tidy, cppcheck, or IDE indexers):
 
 ```sh
+cd parts
+make maxed
+# Expanded sources are in parts/build_maxed/
 ```
 
-under `parts/build_*` remain disposable and ignored.
+Generated files under `parts/build_*` are disposable and ignored by git.
 
 ## WASM Build
 

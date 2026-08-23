@@ -623,10 +623,6 @@ control-thread operations. They do not run from scheduled opcodes or the audio
 callback. Browser hosts use the memory-mount API for uploaded asset bundles;
 native Skode uses `%z`, `%zu`, `%pwd`, `%cd`, `%ls`, and `%cat`.
 
-The top-level `vfs/` directory is an older standalone prototype. The
-integrated implementation is `parts/exp-vfs/`, despite the historical
-directory name.
-
 ### WebAssembly
 
 Files:
@@ -897,8 +893,8 @@ Asyncify; non-MIDI builds do not acquire that cost.
 | Goal | Primary files |
 | --- | --- |
 | Add or change Skode syntax | `ands.c`, `ands.h` |
-| Add an immediate command | `skode.c` |
-| Add a schedulable command | `skode.h`, `skode-event.c`, `skode.c` |
+| Add an immediate command | `skode.c`, or register in `skode-dict.c` with `.safety = WORD_IMMEDIATE_ONLY` |
+| Add a schedulable command | `skode-dict.c` (preferred) or `skode.h`, `skode-event.c`, `skode.c` (legacy path) |
 | Change patterns or tempo | `seq.c`, `seq.h` |
 | Change queue behavior | `skqueue.c`, `skqueue.h` |
 | Add a synth feature | `synth.c`, `synth-state.h`, `synth-alloc.c` |
@@ -908,12 +904,13 @@ Asyncify; non-MIDI builds do not acquire that cost.
 | Change feature generation | `CMakeLists.txt` |
 | Add recording behavior | `recorder.c`, `recorder.h` |
 
-For a new schedulable synth command, the typical sequence is:
+For a new schedulable synth command, the preferred sequence using the dictionary
+system is:
 
-1. Add an opcode identifier to `skode_opcode_t`.
-2. Teach the compiler to encode the command.
-3. Teach the executor to apply the opcode.
-4. Keep immediate command behavior consistent with compiled behavior.
+1. Register a `skode_word_t` in `skode-dict.c` with `.safety = WORD_REAL_TIME_SAFE`.
+2. Set `.opcode_id` to reuse an existing opcode, or add a new one to `skode_opcode_t`.
+3. If adding a new opcode, teach the executor in `skode_execute_voice_opcode()`.
+4. Set `.execute` for the interactive path.
 5. Document it in `SKODE_COMMANDS.md` and `OPCODES.md`.
 6. Add compilation and execution tests.
 7. Run strict default and maxed-preset builds.

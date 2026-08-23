@@ -633,7 +633,9 @@ The normal WASM build enables the voice and sequence features listed in
 | --- | --- |
 | Parser context and public Skode API | `skode.h` |
 | Immediate command dispatch | `skode.c`, `skode_function()` |
+| Dictionary word registration and lookup | `skode-dict.c`, `skode-dict.h` |
 | Scheduled command compiler | `skode-event.c`, `skode_compile_program()` |
+| Legacy hardcoded opcode real-time check | `skode-event.c`, `skode_is_legacy_realtime_opcode()` |
 | Event and program execution | `skode-event.c`, `run_program()` |
 | Voice opcode dispatch | `skode.c`, `skode_execute_voice_opcode()` |
 | Synth functions and state | `synth.c`, `synth.h` |
@@ -642,7 +644,30 @@ The normal WASM build enables the voice and sequence features listed in
 | Parser implementation | `ands.c`, `ands.h` |
 | Scheduled-opcode design notes | `OPCODES.md` |
 
-When adding a new schedulable command, update all of the following:
+### Adding a new command
+
+There are two paths for new commands. Choose based on whether you are extending
+the dictionary system or working with a legacy hardcoded opcode.
+
+**Preferred: dictionary-registered word (new additions)**
+
+1. Register a `skode_word_t` in `skode-dict.c` with the appropriate `.safety`.
+2. For real-time-safe commands, set `.safety = WORD_REAL_TIME_SAFE` and either:
+   - Set `.opcode_id` to an existing `skode_opcode_t` value (no new opcode needed), or
+   - Set `.compile` to a custom compile callback and add an opcode entry in `skode.h`.
+3. Set `.execute` for the immediate execution path.
+4. For immediate-only commands, set `.safety = WORD_IMMEDIATE_ONLY` and only `.execute`.
+5. Add tests and update this command reference.
+
+**Legacy path (modifying existing hardcoded commands in `skode-event.c`)**
+
+The legacy `switch`-based compiler in `skode-event.c` handles many voice
+commands that predate the dictionary system. These words have `.safety =
+WORD_IMMEDIATE_ONLY` in their `skode_word_t` struct to prevent the dictionary
+compiler from handling them, but they *are* real-time safe through the legacy
+path. The bridge is `skode_is_legacy_realtime_opcode()` in `skode-event.c`.
+
+When adding to or modifying the legacy path, update all of the following:
 
 1. `skode_opcode_t` in `skode.h`.
 2. `skode_opcode_name()` in `skode-event.c`.
@@ -650,4 +675,6 @@ When adding a new schedulable command, update all of the following:
 4. `skode_opcode_supported()` in `skode.c`.
 5. `skode_execute_voice_opcode()` in `skode.c`.
 6. The immediate command path in `skode_function()`.
-7. Tests and this command reference.
+7. `skode_is_legacy_realtime_opcode()` if the word should appear in `1 ?M`.
+8. Tests and this command reference.
+

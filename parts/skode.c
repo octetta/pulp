@@ -6228,6 +6228,37 @@ static int word_exec__eqd(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
 }
 static skode_word_t word__eqd = { WID("=d"), .execute = word_exec__eqd, .safety = WORD_IMMEDIATE_ONLY };
 
+    /* @doc(command.d!)
+    name: d!
+    category: data
+    summary: write a value into the d array at index: val index d!
+    @enddoc */
+static int word_exec_d_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  (void)self; (void)atom; (void)voice;
+  if (argc > 1) {
+    double val = arg[0];
+    int index = -1;
+    if (skode_double_to_int(arg[1], &index)) {
+      double *data = ands_data(ctx->parse);
+      int data_len = ands_data_len(ctx->parse);
+      int data_cap = ands_data_cap(ctx->parse);
+      if (index >= 0 && index < data_cap) {
+        if (index >= data_len) {
+          for (int i = data_len; i <= index; i++) {
+            data[i] = 0.0;
+          }
+          ands_data_len_set(ctx->parse, index + 1);
+        }
+        data[index] = val;
+      }
+    }
+  }
+  return 0;
+}
+static skode_word_t word_d_bang = { WID("d!"), .execute = word_exec_d_bang, .safety = WORD_IMMEDIATE_ONLY };
+
     /* @doc(command.d*)
     name: d*
     category: data
@@ -9316,6 +9347,7 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_w);
 
   skode_dict_register(vocab, &word__eqd);
+  skode_dict_register(vocab, &word_d_bang);
 
   skode_dict_register(vocab, &word_d_star);
 

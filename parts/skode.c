@@ -569,6 +569,24 @@ static void skode_help_show_doc(skode_t *ctx, const skode_doc_entry_t *doc) {
   if (doc->file) ctx->printf(ctx, "#   %s:%d\n", doc->file, doc->line);
 }
 
+
+const char *skode_help_category_for_word(const char *name) {
+  if (!name) return NULL;
+  for (int i = 0; skode_doc_entries[i].key; i++) {
+    if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
+    char doc_name[SKODE_HELP_FIELD_MAX];
+    if (!skode_help_field(&skode_doc_entries[i], "name", doc_name, sizeof(doc_name))) continue;
+    if (strcmp(doc_name, name) == 0) {
+      static char cat_buffer[SKODE_HELP_FIELD_MAX];
+      if (skode_help_field(&skode_doc_entries[i], "category", cat_buffer, sizeof(cat_buffer))) {
+        return cat_buffer;
+      }
+      return NULL;
+    }
+  }
+  return NULL;
+}
+
 static void skode_help_show_categories(skode_t *ctx) {
   char categories[SKODE_HELP_CATEGORY_MAX][SKODE_HELP_FIELD_MAX];
   int count = skode_help_categories(categories, SKODE_HELP_CATEGORY_MAX);

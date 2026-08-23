@@ -561,3 +561,5 @@ int skode_dict_word_is_promoted_macro(const skode_word_t *word);
 skode_word_t *skode_dict_free_promoted_macro(skode_word_t *word);
 
 #endif
+
+const char *skode_help_category_for_word(const char *name);

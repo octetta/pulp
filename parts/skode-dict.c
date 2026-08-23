@@ -370,15 +370,17 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
     // First pass: collect unique categories
     for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
       for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
-        if (!w->category) continue;
+        const char *cat = w->category ? w->category : skode_help_category_for_word(w->name);
+        if (!cat) cat = "uncategorized";
         int found = 0;
         for (int j = 0; j < cat_count; j++) {
-          if (strcmp(categories[j], w->category) == 0) {
+          if (strcmp(categories[j], cat) == 0) {
             found = 1; break;
           }
         }
         if (!found && cat_count < 32) {
-          categories[cat_count++] = w->category;
+          // Store a copy since the buffer from skode_help_category_for_word is static
+          categories[cat_count++] = strdup(cat);
         }
       }
     }
@@ -388,7 +390,9 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
       ctx->printf(ctx, "-- %s --\n", categories[c]);
       for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
         for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
-          if (w->name && w->category && strcmp(w->category, categories[c]) == 0) {
+          const char *cat = w->category ? w->category : skode_help_category_for_word(w->name);
+          if (!cat) cat = "uncategorized";
+          if (w->name && strcmp(cat, categories[c]) == 0) {
             ctx->printf(ctx, "%s ", w->name);
           }
         }

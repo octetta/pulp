@@ -11,7 +11,7 @@ M 50  # 50 BPM, heavy dirge
 
 # --- Delay Line (for reverb-like space on brass) ---
 # route=1, coarse=6, fine=8, feedback=20, modfreq=6, moddepth=3, level=10
-DL 1,6,8,20,6,3,10
+DL 1,6,8,15,0,31,10
 
 # --- Timpani (Voice 0) ---
 v 0
@@ -210,6 +210,6 @@ y0
 [ /z 2 0   /z 2 1 ] x 3        # t=6bar:  Section A second pass
 [ /z 2 0   /z 3 1 ] x 5        # t=10bar: Section B starts
 [ /z 3 0   /z 3 1 ] x 7        # t=14bar: Section B second pass
-[ /z 3 0   /z 1 0 ] x 9        # t=18bar: End everything
+[ /z 3 0   /z 1 0   off ] x 9  # t=18bar: End everything, release all voices
 [ /z 0 0 ] x 10                # t=20bar: Stop master
 

@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------
-# Music for the Funeral of Queen Mary (Wendy Carlos / Clockwork Orange style)
+# Purcell - Music for the Funeral of Queen Mary (Wendy Carlos Moog Emulation)
 # ----------------------------------------------------------------------
 
-M 60  # Set tempo to 60 BPM for a proper, heavy dirge pace
+M 50  # Slow, heavy dirge
 
 # ======================================================================
 # VOICE SETUPS
@@ -14,133 +14,158 @@ w 1              # Triangle Wave
 a 1.0            # Volume
 t 0.01 0.6 0 0   # ADSR: Fast attack, 600ms decay, no sustain
 J 1              # Low-pass filter
-K 60             # Base cutoff (very low for a dull thud)
-Q 1.5            # Slight resonance for drum body
-ft 0.01 0.3 0 0  # Filter ADSR: Snaps closed quickly
-fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet strike
+K 60             # Base cutoff
+Q 1.5            # Slight resonance
+ft 0.01 0.3 0 0  # Filter ADSR
+fd 400           # Filter sweep depth
 
-# THE LEAD (Voices 1, 2, and 3)
-v 1 
-( 2 3 ) G  # Link MIDI pitches
-( 2 3 ) H  # Link Envelope triggers
+# Brass Voices (Voices 1, 2, 3, 4)
+# 4 separate voices playing 4-part classical harmony with authentic Carlos tone.
+# 24dB resonant lowpass filter (~1.2kHz cutoff), subtle inter-voice detune (+-5 cents).
+[bras] : v $$0 w 2 a 0.5 t 0.02 0.1 0.8 0.1 J 1 K 1200 Q 2 ;
+1 bras
+2 bras
+3 bras
+4 bras
 
-v 2 ( -12 -8 ) N  # Octave down, flat
-v 3 ( -12  8 ) N  # Octave down, sharp
-v 1 N 0 0         # Unison
-
-[lead] : v $$0 w 2 a 0.5 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
-1 lead
-2 lead
-3 lead
-
-# THE CHOIR (Voices 4, 5, 6, and 7)
-[choi] : v $$0 w 1 a 0.2 t 0.4 0.1 0.8 0.5 J 1 K 600 Q 0 ;
-4 choi
-5 choi
-6 choi
-7 choi
+v 1 N 0  0
+v 2 N 0  5
+v 3 N 0 -5
+v 4 N 0 -3
 
 
 # ======================================================================
-# CHORD MACROS (Corrected Melody!)
+# MACROS
 # ======================================================================
-# v4=Bass, v5=Tenor, v6=Alto, v7=Soprano, v1=Lead (Linked to v2, v3)
 
-# Theme A Chords
-[CmC]  : v 4 n 48 l 1  v 5 n 55 l 1  v 6 n 63 l 1  v 7 n 72 l 1  v 1 n 72 l 1 ; # Cmin (C5 melody)
-[CmEb] : v 4 n 48 l 1  v 5 n 55 l 1  v 6 n 60 l 1  v 7 n 75 l 1  v 1 n 75 l 1 ; # Cmin (Eb5 melody)
-[GmaD] : v 4 n 43 l 1  v 5 n 50 l 1  v 6 n 59 l 1  v 7 n 74 l 1  v 1 n 74 l 1 ; # Gmaj (D5 melody)
-[FmF]  : v 4 n 41 l 1  v 5 n 48 l 1  v 6 n 56 l 1  v 7 n 77 l 1  v 1 n 77 l 1 ; # Fmin (F5 melody)
-[CmC2] : v 4 n 36 l 1  v 5 n 55 l 1  v 6 n 63 l 1  v 7 n 72 l 1  v 1 n 72 l 1 ; # Cmin (Low Bass, C5 melody)
+# Timpani Fake Pitch Envelope (Glides instantly down 12 semitones in 60ms)
+[Tlow] : v 0 g 0 n 48 g 0.06 n 36 l 1 ;
+[Thig] : v 0 g 0 n 55 g 0.06 n 43 l 1 ;
 
-# Theme B Chords
-[EbEb] : v 4 n 51 l 1  v 5 n 58 l 1  v 6 n 67 l 1  v 7 n 75 l 1  v 1 n 75 l 1 ; # Ebmaj (Eb5 melody)
-[BbF]  : v 4 n 46 l 1  v 5 n 53 l 1  v 6 n 62 l 1  v 7 n 77 l 1  v 1 n 77 l 1 ; # Bbmaj (F5 melody)
-[EbG]  : v 4 n 51 l 1  v 5 n 58 l 1  v 6 n 63 l 1  v 7 n 79 l 1  v 1 n 79 l 1 ; # Ebmaj (G5 melody)
-[EbE2] : v 4 n 39 l 1  v 5 n 58 l 1  v 6 n 67 l 1  v 7 n 75 l 1  v 1 n 75 l 1 ; # Ebmaj (Low Bass, Eb5 melody)
+# Note Off Macro
+[off] : v 1 l 0  v 2 l 0  v 3 l 0  v 4 l 0 ;
 
-[off]  : v 7 l 0  v 6 l 0  v 5 l 0  v 4 l 0  v 1 l 0 ; # Releases all voices
+# SECTION A CHORDS
+[Aone] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+[Atwo] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+[Athr] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+[Afou] : v 1 n 74 l 1  v 2 n 67 l 1  v 3 n 62 l 1  v 4 n 47 l 1 ;
+[Afiv] : v 1 n 75 l 1  v 2 n 67 l 1  v 3 n 60 l 1  v 4 n 48 l 1 ;
+[Asix] : v 1 n 74 l 1  v 2 n 65 l 1  v 3 n 62 l 1  v 4 n 47 l 1 ;
+[Asev] : v 1 n 72 l 1  v 2 n 63 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+[Aeig] : v 1 n 71 l 1  v 2 n 65 l 1  v 3 n 62 l 1  v 4 n 50 l 1 ;
+[Anin] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 51 l 1 ;
+[Aten] : v 1 n 74 l 1  v 2 n 67 l 1  v 3 n 62 l 1  v 4 n 43 l 1 ;
+[Aelv] : v 1 n 74 l 1  v 2 n 66 l 1  v 3 n 60 l 1  v 4 n 50 l 1 ;
+[Atwv] : v 1 n 67 l 1  v 2 n 67 l 1  v 3 n 59 l 1  v 4 n 43 l 1 ;
+
+# SECTION B CHORDS
+[Bone] : v 1 n 75 l 1  v 2 n 67 l 1  v 3 n 60 l 1  v 4 n 48 l 1 ;
+[Btwo] : v 1 n 75 l 1  v 2 n 67 l 1  v 3 n 60 l 1  v 4 n 48 l 1 ;
+[Bthr] : v 1 n 75 l 1  v 2 n 72 l 1  v 3 n 67 l 1  v 4 n 48 l 1 ;
+[Bfou] : v 1 n 77 l 1  v 2 n 72 l 1  v 3 n 65 l 1  v 4 n 50 l 1 ;
+[Bfiv] : v 1 n 79 l 1  v 2 n 71 l 1  v 3 n 62 l 1  v 4 n 43 l 1 ;
+[Bsix] : v 1 n 77 l 1  v 2 n 71 l 1  v 3 n 62 l 1  v 4 n 43 l 1 ;
+[Bsev] : v 1 n 75 l 1  v 2 n 72 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+[Beig] : v 1 n 74 l 1  v 2 n 71 l 1  v 3 n 65 l 1  v 4 n 43 l 1 ;
+[Bnin] : v 1 n 75 l 1  v 2 n 72 l 1  v 3 n 67 l 1  v 4 n 48 l 1 ;
+[Bten] : v 1 n 77 l 1  v 2 n 72 l 1  v 3 n 65 l 1  v 4 n 41 l 1 ;
+[Belv] : v 1 n 74 l 1  v 2 n 71 l 1  v 3 n 67 l 1  v 4 n 43 l 1 ;
+[Btwv] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
 
 
 # ======================================================================
-# PATTERN 1: TIMPANI INTRO/OUTRO (2 Bars = 32 steps)
+# PATTERN 1: TIMPANI (2 Bars = 32 steps)
 # ======================================================================
 y1
 1 %      
 
-[ v 0 n 36 l 1 ] x 0
-[ v 0 n 36 l 1 ] x 8
-[ v 0 n 36 l 1 ] x 14
-[ v 0 n 36 l 1 ] x 16
-[ v 0 n 36 l 1 ] x 24
-[ v 0 n 36 l 1 ] x 30
-[ ] x 31  
+[ Tlow ] x 0
+[ Tlow ] x 3
+[ Tlow ] x 4
+[ Tlow ] x 7
+[ Tlow ] x 8
+[ Tlow ] x 11
+[ Tlow ] x 12
+[ Tlow ] x 15
+
+[ Tlow ] x 16
+[ Tlow ] x 19
+[ Tlow ] x 20
+[ Thig ] x 24
+[ Thig ] x 27
+[ Tlow ] x 28
+[ ] x 31
 
 
 # ======================================================================
-# PATTERN 2: THEME A (4 Bars = 64 steps)
+# PATTERN 2: SECTION A (4 Bars = 64 steps)
 # ======================================================================
 y2
 1 %      
 
-# Bar 1 (C half, C quarter, C quarter)
-[ CmC ] x 0
+[ Aone ] x 0
+[ off ] x 5
+[ Atwo ] x 6
 [ off ] x 7
-[ CmC ] x 8
+[ Athr ] x 8
 [ off ] x 11
-[ CmC ] x 12
+[ Afou ] x 12
 [ off ] x 15
 
-# Bar 2 (Eb dotted-quarter, D eighth, C half)
-[ CmEb ] x 16
-[ GmaD ] x 22
-[ CmC ] x 24
+[ Afiv ] x 16
+[ off ] x 21
+[ Asix ] x 22
+[ off ] x 23
+[ Asev ] x 24
+[ off ] x 27
+[ Aeig ] x 28
 [ off ] x 31
 
-# Bar 3 (F quarter, Eb quarter, D half)
-[ FmF ] x 32
+[ Anin ] x 32
 [ off ] x 35
-[ CmEb ] x 36
+[ Aten ] x 36
 [ off ] x 39
-[ GmaD ] x 40
+[ Aelv ] x 40
 [ off ] x 47
 
-# Bar 4 (C whole)
-[ CmC2 ] x 48
-[ off ] x 62
+[ Atwv ] x 48
+[ off ] x 63
 
 
 # ======================================================================
-# PATTERN 3: THEME B (4 Bars = 64 steps)
+# PATTERN 3: SECTION B (4 Bars = 64 steps)
 # ======================================================================
 y3
 1 %
 
-# Bar 1 (Eb half, Eb quarter, Eb quarter)
-[ EbEb ] x 0
+[ Bone ] x 0
+[ off ] x 5
+[ Btwo ] x 6
 [ off ] x 7
-[ EbEb ] x 8
+[ Bthr ] x 8
 [ off ] x 11
-[ EbEb ] x 12
+[ Bfou ] x 12
 [ off ] x 15
 
-# Bar 2 (Eb dotted-quarter, F eighth, G half)
-[ EbEb ] x 16
-[ BbF ] x 22
-[ EbG ] x 24
+[ Bfiv ] x 16
+[ off ] x 21
+[ Bsix ] x 22
+[ off ] x 23
+[ Bsev ] x 24
+[ off ] x 27
+[ Beig ] x 28
 [ off ] x 31
 
-# Bar 3 (F quarter, Eb quarter, D half)
-[ BbF ] x 32
+[ Bnin ] x 32
 [ off ] x 35
-[ CmEb ] x 36
+[ Bten ] x 36
 [ off ] x 39
-[ GmaD ] x 40
+[ Belv ] x 40
 [ off ] x 47
 
-# Bar 4 (Eb whole)
-[ EbE2 ] x 48
-[ off ] x 62
+[ Btwv ] x 48
+[ off ] x 63
 
 
 # ======================================================================
@@ -154,9 +179,5 @@ y0
 [ /z 2 0   /z 2 1 ] x 3        
 [ /z 2 0   /z 3 1 ] x 5        
 [ /z 3 0   /z 3 1 ] x 7        
-[ /z 3 0   /z 1 1 ] x 9        
-[ /z 1 0   /z 2 1 ] x 10       
-[ /z 2 0   /z 3 1 ] x 12       
-[ /z 3 0   /z 1 1 ] x 14       
-[ /z 1 0   /z 0 0 ] x 15       
+[ /z 3 0   /z 0 0 ] x 9        
 

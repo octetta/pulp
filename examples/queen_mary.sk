@@ -5,7 +5,9 @@
 # 1 step = 1 eighth note  |  6 steps = 1 bar
 # ----------------------------------------------------------------------
 
-M 40  # dotted-quarter = 40 BPM (6/8 feel)
+M 60 8  # 6/8 at dotted-quarter = 40 BPM
+        # M takes (bpm, subdivision): step_freq = (bpm * sub) / 240
+        # (60 * 8) / 240 = 2 Hz → 0.5s per step = one eighth note at d.=40 ✓
 
 # ======================================================================
 # VOICE SETUPS
@@ -48,9 +50,9 @@ v 4 p 0 r 1 ds 8
 # MACROS
 # ======================================================================
 
-# Timpani: pitch sweep (glides from C3+12 down to C3 over 80ms)
-[Tlow] : v 0 g 0 n 60 g 0.08 n 48 l 1 ;  # C3
-[Thig] : v 0 g 0 n 67 g 0.08 n 55 l 1 ;  # G3
+# Timpani: simple hits at C2 and G2 (g is WORD_IMMEDIATE_ONLY, cannot be in a pattern)
+[Tlow] : v 0 n 36 l 1 ;  # C2 low hit
+[Thig] : v 0 n 43 l 1 ;  # G2 high hit
 
 [off] : v 1 l 0  v 2 l 0  v 3 l 0  v 4 l 0 ;
 

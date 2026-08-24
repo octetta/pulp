@@ -1,93 +1,92 @@
 # ----------------------------------------------------------------------
 # Music for the Funeral of Queen Mary (Wendy Carlos / Clockwork Orange style)
-# Structural Sequencer Demonstration
+# Structural Sequencer Demonstration with Musical Notes
 # ----------------------------------------------------------------------
-#
-# This script demonstrates how to sequence complex song structures in
-# Skode without relying on a monolithic, unrolling linear sequence.
-# It uses the newly introduced `/zl` (Pattern Loop) and `/z` (Pattern State)
-# opcodes, alongside the `[-N]` cross-pattern wait mechanism.
-# 
-# We define two paradigms below for arranging the piece:
-# 1. Master Orchestrator (Pattern 0 controlling independent sub-patterns)
-# 2. Song-in-a-Box (Pattern 5 using `/zl` to loop its own sections)
-#
-# (User Note: Replace the empty "[ ... ]" blocks with the actual Wendy Carlos
-# synth instrumentation and note triggers when ready).
 
 # ======================================================================
-# Paradigm A: The Master Orchestrator
+# VOICE SETUPS (Placeholders)
 # ======================================================================
-# Here, Pattern 0 acts as the conductor. It runs extremely slowly,
-# waiting for the active sub-pattern to finish before triggering the next.
+# We use 5 voices for this arrangement:
+# Voice 0: Timpani (Percussive, low, thudding)
+# Voice 1: Brass Soprano (Main melody)
+# Voice 2: Brass Alto    (Harmony)
+# Voice 3: Brass Tenor   (Harmony)
+# Voice 4: Brass Bass    (Deep foundation)
 
-y0       # Select Master Pattern
-z%64     # Set clock to 1 whole note (bar) per step, making the master sparse
+# Initialize Timpani (Voice 0)
+v 0 
+a 1           # Volume
+t 0.01 0.4 0 0 # ADSR: Fast attack, medium decay, no sustain (percussive)
+# (Add your synth waveform / filter parameters for a drum sound here)
 
-# Step 0: Start Pattern 1 (Timpani Intro)
-x0 [ /z 1 1 ]
-
-# Step 1: Wait for Pattern 1 to finish, stop Pattern 1, start Pattern 2 (Theme A)
-[-1] x1 [ /z 1 0  /z 2 1 ]
-
-# Step 2: Wait for Theme A to finish once, let it loop/repeat
-[-2] x2 [ /z 2 1 ]
-
-# Step 3: Wait for Theme A to finish again, stop it, start Pattern 3 (Theme B)
-[-2] x3 [ /z 2 0  /z 3 1 ]
-
-# Step 4: Wait for Theme B to finish, let it repeat
-[-3] x4 [ /z 3 1 ]
-
-# Step 5: Wait for Theme B to finish again, stop it, trigger Pattern 1 (Timpani Outro)
-[-3] x5 [ /z 3 0  /z 1 1 ]
-
-# Step 6: Wait for Timpani Outro to finish, stop Pattern 1, and stop Pattern 0 (the master)
-[-1] x6 [ /z 1 0  /z 0 0 ]
-
-# --- Define the Sub-Patterns ---
-
-y1  # Pattern 1: Timpani
-# Add your Timpani sequence here
-x0 [ ]
-x1 [ ]
-
-y2  # Pattern 2: Theme A (Solemn Brass)
-# Add Theme A sequence here
-x0 [ ]
-x1 [ ]
-
-y3  # Pattern 3: Theme B (Descending Theme)
-# Add Theme B sequence here
-x0 [ ]
-x1 [ ]
+# Initialize Brass Ensemble (Voices 1-4)
+# We use a macro to apply the same brassy ADSR to all four voices
+[ v $1  a 0.6  t 0.1 0.1 0.8 0.4 ] : setup_brass ;
+1 setup_brass
+2 setup_brass
+3 setup_brass
+4 setup_brass
+# (Add your Moog-style sawtooth waves and slow lowpass filters here)
 
 
 # ======================================================================
-# Paradigm B: The Song-in-a-Box (Using /zl)
+# MASTER ORCHESTRATOR (Pattern 0)
 # ======================================================================
-# Alternatively, we pack the entire structure into a single pattern (Pattern 5)
-# and use `/zl` to loop specific sections using internal variables.
+y0 
+z%64     # 1 step = 1 full bar (assuming 16th note resolution underneath)
 
-y5
+# Conduct the piece:
+x0 [ /z 1 1 ]                 # Start Pattern 1 (Timpani)
+[-1] x1 [ /z 1 0  /z 2 1 ]    # Stop Timpani, Start Pattern 2 (Theme A)
+[-2] x2 [ /z 2 1 ]            # Repeat Theme A
+[-2] x3 [ /z 2 0  /z 1 1 ]    # Stop Theme A, Bring back Timpani Outro
+[-1] x4 [ /z 1 0  /z 0 0 ]    # Stop everything
 
-# -- INTRO --
-# Steps 0-3
-x0 [ ]
-x3 [ /zl 1 2 0 ]  # Increment var 1. If var 1 < 2, jump back to step 0. Else reset var 1, fall through.
 
-# -- THEME A --
-# Steps 4-11
-x4 [ ]
-x11 [ /zl 2 2 4 ] # Increment var 2. Loop back to step 4 twice, then fall through.
+# ======================================================================
+# PATTERN 1: TIMPANI INTRO (2 Bars)
+# ======================================================================
+y1
+z%2      # 1 step = 8th note (to give us some rhythmic grid)
+# The classic dum... dum-da-dum...
+x0 [ v 0 n 36 l 1 ]    # C2
+x3 [ v 0 n 36 l 1 ]
+x4 [ v 0 n 36 l 1 ]
+x5 [ v 0 n 36 l 1 ]
+x8 [ v 0 n 36 l 1 ]
+x11 [ v 0 n 36 l 1 ]
+x12 [ v 0 n 36 l 1 ]
+x13 [ v 0 n 36 l 1 ]
+x15 [ ] # Empty step 15 to ensure the pattern is 16 steps (2 bars) long
 
-# -- THEME B --
-# Steps 12-19
-x12 [ ]
-x19 [ /zl 3 2 12 ] # Increment var 3. Loop back to step 12 twice, then fall through.
 
-# -- OUTRO --
-# Steps 20-23
-x20 [ ]
-x23 [ /z 5 0 ]     # Stop Pattern 5 gracefully
+# ======================================================================
+# PATTERN 2: THEME A (4 Bars)
+# ======================================================================
+y2
+z%2      # 1 step = 8th note (32 steps = 4 bars)
+
+# --- Bar 1 ---
+# Melody: G (half), G (quarter), G (quarter)
+x0 [ v 1 n 67 l 1   v 4 n 48 l 1 ]  # Soprano G4, Bass C3
+x4 [ v 1 n 67 l 1 ]                 # Soprano G4
+x6 [ v 1 n 67 l 1 ]                 # Soprano G4
+
+# --- Bar 2 ---
+# Melody: G (dotted quarter), Ab (eighth), G (half)
+x8 [ v 1 n 67 l 1   v 4 n 48 l 1 ]  # Soprano G4, Bass C3
+x11 [ v 1 n 68 l 1 ]                # Soprano Ab4
+x12 [ v 1 n 67 l 1 ]                # Soprano G4
+
+# --- Bar 3 ---
+# Melody: F (quarter), Eb (quarter), D (half)
+x16 [ v 1 n 65 l 1   v 4 n 41 l 1 ] # Soprano F4, Bass F2
+x18 [ v 1 n 63 l 1 ]                # Soprano Eb4
+x20 [ v 1 n 62 l 1   v 4 n 43 l 1 ] # Soprano D4, Bass G2
+
+# --- Bar 4 ---
+# Melody: Eb (whole)
+x24 [ v 1 n 63 l 1   v 4 n 48 l 1 ] # Soprano Eb4, Bass C3
+
+x31 [ ] # Cap the pattern at 32 steps
 

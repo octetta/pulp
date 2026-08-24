@@ -352,6 +352,7 @@ void skode_dict_report_macro_safety(skode_t *ctx, const char *name,
 
 
 extern void skode_stream_set(void *ctx, int n, const double *data, int len);
+extern void skode_stream_copy(void *ctx, int dst, int src);
 extern void skode_stream_mode(void *ctx, int n, int mode);
 extern void skode_stream_pos(void *ctx, int n, int pos);
 
@@ -494,6 +495,18 @@ static int word_exec_stream_set(const skode_word_t *self, skode_t *ctx, ands_t *
     double *data = s ? ands_data(s) : NULL;
     int len = s ? ands_data_len(s) : 0;
     skode_stream_set(ctx, stream_idx, data, len); 
+  }
+  return 0;
+}
+
+    /* @doc(command./SC)
+    name: /SC
+    category: sequencer
+    summary: copy stream contents (dst, src)
+    @enddoc */
+static int word_exec_stream_copy(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc >= 2) {
+    skode_stream_copy(ctx, (int)arg[0], (int)arg[1]);
   }
   return 0;
 }
@@ -670,11 +683,15 @@ static skode_word_t word_table[] = {
     .min_args = 1, .max_args = 1,
     .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
     .summary = "set stream array from stack data" },
-  { WID("/SM"), .execute = word_exec_stream_mode,
+  { WID("/SC"), .execute = word_exec_stream_copy, .opcode_id = SKODE_OP_STREAM_COPY,
+    .min_args = 2, .max_args = 2,
+    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
+    .summary = "copy stream contents (dst, src)" },
+  { WID("/SM"), .execute = word_exec_stream_mode, .opcode_id = SKODE_OP_STREAM_MODE,
     .min_args = 2, .max_args = 2,
     .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
     .summary = "set stream mode (0=wrap fwd, 1=wrap rev, 2=pingpong, 3=clamp)" },
-  { WID("/SP"), .execute = word_exec_stream_pos,
+  { WID("/SP"), .execute = word_exec_stream_pos, .opcode_id = SKODE_OP_STREAM_POS,
     .min_args = 2, .max_args = 2,
     .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
     .summary = "set stream position" },

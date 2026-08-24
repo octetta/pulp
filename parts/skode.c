@@ -2974,6 +2974,9 @@ static void skode_repeat_macro(skode_t *ctx, const double *arg, int argc,
 int skode_opcode_supported(skode_opcode_t opcode) {
   switch (opcode) {
     case SKODE_OP_VOICE:
+    case SKODE_OP_STREAM_COPY:
+    case SKODE_OP_STREAM_MODE:
+    case SKODE_OP_STREAM_POS:
     case SKODE_OP_AMP:
     case SKODE_OP_FREQ:
     case SKODE_OP_MIDI_NOTE:
@@ -3085,6 +3088,10 @@ static void skode_opcode_links(const opcode_event_t *opcode,
   *link3 = links[3];
 }
 
+void skode_stream_copy(void *ctx, int dst, int src);
+void skode_stream_mode(void *ctx, int n, int mode);
+void skode_stream_pos(void *ctx, int n, int pos);
+
 int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
   if (!opcode || !skode_voice_valid(voice) ||
       
@@ -3139,6 +3146,15 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return (opcode->argc >= 1 && opcode->argc <= 2)
         ? amp_bend_param_set(voice, (float)opcode->arg[0], opcode->argc > 1 ? (float)opcode->arg[1] : 0.0f)
         : -1;
+    case SKODE_OP_STREAM_COPY:
+      if (opcode->argc >= 2) skode_stream_copy(NULL, (int)opcode->arg[0], (int)opcode->arg[1]);
+      return 0;
+    case SKODE_OP_STREAM_MODE:
+      if (opcode->argc >= 2) skode_stream_mode(NULL, (int)opcode->arg[0], (int)opcode->arg[1]);
+      return 0;
+    case SKODE_OP_STREAM_POS:
+      if (opcode->argc >= 2) skode_stream_pos(NULL, (int)opcode->arg[0], (int)opcode->arg[1]);
+      return 0;
     case SKODE_OP_AMP:
       return opcode->argc == 1 ? amp_set(voice, opcode->arg[0]) : -1;
     case SKODE_OP_AMP_MOD:
@@ -10602,6 +10618,19 @@ void skode_stream_set(void *ctx, int n, const double *data, int len) {
     }
     global_stream[n].len = len;
     global_stream[n].pos = 0; global_stream[n].dir = 1;
+}
+
+void skode_stream_copy(void *ctx, int dst, int src) {
+    if (dst < 0 || dst >= 128 || src < 0 || src >= 128) return;
+    skode_stream_t *s_dst = &global_stream[dst];
+    skode_stream_t *s_src = &global_stream[src];
+    s_dst->len = s_src->len;
+    s_dst->mode = s_src->mode;
+    s_dst->pos = s_src->pos;
+    s_dst->dir = s_src->dir;
+    if (s_src->len > 0) {
+        memcpy(s_dst->data, s_src->data, s_src->len * sizeof(double));
+    }
 }
 
 void skode_stream_mode(void *ctx, int n, int mode) {

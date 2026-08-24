@@ -21,7 +21,7 @@ t 0.01 0.4 0 0 # ADSR: Fast attack, medium decay, no sustain (percussive)
 
 # Initialize Brass Ensemble (Voices 1-4)
 # We use a macro to apply the same brassy ADSR to all four voices
-[ v $1  a 0.6  t 0.1 0.1 0.8 0.4 ] : setup_brass ;
+[ v $$0  a 0.6  t 0.1 0.1 0.8 0.4 ] : setup_brass ;
 1 setup_brass
 2 setup_brass
 3 setup_brass

@@ -24,7 +24,7 @@ t 0.01 0.4 0 0
 # PATTERN 1: TIMPANI INTRO/OUTRO (2 Bars = 32 ticks)
 # ======================================================================
 y1
-z%2      # 1 step = 8th note (2 ticks)
+2 %      # 1 step = 8th note (2 ticks)
 
 [ v 0 n 36 l 1 ] x 0
 [ v 0 n 36 l 1 ] x 3
@@ -41,7 +41,7 @@ z%2      # 1 step = 8th note (2 ticks)
 # PATTERN 2: THEME A (4 Bars = 64 ticks)
 # ======================================================================
 y2
-z%2      # 1 step = 8th note (2 ticks)
+2 %      # 1 step = 8th note (2 ticks)
 
 # Bar 1 (G half, G quarter, G quarter)
 [ v 1 n 67 l 1   v 4 n 48 l 1 ] x 0
@@ -75,7 +75,7 @@ z%2      # 1 step = 8th note (2 ticks)
 # PATTERN 3: THEME B (4 Bars = 64 ticks)
 # ======================================================================
 y3
-z%2
+2 %
 # (Add Theme B melody and note-offs here)
 [ v 1 n 62 l 1   v 4 n 43 l 1 ] x 0
 [ v 1 l 0        v 4 l 0 ] x 31
@@ -91,7 +91,7 @@ y0
 # Pattern 1 (Timpani) is 2 bars long (1 master step)
 # Pattern 2 (Theme A) is 4 bars long (2 master steps)
 # Pattern 3 (Theme B) is 4 bars long (2 master steps)
-z%32
+32 %
 
 [ /z 1 1 ] x 0                 # Step 0 (Bars 1-2): Timpani starts
 [ /z 1 0   /z 2 1 ] x 1        # Step 1 (Bars 3-4): Timpani stops, Theme A starts

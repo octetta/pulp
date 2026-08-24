@@ -20,11 +20,11 @@ We then use a "Master Pattern" (Pattern 0) to conduct them using the `/z` (Patte
 The secret to this paradigm is **Clock Division Alignment**. 
 * We know our base tick is a 16th note. 
 * Timpani is 2 bars long (32 ticks). Theme A and B are 4 bars long (64 ticks).
-* If we set our Master Pattern to run at `z%32` (1 step = 32 ticks = 2 bars), it perfectly acts as a high-level block arranger!
+* If we set our Master Pattern to run at `32 %` (1 step = 32 ticks = 2 bars), it perfectly acts as a high-level block arranger!
 
 ```skred
 y0
-z%32
+32 %
 [ /z 1 1 ] x 0                 # Step 0 (Bars 1-2): Timpani starts
 [ /z 1 0   /z 2 1 ] x 1        # Step 1 (Bars 3-4): Timpani stops, Theme A starts
 # Step 2 (Bars 5-6): Theme A naturally continues playing its second half...

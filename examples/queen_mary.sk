@@ -20,39 +20,34 @@ ft 0.01 0.3 0 0  # Filter ADSR: Snaps closed quickly
 fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet strike
 
 # Brass Ensemble (Voices 1, 2, 3, and 4)
-# We link the envelopes of voices 2, 3, and 4 to Voice 1 using the `H` command.
-# This means triggering `v 1 l 1` fires the massive 4-part chord simultaneously!
-v 2 H 1
-v 3 H 1
-v 4 H 1
-
 [bras] : v $$0 w 2 a 0.5 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
 1 bras
 2 bras
 3 bras
 4 bras
 
-
 # ======================================================================
 # CHORD MACROS (4-Part Harmony)
 # ======================================================================
+# We explicitly trigger the envelope (`l 1`) for every voice so they all sound!
+
 # Theme A Chords
-[c1] : v 4 n 48  v 3 n 55  v 2 n 63  v 1 n 67  l 1 ; # Cmin
-[c2] : v 4 n 53  v 3 n 60  v 2 n 65  v 1 n 68  l 1 ; # Fmin/Ab
-[c3] : v 4 n 41  v 3 n 48  v 2 n 53  v 1 n 65  l 1 ; # Fmin
-[c4] : v 4 n 48  v 3 n 55  v 2 n 60  v 1 n 63  l 1 ; # Cmin/Eb
-[c5] : v 4 n 43  v 3 n 50  v 2 n 55  v 1 n 62  l 1 ; # Gmaj
-[c6] : v 4 n 36  v 3 n 55  v 2 n 60  v 1 n 63  l 1 ; # Cmin (Low Bass)
+[c1] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 67 l 1 ; # Cmin
+[c2] : v 4 n 53 l 1  v 3 n 60 l 1  v 2 n 65 l 1  v 1 n 68 l 1 ; # Fmin/Ab
+[c3] : v 4 n 41 l 1  v 3 n 48 l 1  v 2 n 53 l 1  v 1 n 65 l 1 ; # Fmin
+[c4] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin/Eb
+[c5] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 62 l 1 ; # Gmaj
+[c6] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin (Low Bass)
 
 # Theme B Chords
-[c7] : v 4 n 48  v 3 n 55  v 2 n 63  v 1 n 72  l 1 ; # Cmin (High)
-[c8] : v 4 n 46  v 3 n 53  v 2 n 58  v 1 n 74  l 1 ; # Bbmaj
-[c9] : v 4 n 51  v 3 n 58  v 2 n 63  v 1 n 75  l 1 ; # Ebmaj
-[cA] : v 4 n 43  v 3 n 50  v 2 n 55  v 1 n 74  l 1 ; # Gmaj
-[cB] : v 4 n 43  v 3 n 50  v 2 n 55  v 1 n 71  l 1 ; # Gmaj (B nat)
-[cC] : v 4 n 36  v 3 n 55  v 2 n 63  v 1 n 72  l 1 ; # Cmin (High End)
+[c7] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High)
+[c8] : v 4 n 46 l 1  v 3 n 53 l 1  v 2 n 58 l 1  v 1 n 74 l 1 ; # Bbmaj
+[c9] : v 4 n 51 l 1  v 3 n 58 l 1  v 2 n 63 l 1  v 1 n 75 l 1 ; # Ebmaj
+[cA] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 74 l 1 ; # Gmaj
+[cB] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 71 l 1 ; # Gmaj (B nat)
+[cC] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High End)
 
-[off] : v 1 l 0 ; # Releases Voice 1 (which releases 2, 3, and 4 via links!)
+[off] : v 4 l 0  v 3 l 0  v 2 l 0  v 1 l 0 ; # Releases all voices
 
 
 # ======================================================================

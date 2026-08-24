@@ -20,7 +20,6 @@ ft 0.01 0.3 0 0  # Filter ADSR: Snaps closed quickly
 fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet strike
 
 # THE LEAD (Voices 1, 2, and 3)
-# The iconic massive Moog lead! We link 3 voices together and detune them using `N`.
 v 1 
 ( 2 3 ) G  # Link MIDI pitches
 ( 2 3 ) H  # Link Envelope triggers
@@ -35,85 +34,79 @@ v 1 N 0 0         # Unison
 3 lead
 
 # THE CHOIR (Voices 4, 5, 6, and 7)
-# Soft, warm triangle-wave accompaniment chords (acting like the vocoder)
 [choi] : v $$0 w 1 a 0.2 t 0.4 0.1 0.8 0.5 J 1 K 600 Q 0 ;
 4 choi
 5 choi
 6 choi
 7 choi
 
+
 # ======================================================================
-# CHORD MACROS
+# CHORD MACROS (Corrected Melody!)
 # ======================================================================
 # v4=Bass, v5=Tenor, v6=Alto, v7=Soprano, v1=Lead (Linked to v2, v3)
 
 # Theme A Chords
-[Cmin] : v 4 n 48 l 1  v 5 n 55 l 1  v 6 n 63 l 1  v 7 n 67 l 1  v 1 n 67 l 1 ; # Cmin
-[FmAb] : v 4 n 53 l 1  v 5 n 60 l 1  v 6 n 65 l 1  v 7 n 68 l 1  v 1 n 68 l 1 ; # Fmin/Ab
-[Fmin] : v 4 n 41 l 1  v 5 n 48 l 1  v 6 n 56 l 1  v 7 n 65 l 1  v 1 n 65 l 1 ; # Fmin
-[CmEb] : v 4 n 48 l 1  v 5 n 55 l 1  v 6 n 60 l 1  v 7 n 63 l 1  v 1 n 63 l 1 ; # Cmin/Eb
-[Gmaj] : v 4 n 43 l 1  v 5 n 50 l 1  v 6 n 59 l 1  v 7 n 62 l 1  v 1 n 62 l 1 ; # Gmaj
-[CmLo] : v 4 n 36 l 1  v 5 n 55 l 1  v 6 n 60 l 1  v 7 n 63 l 1  v 1 n 63 l 1 ; # Cmin (Low Bass)
+[CmC]  : v 4 n 48 l 1  v 5 n 55 l 1  v 6 n 63 l 1  v 7 n 72 l 1  v 1 n 72 l 1 ; # Cmin (C5 melody)
+[CmEb] : v 4 n 48 l 1  v 5 n 55 l 1  v 6 n 60 l 1  v 7 n 75 l 1  v 1 n 75 l 1 ; # Cmin (Eb5 melody)
+[GmaD] : v 4 n 43 l 1  v 5 n 50 l 1  v 6 n 59 l 1  v 7 n 74 l 1  v 1 n 74 l 1 ; # Gmaj (D5 melody)
+[FmF]  : v 4 n 41 l 1  v 5 n 48 l 1  v 6 n 56 l 1  v 7 n 77 l 1  v 1 n 77 l 1 ; # Fmin (F5 melody)
+[CmC2] : v 4 n 36 l 1  v 5 n 55 l 1  v 6 n 63 l 1  v 7 n 72 l 1  v 1 n 72 l 1 ; # Cmin (Low Bass, C5 melody)
 
 # Theme B Chords
-[CmHi] : v 4 n 48 l 1  v 5 n 55 l 1  v 6 n 63 l 1  v 7 n 72 l 1  v 1 n 72 l 1 ; # Cmin (High)
-[Bbma] : v 4 n 46 l 1  v 5 n 53 l 1  v 6 n 58 l 1  v 7 n 74 l 1  v 1 n 74 l 1 ; # Bbmaj
-[Ebma] : v 4 n 51 l 1  v 5 n 55 l 1  v 6 n 58 l 1  v 7 n 75 l 1  v 1 n 75 l 1 ; # Ebmaj
-[GmaH] : v 4 n 43 l 1  v 5 n 50 l 1  v 6 n 59 l 1  v 7 n 74 l 1  v 1 n 74 l 1 ; # Gmaj
-[GmaB] : v 4 n 43 l 1  v 5 n 50 l 1  v 6 n 55 l 1  v 7 n 71 l 1  v 1 n 71 l 1 ; # Gmaj (B nat)
-[CmHE] : v 4 n 36 l 1  v 5 n 55 l 1  v 6 n 63 l 1  v 7 n 72 l 1  v 1 n 72 l 1 ; # Cmin (High End)
+[EbEb] : v 4 n 51 l 1  v 5 n 58 l 1  v 6 n 67 l 1  v 7 n 75 l 1  v 1 n 75 l 1 ; # Ebmaj (Eb5 melody)
+[BbF]  : v 4 n 46 l 1  v 5 n 53 l 1  v 6 n 62 l 1  v 7 n 77 l 1  v 1 n 77 l 1 ; # Bbmaj (F5 melody)
+[EbG]  : v 4 n 51 l 1  v 5 n 58 l 1  v 6 n 63 l 1  v 7 n 79 l 1  v 1 n 79 l 1 ; # Ebmaj (G5 melody)
+[EbE2] : v 4 n 39 l 1  v 5 n 58 l 1  v 6 n 67 l 1  v 7 n 75 l 1  v 1 n 75 l 1 ; # Ebmaj (Low Bass, Eb5 melody)
 
-[off] : v 7 l 0  v 6 l 0  v 5 l 0  v 4 l 0  v 1 l 0 ; # Releases all voices
+[off]  : v 7 l 0  v 6 l 0  v 5 l 0  v 4 l 0  v 1 l 0 ; # Releases all voices
 
 
 # ======================================================================
 # PATTERN 1: TIMPANI INTRO/OUTRO (2 Bars = 32 steps)
 # ======================================================================
 y1
-1 %      # 1 step = 16th note 
+1 %      
 
-# The iconic rhythm: BOM ... BOM ... ba-BOM ... BOM ... ba-BOM
 [ v 0 n 36 l 1 ] x 0
 [ v 0 n 36 l 1 ] x 8
 [ v 0 n 36 l 1 ] x 14
 [ v 0 n 36 l 1 ] x 16
 [ v 0 n 36 l 1 ] x 24
 [ v 0 n 36 l 1 ] x 30
-[ ] x 31  # Length = 32 steps
+[ ] x 31  
 
 
 # ======================================================================
 # PATTERN 2: THEME A (4 Bars = 64 steps)
 # ======================================================================
 y2
-1 %      # 1 step = 16th note
+1 %      
 
-# Bar 1 (Cmin half, Cmin quarter, Cmin quarter)
-[ Cmin ] x 0
-[ off ] x 7    # Release envelope so the next note has a distinct attack!
-[ Cmin ] x 8
+# Bar 1 (C half, C quarter, C quarter)
+[ CmC ] x 0
+[ off ] x 7
+[ CmC ] x 8
 [ off ] x 11
-[ Cmin ] x 12
+[ CmC ] x 12
 [ off ] x 15
 
-# Bar 2 (Cmin dotted-quarter, Fmin/Ab eighth, Cmin half)
-[ Cmin ] x 16
-# (No note-off here! We want a slurred legato glide from G to Ab)
-[ FmAb ] x 22
-# (No note-off here! Slurred glide back to G)
-[ Cmin ] x 24
+# Bar 2 (Eb dotted-quarter, D eighth, C half)
+[ CmEb ] x 16
+[ GmaD ] x 22
+[ CmC ] x 24
 [ off ] x 31
 
-# Bar 3 (Fmin quarter, Cmin/Eb quarter, Gmaj half)
-[ Fmin ] x 32
+# Bar 3 (F quarter, Eb quarter, D half)
+[ FmF ] x 32
 [ off ] x 35
 [ CmEb ] x 36
 [ off ] x 39
-[ Gmaj ] x 40
+[ GmaD ] x 40
 [ off ] x 47
 
-# Bar 4 (Cmin whole)
-[ CmLo ] x 48
+# Bar 4 (C whole)
+[ CmC2 ] x 48
 [ off ] x 62
 
 
@@ -123,31 +116,30 @@ y2
 y3
 1 %
 
-# Bar 1 (Cmin half, Cmin quarter, Cmin quarter)
-[ CmHi ] x 0
+# Bar 1 (Eb half, Eb quarter, Eb quarter)
+[ EbEb ] x 0
 [ off ] x 7
-[ CmHi ] x 8
+[ EbEb ] x 8
 [ off ] x 11
-[ CmHi ] x 12
+[ EbEb ] x 12
 [ off ] x 15
 
-# Bar 2 (Cmin dotted-quarter, Bbmaj eighth, Ebmaj half)
-[ CmHi ] x 16
-# (Legato glide for the famous descending run)
-[ Bbma ] x 22
-[ Ebma ] x 24
+# Bar 2 (Eb dotted-quarter, F eighth, G half)
+[ EbEb ] x 16
+[ BbF ] x 22
+[ EbG ] x 24
 [ off ] x 31
 
-# Bar 3 (Gmaj quarter, Cmin quarter, Gmaj(Bnat) half)
-[ GmaH ] x 32
+# Bar 3 (F quarter, Eb quarter, D half)
+[ BbF ] x 32
 [ off ] x 35
-[ CmHi ] x 36
+[ CmEb ] x 36
 [ off ] x 39
-[ GmaB ] x 40
+[ GmaD ] x 40
 [ off ] x 47
 
-# Bar 4 (Cmin whole)
-[ CmHE ] x 48
+# Bar 4 (Eb whole)
+[ EbE2 ] x 48
 [ off ] x 62
 
 
@@ -155,16 +147,16 @@ y3
 # MASTER ORCHESTRATOR (Pattern 0)
 # ======================================================================
 y0
-32 %   # Master clock = 2 bars of 4/4 per step (8 seconds per step at 60 BPM)
+32 %   
 
-[ /z 1 1 ] x 0                 # Step 0 (0:00): Timpani Intro
-[ /z 1 0   /z 2 1 ] x 1        # Step 1 (0:08): Theme A (First Pass) starts
-[ /z 2 0   /z 2 1 ] x 3        # Step 3 (0:24): Theme A (Second Pass) restarts
-[ /z 2 0   /z 3 1 ] x 5        # Step 5 (0:40): Theme B (First Pass) starts
-[ /z 3 0   /z 3 1 ] x 7        # Step 7 (0:56): Theme B (Second Pass) restarts
-[ /z 3 0   /z 1 1 ] x 9        # Step 9 (1:12): Timpani Interlude
-[ /z 1 0   /z 2 1 ] x 10       # Step 10 (1:20): Theme A (Climax) starts
-[ /z 2 0   /z 3 1 ] x 12       # Step 12 (1:36): Theme B (Climax) starts
-[ /z 3 0   /z 1 1 ] x 14       # Step 14 (1:52): Timpani Outro starts
-[ /z 1 0   /z 0 0 ] x 15       # Step 15 (2:00): Stop everything!
+[ /z 1 1 ] x 0                 
+[ /z 1 0   /z 2 1 ] x 1        
+[ /z 2 0   /z 2 1 ] x 3        
+[ /z 2 0   /z 3 1 ] x 5        
+[ /z 3 0   /z 3 1 ] x 7        
+[ /z 3 0   /z 1 1 ] x 9        
+[ /z 1 0   /z 2 1 ] x 10       
+[ /z 2 0   /z 3 1 ] x 12       
+[ /z 3 0   /z 1 1 ] x 14       
+[ /z 1 0   /z 0 0 ] x 15       
 

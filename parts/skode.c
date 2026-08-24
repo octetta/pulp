@@ -2974,6 +2974,8 @@ static void skode_repeat_macro(skode_t *ctx, const double *arg, int argc,
 int skode_opcode_supported(skode_opcode_t opcode) {
   switch (opcode) {
     case SKODE_OP_VOICE:
+    case SKODE_OP_PATTERN_STATE:
+    case SKODE_OP_PATTERN_LOOP:
     case SKODE_OP_STREAM_COPY:
     case SKODE_OP_STREAM_MODE:
     case SKODE_OP_STREAM_POS:
@@ -3146,6 +3148,24 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return (opcode->argc >= 1 && opcode->argc <= 2)
         ? amp_bend_param_set(voice, (float)opcode->arg[0], opcode->argc > 1 ? (float)opcode->arg[1] : 0.0f)
         : -1;
+    case SKODE_OP_PATTERN_STATE:
+      if (opcode->argc >= 2) seq_state_set((int)opcode->arg[0], (int)opcode->arg[1]);
+      return 0;
+    case SKODE_OP_PATTERN_LOOP:
+      if (opcode->argc >= 3) {
+        int var_id = (int)opcode->arg[0];
+        int limit = (int)opcode->arg[1];
+        int dest_step = (int)opcode->arg[2];
+        if (var_id >= 0 && var_id < ANDS_VAR_MAX) {
+          if (global_var[var_id] < limit - 1) {
+            global_var[var_id] += 1;
+            if (seq_current_pattern >= 0) seq_step_goto(seq_current_pattern, dest_step);
+          } else {
+            global_var[var_id] = 0;
+          }
+        }
+      }
+      return 0;
     case SKODE_OP_STREAM_COPY:
       if (opcode->argc >= 2) skode_stream_copy(NULL, (int)opcode->arg[0], (int)opcode->arg[1]);
       return 0;

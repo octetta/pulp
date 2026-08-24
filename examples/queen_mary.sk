@@ -1,0 +1,93 @@
+# ----------------------------------------------------------------------
+# Music for the Funeral of Queen Mary (Wendy Carlos / Clockwork Orange style)
+# Structural Sequencer Demonstration
+# ----------------------------------------------------------------------
+#
+# This script demonstrates how to sequence complex song structures in
+# Skode without relying on a monolithic, unrolling linear sequence.
+# It uses the newly introduced `/zl` (Pattern Loop) and `/z` (Pattern State)
+# opcodes, alongside the `[-N]` cross-pattern wait mechanism.
+# 
+# We define two paradigms below for arranging the piece:
+# 1. Master Orchestrator (Pattern 0 controlling independent sub-patterns)
+# 2. Song-in-a-Box (Pattern 5 using `/zl` to loop its own sections)
+#
+# (User Note: Replace the empty "[ ... ]" blocks with the actual Wendy Carlos
+# synth instrumentation and note triggers when ready).
+
+# ======================================================================
+# Paradigm A: The Master Orchestrator
+# ======================================================================
+# Here, Pattern 0 acts as the conductor. It runs extremely slowly,
+# waiting for the active sub-pattern to finish before triggering the next.
+
+y0       # Select Master Pattern
+z%64     # Set clock to 1 whole note (bar) per step, making the master sparse
+
+# Step 0: Start Pattern 1 (Timpani Intro)
+x0 [ /z 1 1 ]
+
+# Step 1: Wait for Pattern 1 to finish, stop Pattern 1, start Pattern 2 (Theme A)
+[-1] x1 [ /z 1 0  /z 2 1 ]
+
+# Step 2: Wait for Theme A to finish once, let it loop/repeat
+[-2] x2 [ /z 2 1 ]
+
+# Step 3: Wait for Theme A to finish again, stop it, start Pattern 3 (Theme B)
+[-2] x3 [ /z 2 0  /z 3 1 ]
+
+# Step 4: Wait for Theme B to finish, let it repeat
+[-3] x4 [ /z 3 1 ]
+
+# Step 5: Wait for Theme B to finish again, stop it, trigger Pattern 1 (Timpani Outro)
+[-3] x5 [ /z 3 0  /z 1 1 ]
+
+# Step 6: Wait for Timpani Outro to finish, stop Pattern 1, and stop Pattern 0 (the master)
+[-1] x6 [ /z 1 0  /z 0 0 ]
+
+# --- Define the Sub-Patterns ---
+
+y1  # Pattern 1: Timpani
+# Add your Timpani sequence here
+x0 [ ]
+x1 [ ]
+
+y2  # Pattern 2: Theme A (Solemn Brass)
+# Add Theme A sequence here
+x0 [ ]
+x1 [ ]
+
+y3  # Pattern 3: Theme B (Descending Theme)
+# Add Theme B sequence here
+x0 [ ]
+x1 [ ]
+
+
+# ======================================================================
+# Paradigm B: The Song-in-a-Box (Using /zl)
+# ======================================================================
+# Alternatively, we pack the entire structure into a single pattern (Pattern 5)
+# and use `/zl` to loop specific sections using internal variables.
+
+y5
+
+# -- INTRO --
+# Steps 0-3
+x0 [ ]
+x3 [ /zl 1 2 0 ]  # Increment var 1. If var 1 < 2, jump back to step 0. Else reset var 1, fall through.
+
+# -- THEME A --
+# Steps 4-11
+x4 [ ]
+x11 [ /zl 2 2 4 ] # Increment var 2. Loop back to step 4 twice, then fall through.
+
+# -- THEME B --
+# Steps 12-19
+x12 [ ]
+x19 [ /zl 3 2 12 ] # Increment var 3. Loop back to step 12 twice, then fall through.
+
+# -- OUTRO --
+# Steps 20-23
+x20 [ ]
+x23 [ /z 5 0 ]     # Stop Pattern 5 gracefully
+

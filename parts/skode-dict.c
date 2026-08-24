@@ -353,6 +353,8 @@ void skode_dict_report_macro_safety(skode_t *ctx, const char *name,
 
 extern void skode_stream_set(void *ctx, int n, const double *data, int len);
 extern void skode_stream_copy(void *ctx, int dst, int src);
+extern void seq_state_set(int p, int state);
+extern void seq_step_goto(int pattern, int step);
 extern void skode_stream_mode(void *ctx, int n, int mode);
 extern void skode_stream_pos(void *ctx, int n, int pos);
 
@@ -507,6 +509,43 @@ static int word_exec_stream_set(const skode_word_t *self, skode_t *ctx, ands_t *
 static int word_exec_stream_copy(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   if (argc >= 2) {
     skode_stream_copy(ctx, (int)arg[0], (int)arg[1]);
+  }
+  return 0;
+}
+
+    /* @doc(command./z)
+    name: /z
+    category: sequencer
+    summary: set pattern state (pattern, state)
+    @enddoc */
+static int word_exec_pattern_state(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc >= 2) {
+    seq_state_set((int)arg[0], (int)arg[1]);
+  }
+  return 0;
+}
+
+    /* @doc(command./zl)
+    name: /zl
+    category: sequencer
+    summary: pattern loop (var_id, limit, dest_step)
+    @enddoc */
+static int word_exec_pattern_loop(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc >= 3) {
+    // Only meaningful inside a pattern where seq_current_pattern is valid,
+    // but we can provide an immediate fallback if needed.
+    // For immediate execution, we just execute it on ctx->pattern.
+    int var_id = (int)arg[0];
+    int limit = (int)arg[1];
+    int dest_step = (int)arg[2];
+    if (var_id >= 0 && var_id < ANDS_VAR_MAX) {
+      if (global_var[var_id] < limit - 1) {
+        global_var[var_id] += 1.0;
+        seq_step_goto(ctx->pattern, dest_step);
+      } else {
+        global_var[var_id] = 0.0;
+      }
+    }
   }
   return 0;
 }
@@ -687,6 +726,14 @@ static skode_word_t word_table[] = {
     .min_args = 2, .max_args = 2,
     .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
     .summary = "copy stream contents (dst, src)" },
+  { WID("/z"), .execute = word_exec_pattern_state, .opcode_id = SKODE_OP_PATTERN_STATE,
+    .min_args = 2, .max_args = 2,
+    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
+    .summary = "set pattern state (pattern, state)" },
+  { WID("/zl"), .execute = word_exec_pattern_loop, .opcode_id = SKODE_OP_PATTERN_LOOP,
+    .min_args = 3, .max_args = 3,
+    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
+    .summary = "pattern loop (var_id, limit, dest_step)" },
   { WID("/SM"), .execute = word_exec_stream_mode, .opcode_id = SKODE_OP_STREAM_MODE,
     .min_args = 2, .max_args = 2,
     .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",

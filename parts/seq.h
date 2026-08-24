@@ -81,6 +81,7 @@ void seq_step_goto(int pattern, int step);
 void seq_state_set(int p, int state);
 void seq_state_queue(int p, int state);
 void seq_state_all(int state);
+extern int seq_current_pattern;
 int seq_pattern_generation(int pattern);
 void seq_edit_lock(void);
 void seq_edit_unlock(void);

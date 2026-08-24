@@ -24,6 +24,7 @@ int seq_pattern_length[PATTERNS_MAX] = {0};
 
 int scope_pattern_pointer = 0;
 int seq_pointer[PATTERNS_MAX] = {0};  // read-only derived value, kept for external inspection
+int seq_current_pattern = -1;
 int seq_state[PATTERNS_MAX] = {0};
 int seq_pending_state[PATTERNS_MAX] = {0};
 int seq_modulo[PATTERNS_MAX] = {0};
@@ -210,6 +211,7 @@ void do_pattern(uint64_t now,
             skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_START, now, p, step);
           skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_STEP, now, p, step);
         }
+        seq_current_pattern = p;
         const char *step_str = seq_pattern[p][step];
         if (step_str[0] == '-') {
           if (step_str[1] >= '0' && step_str[1] <= '9') {
@@ -241,6 +243,7 @@ void do_pattern(uint64_t now,
               p, step);
           }
         }
+        seq_current_pattern = -1;
       }
     }
   }

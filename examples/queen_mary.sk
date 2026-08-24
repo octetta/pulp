@@ -2,6 +2,8 @@
 # Music for the Funeral of Queen Mary (Wendy Carlos / Clockwork Orange style)
 # ----------------------------------------------------------------------
 
+M 60  # Set tempo to 60 BPM for a proper, heavy dirge pace
+
 # ======================================================================
 # VOICE SETUPS
 # ======================================================================
@@ -115,14 +117,24 @@ y3
 # ======================================================================
 # MASTER ORCHESTRATOR (Pattern 0)
 # ======================================================================
+# This orchestrates the full 30-bar, ~2-minute arrangement.
 y0
-32 %   # Master clock = 2 bars of 4/4 per step
+32 %   # Master clock = 2 bars of 4/4 per step (8 seconds per step at 60 BPM)
 
-[ /z 1 1 ] x 0                 # Step 0 (Bars 1-2): Timpani starts
-[ /z 1 0   /z 2 1 ] x 1        # Step 1 (Bars 3-4): Timpani stops, Theme A starts
-# Step 2 (Bars 5-6): Theme A naturally continues playing its second half
-[ /z 2 0   /z 3 1 ] x 3        # Step 3 (Bars 7-8): Theme A stops, Theme B starts
-# Step 4 (Bars 9-10): Theme B naturally continues
-[ /z 3 0   /z 1 1 ] x 5        # Step 5 (Bars 11-12): Theme B stops, Timpani Outro starts
-[ /z 1 0   /z 0 0 ] x 6        # Step 6: Stop everything!
+[ /z 1 1 ] x 0                 # Step 0 (0:00): Timpani Intro
+[ /z 1 0   /z 2 1 ] x 1        # Step 1 (0:08): Theme A (First Pass) starts
+# Step 2 (0:16): Theme A naturally continues
+[ /z 2 0   /z 2 1 ] x 3        # Step 3 (0:24): Theme A (Second Pass) restarts
+# Step 4 (0:32): Theme A naturally continues
+[ /z 2 0   /z 3 1 ] x 5        # Step 5 (0:40): Theme B (First Pass) starts
+# Step 6 (0:48): Theme B naturally continues
+[ /z 3 0   /z 3 1 ] x 7        # Step 7 (0:56): Theme B (Second Pass) restarts
+# Step 8 (1:04): Theme B naturally continues
+[ /z 3 0   /z 1 1 ] x 9        # Step 9 (1:12): Timpani Interlude
+[ /z 1 0   /z 2 1 ] x 10       # Step 10 (1:20): Theme A (Climax) starts
+# Step 11 (1:28): Theme A naturally continues
+[ /z 2 0   /z 3 1 ] x 12       # Step 12 (1:36): Theme B (Climax) starts
+# Step 13 (1:44): Theme B naturally continues
+[ /z 3 0   /z 1 1 ] x 14       # Step 14 (1:52): Timpani Outro starts
+[ /z 1 0   /z 0 0 ] x 15       # Step 15 (2:00): Stop everything!
 

@@ -7,12 +7,8 @@ M 60  # Set tempo to 60 BPM for a proper, heavy dirge pace
 # ======================================================================
 # VOICE SETUPS
 # ======================================================================
-# Voice 0: Timpani (Percussive, low, thudding)
-# Voice 1: Brass Soprano (Main melody)
-# Voice 4: Brass Bass    (Deep foundation)
 
 # Timpani (Voice 0) 
-# Synthesizes a massive, pitch-swept timpani using a triangle wave and filter envelope
 v 0 
 w 1              # Triangle Wave
 a 1.0            # Volume
@@ -23,118 +19,124 @@ Q 1.5            # Slight resonance for drum body
 ft 0.01 0.3 0 0  # Filter ADSR: Snaps closed quickly
 fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet strike
 
-# Brass Ensemble (Voices 1 and 4)
-# Classic Wendy Carlos Moog-style Brass: Sawtooth, slow sweeping filter, slight portamento
-[bras] : v $$0 w 2 a 0.6 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
+# Brass Ensemble (Voices 1, 2, 3, and 4)
+# We link the envelopes of voices 2, 3, and 4 to Voice 1 using the `H` command.
+# This means triggering `v 1 l 1` fires the massive 4-part chord simultaneously!
+v 2 H 1
+v 3 H 1
+v 4 H 1
+
+[bras] : v $$0 w 2 a 0.5 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
 1 bras
+2 bras
+3 bras
 4 bras
 
+
 # ======================================================================
-# PATTERN 1: TIMPANI INTRO/OUTRO (2 Bars = 32 ticks)
+# CHORD MACROS (4-Part Harmony)
+# ======================================================================
+# Theme A Chords
+[c1] : v 4 n 48  v 3 n 55  v 2 n 63  v 1 n 67  l 1 ; # Cmin
+[c2] : v 4 n 53  v 3 n 60  v 2 n 65  v 1 n 68  l 1 ; # Fmin/Ab
+[c3] : v 4 n 41  v 3 n 48  v 2 n 53  v 1 n 65  l 1 ; # Fmin
+[c4] : v 4 n 48  v 3 n 55  v 2 n 60  v 1 n 63  l 1 ; # Cmin/Eb
+[c5] : v 4 n 43  v 3 n 50  v 2 n 55  v 1 n 62  l 1 ; # Gmaj
+[c6] : v 4 n 36  v 3 n 55  v 2 n 60  v 1 n 63  l 1 ; # Cmin (Low Bass)
+
+# Theme B Chords
+[c7] : v 4 n 48  v 3 n 55  v 2 n 63  v 1 n 72  l 1 ; # Cmin (High)
+[c8] : v 4 n 46  v 3 n 53  v 2 n 58  v 1 n 74  l 1 ; # Bbmaj
+[c9] : v 4 n 51  v 3 n 58  v 2 n 63  v 1 n 75  l 1 ; # Ebmaj
+[cA] : v 4 n 43  v 3 n 50  v 2 n 55  v 1 n 74  l 1 ; # Gmaj
+[cB] : v 4 n 43  v 3 n 50  v 2 n 55  v 1 n 71  l 1 ; # Gmaj (B nat)
+[cC] : v 4 n 36  v 3 n 55  v 2 n 63  v 1 n 72  l 1 ; # Cmin (High End)
+
+[off] : v 1 l 0 ; # Releases Voice 1 (which releases 2, 3, and 4 via links!)
+
+
+# ======================================================================
+# PATTERN 1: TIMPANI INTRO/OUTRO (2 Bars = 32 steps)
 # ======================================================================
 y1
-2 %      # 1 step = 8th note (2 ticks)
+1 %      # 1 step = 16th note 
 
+# The iconic rhythm: BOM ... BOM ... ba-BOM ... BOM ... ba-BOM
 [ v 0 n 36 l 1 ] x 0
-[ v 0 n 36 l 1 ] x 3
-[ v 0 n 36 l 1 ] x 4
-[ v 0 n 36 l 1 ] x 5
 [ v 0 n 36 l 1 ] x 8
-[ v 0 n 36 l 1 ] x 11
-[ v 0 n 36 l 1 ] x 12
-[ v 0 n 36 l 1 ] x 13
-[ ] x 15  # Set length to 16 steps (32 ticks)
+[ v 0 n 36 l 1 ] x 14
+[ v 0 n 36 l 1 ] x 16
+[ v 0 n 36 l 1 ] x 24
+[ v 0 n 36 l 1 ] x 30
+[ ] x 31  # Length = 32 steps
 
 
 # ======================================================================
-# PATTERN 2: THEME A (4 Bars = 64 ticks)
+# PATTERN 2: THEME A (4 Bars = 64 steps)
 # ======================================================================
 y2
-2 %      # 1 step = 8th note (2 ticks)
+1 %      # 1 step = 16th note
 
-# Bar 1 (G half, G quarter, G quarter)
-[ v 1 n 67 l 1   v 4 n 48 l 1 ] x 0
-[ v 1 l 0        v 4 l 0 ] x 3      # Note off just before the next note
-[ v 1 n 67 l 1 ] x 4
-[ v 1 l 0 ] x 5
-[ v 1 n 67 l 1 ] x 6
-[ v 1 l 0 ] x 7
+# Bar 1 (Cmin half, Cmin quarter, Cmin quarter)
+[ c1 ] x 0
+[ c1 ] x 8
+[ c1 ] x 12
 
-# Bar 2 (G dotted-quarter, Ab eighth, G half)
-[ v 1 n 67 l 1   v 4 n 48 l 1 ] x 8
-[ v 1 l 0 ] x 10
-[ v 1 n 68 l 1 ] x 11
-[ v 1 n 67 l 1 ] x 12    # Legato glide into G half
-[ v 1 l 0        v 4 l 0 ] x 15
+# Bar 2 (Cmin dotted-quarter, Fmin/Ab eighth, Cmin half)
+[ c1 ] x 16
+[ c2 ] x 22
+[ c1 ] x 24
 
-# Bar 3 (F quarter, Eb quarter, D half)
-[ v 1 n 65 l 1   v 4 n 41 l 1 ] x 16
-[ v 1 l 0 ] x 17
-[ v 1 n 63 l 1 ] x 18
-[ v 1 l 0 ] x 19
-[ v 1 n 62 l 1   v 4 n 43 l 1 ] x 20
-[ v 1 l 0        v 4 l 0 ] x 23
+# Bar 3 (Fmin quarter, Cmin/Eb quarter, Gmaj half)
+[ c3 ] x 32
+[ c4 ] x 36
+[ c5 ] x 40
 
-# Bar 4 (Eb whole)
-[ v 1 n 63 l 1   v 4 n 48 l 1 ] x 24
-[ v 1 l 0        v 4 l 0 ] x 31     # Release at the very end of the bar
+# Bar 4 (Cmin whole)
+[ c6 ] x 48
+[ off ] x 62
 
 
 # ======================================================================
-# PATTERN 3: THEME B (4 Bars = 64 ticks)
+# PATTERN 3: THEME B (4 Bars = 64 steps)
 # ======================================================================
 y3
-2 %
+1 %
 
-# Bar 1 (C5 half, C5 quarter, C5 quarter)
-[ v 1 n 72 l 1   v 4 n 48 l 1 ] x 0
-[ v 1 l 0        v 4 l 0 ] x 3
-[ v 1 n 72 l 1 ] x 4
-[ v 1 l 0 ] x 5
-[ v 1 n 72 l 1 ] x 6
-[ v 1 l 0 ] x 7
+# Bar 1 (Cmin half, Cmin quarter, Cmin quarter)
+[ c7 ] x 0
+[ c7 ] x 8
+[ c7 ] x 12
 
-# Bar 2 (C5 dotted-quarter, D5 eighth, Eb5 half)
-[ v 1 n 72 l 1   v 4 n 48 l 1 ] x 8
-[ v 1 l 0 ] x 10
-[ v 1 n 74 l 1 ] x 11
-[ v 1 n 75 l 1 ] x 12    # Legato glide into Eb5 half
-[ v 1 l 0        v 4 l 0 ] x 15
+# Bar 2 (Cmin dotted-quarter, Bbmaj eighth, Ebmaj half)
+[ c7 ] x 16
+[ c8 ] x 22
+[ c9 ] x 24
 
-# Bar 3 (D5 quarter, C5 quarter, B4(nat) half)
-[ v 1 n 74 l 1   v 4 n 43 l 1 ] x 16
-[ v 1 l 0 ] x 17
-[ v 1 n 72 l 1 ] x 18
-[ v 1 l 0 ] x 19
-[ v 1 n 71 l 1   v 4 n 43 l 1 ] x 20
-[ v 1 l 0        v 4 l 0 ] x 23
+# Bar 3 (Gmaj quarter, Cmin quarter, Gmaj(Bnat) half)
+[ cA ] x 32
+[ c7 ] x 36
+[ cB ] x 40
 
-# Bar 4 (C5 whole)
-[ v 1 n 72 l 1   v 4 n 48 l 1 ] x 24
-[ v 1 l 0        v 4 l 0 ] x 31
+# Bar 4 (Cmin whole)
+[ cC ] x 48
+[ off ] x 62
 
 
 # ======================================================================
 # MASTER ORCHESTRATOR (Pattern 0)
 # ======================================================================
-# This orchestrates the full 30-bar, ~2-minute arrangement.
 y0
 32 %   # Master clock = 2 bars of 4/4 per step (8 seconds per step at 60 BPM)
 
 [ /z 1 1 ] x 0                 # Step 0 (0:00): Timpani Intro
 [ /z 1 0   /z 2 1 ] x 1        # Step 1 (0:08): Theme A (First Pass) starts
-# Step 2 (0:16): Theme A naturally continues
 [ /z 2 0   /z 2 1 ] x 3        # Step 3 (0:24): Theme A (Second Pass) restarts
-# Step 4 (0:32): Theme A naturally continues
 [ /z 2 0   /z 3 1 ] x 5        # Step 5 (0:40): Theme B (First Pass) starts
-# Step 6 (0:48): Theme B naturally continues
 [ /z 3 0   /z 3 1 ] x 7        # Step 7 (0:56): Theme B (Second Pass) restarts
-# Step 8 (1:04): Theme B naturally continues
 [ /z 3 0   /z 1 1 ] x 9        # Step 9 (1:12): Timpani Interlude
 [ /z 1 0   /z 2 1 ] x 10       # Step 10 (1:20): Theme A (Climax) starts
-# Step 11 (1:28): Theme A naturally continues
 [ /z 2 0   /z 3 1 ] x 12       # Step 12 (1:36): Theme B (Climax) starts
-# Step 13 (1:44): Theme B naturally continues
 [ /z 3 0   /z 1 1 ] x 14       # Step 14 (1:52): Timpani Outro starts
 [ /z 1 0   /z 0 0 ] x 15       # Step 15 (2:00): Stop everything!
 

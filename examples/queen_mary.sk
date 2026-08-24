@@ -6,7 +6,6 @@
 # ======================================================================
 # VOICE SETUPS (Placeholders)
 # ======================================================================
-# We use 5 voices for this arrangement:
 # Voice 0: Timpani (Percussive, low, thudding)
 # Voice 1: Brass Soprano (Main melody)
 # Voice 2: Brass Alto    (Harmony)
@@ -15,78 +14,77 @@
 
 # Initialize Timpani (Voice 0)
 v 0 
-a 1           # Volume
-t 0.01 0.4 0 0 # ADSR: Fast attack, medium decay, no sustain (percussive)
-# (Add your synth waveform / filter parameters for a drum sound here)
+a 1
+t 0.01 0.4 0 0 
 
 # Initialize Brass Ensemble (Voices 1-4)
-# We use a macro to apply the same brassy ADSR to all four voices
-[bras] : v $$0  a 0.6  t 0.1 0.1 0.8 0.4 ;
+[bras] : v $$0 a 0.6 t 0.1 0.1 0.8 0.4 ;
 1 bras
 2 bras
 3 bras
 4 bras
-# (Add your Moog-style sawtooth waves and slow lowpass filters here)
-
 
 # ======================================================================
-# MASTER ORCHESTRATOR (Pattern 0)
-# ======================================================================
-y0 
-z%64     # 1 step = 1 full bar (assuming 16th note resolution underneath)
-
-# Conduct the piece:
-x0 [ /z 1 1 ]                 # Start Pattern 1 (Timpani)
-[-1] x1 [ /z 1 0  /z 2 1 ]    # Stop Timpani, Start Pattern 2 (Theme A)
-[-2] x2 [ /z 2 1 ]            # Repeat Theme A
-[-2] x3 [ /z 2 0  /z 1 1 ]    # Stop Theme A, Bring back Timpani Outro
-[-1] x4 [ /z 1 0  /z 0 0 ]    # Stop everything
-
-
-# ======================================================================
-# PATTERN 1: TIMPANI INTRO (2 Bars)
+# THE SCORE (Pattern 1)
 # ======================================================================
 y1
 z%2      # 1 step = 8th note (to give us some rhythmic grid)
-# The classic dum... dum-da-dum...
-x0 [ v 0 n 36 l 1 ]    # C2
-x3 [ v 0 n 36 l 1 ]
-x4 [ v 0 n 36 l 1 ]
-x5 [ v 0 n 36 l 1 ]
-x8 [ v 0 n 36 l 1 ]
-x11 [ v 0 n 36 l 1 ]
-x12 [ v 0 n 36 l 1 ]
-x13 [ v 0 n 36 l 1 ]
-x15 [ ] # Empty step 15 to ensure the pattern is 16 steps (2 bars) long
+
+# --- TIMPANI INTRO (2 Bars: Steps 0-15) ---
+[ v 0 n 36 l 1 ] x 0
+[ v 0 n 36 l 1 ] x 3
+[ v 0 n 36 l 1 ] x 4
+[ v 0 n 36 l 1 ] x 5
+[ v 0 n 36 l 1 ] x 8
+[ v 0 n 36 l 1 ] x 11
+[ v 0 n 36 l 1 ] x 12
+[ v 0 n 36 l 1 ] x 13
+
+# Loop Intro 2 times (using variable 1)
+[ /zl 1 2 0 ] x 15
 
 
-# ======================================================================
-# PATTERN 2: THEME A (4 Bars)
-# ======================================================================
-y2
-z%2      # 1 step = 8th note (32 steps = 4 bars)
+# --- THEME A (4 Bars: Steps 16-47) ---
+# Bar 1
+[ v 1 n 67 l 1   v 4 n 48 l 1 ] x 16
+[ v 1 n 67 l 1 ] x 20
+[ v 1 n 67 l 1 ] x 22
 
-# --- Bar 1 ---
-# Melody: G (half), G (quarter), G (quarter)
-x0 [ v 1 n 67 l 1   v 4 n 48 l 1 ]  # Soprano G4, Bass C3
-x4 [ v 1 n 67 l 1 ]                 # Soprano G4
-x6 [ v 1 n 67 l 1 ]                 # Soprano G4
+# Bar 2
+[ v 1 n 67 l 1   v 4 n 48 l 1 ] x 24
+[ v 1 n 68 l 1 ] x 27
+[ v 1 n 67 l 1 ] x 28
 
-# --- Bar 2 ---
-# Melody: G (dotted quarter), Ab (eighth), G (half)
-x8 [ v 1 n 67 l 1   v 4 n 48 l 1 ]  # Soprano G4, Bass C3
-x11 [ v 1 n 68 l 1 ]                # Soprano Ab4
-x12 [ v 1 n 67 l 1 ]                # Soprano G4
+# Bar 3
+[ v 1 n 65 l 1   v 4 n 41 l 1 ] x 32
+[ v 1 n 63 l 1 ] x 34
+[ v 1 n 62 l 1   v 4 n 43 l 1 ] x 36
 
-# --- Bar 3 ---
-# Melody: F (quarter), Eb (quarter), D (half)
-x16 [ v 1 n 65 l 1   v 4 n 41 l 1 ] # Soprano F4, Bass F2
-x18 [ v 1 n 63 l 1 ]                # Soprano Eb4
-x20 [ v 1 n 62 l 1   v 4 n 43 l 1 ] # Soprano D4, Bass G2
+# Bar 4
+[ v 1 n 63 l 1   v 4 n 48 l 1 ] x 40
 
-# --- Bar 4 ---
-# Melody: Eb (whole)
-x24 [ v 1 n 63 l 1   v 4 n 48 l 1 ] # Soprano Eb4, Bass C3
+# Loop Theme A 2 times (using variable 2)
+[ /zl 2 2 16 ] x 47
 
-x31 [ ] # Cap the pattern at 32 steps
+
+# --- THEME B (4 Bars: Steps 48-79) ---
+# (Placeholder for Theme B descending melody)
+[ v 1 n 62 l 1 ] x 48
+
+# Loop Theme B 2 times (using variable 3)
+[ /zl 3 2 48 ] x 79
+
+
+# --- TIMPANI OUTRO (2 Bars: Steps 80-95) ---
+[ v 0 n 36 l 1 ] x 80
+[ v 0 n 36 l 1 ] x 83
+[ v 0 n 36 l 1 ] x 84
+[ v 0 n 36 l 1 ] x 85
+[ v 0 n 36 l 1 ] x 88
+[ v 0 n 36 l 1 ] x 91
+[ v 0 n 36 l 1 ] x 92
+[ v 0 n 36 l 1 ] x 93
+
+# Stop pattern at the end
+[ /z 1 0 ] x 95
 

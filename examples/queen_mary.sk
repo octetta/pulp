@@ -32,20 +32,20 @@ fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet st
 # We explicitly trigger the envelope (`l 1`) for every voice so they all sound!
 
 # Theme A Chords
-[ch1] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 67 l 1 ; # Cmin
-[ch2] : v 4 n 53 l 1  v 3 n 60 l 1  v 2 n 65 l 1  v 1 n 68 l 1 ; # Fmin/Ab
-[ch3] : v 4 n 41 l 1  v 3 n 48 l 1  v 2 n 53 l 1  v 1 n 65 l 1 ; # Fmin
-[ch4] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin/Eb
-[ch5] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 62 l 1 ; # Gmaj
-[ch6] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin (Low Bass)
+[Cmin] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 67 l 1 ; # Cmin
+[FmAb] : v 4 n 53 l 1  v 3 n 60 l 1  v 2 n 65 l 1  v 1 n 68 l 1 ; # Fmin/Ab
+[Fmin] : v 4 n 41 l 1  v 3 n 48 l 1  v 2 n 53 l 1  v 1 n 65 l 1 ; # Fmin
+[CmEb] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin/Eb
+[Gmaj] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 62 l 1 ; # Gmaj
+[CmLo] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin (Low Bass)
 
 # Theme B Chords
-[ch7] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High)
-[ch8] : v 4 n 46 l 1  v 3 n 53 l 1  v 2 n 58 l 1  v 1 n 74 l 1 ; # Bbmaj
-[ch9] : v 4 n 51 l 1  v 3 n 58 l 1  v 2 n 63 l 1  v 1 n 75 l 1 ; # Ebmaj
-[chA] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 74 l 1 ; # Gmaj
-[chB] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 71 l 1 ; # Gmaj (B nat)
-[chC] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High End)
+[CmHi] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High)
+[Bbma] : v 4 n 46 l 1  v 3 n 53 l 1  v 2 n 58 l 1  v 1 n 74 l 1 ; # Bbmaj
+[Ebma] : v 4 n 51 l 1  v 3 n 58 l 1  v 2 n 63 l 1  v 1 n 75 l 1 ; # Ebmaj
+[GmaH] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 74 l 1 ; # Gmaj
+[GmaB] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 71 l 1 ; # Gmaj (B nat)
+[CmHE] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High End)
 
 [off] : v 4 l 0  v 3 l 0  v 2 l 0  v 1 l 0 ; # Releases all voices
 
@@ -73,22 +73,22 @@ y2
 1 %      # 1 step = 16th note
 
 # Bar 1 (Cmin half, Cmin quarter, Cmin quarter)
-[ ch1 ] x 0
-[ ch1 ] x 8
-[ ch1 ] x 12
+[ Cmin ] x 0
+[ Cmin ] x 8
+[ Cmin ] x 12
 
 # Bar 2 (Cmin dotted-quarter, Fmin/Ab eighth, Cmin half)
-[ ch1 ] x 16
-[ ch2 ] x 22
-[ ch1 ] x 24
+[ Cmin ] x 16
+[ FmAb ] x 22
+[ Cmin ] x 24
 
 # Bar 3 (Fmin quarter, Cmin/Eb quarter, Gmaj half)
-[ ch3 ] x 32
-[ ch4 ] x 36
-[ ch5 ] x 40
+[ Fmin ] x 32
+[ CmEb ] x 36
+[ Gmaj ] x 40
 
 # Bar 4 (Cmin whole)
-[ ch6 ] x 48
+[ CmLo ] x 48
 [ off ] x 62
 
 
@@ -99,22 +99,22 @@ y3
 1 %
 
 # Bar 1 (Cmin half, Cmin quarter, Cmin quarter)
-[ ch7 ] x 0
-[ ch7 ] x 8
-[ ch7 ] x 12
+[ CmHi ] x 0
+[ CmHi ] x 8
+[ CmHi ] x 12
 
 # Bar 2 (Cmin dotted-quarter, Bbmaj eighth, Ebmaj half)
-[ ch7 ] x 16
-[ ch8 ] x 22
-[ ch9 ] x 24
+[ CmHi ] x 16
+[ Bbma ] x 22
+[ Ebma ] x 24
 
 # Bar 3 (Gmaj quarter, Cmin quarter, Gmaj(Bnat) half)
-[ chA ] x 32
-[ ch7 ] x 36
-[ chB ] x 40
+[ GmaH ] x 32
+[ CmHi ] x 36
+[ GmaB ] x 40
 
 # Bar 4 (Cmin whole)
-[ chC ] x 48
+[ CmHE ] x 48
 [ off ] x 62
 
 

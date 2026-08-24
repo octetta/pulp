@@ -239,7 +239,7 @@ y1 z 1
 | `t A D S R` | ADSR envelope times |
 | `J 1 K freq Q res` | 24dB low-pass filter |
 | `N semitones cents` | Per-voice pitch offset (detune) |
-| `g seconds` | Portamento glide rate (WORD_IMMEDIATE_ONLY — init only, not in pattern steps) |
+| `g seconds` | Portamento glide rate (real-time safe via SKODE_OP_GLISSANDO opcode) |
 | `n midi_note` | Set voice pitch |
 | `l 1` / `l 0` | Note on / note off |
 | `DL track,...` | Configure track delay (reverb) |

@@ -18,7 +18,7 @@ synthesizer rendition in *A Clockwork Orange*).
 | Composer | Henry Purcell (1659–1695) |
 | Key | E minor (guitar arrangement) |
 | Time signature | 6/8 |
-| Tempo | Dotted-quarter = 40 BPM |
+| Tempo | Dotted-quarter = 40 BPM (`M 60 8` in Skode) |
 | Form | 20 bars, Da Capo (played twice) |
 | Section A | Bars 1–8 (8 bars = 48 eighth-note steps) |
 | Section B | Bars 9–20 (12 bars = 72 eighth-note steps) |
@@ -44,7 +44,15 @@ the brass ensemble throughout the full piece.
 
 ## Grid and Timing
 
-1 step = 1 eighth note at dotted-quarter = 40 BPM.
+**Tempo command:** `M 60 8`
+
+`M bpm subdivision` sets the step rate as: `step_freq = (bpm * subdivision) / 240 Hz`.
+With `M 60 8`: `(60 × 8) / 240 = 2 Hz` → one step = **0.5 seconds** = one eighth note at d.=40.
+
+This is the correct way to represent 6/8 compound meter in Skode — there is no native
+compound-meter mode, but choosing the right BPM and subdivision gives an exact eighth-note
+grid. Notes fall on steps 0 and 3 within each 6-step bar, matching the two dotted-quarter
+beats of 6/8.
 
 | Duration | Dotted-quarter beats | Steps |
 |---|---|---|
@@ -226,12 +234,12 @@ y1 z 1
 
 | Command | Purpose |
 |---|---|
-| `M 40` | Set tempo (dotted-quarter = 40 BPM) |
+| `M 60 8` | Set tempo (dotted-quarter = 40 BPM) |
 | `w 2` / `w 1` | Sawtooth / Triangle oscillator |
 | `t A D S R` | ADSR envelope times |
 | `J 1 K freq Q res` | 24dB low-pass filter |
 | `N semitones cents` | Per-voice pitch offset (detune) |
-| `g seconds` | Portamento glide time (`0` = instant) |
+| `g seconds` | Portamento glide rate (WORD_IMMEDIATE_ONLY — init only, not in pattern steps) |
 | `n midi_note` | Set voice pitch |
 | `l 1` / `l 0` | Note on / note off |
 | `DL track,...` | Configure track delay (reverb) |

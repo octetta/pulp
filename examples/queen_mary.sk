@@ -20,15 +20,15 @@ DL 1,6,8,15,0,31,10
 v 0
 w 1
 a 0.9
-t 0.01 0.5 0 0
+t 0.005 1.5 0 0.3   # fast attack, 1.5s body decay, 0.3s release tail
 J 1
-K 80
-Q 2.0
-ft 0.01 0.2 0 0
-fd 600
+K 100
+Q 1.5
+ft 0.01 0.3 0 0
+fd 400
 
 # --- Brass voices (1-4): Sawtooth, resonant LP filter ---
-[bras] : v $$0 w 2 a 0.4 t 0.02 0.15 0.75 0.12 J 1 K 1400 Q 1.8 ;
+[bras] : v $$0 w 2 a 0.4 t 0.02 0.15 0.75 0.4 J 1 K 1400 Q 1.8 ;
 1 bras
 2 bras
 3 bras
@@ -61,12 +61,11 @@ v 4 n 40
 # MACROS
 # ======================================================================
 
-# Timpani pitch sweep: instant jump to high note, trigger, then glide down to root
-# g IS real-time safe via SKODE_OP_GLISSANDO compiled opcode path.
-# +.08 defers the glide-start by 0.08 beats so it fires just after the attack.
-[Tx] : v0 g0 n $$0 l1 +.08 v0 g.08 n $$1 ;
-[Tlow] : Tx 69 36 ;  # jump to A4, sweep down to C2
-[Thig] : Tx 60 43 ;  # jump to C4, sweep down to G2
+# Timpani pitch sweep: 5-semitone drop to simulate membrane snap
+# Start 5 semitones above target, glide down in ~0.04 beats (fast snap)
+[Tx] : v0 g0 n $$0 l1 +.04 v0 g.04 n $$1 ;
+[Tlow] : Tx 41 36 ;  # E2 → C2 (5 semitones)
+[Thig] : Tx 48 43 ;  # C3 → G2 (5 semitones)
 
 [off] : v 1 l 0  v 2 l 0  v 3 l 0  v 4 l 0 ;
 

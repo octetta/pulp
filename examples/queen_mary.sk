@@ -34,16 +34,16 @@ fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet st
 # Theme A Chords
 [Cmin] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 67 l 1 ; # Cmin
 [FmAb] : v 4 n 53 l 1  v 3 n 60 l 1  v 2 n 65 l 1  v 1 n 68 l 1 ; # Fmin/Ab
-[Fmin] : v 4 n 41 l 1  v 3 n 48 l 1  v 2 n 53 l 1  v 1 n 65 l 1 ; # Fmin
+[Fmin] : v 4 n 41 l 1  v 3 n 48 l 1  v 2 n 56 l 1  v 1 n 65 l 1 ; # Fmin
 [CmEb] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin/Eb
-[Gmaj] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 62 l 1 ; # Gmaj
+[Gmaj] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 59 l 1  v 1 n 62 l 1 ; # Gmaj
 [CmLo] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin (Low Bass)
 
 # Theme B Chords
 [CmHi] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High)
 [Bbma] : v 4 n 46 l 1  v 3 n 53 l 1  v 2 n 58 l 1  v 1 n 74 l 1 ; # Bbmaj
-[Ebma] : v 4 n 51 l 1  v 3 n 58 l 1  v 2 n 63 l 1  v 1 n 75 l 1 ; # Ebmaj
-[GmaH] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 74 l 1 ; # Gmaj
+[Ebma] : v 4 n 51 l 1  v 3 n 55 l 1  v 2 n 58 l 1  v 1 n 75 l 1 ; # Ebmaj
+[GmaH] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 59 l 1  v 1 n 74 l 1 ; # Gmaj
 [GmaB] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 71 l 1 ; # Gmaj (B nat)
 [CmHE] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High End)
 

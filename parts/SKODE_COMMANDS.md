@@ -301,6 +301,10 @@ Sequence support is compiled under the `SEQ` feature.
 | `z?` | none | Show selected pattern | `pattern_show()` |
 | `Z` | `[0..3]` | Set all pattern states (`0`=all stop, `1`=all start phase-aligned at step 0; empty pattern slots omitted) | `seq_state_all()`, `pattern_show()` |
 | `Z?`, `z??` | none | Show all populated patterns with steps (empty pattern slots omitted) | `pattern_show()` |
+| `/SS` | `stream` | Set stream from stack array data | `skode_stream_set()` |
+| `/SC` | `dst, src` | Copy stream | `SKODE_OP_STREAM_COPY`, `skode_stream_copy()` |
+| `/SM` | `stream, mode` | Set stream playback mode | `SKODE_OP_STREAM_MODE`, `skode_stream_mode()` |
+| `/SP` | `stream, pos` | Set stream playback position | `SKODE_OP_STREAM_POS`, `skode_stream_pos()` |
 
 Sequence steps retain their source text for editing and diagnostics, but
 playback uses the compiled `event_program_t`. Each pattern keeps its own

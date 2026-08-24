@@ -582,6 +582,10 @@ remove output-device or hardware buffering latency.
 | `?ce!` | None | Clears outstanding control-plane events without resetting voices or patterns. |
 | `?o` | None | Compatibility alias for queued compiled events. |
 | `?o pattern[,step]` | Pattern and optional step | Displays the opcodes compiled for pattern steps. |
+| `/SS stream` | Stream index (`0-127`) | Populates `stream` from the current data array (e.g., `( 1 2 3 ) /SS 1`). Immediate only. |
+| `/SC dst_stream,src_stream` | Destination and source indices | Copies the contents, mode, and position of `src_stream` to `dst_stream`. Schedulable. |
+| `/SM stream,mode` | Stream index and playback mode | Sets stream playback mode (`0`=wrap fwd, `1`=wrap rev, `2`=pingpong, `3`=clamp). Schedulable. |
+| `/SP stream,pos` | Stream index and position | Sets stream playback position index. Schedulable. |
 | `wait ms` | Nonnegative milliseconds | Blocks the command/control thread. It does not create a musical event and should not be used for audio-rate scheduling. |
 
 Deferred and repeated programs can contain only schedulable commands.

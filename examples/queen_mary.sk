@@ -9,14 +9,21 @@
 # Voice 1: Brass Soprano (Main melody)
 # Voice 4: Brass Bass    (Deep foundation)
 
-# Timpani (Voice 0) - Sustain is 0, so notes naturally die out without note-offs
+# Timpani (Voice 0) 
+# Synthesizes a massive, pitch-swept timpani using a triangle wave and filter envelope
 v 0 
-a 1
-t 0.01 0.4 0 0 
+W 1              # Triangle Wave
+a 1.0            # Volume
+t 0.01 0.6 0 0   # ADSR: Fast attack, 600ms decay, no sustain
+J 1              # Low-pass filter
+K 60             # Base cutoff (very low for a dull thud)
+Q 1.5            # Slight resonance for drum body
+ft 0.01 0.3 0 0  # Filter ADSR: Snaps closed quickly
+fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet strike
 
 # Brass Ensemble (Voices 1 and 4)
-# Sustain is 0.8, so these notes REQUIRE an explicit `l 0` (note-off) step to stop!
-[bras] : v $$0 a 0.6 t 0.1 0.1 0.8 0.4 ;
+# Classic Wendy Carlos Moog-style Brass: Sawtooth, slow sweeping filter, slight portamento
+[bras] : v $$0 W 2 a 0.6 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
 1 bras
 4 bras
 
@@ -55,7 +62,7 @@ y2
 [ v 1 n 67 l 1   v 4 n 48 l 1 ] x 8
 [ v 1 l 0 ] x 10
 [ v 1 n 68 l 1 ] x 11
-[ v 1 n 67 l 1 ] x 12    # Legato into G half
+[ v 1 n 67 l 1 ] x 12    # Legato glide into G half
 [ v 1 l 0        v 4 l 0 ] x 15
 
 # Bar 3 (F quarter, Eb quarter, D half)
@@ -76,28 +83,46 @@ y2
 # ======================================================================
 y3
 2 %
-# (Add Theme B melody and note-offs here)
-[ v 1 n 62 l 1   v 4 n 43 l 1 ] x 0
+
+# Bar 1 (C5 half, C5 quarter, C5 quarter)
+[ v 1 n 72 l 1   v 4 n 48 l 1 ] x 0
+[ v 1 l 0        v 4 l 0 ] x 3
+[ v 1 n 72 l 1 ] x 4
+[ v 1 l 0 ] x 5
+[ v 1 n 72 l 1 ] x 6
+[ v 1 l 0 ] x 7
+
+# Bar 2 (C5 dotted-quarter, D5 eighth, Eb5 half)
+[ v 1 n 72 l 1   v 4 n 48 l 1 ] x 8
+[ v 1 l 0 ] x 10
+[ v 1 n 74 l 1 ] x 11
+[ v 1 n 75 l 1 ] x 12    # Legato glide into Eb5 half
+[ v 1 l 0        v 4 l 0 ] x 15
+
+# Bar 3 (D5 quarter, C5 quarter, B4(nat) half)
+[ v 1 n 74 l 1   v 4 n 43 l 1 ] x 16
+[ v 1 l 0 ] x 17
+[ v 1 n 72 l 1 ] x 18
+[ v 1 l 0 ] x 19
+[ v 1 n 71 l 1   v 4 n 43 l 1 ] x 20
+[ v 1 l 0        v 4 l 0 ] x 23
+
+# Bar 4 (C5 whole)
+[ v 1 n 72 l 1   v 4 n 48 l 1 ] x 24
 [ v 1 l 0        v 4 l 0 ] x 31
-[ ] x 31
 
 
 # ======================================================================
 # MASTER ORCHESTRATOR (Pattern 0)
 # ======================================================================
 y0
-# We use a master clock division of 32 ticks (which is exactly 2 bars of 4/4)
-# This perfectly aligns with our sub-patterns:
-# Pattern 1 (Timpani) is 2 bars long (1 master step)
-# Pattern 2 (Theme A) is 4 bars long (2 master steps)
-# Pattern 3 (Theme B) is 4 bars long (2 master steps)
-32 %
+32 %   # Master clock = 2 bars of 4/4 per step
 
 [ /z 1 1 ] x 0                 # Step 0 (Bars 1-2): Timpani starts
 [ /z 1 0   /z 2 1 ] x 1        # Step 1 (Bars 3-4): Timpani stops, Theme A starts
-# Step 2 (Bars 5-6): Theme A naturally continues playing its second half...
+# Step 2 (Bars 5-6): Theme A naturally continues playing its second half
 [ /z 2 0   /z 3 1 ] x 3        # Step 3 (Bars 7-8): Theme A stops, Theme B starts
-# Step 4 (Bars 9-10): Theme B naturally continues...
+# Step 4 (Bars 9-10): Theme B naturally continues
 [ /z 3 0   /z 1 1 ] x 5        # Step 5 (Bars 11-12): Theme B stops, Timpani Outro starts
 [ /z 1 0   /z 0 0 ] x 6        # Step 6: Stop everything!
 

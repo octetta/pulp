@@ -457,20 +457,21 @@ void seq_pattern_length_set(int pattern, int len) {
 
 // Jump to a specific step on the next tick. Adjusts seq_offset so that
 // (ticks_so_far + 1 - offset) % len == step.
-void seq_step_goto(int pattern, int step) {
+void seq_step_goto_locked(int pattern, int step) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return;
-  seq_edit_lock();
   int len = seq_pattern_length[pattern];
-  if (len == 0 || step < 0 || step >= len) {
-    seq_edit_unlock();
-    return;
-  }
+  if (len == 0 || step < 0 || step >= len) return;
   int64_t ticks_so_far = (int64_t)(master_tick / (uint64_t)seq_modulo[pattern]);
   seq_offset[pattern] = (ticks_so_far + 1) - (int64_t)step;
+}
+
+void seq_step_goto(int pattern, int step) {
+  seq_edit_lock();
+  seq_step_goto_locked(pattern, step);
   seq_edit_unlock();
 }
 
-static void seq_state_set_locked(int p, int state) {
+void seq_state_set_locked(int p, int state) {
   if (p < 0 || p >= PATTERNS_MAX) return;
   switch (state) {
     case 0: // stop

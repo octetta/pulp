@@ -3149,7 +3149,10 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         ? amp_bend_param_set(voice, (float)opcode->arg[0], opcode->argc > 1 ? (float)opcode->arg[1] : 0.0f)
         : -1;
     case SKODE_OP_PATTERN_STATE:
-      if (opcode->argc >= 2) seq_state_set((int)opcode->arg[0], (int)opcode->arg[1]);
+      if (opcode->argc >= 2) {
+        if (seq_current_pattern >= 0) seq_state_set_locked((int)opcode->arg[0], (int)opcode->arg[1]);
+        else seq_state_set((int)opcode->arg[0], (int)opcode->arg[1]);
+      }
       return 0;
     case SKODE_OP_PATTERN_LOOP:
       if (opcode->argc >= 3) {
@@ -3159,7 +3162,8 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         if (var_id >= 0 && var_id < ANDS_VAR_MAX) {
           if (global_var[var_id] < limit - 1) {
             global_var[var_id] += 1;
-            if (seq_current_pattern >= 0) seq_step_goto(seq_current_pattern, dest_step);
+            if (seq_current_pattern >= 0) seq_step_goto_locked(seq_current_pattern, dest_step);
+            else seq_step_goto(seq_current_pattern, dest_step); // Not used currently, but fallback
           } else {
             global_var[var_id] = 0;
           }

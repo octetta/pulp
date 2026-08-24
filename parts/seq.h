@@ -78,7 +78,9 @@ int seq_step_append(int pattern, const char *source,
   const event_program_t *program);
 void seq_pattern_length_set(int pattern, int len);
 void seq_step_goto(int pattern, int step);
+void seq_step_goto_locked(int pattern, int step);
 void seq_state_set(int p, int state);
+void seq_state_set_locked(int p, int state);
 void seq_state_queue(int p, int state);
 void seq_state_all(int state);
 extern int seq_current_pattern;

@@ -46,6 +46,17 @@ v 2 p 0 r 1 ds 8
 v 3 p 0 r 1 ds 8
 v 4 p 0 r 1 ds 8
 
+# Prime all voices with an initial frequency so phase_inc > 0.
+# Required for glide (g) to activate — synth-voice.c checks phase_inc > 0.001
+# before engaging the glissando multiplier. Also ensures brass voices are
+# ready to sound from the very first pattern trigger.
+v 0 n 36   # Timpani: C2
+v 1 n 64   # Brass primed at E4 (first melody note of Section A)
+v 2 n 59
+v 3 n 52
+v 4 n 40
+
+
 # ======================================================================
 # MACROS
 # ======================================================================

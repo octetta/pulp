@@ -12,7 +12,7 @@
 # Timpani (Voice 0) 
 # Synthesizes a massive, pitch-swept timpani using a triangle wave and filter envelope
 v 0 
-W 1              # Triangle Wave
+w 1              # Triangle Wave
 a 1.0            # Volume
 t 0.01 0.6 0 0   # ADSR: Fast attack, 600ms decay, no sustain
 J 1              # Low-pass filter
@@ -23,7 +23,7 @@ fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet st
 
 # Brass Ensemble (Voices 1 and 4)
 # Classic Wendy Carlos Moog-style Brass: Sawtooth, slow sweeping filter, slight portamento
-[bras] : v $$0 W 2 a 0.6 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
+[bras] : v $$0 w 2 a 0.6 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
 1 bras
 4 bras
 

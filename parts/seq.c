@@ -483,8 +483,8 @@ void seq_state_set_locked(int p, int state) {
       seq_state[p] = SEQ_RUNNING;
       {
         int modulo = seq_modulo[p] > 0 ? seq_modulo[p] : 1;
-        int64_t ticks_so_far = (int64_t)(master_tick / (uint64_t)modulo);
-        seq_offset[p] = ticks_so_far;
+        int64_t next_tick = (int64_t)((master_tick + (uint64_t)modulo - 1) / (uint64_t)modulo);
+        seq_offset[p] = next_tick;
         seq_pointer[p] = 0;
       }
       break;

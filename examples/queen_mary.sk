@@ -19,35 +19,51 @@ Q 1.5            # Slight resonance for drum body
 ft 0.01 0.3 0 0  # Filter ADSR: Snaps closed quickly
 fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet strike
 
-# Brass Ensemble (Voices 1, 2, 3, and 4)
-[bras] : v $$0 w 2 a 0.5 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
-1 bras
-2 bras
-3 bras
-4 bras
+# THE LEAD (Voices 1, 2, and 3)
+# The iconic massive Moog lead! We link 3 voices together and detune them using `N`.
+v 1 
+( 2 3 ) G  # Link MIDI pitches
+( 2 3 ) H  # Link Envelope triggers
+
+v 2 ( -12 -8 ) N  # Octave down, flat
+v 3 ( -12  8 ) N  # Octave down, sharp
+v 1 N 0 0         # Unison
+
+[lead] : v $$0 w 2 a 0.5 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
+1 lead
+2 lead
+3 lead
+
+# THE CHOIR (Voices 4, 5, 6, and 7)
+# Soft, warm triangle-wave accompaniment chords (acting like the vocoder)
+[choi] : v $$0 w 1 a 0.2 t 0.4 0.1 0.8 0.5 J 1 K 600 Q 0 ;
+4 choi
+5 choi
+6 choi
+7 choi
 
 # ======================================================================
-# CHORD MACROS (4-Part Harmony)
+# CHORD MACROS
 # ======================================================================
-# We explicitly trigger the envelope (`l 1`) for every voice so they all sound!
+# v4=Bass, v5=Tenor, v6=Alto, v7=Soprano, v1=Lead (Linked to v2, v3)
 
 # Theme A Chords
-[Cmin] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 67 l 1 ; # Cmin
-[FmAb] : v 4 n 53 l 1  v 3 n 60 l 1  v 2 n 65 l 1  v 1 n 68 l 1 ; # Fmin/Ab
-[Fmin] : v 4 n 41 l 1  v 3 n 48 l 1  v 2 n 56 l 1  v 1 n 65 l 1 ; # Fmin
-[CmEb] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin/Eb
-[Gmaj] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 59 l 1  v 1 n 62 l 1 ; # Gmaj
-[CmLo] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin (Low Bass)
+[Cmin] : v 4 n 48 l 1  v 5 n 55 l 1  v 6 n 63 l 1  v 7 n 67 l 1  v 1 n 67 l 1 ; # Cmin
+[FmAb] : v 4 n 53 l 1  v 5 n 60 l 1  v 6 n 65 l 1  v 7 n 68 l 1  v 1 n 68 l 1 ; # Fmin/Ab
+[Fmin] : v 4 n 41 l 1  v 5 n 48 l 1  v 6 n 56 l 1  v 7 n 65 l 1  v 1 n 65 l 1 ; # Fmin
+[CmEb] : v 4 n 48 l 1  v 5 n 55 l 1  v 6 n 60 l 1  v 7 n 63 l 1  v 1 n 63 l 1 ; # Cmin/Eb
+[Gmaj] : v 4 n 43 l 1  v 5 n 50 l 1  v 6 n 59 l 1  v 7 n 62 l 1  v 1 n 62 l 1 ; # Gmaj
+[CmLo] : v 4 n 36 l 1  v 5 n 55 l 1  v 6 n 60 l 1  v 7 n 63 l 1  v 1 n 63 l 1 ; # Cmin (Low Bass)
 
 # Theme B Chords
-[CmHi] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High)
-[Bbma] : v 4 n 46 l 1  v 3 n 53 l 1  v 2 n 58 l 1  v 1 n 74 l 1 ; # Bbmaj
-[Ebma] : v 4 n 51 l 1  v 3 n 55 l 1  v 2 n 58 l 1  v 1 n 75 l 1 ; # Ebmaj
-[GmaH] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 59 l 1  v 1 n 74 l 1 ; # Gmaj
-[GmaB] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 71 l 1 ; # Gmaj (B nat)
-[CmHE] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High End)
+[CmHi] : v 4 n 48 l 1  v 5 n 55 l 1  v 6 n 63 l 1  v 7 n 72 l 1  v 1 n 72 l 1 ; # Cmin (High)
+[Bbma] : v 4 n 46 l 1  v 5 n 53 l 1  v 6 n 58 l 1  v 7 n 74 l 1  v 1 n 74 l 1 ; # Bbmaj
+[Ebma] : v 4 n 51 l 1  v 5 n 55 l 1  v 6 n 58 l 1  v 7 n 75 l 1  v 1 n 75 l 1 ; # Ebmaj
+[GmaH] : v 4 n 43 l 1  v 5 n 50 l 1  v 6 n 59 l 1  v 7 n 74 l 1  v 1 n 74 l 1 ; # Gmaj
+[GmaB] : v 4 n 43 l 1  v 5 n 50 l 1  v 6 n 55 l 1  v 7 n 71 l 1  v 1 n 71 l 1 ; # Gmaj (B nat)
+[CmHE] : v 4 n 36 l 1  v 5 n 55 l 1  v 6 n 63 l 1  v 7 n 72 l 1  v 1 n 72 l 1 ; # Cmin (High End)
 
-[off] : v 4 l 0  v 3 l 0  v 2 l 0  v 1 l 0 ; # Releases all voices
+[off] : v 7 l 0  v 6 l 0  v 5 l 0  v 4 l 0  v 1 l 0 ; # Releases all voices
 
 
 # ======================================================================

@@ -2,37 +2,41 @@
 
 This guide demonstrates how to use Skode's structural sequencing capabilities to arrange a full piece of music. We use Henry Purcell's *Music for the Funeral of Queen Mary* (specifically the March, famous for its Wendy Carlos synthesized arrangement in *A Clockwork Orange*) as our template.
 
-The accompanying Skode script (`queen_mary.sk`) shows how to implement the structure of the piece using a "Song-in-a-Box" paradigm.
+The accompanying Skode script (`queen_mary.sk`) shows how to implement the structure of the piece using a **Master Timeline** paradigm with modular sub-patterns.
 
 ## The Structure of the March
 The piece features distinct, block-like sections:
-1. **Intro**: A slow, rhythmic timpani solo.
-2. **Theme A**: A solemn, moving brass/vocoder theme (repeated twice).
-3. **Theme B**: A descending, slightly faster-paced theme (repeated twice).
-4. **Outro**: Return to the timpani solo.
+1. **Intro**: A slow, rhythmic timpani solo (2 Bars).
+2. **Theme A**: A solemn, moving brass/vocoder theme (4 Bars).
+3. **Theme B**: A descending, slightly faster-paced theme (4 Bars).
+4. **Outro**: Return to the timpani solo (2 Bars).
 
-## The Song-in-a-Box Paradigm
+## The Master Timeline Paradigm
 
-To keep everything inside a single, continuous timeline, we use the `/zl` (Pattern Loop) opcode to loop sections of the pattern before naturally falling through to the next section.
+Instead of cramming everything into one pattern, we separate the music into multiple patterns (Pattern 1 for Timpani, Pattern 2 for Theme A, Pattern 3 for Theme B). 
 
-*   `/zl var_id limit dest_step`: **Pattern Loop**. This opcode uses a Skode variable (e.g., variable `1`) to count how many times a section has played. 
-    *   If the variable is less than `limit - 1`, it increments the variable and jumps the sequencer back to `dest_step`.
-    *   Once the limit is reached, it resets the variable to `0` and falls through to the next step.
+We then use a "Master Pattern" (Pattern 0) to conduct them using the `/z` (Pattern State) opcode. 
+
+The secret to this paradigm is **Clock Division Alignment**. 
+* We know our base tick is a 16th note. 
+* Timpani is 2 bars long (32 ticks). Theme A and B are 4 bars long (64 ticks).
+* If we set our Master Pattern to run at `z%32` (1 step = 32 ticks = 2 bars), it perfectly acts as a high-level block arranger!
 
 ```skred
-y1
-# Steps 0-14: Intro Timpani Hits
-[ v 0 n 36 l 1 ] x 0
-# ...
-[ /zl 1 2 0 ] x 15  # Loops back to step 0 twice, then continues to step 16
+y0
+z%32
+[ /z 1 1 ] x 0                 # Step 0 (Bars 1-2): Timpani starts
+[ /z 1 0   /z 2 1 ] x 1        # Step 1 (Bars 3-4): Timpani stops, Theme A starts
+# Step 2 (Bars 5-6): Theme A naturally continues playing its second half...
+[ /z 2 0   /z 3 1 ] x 3        # Step 3 (Bars 7-8): Theme A stops, Theme B starts
 ```
 
 **Pros:**
-*   Keeps all sequence data in one unified space.
-*   Doesn't require managing multiple patterns or coordinating clock divisions.
+*   Extremely modular; you can develop, loop, and tweak Theme A completely independently of the rest of the song.
+*   The master sequence reads exactly like a high-level DAW arranger view.
 
-## Note on Cross-Pattern Waits
-Skode also supports a Cross-Pattern Wait marker (`[-N] x step`). When a pattern hits this marker, it pauses until target pattern `N` reaches step 0. However, once the wait is fulfilled, the pattern *always loops back to its own step 0*. Because of this loop-to-start behavior, `[-N]` is perfect for lockstep polymetric drum fills and synchronized loops, but it is not suitable for linearly advancing a master sequencer through a song structure. Thus, `/zl` is the preferred tool for song arrangement!
-
-## Next Steps
-Open `queen_mary.sk` and fill in the bracketed `[ ]` steps with actual note triggers and synthesizer parameters to bring the Wendy Carlos arrangement to life!
+## Note-Offs and Envelopes (`l 0`)
+In Skode, the `l` command triggers the envelope (velocity). 
+* The **Timpani** has an ADSR envelope with `0` sustain (`t 0.01 0.4 0 0`). Because it doesn't sustain, the notes naturally die out without you having to explicitly stop them.
+* The **Brass** has an envelope with `0.8` sustain (`t 0.1 0.1 0.8 0.4`). These notes will sustain *forever* until they receive a note-off command! 
+To prevent the notes from turning into a muddy, overlapping mess, Pattern 2 explicitly sends `l 0` to release the previous notes just before triggering the next ones.

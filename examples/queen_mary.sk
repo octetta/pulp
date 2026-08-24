@@ -1,36 +1,31 @@
 # ----------------------------------------------------------------------
 # Music for the Funeral of Queen Mary (Wendy Carlos / Clockwork Orange style)
-# Structural Sequencer Demonstration with Musical Notes
 # ----------------------------------------------------------------------
 
 # ======================================================================
-# VOICE SETUPS (Placeholders)
+# VOICE SETUPS
 # ======================================================================
 # Voice 0: Timpani (Percussive, low, thudding)
 # Voice 1: Brass Soprano (Main melody)
-# Voice 2: Brass Alto    (Harmony)
-# Voice 3: Brass Tenor   (Harmony)
 # Voice 4: Brass Bass    (Deep foundation)
 
-# Initialize Timpani (Voice 0)
+# Timpani (Voice 0) - Sustain is 0, so notes naturally die out without note-offs
 v 0 
 a 1
 t 0.01 0.4 0 0 
 
-# Initialize Brass Ensemble (Voices 1-4)
+# Brass Ensemble (Voices 1 and 4)
+# Sustain is 0.8, so these notes REQUIRE an explicit `l 0` (note-off) step to stop!
 [bras] : v $$0 a 0.6 t 0.1 0.1 0.8 0.4 ;
 1 bras
-2 bras
-3 bras
 4 bras
 
 # ======================================================================
-# THE SCORE (Pattern 1)
+# PATTERN 1: TIMPANI INTRO/OUTRO (2 Bars = 32 ticks)
 # ======================================================================
 y1
-z%2      # 1 step = 8th note (to give us some rhythmic grid)
+z%2      # 1 step = 8th note (2 ticks)
 
-# --- TIMPANI INTRO (2 Bars: Steps 0-15) ---
 [ v 0 n 36 l 1 ] x 0
 [ v 0 n 36 l 1 ] x 3
 [ v 0 n 36 l 1 ] x 4
@@ -39,52 +34,70 @@ z%2      # 1 step = 8th note (to give us some rhythmic grid)
 [ v 0 n 36 l 1 ] x 11
 [ v 0 n 36 l 1 ] x 12
 [ v 0 n 36 l 1 ] x 13
-
-# Loop Intro 2 times (using variable 1)
-[ /zl 1 2 0 ] x 15
+[ ] x 15  # Set length to 16 steps (32 ticks)
 
 
-# --- THEME A (4 Bars: Steps 16-47) ---
-# Bar 1
-[ v 1 n 67 l 1   v 4 n 48 l 1 ] x 16
-[ v 1 n 67 l 1 ] x 20
-[ v 1 n 67 l 1 ] x 22
+# ======================================================================
+# PATTERN 2: THEME A (4 Bars = 64 ticks)
+# ======================================================================
+y2
+z%2      # 1 step = 8th note (2 ticks)
 
-# Bar 2
-[ v 1 n 67 l 1   v 4 n 48 l 1 ] x 24
-[ v 1 n 68 l 1 ] x 27
-[ v 1 n 67 l 1 ] x 28
+# Bar 1 (G half, G quarter, G quarter)
+[ v 1 n 67 l 1   v 4 n 48 l 1 ] x 0
+[ v 1 l 0        v 4 l 0 ] x 3      # Note off just before the next note
+[ v 1 n 67 l 1 ] x 4
+[ v 1 l 0 ] x 5
+[ v 1 n 67 l 1 ] x 6
+[ v 1 l 0 ] x 7
 
-# Bar 3
-[ v 1 n 65 l 1   v 4 n 41 l 1 ] x 32
-[ v 1 n 63 l 1 ] x 34
-[ v 1 n 62 l 1   v 4 n 43 l 1 ] x 36
+# Bar 2 (G dotted-quarter, Ab eighth, G half)
+[ v 1 n 67 l 1   v 4 n 48 l 1 ] x 8
+[ v 1 l 0 ] x 10
+[ v 1 n 68 l 1 ] x 11
+[ v 1 n 67 l 1 ] x 12    # Legato into G half
+[ v 1 l 0        v 4 l 0 ] x 15
 
-# Bar 4
-[ v 1 n 63 l 1   v 4 n 48 l 1 ] x 40
+# Bar 3 (F quarter, Eb quarter, D half)
+[ v 1 n 65 l 1   v 4 n 41 l 1 ] x 16
+[ v 1 l 0 ] x 17
+[ v 1 n 63 l 1 ] x 18
+[ v 1 l 0 ] x 19
+[ v 1 n 62 l 1   v 4 n 43 l 1 ] x 20
+[ v 1 l 0        v 4 l 0 ] x 23
 
-# Loop Theme A 2 times (using variable 2)
-[ /zl 2 2 16 ] x 47
-
-
-# --- THEME B (4 Bars: Steps 48-79) ---
-# (Placeholder for Theme B descending melody)
-[ v 1 n 62 l 1 ] x 48
-
-# Loop Theme B 2 times (using variable 3)
-[ /zl 3 2 48 ] x 79
+# Bar 4 (Eb whole)
+[ v 1 n 63 l 1   v 4 n 48 l 1 ] x 24
+[ v 1 l 0        v 4 l 0 ] x 31     # Release at the very end of the bar
 
 
-# --- TIMPANI OUTRO (2 Bars: Steps 80-95) ---
-[ v 0 n 36 l 1 ] x 80
-[ v 0 n 36 l 1 ] x 83
-[ v 0 n 36 l 1 ] x 84
-[ v 0 n 36 l 1 ] x 85
-[ v 0 n 36 l 1 ] x 88
-[ v 0 n 36 l 1 ] x 91
-[ v 0 n 36 l 1 ] x 92
-[ v 0 n 36 l 1 ] x 93
+# ======================================================================
+# PATTERN 3: THEME B (4 Bars = 64 ticks)
+# ======================================================================
+y3
+z%2
+# (Add Theme B melody and note-offs here)
+[ v 1 n 62 l 1   v 4 n 43 l 1 ] x 0
+[ v 1 l 0        v 4 l 0 ] x 31
+[ ] x 31
 
-# Stop pattern at the end
-[ /z 1 0 ] x 95
+
+# ======================================================================
+# MASTER ORCHESTRATOR (Pattern 0)
+# ======================================================================
+y0
+# We use a master clock division of 32 ticks (which is exactly 2 bars of 4/4)
+# This perfectly aligns with our sub-patterns:
+# Pattern 1 (Timpani) is 2 bars long (1 master step)
+# Pattern 2 (Theme A) is 4 bars long (2 master steps)
+# Pattern 3 (Theme B) is 4 bars long (2 master steps)
+z%32
+
+[ /z 1 1 ] x 0                 # Step 0 (Bars 1-2): Timpani starts
+[ /z 1 0   /z 2 1 ] x 1        # Step 1 (Bars 3-4): Timpani stops, Theme A starts
+# Step 2 (Bars 5-6): Theme A naturally continues playing its second half...
+[ /z 2 0   /z 3 1 ] x 3        # Step 3 (Bars 7-8): Theme A stops, Theme B starts
+# Step 4 (Bars 9-10): Theme B naturally continues...
+[ /z 3 0   /z 1 1 ] x 5        # Step 5 (Bars 11-12): Theme B stops, Timpani Outro starts
+[ /z 1 0   /z 0 0 ] x 6        # Step 6: Stop everything!
 

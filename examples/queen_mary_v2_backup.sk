@@ -1,0 +1,137 @@
+# ----------------------------------------------------------------------
+# Music for the Funeral of Queen Mary (Wendy Carlos / Clockwork Orange style)
+# ----------------------------------------------------------------------
+
+M 60  # Set tempo to 60 BPM for a proper, heavy dirge pace
+
+# ======================================================================
+# VOICE SETUPS
+# ======================================================================
+
+# Timpani (Voice 0) 
+v 0 
+w 1              # Triangle Wave
+a 1.0            # Volume
+t 0.01 0.6 0 0   # ADSR: Fast attack, 600ms decay, no sustain
+J 1              # Low-pass filter
+K 60             # Base cutoff (very low for a dull thud)
+Q 1.5            # Slight resonance for drum body
+ft 0.01 0.3 0 0  # Filter ADSR: Snaps closed quickly
+fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet strike
+
+# Brass Ensemble (Voices 1, 2, 3, and 4)
+[bras] : v $$0 w 2 a 0.5 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
+1 bras
+2 bras
+3 bras
+4 bras
+
+# ======================================================================
+# CHORD MACROS (4-Part Harmony)
+# ======================================================================
+# We explicitly trigger the envelope (`l 1`) for every voice so they all sound!
+
+# Theme A Chords
+[Cmin] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 67 l 1 ; # Cmin
+[FmAb] : v 4 n 53 l 1  v 3 n 60 l 1  v 2 n 65 l 1  v 1 n 68 l 1 ; # Fmin/Ab
+[Fmin] : v 4 n 41 l 1  v 3 n 48 l 1  v 2 n 53 l 1  v 1 n 65 l 1 ; # Fmin
+[CmEb] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin/Eb
+[Gmaj] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 62 l 1 ; # Gmaj
+[CmLo] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 60 l 1  v 1 n 63 l 1 ; # Cmin (Low Bass)
+
+# Theme B Chords
+[CmHi] : v 4 n 48 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High)
+[Bbma] : v 4 n 46 l 1  v 3 n 53 l 1  v 2 n 58 l 1  v 1 n 74 l 1 ; # Bbmaj
+[Ebma] : v 4 n 51 l 1  v 3 n 58 l 1  v 2 n 63 l 1  v 1 n 75 l 1 ; # Ebmaj
+[GmaH] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 74 l 1 ; # Gmaj
+[GmaB] : v 4 n 43 l 1  v 3 n 50 l 1  v 2 n 55 l 1  v 1 n 71 l 1 ; # Gmaj (B nat)
+[CmHE] : v 4 n 36 l 1  v 3 n 55 l 1  v 2 n 63 l 1  v 1 n 72 l 1 ; # Cmin (High End)
+
+[off] : v 4 l 0  v 3 l 0  v 2 l 0  v 1 l 0 ; # Releases all voices
+
+
+# ======================================================================
+# PATTERN 1: TIMPANI INTRO/OUTRO (2 Bars = 32 steps)
+# ======================================================================
+y1
+1 %      # 1 step = 16th note 
+
+# The iconic rhythm: BOM ... BOM ... ba-BOM ... BOM ... ba-BOM
+[ v 0 n 36 l 1 ] x 0
+[ v 0 n 36 l 1 ] x 8
+[ v 0 n 36 l 1 ] x 14
+[ v 0 n 36 l 1 ] x 16
+[ v 0 n 36 l 1 ] x 24
+[ v 0 n 36 l 1 ] x 30
+[ ] x 31  # Length = 32 steps
+
+
+# ======================================================================
+# PATTERN 2: THEME A (4 Bars = 64 steps)
+# ======================================================================
+y2
+1 %      # 1 step = 16th note
+
+# Bar 1 (Cmin half, Cmin quarter, Cmin quarter)
+[ Cmin ] x 0
+[ Cmin ] x 8
+[ Cmin ] x 12
+
+# Bar 2 (Cmin dotted-quarter, Fmin/Ab eighth, Cmin half)
+[ Cmin ] x 16
+[ FmAb ] x 22
+[ Cmin ] x 24
+
+# Bar 3 (Fmin quarter, Cmin/Eb quarter, Gmaj half)
+[ Fmin ] x 32
+[ CmEb ] x 36
+[ Gmaj ] x 40
+
+# Bar 4 (Cmin whole)
+[ CmLo ] x 48
+[ off ] x 62
+
+
+# ======================================================================
+# PATTERN 3: THEME B (4 Bars = 64 steps)
+# ======================================================================
+y3
+1 %
+
+# Bar 1 (Cmin half, Cmin quarter, Cmin quarter)
+[ CmHi ] x 0
+[ CmHi ] x 8
+[ CmHi ] x 12
+
+# Bar 2 (Cmin dotted-quarter, Bbmaj eighth, Ebmaj half)
+[ CmHi ] x 16
+[ Bbma ] x 22
+[ Ebma ] x 24
+
+# Bar 3 (Gmaj quarter, Cmin quarter, Gmaj(Bnat) half)
+[ GmaH ] x 32
+[ CmHi ] x 36
+[ GmaB ] x 40
+
+# Bar 4 (Cmin whole)
+[ CmHE ] x 48
+[ off ] x 62
+
+
+# ======================================================================
+# MASTER ORCHESTRATOR (Pattern 0)
+# ======================================================================
+y0
+32 %   # Master clock = 2 bars of 4/4 per step (8 seconds per step at 60 BPM)
+
+[ /z 1 1 ] x 0                 # Step 0 (0:00): Timpani Intro
+[ /z 1 0   /z 2 1 ] x 1        # Step 1 (0:08): Theme A (First Pass) starts
+[ /z 2 0   /z 2 1 ] x 3        # Step 3 (0:24): Theme A (Second Pass) restarts
+[ /z 2 0   /z 3 1 ] x 5        # Step 5 (0:40): Theme B (First Pass) starts
+[ /z 3 0   /z 3 1 ] x 7        # Step 7 (0:56): Theme B (Second Pass) restarts
+[ /z 3 0   /z 1 1 ] x 9        # Step 9 (1:12): Timpani Interlude
+[ /z 1 0   /z 2 1 ] x 10       # Step 10 (1:20): Theme A (Climax) starts
+[ /z 2 0   /z 3 1 ] x 12       # Step 12 (1:36): Theme B (Climax) starts
+[ /z 3 0   /z 1 1 ] x 14       # Step 14 (1:52): Timpani Outro starts
+[ /z 1 0   /z 0 0 ] x 15       # Step 15 (2:00): Stop everything!
+

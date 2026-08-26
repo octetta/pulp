@@ -1,0 +1,197 @@
+# ----------------------------------------------------------------------
+# Purcell – Music for the Funeral of Queen Mary
+# Wendy Carlos + DW-8000 flavour
+# ----------------------------------------------------------------------
+
+M 60 8
+
+# Dark hall
+DT 1 400
+DL 1 - - 7 1 4 7
+DD 1 11 5
+
+DL 2 3 0 15 0 31 15
+v 0 r 2 ds .7
+
+# --- Timpani ---
+v 0
+w 1 a 0.82
+t 0.005 1.5 0 0.4
+J 1 K 65 Q 1.7
+ft 0.008 0.22 0 0
+fd 500
+
+# --- Brass (DW-8000 wave + analog filter) ---
+# Try w18, w19, w22 or w25 for different brass/choir flavours
+[bras] : v $$0 w 18 a 0.36 t 0.05 0.22 0.70 0.50 J 1 K 1050 Q 1.6 ;
+1 bras
+2 bras
+3 bras
+4 bras
+
+v 1 N 0 0
+v 2 N 0 6
+v 3 N 0 -5
+v 4 N 0 -2
+
+v 1 g 0.045
+v 2 g 0.05
+v 3 g 0.04
+v 4 g 0.055
+
+# Small attack delays so the chord blooms instead of slamming
+v 1 L 0.00
+v 2 L 0.012
+v 3 L 0.025
+v 4 L 0.008
+
+v 1 p 0 r 1 ds 5
+v 2 p 0 r 1 ds 5
+v 3 p 0 r 1 ds 5
+v 4 p 0 r 1 ds 5
+
+v 0 n 36
+v 1 n 64
+v 2 n 59
+v 3 n 52
+v 4 n 40
+
+# --- Macros ---
+[Tx]  : v0 g0 n $$0 l1  v0 g.04 n $$1 ;
+[Tlow]: Tx 41 36 ;
+[Thig]: Tx 46 41 ;
+
+[off] : v1 l0 v2 l0 v3 l0 v4 l0 ;
+
+# Chord macros (can later take a stagger or level parameter if wanted)
+[SAa] : v1 n64 l1 v2 n59 l1 v3 n52 l1 v4 n40 l1 ;
+[SAb] : v1 n65 l1 v2 n57 l1 v3 n53 l1 v4 n50 l1 ;
+[SAc] : v1 n65 l1 v2 n57 l1 v3 n52 l1 v4 n45 l1 ;
+[SAd] : v1 n64 l1 v2 n59 l1 v3 n52 l1 v4 n49 l1 ;
+[SAe] : v1 n64 l1 v2 n57 l1 v3 n52 l1 v4 n45 l1 ;
+[SAf] : v1 n69 l1 v2 n64 l1 v3 n57 l1 v4 n45 l1 ;
+[SAg] : v1 n60 l1 v2 n55 l1 v3 n52 l1 v4 n48 l1 ;
+[SAh] : v1 n60 l1 v2 n55 l1 v3 n52 l1 v4 n48 l1 ;
+[SAi] : v1 n69 l1 v2 n65 l1 v3 n57 l1 v4 n41 l1 ;
+[SAj] : v1 n69 l1 v2 n65 l1 v3 n57 l1 v4 n53 l1 ;
+[SAk] : v1 n68 l1 v2 n64 l1 v3 n59 l1 v4 n52 l1 ;
+[SAl] : v1 n68 l1 v2 n64 l1 v3 n59 l1 v4 n52 l1 ;
+[SAm] : v1 n69 l1 v2 n64 l1 v3 n59 l1 v4 n54 l1 ;
+
+[SBa] : v1 n71 l1 v2 n67 l1 v3 n59 l1 v4 n55 l1 ;
+[SBb] : v1 n69 l1 v2 n64 l1 v3 n57 l1 v4 n45 l1 ;
+[SBc] : v1 n66 l1 v2 n62 l1 v3 n57 l1 v4 n47 l1 ;
+[SBd] : v1 n67 l1 v2 n64 l1 v3 n59 l1 v4 n40 l1 ;
+[SBe] : v1 n64 l1 v2 n60 l1 v3 n55 l1 v4 n48 l1 ;
+[SBf] : v1 n59 l1 v2 n55 l1 v3 n50 l1 v4 n50 l1 ;
+[SBg] : v1 n67 l1 v2 n64 l1 v3 n60 l1 v4 n48 l1 ;
+[SBh] : v1 n65 l1 v2 n60 l1 v3 n57 l1 v4 n41 l1 ;
+[SBi] : v1 n62 l1 v2 n59 l1 v3 n55 l1 v4 n43 l1 ;
+[SBj] : v1 n64 l1 v2 n60 l1 v3 n55 l1 v4 n48 l1 ;
+[SBk] : v1 n64 l1 v2 n60 l1 v3 n55 l1 v4 n48 l1 ;
+[SBl] : v1 n67 l1 v2 n62 l1 v3 n59 l1 v4 n43 l1 ;
+[SBm] : v1 n69 l1 v2 n64 l1 v3 n57 l1 v4 n45 l1 ;
+[SBn] : v1 n69 l1 v2 n65 l1 v3 n57 l1 v4 n50 l1 ;
+[SBo] : v1 n68 l1 v2 n62 l1 v3 n59 l1 v4 n52 l1 ;
+[SBp] : v1 n69 l1 v2 n64 l1 v3 n57 l1 v4 n45 l1 ;
+[SBq] : v1 n62 l1 v2 n57 l1 v3 n53 l1 v4 n50 l1 ;
+[SBr] : v1 n64 l1 v2 n59 l1 v3 n52 l1 v4 n40 l1 ;
+
+# ======================================================================
+# PATTERN 1 – Timpani
+# ======================================================================
+y1
+% 1
+[Tlow] x0
+[] x1
+[] x2
+[Tlow] x3
+[] x4
+[#] x5
+
+# ======================================================================
+# PATTERN 2 – Section A
+# ======================================================================
+y2
+% 1
+[SAa] x0
+[off] x5
+[SAb] x6
+[off] x8
+[SAc] x9
+[off] x11
+[SAd] x12
+[off] x17
+[SAe] x18
+[off] x20
+[SAf] x21
+[off] x23
+[SAg] x24
+[off] x26
+[SAh] x27
+[off] x29
+[SAi] x30
+[off] x32
+[SAj] x33
+[off] x35
+[SAk] x36
+[off] x41
+[SAl] x42
+[off] x44
+[SAm] x45
+[off] x47
+
+# ======================================================================
+# PATTERN 3 – Section B
+# ======================================================================
+y3
+% 1
+[SBa] x0
+[off] x5
+[SBb] x6
+[off] x8
+[SBc] x9
+[off] x11
+[SBd] x12
+[off] x17
+[SBe] x18
+[off] x20
+[SBf] x21
+[off] x23
+[SBg] x24
+[off] x29
+[SBh] x30
+[off] x32
+[SBi] x33
+[off] x35
+[SBj] x36
+[off] x41
+[SBk] x42
+[off] x44
+[SBl] x45
+[off] x47
+[SBm] x48
+[off] x53
+[SBn] x54
+[off] x56
+[SBo] x57
+[off] x59
+[SBp] x60
+[off] x65
+[SBq] x66
+[off] x68
+[SBr] x69
+[off] x71
+
+# ======================================================================
+# MASTER
+# ======================================================================
+y0
+% 12
+[ /z 1 1 ] x0
+[ /z 2 1 ] x1
+[ /z 2 0 /z 2 1 ] x5
+[ /z 2 0 /z 3 1 ] x9
+[ /z 3 0 /z 3 1 ] x15
+[ /z 3 0 /z 1 0 off ] x21
+[ /z 0 0 ] x22

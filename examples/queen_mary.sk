@@ -273,17 +273,18 @@ y3
 
 # ======================================================================
 # MASTER ORCHESTRATOR (Pattern 0)
-# Section A = 48 steps, Section B = 72 steps
-# Master modulo: 48 steps (= 8 bars)
+# M 60 8: one tick = 0.5s. Master modulo = 12 ticks = 6s = 2 bars per step.
+# Timpani (P1) = 12 steps = 1 master step (loops naturally)
+# Section A  (P2) = 48 steps = 4 master steps
+# Section B  (P3) = 72 steps = 6 master steps
 # ======================================================================
 y0
-48 %
+12 %
 
-[ /z 1 1 ] x 0              # t=0: Timpani solo (2 bars intro, looping)
-[ /z 2 1 ] x 1              # t=8bar: Section A pass 1 starts
-[ /z 2 0   /z 2 1 ] x 2     # t=16bar: Section A pass 2 (Da Capo A)
-[ /z 2 0   /z 3 1 ] x 3     # t=24bar: Section B starts (72 steps = 1.5 master steps)
-[ /z 3 0   /z 3 1 ] x 5     # t=40bar: Section B pass 2
-[ /z 3 0   /z 1 0   off ] x 7  # t=56bar: End - stop all, release voices
-[ /z 0 0 ] x 8
-
+[ /z 1 1 ] x 0               # t=0:00  Timpani solo (1 loop = 2 bars)
+[ /z 2 1 ] x 1               # t=0:06  Section A pass 1
+[ /z 2 0   /z 2 1 ] x 5      # t=0:30  Section A pass 2
+[ /z 2 0   /z 3 1 ] x 9      # t=0:54  Section B pass 1
+[ /z 3 0   /z 3 1 ] x 15     # t=1:30  Section B pass 2
+[ /z 3 0   /z 1 0   off ] x 21  # t=2:06  End — stop all, release voices
+[ /z 0 0 ] x 22              # t=2:12  Stop master

@@ -313,4 +313,45 @@ static UEDIT_UNUSED int uedit(const char *prompt, char *buf, int max_line) {
     return uedit_with_event(prompt, buf, max_line, -1, NULL, NULL, NULL);
 }
 
+/* Load history from a file using uedit_add_history to maintain capacity limits */
+int uedit_load_history(const char *filename) {
+    if (!filename) return -1;
+
+    FILE *fp = fopen(filename, "r");
+    if (!fp) return -1;
+
+    char buf[1024];
+    while (fgets(buf, sizeof(buf), fp)) {
+        size_t len = strlen(buf);
+        while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r')) {
+            buf[--len] = '\0';
+        }
+        if (len > 0) {
+            uedit_add_history(buf);
+        }
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+/* Save in-memory history chronologically from oldest to newest */
+int uedit_save_history(const char *filename) {
+    if (!filename || !uedit_hist || uedit_h_cnt <= 0) return -1;
+
+    FILE *fp = fopen(filename, "w");
+    if (!fp) return -1;
+
+    int start = (uedit_h_head - uedit_h_cnt + uedit_h_max) % uedit_h_max;
+    for (int i = 0; i < uedit_h_cnt; i++) {
+        int idx = (start + i) % uedit_h_max;
+        if (uedit_hist[idx]) {
+            fprintf(fp, "%s\n", uedit_hist[idx]);
+        }
+    }
+
+    fclose(fp);
+    return 0;
+}
+
 #endif

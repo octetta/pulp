@@ -1,0 +1,192 @@
+# ----------------------------------------------------------------------
+# Purcell — Music for the Funeral of Queen Mary
+# PULP / SKODE "GPT" arrangement
+#
+# Goal:
+#   A musically faithful, slow 6/8 reading of the Purcell funeral march,
+#   using the four-part transcription in the supplied queen_mary material
+#   but restoring the compound-meter timing and more legato ensemble behavior.
+#
+# Grid:
+#   M 60 8 = 0.5 s/eighth-note = dotted-quarter = 40 BPM
+#   6 eighth-note steps per bar
+#   Section A = 8 bars = 48 steps
+#   Section B = 12 bars = 72 steps
+# ----------------------------------------------------------------------
+
+M 60 8
+
+# ======================================================================
+# VOICE DESIGN
+# ======================================================================
+
+# v0: timpani / low ceremonial drum
+v 0 w 1 a 0.95
+t 0.005 0.55 0 0
+J 1 K 70 Q 1.4
+ft 0.005 0.28 0 0
+fd 500
+
+# v1..v4: four-part Moog brass.
+# The attack is deliberately not too fast: the sound should bloom rather
+# than behave like four simultaneous piano notes.
+[bras] : v $$0 w 2 a 0.52 t 0.025 0.18 0.78 0.45 g 0.035 J 1 K 1250 Q 1.9 ft 0.18 0.20 0.55 0.35 fd 900 ;
+1 bras
+2 bras
+3 bras
+4 bras
+
+# Slight analog instability / ensemble spread.
+v 1 N 0  0
+v 2 N 0  5
+v 3 N 0 -5
+v 4 N 0 -3
+
+# Keep the brass centered but give it a common delay send.
+v 1 p 0 r 1 ds 7
+v 2 p 0 r 1 ds 7
+v 3 p 0 r 1 ds 7
+v 4 p 0 r 1 ds 7
+
+# A long, dark room.  The delay should be felt rather than heard as an echo.
+DL 1,7,8,16,0,28,9
+
+# ======================================================================
+# TIMPANI MACROS
+# ======================================================================
+
+[Tlow] : v 0 g 0 n 48 g 0.075 n 36 l 1 ;
+[Tmid] : v 0 g 0 n 55 g 0.075 n 43 l 1 ;
+
+# ======================================================================
+# FOUR-PART CHORD / NOTE MACROS
+#
+# The pitch material follows the supplied v3 transcription:
+# Section A: C C D Eb Eb D C B C D D G
+# Section B: Eb Eb Eb F G F Eb D Eb F D C
+#
+# These are kept in the original four-part voicings supplied in the
+# project material, but the pattern is put onto the correct 6/8 grid.
+# ======================================================================
+
+# Section A
+[AAa] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+[AAb] : v 1 n 74 l 1  v 2 n 67 l 1  v 3 n 62 l 1  v 4 n 47 l 1 ;
+[AAc] : v 1 n 75 l 1  v 2 n 67 l 1  v 3 n 60 l 1  v 4 n 48 l 1 ;
+[AAd] : v 1 n 74 l 1  v 2 n 65 l 1  v 3 n 62 l 1  v 4 n 47 l 1 ;
+[AAe] : v 1 n 72 l 1  v 2 n 63 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+[AAf] : v 1 n 71 l 1  v 2 n 65 l 1  v 3 n 62 l 1  v 4 n 50 l 1 ;
+[AAg] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 51 l 1 ;
+[AAh] : v 1 n 74 l 1  v 2 n 67 l 1  v 3 n 62 l 1  v 4 n 43 l 1 ;
+[AAi] : v 1 n 74 l 1  v 2 n 66 l 1  v 3 n 60 l 1  v 4 n 50 l 1 ;
+[AAj] : v 1 n 67 l 1  v 2 n 67 l 1  v 3 n 59 l 1  v 4 n 43 l 1 ;
+
+# Section B
+[ABa] : v 1 n 75 l 1  v 2 n 67 l 1  v 3 n 60 l 1  v 4 n 48 l 1 ;
+[ABb] : v 1 n 75 l 1  v 2 n 72 l 1  v 3 n 67 l 1  v 4 n 48 l 1 ;
+[ABc] : v 1 n 77 l 1  v 2 n 72 l 1  v 3 n 65 l 1  v 4 n 50 l 1 ;
+[ABd] : v 1 n 79 l 1  v 2 n 71 l 1  v 3 n 62 l 1  v 4 n 43 l 1 ;
+[ABe] : v 1 n 77 l 1  v 2 n 71 l 1  v 3 n 62 l 1  v 4 n 43 l 1 ;
+[ABf] : v 1 n 75 l 1  v 2 n 72 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+[ABg] : v 1 n 74 l 1  v 2 n 71 l 1  v 3 n 65 l 1  v 4 n 43 l 1 ;
+[ABh] : v 1 n 75 l 1  v 2 n 72 l 1  v 3 n 67 l 1  v 4 n 48 l 1 ;
+[ABi] : v 1 n 77 l 1  v 2 n 72 l 1  v 3 n 65 l 1  v 4 n 41 l 1 ;
+[ABj] : v 1 n 74 l 1  v 2 n 71 l 1  v 3 n 67 l 1  v 4 n 43 l 1 ;
+[ABk] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+
+[off] : v 1 l 0  v 2 l 0  v 3 l 0  v 4 l 0 ;
+
+# ======================================================================
+# PATTERN 1 — TIMPANI
+#
+# Two bars of 6/8.  The characteristic weight is on the two dotted-
+# quarter beats, with the little pre-accent before the second beat.
+# ======================================================================
+
+y1
+12 %
+
+[Tlow] x 0
+[Tlow] x 3
+[Tlow] x 4
+[Tlow] x 6
+[Tlow] x 9
+[Tlow] x 10
+[ ] x 11
+
+# ======================================================================
+# PATTERN 2 — SECTION A
+#
+# 8 bars / 48 eighth-note steps.
+# The durations are:
+#   6,3,3,6,3,3,6,3,3,6,3,3
+#
+# This is the important correction over the earlier 16th-note versions:
+# the phrase actually breathes as 6/8 rather than being squeezed into 4/4.
+# ======================================================================
+
+y2
+48 %
+
+[AAa] x 0
+[AAb] x 6
+[AAc] x 9
+[AAc] x 12
+[AAd] x 18
+[AAe] x 21
+[AAf] x 24
+[AAg] x 30
+[AAh] x 33
+[AAi] x 36
+[AAj] x 42
+[off] x 47
+
+# ======================================================================
+# PATTERN 3 — SECTION B
+#
+# 12 bars / 72 eighth-note steps.
+# Each event occupies one dotted-quarter beat (3 eighths), except the
+# final cadence which is allowed to breathe.
+# ======================================================================
+
+y3
+72 %
+
+[ABa] x 0
+[ABa] x 6
+[ABb] x 9
+[ABc] x 12
+[ABd] x 18
+[ABe] x 21
+[ABf] x 24
+[ABg] x 30
+[ABh] x 33
+[ABi] x 36
+[ABj] x 42
+[ABk] x 45
+[ABk] x 48
+[off] x 71
+
+# ======================================================================
+# MASTER — COMPLETE CEREMONIAL FORM
+#
+# 2-bar timpani introduction
+# 8-bar A
+# 8-bar A
+# 12-bar B
+# 12-bar B
+#
+# The master clock is deliberately a simple 6-step-per-bar clock here.
+# We do not use the old "32 % / 16th-note" representation.
+# ======================================================================
+
+y0
+265 %
+
+[ /z 1 1 ] x 0
+[ /z 2 1 ] x 12
+[ /z 2 0 /z 2 1 ] x 60
+[ /z 2 0 /z 3 1 ] x 108
+[ /z 3 0 /z 3 1 ] x 180
+[ /z 3 0 /z 1 0 off ] x 252
+[ /z 0 0 ] x 264

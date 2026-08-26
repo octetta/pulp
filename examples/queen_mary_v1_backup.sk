@@ -1,0 +1,140 @@
+# ----------------------------------------------------------------------
+# Music for the Funeral of Queen Mary (Wendy Carlos / Clockwork Orange style)
+# ----------------------------------------------------------------------
+
+M 60  # Set tempo to 60 BPM for a proper, heavy dirge pace
+
+# ======================================================================
+# VOICE SETUPS
+# ======================================================================
+# Voice 0: Timpani (Percussive, low, thudding)
+# Voice 1: Brass Soprano (Main melody)
+# Voice 4: Brass Bass    (Deep foundation)
+
+# Timpani (Voice 0) 
+# Synthesizes a massive, pitch-swept timpani using a triangle wave and filter envelope
+v 0 
+w 1              # Triangle Wave
+a 1.0            # Volume
+t 0.01 0.6 0 0   # ADSR: Fast attack, 600ms decay, no sustain
+J 1              # Low-pass filter
+K 60             # Base cutoff (very low for a dull thud)
+Q 1.5            # Slight resonance for drum body
+ft 0.01 0.3 0 0  # Filter ADSR: Snaps closed quickly
+fd 400           # Filter envelope sweeps down from +400Hz to simulate mallet strike
+
+# Brass Ensemble (Voices 1 and 4)
+# Classic Wendy Carlos Moog-style Brass: Sawtooth, slow sweeping filter, slight portamento
+[bras] : v $$0 w 2 a 0.6 t 0.1 0.1 0.8 0.4 g 0.05 J 1 K 100 Q 2.5 ft 0.3 0.2 0.5 0.5 fd 1800 ;
+1 bras
+4 bras
+
+# ======================================================================
+# PATTERN 1: TIMPANI INTRO/OUTRO (2 Bars = 32 ticks)
+# ======================================================================
+y1
+2 %      # 1 step = 8th note (2 ticks)
+
+[ v 0 n 36 l 1 ] x 0
+[ v 0 n 36 l 1 ] x 3
+[ v 0 n 36 l 1 ] x 4
+[ v 0 n 36 l 1 ] x 5
+[ v 0 n 36 l 1 ] x 8
+[ v 0 n 36 l 1 ] x 11
+[ v 0 n 36 l 1 ] x 12
+[ v 0 n 36 l 1 ] x 13
+[ ] x 15  # Set length to 16 steps (32 ticks)
+
+
+# ======================================================================
+# PATTERN 2: THEME A (4 Bars = 64 ticks)
+# ======================================================================
+y2
+2 %      # 1 step = 8th note (2 ticks)
+
+# Bar 1 (G half, G quarter, G quarter)
+[ v 1 n 67 l 1   v 4 n 48 l 1 ] x 0
+[ v 1 l 0        v 4 l 0 ] x 3      # Note off just before the next note
+[ v 1 n 67 l 1 ] x 4
+[ v 1 l 0 ] x 5
+[ v 1 n 67 l 1 ] x 6
+[ v 1 l 0 ] x 7
+
+# Bar 2 (G dotted-quarter, Ab eighth, G half)
+[ v 1 n 67 l 1   v 4 n 48 l 1 ] x 8
+[ v 1 l 0 ] x 10
+[ v 1 n 68 l 1 ] x 11
+[ v 1 n 67 l 1 ] x 12    # Legato glide into G half
+[ v 1 l 0        v 4 l 0 ] x 15
+
+# Bar 3 (F quarter, Eb quarter, D half)
+[ v 1 n 65 l 1   v 4 n 41 l 1 ] x 16
+[ v 1 l 0 ] x 17
+[ v 1 n 63 l 1 ] x 18
+[ v 1 l 0 ] x 19
+[ v 1 n 62 l 1   v 4 n 43 l 1 ] x 20
+[ v 1 l 0        v 4 l 0 ] x 23
+
+# Bar 4 (Eb whole)
+[ v 1 n 63 l 1   v 4 n 48 l 1 ] x 24
+[ v 1 l 0        v 4 l 0 ] x 31     # Release at the very end of the bar
+
+
+# ======================================================================
+# PATTERN 3: THEME B (4 Bars = 64 ticks)
+# ======================================================================
+y3
+2 %
+
+# Bar 1 (C5 half, C5 quarter, C5 quarter)
+[ v 1 n 72 l 1   v 4 n 48 l 1 ] x 0
+[ v 1 l 0        v 4 l 0 ] x 3
+[ v 1 n 72 l 1 ] x 4
+[ v 1 l 0 ] x 5
+[ v 1 n 72 l 1 ] x 6
+[ v 1 l 0 ] x 7
+
+# Bar 2 (C5 dotted-quarter, D5 eighth, Eb5 half)
+[ v 1 n 72 l 1   v 4 n 48 l 1 ] x 8
+[ v 1 l 0 ] x 10
+[ v 1 n 74 l 1 ] x 11
+[ v 1 n 75 l 1 ] x 12    # Legato glide into Eb5 half
+[ v 1 l 0        v 4 l 0 ] x 15
+
+# Bar 3 (D5 quarter, C5 quarter, B4(nat) half)
+[ v 1 n 74 l 1   v 4 n 43 l 1 ] x 16
+[ v 1 l 0 ] x 17
+[ v 1 n 72 l 1 ] x 18
+[ v 1 l 0 ] x 19
+[ v 1 n 71 l 1   v 4 n 43 l 1 ] x 20
+[ v 1 l 0        v 4 l 0 ] x 23
+
+# Bar 4 (C5 whole)
+[ v 1 n 72 l 1   v 4 n 48 l 1 ] x 24
+[ v 1 l 0        v 4 l 0 ] x 31
+
+
+# ======================================================================
+# MASTER ORCHESTRATOR (Pattern 0)
+# ======================================================================
+# This orchestrates the full 30-bar, ~2-minute arrangement.
+y0
+32 %   # Master clock = 2 bars of 4/4 per step (8 seconds per step at 60 BPM)
+
+[ /z 1 1 ] x 0                 # Step 0 (0:00): Timpani Intro
+[ /z 1 0   /z 2 1 ] x 1        # Step 1 (0:08): Theme A (First Pass) starts
+# Step 2 (0:16): Theme A naturally continues
+[ /z 2 0   /z 2 1 ] x 3        # Step 3 (0:24): Theme A (Second Pass) restarts
+# Step 4 (0:32): Theme A naturally continues
+[ /z 2 0   /z 3 1 ] x 5        # Step 5 (0:40): Theme B (First Pass) starts
+# Step 6 (0:48): Theme B naturally continues
+[ /z 3 0   /z 3 1 ] x 7        # Step 7 (0:56): Theme B (Second Pass) restarts
+# Step 8 (1:04): Theme B naturally continues
+[ /z 3 0   /z 1 1 ] x 9        # Step 9 (1:12): Timpani Interlude
+[ /z 1 0   /z 2 1 ] x 10       # Step 10 (1:20): Theme A (Climax) starts
+# Step 11 (1:28): Theme A naturally continues
+[ /z 2 0   /z 3 1 ] x 12       # Step 12 (1:36): Theme B (Climax) starts
+# Step 13 (1:44): Theme B naturally continues
+[ /z 3 0   /z 1 1 ] x 14       # Step 14 (1:52): Timpani Outro starts
+[ /z 1 0   /z 0 0 ] x 15       # Step 15 (2:00): Stop everything!
+

@@ -1,0 +1,196 @@
+# ----------------------------------------------------------------------
+# Queen Mary – Rave / Techno version (K-synth drums)
+# Purcell → Wendy Carlos → warehouse
+# ----------------------------------------------------------------------
+
+M 132 16
+
+# Tight delay
+DT 1 175
+DL 1 - - 5 0 2 7
+DD 1 5 2
+
+# ======================================================================
+# LOAD K-SYNTH DRUMS
+# ======================================================================
+[sk/drums-kick.ks]   /ks 1 k>d d>r /r100
+[sk/drums-snare.ks]  /ks 1 k>d d>r /r101
+[sk/drums-chh.ks]    /ks 1 k>d d>r /r102
+[sk/drums-ohh.ks]    /ks 1 k>d d>r /r103
+[sk/drums-clap.ks]   /ks 1 k>d d>r /r104
+
+# ======================================================================
+# VOICE SETUP
+# ======================================================================
+
+# Kick
+v 0 w100 f440 a10
+
+# Snare / Clap
+v 1 w101 f440 a8
+v 5 w104 f440 a7
+
+# Hats
+v 2 w102 f440 a4          # closed
+v 3 w103 f440 a5          # open
+
+# Brass / Stab ensemble (Voices 6–9)
+[bras] : v $$0 w 18 a 0.40 t 0.004 0.10 0.30 0.06 J 1 K 2200 Q 2.6 ;
+6 bras
+7 bras
+8 bras
+9 bras
+
+v 6 N 0 0
+v 7 N 0 9
+v 8 N 0 -8
+v 9 N 0 -3
+
+v 6 g 0.008
+v 7 g 0.01
+v 8 g 0.007
+v 9 g 0.012
+
+v 6 L 0.00
+v 7 L 0.005
+v 8 L 0.011
+v 9 L 0.003
+
+v 6 p 0 r 1 ds 5
+v 7 p 0 r 1 ds 5
+v 8 p 0 r 1 ds 5
+v 9 p 0 r 1 ds 5
+
+# Prime
+v 6 n 64
+v 7 n 59
+v 8 n 52
+v 9 n 40
+
+# ======================================================================
+# MACROS
+# ======================================================================
+[off] : v6 l0 v7 l0 v8 l0 v9 l0 ;
+
+[SAa] : v6 n64 l1 v7 n59 l1 v8 n52 l1 v9 n40 l1 ;
+[SAb] : v6 n65 l1 v7 n57 l1 v8 n53 l1 v9 n50 l1 ;
+[SAc] : v6 n65 l1 v7 n57 l1 v8 n52 l1 v9 n45 l1 ;
+[SAd] : v6 n64 l1 v7 n59 l1 v8 n52 l1 v9 n49 l1 ;
+[SAe] : v6 n64 l1 v7 n57 l1 v8 n52 l1 v9 n45 l1 ;
+[SAf] : v6 n69 l1 v7 n64 l1 v8 n57 l1 v9 n45 l1 ;
+[SAg] : v6 n60 l1 v7 n55 l1 v8 n52 l1 v9 n48 l1 ;
+[SAh] : v6 n60 l1 v7 n55 l1 v8 n52 l1 v9 n48 l1 ;
+[SAi] : v6 n69 l1 v7 n65 l1 v8 n57 l1 v9 n41 l1 ;
+[SAj] : v6 n69 l1 v7 n65 l1 v8 n57 l1 v9 n53 l1 ;
+[SAk] : v6 n68 l1 v7 n64 l1 v8 n59 l1 v9 n52 l1 ;
+[SAl] : v6 n68 l1 v7 n64 l1 v8 n59 l1 v9 n52 l1 ;
+[SAm] : v6 n69 l1 v7 n64 l1 v8 n59 l1 v9 n54 l1 ;
+
+[SBa] : v6 n71 l1 v7 n67 l1 v8 n59 l1 v9 n55 l1 ;
+[SBb] : v6 n69 l1 v7 n64 l1 v8 n57 l1 v9 n45 l1 ;
+[SBc] : v6 n66 l1 v7 n62 l1 v8 n57 l1 v9 n47 l1 ;
+[SBd] : v6 n67 l1 v7 n64 l1 v8 n59 l1 v9 n40 l1 ;
+[SBe] : v6 n64 l1 v7 n60 l1 v8 n55 l1 v9 n48 l1 ;
+[SBf] : v6 n59 l1 v7 n55 l1 v8 n50 l1 v9 n50 l1 ;
+[SBg] : v6 n67 l1 v7 n64 l1 v8 n60 l1 v9 n48 l1 ;
+[SBh] : v6 n65 l1 v7 n60 l1 v8 n57 l1 v9 n41 l1 ;
+[SBi] : v6 n62 l1 v7 n59 l1 v8 n55 l1 v9 n43 l1 ;
+[SBj] : v6 n64 l1 v7 n60 l1 v8 n55 l1 v9 n48 l1 ;
+[SBk] : v6 n64 l1 v7 n60 l1 v8 n55 l1 v9 n48 l1 ;
+[SBl] : v6 n67 l1 v7 n62 l1 v8 n59 l1 v9 n43 l1 ;
+[SBm] : v6 n69 l1 v7 n64 l1 v8 n57 l1 v9 n45 l1 ;
+[SBn] : v6 n69 l1 v7 n65 l1 v8 n57 l1 v9 n50 l1 ;
+[SBo] : v6 n68 l1 v7 n62 l1 v8 n59 l1 v9 n52 l1 ;
+[SBp] : v6 n69 l1 v7 n64 l1 v8 n57 l1 v9 n45 l1 ;
+[SBq] : v6 n62 l1 v7 n57 l1 v8 n53 l1 v9 n50 l1 ;
+[SBr] : v6 n64 l1 v7 n59 l1 v8 n52 l1 v9 n40 l1 ;
+
+# ======================================================================
+# PATTERN 1 – Drums (16 steps)
+# ======================================================================
+y1
+% 1
+[v0 l1] x0               # kick
+[v2 l1] x1               # chh
+[v2 l1] x2
+[v2 l1] x3
+[v0 l1  v1 l1] x4        # kick + snare
+[v2 l1] x5
+[v3 l1] x6               # open hat
+[v2 l1] x7
+[v0 l1] x8
+[v2 l1] x9
+[v2 l1] x10
+[v2 l1] x11
+[v0 l1  v5 l1] x12       # kick + clap
+[v2 l1] x13
+[v3 l1] x14
+[v2 l1] x15
+[#] x15
+
+# ======================================================================
+# PATTERN 2 – Section A stabs (32 steps)
+# ======================================================================
+y2
+% 1
+[SAa] x0
+[off] x2
+[SAb] x4
+[off] x6
+[SAc] x8
+[off] x10
+[SAd] x12
+[off] x14
+[SAe] x16
+[off] x18
+[SAf] x20
+[off] x22
+[SAg] x24
+[off] x26
+[SAh] x28
+[off] x30
+[#] x31
+
+# ======================================================================
+# PATTERN 3 – Section B stabs (48 steps)
+# ======================================================================
+y3
+% 1
+[SBa] x0
+[off] x2
+[SBb] x4
+[off] x6
+[SBc] x8
+[off] x10
+[SBd] x12
+[off] x14
+[SBe] x16
+[off] x18
+[SBf] x20
+[off] x22
+[SBg] x24
+[off] x26
+[SBh] x28
+[off] x30
+[SBi] x32
+[off] x34
+[SBj] x36
+[off] x38
+[SBk] x40
+[off] x42
+[SBl] x44
+[off] x46
+[#] x47
+
+# ======================================================================
+# MASTER
+# ======================================================================
+y0
+% 16
+[ /z 1 1 ] x0
+[ /z 2 1 ] x4
+[ /z 2 0 /z 2 1 ] x12
+[ /z 2 0 /z 3 1 ] x20
+[ /z 3 0 /z 3 1 ] x32
+[ /z 3 0 /z 1 0 off ] x48
+[ /z 0 0 ] x50

@@ -1,0 +1,215 @@
+# ----------------------------------------------------------------------
+# Purcell - Music for the Funeral of Queen Mary (Wendy Carlos Moog Emulation)
+# Melody/harmony from Gemini's exact 4-voice transcription.
+# ----------------------------------------------------------------------
+
+M 50  # 50 BPM, heavy dirge
+
+# ======================================================================
+# VOICE SETUPS
+# ======================================================================
+
+# --- Delay Line (for reverb-like space on brass) ---
+# route=1, coarse=6, fine=8, feedback=20, modfreq=6, moddepth=3, level=10
+DL 1,6,8,15,0,31,10
+
+# --- Timpani (Voice 0) ---
+v 0
+w 1
+a 1.0
+t 0.01 0.6 0 0
+J 1
+K 80
+Q 2.0
+ft 0.01 0.2 0 0
+fd 800
+
+# --- Brass (Voices 1-4): Sawtooth, 24dB LP filter, subtle detune ---
+[bras] : v $$0 w 2 a 0.5 t 0.02 0.1 0.8 0.1 J 1 K 1200 Q 2 ;
+1 bras
+2 bras
+3 bras
+4 bras
+
+# Subtle inter-voice detuning (+/-5 cents) as per DSP directives
+v 1 N 0  0
+v 2 N 0  5
+v 3 N 0 -5
+v 4 N 0 -3
+
+# Route brass voices to track 1 delay (centered, no pan)
+v 1 p 0 r 1 ds 8
+v 2 p 0 r 1 ds 8
+v 3 p 0 r 1 ds 8
+v 4 p 0 r 1 ds 8
+
+
+# ======================================================================
+# CHORD MACROS
+# (V1=Soprano, V2=Alto, V3=Tenor, V4=Bass)
+# ======================================================================
+
+[off] : v 1 l 0  v 2 l 0  v 3 l 0  v 4 l 0 ;
+
+# --- Section A ---
+# Note 1,2,3: C (S=72 A=67 T=63 B=48)
+[AAa] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+# Note 4: D (S=74 A=67 T=62 B=47)
+[AAb] : v 1 n 74 l 1  v 2 n 67 l 1  v 3 n 62 l 1  v 4 n 47 l 1 ;
+# Note 5: Eb (S=75 A=67 T=60 B=48)
+[AAc] : v 1 n 75 l 1  v 2 n 67 l 1  v 3 n 60 l 1  v 4 n 48 l 1 ;
+# Note 6: D (S=74 A=65 T=62 B=47)
+[AAd] : v 1 n 74 l 1  v 2 n 65 l 1  v 3 n 62 l 1  v 4 n 47 l 1 ;
+# Note 7: C (S=72 A=63 T=63 B=48)
+[AAe] : v 1 n 72 l 1  v 2 n 63 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+# Note 8: B (S=71 A=65 T=62 B=50)
+[AAf] : v 1 n 71 l 1  v 2 n 65 l 1  v 3 n 62 l 1  v 4 n 50 l 1 ;
+# Note 9: C (S=72 A=67 T=63 B=51)
+[AAg] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 51 l 1 ;
+# Note 10: D (S=74 A=67 T=62 B=43)
+[AAh] : v 1 n 74 l 1  v 2 n 67 l 1  v 3 n 62 l 1  v 4 n 43 l 1 ;
+# Note 11: D (S=74 A=66 T=60 B=50)
+[AAi] : v 1 n 74 l 1  v 2 n 66 l 1  v 3 n 60 l 1  v 4 n 50 l 1 ;
+# Note 12: G (S=67 A=67 T=59 B=43)
+[AAj] : v 1 n 67 l 1  v 2 n 67 l 1  v 3 n 59 l 1  v 4 n 43 l 1 ;
+
+# --- Section B ---
+# Note 1,2: Eb (S=75 A=67 T=60 B=48)
+[ABa] : v 1 n 75 l 1  v 2 n 67 l 1  v 3 n 60 l 1  v 4 n 48 l 1 ;
+# Note 3: Eb (S=75 A=72 T=67 B=48)
+[ABb] : v 1 n 75 l 1  v 2 n 72 l 1  v 3 n 67 l 1  v 4 n 48 l 1 ;
+# Note 4: F (S=77 A=72 T=65 B=50)
+[ABc] : v 1 n 77 l 1  v 2 n 72 l 1  v 3 n 65 l 1  v 4 n 50 l 1 ;
+# Note 5: G (S=79 A=71 T=62 B=43)
+[ABd] : v 1 n 79 l 1  v 2 n 71 l 1  v 3 n 62 l 1  v 4 n 43 l 1 ;
+# Note 6: F (S=77 A=71 T=62 B=43)
+[ABe] : v 1 n 77 l 1  v 2 n 71 l 1  v 3 n 62 l 1  v 4 n 43 l 1 ;
+# Note 7: Eb (S=75 A=72 T=63 B=48)
+[ABf] : v 1 n 75 l 1  v 2 n 72 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+# Note 8: D (S=74 A=71 T=65 B=43)
+[ABg] : v 1 n 74 l 1  v 2 n 71 l 1  v 3 n 65 l 1  v 4 n 43 l 1 ;
+# Note 9: Eb (S=75 A=72 T=67 B=48)
+[ABh] : v 1 n 75 l 1  v 2 n 72 l 1  v 3 n 67 l 1  v 4 n 48 l 1 ;
+# Note 10: F (S=77 A=72 T=65 B=41)
+[ABi] : v 1 n 77 l 1  v 2 n 72 l 1  v 3 n 65 l 1  v 4 n 41 l 1 ;
+# Note 11: D (S=74 A=71 T=67 B=43)
+[ABj] : v 1 n 74 l 1  v 2 n 71 l 1  v 3 n 67 l 1  v 4 n 43 l 1 ;
+# Note 12: C (S=72 A=67 T=63 B=48)
+[ABk] : v 1 n 72 l 1  v 2 n 67 l 1  v 3 n 63 l 1  v 4 n 48 l 1 ;
+
+
+# ======================================================================
+# PATTERN 1: TIMPANI (2 Bars = 32 steps, loops continuously)
+# ======================================================================
+y1
+1 %
+
+# Bar 1: straight march (dotted-8th + 16th pairs)
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 0
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 3
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 4
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 7
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 8
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 11
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 12
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 15
+
+# Bar 2: cadence accent (dotted-8th + 16th, quarter, G dotted-8th + 16th, quarter)
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 16
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 19
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 20
+[ v 0 g 0 n 55 g 0.06 n 43 l 1 ] x 24
+[ v 0 g 0 n 55 g 0.06 n 43 l 1 ] x 27
+[ v 0 g 0 n 48 g 0.06 n 36 l 1 ] x 28
+[ ] x 31
+
+
+# ======================================================================
+# PATTERN 2: SECTION A (4 Bars = 64 steps)
+# ======================================================================
+y2
+1 %
+
+# Note 1: C, dur=1.5 beats (6 steps), gate @ step 5
+[ AAa ] x 0
+[ off ] x 5
+# Note 2: C, dur=0.5 beats (2 steps), gate @ step 8 (next note takes over)
+[ AAa ] x 6
+# Note 3: C, dur=1.0 beats (4 steps), gate @ step 12 (next note takes over)
+[ AAa ] x 8
+# Note 4: D, dur=1.0 beats (4 steps), gate @ step 16 (next note takes over)
+[ AAb ] x 12
+# Note 5: Eb, dur=1.5 beats (6 steps), gate @ step 21
+[ AAc ] x 16
+[ off ] x 21
+# Note 6: D, dur=0.5 beats (2 steps), gate @ step 24 (next note takes over)
+[ AAd ] x 22
+# Note 7: C, dur=1.0 beats (4 steps), gate @ step 28 (next note takes over)
+[ AAe ] x 24
+# Note 8: B, dur=1.0 beats (4 steps), gate @ step 32 (next note takes over)
+[ AAf ] x 28
+# Note 9: C, dur=1.0 beats (4 steps), gate @ step 36 (next note takes over)
+[ AAg ] x 32
+# Note 10: D, dur=1.0 beats (4 steps), gate @ step 40 (next note takes over)
+[ AAh ] x 36
+# Note 11: D (half note), dur=2.0 beats (8 steps), gate @ step 47
+[ AAi ] x 40
+[ off ] x 47
+# Note 12: G (whole note), dur=4.0 beats (16 steps), gate @ step 62
+[ AAj ] x 48
+[ off ] x 62
+
+
+# ======================================================================
+# PATTERN 3: SECTION B (4 Bars = 64 steps)
+# ======================================================================
+y3
+1 %
+
+# Note 1: Eb, dur=1.5 beats (6 steps), gate @ step 5
+[ ABa ] x 0
+[ off ] x 5
+# Note 2: Eb, dur=0.5 beats (2 steps)
+[ ABa ] x 6
+# Note 3: Eb (inner voices change), dur=1.0 beats
+[ ABb ] x 8
+# Note 4: F, dur=1.0 beats
+[ ABc ] x 12
+# Note 5: G, dur=1.5 beats, gate @ step 21
+[ ABd ] x 16
+[ off ] x 21
+# Note 6: F, dur=0.5 beats
+[ ABe ] x 22
+# Note 7: Eb, dur=1.0 beats
+[ ABf ] x 24
+# Note 8: D, dur=1.0 beats
+[ ABg ] x 28
+# Note 9: Eb, dur=1.0 beats
+[ ABh ] x 32
+# Note 10: F, dur=1.0 beats
+[ ABi ] x 36
+# Note 11: D (half note), gate @ step 47
+[ ABj ] x 40
+[ off ] x 47
+# Note 12: C (whole note), gate @ step 62
+[ ABk ] x 48
+[ off ] x 62
+
+
+# ======================================================================
+# MASTER ORCHESTRATOR (Pattern 0)
+# Bars 1-2: Timpani solo (P1 only)
+# Bars 3-10: Section A x2 (P1 + P2)
+# Bars 11-18: Section B x2 (P1 + P3)
+# ======================================================================
+y0
+32 %   # Master step = 2 bars (32 16th-note steps)
+
+[ /z 1 1 ] x 0                 # t=0bar:  Timpani intro starts
+[ /z 2 1 ] x 1                 # t=2bar:  Section A starts (Timpani continues)
+[ /z 2 0   /z 2 1 ] x 3        # t=6bar:  Section A second pass
+[ /z 2 0   /z 3 1 ] x 5        # t=10bar: Section B starts
+[ /z 3 0   /z 3 1 ] x 7        # t=14bar: Section B second pass
+[ /z 3 0   /z 1 0   off ] x 9  # t=18bar: End everything, release all voices
+[ /z 0 0 ] x 10                # t=20bar: Stop master
+

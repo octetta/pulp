@@ -158,6 +158,10 @@ int main(int argc, char **argv) {
 
   skred_logger(1);
 
+  if (useue) {
+    uedit_load_history("mini-skred-history.txt");
+  }
+
   while (1) {
     char line[1024];
     char *out = NULL;
@@ -179,5 +183,10 @@ int main(int argc, char **argv) {
 
   skred_control_dispatch_stop();
   skred_stop();
+  
+  if (useue) {
+    uedit_save_history("mini-skred-history.txt");
+  }
+
   return 0;
 }

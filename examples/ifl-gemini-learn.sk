@@ -33,18 +33,18 @@ DD 1 4 2
 [sk/drums-snare.ks] /ks 1 k>d d>r /r103
 
 # Assign drum voices (0 to 3)
-v 0 vt [Kick]      w 100 f 440 a 11
+v 0 vt [Kick]      w 100 f 440 a 25
 v 1 vt [ClosedHat] w 101 f 440 a 2
 v 2 vt [OpenHat]   w 102 f 440 a 3.5
-v 3 vt [Snare]     w 103 f 440 a 5
+v 3 vt [Snare]     w 103 f 440 a 10
 
 # The Iconic Moroder Bass (Voices 4 and 5, layered & detuned)
 # We set sustain to 0.0 so the notes NEVER hang when you stop the pattern!
 v 4 vt [MoogBassA]
-w 15 a 0  t 0.001 0.18 0.0 0.15  J 1 K 270 Q 1.9  N 0  0  g 0.005  r 1 ds 0.3
+w 15 a 0  t 0.001 0.18 0.0 0.15  J 1 K 750 Q 2.5  N 0   0   g 0.005  r 1 ds 0.3
 
 v 5 vt [MoogBassB]
-w 16 a -4 t 0.001 0.18 0.0 0.15  J 1 K 290 Q 1.7  N 0  8  g 0.005  r 1 ds 0.2
+w 16 a 0  t 0.001 0.35 0.0 0.25  J 1 K 750 Q 2.5  N -12 -25 g 0.005  r 1 ds 0.2
 
 # Filter Stabs (Voices 6 and 8, high resonance)
 v 6 vt [StabA]

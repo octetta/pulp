@@ -1,13 +1,3 @@
-v 3 vt [Clap] w 103 f 440 a 4
-v3l1
-v 4 vt [MoogBassL]
-w 15 a 0  t 0.001 0.18 0.0 0.15  J 1 K 270 Q 1.9  N 0  0  g 0.005  p -0.4 r 1 ds 3
-v4l1
-f440l1
-l1
-?
-/q
-# ----------------------------------------------------------------------
 # STEP 1: INITIALIZE THE ENGINE & SOUNDS
 # (Highlight and execute this block to set up the instruments)
 # ----------------------------------------------------------------------
@@ -97,4 +87,14 @@ v0l1
 y0
 z
 y1z
+/q
+[ifl-gemini-learn.sk]/ls 1
+y8z1
+??
+v0a20
+??
+v4K1000
+v5K1000
+v8l1
+??
 /q

@@ -131,27 +131,42 @@ w 18 a 3  t 0.8 0 1.0 2.0  J 1 0 K  700 Q 0.6 N 19 -5 g 0.15  r 2 ds 0.6  A 12 0
 # (Execute this block to load the musical sequences into memory)
 # ----------------------------------------------------------------------
 
-# Pattern 0: The Orchestrator
-# This pattern runs at 1 step = 1 measure (% 16).
-# IMPORTANT: It MUST be y 0 so it evaluates first in Skode's pattern loop.
-# If a higher pattern triggers a lower pattern, the lower pattern skips step 0!
-y 0 yt [Song]
+# # Pattern 0: The "Bar Clock". This silent pattern loops every 16 steps 
+# (one measure). When we use `zq` to queue pattern changes, Skode waits 
+# for this pattern to hit Step 0, keeping everything in perfect sync.
+y 0 yt [BarClock]
+% 1
+[#] x 15
+
+# ----------------------------------------------------------------------
+# STEP 4: ORCHESTRATION (The Arrangement)
+# ----------------------------------------------------------------------
+# Pattern 1 is our "Master Clock" Orchestrator. We set it to run at a
+# 16th of the speed (% 16) so each step equals exactly one full measure.
+# We then use immediate-start (/z) commands to trigger our sequences!
+# Note: In Skode, a master pattern MUST be a lower number than the 
+# patterns it triggers to ensure perfect downbeat alignment.
+y 1 yt [Song]
 % 16
-[ /z 1 1 ] x 0                         # Start: Drums only
-[ /z 2 1 ] x 4                         # Bar 5: Enter Bass (C)
-[ /z 6 1 /z 7 1 ] x 8                  # Bar 9: Enter Stabs + Pad
-[ /z 2 0 /z 3 1 ] x 12                 # Bar 13: Bass → Eb
-[ /z 6 0 ] x 16                        # Bar 17: Stabs drop out
-[ /z 3 0 /z 4 1 /z 6 1 ] x 20          # Bar 21: Bass → F, Stabs return
-[ /z 4 0 /z 5 1 ] x 26                 # Bar 27: Bass → G
-[ /z 5 0 /z 2 1 ] x 32                 # Bar 33: Bass → C
-[ /z 6 0 /z 7 0 PadO ] x 38            # Bar 39: Drop all synths (release Pad)
-[ /z 1 0 ] x 44                        # Bar 45: Stop drums, kill any tails
-[ /z 0 0 ] x 46                        # Bar 47: Stop song
+[ /z 2 1 ] x 0                         # Start: Drums only
+[ /z 3 1 ] x 4                         # Bar 5: Enter Bass (C)
+[ /z 7 1 /z 8 1 ] x 8                  # Bar 9: Enter Stabs + Pad
+[ /z 3 0 /z 4 1 ] x 12                 # Bar 13: Bass → Eb
+[ /z 7 0 ] x 16                        # Bar 17: Stabs drop out
+[ /z 4 0 /z 5 1 /z 7 1 ] x 20          # Bar 21: Bass → F, Stabs return
+[ /z 5 0 /z 6 1 ] x 26                 # Bar 27: Bass → G
+[ /z 6 0 /z 3 1 ] x 32                 # Bar 33: Bass → C
+[ /z 7 0 /z 8 0 PadO ] x 38            # Bar 39: Drop all synths (release Pad)
+[ /z 2 0 ] x 44                        # Bar 45: Stop drums, kill any tails
+[ /z 1 0 ] x 46                        # Bar 47: Stop song
 
 
-# Pattern 1: Four-on-the-floor Drums
-y 1 yt [Drums]
+# ----------------------------------------------------------------------
+# STEP 5: INSTRUMENTS
+# ----------------------------------------------------------------------
+
+# Pattern 2: Four-on-the-floor Drums
+y 2 yt [Drums]
 % 1
 [v 0 l 1]           x 0   # Beat 1: Kick
 [v 1 l 1]           x 1   #         Closed Hat
@@ -173,126 +188,80 @@ y 1 yt [Drums]
 [v 2 l 1]           x 14  #         Open Hat
 [v 1 l 1]           x 15  #         Closed Hat
 
-# Patterns 2-5: The hypnotic 16th-note bassline in different keys
-y 2 yt [BassC]
+# Patterns 3-6: The hypnotic 16th-note bassline in different keys
+y 3 yt [BassC]
 % 1
 [RtC] x 0     [Bas 36] x 0  [Bas 36] x 2  [Bas 43] x 4  [Bas 46] x 6
 [Bas 36] x 8  [Bas 36] x 10 [Bas 43] x 12 [Bas 46] x 14
 [#] x 15
 
-y 3 yt [BassEb]
+y 4 yt [BassEb]
 % 1
 [RtEb] x 0    [Bas 39] x 0  [Bas 39] x 2  [Bas 46] x 4  [Bas 49] x 6
 [Bas 39] x 8  [Bas 39] x 10 [Bas 46] x 12 [Bas 49] x 14
 [#] x 15
 
-y 4 yt [BassF]
+y 5 yt [BassF]
 % 1
 [RtF] x 0     [Bas 41] x 0  [Bas 41] x 2  [Bas 48] x 4  [Bas 51] x 6
 [Bas 41] x 8  [Bas 41] x 10 [Bas 48] x 12 [Bas 51] x 14
 [#] x 15
 
-y 5 yt [BassG]
+y 6 yt [BassG]
 % 1
 [RtG] x 0     [Bas 43] x 0  [Bas 43] x 2  [Bas 50] x 4  [Bas 53] x 6
 [Bas 43] x 8  [Bas 43] x 10 [Bas 50] x 12 [Bas 53] x 14
 [#] x 15
 
-# Pattern 6: Rhythmic Stabs
-y 6 yt [Stabs]
+y 7 yt [Stabs]
 % 1
 [StbC] x 0
 [StbC] x 8
 [#] x 15
 
-# Pattern 7: Sustained Droning Pads
+# Pattern 8: Sustained Droning Pads
 # We make this a 16-bar loop so it only triggers its attack once!
 # The Bass pattern forwards the pitch to it, and it glides smoothly.
-y 7 yt [Pad]
+y 8 yt [Pad]
 % 16
 [PadC] x 0
 [#] x 15
 
-# Pattern 15: The "Bar Clock"
-# Used for live jamming with `zq` commands to keep things quantized.
-y 15 yt [BarClock]
-% 1
-[#] x 15
-
-
 # ----------------------------------------------------------------------
-# STEP 4: LIVE PERFORMANCE GUIDE
+# STEP 6: LIVE PERFORMANCE GUIDE
 # ----------------------------------------------------------------------
 # Now you are ready to perform! Execute these commands one by one.
 
 # A. Start the Bar Clock (CRITICAL! This ensures `zq` commands sync properly)
-# y 15 z 1
+# y 0 z 1
 
 # B. Drop in the Drums (Start them immediately)
-# y 1 z 1
-
-# C. Drop in the Bass (Start it immediately)
 # y 2 z 1
 
+# C. Drop in the Bass (Start it immediately)
+# y 3 z 1
+
 # D. Queue a chord change (Try this! It will wait for the next bar perfectly)
-# y 2 zq 0  y 3 zq 1
+# y 3 zq 0  y 4 zq 1
 
 # E. Perform the progression (Wait for each measure to land)
-# y 3 zq 0  y 4 zq 1
 # y 4 zq 0  y 5 zq 1
-# y 5 zq 0  y 2 zq 1
+# y 5 zq 0  y 6 zq 1
+# y 6 zq 0  y 3 zq 1
 
-# F. Phase-Safe Muting (Mute the drums, then bring them back)
-# y 1 ym 1
-# y 1 ym 0
+# F. Queue the Pads and Stabs (They will drop exactly on the downbeat!)
+# y 7 zq 1  y 8 zq 1
 
-# G. Bring in the extra layers
-# y 6 z 1
-# y 7 z 1
-
-# H. Hard Stop (Kills all patterns)
+# G. Kill everything exactly at the end of the measure
 # /z 0 0
 
 
-
-# Play the full arrangement:
-# y 8 z 1
-
-
 # ----------------------------------------------------------------------
-# OPTIONAL: ADDING VOCALS (Chops & Takes)
+# STEP 7: THE HANDS-FREE ORCHESTRATOR
 # ----------------------------------------------------------------------
-# For true authenticity, you can chop a Donna Summer acapella into pieces 
-# (16-bit 44.1kHz mono WAVs) and trigger them perfectly on the grid.
-# 
-# 1. Prepare your pieces:
-#    sk/vocal-i-feel-love.wav
-#    sk/vocal-fallin-free.wav
-#    sk/vocal-you-and-me.wav
-#
-# 2. Load them into separate K-Synth sampler slots:
-#    [sk/vocal-i-feel-love.wav] /ks 2 k>d d>r /r104
-#    [sk/vocal-fallin-free.wav] /ks 2 k>d d>r /r105
-#    [sk/vocal-you-and-me.wav]  /ks 2 k>d d>r /r106
-#
-# 3. Create a voice to play them (e.g., Voice 10):
-#    v 10 vt [Vocals] a 0 r 1 ds 0.4
-#
-# 4. Create a vocal pattern (Pattern 9). By switching the `w` (waveform) 
-#    before sending the note trigger `l 1`, you can sequence the phrases:
-#    
-#    y 9 yt [VocPattern]
-#    % 1
-#    [v 10 w 105 n 60 l 1] x 0    # Trigger "Fallin' free..." on downbeat
-#    [v 10 w 106 n 60 l 1] x 8    # Trigger "You and me..." on beat 3
-#    [v 10 w 104 n 60 l 1] x 12   # Trigger "I feel love..." on beat 4
-#
-# 5. Bring them in live perfectly on the next bar: `y 9 zq 1`
-# ----------------------------------------------------------------------
-# STEP 5: THE HANDS-FREE ORCHESTRATOR
-# ----------------------------------------------------------------------
-# Want the machine to play it for you? We moved the orchestrator to Pattern 0!
+# Want the machine to play it for you? We built a master orchestrator in 
+# Pattern 1 that triggers `/z` commands automatically. 
 # Make sure to run `/z 0 0` to stop your live jam first!
 
 # Play the full arrangement:
-# y 0 z 1
+# y 1 z 1

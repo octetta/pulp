@@ -67,16 +67,17 @@ v 3 vt [Snare]     w 103 f 440 a 15 J 2 0 K 500 Q 2 r 3 ds 0.6
 
 # The Iconic Moroder Bass (Voices 4, 5, and 13, layered & detuned)
 # We set sustain to 0.0 so the notes NEVER hang when you stop the pattern!
+# (Note: when sustain is 0, the release parameter is unused, so we set it to 0).
 # J 1 1 applies the 'driven' analog low-pass filter character for extra warmth.
 # Voice 4 links to 5 and 13 (G 5 13 H 5 13), so triggering v 4 plays all three!
 v 4 vt [MoogBassA]
-w 15 a 0  t 0.001 0.18 0.0 0.15  J 1 1 K 750 Q 2.5  N 0   0   g 0.005  r 1 ds 0.3 G 5 13 H 5 13
+w 15 a 0  t 0.001 0.18 0 0  J 1 1 K 750 Q 2.5  N 0   0   g 0.005  r 1 ds 0.3 G 5 13 H 5 13
 
 v 5 vt [MoogBassB]
-w 16 a 2  t 0.001 0.35 0.0 0.25  J 1 1 K 750 Q 2.5  N -12 10  g 0.005  r 1 ds 0.2
+w 16 a 2  t 0.001 0.35 0 0  J 1 1 K 750 Q 2.5  N -12 10  g 0.005  r 1 ds 0.2
 
 v 13 vt [PureSub]
-w 0  a 10 t 0.001 0.25 0.0 0.20  N -12 0  # A pure, un-filtered sine wave for gut-scrambling punch
+w 0  a 10 t 0.001 0.50 0 0  N -12 0  # A pure, un-filtered sine wave lingering for gut-scrambling punch
 
 # Filter Stabs (Voices 6 and 8, high resonance)
 # J 1 2 applies the 'screamer' analog low-pass character so the resonance squelches.

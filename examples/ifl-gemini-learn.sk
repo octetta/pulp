@@ -94,10 +94,25 @@ y 0 yt [BarClock]
 # Pattern 1: Four-on-the-floor Drums
 y 1 yt [Drums]
 % 1
-[v0 l1] x 0   [v1 l1] x 1   [v2 l1] x 2   [v1 l1] x 3
-[v0 l1] x 4   [v1 l1] x 5   [v2 l1] x 6   [v1 l1] x 7
-[v0 l1] x 8   [v1 l1] x 9   [v2 l1] x 10  [v1 l1] x 11
-[v0 l1] x 12  [v1 l1] x 13  [v2 l1] x 14  [v1 l1] x 15
+[v 0 l 1]           x 0   # Beat 1: Kick
+[v 1 l 1]           x 1   #         Closed Hat
+[v 2 l 1]           x 2   #         Open Hat
+[v 1 l 1]           x 3   #         Closed Hat
+
+[v 0 l 1  v 3 l 1]  x 4   # Beat 2: Kick + Clap
+[v 1 l 1]           x 5   #         Closed Hat
+[v 2 l 1]           x 6   #         Open Hat
+[v 1 l 1]           x 7   #         Closed Hat
+
+[v 0 l 1]           x 8   # Beat 3: Kick
+[v 1 l 1]           x 9   #         Closed Hat
+[v 2 l 1]           x 10  #         Open Hat
+[v 1 l 1]           x 11  #         Closed Hat
+
+[v 0 l 1  v 3 l 1]  x 12  # Beat 4: Kick + Clap
+[v 1 l 1]           x 13  #         Closed Hat
+[v 2 l 1]           x 14  #         Open Hat
+[v 1 l 1]           x 15  #         Closed Hat
 
 # Patterns 2-5: The hypnotic 16th-note bassline in different keys
 y 2 yt [BassC]

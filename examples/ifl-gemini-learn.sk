@@ -112,10 +112,11 @@ w 18 a 3  t 0.8 0 1.0 2.0  J 1 0 K  700 Q 0.6 N 19 -5 g 0.15  r 2 ds 0.6  A 12 0
 # We send the root note to the Stabs (v 6) and Pads (v 7) only ONCE per measure.
 # If we updated their pitch on every 16th note, it would constantly interrupt 
 # their glissando (g) glide curve, causing a wobbly 'Zeno's paradox' effect!
-[RootC]  : v 6 n 36   v 7 n 36 ;
-[RootEb] : v 6 n 39   v 7 n 39 ;
-[RootF]  : v 6 n 41   v 7 n 41 ;
-[RootG]  : v 6 n 43   v 7 n 43 ;
+# (Note: Macro names are limited to 4 characters in Skode)
+[RtC]  : v 6 n 36   v 7 n 36 ;
+[RtEb] : v 6 n 39   v 7 n 39 ;
+[RtF]  : v 6 n 41   v 7 n 41 ;
+[RtG]  : v 6 n 43   v 7 n 43 ;
 
 # Pad chords (Just trigger v 7, it forwards velocity to v 9 via H link!)
 [PadC] : v 7 l 1 ;
@@ -163,25 +164,25 @@ y 1 yt [Drums]
 # Patterns 2-5: The hypnotic 16th-note bassline in different keys
 y 2 yt [BassC]
 % 1
-[RootC] x 0   [Bas 36] x 0  [Bas 36] x 2  [Bas 43] x 4  [Bas 46] x 6
+[RtC] x 0     [Bas 36] x 0  [Bas 36] x 2  [Bas 43] x 4  [Bas 46] x 6
 [Bas 36] x 8  [Bas 36] x 10 [Bas 43] x 12 [Bas 46] x 14
 [#] x 15
 
 y 3 yt [BassEb]
 % 1
-[RootEb] x 0  [Bas 39] x 0  [Bas 39] x 2  [Bas 46] x 4  [Bas 49] x 6
+[RtEb] x 0    [Bas 39] x 0  [Bas 39] x 2  [Bas 46] x 4  [Bas 49] x 6
 [Bas 39] x 8  [Bas 39] x 10 [Bas 46] x 12 [Bas 49] x 14
 [#] x 15
 
 y 4 yt [BassF]
 % 1
-[RootF] x 0   [Bas 41] x 0  [Bas 41] x 2  [Bas 48] x 4  [Bas 51] x 6
+[RtF] x 0     [Bas 41] x 0  [Bas 41] x 2  [Bas 48] x 4  [Bas 51] x 6
 [Bas 41] x 8  [Bas 41] x 10 [Bas 48] x 12 [Bas 51] x 14
 [#] x 15
 
 y 5 yt [BassG]
 % 1
-[RootG] x 0   [Bas 43] x 0  [Bas 43] x 2  [Bas 50] x 4  [Bas 53] x 6
+[RtG] x 0     [Bas 43] x 0  [Bas 43] x 2  [Bas 50] x 4  [Bas 53] x 6
 [Bas 43] x 8  [Bas 43] x 10 [Bas 50] x 12 [Bas 53] x 14
 [#] x 15
 

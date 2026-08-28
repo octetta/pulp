@@ -25,21 +25,30 @@ V -20
 # Delay Bus 1: Rhythmic syncopation for the Moog Bass
 DL 1 4 12 4 0 31 10
 DD 1 4 2
+DF 1 0
+DP 1 0
+DG 1 0 0
 
-# Delay Bus 2: Dotted-8th ping-pong for the Pad (351ms)
-DT 2 351
-DL 2 - - 6 2 4 6
+# Delay Bus 2: Dotted-8th ping-pong for the Pad
+DL 2 6 6 6 2 4 15
 DD 2 8 1
+DF 2 0
+DP 2 0
+DG 2 0 0
 
-# Delay Bus 3: Short metallic 'room' effect for Drums/Snare (40ms)
-DT 3 40
-DL 3 - - 3 0 0 4
+# Delay Bus 3: Short metallic 'room' effect for Drums/Snare
+DL 3 3 4 3 10 31 7
 DD 3 2 0
+DF 3 0
+DP 3 0
+DG 3 0 0
 
-# Delay Bus 4: Long sweeping delay for Vocals (468ms quarter note)
-DT 4 468
-DL 4 - - 7 1 5 7
+# Delay Bus 4: Long sweeping delay for Vocals
+DL 4 6 12 7 1 5 7
 DD 4 6 4
+DF 4 0
+DP 4 0
+DG 4 0 0
 
 # Load classic drum machine samples into K-Synth
 [sk/drums-kick.ks]  /ks 1 k>d d>r /r100

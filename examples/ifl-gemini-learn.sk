@@ -108,9 +108,14 @@ w 18 a 3  t 1.1 1.4 0.7 2.2      J 1 0 K  700 Q 0.6 N 0 -5  r 2 ds 0.6  A 12 0.4
 # Bass layer trigger (v 4 automatically triggers v 5 and v 13 via G and H links!)
 [Bas]  : v 4 n $$0 l 1 ;
 
+# Key tracking macros (Transposes the Pad and Stabs to match the Bass)
+[KeyC]  : v 6 N 0 v 8 N 0 v 7 N 0 v 9 N 0 ;
+[KeyEb] : v 6 N 3 v 8 N 3 v 7 N 3 v 9 N 3 ;
+[KeyF]  : v 6 N 5 v 8 N 5 v 7 N 5 v 9 N 5 ;
+[KeyG]  : v 6 N 7 v 8 N 7 v 7 N 7 v 9 N 7 ;
+
 # Pad chords (Note: Pad requires explicit l 0 to stop its sustain!)
 [PadC] : v 7 n 48 l 1   v 9 n 55 l 1 ;
-[PadF] : v 7 n 53 l 1   v 9 n 60 l 1 ;
 [PadO] : v 7 l 0        v 9 l 0 ;       # <--- The crucial note-off!
 
 # Stab chords
@@ -155,25 +160,25 @@ y 1 yt [Drums]
 # Patterns 2-5: The hypnotic 16th-note bassline in different keys
 y 2 yt [BassC]
 % 1
-[Bas 36] x 0  [Bas 36] x 2  [Bas 43] x 4  [Bas 46] x 6
+[KeyC] x 0    [Bas 36] x 0  [Bas 36] x 2  [Bas 43] x 4  [Bas 46] x 6
 [Bas 36] x 8  [Bas 36] x 10 [Bas 43] x 12 [Bas 46] x 14
 [#] x 15
 
 y 3 yt [BassEb]
 % 1
-[Bas 39] x 0  [Bas 39] x 2  [Bas 46] x 4  [Bas 49] x 6
+[KeyEb] x 0   [Bas 39] x 0  [Bas 39] x 2  [Bas 46] x 4  [Bas 49] x 6
 [Bas 39] x 8  [Bas 39] x 10 [Bas 46] x 12 [Bas 49] x 14
 [#] x 15
 
 y 4 yt [BassF]
 % 1
-[Bas 41] x 0  [Bas 41] x 2  [Bas 48] x 4  [Bas 51] x 6
+[KeyF] x 0    [Bas 41] x 0  [Bas 41] x 2  [Bas 48] x 4  [Bas 51] x 6
 [Bas 41] x 8  [Bas 41] x 10 [Bas 48] x 12 [Bas 51] x 14
 [#] x 15
 
 y 5 yt [BassG]
 % 1
-[Bas 43] x 0  [Bas 43] x 2  [Bas 50] x 4  [Bas 53] x 6
+[KeyG] x 0    [Bas 43] x 0  [Bas 43] x 2  [Bas 50] x 4  [Bas 53] x 6
 [Bas 43] x 8  [Bas 43] x 10 [Bas 50] x 12 [Bas 53] x 14
 [#] x 15
 

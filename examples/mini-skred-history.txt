@@ -1,40 +1,3 @@
-DL3 - - - - - 10
-DL3 - - - - - 9
-DL3 - - - - - 7
-DL3 - - - - 31 7
-DL3 - - - 1 31 7
-DL3 - - - 2 31 7
-DL3 - - - 10 31 7
-DL?
-??
-v0>10
-v0G10H10
-v10f220
-??
-v0r4
-v10r4
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg y8z1
-DL4 0 0 15 0 31 10
-v0ds.7
-??
-v11ds.7
-V-15
-/q
-[ifl-gemini-learn.sk]/ls 1
-y8 z1
-??
-v12m1
-/sg
-/q
-[ifl-gemini-learn.sk]/ls 1
-y8 z1
-/sg
-??
-v7?
-A12,1,0
-A12,2,0
 A12,3,0
 A12,1,0
 v12
@@ -97,4 +60,41 @@ y8 z1
 v0ds.7
 ?
 v11ds1
+/q
+[ifl-gemini-learn.sk]/ls 1
+/sg
+y8 z1
+Z0
+??
+v2l1
+v1l1
+v2l1
+v3l1
+v0l1
+?o
+?m
+Bas 30
+Bas 40
+StbC
+PadC
+PadF
+?
+DL?
+DL 3 - - - - 31 10
+DL?3
+DL 3 - - - 5 31 10
+DL 3 - - - 0 31 10
+DL?
+DL2 - - - 2 4 15
+DL2 - - - 2 4 15 DL?2
+DL2 - - - 0 4 15 DL?2
+DL2 - - - 1 4 15 DL?2
+DL2 - - - 1 3 15 DL?2
+DL2 - - - 1 2 15 DL?2
+v8z1
+??
+v7 a0
+v7 a5
+v9 a0
+v9a3
 /q

@@ -1,9 +1,3 @@
-DL?
-DL4 - - - - 31 15
-DL4 - - - - 31 15 DL? 4
-DL4 - - - 15 31 15 DL? 4
-v0?
-ds.1
 /q
 [ifl-gemini-learn.sk]/ls 1
 y8 z1
@@ -97,4 +91,10 @@ v9g.01
 [ifl-gemini-learn.sk]/ls 1
 /sg
 y8 z1
+/q
+[ifl-gemini-learn.sk]/ls 1
+/sg
+y8 z1
+V-15
+?m
 /q

@@ -175,7 +175,27 @@ void do_pattern(uint64_t now,
       for (int p = 0; p < PATTERNS_MAX; p++) {
         if (seq_pending_state[p] > 0) {
           int mod = seq_modulo[p] > 0 ? seq_modulo[p] : 1;
-          if (seq_pointer[0] == 0 || (master_tick % (uint64_t)mod) == 0) {
+          int len = seq_pattern_length[p] > 0 ? seq_pattern_length[p] : 1;
+          int p0_running = (seq_state[0] == SEQ_RUNNING);
+          int trigger = 0;
+          
+          if (p0_running) {
+             // If master orchestrator (0) is running, wait for its exact step 0 tick
+             if ((master_tick % (uint64_t)seq_modulo[0]) == 0) {
+                 int64_t t0 = (int64_t)(master_tick / (uint64_t)seq_modulo[0]);
+                 int len0 = seq_pattern_length[0] > 0 ? seq_pattern_length[0] : 1;
+                 int step0 = (int)((((t0 - seq_offset[0]) % (int64_t)len0) + (int64_t)len0) % (int64_t)len0);
+                 trigger = (step0 == 0);
+             }
+          } else {
+             // Otherwise wait for THIS pattern's exact modulo-wrap step 0
+             if ((master_tick % (uint64_t)mod) == 0) {
+                 int64_t tp = (int64_t)(master_tick / (uint64_t)mod);
+                 trigger = (tp % len) == 0;
+             }
+          }
+
+          if (trigger) {
             if (seq_pending_state[p] == 1) {
               seq_state[p] = SEQ_RUNNING;
               int64_t ticks_so_far = (int64_t)(master_tick / (uint64_t)mod);

@@ -1,6 +1,100 @@
-[qm_grok_guitar.sk]/ls
+[qm_grok_dark_techno.sk]/ls
+[qm_grok_dark_techno.ks]/ls
 y0z1
+??
+v0A30
+v0A-
+v0a30
+v1a20
+v1a30
+f220
+v0f220
+v5a20
+v5a30
+f220
+y0z1
+v5
+?
+J2
+K1000
+Q10
+Q5
+Q1
+K500
+K750
+DL?
+r1ds1
+DL2 7 0 15 0 31 10
+r2ds1
+DL2 4 0 15 0 31 10
+DL2 3 0 15 0 31 10
+y0z1
+?
+v10m1a0f5l1
+v5A10,1
+v10f10
+t 0 .25 0 0
+v5H10
+t 0 .125 0 0
+y0z1
+/q
+GS
+/h
+/h1
+?M
+?M0
+?M1
+?M2
+?M3
+?M4
+??
+?
+/l909
 /q
 [qm_grok_guitar.sk]/ls
 y0z1
+/q
+[ifl-extra.sk]/ls
+y0z1
+y8z1
+y1 ym 1 y1 ym 0
+??
+/q
+[ifl-extra.sk]/ls
+y0 z1
+y8 z1
+y1 ym 1
+y1 ym 0
+y6 ym 1
+y6 ym 0
+y2 zq 0 y3 zq 1
+y3 zq 0 y4 zq 1
+y2 zq 0 y3 zq 1
+y3 zq 0 y4 zq 1
+y4 zq 0 y5 zq 1
+/q
+M 128 16
+DT 1 115
+DL 1 - - 4 0 1 5
+DD 1 4 2
+DL?
+[sk/drums-kick-ks] /ks k>d d>r /r100
+[sk/drums-kick.ks] /ks k>d d>r /r100
+[sk/drums-chh.ks] /ks k>d d>r /r101
+[sk/drums-ohh.ks] /ks k>d d>r /r102
+[sk/drums-clap.ks] /ks k>d d>r /r103
+v 0 vt [Kick] w 100 f 440 a 11
+v0l1
+v 1 vt [ClosedHat] w 101 f 440 a 2
+v 2 vt [OpenHat] w 102 f 440 a 3.5
+v1l1
+v2l1
+v 3 vt [Clap] w 103 f 440 a 4
+v3l1
+v 4 vt [MoogBassL]
+w 15 a 0  t 0.001 0.18 0.0 0.15  J 1 K 270 Q 1.9  N 0  0  g 0.005  p -0.4 r 1 ds 3
+v4l1
+f440l1
+l1
+?
 /q

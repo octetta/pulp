@@ -2233,32 +2233,17 @@ static char _features_[65536] = {0};
 #define CAT(x) {strcat(_features_, #x);strcat(_features_," ");}
 char *skred_features(void) {
 _features_[0] = '\0';
-CAT(ADSR)
-CAT(AM)
-CAT(XM)
-CAT(BENCH)
-CAT(CRUSH)
-CAT(FADSR)
-CAT(FILT)
-CAT(FM)
-CAT(GLISS)
-CAT(PANMOD)
-CAT(PD)
-CAT(SAH)
-CAT(SEQ)
-CAT(SMOOTHER)
 #ifdef UDP
 CAT(UDP)
 #endif
 #ifdef KSYNTH
 CAT(KSYNTH)
 #endif
-CAT(MIDI)
-CAT(RECORD)
+//CAT(MIDI)
+//CAT(RECORD)
 #ifdef SCOPE
 CAT(SCOPE)
 #endif
-CAT(TRACKS)
 return _features_;
 }
 

@@ -156,7 +156,7 @@ y 1 yt [Song]
 [ /z 4 0 /z 5 1 /z 7 1 ] x 20          # Bar 21: Bass → F, Stabs return
 [ /z 5 0 /z 6 1 ] x 26                 # Bar 27: Bass → G
 [ /z 6 0 /z 3 1 ] x 32                 # Bar 33: Bass → C
-[ /z 7 0 /z 8 0 PadO ] x 38            # Bar 39: Drop all synths (release Pad)
+[ /z 3 0 /z 7 0 /z 8 0 PadO ] x 38     # Bar 39: Drop all synths (release Pad)
 [ /z 2 0 ] x 44                        # Bar 45: Stop drums, kill any tails
 [ /z 1 0 ] x 46                        # Bar 47: Stop song
 
@@ -189,28 +189,29 @@ y 2 yt [Drums]
 [v 1 l 1]           x 15  #         Closed Hat
 
 # Patterns 3-6: The hypnotic 16th-note bassline in different keys
+# (Notice how we combine [RtC] and [Bas 36] on step 0 so they don't overwrite!)
 y 3 yt [BassC]
 % 1
-[RtC] x 0     [Bas 36] x 0  [Bas 36] x 2  [Bas 43] x 4  [Bas 46] x 6
-[Bas 36] x 8  [Bas 36] x 10 [Bas 43] x 12 [Bas 46] x 14
+[RtC Bas 36] x 0  [Bas 36] x 2  [Bas 43] x 4  [Bas 46] x 6
+[Bas 36] x 8      [Bas 36] x 10 [Bas 43] x 12 [Bas 46] x 14
 [#] x 15
 
 y 4 yt [BassEb]
 % 1
-[RtEb] x 0    [Bas 39] x 0  [Bas 39] x 2  [Bas 46] x 4  [Bas 49] x 6
-[Bas 39] x 8  [Bas 39] x 10 [Bas 46] x 12 [Bas 49] x 14
+[RtEb Bas 39] x 0 [Bas 39] x 2  [Bas 46] x 4  [Bas 49] x 6
+[Bas 39] x 8      [Bas 39] x 10 [Bas 46] x 12 [Bas 49] x 14
 [#] x 15
 
 y 5 yt [BassF]
 % 1
-[RtF] x 0     [Bas 41] x 0  [Bas 41] x 2  [Bas 48] x 4  [Bas 51] x 6
-[Bas 41] x 8  [Bas 41] x 10 [Bas 48] x 12 [Bas 51] x 14
+[RtF Bas 41] x 0  [Bas 41] x 2  [Bas 48] x 4  [Bas 51] x 6
+[Bas 41] x 8      [Bas 41] x 10 [Bas 48] x 12 [Bas 51] x 14
 [#] x 15
 
 y 6 yt [BassG]
 % 1
-[RtG] x 0     [Bas 43] x 0  [Bas 43] x 2  [Bas 50] x 4  [Bas 53] x 6
-[Bas 43] x 8  [Bas 43] x 10 [Bas 50] x 12 [Bas 53] x 14
+[RtG Bas 43] x 0  [Bas 43] x 2  [Bas 50] x 4  [Bas 53] x 6
+[Bas 43] x 8      [Bas 43] x 10 [Bas 50] x 12 [Bas 53] x 14
 [#] x 15
 
 y 7 yt [Stabs]

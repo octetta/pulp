@@ -65,14 +65,18 @@ v 1 vt [ClosedHat] w 101 f 440 a 2   r 3 ds 0.2
 v 2 vt [OpenHat]   w 102 f 440 a 3.5 r 3 ds 0.3
 v 3 vt [Snare]     w 103 f 440 a 15 J 2 0 K 500 Q 2 r 3 ds 0.6
 
-# The Iconic Moroder Bass (Voices 4 and 5, layered & detuned)
+# The Iconic Moroder Bass (Voices 4, 5, and 13, layered & detuned)
 # We set sustain to 0.0 so the notes NEVER hang when you stop the pattern!
 # J 1 1 applies the 'driven' analog low-pass filter character for extra warmth.
+# Voice 4 links to 5 and 13 (G 5 13 H 5 13), so triggering v 4 plays all three!
 v 4 vt [MoogBassA]
-w 15 a 0  t 0.001 0.18 0.0 0.15  J 1 1 K 750 Q 2.5  N 0   0   g 0.005  r 1 ds 0.3
+w 15 a 0  t 0.001 0.18 0.0 0.15  J 1 1 K 750 Q 2.5  N 0   0   g 0.005  r 1 ds 0.3 G 5 13 H 5 13
 
 v 5 vt [MoogBassB]
 w 16 a 2  t 0.001 0.35 0.0 0.25  J 1 1 K 750 Q 2.5  N -12 10  g 0.005  r 1 ds 0.2
+
+v 13 vt [PureSub]
+w 0  a 10 t 0.001 0.25 0.0 0.20  N -12 0  # A pure, un-filtered sine wave for gut-scrambling punch
 
 # Filter Stabs (Voices 6 and 8, high resonance)
 # J 1 2 applies the 'screamer' analog low-pass character so the resonance squelches.
@@ -100,8 +104,8 @@ w 18 a-12 t 1.1 1.4 0.7 2.2      J 1 0 K  700 Q 0.6 N 0 -5  r 2 ds 0.6  A 12 0.4
 # (Execute this block to load the macros)
 # ----------------------------------------------------------------------
 
-# Bass layer trigger
-[Bas]  : v 4 n $$0 l 1  v 5 n $$0 l 1 ;
+# Bass layer trigger (v 4 automatically triggers v 5 and v 13 via G and H links!)
+[Bas]  : v 4 n $$0 l 1 ;
 
 # Pad chords (Note: Pad requires explicit l 0 to stop its sustain!)
 [PadC] : v 7 n 48 l 1   v 9 n 55 l 1 ;

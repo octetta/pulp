@@ -1,11 +1,3 @@
-A12,3,0
-A12,1,0
-v12
-?
-f10
-f110
-??
-a10
 a0
 w1
 /q
@@ -97,4 +89,12 @@ v7 a0
 v7 a5
 v9 a0
 v9a3
+/q
+[ifl-gemini-learn.sk]/ls 1
+/sg
+y8 z1
+/q
+[ifl-gemini-learn.sk]/ls 1
+/sg
+y8 z1
 /q

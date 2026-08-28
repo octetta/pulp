@@ -61,8 +61,8 @@ v 11 vt [SubKick]  w 100 f 220 a 15 r 4 ds 0.0 # Routed to Bus 4 for Skope2 / li
 # We use G (Link MIDI) and H (Link Velocity) to chain v 11 to v 0. 
 # Now any trigger sent to v 0 automatically triggers v 11 too!
 v 0 vt [Kick]      w 100 f 440 a 25 G 11 H 11 r 4 ds 0.0
-v 1 vt [ClosedHat] w 101 f 440 a 2   r 3 ds 0.2
-v 2 vt [OpenHat]   w 102 f 440 a 3.5 r 3 ds 0.3
+v 1 vt [ClosedHat] w 101 f 440 a 2   t 0.001 0.1 0 0  r 3 ds 0.2
+v 2 vt [OpenHat]   w 102 f 440 a 3.5 t 0.001 0.8 0 0  r 3 ds 0.3
 v 3 vt [Snare]     w 103 f 440 a 15 J 2 0 K 500 Q 2 r 3 ds 0.6
 
 # The Iconic Moroder Bass (Voices 4, 5, and 13, layered & detuned)

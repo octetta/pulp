@@ -131,12 +131,24 @@ w 18 a 3  t 0.8 0 1.0 2.0  J 1 0 K  700 Q 0.6 N 19 -5 g 0.15  r 2 ds 0.6  A 12 0
 # (Execute this block to load the musical sequences into memory)
 # ----------------------------------------------------------------------
 
-# Pattern 0: The "Bar Clock". This silent pattern loops every 16 steps 
-# (one measure). When we use `zq` to queue pattern changes, Skode waits 
-# for this pattern to hit Step 0, keeping everything in perfect sync.
-y 0 yt [BarClock]
-% 1
-[#] x 15
+# Pattern 0: The Orchestrator
+# This pattern runs at 1 step = 1 measure (% 16).
+# IMPORTANT: It MUST be y 0 so it evaluates first in Skode's pattern loop.
+# If a higher pattern triggers a lower pattern, the lower pattern skips step 0!
+y 0 yt [Song]
+% 16
+[ /z 1 1 ] x 0                         # Start: Drums only
+[ /z 2 1 ] x 4                         # Bar 5: Enter Bass (C)
+[ /z 6 1 /z 7 1 ] x 8                  # Bar 9: Enter Stabs + Pad
+[ /z 2 0 /z 3 1 ] x 12                 # Bar 13: Bass → Eb
+[ /z 6 0 ] x 16                        # Bar 17: Stabs drop out
+[ /z 3 0 /z 4 1 /z 6 1 ] x 20          # Bar 21: Bass → F, Stabs return
+[ /z 4 0 /z 5 1 ] x 26                 # Bar 27: Bass → G
+[ /z 5 0 /z 2 1 ] x 32                 # Bar 33: Bass → C
+[ /z 6 0 /z 7 0 PadO ] x 38            # Bar 39: Drop all synths (release Pad)
+[ /z 1 0 ] x 44                        # Bar 45: Stop drums, kill any tails
+[ /z 0 0 ] x 46                        # Bar 47: Stop song
+
 
 # Pattern 1: Four-on-the-floor Drums
 y 1 yt [Drums]
@@ -201,6 +213,12 @@ y 7 yt [Pad]
 [PadC] x 0
 [#] x 15
 
+# Pattern 15: The "Bar Clock"
+# Used for live jamming with `zq` commands to keep things quantized.
+y 15 yt [BarClock]
+% 1
+[#] x 15
+
 
 # ----------------------------------------------------------------------
 # STEP 4: LIVE PERFORMANCE GUIDE
@@ -208,7 +226,7 @@ y 7 yt [Pad]
 # Now you are ready to perform! Execute these commands one by one.
 
 # A. Start the Bar Clock (CRITICAL! This ensures `zq` commands sync properly)
-# y 0 z 1
+# y 15 z 1
 
 # B. Drop in the Drums (Start them immediately)
 # y 1 z 1
@@ -236,26 +254,6 @@ y 7 yt [Pad]
 # /z 0 0
 
 
-# ----------------------------------------------------------------------
-# STEP 5: THE HANDS-FREE ORCHESTRATOR
-# ----------------------------------------------------------------------
-# Want the machine to play it for you? We can create a master pattern 
-# that triggers `/z` commands automatically. 
-# Make sure to run `/z 0 0` to stop your live jam first!
-
-y 8 yt [Song]
-% 16
-[ /z 1 1 ] x 0                         # Start: Drums only
-[ /z 2 1 ] x 4                         # Bar 5: Enter Bass (C)
-[ /z 6 1 /z 7 1 ] x 8                  # Bar 9: Enter Stabs + Pad
-[ /z 2 0 /z 3 1 ] x 12                 # Bar 13: Bass → Eb
-[ /z 6 0 ] x 16                        # Bar 17: Stabs drop out
-[ /z 3 0 /z 4 1 /z 6 1 ] x 20          # Bar 21: Bass → F, Stabs return
-[ /z 4 0 /z 5 1 ] x 26                 # Bar 27: Bass → G
-[ /z 5 0 /z 2 1 ] x 32                 # Bar 33: Bass → C
-[ /z 6 0 /z 7 0 PadO ] x 38            # Bar 39: Drop all synths (release Pad)
-[ /z 1 0 ] x 44                        # Bar 45: Stop drums, kill any tails
-[ /z 0 0 ] x 46                        # Bar 47: Stop song
 
 # Play the full arrangement:
 # y 8 z 1
@@ -290,3 +288,11 @@ y 8 yt [Song]
 #    [v 10 w 104 n 60 l 1] x 12   # Trigger "I feel love..." on beat 4
 #
 # 5. Bring them in live perfectly on the next bar: `y 9 zq 1`
+# ----------------------------------------------------------------------
+# STEP 5: THE HANDS-FREE ORCHESTRATOR
+# ----------------------------------------------------------------------
+# Want the machine to play it for you? We moved the orchestrator to Pattern 0!
+# Make sure to run `/z 0 0` to stop your live jam first!
+
+# Play the full arrangement:
+# y 0 z 1

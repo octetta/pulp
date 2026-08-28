@@ -1,32 +1,3 @@
-??
-V-10
-V-15
-DL?
-/q
-[ifl-gemini-learn.sk]/ls 1
-y8z1
-??
-v5N-12,12
-v5N-12,10
-?
-??
-v4a3
-v4a0
-v5a5
-v5a2
-??
-v3 J2 K1000
-v3 J2 K1000 Q10
-v3 J2 K1000 Q5
-v3 J2 K1000 Q2
-v3 J2 K100 Q2
-v3 J2 K500 Q2
-a20
-a15
-??
-GS
-V-15
-/q
 [ifl-gemini-learn.sk]/ls 1
 y8z1
 DL?
@@ -97,4 +68,33 @@ f110
 a10
 a0
 w1
+/q
+[ifl-gemini-learn.sk]/ls 1
+/sg 1
+y8 z1
+??
+v13a20
+v13a15
+v13a20
+t .001 .25 0 .5
+Z0
+v13l1
+t .001 .25 0 1
+v13l1
+t .001 .25 0 0
+v13l1
+t .001 .5 0 0
+v13l1
+/q
+[ifl-gemini-learn.sk]/ls 1
+y8 z1
+/sg
+DL?
+DL4 - - - - 31 7
+DL?
+DL4 - - - - 31 15
+DL4 - - - - 31 15 DL? 4
+DL4 - - - 15 31 15 DL? 4
+v0?
+ds.1
 /q

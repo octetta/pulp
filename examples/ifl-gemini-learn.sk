@@ -43,8 +43,8 @@ DF 3 0
 DP 3 0
 DG 3 0 0
 
-# Delay Bus 4: Long sweeping delay for Vocals
-DL 4 6 12 7 1 5 7
+# Delay Bus 4: Heavily modulated rumble tailored for the Kick
+DL 4 0 12 7 1 31 7
 DD 4 6 4
 DF 4 0
 DP 4 0
@@ -235,16 +235,17 @@ y 7 yt [Pad]
 
 y 8 yt [Song]
 % 16
-[ /z 1 1 /z 2 1 ] x 0                  # Start: Drums + BassC
-[ /z 6 1 /z 7 1 ] x 4                  # Bar 5: Enter Stabs + Pad
-[ /z 2 0 /z 3 1 ] x 8                  # Bar 9: Bass → Eb
-[ /z 6 0 ] x 12                        # Bar 13: Stabs drop out
-[ /z 3 0 /z 4 1 /z 6 1 ] x 16          # Bar 17: Bass → F, Stabs return
-[ /z 4 0 /z 5 1 ] x 22                 # Bar 23: Bass → G
-[ /z 5 0 /z 2 1 ] x 28                 # Bar 29: Bass → C
-[ /z 6 0 /z 7 0 ] x 34                 # Bar 35: Drop all synths
-[ /z 1 0 PadO ] x 40                   # Bar 41: Stop drums, kill any tails
-[ /z 0 0 ] x 42                        # Bar 43: Stop song
+[ /z 1 1 ] x 0                         # Start: Drums only
+[ /z 2 1 ] x 4                         # Bar 5: Enter Bass (C)
+[ /z 6 1 /z 7 1 ] x 8                  # Bar 9: Enter Stabs + Pad
+[ /z 2 0 /z 3 1 ] x 12                 # Bar 13: Bass → Eb
+[ /z 6 0 ] x 16                        # Bar 17: Stabs drop out
+[ /z 3 0 /z 4 1 /z 6 1 ] x 20          # Bar 21: Bass → F, Stabs return
+[ /z 4 0 /z 5 1 ] x 26                 # Bar 27: Bass → G
+[ /z 5 0 /z 2 1 ] x 32                 # Bar 33: Bass → C
+[ /z 6 0 /z 7 0 ] x 38                 # Bar 39: Drop all synths
+[ /z 1 0 PadO ] x 44                   # Bar 45: Stop drums, kill any tails
+[ /z 0 0 ] x 46                        # Bar 47: Stop song
 
 # Play the full arrangement:
 # y 8 z 1

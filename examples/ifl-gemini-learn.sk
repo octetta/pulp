@@ -30,7 +30,7 @@ DP 1 0
 DG 1 0 0
 
 # Delay Bus 2: Dotted-8th ping-pong for the Pad
-DL 2 6 6 6 2 4 15
+DL 2 6 6 6 1 2 15
 DD 2 8 1
 DF 2 0
 DP 2 0

@@ -1,16 +1,3 @@
-v13l1
-t .001 .25 0 1
-v13l1
-t .001 .25 0 0
-v13l1
-t .001 .5 0 0
-v13l1
-/q
-[ifl-gemini-learn.sk]/ls 1
-y8 z1
-/sg
-DL?
-DL4 - - - - 31 7
 DL?
 DL4 - - - - 31 15
 DL4 - - - - 31 15 DL? 4
@@ -97,4 +84,17 @@ v7g.01
 ??
 v6H8
 v7H9
+/q
+[ifl-gemini-learn.sk]/ls 1
+/sg
+y8 z1
+??
+v8g.01
+v9g.01
+/q
+[ifl-gemini-learn.sk]/ls 1
+/q
+[ifl-gemini-learn.sk]/ls 1
+/sg
+y8 z1
 /q

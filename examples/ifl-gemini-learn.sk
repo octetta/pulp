@@ -1,0 +1,208 @@
+# ======================================================================
+# WELCOME TO SKODE: "I FEEL LOVE" LIVE-CODING MASTERCLASS
+# ======================================================================
+# This interactive script will teach you how to perform a track live using 
+# Skode's sequencer. We will build Donna Summer's legendary 1977 disco 
+# anthem step-by-step.
+#
+# HOW TO USE THIS GUIDE:
+# Do not run the whole file at once! Execute blocks of commands section by 
+# section to understand how the song gets built and how to control it.
+# ======================================================================
+
+# ----------------------------------------------------------------------
+# STEP 1: INITIALIZE THE ENGINE & SOUNDS
+# (Highlight and execute this block to set up the instruments)
+# ----------------------------------------------------------------------
+
+# Set tempo to 128 BPM with a 16th-note grid (subdivision 16)
+M 128 16
+
+# Drop master volume slightly for headroom
+V -20
+
+# Set up a classic disco delay (ping-pong, slightly dark)
+DT 1 115
+DL 1 - - 4 0 1 5
+DD 1 4 2
+
+# Load classic drum machine samples into K-Synth
+[sk/drums-kick.ks]  /ks 1 k>d d>r /r100
+[sk/drums-chh.ks]   /ks 1 k>d d>r /r101
+[sk/drums-ohh.ks]   /ks 1 k>d d>r /r102
+[sk/drums-clap.ks]  /ks 1 k>d d>r /r103
+
+# Assign drum voices (0 to 3)
+v 0 vt [Kick]      w 100 f 440 a 11
+v 1 vt [ClosedHat] w 101 f 440 a 2
+v 2 vt [OpenHat]   w 102 f 440 a 3.5
+v 3 vt [Clap]      w 103 f 440 a 4
+
+# The Iconic Moroder Bass (Voices 4 and 5, layered & panned)
+# We set sustain to 0.0 so the notes NEVER hang when you stop the pattern!
+v 4 vt [MoogBassL]
+w 15 a 0  t 0.001 0.18 0.0 0.15  J 1 K 270 Q 1.9  N 0  0  g 0.005  p -0.4 r 1 ds 3
+
+v 5 vt [MoogBassR]
+w 16 a -4 t 0.001 0.18 0.0 0.15  J 1 K 290 Q 1.7  N 0  8  g 0.005  p  0.4 r 1 ds 2
+
+# Filter Stabs (Voices 6 and 8, high resonance)
+v 6 vt [StabL]
+w 15 a -2 t 0.008 0.22 0.0 0.25  J 1 K 1800 Q 1.3 N 0  0  p -0.6 r 1 ds 2
+
+v 8 vt [StabR]
+w 16 a -6 t 0.008 0.22 0.0 0.25  J 1 K 1900 Q 1.2 N 0  6  p  0.6 r 1 ds 2
+
+# Ethereal Pad (Voices 7 and 9, slow attack)
+# This has a high sustain (0.7), so it MUST have note-offs in its pattern.
+v 7 vt [PadL]
+w 15 a -8 t 1.1 1.4 0.7 2.2      J 1 K  650 Q 0.7 N 0  0  p -0.8 r 1 ds 4
+
+v 9 vt [PadR]
+w 18 a-12 t 1.1 1.4 0.7 2.2      J 1 K  700 Q 0.6 N 0 -5  p  0.8 r 1 ds 4
+
+
+# ----------------------------------------------------------------------
+# STEP 2: MACROS (Shortcuts for chords and layers)
+# (Execute this block to load the macros)
+# ----------------------------------------------------------------------
+
+# Bass layer trigger
+[Bas]  : v 4 n $$0 l 1  v 5 n $$0 l 1 ;
+
+# Pad chords (Note: Pad requires explicit l 0 to stop its sustain!)
+[PadC] : v 7 n 48 l 1   v 9 n 55 l 1 ;
+[PadF] : v 7 n 53 l 1   v 9 n 60 l 1 ;
+[PadO] : v 7 l 0        v 9 l 0 ;       # <--- The crucial note-off!
+
+# Stab chords
+[StbC] : v 6 n 72 l 1   v 8 n 79 l 1 ;
+
+
+# ----------------------------------------------------------------------
+# STEP 3: PATTERNS
+# (Execute this block to load the musical sequences into memory)
+# ----------------------------------------------------------------------
+
+# Pattern 0: The "Bar Clock". This silent pattern loops every 16 steps 
+# (one measure). When we use `zq` to queue pattern changes, Skode waits 
+# for this pattern to hit Step 0, keeping everything in perfect sync.
+y 0 yt [BarClock]
+% 1
+[#] x 15
+
+# Pattern 1: Four-on-the-floor Drums
+y 1 yt [Drums]
+% 1
+[v0 l1] x 0   [v1 l1] x 1   [v2 l1] x 2   [v1 l1] x 3
+[v0 l1] x 4   [v1 l1] x 5   [v2 l1] x 6   [v1 l1] x 7
+[v0 l1] x 8   [v1 l1] x 9   [v2 l1] x 10  [v1 l1] x 11
+[v0 l1] x 12  [v1 l1] x 13  [v2 l1] x 14  [v1 l1] x 15
+
+# Patterns 2-5: The hypnotic 16th-note bassline in different keys
+y 2 yt [BassC]
+% 1
+[Bas 36] x 0  [Bas 36] x 2  [Bas 43] x 4  [Bas 46] x 6
+[Bas 36] x 8  [Bas 36] x 10 [Bas 43] x 12 [Bas 46] x 14
+[#] x 15
+
+y 3 yt [BassEb]
+% 1
+[Bas 39] x 0  [Bas 39] x 2  [Bas 46] x 4  [Bas 49] x 6
+[Bas 39] x 8  [Bas 39] x 10 [Bas 46] x 12 [Bas 49] x 14
+[#] x 15
+
+y 4 yt [BassF]
+% 1
+[Bas 41] x 0  [Bas 41] x 2  [Bas 48] x 4  [Bas 51] x 6
+[Bas 41] x 8  [Bas 41] x 10 [Bas 48] x 12 [Bas 51] x 14
+[#] x 15
+
+y 5 yt [BassG]
+% 1
+[Bas 43] x 0  [Bas 43] x 2  [Bas 50] x 4  [Bas 53] x 6
+[Bas 43] x 8  [Bas 43] x 10 [Bas 50] x 12 [Bas 53] x 14
+[#] x 15
+
+# Pattern 6: Rhythmic Stabs
+y 6 yt [Stabs]
+% 1
+[StbC] x 0
+[StbC] x 8
+[#] x 15
+
+# Pattern 7: Sustained Pads (with explicit Note-Off!)
+y 7 yt [Pad]
+% 1
+[PadC] x 0
+[PadO] x 14   # Release the pad just before the bar ends so it breathes
+[#] x 15
+
+
+# ----------------------------------------------------------------------
+# STEP 4: LIVE PERFORMANCE GUIDE
+# ----------------------------------------------------------------------
+# Now you are ready to perform! Execute these commands one by one.
+
+# A. Start the Bar Clock (CRITICAL! This ensures `zq` commands sync properly)
+# y 0 z 1
+
+# B. Drop in the Drums (Start them immediately)
+# y 1 z 1
+
+# C. Drop in the Bass (Start it immediately)
+# y 2 z 1
+
+# D. Queue a chord change (Try this! It will wait for the next bar perfectly)
+# y 2 zq 0  y 3 zq 1
+
+# E. Perform the progression (Wait for each measure to land)
+# y 3 zq 0  y 4 zq 1
+# y 4 zq 0  y 5 zq 1
+# y 5 zq 0  y 2 zq 1
+
+# F. Phase-Safe Muting (Mute the drums, then bring them back)
+# y 1 ym 1
+# y 1 ym 0
+
+# G. Bring in the extra layers
+# y 6 z 1
+# y 7 z 1
+
+# H. Hard Stop (Kills all patterns)
+# /z 0 0
+
+
+# ----------------------------------------------------------------------
+# STEP 5: THE HANDS-FREE ORCHESTRATOR
+# ----------------------------------------------------------------------
+# Want the machine to play it for you? We can create a master pattern 
+# that triggers `/z` commands automatically. 
+# Make sure to run `/z 0 0` to stop your live jam first!
+
+y 8 yt [Song]
+% 16
+[ /z 1 1 /z 2 1 ] x 0                  # Start: Drums + BassC
+[ /z 6 1 /z 7 1 ] x 4                  # Bar 5: Enter Stabs + Pad
+[ /z 2 0 /z 3 1 ] x 8                  # Bar 9: Bass → Eb
+[ /z 6 0 ] x 12                        # Bar 13: Stabs drop out
+[ /z 3 0 /z 4 1 /z 6 1 ] x 16          # Bar 17: Bass → F, Stabs return
+[ /z 4 0 /z 5 1 ] x 22                 # Bar 23: Bass → G
+[ /z 5 0 /z 2 1 ] x 28                 # Bar 29: Bass → C
+[ /z 6 0 /z 7 0 ] x 34                 # Bar 35: Drop all synths
+[ /z 1 0 PadO ] x 40                   # Bar 41: Stop drums, kill any tails
+[ /z 0 0 ] x 42                        # Bar 43: Stop song
+
+# Play the full arrangement:
+# y 8 z 1
+
+
+# ----------------------------------------------------------------------
+# OPTIONAL: ADDING VOCALS
+# ----------------------------------------------------------------------
+# Want to add Donna Summer's actual vocal? It's easy:
+# 1. Place a 16-bit 44.1kHz mono WAV inside the `sk/` folder.
+# 2. Load it:  [sk/donna-vocal.wav] /ks 2 k>d d>r /r104
+# 3. Voice it: v 10 vt [Vocal] w 104 f 440 a 0
+# 4. Play it:  y 9 yt [VocPattern] % 1 [v 10 n 60 l 1] x 0
+# 5. Trigger it live using `y 9 zq 1`!

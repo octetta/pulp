@@ -1,0 +1,201 @@
+# ----------------------------------------------------------------------
+# OMD – The Future Will Be Silent
+# Faithful-leaning Skode arrangement (English Electric era)
+# Vocals = placeholders for your samples
+# ----------------------------------------------------------------------
+
+M 119 16
+
+# Subtle space
+DT 1 280
+DL 1 - - 6 0 2 6
+DD 1 7 3
+
+# ======================================================================
+# K-SYNTH DRUMS (light, not dominant)
+# ======================================================================
+[sk/drums-kick.ks]  /ks 1 k>d d>r /r100
+[sk/drums-chh.ks]   /ks 1 k>d d>r /r101
+[sk/drums-clap.ks]  /ks 1 k>d d>r /r102
+[sk/drums-rim.ks]   /ks 1 k>d d>r /r103
+
+# ======================================================================
+# VOICES
+# ======================================================================
+
+# Kick / percussion
+v 0 w100 f440 a9
+v 1 w101 f440 a3.5          # closed hat
+v 2 w102 f440 a5            # clap
+v 3 w103 f440 a4            # rim
+
+# Bass (deep, clean OMD-style)
+v 4
+w 2 a 0.55
+t 0.01 0.4 0.6 0.3
+J 1 K 180 Q 1.2
+N 0 0
+
+# Pad / atmosphere
+v 5
+w 18 a 0.28
+t 0.8 1.2 0.7 1.5
+J 1 K 900 Q 0.6
+N 0 0
+p 0 r 1 ds 4
+
+# Lead / motif (simple, slightly detuned)
+v 6
+w 19 a 0.32
+t 0.05 0.3 0.4 0.4
+J 1 K 1400 Q 1.1
+N 0 4
+g 0.03
+
+v 7
+w 19 a 0.28
+t 0.05 0.3 0.4 0.4
+J 1 K 1400 Q 1.1
+N 0 -5
+g 0.03
+
+# Vocal placeholder voices (will be replaced by samples)
+v 8 a 0.7
+v 9 a 0.7
+
+# ======================================================================
+# MACROS
+# ======================================================================
+
+# --- Vocal placeholders (swap these for real sample triggers later) ---
+[VoxA] : v8 n 60 l1 ;          # “What does the future sound like?”
+[VoxB] : v8 n 60 l1 ;          # “Go” / “Stop, Go”
+[VoxC] : v8 n 60 l1 ;          # “The future will be silent”
+[VoxD] : v9 n 60 l1 ;          # “The future was not supposed to be like this”
+[VoxE] : v9 n 60 l1 ;          # “Silent” / “Where is the paradise…”
+[VoxF] : v9 n 60 l1 ;          # “The future is the shadow of today”
+
+[offV] : v8 l0 v9 l0 ;
+
+# Bass
+[BasA] : v4 n 36 l1 ;          # root
+[BasB] : v4 n 39 l1 ;
+[BasC] : v4 n 41 l1 ;
+[BasD] : v4 n 43 l1 ;
+
+# Pad chords (simple minor colours)
+[PadA] : v5 n 48 l1 ;          # low pad root
+[PadB] : v5 n 51 l1 ;
+[PadC] : v5 n 53 l1 ;
+
+# Lead motif (short, repeating figure)
+[MotA] : v6 n 60 l1  v7 n 67 l1 ;
+[MotB] : v6 n 63 l1  v7 n 70 l1 ;
+[MotC] : v6 n 65 l1  v7 n 72 l1 ;
+[MotD] : v6 n 67 l1  v7 n 74 l1 ;
+
+[offL] : v6 l0 v7 l0 ;
+[offP] : v5 l0 ;
+[offB] : v4 l0 ;
+
+# ======================================================================
+# PATTERN 1 – Drums (16 steps, sparse)
+# ======================================================================
+y1
+% 1
+[v0 l1] x0
+[v1 l1] x2
+[v1 l1] x4
+[v2 l1] x8
+[v1 l1] x10
+[v3 l1] x12
+[v1 l1] x14
+[#] x15
+
+# ======================================================================
+# PATTERN 2 – Bass + Pad foundation
+# ======================================================================
+y2
+% 1
+[BasA] x0
+[PadA] x0
+[offB] x6
+[BasB] x8
+[PadB] x8
+[offB] x14
+[#] x15
+
+# ======================================================================
+# PATTERN 3 – Lead motif
+# ======================================================================
+y3
+% 1
+[MotA] x0
+[offL] x3
+[MotB] x4
+[offL] x7
+[MotC] x8
+[offL] x11
+[MotD] x12
+[offL] x15
+[#] x15
+
+# ======================================================================
+# PATTERN 4 – Vocal section A (“What does the future…”)
+# ======================================================================
+y4
+% 1
+[VoxA] x0
+[VoxB] x4
+[VoxA] x8
+[VoxB] x12
+[#] x15
+
+# ======================================================================
+# PATTERN 5 – Vocal section B (“The future will be silent” + refrain)
+# ======================================================================
+y5
+% 1
+[VoxC] x0
+[VoxC] x4
+[VoxD] x8
+[VoxD] x12
+[#] x15
+
+# ======================================================================
+# PATTERN 6 – Closing vocal ideas
+# ======================================================================
+y6
+% 1
+[VoxE] x0
+[VoxF] x8
+[#] x15
+
+# ======================================================================
+# MASTER – simple song form
+# ======================================================================
+y0
+% 16
+
+# Intro – drums + atmosphere
+[ /z 1 1 /z 2 1 ] x0
+
+# Motif enters
+[ /z 3 1 ] x4
+
+# First vocal section
+[ /z 4 1 ] x8
+
+# Refrain
+[ /z 4 0 /z 5 1 ] x16
+
+# Second pass + motif
+[ /z 5 0 /z 4 1 /z 3 1 ] x24
+
+# Closing lines
+[ /z 4 0 /z 6 1 ] x32
+
+# Wind down
+[ /z 6 0 /z 3 0 /z 2 0 offV offL offP offB ] x40
+[ /z 1 0 ] x44
+[ /z 0 0 ] x48

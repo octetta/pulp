@@ -1,0 +1,217 @@
+# ----------------------------------------------------------------------
+# New Order – Blue Monday
+# Skode arrangement (classic 1983 feel)
+# ----------------------------------------------------------------------
+
+M 130 16
+
+# Tight, slightly dark delay
+DT 1 190
+DL 1 - - 5 0 2 6
+DD 1 6 2
+
+# ======================================================================
+# K-SYNTH DRUMS
+# ======================================================================
+[sk/drums-kick.ks]   /ks 1 k>d d>r /r100
+[sk/drums-snare.ks]  /ks 1 k>d d>r /r101
+[sk/drums-chh.ks]    /ks 1 k>d d>r /r102
+[sk/drums-ohh.ks]    /ks 1 k>d d>r /r103
+[sk/drums-clap.ks]   /ks 1 k>d d>r /r104
+
+# ======================================================================
+# VOICES
+# ======================================================================
+
+# Drums
+v 0 w100 f440 a11          # kick
+v 1 w101 f440 a7           # snare
+v 2 w102 f440 a3.2         # closed hat
+v 3 w103 f440 a4.5         # open hat
+v 4 w104 f440 a5           # clap
+
+# Synth Bass (classic jumping octaves)
+v 5
+w 2 a 0.62
+t 0.005 0.25 0.5 0.2
+J 1 K 220 Q 1.6
+N 0 0
+g 0.01
+
+# Sequencer / arpeggio
+v 6
+w 18 a 0.38
+t 0.01 0.15 0.3 0.1
+J 1 K 1600 Q 1.4
+N 0 3
+g 0.008
+
+v 7
+w 18 a 0.32
+t 0.01 0.15 0.3 0.1
+J 1 K 1600 Q 1.4
+N 0 -4
+g 0.008
+
+# Pad / choir-ish atmosphere
+v 8
+w 19 a 0.26
+t 1.0 1.5 0.7 2.0
+J 1 K 700 Q 0.7
+N 0 0
+p 0 r 1 ds 4
+
+# Vocal placeholders
+v 9 a 0.65
+v 10 a 0.65
+
+# ======================================================================
+# MACROS
+# ======================================================================
+
+# Bass notes (D minor family)
+[BasD] : v5 n 38 l1 ;          # D
+[BasF] : v5 n 41 l1 ;          # F
+[BasG] : v5 n 43 l1 ;          # G
+[BasA] : v5 n 45 l1 ;          # A
+[BasC] : v5 n 36 l1 ;          # C
+[BasO] : v5 n 50 l1 ;          # higher D octave jump
+
+[offB] : v5 l0 ;
+
+# Sequencer stabs
+[SeqA] : v6 n 62 l1  v7 n 69 l1 ;
+[SeqB] : v6 n 65 l1  v7 n 72 l1 ;
+[SeqC] : v6 n 67 l1  v7 n 74 l1 ;
+[SeqD] : v6 n 69 l1  v7 n 76 l1 ;
+
+[offS] : v6 l0 v7 l0 ;
+
+# Pad
+[PadD] : v8 n 50 l1 ;
+[PadF] : v8 n 53 l1 ;
+[PadA] : v8 n 57 l1 ;
+
+[offP] : v8 l0 ;
+
+# Vocal placeholders
+[VoxA] : v9 n 60 l1 ;          # “How does it feel…”
+[VoxB] : v10 n 60 l1 ;         # “Tell me now…”
+[offV] : v9 l0 v10 l0 ;
+
+# ======================================================================
+# PATTERN 1 – Classic Blue Monday drums (16 steps)
+# Kick on 1 & 9, snare on 5 & 13, open hats on the ands, light fill energy
+# ======================================================================
+y1
+% 1
+[v0 l1] x0                # kick
+[v2 l1] x1
+[v3 l1] x2                # open hat
+[v2 l1] x3
+[v1 l1] x4                # snare
+[v2 l1] x5
+[v3 l1] x6
+[v2 l1] x7
+[v0 l1] x8                # kick
+[v2 l1] x9
+[v3 l1] x10
+[v2 l1] x11
+[v1 l1] x12               # snare
+[v2 l1] x13
+[v3 l1] x14
+[v2 l1] x15
+[#] x15
+
+# ======================================================================
+# PATTERN 2 – Bass (octave jumps + movement)
+# ======================================================================
+y2
+% 1
+[BasD] x0
+[BasO] x2
+[BasD] x4
+[BasF] x6
+[BasG] x8
+[BasA] x10
+[BasC] x12
+[BasD] x14
+[#] x15
+
+# ======================================================================
+# PATTERN 3 – Sequencer / arpeggio
+# ======================================================================
+y3
+% 1
+[SeqA] x0
+[offS] x1
+[SeqA] x2
+[offS] x3
+[SeqB] x4
+[offS] x5
+[SeqB] x6
+[offS] x7
+[SeqC] x8
+[offS] x9
+[SeqC] x10
+[offS] x11
+[SeqD] x12
+[offS] x13
+[SeqD] x14
+[offS] x15
+[#] x15
+
+# ======================================================================
+# PATTERN 4 – Pad bed
+# ======================================================================
+y4
+% 1
+[PadD] x0
+[PadF] x8
+[#] x15
+
+# ======================================================================
+# PATTERN 5 – Vocal placeholders (verse-ish)
+# ======================================================================
+y5
+% 1
+[VoxA] x0
+[VoxB] x8
+[#] x15
+
+# ======================================================================
+# MASTER – long form sketch
+# ======================================================================
+y0
+% 16
+
+# Intro – drums alone
+[ /z 1 1 ] x0
+
+# Bass enters
+[ /z 2 1 ] x4
+
+# Sequencer + pad
+[ /z 3 1 /z 4 1 ] x8
+
+# First vocal section
+[ /z 5 1 ] x16
+
+# Drop vocals, keep groove
+[ /z 5 0 ] x24
+
+# Second vocal pass
+[ /z 5 1 ] x32
+
+# Breakdown feel (thin it out)
+[ /z 3 0 /z 5 0 ] x40
+
+# Rebuild
+[ /z 3 1 /z 5 1 ] x48
+
+# Final stretch
+[ /z 5 0 ] x56
+
+# End
+[ /z 1 0 /z 2 0 /z 3 0 /z 4 0 offB offS offP offV ] x64
+[ /z 0 0 ] x66

@@ -1,0 +1,241 @@
+# ----------------------------------------------------------------------
+# Donna Summer – I Feel Love
+# Live-coding / CLI / calculator-ey teaching version
+# ----------------------------------------------------------------------
+#
+# HOW TO PLAY
+# -----------
+# 1. Load:
+#      [examples/i_feel_love.sk] /ls
+#
+# 2. Start:
+#      y0 z1
+#
+# 3. Live moves (type these while it runs):
+#
+#    Mute drums (keeps phase)     →  y1 ym 1
+#    Unmute drums                 →  y1 ym 0
+#
+#    Mute stabs                   →  y6 ym 1
+#    Unmute stabs                 →  y6 ym 0
+#
+#    Mute pad                     →  y7 ym 1
+#    Unmute pad                   →  y7 ym 0
+#
+#    Jump bass key (restarts)     →  y2 z0  y3 z1     (C → Eb)
+#                                 →  y3 z0  y4 z1     (Eb → F)
+#                                 →  y4 z0  y5 z1     (F → G)
+#                                 →  y5 z0  y2 z1     (G → C)
+#
+#    Master level drop            →  V -9
+#    Restore level                →  V 0
+#
+#    Kill delay                   →  DL 1 0 0 0 0 0 0
+#    Restore classic delay        →  DL 1 - - 4 0 1 5
+#
+#    Hard stop                    →  /z 0 0
+#
+# Note: ym mutes keep the pattern running in phase.
+#       z0 / z1 stop & restart (phase resets) — only use when you want that.
+# ----------------------------------------------------------------------
+
+M 128 16
+
+DT 1 115
+DL 1 - - 4 0 1 5
+DD 1 4 2
+
+# ======================================================================
+# K-SYNTH DRUMS
+# ======================================================================
+[sk/drums-kick.ks]  /ks 1 k>d d>r /r100
+[sk/drums-chh.ks]   /ks 1 k>d d>r /r101
+[sk/drums-ohh.ks]   /ks 1 k>d d>r /r102
+[sk/drums-clap.ks]  /ks 1 k>d d>r /r103
+
+# ======================================================================
+# VOICES  (a is dB: a0 = normal, negative = quieter)
+# ======================================================================
+
+v 0 vt [Kick]
+w100 f440 a11
+
+v 1 vt [ClosedHat]
+w101 f440 a2
+
+v 2 vt [OpenHat]
+w102 f440 a3.5
+
+v 3 vt [Clap]
+w103 f440 a4
+
+# Main Moog bass (saw)
+v 4 vt [MoogBass]
+w 15 a0
+t 0.001 0.18 0.15 0.08
+J 1 K 270 Q 1.9
+N 0 0
+g 0.005
+H 5
+G 5
+r 1 ds 3
+
+# Linked square (quieter + classic delay offset)
+v 5 vt [MoogBassSq]
+w 16 a-4
+t 0.001 0.18 0.15 0.08
+J 1 K 290 Q 1.7
+N 0 8
+g 0.005
+L 0.04
+r 1 ds 2
+
+# High stab pair
+v 6 vt [HighStab]
+w 15 a-2
+t 0.008 0.22 0.25 0.15
+J 1 K 1800 Q 1.3
+N 0 0
+H 8
+G 8
+r 1 ds 2
+
+v 8 vt [HighStab2]
+w 16 a-6
+t 0.008 0.22 0.25 0.15
+J 1 K 1900 Q 1.2
+N 0 6
+r 1 ds 2
+
+# Pad pair
+v 7 vt [Pad]
+w 15 a-8
+t 1.1 1.4 0.7 2.2
+J 1 K 650 Q 0.7
+N 0 0
+H 9
+G 9
+r 1 ds 4
+
+v 9 vt [Pad2]
+w 18 a-12
+t 1.1 1.4 0.7 2.2
+J 1 K 700 Q 0.6
+N 0 -5
+r 1 ds 4
+
+# ======================================================================
+# MACROS
+# ======================================================================
+
+[Seq] : v4 n $$0 l1 ;
+
+[offB] : v4 l0 v5 l0 ;
+[offS] : v6 l0 v8 l0 ;
+[offP] : v7 l0 v9 l0 ;
+
+# ======================================================================
+# PATTERNS
+# ======================================================================
+
+y0 yt [Master]
+% 16
+[ /z 1 1 ] x0
+[ /z 2 1 ] x4
+[ /z 6 1 /z 7 1 ] x8
+[ /z 2 0 /z 3 1 ] x16
+[ /z 6 0 ] x24
+[ /z 3 0 /z 4 1 /z 6 1 ] x32
+[ /z 4 0 /z 5 1 ] x44
+[ /z 5 0 /z 2 1 ] x56
+[ /z 6 0 /z 7 0 ] x68
+[ /z 7 1 ] x80
+[ /z 2 0 /z 3 1 ] x92
+[ /z 3 0 /z 4 1 ] x100
+[ /z 4 0 /z 5 1 ] x108
+[ /z 5 0 /z 2 1 /z 6 1 ] x116
+[ /z 6 0 /z 7 0 ] x128
+[ /z 1 0 /z 2 0 offB offS offP ] x136
+[ /z 0 0 ] x140
+
+y1 yt [Drums]
+% 1
+[v0 l1] x0
+[v1 l1] x1
+[v2 l1] x2
+[v1 l1] x3
+[v0 l1] x4
+[v1 l1] x5
+[v2 l1] x6
+[v1 l1] x7
+[v0 l1] x8
+[v1 l1] x9
+[v2 l1] x10
+[v1 l1] x11
+[v0 l1] x12
+[v1 l1] x13
+[v2 l1] x14
+[v1 l1] x15
+[#] x15
+
+y2 yt [BassC]
+% 1
+[Seq 36] x0
+[Seq 36] x2
+[Seq 43] x4
+[Seq 46] x6
+[Seq 36] x8
+[Seq 36] x10
+[Seq 43] x12
+[Seq 46] x14
+[#] x15
+
+y3 yt [BassEb]
+% 1
+[Seq 39] x0
+[Seq 39] x2
+[Seq 46] x4
+[Seq 49] x6
+[Seq 39] x8
+[Seq 39] x10
+[Seq 46] x12
+[Seq 49] x14
+[#] x15
+
+y4 yt [BassF]
+% 1
+[Seq 41] x0
+[Seq 41] x2
+[Seq 48] x4
+[Seq 51] x6
+[Seq 41] x8
+[Seq 41] x10
+[Seq 48] x12
+[Seq 51] x14
+[#] x15
+
+y5 yt [BassG]
+% 1
+[Seq 43] x0
+[Seq 43] x2
+[Seq 50] x4
+[Seq 53] x6
+[Seq 43] x8
+[Seq 43] x10
+[Seq 50] x12
+[Seq 53] x14
+[#] x15
+
+y6 yt [Stabs]
+% 1
+[v6 n 72 l1] x0
+[offS] x2
+[v6 n 72 l1] x8
+[offS] x10
+[#] x15
+
+y7 yt [Pad]
+% 1
+[v7 n 48 l1] x0
+[v7 n 55 l1] x8
+[#] x15

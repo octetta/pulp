@@ -1114,7 +1114,7 @@ int skode_dict_unpromote_macro(skode_vocab_t *vocab, const char *name) {
 
 skode_word_t *skode_dict_promote_macro(skode_vocab_t *vocab,
     const char *name, const char *body) {
-  if (!vocab || !name || !name[0] || !body || !body[0]) return NULL;
+  if (!vocab) { printf("v\n"); return NULL; } if (!name) { printf("n\n"); return NULL; } if (!name[0]) { printf("n0\n"); return NULL; } if (!body) { printf("b\n"); return NULL; } if (!body[0]) { printf("b0\n"); return NULL; }
 
   skode_dict_unpromote_macro(vocab, name);
 
@@ -1122,6 +1122,7 @@ skode_word_t *skode_dict_promote_macro(skode_vocab_t *vocab,
   int max_param = -1;
   if (!resolve_macro_placeholders_tagged(body, tagged, sizeof(tagged),
       &max_param)) {
+    printf("Failed tags\n");
     return NULL; /* uses more than SKODE_DICT_MACRO_PARAM_MAX parameters */
   }
 
@@ -1129,6 +1130,7 @@ skode_word_t *skode_dict_promote_macro(skode_vocab_t *vocab,
   skode_compile_result_t result =
     skode_compile_program_ex(tagged, &compiled, vocab);
   if (result != SKODE_COMPILE_OK) {
+    printf("Failed compile! result=%d\n", result);
     /* Not fully, cleanly compilable -- exactly the condition
        compute_macro_safety() would report as something other than
        WORD_REAL_TIME_SAFE. Refuse rather than partially promote. */
@@ -1136,7 +1138,7 @@ skode_word_t *skode_dict_promote_macro(skode_vocab_t *vocab,
   }
 
   skode_macro_template_t *tmpl = malloc(sizeof(*tmpl));
-  if (!tmpl) return NULL;
+  if (!tmpl) { printf("Failed alloc\n"); return NULL; }
   memset(tmpl, 0, sizeof(*tmpl));
   tmpl->program = compiled;
   memset(tmpl->param, MACRO_PARAM_NONE, sizeof(tmpl->param));

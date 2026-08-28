@@ -11,6 +11,7 @@ cp ../sk/*.ks ../sk-out # from k-synth
 cp ../wav/24.mp3 ../wav-out 2>/dev/null || true   # thanks BBC
 cp ../stream.sk ../sk-out
 cp ../../examples/qm_grok_guitar.sk ../sk-out
+cp ../../examples/ifl-gemini-learn.sk ../sk-out
 
 emcc -I. -I.. -I../exp-vfs \
     -DSKRED_MIDI_ENABLED=1 \

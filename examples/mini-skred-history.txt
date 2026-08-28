@@ -1,27 +1,3 @@
-v 5 vt [MoogBassB]
-w 16 a -4 t 0.001 0.18 0.0 0.15  J 1 K 290 Q 1.7  N 0  8  g 0.005  r 1 ds 0.2
-# Filter Stabs (Voices 6 and 8, high resonance)
-v 6 vt [StabA]
-w 15 a -2 t 0.008 0.22 0.0 0.25  J 1 K 1800 Q 1.3 N 0  0  r 1 ds 0.2
-v 8 vt [StabB]
-w 16 a -6 t 0.008 0.22 0.0 0.25  J 1 K 1900 Q 1.2 N 0  6  r 1 ds 0.2
-# Ethereal Pad (Voices 7 and 9, slow attack)
-# This has a high sustain (0.7), so it MUST have note-offs in its pattern.
-v 7 vt [PadA]
-w 15 a -8 t 1.1 1.4 0.7 2.2      J 1 K  650 Q 0.7 N 0  0  r 1 ds 0.4
-v 9 vt [PadB]
-w 18 a-12 t 1.1 1.4 0.7 2.2      J 1 K  700 Q 0.6 N 0 -5  r 1 ds 0.4
-v9l1
-n69l1
-l0
-v4n69l1
-v4n45l1
-a10l1
-l1
-# Bass layer trigger
-[Bas]  : v 4 n $$0 l 1  v 5 n $$0 l 1 ;
-# Pad chords (Note: Pad requires explicit l 0 to stop its sustain!)
-[PadC] : v 7 n 48 l 1   v 9 n 55 l 1 ;
 [PadF] : v 7 n 53 l 1   v 9 n 60 l 1 ;
 [PadO] : v 7 l 0        v 9 l 0 ;       # <--- The crucial note-off!
 # Stab chords
@@ -97,4 +73,28 @@ v5N-12,25
 V-10
 V-15
 DL?
+/q
+[ifl-gemini-learn.sk]/ls 1
+y8z1
+??
+v5N-12,12
+v5N-12,10
+?
+??
+v4a3
+v4a0
+v5a5
+v5a2
+??
+v3 J2 K1000
+v3 J2 K1000 Q10
+v3 J2 K1000 Q5
+v3 J2 K1000 Q2
+v3 J2 K100 Q2
+v3 J2 K500 Q2
+a20
+a15
+??
+GS
+V-15
 /q

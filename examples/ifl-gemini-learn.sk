@@ -22,9 +22,8 @@ M 128 16
 V -20
 
 # Set up the 4 Delay Busses for group effects processing
-# Delay Bus 1: Tight 16th-note slap for Bass/Stabs (117ms at 128BPM)
-DT 1 117
-DL 1 - - 4 0 1 5
+# Delay Bus 1: Rhythmic syncopation for the Moog Bass
+DL 1 4 12 4 0 31 10
 DD 1 4 2
 
 # Delay Bus 2: Dotted-8th ping-pong for the Pad (351ms)
@@ -32,7 +31,7 @@ DT 2 351
 DL 2 - - 6 2 4 6
 DD 2 8 1
 
-# Delay Bus 3: Short metallic 'room' effect for the Snare (40ms)
+# Delay Bus 3: Short metallic 'room' effect for Drums/Snare (40ms)
 DT 3 40
 DL 3 - - 3 0 0 4
 DD 3 2 0
@@ -50,8 +49,8 @@ DD 4 6 4
 
 # Assign drum voices (0 to 3)
 v 0 vt [Kick]      w 100 f 440 a 25
-v 1 vt [ClosedHat] w 101 f 440 a 2
-v 2 vt [OpenHat]   w 102 f 440 a 3.5
+v 1 vt [ClosedHat] w 101 f 440 a 2   r 3 ds 0.2
+v 2 vt [OpenHat]   w 102 f 440 a 3.5 r 3 ds 0.3
 v 3 vt [Snare]     w 103 f 440 a 15 J 2 0 K 500 Q 2 r 3 ds 0.6
 
 # The Iconic Moroder Bass (Voices 4 and 5, layered & detuned)

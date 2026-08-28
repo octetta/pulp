@@ -30,13 +30,13 @@ DD 1 4 2
 [sk/drums-kick.ks]  /ks 1 k>d d>r /r100
 [sk/drums-chh.ks]   /ks 1 k>d d>r /r101
 [sk/drums-ohh.ks]   /ks 1 k>d d>r /r102
-[sk/drums-clap.ks]  /ks 1 k>d d>r /r103
+[sk/drums-snare.ks] /ks 1 k>d d>r /r103
 
 # Assign drum voices (0 to 3)
 v 0 vt [Kick]      w 100 f 440 a 11
 v 1 vt [ClosedHat] w 101 f 440 a 2
 v 2 vt [OpenHat]   w 102 f 440 a 3.5
-v 3 vt [Clap]      w 103 f 440 a 4
+v 3 vt [Snare]     w 103 f 440 a 5
 
 # The Iconic Moroder Bass (Voices 4 and 5, layered & detuned)
 # We set sustain to 0.0 so the notes NEVER hang when you stop the pattern!
@@ -99,7 +99,7 @@ y 1 yt [Drums]
 [v 2 l 1]           x 2   #         Open Hat
 [v 1 l 1]           x 3   #         Closed Hat
 
-[v 0 l 1  v 3 l 1]  x 4   # Beat 2: Kick + Clap
+[v 0 l 1  v 3 l 1]  x 4   # Beat 2: Kick + Snare
 [v 1 l 1]           x 5   #         Closed Hat
 [v 2 l 1]           x 6   #         Open Hat
 [v 1 l 1]           x 7   #         Closed Hat
@@ -109,7 +109,7 @@ y 1 yt [Drums]
 [v 2 l 1]           x 10  #         Open Hat
 [v 1 l 1]           x 11  #         Closed Hat
 
-[v 0 l 1  v 3 l 1]  x 12  # Beat 4: Kick + Clap
+[v 0 l 1  v 3 l 1]  x 12  # Beat 4: Kick + Snare
 [v 1 l 1]           x 13  #         Closed Hat
 [v 2 l 1]           x 14  #         Open Hat
 [v 1 l 1]           x 15  #         Closed Hat

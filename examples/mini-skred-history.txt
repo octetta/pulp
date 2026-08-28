@@ -1,28 +1,3 @@
-y4 zq 0 y5 zq 1
-y5 zq 0 y2 zq 1
-??
-v0a20
-v0l1
-z
-y1z
-y1 ym1
-y1 ym0
-y6 z 1
-y7 z 1
-Z0
-z
-?m
-PadO
-Z
-y8z1
-??
-v0l1
-y0
-z
-y1z
-/q
-[ifl-gemini-learn.sk]/ls 1
-y8z1
 ??
 v0a20
 ??
@@ -97,4 +72,29 @@ DL 1 4 12 4 0 31 10
 ??
 DL?
 ??
+/q
+[ifl-gemini-learn.sk]/ls 1
+/sg
+y8z1
+?
+??
+DL?
+DL2 - - - - - 15
+DL3 - - - - - 15
+DL3 - - - - - 5
+DL3 - - - - - 10
+DL3 - - - - - 9
+DL3 - - - - - 7
+DL3 - - - - 31 7
+DL3 - - - 1 31 7
+DL3 - - - 2 31 7
+DL3 - - - 10 31 7
+DL?
+??
+v0>10
+v0G10H10
+v10f220
+??
+v0r4
+v10r4
 /q

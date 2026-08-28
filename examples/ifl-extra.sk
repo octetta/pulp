@@ -15,11 +15,16 @@
 #
 # 3. Live moves (type these while it runs):
 #
-#    PHASE-SAFE MUTE / UNMUTE
-#    ------------------------
-#    y1 ym 1 / y1 ym 0     # drums
-#    y6 ym 1 / y6 ym 0     # stabs
-#    y7 ym 1 / y7 ym 0     # pad
+#    PHASE-SAFE MUTE / UNMUTE (Type one command or the other)
+#    ---------------------------------------------------------
+#    y1 ym 1      # mute drums
+#    y1 ym 0      # unmute drums
+#
+#    y6 ym 1      # mute stabs
+#    y6 ym 0      # unmute stabs
+#
+#    y7 ym 1      # mute pad
+#    y7 ym 0      # unmute pad
 #
 #    CLEAN SECTION CHANGE ON NEXT BAR  (zq)
 #    -------------------------------------

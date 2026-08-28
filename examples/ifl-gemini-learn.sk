@@ -83,8 +83,10 @@ v 8 vt [StabB]
 w 16 a -6 t 0.008 0.22 0.0 0.25  J 1 2 K 1900 Q 1.2 N 0  6  r 1 ds 0.4
 
 # Ethereal Pad (Voices 7 and 9, slow attack)
-# Let's create an LFO (Voice 12: 4Hz silent sine wave) to modulate the Pad's amplitude.
-v 12 vt [TremoloLFO] w 0 f 4 a 0
+# Let's create an LFO (Voice 12: 4Hz sine wave) to modulate the Pad's amplitude.
+# We give it full amplitude (a 1) for a strong control signal, but mark it 
+# as a modulator using m 1 (mute audio) so it doesn't bleed into the master mix!
+v 12 vt [TremoloLFO] w 0 f 4 a 1 m 1
 # A 12 0.4 0.6 = Amplitude Modulation via v12, Depth 0.4, Offset 0.6
 v 7 vt [PadA]
 w 15 a -8 t 1.1 1.4 0.7 2.2      J 1 0 K  650 Q 0.7 N 0  0  r 2 ds 0.6  A 12 0.4 0.6

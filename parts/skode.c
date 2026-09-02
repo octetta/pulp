@@ -2,6 +2,7 @@ double skode_stream_pull(void *ctx, int n);
 #include "skred.h"
 #include "api.h"
 #include "skode.h"
+#include "midi_player.h"
 #include "seq.h"
 #include "miniwav.h"
 
@@ -3817,6 +3818,63 @@ static int word_exec__slashmb(const skode_word_t *self, skode_t *ctx, ands_t *s,
       }
       return 0;
 }
+
+static int word_exec__mf(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc == 1 && ands_string_len(ctx->parse) > 0) {
+    int slot = arg[0];
+    midi_player_load(slot, ands_string(ctx->parse));
+    if (ctx->printf) ctx->printf(ctx, "# Loaded MIDI file into slot %d\n", slot);
+  } else {
+    if (ctx->printf) ctx->printf(ctx, "# usage: [filename.mid] /mf slot\n");
+  }
+  return 0;
+}
+static skode_word_t word__slashmf = { .min_args = 1, .max_args = 1, WID("/mf"), .execute = word_exec__mf, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__mf_play(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc == 1) midi_player_play((int)arg[0]);
+  return 0;
+}
+static skode_word_t word__slashmf_play = { .min_args = 1, .max_args = 1, WID("/mf>"), .execute = word_exec__mf_play, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__mf_stop(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc == 1) midi_player_stop((int)arg[0]);
+  return 0;
+}
+
+static int word_exec__mf_sync(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc == 2) midi_player_sync((int)arg[0], (int)arg[1]);
+  else if (ctx->printf) ctx->printf(ctx, "# usage: /mfS slot mode(0=free,1=sync)\n");
+  return 0;
+}
+static skode_word_t word__slashmf_sync = { .min_args = 2, .max_args = 2, WID("/mfS"), .execute = word_exec__mf_sync, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__mf_dump(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc == 3) midi_player_dump((int)arg[0], (int)arg[1], (int)arg[2], ctx);
+  else if (ctx->printf) ctx->printf(ctx, "# usage: /mfD slot start limit\n");
+  return 0;
+}
+static skode_word_t word__slashmf_dump = { .min_args = 3, .max_args = 3, WID("/mfD"), .execute = word_exec__mf_dump, .safety = WORD_IMMEDIATE_ONLY };
+
+
+static int word_exec__mf_status(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc == 1) midi_player_status((int)arg[0], ctx);
+  else {
+    for (int i=0; i<4; i++) midi_player_status(i, ctx);
+  }
+  return 0;
+}
+static skode_word_t word__slashmf_status = { .min_args = 0, .max_args = 1, WID("/mf?"), .execute = word_exec__mf_status, .safety = WORD_IMMEDIATE_ONLY };
+
+static int word_exec__mf_seek(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc == 2) midi_player_seek((int)arg[0], arg[1]);
+  else if (ctx->printf) ctx->printf(ctx, "# usage: /mfP slot tick\n");
+  return 0;
+}
+static skode_word_t word__slashmf_seek = { .min_args = 2, .max_args = 2, WID("/mfP"), .execute = word_exec__mf_seek, .safety = WORD_IMMEDIATE_ONLY };
+
+static skode_word_t word__slashmf_stop = { .min_args = 1, .max_args = 1, WID("/mf<"), .execute = word_exec__mf_stop, .safety = WORD_IMMEDIATE_ONLY };
+
 static skode_word_t word__slashmb = { WID("/mb"), .execute = word_exec__slashmb, .safety = WORD_IMMEDIATE_ONLY };
 
 static int word_exec__slashmbd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
@@ -9175,6 +9233,18 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word__slashmR);
 
   skode_dict_register(vocab, &word__slashmC);
+
+
+  skode_dict_register(vocab, &word__slashmf);
+  skode_dict_register(vocab, &word__slashmf_play);
+  skode_dict_register(vocab, &word__slashmf_stop);
+
+  skode_dict_register(vocab, &word__slashmf_sync);
+  skode_dict_register(vocab, &word__slashmf_dump);
+
+  skode_dict_register(vocab, &word__slashmf_status);
+  skode_dict_register(vocab, &word__slashmf_seek);
+
 
   skode_dict_register(vocab, &word__slashmb);
 

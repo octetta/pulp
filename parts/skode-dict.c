@@ -1,4 +1,32 @@
 #include "skode-dict.h"
+
+#include "midi_player.h"
+
+static int word_exec__mf(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc == 1 && ands_string_len(ctx->parse) > 0) {
+    int slot = arg[0];
+    midi_player_load(slot, ands_string(ctx->parse));
+    ctx->printf(ctx, "# Loaded MIDI file into slot %d\n", slot);
+  } else {
+    ctx->printf(ctx, "# usage: [filename.mid] /mf slot\n");
+  }
+  return 0;
+}
+
+static int word_exec__mf_play(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc == 1) {
+    midi_player_play((int)arg[0]);
+  }
+  return 0;
+}
+
+static int word_exec__mf_stop(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  if (argc == 1) {
+    midi_player_stop((int)arg[0]);
+  }
+  return 0;
+}
+
 #include "synth.h"
 
 #include <ctype.h>

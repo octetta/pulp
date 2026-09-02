@@ -1,100 +1,100 @@
-/z 0 0
-/z 1 0
-Z0
-/z 1 0
-y 1 z 1
+/mv 0 3
+V-10
+/mf? 1
+v3 > 10
+/mv 2 4
+/mf? 1
+/mfS 1 1
+/z
+/mf? 1
+/z
 /q
+/mf [Sweet_Dreams.mid] 1
+/mf?1
+M124
+/mfS 1 1
+/mf?1
+v 4 [TestSynth] vt w 101 f 440 a 5 t 0.01 0.1 0.5 0.2
+v 3 [BassSynth] vt w 2 f 440 a 6
+/mv 1 4
+/mf> 1
+/z
+V0
+v4w15
+V-10
+/mv 0 3
+/q
+[sweet_dreams_master.sk]/ls
+/q
+[sweet_dreams_master.sk]/ls
+V0
+V-10
+??
+v3w15
+??
+/q
+[sweet_dreams_master.sk]/ls
+??
+/q
+[sweet_dreams_master.sk]/ls
+??
+V0
+/q
+[sweet_dreams_master.sk]/ls 1
+/q
+[sweet_dreams_master.sk]/ls 1
+V0
+??
+v3l1
+v10l1
+??
+W
+/z
+/q
+[sweet_dreams_master.sk]/ls 1
+W
+W102
+/z
+?
+??
+?
+??
+/q
+[sweet_dreams_master.sk]/ls 1
+??
+V-10
+V-15
+/q
+[sweet_dreams_master.sk]/ls 1
+??
+v9a30
+??
+v8a20
+v8a30
+v7a30
+??
+v6a30
+??
+/q
+[sweet_dreams_master.sk]/ls 1
+??
+v7a30
+v7a15
+v8a15
+v8a20
+v9a20
+v0w4
+v0w1
+??
+v6a20
+v6a30
+??
+/q
+[sk/ifl-gemini-learn.sk]/ls 1
 [ifl-gemini-learn.sk]/ls 1
-y1z1 /sg
 y1z1
 ??
-?m
-StbC
-??
-StbC
-?m
-StbC n69
-StbC n69 l1
-StbC n40
-PadC
-PadC n69
-/q
-/sg
-[ifl-gemini-learn.sk]/ls 1
-y1z1
-??
-y1z1
-v7n45
-v9n45
-v7n40
-v9n45
 /q
 [ifl-gemini-learn.sk]/ls 1
 y1z1
-/sg
 /q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1z1
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1z1
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1z1
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1z1
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1z1
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1z1
-Z0
-/q
-y0 z1
-y10 z1
-z
-/q
-Voc 24
-Vo_ 24
-[ifl-gemini-learn.sk]/ls 1
-Voc 24
-Vo 35
-Voc 35
-Voc 69
-Voc 74
-Vo_ 74
-VocO 74
-VocO
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1 z1
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1 z1
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1 z1
-q
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1 z1
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1 z1
-/q
-[ifl-gemini-learn.sk]/ls 1
-/sg
-y1 z1

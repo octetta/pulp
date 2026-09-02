@@ -1,0 +1,38 @@
+# ========================================================
+# Sweet Dreams Live Performance Demo (Using Native /mf)
+# ========================================================
+
+# 1. Setup the Drum Samples (General MIDI kit on Voice 9)
+[sk/drums-kick.ks] /ks 1 k>d d>r /r100
+[sk/drums-snare.ks] /ks 2 k>d d>r /r100
+[sk/drums-hat-closed.ks] /ks 3 k>d d>r /r100
+
+v 9 vt [DrumMachine]
+# We'll use MIDI Binding to map specific CH 10 notes to these waves!
+
+# 2. Setup the Synths
+v 3 vt [BassSynth] w 2 f 440 a 6 
+v 4 vt [LeadSynth] w 101 f 440 a 5 t 0.01 0.1 0.5 0.2
+
+# 3. Native Engine Routing
+# Route MIDI CH 0 (Bass) to Voice 3
+/mv 0 3
+# Route MIDI CH 1 (Lead) to Voice 4
+/mv 1 4
+
+# 4. MIDI Binding (Drum Map for CH 10 / index 9)
+# Kick (Note 35 and 36) -> triggers wave 1 on Voice 9
+/mb 9 9 35 "v 9 w 1 l 1"
+/mb 9 9 36 "v 9 w 1 l 1"
+
+# Snare (Note 38) -> triggers wave 2
+/mb 9 9 38 "v 9 w 2 l 1"
+
+# Closed Hat (Note 42) -> triggers wave 3
+/mb 9 9 42 "v 9 w 3 l 1"
+
+# 5. Load the DNA
+[Sweet_Dreams.mid] /mf 1
+
+# 6. Play the performance!
+/mf> 1

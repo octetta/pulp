@@ -1,0 +1,81 @@
+# sweet_dreams_master.sk
+# 
+# A complete orchestration of Sweet_Dreams.mid using Skode's native MIDI tools.
+# This script loads the file, configures the master sync, builds polyphonic 
+# synthesizer pools, maps the drum triggers, and starts the performance.
+
+# ---------------------------------------------------------
+# 1. LOAD AND SYNC
+# ---------------------------------------------------------
+[Sweet_Dreams.mid] /mf 1   # Load into background slot 1
+124 M                               # Set global tempo to the file's natural BPM
+/mfS 1 1                            # Lock slot 1 to seq_master_tick (Sync Mode)
+/mf> 1                              # Arm the MIDI file for playback
+
+# ---------------------------------------------------------
+# 2. CLEAR PREVIOUS ROUTES
+# ---------------------------------------------------------
+# Clear
+/mC
+# Clear
+/mbC
+
+# ---------------------------------------------------------
+# 3. MONOPHONIC SYNTHS
+# ---------------------------------------------------------
+# Channel 0 needs 1 voice of polyphony (The driving Bassline)
+v 3 [Bass] vt w 16 f 440 a 6
+/mv 0 3                             # Route MIDI Channel 0 directly to Voice 3
+
+# ---------------------------------------------------------
+# 4. POLYPHONIC SYNTHS
+# ---------------------------------------------------------
+# Channel 1 needs 2 voices (The Lead Synth)
+v 10 [LeadTemplate] vt w 15 f 440 a 5 t 0.01 0.1 0.5 0.2
+/pg 0 10 1                          # Group 0 (Source: Voice 10)
+/pp 0 0 20 2                        # Pool 0 (Uses Group 0, 2 voices starting at Voice 20)
+/mp 1 0                             # Route MIDI Channel 1 to Pool 0
+
+# Channel 4 needs 4 voices (Strings / Pad)
+v 11 [StringsTemplate] vt w 18 f 440 a 4 t 0.5 0.1 0.5 0.8
+/pg 1 11 1                          # Group 1 (Source: Voice 11)
+/pp 1 1 30 4                        # Pool 1 (Uses Group 1, 4 voices starting at Voice 30)
+/mp 4 1                             # Route MIDI Channel 4 to Pool 1
+
+# Channel 5 needs 6 voices (Choir / Big Pad)
+v 12 [ChoirTemplate] vt w 15 f 440 a 4 t 0.8 0.1 0.5 1.0
+/pg 2 12 1                          # Group 2 (Source: Voice 12)
+/pp 2 2 40 6                        # Pool 2 (Uses Group 2, 6 voices starting at Voice 40)
+/mp 5 2                             # Route MIDI Channel 5 to Pool 2
+
+
+# ---------------------------------------------------------
+# 5. DRUM MACHINE (GENERAL MIDI)
+# ---------------------------------------------------------
+# Load drum samples into wave slots 100, 101, 102, 103 using /ks
+[examples/sk/drums-kick.ks] /ks k>d d>r /r 100
+[examples/sk/drums-snare.ks] /ks k>d d>r /r 101
+[examples/sk/drums-chh.ks] /ks k>d d>r /r 102
+[examples/sk/drums-ohh.ks] /ks k>d d>r /r 103
+
+# Initialize drum voices with base amplitude of 10
+v 6 a 10
+v 7 a 10
+v 8 a 10
+v 9 a 10
+
+# Map MIDI Channel 9 (GM Drums) Note Ons to specific voices to prevent note stealing
+[v 9 w 100 l 1] /mb 9 9 35  # Acoustic Kick -> Voice 9
+[v 9 w 100 l 1] /mb 9 9 36  # Electric Kick -> Voice 9
+[v 8 w 101 l 1] /mb 9 9 38  # Acoustic Snare -> Voice 8
+[v 8 w 101 l 1] /mb 9 9 40  # Electric Snare -> Voice 8
+[v 7 w 102 l 1] /mb 9 9 42  # Closed Hi-Hat -> Voice 7
+[v 6 w 103 l 1] /mb 9 9 46  # Open Hi-Hat -> Voice 6
+[v 6 w 103 l 1] /mb 9 9 49  # Crash Cymbal -> Voice 6
+
+# ---------------------------------------------------------
+# 6. ACTION!
+# ---------------------------------------------------------
+# Because the MIDI file is armed and locked to Master Sync, restarting the 
+# global sequence clock guarantees everything plays in perfect lockstep.
+/z

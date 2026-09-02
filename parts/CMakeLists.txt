@@ -48,6 +48,7 @@ set(API_PLAIN_SOURCES
     ands.c
     miniaudio.c
     midi.c
+    midi_player.c
     util.c
     miniwav.c
     exp-vfs/miniz.c

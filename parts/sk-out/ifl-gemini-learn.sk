@@ -282,3 +282,29 @@ y 10 yt [VocClm]
 
 # Play the full arrangement:
 # y 1 zq 1  (Use zq to queue it exactly on the downbeat!)
+
+# ----------------------------------------------------------------------
+# APPENDIX: SKRED LIVE-CODER TIPS & TRICKS
+# ----------------------------------------------------------------------
+# 1. USE 'zq' NOT 'z' FOR LIVE DROPS: 
+#    If the clock is running, dropping a pattern with 'z 1' can hit a modulo math 
+#    wrap-around bug that evaluates to step -1 (triggering your STOP commands!). 
+#    Always use 'zq 1' to queue safely on the downbeat.
+#
+# 2. THE 4-CHARACTER RULE:
+#    Macros (e.g. [CrdE]) are strictly limited to 4 characters internally. 
+#    If you name one [CrdEb], it will be silently truncated and fail to run!
+#
+# 3. MIND YOUR ENVELOPES:
+#    If you link a voice via MIDI (G/H) but forget to give it a 't' (ADSR) 
+#    envelope, it will drone infinitely the first time it receives velocity.
+#
+# 4. LEGATO VS STACCATO:
+#    To make a synth "sing" a continuous phrase (melisma) across multiple notes,
+#    change the pitch (n) WITHOUT sending 'l 1'. Only send 'l 1' on the first 
+#    syllable of the breath.
+#
+# 5. DELAY BUSES ARE RECORDING STEMS:
+#    Routing a voice to 'r 4 ds 0.0' bypasses the delay effect, but it STILL 
+#    records that voice to multitrack stem 4. Don't share tracks if you need 
+#    clean stems later!

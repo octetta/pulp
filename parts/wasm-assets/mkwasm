@@ -35,6 +35,7 @@ emcc -I. -I.. -I../exp-vfs \
     ../skqueue.c \
     ../seq.c \
     ../api.c \
+    ../midi_player.c \
     ../synth.c \
     ../synth-delay.c \
     ../synth-osc.c \

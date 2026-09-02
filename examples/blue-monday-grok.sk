@@ -1,0 +1,57 @@
+# ============================================================
+# BLUE MONDAY – Minimal Working Version
+# ============================================================
+
+M130
+
+# Voices
+v 0 vt [Kick]  w 100 f 55  a 30 t 0.001 0.1 0 0
+v 1 vt [Hat]   w 101 f 900 a 3  t 0.001 0.03 0 0
+v 2 vt [Snare] w 103 f 200 a 18 t 0.001 0.15 0 0
+v 3 vt [Bass]  w 1   f 440 a 7  t 0.005 0.12 0.2 0.1
+v 4 vt [Seq]   w 2   f 440 a 5  t 0.001 0.08 0.1 0.05
+
+# Macros
+[Kik] : v 0 l 1 ;
+[Hat] : v 1 l 1 ;
+[Snr] : v 2 l 1 ;
+[Bas] : v 3 n $$0 l 1 ;
+[Seq] : v 4 n $$0 l 1 ;
+
+# Clock
+y 0 yt [Clock]
+% 16
+[#] x 15
+
+# Drums – solid four-on-the-floor + snare on 2 & 4
+y 2 yt [Drums]
+% 1
+[Kik] x 0  [Hat] x 1  [Hat] x 2  [Hat] x 3
+[Kik] x 4  [Hat] x 5  [Snr] x 6  [Hat] x 7
+[Kik] x 8  [Hat] x 9  [Hat] x 10 [Hat] x 11
+[Kik] x 12 [Hat] x 13 [Snr] x 14 [Hat] x 15
+
+# Bass – the classic octave pattern
+y 3 yt [Bass]
+% 1
+[Bas 41] x 0  [Bas 53] x 2
+[Bas 36] x 4  [Bas 48] x 6
+[Bas 38] x 8  [Bas 50] x 10
+[Bas 38] x 12 [Bas 50] x 14
+
+# Sequence – main riff
+y 4 yt [Seq]
+% 1
+[Seq 62] x 0  [Seq 60] x 1  [Seq 62] x 2  [Seq 65] x 3
+[Seq 67] x 4  [Seq 65] x 5  [Seq 62] x 6  [Seq 60] x 7
+[Seq 62] x 8  [Seq 60] x 9  [Seq 62] x 10 [Seq 65] x 11
+[Seq 67] x 12              [Seq 65] x 14
+
+# Arranger – just turn everything on
+y 1 yt [Arranger]
+% 16
+[ /z 2 1 /z 3 1 /z 4 1 ] x 0
+
+# Start with:
+# y 0 z 1
+# y 1 z 1

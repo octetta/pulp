@@ -1,0 +1,107 @@
+# ======================================================================
+# SWEET DREAMS (ARE MADE OF THIS) - EURYTHMICS
+# A Step-by-Step Live Coding Setup for Skred
+# ======================================================================
+
+# ----------------------------------------------------------------------
+# STEP 1: INITIALIZATION & TEMPO
+# ----------------------------------------------------------------------
+M125
+
+# Delay Bus 1: A short, swirling chorus effect to thicken the synths
+DL 1 4 12 4 0 31 10 DD 1 2 DF 0 DP 0 DG 0,0
+
+# ----------------------------------------------------------------------
+# STEP 2: VOICE CONFIGURATION (THE SYNTHS & DRUMS)
+# ----------------------------------------------------------------------
+# DRUMS
+v 0 vt [Kick]  w 100 f 65  a 25 t 0.001 0.1 0 0     r 0 ds 0.0
+v 1 vt [Hat]   w 101 f 440 a 3  t 0.001 0.05 0 0    r 0 ds 0.0
+v 2 vt [Snare] w 103 f 440 a 15 t 0.001 0.2 0 0 J 2 0 K 1500 Q 2 r 0 ds 0.0
+
+# HEAVY BASS SYNTH (Layered detuned sawtooths for massive low end)
+v 4 vt [SynA] w 2 f 440 a 6 t 0.01 0.1 0.4 0.1 J 1 0 K 1200 Q 1.5 r 1 ds 0.4
+v 5 vt [SynB] w 1 f 442 a 5 t 0.01 0.1 0.4 0.1 J 1 0 K 1200 Q 1.5 r 1 ds 0.4
+
+# LEAD SYNTH (The iconic high-pitched repeating motif)
+v 6 vt [Lead] w 2 f 440 a 4 t 0.01 0.1 0.2 0.1 J 1 0 K 2500 Q 1.0 r 1 ds 0.4
+
+# ----------------------------------------------------------------------
+# STEP 3: MACRO DEFINITIONS (Max 4 chars)
+# ----------------------------------------------------------------------
+[Kik] : v 0 l 1 ;
+[Hat] : v 1 l 1 ;
+[Snr] : v 2 l 1 ;
+[Riff] : v 4 n $$0 l 1 v 5 n $$0 l 1 ;
+[Lead] : v 6 n $$0 l 1 ;
+
+# ----------------------------------------------------------------------
+# STEP 4: SEQUENCING THE PATTERNS
+# ----------------------------------------------------------------------
+y 0 yt [BarClock]
+% 16
+[#] x 15
+
+# --- DRUMS (1-bar loop) ---
+# --- DRUMS (1-bar loop) ---
+y 2 yt [Drums]
+% 1
+[Kik] x 0   [Kik] x 4   [Kik] x 8   [Kik] x 12
+[Hat] x 0   [Hat] x 2   [Hat] x 4   [Hat] x 6   [Hat] x 8   [Hat] x 10  [Hat] x 12  [Hat] x 14
+[Snr] x 4   [Snr] x 12
+
+# --- THE REAL SWEET DREAMS RIFF (1-bar loop, stereo/layered interplay) ---
+y 3 yt [Riff]
+% 1
+# Right Channel / High Voice (v 4)
+# 60 (C4), 63 (Eb4), 68 (Ab4), 67 (G4)
+[v 4 n 60 l 1] x 0   [v 4 n 60 l 1] x 1   [v 4 n 60 l 1] x 2   [v 4 n 60 l 1] x 3
+[v 4 n 63 l 1] x 4   [v 4 n 63 l 1] x 5   [v 4 n 60 l 1] x 6   [v 4 n 60 l 1] x 7
+[v 4 n 68 l 1] x 8   [v 4 n 68 l 1] x 9   [v 4 n 68 l 1] x 10  [v 4 n 60 l 1] x 11
+[v 4 n 67 l 1] x 12  [v 4 n 67 l 1] x 13  [v 4 n 67 l 1] x 14  [v 4 n 60 l 1] x 15
+
+# Left Channel / Low Voice Counter-Melody (v 5)
+# 48 (C3), 56 (Ab3), 55 (G3), 58 (Bb3)
+# Note the crucial syncopated rests! This is what gives it the groove.
+[v 5 n 48 l 1] x 0   [v 5 n 48 l 1] x 1   [v 5 n 48 l 1] x 2   [v 5 n 48 l 1] x 3
+[v 5 n 48 l 1] x 4                        [v 5 n 56 l 1] x 6   [v 5 n 56 l 1] x 7
+[v 5 n 56 l 1] x 8                        [v 5 n 55 l 1] x 10  [v 5 n 55 l 1] x 11
+                                          [v 5 n 58 l 1] x 14  [v 5 n 58 l 1] x 15
+
+# ----------------------------------------------------------------------
+# STEP 5: THE ORCHESTRATOR 
+# ----------------------------------------------------------------------
+y 1 yt [Arranger]
+% 16
+# Start Drums (y 2) and Lead (y 5) ONCE. They will loop automatically.
+# We also start Bass A (y 3).
+# MUST inject the first step's notes manually to avoid the step-0 miss bug!
+# We start the Drums (y 2) and Riff (y 3). 
+# We manually inject the first notes of the pattern so Step 0 isn't missed!
+[ /z 2 1 /z 3 1 Kik Hat v 4 n 60 l 1 v 5 n 48 l 1 ] x 0
+
+# Safety padding for the 'y 1 z 1' restart bug
+[ ] x 63
+
+# ----------------------------------------------------------------------
+# STEP 6: LIVE PERFORMANCE GUIDE
+# ----------------------------------------------------------------------
+# 1. Start the Master Clock:  y 0 z 1
+# 2. Drop the Arranger:       y 1 z 1
+# 3. Stop everything:         /z 1 0 /z 2 0 /z 3 0
+
+# ----------------------------------------------------------------------
+# APPENDIX: SKRED LIVE-CODER TIPS & TRICKS
+# ----------------------------------------------------------------------
+# 1. THE RESTART BUG (z vs zq): 
+#    Normally, triggering 'z 1' mid-bar can hit a wrap-around bug evaluating 
+#    to step -1. We fixed that here by padding pattern 1 with empty space 
+#    at the end, making 'z 1' safe! If a pattern isn't padded, use 'zq 1'.
+# 2. THE 4-CHARACTER RULE:
+#    Macros (e.g. [Riff]) are strictly limited to 4 characters internally. 
+# 3. MIND YOUR ENVELOPES:
+#    Always give a voice an ADSR envelope ('t 0.01 0.1 0 0') or it will 
+#    drone infinitely when triggered via MIDI link (G/H).
+# 4. STEP 0 MISS:
+#    Patterns started mid-tick via '/z' skip their 0-step. Always manually 
+#    inject the first beat into the orchestrator macro that calls them.

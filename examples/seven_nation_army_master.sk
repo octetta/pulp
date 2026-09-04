@@ -1,0 +1,80 @@
+# seven_nation_army_master.sk
+# 
+# A complete orchestration of Seven_Nation_Army.mid using Skode's native MIDI tools.
+# This script loads the file, configures the master sync, builds polyphonic 
+# synthesizer pools, maps the drum triggers, and starts the performance.
+
+# ---------------------------------------------------------
+# 1. LOAD AND SYNC
+# ---------------------------------------------------------
+[Seven_Nation_Army.mid] /mf 1   # Load into background slot 1
+120 M                               # Set global tempo to the file's natural BPM
+/mfS 1 1                            # Lock slot 1 to seq_master_tick (Sync Mode)
+/mf> 1                              # Arm the MIDI file for playback
+
+# ---------------------------------------------------------
+# 2. CLEAR PREVIOUS ROUTES
+# ---------------------------------------------------------
+# Clear all existing /mv and /mp routes
+/mC
+# Clear all existing /mb drum bindings
+/mbC
+
+# ---------------------------------------------------------
+# 3. MONOPHONIC SYNTHS
+# ---------------------------------------------------------
+# Ch 2, Ch 3, Ch 4 are monophonic (Max Polyphony: 1)
+v 0 [MonoBass] vt w 16 f 440 a 6 t 0.01 0.1 0.4 0.1
+/mv 2 0
+
+v 1 [Mono1] vt w 15 f 440 a 5 t 0.01 0.1 0.3 0.1
+/mv 3 1
+
+v 2 [Mono2] vt w 18 f 440 a 5 t 0.01 0.1 0.3 0.1
+/mv 4 2
+
+# ---------------------------------------------------------
+# 4. POLYPHONIC SYNTHS
+# ---------------------------------------------------------
+# Ch 0 (Poly 6 - Likely Guitar Chords)
+v 10 [Poly0] vt w 15 f 440 a 4 t 0.05 0.2 0.5 0.5
+/pg 0 10 1
+/pp 0 0 20 6
+/mp 0 0
+
+# Ch 1 (Poly 3)
+v 11 [Poly1] vt w 16 f 440 a 4 t 0.1 0.2 0.5 0.5
+/pg 1 11 1
+/pp 1 1 26 3
+/mp 1 1
+
+
+# ---------------------------------------------------------
+# 5. DRUM MACHINE (GENERAL MIDI)
+# ---------------------------------------------------------
+# Load drum samples into wave slots 100, 101, 102, 103 using /ks
+[examples/sk/drums-kick.ks] /ks k>d d>r /r 100
+[examples/sk/drums-snare.ks] /ks k>d d>r /r 101
+[examples/sk/drums-chh.ks] /ks k>d d>r /r 102
+[examples/sk/drums-ohh.ks] /ks k>d d>r /r 103
+
+# Initialize drum voices with base amplitude of 10
+v 6 a 10
+v 7 a 10
+v 8 a 10
+v 9 a 10
+
+# Map MIDI Channel 9 (GM Drums) Note Ons to specific voices to prevent note stealing
+[v 9 w 100 l 1] /mb 9 9 35  # Acoustic Kick -> Voice 9
+[v 9 w 100 l 1] /mb 9 9 36  # Electric Kick -> Voice 9
+[v 8 w 101 l 1] /mb 9 9 38  # Acoustic Snare -> Voice 8
+[v 8 w 101 l 1] /mb 9 9 40  # Electric Snare -> Voice 8
+[v 7 w 102 l 1] /mb 9 9 42  # Closed Hi-Hat -> Voice 7
+[v 6 w 103 l 1] /mb 9 9 46  # Open Hi-Hat -> Voice 6
+[v 6 w 103 l 1] /mb 9 9 49  # Crash Cymbal -> Voice 6
+
+# ---------------------------------------------------------
+# 6. ACTION!
+# ---------------------------------------------------------
+# Restart the global sequence clock to play in perfect lockstep.
+/z

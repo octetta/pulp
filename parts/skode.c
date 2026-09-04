@@ -4425,7 +4425,7 @@ static skode_word_t word_BC = { WID("BC"), .execute = word_exec_BC, .safety = WO
     /* @doc(command.c)
     name: c
     category: modulation
-    summary: phase-distortion algo distortion
+    summary: phase-distortion algo distortion. Use w47 (Cosine) for authentic Casio CZ phase-distortion mimicking!
     @enddoc */
 static int word_exec_c(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);

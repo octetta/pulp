@@ -470,7 +470,14 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
       float mod = 1.0f;
 
       int amp_env_was_active = sv.amp_envelope[n].is_active;
-      if (sv.use_amp_envelope[n]) env = amp_envelope_step(n, current_sample);
+      if (sv.use_amp_envelope[n]) {
+        env = amp_envelope_step(n, current_sample);
+        if (sv.amp_envelope_mode[n] == 2) {
+          env = 1.0f - env;
+        }
+      } else if (sv.amp_envelope_mode[n] == 2) {
+        env = 1.0f;
+      }
       if (amp_env_was_active && !sv.amp_envelope[n].is_active) {
         skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_FINISHED,
           current_sample, n);

@@ -107,7 +107,7 @@ static int clone_voice(const poly_group_t *group, int source, int dest,
     /* voice_copy() intentionally leaves a destination override in place when
        the source uses its wave defaults. Clear those two sticky settings so a
        pool instance is an exact copy of the prototype. */
-    voice_wave_range_reset(dest);
+    printf("# clone voice %d -> %d: wave=%d\n", source, dest, sv.wave_table_index[source]); voice_wave_range_reset(dest);
     voice_loop_points_reset(dest);
     if (voice_copy(source, dest) != 0) return -1;
   }

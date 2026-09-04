@@ -72,6 +72,7 @@ enum {
   WAVE_TABLE_KRG30, // 44
   WAVE_TABLE_KRG31, // 45
   WAVE_TABLE_KRG32, // 46
+  WAVE_TABLE_COSINE = 47, // 47
 
   EW_00 = 50,
   EW_01,

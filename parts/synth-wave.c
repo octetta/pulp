@@ -23,12 +23,13 @@ void wave_table_init(int flag) {
 
   uint64_t white_noise;
   audio_rng_init(&white_noise, 1);
-  for (int w = WAVE_TABLE_SINE; w <= WAVE_TABLE_KRG16; w++) {
+  for (int w = WAVE_TABLE_SINE; w <= WAVE_TABLE_COSINE; w++) {
     if (wave_invalid(w)) continue;
     int size = SIZE_SINE;
     char *name = "?";
     switch (w) {
       case WAVE_TABLE_SINE:  name = "sine"; break;
+      case WAVE_TABLE_COSINE: name = "cosine"; break;
       case WAVE_TABLE_SQR:   name = "square"; break;
       case WAVE_TABLE_SAW_DOWN: name = "saw-down"; break;
       case WAVE_TABLE_SAW_UP: name = "saw-up"; break;
@@ -83,6 +84,7 @@ void wave_table_init(int flag) {
       float f;
       switch (w) {
         case WAVE_TABLE_SINE: f = sine; break;
+        case WAVE_TABLE_COSINE: f = -cosf(2.0f * (float) M_PI * phase); break;
         case WAVE_TABLE_SQR: f = (phase < 0.5) ? 1.0f : -1.0f; break;
         case WAVE_TABLE_SAW_DOWN: f = 2.0f * phase - 1.0f; break;
         case WAVE_TABLE_SAW_UP: f = 1.0f - 2.0f * phase; break;

@@ -504,6 +504,11 @@ Here are some more to try out...
 <template data-type="code"> v0 w3 a0 f440 t0 2 0 0 l1</template>
 
 <template data-type="markdown">
+**`w47`** is a Cosine wave. It sounds identical to a Sine wave, but it is technically shifted. It is the best choice to use as the base waveform when applying Phase Distortion (`c` command) to mimic a classic Casio CZ synthesizer, as the math creates a kink at the peak of the wave rather than at the zero-crossing.
+</template>
+<template data-type="code"> v0 w47 a0 c1,0.5 f440 t0 2 0 0 l1</template>
+
+<template data-type="markdown">
 **`w4`** is a triangle wave, symmetric on the left and right
 </template>
 <template data-type="code"> v0 w4 a0 f440 t0 2 0 0 l1</template>
@@ -765,7 +770,7 @@ V=54272:POKE V+24,15:POKE V+5,8:POKE V+6,0:POKE V,214:POKE V+1,28:POKE V+4,17
 
 <!-- PROBABLY don't want to edit the stuff below here, at least for CONTENT -->
 
-<script src="skred_api.js?v=0.63.0"></script>
+<script src="skred_api.js?v=0.63.1"></script>
 
 <script>
   mermaid.initialize({ startOnLoad: false, theme: 'neutral' });

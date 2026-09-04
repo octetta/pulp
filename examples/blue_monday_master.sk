@@ -1,0 +1,101 @@
+# blue_monday_master.sk
+# 
+# A complete orchestration of New_Order_-_Blue_Monday.mid using Skode's native MIDI tools.
+# This script loads the file, configures the master sync, builds polyphonic 
+# synthesizer pools, maps the drum triggers, and starts the performance.
+
+# ---------------------------------------------------------
+# 1. LOAD AND SYNC
+# ---------------------------------------------------------
+[New_Order_-_Blue_Monday.mid] /mf 1   # Load into background slot 1
+133 M                               # Set global tempo to the file's natural BPM
+/mfS 1 1                            # Lock slot 1 to seq_master_tick (Sync Mode)
+/mf> 1                              # Arm the MIDI file for playback
+
+# ---------------------------------------------------------
+# 2. CLEAR PREVIOUS ROUTES
+# ---------------------------------------------------------
+# Clear all existing /mv and /mp routes
+/mC
+# Clear all existing /mb drum bindings
+/mbC
+
+# ---------------------------------------------------------
+# 3. MONOPHONIC SYNTHS
+# ---------------------------------------------------------
+# Ch 0, Ch 1, Ch 2, Ch 8 are monophonic (Max Polyphony: 1)
+v 0 [MonoA] vt w 16 f 440 a 5
+/mv 0 0
+
+v 1 [MonoB] vt w 15 f 440 a 5
+/mv 1 1
+
+v 2 [MonoBass] vt w 16 f 440 a 6 t 0.01 0.1 0.3 0.1
+/mv 2 2
+
+v 3 [MonoC] vt w 18 f 440 a 5
+/mv 8 3
+
+# ---------------------------------------------------------
+# 4. POLYPHONIC SYNTHS
+# ---------------------------------------------------------
+# Ch 3 (Poly 3)
+v 10 [Poly3] vt w 15 f 440 a 4 t 0.05 0.2 0.5 0.5
+/pg 0 10 1
+/pp 0 0 20 3
+/mp 3 0
+
+# Ch 4 (Poly 2)
+v 11 [Poly4] vt w 16 f 440 a 4 t 0.1 0.2 0.5 0.5
+/pg 1 11 1
+/pp 1 1 24 2
+/mp 4 1
+
+# Ch 5 (Poly 2)
+v 12 [Poly5] vt w 18 f 440 a 4 t 0.2 0.2 0.5 0.5
+/pg 2 12 1
+/pp 2 2 28 2
+/mp 5 2
+
+# Ch 6 (Poly 3)
+v 13 [Poly6] vt w 15 f 440 a 4 t 0.1 0.2 0.5 0.5
+/pg 3 13 1
+/pp 3 3 32 3
+/mp 6 3
+
+# Ch 7 (Poly 2)
+v 14 [Poly7] vt w 0 f 440 a 4 t 0.5 0.5 0.5 1.0
+/pg 4 14 1
+/pp 4 4 36 2
+/mp 7 4
+
+
+# ---------------------------------------------------------
+# 5. DRUM MACHINE (GENERAL MIDI)
+# ---------------------------------------------------------
+# Load drum samples into wave slots 100, 101, 102, 103 using /ks
+[examples/sk/drums-kick.ks] /ks k>d d>r /r 100
+[examples/sk/drums-snare.ks] /ks k>d d>r /r 101
+[examples/sk/drums-chh.ks] /ks k>d d>r /r 102
+[examples/sk/drums-ohh.ks] /ks k>d d>r /r 103
+
+# Initialize drum voices with base amplitude of 10
+v 6 a 10
+v 7 a 10
+v 8 a 10
+v 9 a 10
+
+# Map MIDI Channel 9 (GM Drums) Note Ons to specific voices to prevent note stealing
+[v 9 w 100 l 1] /mb 9 9 35  # Acoustic Kick -> Voice 9
+[v 9 w 100 l 1] /mb 9 9 36  # Electric Kick -> Voice 9
+[v 8 w 101 l 1] /mb 9 9 38  # Acoustic Snare -> Voice 8
+[v 8 w 101 l 1] /mb 9 9 40  # Electric Snare -> Voice 8
+[v 7 w 102 l 1] /mb 9 9 42  # Closed Hi-Hat -> Voice 7
+[v 6 w 103 l 1] /mb 9 9 46  # Open Hi-Hat -> Voice 6
+[v 6 w 103 l 1] /mb 9 9 49  # Crash Cymbal -> Voice 6
+
+# ---------------------------------------------------------
+# 6. ACTION!
+# ---------------------------------------------------------
+# Restart the global sequence clock to play in perfect lockstep.
+/z

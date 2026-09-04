@@ -1,83 +1,3 @@
-/mv 0 3
-V-10
-/mf? 1
-v3 > 10
-/mv 2 4
-/mf? 1
-/mfS 1 1
-/z
-/mf? 1
-/z
-/q
-/mf [Sweet_Dreams.mid] 1
-/mf?1
-M124
-/mfS 1 1
-/mf?1
-v 4 [TestSynth] vt w 101 f 440 a 5 t 0.01 0.1 0.5 0.2
-v 3 [BassSynth] vt w 2 f 440 a 6
-/mv 1 4
-/mf> 1
-/z
-V0
-v4w15
-V-10
-/mv 0 3
-/q
-[sweet_dreams_master.sk]/ls
-/q
-[sweet_dreams_master.sk]/ls
-V0
-V-10
-??
-v3w15
-??
-/q
-[sweet_dreams_master.sk]/ls
-??
-/q
-[sweet_dreams_master.sk]/ls
-??
-V0
-/q
-[sweet_dreams_master.sk]/ls 1
-/q
-[sweet_dreams_master.sk]/ls 1
-V0
-??
-v3l1
-v10l1
-??
-W
-/z
-/q
-[sweet_dreams_master.sk]/ls 1
-W
-W102
-/z
-?
-??
-?
-??
-/q
-[sweet_dreams_master.sk]/ls 1
-??
-V-10
-V-15
-/q
-[sweet_dreams_master.sk]/ls 1
-??
-v9a30
-??
-v8a20
-v8a30
-v7a30
-??
-v6a30
-??
-/q
-[sweet_dreams_master.sk]/ls 1
-??
 v7a30
 v7a15
 v8a15
@@ -97,4 +17,84 @@ y1z1
 /q
 [ifl-gemini-learn.sk]/ls 1
 y1z1
+/q
+[blue_monday_master.sk]/ls 1
+??
+W103
+??
+v6a30
+v7a30
+v7a10
+v7a20
+v8a20
+v9a20
+??
+/q
+[i_feel_love_master.sk]/ls1
+v9
+?
+a20
+a30
+??
+v12w15
+v6w15
+??
+/q
+[seven_nation_army.sk]/ls
+[seven_nation_army_master.sk]/ls
+??
+V-15
+V-10
+/q
+[seven_nation_army_master.sk]/ls
+??
+v7w15
+v8w15
+v9w15
+??
+v6w15
+/q
+[sweet_dreams_master.sk]/ls 
+??
+/q
+[sweet_dreams_master.sk]/ls 
+/q
+%ls1
+%ls2
+%ls0
+%ls0 30
+?s
+/ls
+/sg
+??
+v7r1
+DL1 3 0 15 0 31 15
+??
+DL?
+??
+v0ds1
+??
+v7r1ds1
+??
+v7r1ds.5
+??
+v8r1ds.5
+v9r1ds.5
+v9r1ds1
+v8r2
+v7r2
+DL2 2 0 15 0 31 15
+DL2 2 0 15 0 31 7
+DL2 1 0 15 0 31 7
+DL2 1 0 15 1 31 7
+v9r3
+DL3 5 0 15 0 31 7
+DL3 5 0 15 0 31 15
+DL3  0 15 0 31 15
+DL3 1 0 15 0 31 15
+v9?
+a20
+/z
+??
+Z
 /q

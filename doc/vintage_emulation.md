@@ -335,12 +335,13 @@ Here is an example using the `C <voice> <depth>` command to drive the PWM with a
 ```skred
 # Voice 2: The LFO
 v2 w0 a 0          # Muted Sine wave
-N -36              # Pitch it down 3 octaves to LFO speed
+f 1                # Set absolute frequency to 1Hz (Static LFO)
 
 # Voice 0: The PWM Carrier
 v0 w16 a 5         # Analog edge-aligned square
 c 1, 0.5           # Set base pulse width to 50%
 C 2, 0.45          # Use LFO (v2) to continuously sweep the width +/- 45%
+G 2 H 2            # Trigger the LFO (v2) whenever Voice 0 plays
 n 40
 ```
 
@@ -351,7 +352,7 @@ Mixing a sliding pulse against a static pulse creates a massive comb-filtering f
 ```skred
 # Voice 2: The LFO
 v2 w0 a 0          
-N -48              # Slow LFO
+f 0.5              # Very slow 0.5Hz LFO
 
 # Voice 1: The Static Pulse
 v1 w49 a 3         
@@ -360,6 +361,7 @@ v1 w49 a 3
 v0 w49 a 3
 c 1, 0             # Mode 1, base phase 0
 C 2, 0.9           # Use LFO (v2) to slide the pulse phase +/- 90%
-G 1 H 1            # Trigger the static Voice 1 whenever Voice 0 plays
+# Trigger BOTH the Static Pulse (v1) and the LFO (v2) whenever Voice 0 plays
+G 1, 2 H 1, 2
 n 40
 ```

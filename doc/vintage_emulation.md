@@ -340,7 +340,7 @@ v2 w0 f 1 a 0 m 1  # 1Hz Sine wave. m1 mutes it from the master mix so it doesn'
 v0 w16 a 5         # Analog edge-aligned square
 c 1, 0.5           # Set base pulse width to 50%
 C 2, 0.45          # Use LFO (v2) to continuously sweep the width +/- 45%
-G 2 H 2            # Link triggers to LFO (v2)
+H 2                # Link triggers to LFO (v2) so its envelope opens, but DO NOT link pitch (G)
 n 40               # Trigger the note
 ```
 
@@ -359,6 +359,6 @@ v1 w49 a 3
 v0 w49 a 3
 c 1, 0             # Mode 1, base phase 0
 C 2, 0.9           # Use LFO (v2) to slide the pulse phase +/- 90%
-G 1, 2 H 1, 2      # Link triggers to both the Static Pulse (v1) and LFO (v2)
+G 1 H 1, 2         # Link Pitch (G) ONLY to v1. Link Triggers (H) to both v1 and v2!
 n 40               # Trigger the notes
 ```

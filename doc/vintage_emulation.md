@@ -334,15 +334,14 @@ If you apply `c 1` to an edge-aligned square wave (like `w 16`), the phase disto
 Here is an example using the `C <voice> <depth>` command to drive the PWM with a sine-wave LFO:
 ```skred
 # Voice 2: The LFO
-v2 w0 a 0          # Muted Sine wave
-f 1                # Set absolute frequency to 1Hz (Static LFO)
+v2 w0 f 1 a 0 m 1  # 1Hz Sine wave. m1 mutes it from the master mix so it doesn't blow out your speakers!
 
 # Voice 0: The PWM Carrier
 v0 w16 a 5         # Analog edge-aligned square
 c 1, 0.5           # Set base pulse width to 50%
 C 2, 0.45          # Use LFO (v2) to continuously sweep the width +/- 45%
-G 2 H 2            # Trigger the LFO (v2) whenever Voice 0 plays
-n 40
+G 2 H 2            # Link triggers to LFO (v2)
+n 40               # Trigger the note
 ```
 
 ### The "Ghost Flanger" (Using `w 49`)
@@ -351,8 +350,7 @@ If you apply `c 1` to a *centered* pulse wave (like the analog `w 49` or digital
 Mixing a sliding pulse against a static pulse creates a massive comb-filtering flanger effect, entirely within the oscillator (no delay lines required):
 ```skred
 # Voice 2: The LFO
-v2 w0 a 0          
-f 0.5              # Very slow 0.5Hz LFO
+v2 w0 f 0.5 a 0 m 1 # 0.5Hz Sine wave, muted from master mix
 
 # Voice 1: The Static Pulse
 v1 w49 a 3         
@@ -361,7 +359,6 @@ v1 w49 a 3
 v0 w49 a 3
 c 1, 0             # Mode 1, base phase 0
 C 2, 0.9           # Use LFO (v2) to slide the pulse phase +/- 90%
-# Trigger BOTH the Static Pulse (v1) and the LFO (v2) whenever Voice 0 plays
-G 1, 2 H 1, 2
-n 40
+G 1, 2 H 1, 2      # Link triggers to both the Static Pulse (v1) and LFO (v2)
+n 40               # Trigger the notes
 ```

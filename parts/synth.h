@@ -39,6 +39,7 @@ int synth_sample_rate_get(void);
       float amp_envelope_step(int v, uint64_t current_sample);
       int   envelope_is_flat(int v);
       int   envelope_set(int voice, float a, float d, float s, float r);
+      int   envelope_multistage_set(int voice, const double *args, int count);
       int   envelope_velocity(int voice, float f);
 
 void audio_rng_init(uint64_t *rng, uint64_t seed);
@@ -138,6 +139,8 @@ void normalize_preserve_zero(float *data, int length);
 
 void envelope_init_e(envelope_t *e, float a, float d, float s, float r);
 void envelope_configure_e(envelope_t *e, float a, float d, float s, float r);
+void envelope_configure_multistage_e(envelope_t *e, const double *args, int count);
+void envelope_copy_e(envelope_t *dst, const envelope_t *src);
 void envelope_trigger_e(envelope_t *e, float f);
 void envelope_release_e_at(envelope_t *e, uint64_t current_sample);
 void envelope_schedule_release_e_at(envelope_t *e, uint64_t release_sample);

@@ -81,10 +81,14 @@ static void remap_dependencies(int voice, const poly_group_t *group,
   sv.link_midi_1[voice] = remap_link(sv.link_midi_1[voice], group, dest_base);
   sv.link_midi_2[voice] = remap_link(sv.link_midi_2[voice], group, dest_base);
   sv.link_midi_3[voice] = remap_link(sv.link_midi_3[voice], group, dest_base);
+  sv.link_midi_4[voice] = remap_link(sv.link_midi_4[voice], group, dest_base);
+  sv.link_midi_5[voice] = remap_link(sv.link_midi_5[voice], group, dest_base);
   sv.link_velo_0[voice] = remap_link(sv.link_velo_0[voice], group, dest_base);
   sv.link_velo_1[voice] = remap_link(sv.link_velo_1[voice], group, dest_base);
   sv.link_velo_2[voice] = remap_link(sv.link_velo_2[voice], group, dest_base);
   sv.link_velo_3[voice] = remap_link(sv.link_velo_3[voice], group, dest_base);
+  sv.link_velo_4[voice] = remap_link(sv.link_velo_4[voice], group, dest_base);
+  sv.link_velo_5[voice] = remap_link(sv.link_velo_5[voice], group, dest_base);
   if (sv.amp_mod_osc[voice] >= 0)
     sv.amp_mod_osc[voice] = remap_voice(sv.amp_mod_osc[voice], group, dest_base);
   if (sv.freq_mod_osc[voice] >= 0)
@@ -115,15 +119,18 @@ static int clone_voice(const poly_group_t *group, int source, int dest,
   sv.interpolate[dest] = sv.interpolate[source];
   sv.disconnect[dest] = sv.disconnect[source];
   sv.phase_reset[dest] = sv.phase_reset[source];
-  envelope_set(dest, sv.amp_envelope[source].a, sv.amp_envelope[source].d,
-    sv.amp_envelope[source].s, sv.amp_envelope[source].r);
+  envelope_copy_e(&sv.amp_envelope[dest], &sv.amp_envelope[source]);
   sv.amp_envelope_mode[dest] = sv.amp_envelope_mode[source];
   memcpy(sv.text[dest], sv.text[source], sizeof(sv.text[dest]));
   sv.use_filter_envelope[dest] = sv.use_filter_envelope[source];
   sv.filter_env_depth[dest] = sv.filter_env_depth[source];
-  envelope_init_e(&sv.filter_envelope[dest], sv.filter_envelope[source].a,
-    sv.filter_envelope[source].d, sv.filter_envelope[source].s,
-    sv.filter_envelope[source].r);
+  envelope_copy_e(&sv.filter_envelope[dest], &sv.filter_envelope[source]);
+  sv.use_cz_envelope[dest] = sv.use_cz_envelope[source];
+  sv.cz_env_depth[dest] = sv.cz_env_depth[source];
+  envelope_copy_e(&sv.cz_envelope[dest], &sv.cz_envelope[source]);
+  sv.use_freq_envelope[dest] = sv.use_freq_envelope[source];
+  sv.freq_env_depth[dest] = sv.freq_env_depth[source];
+  envelope_copy_e(&sv.freq_envelope[dest], &sv.freq_envelope[source]);
   sv.freq_mod_mode[dest] = sv.freq_mod_mode[source];
   sv.smoother_enable[dest] = sv.smoother_enable[source];
   sv.smoother_smoothing[dest] = sv.smoother_smoothing[source];
@@ -631,9 +638,9 @@ static int graph_add(graph_edge_t *edge, int count, int max, int to,
 static int graph_edges(int voice, graph_edge_t *edge, int max) {
   int count = 0;
   float pitch[] = {sv.link_midi_0[voice], sv.link_midi_1[voice],
-    sv.link_midi_2[voice], sv.link_midi_3[voice]};
+    sv.link_midi_2[voice], sv.link_midi_3[voice], sv.link_midi_4[voice], sv.link_midi_5[voice]};
   float gate[] = {sv.link_velo_0[voice], sv.link_velo_1[voice],
-    sv.link_velo_2[voice], sv.link_velo_3[voice]};
+    sv.link_velo_2[voice], sv.link_velo_3[voice], sv.link_velo_4[voice], sv.link_velo_5[voice]};
   for (int i = 0; i < 4; i++)
     count = graph_add(edge, count, max, (int)pitch[i],
       SKRED_VOICE_EDGE_PITCH, "pitch");

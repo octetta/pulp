@@ -888,7 +888,11 @@ void global_status_show(skode_t *ctx, int full) {
     if (global_stream[i].len > 0) {
       ctx->printf(ctx, "( ");
       for (int j = 0; j < global_stream[i].len; j++) {
-        ctx->printf(ctx, "%g ", global_stream[i].data[j]);
+        if (isnan(global_stream[i].data[j])) {
+          ctx->printf(ctx, "- ");
+        } else {
+          ctx->printf(ctx, "%g ", global_stream[i].data[j]);
+        }
       }
       ctx->printf(ctx, ") /SS %d ", i);
       if (global_stream[i].mode != 0) {
@@ -3078,9 +3082,9 @@ static int skode_foreign_function(skode_t *ctx, int index,
 }
 
 static void skode_opcode_links(const opcode_event_t *opcode,
-    float *link0, float *link1, float *link2, float *link3) {
-  int links[4] = {-1, -1, -1, -1};
-  for (int i = 0; i < opcode->argc && i < 4; i++) {
+    float *link0, float *link1, float *link2, float *link3, float *link4, float *link5) {
+  int links[6] = {-1, -1, -1, -1, -1, -1};
+  for (int i = 0; i < opcode->argc && i < 6; i++) {
     int link;
     if (skode_opcode_int(opcode, i, &link) && skode_voice_valid(link))
       links[i] = link;
@@ -3089,6 +3093,8 @@ static void skode_opcode_links(const opcode_event_t *opcode,
   *link1 = links[1];
   *link2 = links[2];
   *link3 = links[3];
+  *link4 = links[4];
+  *link5 = links[5];
 }
 
 void skode_stream_copy(void *ctx, int dst, int src);
@@ -3250,9 +3256,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return 0;
     case SKODE_OP_LINK_MIDI:
       if (opcode->argc < 1) return -1;
-      skode_opcode_links(opcode, &sv.link_midi_0[voice],
-        &sv.link_midi_1[voice], &sv.link_midi_2[voice],
-        &sv.link_midi_3[voice]);
+      skode_opcode_links(opcode, &sv.link_midi_0[voice], &sv.link_midi_1[voice], &sv.link_midi_2[voice], &sv.link_midi_3[voice], &sv.link_midi_4[voice], &sv.link_midi_5[voice]);
       return 0;
     case SKODE_OP_SAMPLE_HOLD:
       if (!x_valid) return -1;
@@ -3264,9 +3268,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return 0;
     case SKODE_OP_LINK_VELOCITY:
       if (opcode->argc < 1) return -1;
-      skode_opcode_links(opcode, &sv.link_velo_0[voice],
-        &sv.link_velo_1[voice], &sv.link_velo_2[voice],
-        &sv.link_velo_3[voice]);
+      skode_opcode_links(opcode, &sv.link_velo_0[voice], &sv.link_velo_1[voice], &sv.link_velo_2[voice], &sv.link_velo_3[voice], &sv.link_velo_4[voice], &sv.link_velo_5[voice]);
       return 0;
     case SKODE_OP_TRIGGER_DELAY:
       if (opcode->argc != 1) return -1;
@@ -4511,7 +4513,62 @@ neutral `ct 0 0 1 0` disables it.
       }
       return 0;
 }
+
+static int word_exec_pt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  (void)self; (void)atom; (void)voice; (void)arg;
+      if (argc > 3) {
+          envelope_configure_e(&sv.freq_envelope[voice], arg[0], arg[1], arg[2], arg[3]);
+          sv.use_freq_envelope[voice] = !(arg[0] == 0 && arg[1] == 0 && arg[2] == 1 && arg[3] == 0);
+      }
+      return 0;
+}
+static skode_word_t word_pt = { WID("pt"), .execute = word_exec_pt, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
+
+static int word_exec_pd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  (void)self; (void)atom; (void)voice; (void)arg;
+      if (argc > 0) sv.freq_env_depth[voice] = arg[0];
+      return 0;
+}
+static skode_word_t word_pd = { WID("pd"), .execute = word_exec_pd, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
+
+static int word_exec_pte(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  (void)self; (void)atom; (void)voice; (void)arg; (void)argc;
+  double *data = s ? ands_data(s) : NULL;
+  int len = s ? ands_data_len(s) : 0;
+  if (len > 0) {
+      envelope_configure_multistage_e(&sv.freq_envelope[voice], data, len);
+      sv.use_freq_envelope[voice] = 1;
+  }
+  return 0;
+}
+static skode_word_t word_pte = { WID("pte"), .execute = word_exec_pte, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
+
 static skode_word_t word_ct = { WID("ct"), .execute = word_exec_ct, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
+
+    /* @doc(command.cte)
+    name: cte
+    category: modulation
+    summary: phase-distortion envelope multistage set (array)
+    @enddoc */
+static int word_exec_cte(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  (void)self; (void)atom; (void)voice; (void)arg; (void)argc;
+  double *data = s ? ands_data(s) : NULL;
+  int len = s ? ands_data_len(s) : 0;
+  if (len > 0) {
+      envelope_configure_multistage_e(&sv.cz_envelope[voice], data, len);
+      sv.use_cz_envelope[voice] = 1;
+  }
+  return 0;
+}
+static skode_word_t word_cte = { WID("cte"), .execute = word_exec_cte, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
 
     /* @doc(command.cd)
     name: cd
@@ -4722,6 +4779,25 @@ static int word_exec_ft(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 static skode_word_t word_ft = { WID("ft"), .execute = word_exec_ft, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
 
+    /* @doc(command.fte)
+    name: fte
+    category: filter
+    summary: filter envelope multistage set (array)
+    @enddoc */
+static int word_exec_fte(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  (void)self; (void)atom; (void)voice; (void)arg; (void)argc;
+  double *data = s ? ands_data(s) : NULL;
+  int len = s ? ands_data_len(s) : 0;
+  if (len > 0) {
+      envelope_configure_multistage_e(&sv.filter_envelope[voice], data, len);
+      sv.use_filter_envelope[voice] = 1;
+  }
+  return 0;
+}
+static skode_word_t word_fte = { WID("fte"), .execute = word_exec_fte, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
+
     /* @doc(command.fd)
     name: fd
     category: filter
@@ -4840,8 +4916,8 @@ static int word_exec_G(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
-        int links[4] = {-1, -1, -1, -1};
-        for (int i = 0; i < argc && i < 4; i++) {
+        int links[6] = {-1, -1, -1, -1, -1, -1};
+        for (int i = 0; i < argc && i < 6; i++) {
           int link;
           if (skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
             links[i] = link;
@@ -4850,6 +4926,8 @@ static int word_exec_G(const skode_word_t *self, skode_t *ctx, ands_t *s, double
         sv.link_midi_1[voice] = links[1];
         sv.link_midi_2[voice] = links[2];
         sv.link_midi_3[voice] = links[3];
+        sv.link_midi_4[voice] = links[4];
+        sv.link_midi_5[voice] = links[5];
       }
       return 0;
 }
@@ -4893,8 +4971,8 @@ static int word_exec_H(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
-        int links[4] = {-1, -1, -1, -1};
-        for (int i = 0; i < argc && i < 4; i++) {
+        int links[6] = {-1, -1, -1, -1, -1, -1};
+        for (int i = 0; i < argc && i < 6; i++) {
           int link;
           if (skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
             links[i] = link;
@@ -4903,6 +4981,8 @@ static int word_exec_H(const skode_word_t *self, skode_t *ctx, ands_t *s, double
         sv.link_velo_1[voice] = links[1];
         sv.link_velo_2[voice] = links[2];
         sv.link_velo_3[voice] = links[3];
+        sv.link_velo_4[voice] = links[4];
+        sv.link_velo_5[voice] = links[5];
       }
       return 0;
     // TODO re-allocate the data/array buffer with the arg
@@ -6052,6 +6132,26 @@ static int word_exec_t(const skode_word_t *self, skode_t *ctx, ands_t *s, double
 }
 static skode_word_t word_t = { WID("t"), .execute = word_exec_t, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 
+    /* @doc(command.te)
+    name: te
+    category: voice
+    summary: envelope multistage set (array)
+    @enddoc */
+static int word_exec_te(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  (void)self; (void)atom; (void)voice; (void)arg; (void)argc;
+  double *data = s ? ands_data(s) : NULL;
+  int len = s ? ands_data_len(s) : 0;
+  if (len > 0) {
+      envelope_configure_multistage_e(&sv.amp_envelope[voice], data, len);
+      sv.use_amp_envelope[voice] = 1;
+      sv.amp_envelope_mode[voice] = 0;
+  }
+  return 0;
+}
+static skode_word_t word_te = { WID("te"), .execute = word_exec_te, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
+
     /* @doc(command.T)
     name: T
     category: voice
@@ -6071,6 +6171,8 @@ static int word_exec_T(const skode_word_t *self, skode_t *ctx, ands_t *s, double
         if (sv.link_velo_1[voice] >= 0) envelope_velocity(sv.link_velo_1[voice], 1);
         if (sv.link_velo_2[voice] >= 0) envelope_velocity(sv.link_velo_2[voice], 1);
         if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1);
+        if (sv.link_velo_4[voice] >= 0) envelope_velocity(sv.link_velo_4[voice], 1);
+        if (sv.link_velo_5[voice] >= 0) envelope_velocity(sv.link_velo_5[voice], 1);
       }
       return 0;
 }
@@ -9304,7 +9406,11 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
   skode_dict_register(vocab, &word_C);
 
+  skode_dict_register(vocab, &word_pt);
+  skode_dict_register(vocab, &word_pd);
+  skode_dict_register(vocab, &word_pte);
   skode_dict_register(vocab, &word_ct);
+  skode_dict_register(vocab, &word_cte);
 
   skode_dict_register(vocab, &word_cd);
 
@@ -9319,6 +9425,7 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
 
 
   skode_dict_register(vocab, &word_ft);
+  skode_dict_register(vocab, &word_fte);
 
   skode_dict_register(vocab, &word_fd);
 
@@ -9453,6 +9560,7 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_S);
 
   skode_dict_register(vocab, &word_t);
+  skode_dict_register(vocab, &word_te);
 
   skode_dict_register(vocab, &word_T);
 

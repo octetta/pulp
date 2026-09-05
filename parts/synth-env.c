@@ -19,11 +19,47 @@ static void envelope_snapshot_config(envelope_t *e) {
 #include "control-events.h"
 
 // Configure the next trigger without disturbing an envelope in progress.
+void envelope_copy_e(envelope_t *dst, const envelope_t *src) {
+    dst->a = src->a; dst->d = src->d; dst->s = src->s; dst->r = src->r;
+    dst->attack_time = src->attack_time; dst->decay_time = src->decay_time;
+    dst->sustain_level = src->sustain_level; dst->release_time = src->release_time;
+    dst->mode = src->mode;
+    dst->num_stages = src->num_stages; dst->sustain_stage = src->sustain_stage;
+    for (int i = 0; i < 16; i++) {
+        dst->times[i] = src->times[i]; dst->levels[i] = src->levels[i];
+    }
+}
+
 void envelope_configure_e(envelope_t *e, float a, float d, float s, float r) {
+    e->mode = 0;
     e->a = a;
     e->d = d;
     e->s = s;
     e->r = r;
+}
+
+void envelope_configure_multistage_e(envelope_t *e, const double *args, int count) {
+    e->mode = 1;
+    e->num_stages = 0;
+    e->sustain_stage = 255;
+    
+    int pairs = count / 2;
+    if (pairs > 16) pairs = 16;
+    
+    for (int i = 0; i < pairs; i++) {
+        float time_sec = (float)args[i * 2];
+        float level = (float)args[i * 2 + 1];
+        
+        if (time_sec < 0.0f) {
+            e->sustain_stage = i;
+            time_sec = -time_sec; // Convert back to positive time if it was just a flag, or treat as 0
+            if (time_sec < 0.0001f) time_sec = 0.0001f;
+        }
+        
+        e->times[i] = time_sec * MAIN_SAMPLE_RATE;
+        e->levels[i] = level;
+        e->num_stages++;
+    }
 }
 
 // Initialize both configured parameters and runtime state.
@@ -53,6 +89,12 @@ void envelope_trigger_e(envelope_t *e, float f) {
     e->sample_release = UINT64_MAX;
     e->velocity       = f;
     e->is_active      = 1;
+    
+    if (e->mode == 1) {
+        e->current_stage = 0;
+        e->stage_start_sample = e->sample_start;
+        e->stage_start_level = e->amplitude_at_trigger;
+    }
 }
 
 void amp_envelope_trigger(int v, float f) {
@@ -84,8 +126,68 @@ void amp_envelope_release(int v) {
 float envelope_step_e(envelope_t *e, uint64_t current_sample) {
     if (!e->is_active) return 0.0f;
 
-    float held_out = 0.0f;
     float out = 0.0f;
+    
+    if (e->mode == 1) { // MULTISTAGE
+        if (e->num_stages == 0) {
+            e->is_active = 0;
+            return 0.0f;
+        }
+
+        // Check if key was released and we should jump past sustain
+        if (e->sample_release != UINT64_MAX && current_sample >= e->sample_release) {
+            if (e->sustain_stage != 255 && e->current_stage <= e->sustain_stage && e->current_stage < e->num_stages - 1) {
+                // Jump to the stage after sustain
+                e->current_stage = e->sustain_stage + 1;
+                e->stage_start_sample = current_sample;
+                e->stage_start_level = e->current_amplitude;
+            }
+        }
+        
+        uint64_t stage_samples_elapsed = current_sample >= e->stage_start_sample ? current_sample - e->stage_start_sample : 0;
+        float stage_time = e->times[e->current_stage];
+        float target_level = e->levels[e->current_stage];
+        
+        // Handle advancing to next stage
+        while (stage_samples_elapsed >= stage_time) {
+            if (e->current_stage == e->sustain_stage && e->sample_release == UINT64_MAX) {
+                // Hold sustain stage indefinitely until release
+                out = target_level;
+                goto envelope_multistage_done;
+            }
+            
+            // Advance
+            e->current_stage++;
+            if (e->current_stage >= e->num_stages) {
+                e->is_active = 0;
+                e->current_amplitude = 0.0f;
+                return 0.0f;
+            }
+            
+            // New stage
+            e->stage_start_sample += stage_time;
+            e->stage_start_level = target_level;
+            
+            stage_samples_elapsed = current_sample >= e->stage_start_sample ? current_sample - e->stage_start_sample : 0;
+            stage_time = e->times[e->current_stage];
+            target_level = e->levels[e->current_stage];
+        }
+        
+        // Interpolate current stage
+        if (stage_time <= 0.001f) {
+            out = target_level;
+        } else {
+            float progress = (float)stage_samples_elapsed / stage_time;
+            out = e->stage_start_level + progress * (target_level - e->stage_start_level);
+        }
+        
+envelope_multistage_done:
+        e->current_amplitude = out;
+        return out * e->velocity;
+    }
+
+    // LEGACY ADSR
+    float held_out = 0.0f;
     float samples_since_start = current_sample >= e->sample_start
         ? (float)(current_sample - e->sample_start) : 0.0f;
 
@@ -112,26 +214,17 @@ float envelope_step_e(envelope_t *e, uint64_t current_sample) {
             out = 0.0f;
         }
     } else if (current_sample < e->sample_release) {
-        out = e->amplitude_at_release < 0.0f ? held_out : e->amplitude_at_release;
+        out = held_out;
     } else {
-        if (e->amplitude_at_release < 0.0f) {
-            e->amplitude_at_release = held_out;
-        }
-        if (e->release_time <= 0.0f) {
+        float samples_since_release = current_sample - e->sample_release;
+        if (samples_since_release >= e->release_time) {
             e->is_active = 0;
             out = 0.0f;
         } else {
-            float samples_since_release = (float)(current_sample - e->sample_release);
-            if (samples_since_release < e->release_time) {
-                float release_progress = samples_since_release / e->release_time;
-                out = e->amplitude_at_release * (1.0f - release_progress);
-            } else {
-                e->is_active = 0;
-                out = 0.0f;
-            }
+            float release_progress = samples_since_release / e->release_time;
+            out = e->amplitude_at_release * (1.0f - release_progress);
         }
     }
-
     e->current_amplitude = out;
     return out * e->velocity;
 }

@@ -160,10 +160,14 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(link_midi_1,      float);
     VALLOC(link_midi_2,      float);
     VALLOC(link_midi_3,      float);
+    VALLOC(link_midi_4,      float);
+    VALLOC(link_midi_5,      float);
     VALLOC(link_velo_0,      float);
     VALLOC(link_velo_1,      float);
     VALLOC(link_velo_2,      float);
     VALLOC(link_velo_3,      float);
+    VALLOC(link_velo_4,      float);
+    VALLOC(link_velo_5,      float);
     VALLOC(link_trig,        float);
     VALLOC(link_trig_samp,   uint64_t);
     VALLOC(freq_bend,        float);
@@ -195,6 +199,10 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(cz_envelope,      envelope_t);
     VALLOC(use_cz_envelope,  int);
     VALLOC(cz_env_depth,     float);
+    
+    VALLOC(freq_envelope,    envelope_t);
+    VALLOC(use_freq_envelope,int);
+    VALLOC(freq_env_depth,   float);
 
     VALLOC(filter_freq,      float);
     VALLOC(filter_res,       float);
@@ -275,11 +283,11 @@ void synth_free_voices(void) {
     VFREE(link_midi_0);
     VFREE(link_midi_1);
     VFREE(link_midi_2);
-    VFREE(link_midi_3);
+    VFREE(link_midi_3); VFREE(link_midi_4); VFREE(link_midi_5);
     VFREE(link_velo_0);
     VFREE(link_velo_1);
     VFREE(link_velo_2);
-    VFREE(link_velo_3);
+    VFREE(link_velo_3); VFREE(link_velo_4); VFREE(link_velo_5);
     VFREE(link_trig);
     VFREE(link_trig_samp);
     VFREE(freq_bend);        VFREE(freq_bend_range); VFREE(freq_bend_offset);
@@ -295,7 +303,8 @@ void synth_free_voices(void) {
 
     VFREE(cz_mode);          VFREE(cz_distortion);
     VFREE(cz_mod_osc);       VFREE(cz_mod_depth);
-    VFREE(cz_envelope);      VFREE(use_cz_envelope);
+    VFREE(cz_envelope);
+    VFREE(use_freq_envelope); VFREE(freq_env_depth); VFREE(freq_envelope);      VFREE(use_cz_envelope);
     VFREE(cz_env_depth);
     VFREE(filter_freq);      VFREE(filter_res);
     VFREE(filter_mode);      VFREE(filter);

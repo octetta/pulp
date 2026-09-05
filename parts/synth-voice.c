@@ -51,7 +51,7 @@ static void freq_to_note_cents(float freq, float *note, float *cents) {
   *cents = 100.0 * (n_float - n_int);
 }
 
-#define D_TO_S_MAX (5)
+#define D_TO_S_MAX (12)
 static char _d_to_s[D_TO_S_MAX][16] = {0};
 int d_to_s_idx = 0;
 static char *d_to_s_or_nan(int n) {
@@ -127,12 +127,16 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         || (int)sv.link_midi_0[v] >= 0
         || (int)sv.link_midi_1[v] >= 0
         || (int)sv.link_midi_2[v] >= 0
-        || (int)sv.link_midi_3[v] >= 0) {
-          APPEND(" G%s,%s,%s,%s",
+        || (int)sv.link_midi_3[v] >= 0
+        || (int)sv.link_midi_4[v] >= 0
+        || (int)sv.link_midi_5[v] >= 0) {
+          APPEND(" G%s,%s,%s,%s,%s,%s",
             d_to_s_or_nan(sv.link_midi_0[v]),
             d_to_s_or_nan(sv.link_midi_1[v]),
             d_to_s_or_nan(sv.link_midi_2[v]),
-            d_to_s_or_nan(sv.link_midi_3[v]));
+            d_to_s_or_nan(sv.link_midi_3[v]),
+            d_to_s_or_nan(sv.link_midi_4[v]),
+            d_to_s_or_nan(sv.link_midi_5[v]));
         }
     if (verbose
         || sv.ring_osc[v] >= 0)
@@ -143,12 +147,16 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         || (int)sv.link_velo_0[v] >= 0
         || (int)sv.link_velo_1[v] >= 0
         || (int)sv.link_velo_2[v] >= 0
-        || (int)sv.link_velo_3[v] >= 0) {
-          APPEND(" H%s,%s,%s,%s",
+        || (int)sv.link_velo_3[v] >= 0
+        || (int)sv.link_velo_4[v] >= 0
+        || (int)sv.link_velo_5[v] >= 0) {
+          APPEND(" H%s,%s,%s,%s,%s,%s",
             d_to_s_or_nan(sv.link_velo_0[v]),
             d_to_s_or_nan(sv.link_velo_1[v]),
             d_to_s_or_nan(sv.link_velo_2[v]),
-            d_to_s_or_nan(sv.link_velo_3[v]));
+            d_to_s_or_nan(sv.link_velo_3[v]),
+            d_to_s_or_nan(sv.link_velo_4[v]),
+            d_to_s_or_nan(sv.link_velo_5[v]));
         }
     /* --- trigger link (suppress if unset) --- */
     if (verbose || (int)sv.link_trig[v] >= 0)
@@ -181,13 +189,23 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || sv.filter_mode[v])
         APPEND(" J%d %d K%g Q%g", sv.filter_mode[v] % 10, sv.filter_mode[v] / 10, sv.filter_freq[v], sv.filter_res[v]);
 
-    if (verbose || sv.use_filter_envelope[v])
+    if (sv.filter_envelope[v].mode == 1) {
+        APPEND(" (");
+        for (int stage = 0; stage < sv.filter_envelope[v].num_stages; stage++) {
+            float time_val = sv.filter_envelope[v].times[stage] / (float)MAIN_SAMPLE_RATE;
+            if (stage == sv.filter_envelope[v].sustain_stage) time_val = -time_val;
+            APPEND("%g %g", time_val, sv.filter_envelope[v].levels[stage]);
+            if (stage < sv.filter_envelope[v].num_stages - 1) APPEND(" ");
+        }
+        APPEND(") fte fd %g", sv.filter_env_depth[v]);
+    } else if (verbose || sv.use_filter_envelope[v]) {
         APPEND(" ft %g %g %g %g fd %g",
             sv.filter_envelope[v].a,
             sv.filter_envelope[v].d,
             sv.filter_envelope[v].s,
             sv.filter_envelope[v].r,
             sv.filter_env_depth[v]);
+    }
 
     /* --- phase distortion (suppress if mode 0) --- */
     if (verbose || sv.cz_mode[v])
@@ -196,13 +214,41 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || (sv.cz_mod_osc[v] >= 0 && sv.cz_mod_depth[v] != 0.0f))
         APPEND(" C%d,%g", sv.cz_mod_osc[v], sv.cz_mod_depth[v]);
 
-    if (verbose || sv.use_cz_envelope[v])
+    if (sv.freq_envelope[v].mode == 1) {
+        APPEND(" (");
+        for (int stage = 0; stage < sv.freq_envelope[v].num_stages; stage++) {
+            float time_val = sv.freq_envelope[v].times[stage] / (float)MAIN_SAMPLE_RATE;
+            if (stage == sv.freq_envelope[v].sustain_stage) time_val = -time_val;
+            APPEND("%g %g", time_val, sv.freq_envelope[v].levels[stage]);
+            if (stage < sv.freq_envelope[v].num_stages - 1) APPEND(" ");
+        }
+        APPEND(") pte pd %g", sv.freq_env_depth[v]);
+    } else if (verbose || sv.use_freq_envelope[v]) {
+        APPEND(" pt %g %g %g %g pd %g",
+            sv.freq_envelope[v].a,
+            sv.freq_envelope[v].d,
+            sv.freq_envelope[v].s,
+            sv.freq_envelope[v].r,
+            sv.freq_env_depth[v]);
+    }
+
+    if (sv.cz_envelope[v].mode == 1) {
+        APPEND(" (");
+        for (int stage = 0; stage < sv.cz_envelope[v].num_stages; stage++) {
+            float time_val = sv.cz_envelope[v].times[stage] / (float)MAIN_SAMPLE_RATE;
+            if (stage == sv.cz_envelope[v].sustain_stage) time_val = -time_val;
+            APPEND("%g %g", time_val, sv.cz_envelope[v].levels[stage]);
+            if (stage < sv.cz_envelope[v].num_stages - 1) APPEND(" ");
+        }
+        APPEND(") cte cd %g", sv.cz_env_depth[v]);
+    } else if (verbose || sv.use_cz_envelope[v]) {
         APPEND(" ct %g %g %g %g cd %g",
             sv.cz_envelope[v].a,
             sv.cz_envelope[v].d,
             sv.cz_envelope[v].s,
             sv.cz_envelope[v].r,
             sv.cz_env_depth[v]);
+    }
 
     if (verbose || sv.sample_hold_ratio[v] > 0.0f) APPEND(" h%g %d", sv.sample_hold_ratio[v], sv.sample_hold_mode[v]);
 
@@ -647,13 +693,17 @@ int voice_copy(int v, int n) {
   sv.link_midi_1[n] = sv.link_midi_1[v];
   sv.link_midi_2[n] = sv.link_midi_2[v];
   sv.link_midi_3[n] = sv.link_midi_3[v];
+  sv.link_midi_4[n] = sv.link_midi_4[v];
+  sv.link_midi_5[n] = sv.link_midi_5[v];
   sv.midi_transpose[n] = sv.midi_transpose[v];
   sv.midi_cents[n] = sv.midi_cents[v];
-  envelope_set(n, sv.amp_envelope[v].a, sv.amp_envelope[v].d, sv.amp_envelope[v].s, sv.amp_envelope[v].r);
+  envelope_copy_e(&sv.amp_envelope[n], &sv.amp_envelope[v]);
   sv.link_velo_0[n] = sv.link_velo_0[v];
   sv.link_velo_1[n] = sv.link_velo_1[v];
   sv.link_velo_2[n] = sv.link_velo_2[v];
   sv.link_velo_3[n] = sv.link_velo_3[v];
+  sv.link_velo_4[n] = sv.link_velo_4[v];
+  sv.link_velo_5[n] = sv.link_velo_5[v];
   sv.link_trig[n] = sv.link_trig[v];
   sv.link_trig_samp[n] = sv.link_trig_samp[v];
   //
@@ -677,9 +727,10 @@ int voice_copy(int v, int n) {
   cmod_set(n, sv.cz_mod_osc[v], sv.cz_mod_depth[v]);
   sv.use_cz_envelope[n] = sv.use_cz_envelope[v];
   sv.cz_env_depth[n] = sv.cz_env_depth[v];
-  envelope_init_e(&sv.cz_envelope[n],
-    sv.cz_envelope[v].a, sv.cz_envelope[v].d,
-    sv.cz_envelope[v].s, sv.cz_envelope[v].r);
+  envelope_copy_e(&sv.cz_envelope[n], &sv.cz_envelope[v]);
+  sv.use_freq_envelope[n] = sv.use_freq_envelope[v];
+  sv.freq_env_depth[n] = sv.freq_env_depth[v];
+  envelope_copy_e(&sv.freq_envelope[n], &sv.freq_envelope[v]);
   sv.filter_mode[n] = sv.filter_mode[v];
   mmf_init(&skred_global_engine, n, sv.filter_freq[v], sv.filter_res[v]);
   sv.phase_inc[n] = sv.phase_inc[v];
@@ -689,11 +740,7 @@ int voice_copy(int v, int n) {
   sv.glissando_time[n] = sv.glissando_time[v];
   sv.use_filter_envelope[n] = sv.use_filter_envelope[v];
   sv.filter_env_depth[n] = sv.filter_env_depth[v];
-  float a = sv.filter_envelope[v].a;
-  float d = sv.filter_envelope[v].d;
-  float s = sv.filter_envelope[v].s;
-  float r = sv.filter_envelope[v].r;
-  envelope_init_e(&sv.filter_envelope[n], a, d, s, r);
+  envelope_copy_e(&sv.filter_envelope[n], &sv.filter_envelope[v]);
   sv.ring_osc[n] = sv.ring_osc[v];
   sv.ring_amount[n] = sv.ring_amount[v];
   freq_bend_param_set(n, sv.freq_bend_range[v], sv.freq_bend_offset[v]);
@@ -757,6 +804,9 @@ int freq_midi(int voice, float note, float cents) {
     if (sv.midi_transpose[voice]) note += sv.midi_transpose[voice];
     float g = midi2hz(note, sv.midi_cents[voice] + cents);
     return freq_set(voice, g);
+  } else if (note < 0.0) {
+    sv.last_midi_note[voice] = note;
+    return freq_set(voice, 0.0f);
   }
   return 100; // <-- LAZY  ERR_INVALID_MIDI_NOTE;
 }
@@ -797,10 +847,14 @@ void voice_reset(int i) {
   sv.link_midi_1[i] = -1;
   sv.link_midi_2[i] = -1;
   sv.link_midi_3[i] = -1;
+  sv.link_midi_4[i] = -1;
+  sv.link_midi_5[i] = -1;
   sv.link_velo_0[i] = -1;
   sv.link_velo_1[i] = -1;
   sv.link_velo_2[i] = -1;
   sv.link_velo_3[i] = -1;
+  sv.link_velo_4[i] = -1;
+  sv.link_velo_5[i] = -1;
   sv.link_trig[i] = -1;
   sv.link_trig_samp[i] = 0;
   sv.freq_bend[i] = 0.0f;
@@ -904,6 +958,8 @@ int envelope_velocity(int voice, float f) {
             envelope_release_e(&sv.filter_envelope[voice]);
         if (!one_shot_loop_release && sv.cz_envelope[voice].is_active)
             envelope_release_e(&sv.cz_envelope[voice]);
+        if (!one_shot_loop_release && sv.freq_envelope[voice].is_active)
+            envelope_release_e(&sv.freq_envelope[voice]);
     } else {
       sv.use_amp_envelope[voice] = 1;
       sv.freq_mod_feedback_z1[voice] = 0.0f;
@@ -919,6 +975,8 @@ int envelope_velocity(int voice, float f) {
           envelope_trigger_e(&sv.filter_envelope[voice], f);
       if (sv.use_cz_envelope[voice])
           envelope_trigger_e(&sv.cz_envelope[voice], f);
+      if (sv.use_freq_envelope[voice])
+          envelope_trigger_e(&sv.freq_envelope[voice], f);
     }
     return 0;
 }

@@ -586,12 +586,14 @@ int skode_is_legacy_realtime_opcode(uint32_t atom) {
 
 int skode_midi_note(int voice, float note, float cents) {
   if (!event_voice_valid(voice)) return -1;
-  if (isnan(note)) note = sv.last_midi_note[voice];
+  if (isnan(note)) note = -1.0f;
   int result = freq_midi(voice, note, cents);
   if (sv.link_midi_0[voice] >= 0) freq_midi(sv.link_midi_0[voice], note, cents);
   if (sv.link_midi_1[voice] >= 0) freq_midi(sv.link_midi_1[voice], note, cents);
   if (sv.link_midi_2[voice] >= 0) freq_midi(sv.link_midi_2[voice], note, cents);
   if (sv.link_midi_3[voice] >= 0) freq_midi(sv.link_midi_3[voice], note, cents);
+  if (sv.link_midi_4[voice] >= 0) freq_midi(sv.link_midi_4[voice], note, cents);
+  if (sv.link_midi_5[voice] >= 0) freq_midi(sv.link_midi_5[voice], note, cents);
   return result;
 }
 
@@ -602,6 +604,8 @@ int skode_linked_velocity(int voice, float velocity, uint64_t sample) {
   if (sv.link_velo_1[voice] >= 0) skode_envelope_velocity(sv.link_velo_1[voice], velocity, sample);
   if (sv.link_velo_2[voice] >= 0) skode_envelope_velocity(sv.link_velo_2[voice], velocity, sample);
   if (sv.link_velo_3[voice] >= 0) skode_envelope_velocity(sv.link_velo_3[voice], velocity, sample);
+  if (sv.link_velo_4[voice] >= 0) skode_envelope_velocity(sv.link_velo_4[voice], velocity, sample);
+  if (sv.link_velo_5[voice] >= 0) skode_envelope_velocity(sv.link_velo_5[voice], velocity, sample);
   return 0;
 }
 

@@ -346,6 +346,12 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
         f = whiteish;
       }
       else {
+        float phase_inc = sv.phase_inc[n];
+        if (sv.use_freq_envelope[n]) {
+            float freq_env_val = envelope_step_e(&sv.freq_envelope[n], current_sample);
+            phase_inc *= exp2f(freq_env_val * sv.freq_env_depth[n]);
+        }
+        
         if (sv.freq_mod_mode[n] == 2) {
           float phase_offset = 0.0f;
           if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
@@ -359,7 +365,7 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
                       sv.freq_mod_feedback_z2[n]) *
               sv.freq_mod_feedback[n];
           }
-          f = osc_next_at(engine, n, sv.phase_inc[n], phase_offset, current_sample);
+          f = osc_next_at(engine, n, phase_inc, phase_offset, current_sample);
         } else if (sv.freq_mod_osc[n] >= 0 && sv.freq_mod_osc[n] != n) {
           int mod = sv.freq_mod_osc[n];
           float g = sv.sample[mod] * sv.freq_mod_depth[n] + sv.freq_mod_adder[n];
@@ -367,11 +373,11 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
           if (sv.freq_mod_mode[n]) {
             inc = (g * sv.table_size_rate[n]);
           } else {
-            inc = sv.phase_inc[n] + (sv.phase_inc[mod] * sv.freq_scale[n] * g);
+            inc = phase_inc + (sv.phase_inc[mod] * sv.freq_scale[n] * g);
           }
           f = osc_next_at(engine, n, inc, 0.0f, current_sample);
         } else {
-          f = osc_next_at(engine, n, sv.phase_inc[n], 0.0f, current_sample);
+          f = osc_next_at(engine, n, phase_inc, 0.0f, current_sample);
         }
       if (sv.loop_ended[n]) {
         int release_tail = sv.one_shot[n] && sv.loop_release_tail[n];
@@ -382,6 +388,8 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
           envelope_release_e_at(&sv.filter_envelope[n], current_sample);
         if (!release_tail)
           envelope_release_e_at(&sv.cz_envelope[n], current_sample);
+        if (!release_tail)
+          envelope_release_e_at(&sv.freq_envelope[n], current_sample);
         sv.loop_release_tail[n] = 0;
         skred_control_voice_event(SKRED_CONTROL_EVENT_VOICE_RELEASE,
           current_sample, n);

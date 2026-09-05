@@ -102,10 +102,14 @@ typedef struct {
     float  * restrict link_midi_1;
     float  * restrict link_midi_2;
     float  * restrict link_midi_3;
+    float  * restrict link_midi_4;
+    float  * restrict link_midi_5;
     float  * restrict link_velo_0;
     float  * restrict link_velo_1;
     float  * restrict link_velo_2;
     float  * restrict link_velo_3;
+    float  * restrict link_velo_4;
+    float  * restrict link_velo_5;
     float  * restrict link_trig;
     uint64_t  * restrict link_trig_samp;
     float  * restrict freq_bend;
@@ -136,6 +140,10 @@ typedef struct {
     int    * restrict cz_mod_osc;
     float  * restrict cz_mod_depth;
     envelope_t * restrict cz_envelope;
+
+    int        * restrict use_freq_envelope;
+    float      * restrict freq_env_depth;
+    envelope_t * restrict freq_envelope;
     int        * restrict use_cz_envelope;
     float      * restrict cz_env_depth;
 

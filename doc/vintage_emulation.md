@@ -323,3 +323,43 @@ These scripts serve primarily as **translation engines**. They contain the compl
 > * The `dx7_to_skred.py` script generates a simplified 2-operator (Algorithm 16) structure rather than parsing all 32 algorithms and 155 global parameters.
 > 
 > To perfectly emulate a patch from a magazine or SysEx dump, you must use these scripts to translate the envelope timings, but manually wire the missing modulation architectures in Skred yourself.
+
+## 4. Advanced: Pulse Width Modulation & The Ghost Flanger
+
+Casio's Phase Distortion (Mode 1: Saw -> Pulse) can be used to mathematically sweep the phase of Skred's wavetables. Depending on which square wave you use, you get two completely different, incredibly powerful effects.
+
+### True Analog PWM (Using `w 16`)
+If you apply `c 1` to an edge-aligned square wave (like `w 16`), the phase distortion physically moves the edge of the square wave, creating mathematically perfect Pulse Width Modulation (PWM).
+
+Here is an example using the `C <voice> <depth>` command to drive the PWM with a sine-wave LFO:
+```skred
+# Voice 2: The LFO
+v2 w0 a 0          # Muted Sine wave
+N -36              # Pitch it down 3 octaves to LFO speed
+
+# Voice 0: The PWM Carrier
+v0 w16 a 5         # Analog edge-aligned square
+c 1, 0.5           # Set base pulse width to 50%
+C 2, 0.45          # Use LFO (v2) to continuously sweep the width +/- 45%
+n 40
+```
+
+### The "Ghost Flanger" (Using `w 49`)
+If you apply `c 1` to a *centered* pulse wave (like the analog `w 49` or digital `w 48`), the phase distortion stretches and squishes the edges of the pulse symmetrically. The pulse width stays exactly at 50%, but the entire pulse physically slides back and forth across the phase window!
+
+Mixing a sliding pulse against a static pulse creates a massive comb-filtering flanger effect, entirely within the oscillator (no delay lines required):
+```skred
+# Voice 2: The LFO
+v2 w0 a 0          
+N -48              # Slow LFO
+
+# Voice 1: The Static Pulse
+v1 w49 a 3         
+
+# Voice 0: The Modulated Pulse (Slides back and forth)
+v0 w49 a 3
+c 1, 0             # Mode 1, base phase 0
+C 2, 0.9           # Use LFO (v2) to slide the pulse phase +/- 90%
+G 1 H 1            # Trigger the static Voice 1 whenever Voice 0 plays
+n 40
+```

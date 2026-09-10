@@ -1,4 +1,4 @@
-<img src="IMG_3240.jpeg" width="100">
+<img src="osko.png" width="200">
 
 # `PULP`
 

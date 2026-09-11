@@ -1559,8 +1559,6 @@ static skode_word_t word__slash = { WID("/"), .execute = word_exec__slash, .safe
 static skode_word_t word__slashwex = { WID("/wex"), .execute = word_exec__slashwex, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
 
 void skode_register_words_dsp(skode_vocab_t *vocab) {
-  skode_dict_register(vocab, &word_ab);
-  skode_dict_register(vocab, &word_abp);
   skode_dict_register(vocab, &word_A);
   skode_dict_register(vocab, &word_b);
   skode_dict_register(vocab, &word_B);
@@ -1570,8 +1568,6 @@ void skode_register_words_dsp(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_ct);
   skode_dict_register(vocab, &word_cte);
   skode_dict_register(vocab, &word_cd);
-  skode_dict_register(vocab, &word_fb);
-  skode_dict_register(vocab, &word_fbp);
   skode_dict_register(vocab, &word_ft);
   skode_dict_register(vocab, &word_fte);
   skode_dict_register(vocab, &word_fd);

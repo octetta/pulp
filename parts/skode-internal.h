@@ -141,3 +141,11 @@ int skode_ks_bind_values(skode_t *ctx, int variable, const double *values, size_
 void ksynth_loader(skode_t *ctx, const char *text, size_t text_len, const char *label, int verbose);
 int ksynth_load_name(skode_t *ctx, char *file, int verbose);
 int ksynth_load(skode_t *ctx, int n, int verbose);
+int skode_load_name(skode_t *ctx, const char *name, int verbose);
+int skode_load(skode_t *ctx, int voice, int n, int verbose);
+int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int normalize);
+int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize);
+int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel);
+int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offset);
+int skode_wave_valid(int wave);
+void skode_copy_string(char *dst, size_t dst_size, const char *src);

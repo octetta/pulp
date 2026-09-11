@@ -71,6 +71,8 @@ set(API_PLAIN_SOURCES
         skode-ksynth-bridge.c
         skode-loader.c
         skode-opcode-exec.c
+        skode-display-wave.c
+        skode-diagnostics.c
         polyphony.c
         synth-alloc.c
         seq.c

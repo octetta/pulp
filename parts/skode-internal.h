@@ -44,6 +44,15 @@
 #ifndef SKODE_WINDOWS_BUILD
 #define SKODE_WINDOWS_BUILD 0
 #endif
+
+#define SAMPLES_TO_MSEC(n) ((double)(n) * (double)1000.0 / (double)MAIN_SAMPLE_RATE)
+#define WAVE_PEAK_ACCENT_MIN_DELTA 2
+#define WTWFS(ms) if ((ms) >= 1000.0f) { \
+    ctx->printf(ctx, " (%0.2fs)", (ms) / 1000.0f); \
+  } else { \
+    ctx->printf(ctx, " (%0.1fms)", (ms)); \
+  }
+
 #endif
 
 typedef enum {
@@ -161,3 +170,47 @@ int skode_extra_valid(int n);
 int skode_voice_valid(int voice);
 int skode_seconds_to_samples(double seconds, uint64_t *out);
 uint64_t skode_u64_add(uint64_t a, uint64_t b);
+
+// Display and diagnostics prototypes
+int wave_display_dim(double value, int fallback, int min, int max);
+wave_stats_t wave_stats(float *data, int n);
+void print_wave_stats(skode_t *ctx, const char *label, float *data, int n, float rate);
+float wave_samples_to_ms(int samples, float rate);
+int wave_boundary_col(int boundary, int n, int width);
+void print_braille_cell(skode_t *ctx, unsigned int pattern);
+void print_wave_marker_row(skode_t *ctx, int n, int width, int start, int end, int braille);
+int skode_env_eq(const char *a, const char *b);
+int skode_wave_display_use_braille(void);
+int wave_y_from_value(float value, float max_abs, int rows);
+int wave_ascii_points(float *data, int n, int width, int rows, int *y_coords, int *y_peak_min, int *y_peak_max);
+void print_audio_ascii_wave(skode_t *ctx, float *data, int n, int width_chars, int height_chars, int offset, int trim, int labeled);
+void print_audio_braille_connected(skode_t *ctx, float *data, int n, int width_chars, int height_chars);
+void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_chars, int height_chars, int offset, int trim);
+int wavetable_show(skode_t *ctx, int n);
+void wavetable_waveform_show(skode_t *ctx, int wave, int width, int height, int loop_start, int loop_end, const char *label);
+void spectro_fft(spectro_cplx_t *buf, int n);
+int spectro_next_pow2(int x);
+int skode_spectrogram_color_mode(void);
+void spectro_heat_rgb(float t, int *r, int *g, int *b);
+void spectro_reset_color(skode_t *ctx, int mode);
+int skode_spectrogram_line_budget(void);
+int spectro_row_worst_case_bytes(int mode, int width, int use_braille);
+int spectro_fit_color_mode(skode_t *ctx, int color_mode, int width, int use_braille);
+void wavetable_spectrogram_show(skode_t *ctx, int wave, int width, int height, int loop_start, int loop_end, const char *label);
+void voice_show(skode_t *ctx, int v, char c, int verbose);
+int voice_show_all(skode_t *ctx, int voice, int verbose);
+void record_tracks_show(skode_t *ctx);
+void system_show(skode_t *ctx);
+void skode_macros_show(skode_t *ctx, int pasteable);
+void wave_labels_show(skode_t *ctx);
+void global_status_show(skode_t *ctx, int full);
+int show_stats_cb(int n, uint64_t timestamp, uint64_t id, int tag, const event_t *e, void *user);
+void show_stats(skode_t *ctx);
+void control_event_show(skode_t *ctx, int consume);
+void opcode_arg_show(skode_t *ctx, const opcode_event_t *opcode, int n);
+void opcode_show(skode_t *ctx, int index, const opcode_event_t *opcode);
+void opcode_queue_show(skode_t *ctx);
+void opcode_pattern_step_show(skode_t *ctx, int pattern, int step);
+void opcode_pattern_show(skode_t *ctx, int pattern, int step);
+void show_threads(skode_t *ctx);
+void pattern_show(skode_t *ctx, int pattern_pointer, int verbose);

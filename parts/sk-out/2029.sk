@@ -37,7 +37,7 @@ y0
 [v2l0.4] x11
 [v1l1] x12                # Beat 4 Snare Backbeat
 [v2l0.4] x13
-[v1l0.3 v3l0.8] x14       # Ghost Snare + Open Hat Accent
+[v1l0.3 v2l0.8] x14       # Ghost Snare + Closed Hat Accent
 [v1l0.9 z*4] x15          # 4-Trigger Amen Snare Roll Fill!
 
 # Start Pattern

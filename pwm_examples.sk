@@ -1,0 +1,18 @@
+# 1. TRUE PWM (Using standard edge-aligned w16)
+# CZ Mode 1 (Saw->Pulse) pushes the 0.5 midpoint left and right.
+# Because w16 jumps at 0.5, this perfectly widens and narrows the pulse!
+v0 w16 a 5
+c 1, 0         # CZ Mode 1 (Saw->Pulse), base distortion 0
+cd 0.9         # Envelope sweeps distortion up to 90%
+( 0.01 0.0  2.0 1.0  2.0 0.0 ) cte  # Slow PWM sweep envelope
+
+# 2. PHASE SHIFT FLANGER (Using centered w49)
+# Because w49 is centered, CZ Mode 1 pushes the entire pulse left and right
+# without changing its width! Mixed with a static copy, it creates a flanger!
+v1 w49 a 2
+c 1, 0
+cd 0.9
+( 0.01 0.0  2.0 1.0  2.0 0.0 ) cte  # Slides the pulse phase forward and back
+
+v2 w49 a 2     # Static copy to mix against v1
+G 1 H 1        # Link to v1 so they trigger together

@@ -5177,7 +5177,8 @@ static int word_exec_ks(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
         if (ctx->trace) {
           ctx->printf(ctx, "cmd:[%s] len:%d\n", cmd, len);
         }
-        if (len) skode_ks_eval(ctx, cmd, len);
+        // if (len) skode_ks_eval(ctx, cmd, len);
+        if (len) ksynth_loader(ctx, cmd, (size_t)len, "[inline ks]", ctx->trace);
       }
       return 0;
 }
@@ -5205,7 +5206,8 @@ static int word_exec_k_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
         if (ctx->trace) {
           ctx->printf(ctx, "cmd:[%s] len:%d\n", cmd, len);
         }
-        if (len) skode_ks_eval(ctx, cmd, len);
+        //if (len) skode_ks_eval(ctx, cmd, len);
+        if (len) ksynth_loader(ctx, cmd, (size_t)len, "[inline k!]", ctx->trace);
       }
       return 0;
 }

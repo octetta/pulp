@@ -44,6 +44,18 @@ emcc -I. -I.. -I../exp-vfs \
     ../synth-voice.c \
     ../synth-wave.c \
     ../skode.c \
+    ../skode-session.c \
+    ../skode-ksynth-bridge.c \
+    ../skode-loader.c \
+    ../skode-opcode-exec.c \
+    ../skode-display-wave.c \
+    ../skode-diagnostics.c \
+    ../skode-audio-export.c \
+    ../skode-words-dsp.c \
+    ../skode-words-seq.c \
+    ../skode-words-data.c \
+    ../skode-words-system.c \
+    ../skode-words-misc.c \
     ../polyphony.c \
     ../synth-alloc.c \
     ../recorder.c \

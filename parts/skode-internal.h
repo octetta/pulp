@@ -224,3 +224,26 @@ void record_find_trim(int argc, float arg0, float arg1, int margin);
 #define RECORD_TRIM_DEFAULT_THRESHOLD 0.001f
 #define RECORD_TRIM_CONSECUTIVE_SAMPLES 4
 float record_frame_level(int frame);
+
+// Word Registration Prototypes
+void skode_register_words_dsp(skode_vocab_t *vocab);
+void skode_register_words_seq(skode_vocab_t *vocab);
+void skode_register_words_data(skode_vocab_t *vocab);
+void skode_register_words_system(skode_vocab_t *vocab);
+void skode_register_words_misc(skode_vocab_t *vocab);
+
+#define WAVE_DISPLAY_DEFAULT_WIDTH 60
+#define WAVE_DISPLAY_DEFAULT_HEIGHT 12
+#define WAVE_DISPLAY_MIN_WIDTH 8
+#define WAVE_DISPLAY_MAX_WIDTH 160
+#define WAVE_DISPLAY_MIN_HEIGHT 2
+#define WAVE_DISPLAY_MAX_HEIGHT 40
+
+void wave_table_dynamic_expand(int n);
+int skode_sample_go(int frames, int source, int voice);
+
+#define EXTRA_PTR(n) skode_extra_ptr(n)
+#define EXTRA_INIT() { _skode_extra_invalid[0] = '\0'; for (int i=0; i<STRING_BUF_IDX_MAX; i++) EXTRA_PTR(i)[0] = '\0';}
+void skode_show(skode_t *ctx);
+void skode_help(skode_t *ctx, double *arg, int argc);
+float record_frame_mono(int frame);

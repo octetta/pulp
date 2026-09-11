@@ -74,6 +74,11 @@ set(API_PLAIN_SOURCES
         skode-display-wave.c
         skode-diagnostics.c
         skode-audio-export.c
+        skode-words-dsp.c
+        skode-words-seq.c
+        skode-words-data.c
+        skode-words-system.c
+        skode-words-misc.c
         polyphony.c
         synth-alloc.c
         seq.c
@@ -319,4 +324,4 @@ if(SKRED_SCOPE)
     COMMAND scope_ipc_tests
   )
 endif()
-set_source_files_properties(skode.c PROPERTIES COMPILE_FLAGS "-Wno-multichar")
+set_source_files_properties(skode.c skode-words-misc.c skode-words-dsp.c skode-words-data.c skode-words-seq.c skode-words-system.c PROPERTIES COMPILE_FLAGS "-Wno-multichar")

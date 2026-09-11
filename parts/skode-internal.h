@@ -149,3 +149,15 @@ int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel);
 int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offset);
 int skode_wave_valid(int wave);
 void skode_copy_string(char *dst, size_t dst_size, const char *src);
+
+void skode_envelope_velocity(int voice, float x, uint64_t now);
+int skode_compile_scheduled(skode_t *ctx, const char *text, event_program_t *program);
+void skode_queue_repeated(const event_program_t *program, int voice, int count, double seconds, int tag);
+void skode_repeat_macro(skode_t *ctx, const double *arg, int argc, int delay_only);
+int skode_foreign_function(skode_t *ctx, int index, const double *arg, int argc);
+int skode_opcode_supported(skode_opcode_t opcode);
+int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice);
+int skode_extra_valid(int n);
+int skode_voice_valid(int voice);
+int skode_seconds_to_samples(double seconds, uint64_t *out);
+uint64_t skode_u64_add(uint64_t a, uint64_t b);

@@ -70,6 +70,7 @@ set(API_PLAIN_SOURCES
         skode-session.c
         skode-ksynth-bridge.c
         skode-loader.c
+        skode-opcode-exec.c
         polyphony.c
         synth-alloc.c
         seq.c

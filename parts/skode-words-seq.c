@@ -1,5 +1,5 @@
 #include "skode-internal.h"
-#include "record.h"
+#include "recorder.h"
 
 static int word_exec_ce(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);

@@ -247,3 +247,7 @@ int skode_sample_go(int frames, int source, int voice);
 void skode_show(skode_t *ctx);
 void skode_help(skode_t *ctx, double *arg, int argc);
 float record_frame_mono(int frame);
+
+void skode_double_dump(skode_t *ctx, double *data, int data_len);
+void skode_format_string_args(char *dst, size_t dst_size, const char *src, double *arg, int argc);
+char *skode_extra_ptr(int index);

@@ -200,7 +200,7 @@ simple_mutex_t skode_ks_eval_mutex;
 #endif
 static atomic_int_t skode_global_state;
 int skode_extra_valid(int n) { return n >= 0 && n < STRING_BUF_IDX_MAX; }
-static char *skode_extra_ptr(int n) {
+char *skode_extra_ptr(int n) {
   if (skode_extra_valid(n)) return _skode_extra[n];
   _skode_extra_invalid[0] = '\0';
   return _skode_extra_invalid;
@@ -541,7 +541,7 @@ void skode_copy_string(char *dst, size_t dst_size, const char *src) {
   snprintf(dst, dst_size, "%s", src ? src : "");
 }
 
-static void skode_format_string_args(char *dst, size_t dst_size,
+void skode_format_string_args(char *dst, size_t dst_size,
                                      const char *fmt, double *arg, int argc) {
   size_t used = 0;
 

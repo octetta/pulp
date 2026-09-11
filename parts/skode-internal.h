@@ -1,3 +1,4 @@
+#include "miniaudio.h"
 #pragma once
 
 #include "skred.h"
@@ -214,3 +215,12 @@ void opcode_pattern_step_show(skode_t *ctx, int pattern, int step);
 void opcode_pattern_show(skode_t *ctx, int pattern, int step);
 void show_threads(skode_t *ctx);
 void pattern_show(skode_t *ctx, int pattern_pointer, int verbose);
+
+// Audio export prototypes
+void normalize_buffer(float* pSamples, ma_uint32 frameCount, ma_uint32 channels);
+int skode_write_wav(skode_t *ctx, const char *filename, const float *samples, int frames, uint32_t channels, uint32_t sample_rate, int normalize);
+void record_find_trim(int argc, float arg0, float arg1, int margin);
+
+#define RECORD_TRIM_DEFAULT_THRESHOLD 0.001f
+#define RECORD_TRIM_CONSECUTIVE_SAMPLES 4
+float record_frame_level(int frame);

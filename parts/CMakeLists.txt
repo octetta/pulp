@@ -73,6 +73,7 @@ set(API_PLAIN_SOURCES
         skode-opcode-exec.c
         skode-display-wave.c
         skode-diagnostics.c
+        skode-audio-export.c
         polyphony.c
         synth-alloc.c
         seq.c

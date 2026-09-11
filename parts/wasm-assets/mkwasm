@@ -24,7 +24,6 @@ emcc -I. -I.. -I../exp-vfs \
     ../miniaudio.c \
     ../midi.c \
     ../util.c \
-    ../miniwav.c \
     ../exp-vfs/miniz.c \
     ../exp-vfs/miniz_tdef.c \
     ../exp-vfs/miniz_tinfl.c \

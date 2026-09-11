@@ -50,7 +50,6 @@ set(API_PLAIN_SOURCES
     midi.c
     midi_player.c
     util.c
-    miniwav.c
     exp-vfs/miniz.c
     exp-vfs/miniz_tdef.c
     exp-vfs/miniz_tinfl.c

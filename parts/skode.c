@@ -1,54 +1,8 @@
 double skode_stream_pull(void *ctx, int n);
-#include "skred.h"
-#include "api.h"
-#include "skode.h"
-#include "midi_player.h"
-#include "seq.h"
-#include "miniwav.h"
-
-#include "synth-types.h"
-#include "synth.h"
-#include "synth-state.h"
-#include "synth-config.h"
-#include "control-events.h"
-#include "polyphony.h"
-#include "skode-dict.h"
-#include "midi.h"
-
-#include <ctype.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <math.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-#include "portable_win.h"
-#else
-#include <unistd.h>
-#endif
-#include <dirent.h>
-#include "exp-vfs/skred_vfs.h"
-#include "exp-vfs/miniz_zip.h"
-
-#if defined(_WIN32) || defined(WIN32) || defined(__WIN32__) || defined(__WIN32) || defined(__WINDOWS__)
-#define SKODE_WINDOWS_BUILD 1
-#else
-#define SKODE_WINDOWS_BUILD 0
-#endif
+#include "skode-internal.h"
 
 char *skred_performance_status(void);
 
-typedef enum {
-  SKODE_ASSET_ANY = 0,
-  SKODE_ASSET_SKODE,
-  SKODE_ASSET_WAVE,
-  SKODE_ASSET_KSYNTH
-} skode_asset_kind_t;
 
 static int skode_path_has_dir(const char *path) {
   return path && (strchr(path, '/') || strchr(path, '\\'));
@@ -407,12 +361,6 @@ int skode_double_to_int(double value, int *out) {
   return 1;
 }
 
-typedef struct {
-  const char *key;
-  const char *file;
-  int line;
-  const char *text;
-} skode_doc_entry_t;
 
 static const skode_doc_entry_t skode_doc_entries[] = {
 #define KIT_DOC_BEGIN(symbol, key, file, line) { key, file, line, ""
@@ -1761,15 +1709,6 @@ void downsample_block_average(const float *source, int source_len, float *dest, 
 #define RECORD_TRIM_DEFAULT_THRESHOLD 0.001f
 #define RECORD_TRIM_CONSECUTIVE_SAMPLES 4
 
-typedef struct {
-    float min;
-    float max;
-    float peak;
-    float dc;
-    float rms;
-    int zero_crossings;
-    int clipped;
-} wave_stats_t;
 
 static int wave_display_dim(double value, int fallback, int min, int max) {
     if (!isfinite(value) || value <= 0.0) return fallback;
@@ -2260,7 +2199,6 @@ static void wavetable_waveform_show(skode_t *ctx, int wave, int width, int heigh
 
 
 /* Tiny iterative radix-2 Cooley-Tukey FFT, in place. n must be a power of two. */
-typedef struct { float re, im; } spectro_cplx_t;
 
 static void spectro_fft(spectro_cplx_t *buf, int n) {
     for (int i = 1, j = 0; i < n; i++) {
@@ -9954,12 +9892,6 @@ int skode_callback(ands_t *s, int info) {
 #define SKODE_SESSION_WAVE_MAGIC 0x53574156U
 #define SKODE_SESSION_RECORD_MAGIC 0x53524543U
 
-typedef struct {
-  unsigned char *data;
-  size_t size;
-  size_t capacity;
-  int failed;
-} skode_session_buffer_t;
 
 typedef struct {
   uint32_t magic;

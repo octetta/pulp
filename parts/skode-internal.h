@@ -97,6 +97,7 @@ typedef struct {
 #ifndef SKODE_WINDOWS_BUILD
 #define SKODE_WINDOWS_BUILD 0
 #endif
+#endif
 
 #define SAMPLES_TO_MSEC(n) ((double)(n) * (double)1000.0 / (double)MAIN_SAMPLE_RATE)
 #define WAVE_PEAK_ACCENT_MIN_DELTA 2
@@ -106,7 +107,6 @@ typedef struct {
     ctx->printf(ctx, " (%0.1fms)", (ms)); \
   }
 
-#endif
 
 typedef enum {
   SKODE_ASSET_ANY = 0,

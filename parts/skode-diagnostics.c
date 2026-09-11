@@ -1,3 +1,9 @@
+#ifdef _WIN32
+#include <windows.h>
+#include <tlhelp32.h>
+#include <processthreadsapi.h>
+#endif
+
 #include "skode-internal.h"
 #ifdef UDP
 #include "udp.h"
@@ -410,11 +416,6 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose);
 
 
 
-#ifdef _WIN32
-#include <windows.h>
-#include <tlhelp32.h>
-#include <processthreadsapi.h>
-#endif
 
 
 

@@ -109,6 +109,7 @@ static int word_exec_I(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       if (argc) {} return 0; // TODO en/dis-able send timestamp wire to the event logger
 }
 
+#ifdef UDP
 static int word_exec_udp(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -122,6 +123,7 @@ static int word_exec_udp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       }
       return 0;
 }
+#endif
 
 static int word_exec_log(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
@@ -633,7 +635,9 @@ static skode_word_t word_over = { WID("over"), .execute = word_exec_over, .safet
 static skode_word_t word_rot = { WID("rot"), .execute = word_exec_rot, .safety = WORD_IMMEDIATE_ONLY , .category = "parser" };
 static skode_word_t word_swap = { WID("swap"), .execute = word_exec_swap, .safety = WORD_IMMEDIATE_ONLY , .category = "parser" };
 static skode_word_t word_I = { WID("I"), .execute = word_exec_I, .safety = WORD_IMMEDIATE_ONLY , .category = "runtime" };
+#ifdef UDP
 static skode_word_t word_udp = { WID("udp"), .execute = word_exec_udp, .safety = WORD_IMMEDIATE_ONLY , .category = "runtime" };
+#endif
 static skode_word_t word_log = { WID("log"), .execute = word_exec_log, .safety = WORD_IMMEDIATE_ONLY , .category = "runtime" };
 static skode_word_t word_GS_gt = { WID("GS>"), .execute = word_exec_GS_gt, .safety = WORD_IMMEDIATE_ONLY , .category = "files" };
 static skode_word_t word_GS_lt = { WID("GS<"), .execute = word_exec_GS_lt, .safety = WORD_IMMEDIATE_ONLY , .category = "files" };
@@ -669,7 +673,9 @@ void skode_register_words_system(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_rot);
   skode_dict_register(vocab, &word_swap);
   skode_dict_register(vocab, &word_I);
+#ifdef UDP
   skode_dict_register(vocab, &word_udp);
+#endif
   skode_dict_register(vocab, &word_log);
   skode_dict_register(vocab, &word_GS_gt);
   skode_dict_register(vocab, &word_GS_lt);

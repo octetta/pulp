@@ -707,6 +707,7 @@ static int word_exec__qs(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
       return 0;
 }
 
+#ifdef SCOPE
 static int word_exec__slashsg(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -748,7 +749,9 @@ static int word_exec__slashsg(const skode_word_t *self, skode_t *ctx, ands_t *s,
       }
       return 0;
 }
+#endif
 
+#ifdef SCOPE
 static int word_exec__slashss(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -761,7 +764,9 @@ static int word_exec__slashss(const skode_word_t *self, skode_t *ctx, ands_t *s,
       ctx->printf(ctx, "# scope stopped\n");
       return 0;
 }
+#endif
 
+#ifdef SCOPE
 static int word_exec__slashs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -785,6 +790,7 @@ static int word_exec__slashs_q(const skode_word_t *self, skode_t *ctx, ands_t *s
       }
       return 0;
 }
+#endif
 
 
 // Word declarations
@@ -838,9 +844,15 @@ static skode_word_t word_wt = { WID("wt"), .execute = word_exec_wt, .safety = WO
 static skode_word_t word_d_gtMO = { WID("d>MO"), .execute = word_exec_d_gtMO, .safety = WORD_IMMEDIATE_ONLY , .category = "midi" };
 static skode_word_t word_WS = { WID("WS"), .execute = word_exec_WS, .safety = WORD_IMMEDIATE_ONLY , .category = "wave-specto" };
 static skode_word_t word__qs = { WID("?s"), .execute = word_exec__qs, .safety = WORD_IMMEDIATE_ONLY , .category = "misc" };
+#ifdef SCOPE
 static skode_word_t word__slashsg = { WID("/sg"), .execute = word_exec__slashsg, .safety = WORD_IMMEDIATE_ONLY , .category = "scope" };
+#endif
+#ifdef SCOPE
 static skode_word_t word__slashss = { WID("/ss"), .execute = word_exec__slashss, .safety = WORD_IMMEDIATE_ONLY , .category = "scope" };
+#endif
+#ifdef SCOPE
 static skode_word_t word__slashs_q = { WID("/s?"), .execute = word_exec__slashs_q, .safety = WORD_IMMEDIATE_ONLY , .category = "scope" };
+#endif
 
 void skode_register_words_misc(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word__slashals);
@@ -893,7 +905,13 @@ void skode_register_words_misc(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_d_gtMO);
   skode_dict_register(vocab, &word_WS);
   skode_dict_register(vocab, &word__qs);
+#ifdef SCOPE
   skode_dict_register(vocab, &word__slashsg);
+#endif
+#ifdef SCOPE
   skode_dict_register(vocab, &word__slashss);
+#endif
+#ifdef SCOPE
   skode_dict_register(vocab, &word__slashs_q);
+#endif
 }

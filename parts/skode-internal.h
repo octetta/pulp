@@ -111,3 +111,27 @@ typedef struct {
 // Extern functions and globals that will be shared between units.
 // We will populate these as we extract modules.
 
+
+int skode_session_save(skode_t *ctx, const char *filename);
+int skode_session_load(skode_t *ctx, const char *filename);
+#include "vendor/ksynth/ksynth.h"
+
+#define STRING_BUF_IDX_MAX SKODE_EXTRA_MAX
+#define STRING_BUF_LEN (256)
+
+extern simple_mutex_t skode_ks_eval_mutex;
+extern simple_mutex_t skode_extra_mutex;
+extern char _skode_extra[STRING_BUF_IDX_MAX][STRING_BUF_LEN];
+
+void global_status_show(skode_t *ctx, int full);
+int skode_asset_read(const char *path, skode_asset_kind_t kind,
+    void **data, size_t *size, char *resolved, size_t resolved_size);
+void wave_install_memory(int wave_slot, float *table, int len,
+    float rate, int one_shot, const char *name, float midi_note, float offset_hz);
+extern synth_sample_t sampling;
+int skode_sample_alloc(int frames);
+int skode_load_buffer(skode_t *ctx, const char *data, size_t size,
+    const char *resolved, int verbose);
+void skode_ks_result_clear(skode_t *ctx);
+ks_ctx *skode_ks_ctx(skode_t *ctx);
+

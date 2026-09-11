@@ -67,6 +67,7 @@ set(API_PLAIN_SOURCES
         api.c
         synth.c synth-delay.c synth-osc.c synth-filter.c synth-env.c synth-voice.c synth-wave.c
         skode.c
+        skode-session.c
         polyphony.c
         synth-alloc.c
         seq.c

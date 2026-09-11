@@ -135,3 +135,9 @@ int skode_load_buffer(skode_t *ctx, const char *data, size_t size,
 void skode_ks_result_clear(skode_t *ctx);
 ks_ctx *skode_ks_ctx(skode_t *ctx);
 
+int skode_ks_eval(skode_t *ctx, char *cmd, int len);
+int skode_ks_result_to_data(skode_t *ctx);
+int skode_ks_bind_values(skode_t *ctx, int variable, const double *values, size_t len);
+void ksynth_loader(skode_t *ctx, const char *text, size_t text_len, const char *label, int verbose);
+int ksynth_load_name(skode_t *ctx, char *file, int verbose);
+int ksynth_load(skode_t *ctx, int n, int verbose);

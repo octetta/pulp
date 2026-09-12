@@ -814,7 +814,6 @@ int freq_midi(int voice, float note, float cents) {
 int envelope_velocity(int voice, float f);
 
 void voice_reset(int i) {
-  sv.wave_table_index[i] = -1;
   sv.table_rate[i] = 0;
   sv.table_size[i] = 0;
   sv.sample[i] = 0;

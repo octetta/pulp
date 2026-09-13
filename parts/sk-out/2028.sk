@@ -8,11 +8,11 @@ M 125
 # 102: Closed Hi-Hat
 # 103: Rimshot
 # 104: Electro Bass Synth
-[sk/drums-kick.ks]/ks 1 k>d d>r /r100
-[sk/drums-snare.ks]/ks 1 k>d d>r /r101
-[sk/drums-chh.ks]/ks 1 k>d d>r /r102
-[sk/drums-rim.ks]/ks 1 k>d d>r /r103
-[sk/gm-bass-chase.ks]/ks 1 k>d d>r /r104
+[sk/drums-kick.ks]/ks k>d d>r /r100
+[sk/drums-snare.ks]/ks k>d d>r /r101
+[sk/drums-chh.ks]/ks k>d d>r /r102
+[sk/drums-rim.ks]/ks k>d d>r /r103
+[sk/gm-bass-chase.ks]/ks k>d d>r /r104
 
 # Voice Assignments:
 v0 w100 f440 a10          # Kick (Natural unpitched playback)

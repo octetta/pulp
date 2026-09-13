@@ -8,11 +8,11 @@ M 130
 # 102: Closed Hi-Hat
 # 103: Open Hi-Hat
 # 104: 303 Acid Bass
-[sk/drums-kick.ks]/ks 1 k>d d>r /r100
-[sk/drums-snare.ks]/ks 1 k>d d>r /r101
-[sk/drums-chh.ks]/ks 1 k>d d>r /r102
-[sk/drums-ohh.ks]/ks 1 k>d d>r /r103
-[sk/nap-bass-acid.ks]/ks 1 k>d d>r /r104
+[sk/drums-kick.ks]/ks k>d d>r /r100
+[sk/drums-snare.ks]/ks k>d d>r /r101
+[sk/drums-chh.ks]/ks k>d d>r /r102
+[sk/drums-ohh.ks]/ks k>d d>r /r103
+[sk/nap-bass-acid.ks]/ks k>d d>r /r104
 
 # Voice Assignments (Drums at natural unpitched f440):
 v0 w100 f440 a10          # Kick (Natural unpitched playback)

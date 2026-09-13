@@ -2791,6 +2791,19 @@ summary: pool pitch bend pool key semitones [cents]
 
 
 // Generate HTML representation of all help documentation
+//
+// HOW TO TWEAK THE HTML HELP SYSTEM:
+// This function acts like a mini web server for the FLTK Fl_Help_View widget.
+// The `path` parameter comes from the user clicking a link (e.g. `help://category_name`).
+// - If path is empty, we return the main index containing links to each category.
+// - If path matches a category, we return just the commands for that category.
+//
+// NOTE ON FLTK HTML SUPPORT:
+// Fl_Help_View only supports a very limited subset of HTML2/HTML3.
+// Supported tags: <a>, <b>, <i>, <tt>, <h1> to <h6>, <li>, <ul>, <ol>, 
+// <p>, <br>, <hr>, <center>, <table>, <tr>, <th>, <td>, <font>, <img>.
+// Do NOT use: <div>, <span>, CSS styles (style="..."), <details>, JavaScript, etc.
+// Use old-school attributes like `align="center"`, `bgcolor="#..."`, `width="100%"`.
 static char* skred_help_html_buffer = NULL;
 
 const char* skred_help_as_html(const char* path) {

@@ -270,6 +270,7 @@ int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
     return -1;
   }
   skode_init(loader);
+  loader->log_enable = 1;
   if (text) {
     int line_no = 1;
     size_t pos = 0;

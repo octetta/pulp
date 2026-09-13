@@ -135,7 +135,7 @@ static char* buffer_str(buffer_t *b) {
 }
 
 #define NUM_BUF_LEN (128)
-#define STRING_BUF_LEN (256)
+#define STRING_BUF_LEN (65536)
 #define DATA_BUF_LEN (1024)
 
 // ============================================================================

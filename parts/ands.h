@@ -43,7 +43,7 @@ typedef uint32_t atom_t;
 #define ANDS_VAR_MAX (128)
 #define ANDS_STREAM_FLAG (0x10000)
 #define ANDS_MACRO_NAME_LEN (5)
-#define ANDS_MACRO_BODY_LEN (512)
+#define ANDS_MACRO_BODY_LEN (2048)
 #define ANDS_RETURN_MAX (10)  /* @0 .. @9 */
 
 ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user);

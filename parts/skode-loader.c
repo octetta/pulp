@@ -271,26 +271,61 @@ int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
   }
   skode_init(loader);
   if (text) {
-    char line[1024];
-    int line_no = 0;
+    int line_no = 1;
     size_t pos = 0;
     while (pos < text_len) {
       size_t start = pos;
-      size_t len;
-      line_no++;
-      while (pos < text_len && text[pos] != '\n' && text[pos] != '\r') pos++;
-      len = pos - start;
-      while (pos < text_len && (text[pos] == '\n' || text[pos] == '\r')) pos++;
-      if (len >= sizeof(line)) len = sizeof(line) - 1;
-      memcpy(line, text + start, len);
-      line[len] = '\0';
-      if (verbose) ctx->printf(ctx, "# %s # (%d)\n", line, line_no);
-      r = skode_consume(line, loader);
+      int in_string = 0;
+      int in_comment = 0;
+      
+      while (pos < text_len) {
+        char c = text[pos];
+        if (in_comment) {
+          if (c == '\n' || c == '\r') break;
+        } else if (in_string) {
+          if (c == ']') in_string = 0;
+        } else {
+          if (c == '[') in_string = 1;
+          else if (c == '#') in_comment = 1;
+          else if (c == '\n' || c == '\r') break;
+        }
+        pos++;
+      }
+      size_t len = pos - start;
+      
+      char *chunk = (char *)malloc(len + 1);
+      if (!chunk) {
+        ctx->printf(ctx, "# allocation failed\n");
+        r = -1;
+        break;
+      }
+      memcpy(chunk, text + start, len);
+      chunk[len] = '\0';
+      
+      if (verbose) {
+         char preview[128];
+         snprintf(preview, sizeof(preview), "%s", chunk);
+         for (int i=0; preview[i]; i++) if (preview[i] == '\n' || preview[i] == '\r') preview[i] = ' ';
+         ctx->printf(ctx, "# %s # (%d)\n", preview, line_no);
+      }
+      
+      r = skode_consume(chunk, loader);
+      free(chunk);
+      
       if (loader->log_len > 0) ctx->printf(ctx, "%s", loader->log);
       if (r != 0) {
         ctx->printf(ctx, "# error in patch %s:%d status=%d\n",
           label ? label : "(unknown)", line_no, r);
         break;
+      }
+      
+      for (size_t i = start; i < pos; i++) {
+          if (text[i] == '\n') line_no++;
+      }
+      
+      while (pos < text_len && (text[pos] == '\n' || text[pos] == '\r')) {
+          if (text[pos] == '\n') line_no++;
+          pos++;
       }
     }
   } else {

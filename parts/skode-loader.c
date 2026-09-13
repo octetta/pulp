@@ -364,9 +364,8 @@ void wave_install_memory(int wave_slot, float *table, int len,
   sw.offset_hz[wave_slot] = offset_hz;
 }
 
-int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel) {
-  ctx->printf(ctx, "# rec_load(ctx, %d, %d, %d)\n",
-    wave_slot, one_shot, channel);
+int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel, int verbose) {
+  if (verbose) ctx->printf(ctx, "# rec_load(ctx, %d, %d, %d, %d)\n", wave_slot, one_shot, channel, verbose);
   if (!skode_wave_valid(wave_slot)) {
     ctx->printf(ctx, "# invalid slot %d\n", wave_slot);
     return -1;
@@ -423,7 +422,7 @@ int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel) {
     wave_install_memory(wave_slot, table, len, (float)MAIN_SAMPLE_RATE,
       one_shot, wave_name, one_shot ? 69.0f : 0.0f, 0.0f);
     char *name = "data";
-    ctx->printf(ctx, "# read %d frames from %s to %d (ch:1)\n",
+    if (verbose) ctx->printf(ctx, "# read %d frames from %s to %d (ch:1)\n",
                 data_len, name, wave_slot);
   return 0;
 }

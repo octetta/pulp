@@ -207,7 +207,7 @@ int skode_load_name(skode_t *ctx, const char *name, int verbose);
 int skode_load(skode_t *ctx, int voice, int n, int verbose);
 int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int normalize);
 int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize);
-int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel);
+int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel, int verbose);
 int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offset);
 int skode_wave_valid(int wave);
 void skode_copy_string(char *dst, size_t dst_size, const char *src);

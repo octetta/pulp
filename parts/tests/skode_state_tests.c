@@ -26,7 +26,7 @@ extern int wave_load_string(skode_t *ctx, char *name, int wave_index,
                             int ch, int normalize);
 extern int wave_load(skode_t *ctx, int file_num, int wave_index,
                      int ch, int normalize);
-extern int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel);
+extern int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel, int verbose);
 extern synth_sample_t sampling;
 
 static void fail(const char *test, const char *msg) {
@@ -2916,7 +2916,7 @@ static void test_909_load_rejects_too_small_wave_table(void) {
              "high sample wave load status");
 
   reset_log(&ctx);
-  expect_int(test, rec_load(&ctx, 400, 0, -1), -1,
+  expect_int(test, rec_load(&ctx, 400, 0, -1, 1), -1,
              "high recording wave load status");
 
   reset_log(&ctx);

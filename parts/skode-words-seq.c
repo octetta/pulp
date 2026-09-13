@@ -545,7 +545,7 @@ static int word_exec__slashr(const skode_word_t *self, skode_t *ctx, ands_t *s, 
           ctx->printf(ctx, "# usage: /r slot[,mode[,channel]]\n");
           return 0;
         }
-        rec_load(ctx, wave_slot, one_shot, channel);
+        rec_load(ctx, wave_slot, one_shot, channel, 0);
       }
       return 0;
                         //              x/0  1     2        3

@@ -53,7 +53,7 @@ int skode_ks_result_to_data(skode_t *ctx) {
   if (len) {
     int dlen = ands_data_cap(ctx->parse);
     if ((int)len > dlen) {
-      ctx->printf(ctx, "# resize %d -> %d\n", dlen, (int)len);
+      //ctx->printf(ctx, "# resize %d -> %d\n", dlen, (int)len);
       ands_data_resize(ctx->parse, (int)len);
     }
     double *g = ands_data(ctx->parse);

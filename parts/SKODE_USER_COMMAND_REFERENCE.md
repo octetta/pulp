@@ -19,7 +19,7 @@ v0w1n60a0l1
 ```
 
 Numeric arguments may be separated by commas or spaces. Square brackets place
-text in the parser's string buffer:
+text in the parser's string buffer (maximum length 65,535 characters):
 
 ```text
 [v0 n60 l1] R4,.25
@@ -814,6 +814,8 @@ Named macros are global four-character commands defined directly in Skode:
 ```text
 [name]: body;
 ```
+
+A macro's defined body can be up to 2,047 characters long.
 
 Names longer than four characters are truncated. Valid name characters are
 letters, punctuation, and the symbols `\`, `|`, and `` ` `` (backslash,

@@ -22,11 +22,11 @@ Because of this, both prefix and postfix styles can appear to work for single co
 The parser maintains three primary states that persist until overwritten:
 - **Numeric Argument Stack**: Numbers (`0`, `3.14`) are pushed here. Cleared after an atom executes.
 - **Array Buffer**: Created using `( ... )`. Only one array is held at a time. It persists across commands until a new array is parsed.
-- **String Buffer**: Created using `[ ... ]`. Like arrays, it persists until a new string is parsed.
+- **String Buffer**: Created using `[ ... ]`. Like arrays, it persists until a new string is parsed. The maximum length of a string buffer is 65,535 characters.
 
 ## 3. Text Macros
 
-Macros are purely text-substitution replacements handled by the preprocessor before the main parser even runs. 
+Macros are purely text-substitution replacements handled by the preprocessor before the main parser even runs. The maximum length of a macro's body is 2,047 characters.
 
 ### Defining a Macro
 ```skred

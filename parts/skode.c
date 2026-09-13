@@ -2788,3 +2788,54 @@ name: pb
 category: polyphony
 summary: pool pitch bend pool key semitones [cents]
 @enddoc */
+
+
+// Generate HTML representation of all help documentation
+static char* skred_help_html_buffer = NULL;
+
+const char* skred_help_as_html(void) {
+  if (skred_help_html_buffer) return skred_help_html_buffer;
+  
+  char categories[32][96];
+  int cat_count = skode_help_categories(categories, 32);
+  
+  // Allocate a generous buffer
+  size_t size = 65536;
+  skred_help_html_buffer = (char*)malloc(size);
+  if (!skred_help_html_buffer) return "";
+  skred_help_html_buffer[0] = '\0';
+  
+  char *ptr = skred_help_html_buffer;
+  size_t rem = size;
+  
+  for (int i = 0; i < cat_count; i++) {
+    int n = snprintf(ptr, rem, "<h3 align='center'>Skode Commands: %s</h3><table width='100%%' border='0' cellpadding='4'>", categories[i]);
+    if (n < 0 || n >= (int)rem) break;
+    ptr += n; rem -= n;
+    
+    for (int j = 0; skode_doc_entries[j].key; j++) {
+      char doc_category[96] = "";
+      char name[96] = "";
+      char summary[256] = "";
+      
+      if (!skode_help_is_command_doc(&skode_doc_entries[j])) continue;
+      if (!skode_help_field(&skode_doc_entries[j], "category", doc_category, sizeof(doc_category))) continue;
+      if (strcmp(doc_category, categories[i]) != 0) continue;
+      
+      skode_help_field(&skode_doc_entries[j], "name", name, sizeof(name));
+      skode_help_field(&skode_doc_entries[j], "summary", summary, sizeof(summary));
+      
+      const char* disp_name = name[0] ? name : skode_doc_entries[j].key;
+      
+      n = snprintf(ptr, rem, "<tr><td align='right' width='25%%'><b>%s</b></td><td>%s</td></tr>", disp_name, summary);
+      if (n < 0 || n >= (int)rem) break;
+      ptr += n; rem -= n;
+    }
+    
+    n = snprintf(ptr, rem, "</table>");
+    if (n < 0 || n >= (int)rem) break;
+    ptr += n; rem -= n;
+  }
+  
+  return skred_help_html_buffer;
+}

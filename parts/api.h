@@ -51,6 +51,7 @@ char *skred_features(void);
 
 // Version from the repository VERSION file used at build time.
 const char *skred_version(void);
+const char *skred_help_as_html(void);
 int skred_version_major(void);
 int skred_version_minor(void);
 int skred_version_patch(void);

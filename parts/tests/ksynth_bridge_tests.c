@@ -41,7 +41,7 @@ static void expect_vector(const char *test, const double *got, size_t got_len,
 
 static void test_owned_eval_result(void) {
   const char *test = "owned eval result";
-  ks_ctx *ctx = ks_create(1024 * 1024, 1000000);
+  ks_ctx *ctx = ks_create(1024 * 1024, 1000000, 44100.0);
   if (!ctx) {
     fail(test, "ks_create failed");
     return;
@@ -68,7 +68,7 @@ static void test_owned_eval_result(void) {
 
 static void test_generic_vector_binding(void) {
   const char *test = "generic vector binding";
-  ks_ctx *ctx = ks_create(1024 * 1024, 1000000);
+  ks_ctx *ctx = ks_create(1024 * 1024, 1000000, 44100.0);
   if (!ctx) {
     fail(test, "ks_create failed");
     return;

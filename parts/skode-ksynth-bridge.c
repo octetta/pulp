@@ -4,7 +4,7 @@
 ks_ctx *skode_ks_ctx(skode_t *ctx) {
   if (!ctx) return NULL;
   if (!ctx->ks) {
-    ctx->ks = ks_create(16 * 1024 * 1024, 10000000);
+    ctx->ks = ks_create(16 * 1024 * 1024, 10000000, (double)MAIN_SAMPLE_RATE);
     if (!ctx->ks) {
       ctx->printf(ctx, "# ksynth context allocation failed\n");
     } else {

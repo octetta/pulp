@@ -5,7 +5,7 @@ T: !N
 E: e(T*(0-6.9%N))
 / inharmonic oscillators in high register
 / 808 crash ratios scaled to ~3kHz base
-B: 3000*(6.28318%44100)
+B: 3000*((p 2)%(p 0))
 P: +\(N#(B*1.000))
 Q: +\(N#(B*1.342))
 R: +\(N#(B*1.200))

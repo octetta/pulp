@@ -46,7 +46,7 @@
 #define IS_VARIABLE(c) (c == '$')
 #define IS_RETURN(c) (c == '@')
 #define IS_COMMENT(c) (c == '#')
-#define IS_CHUNK_END(c) (c == ';' || c == 0x04) // 0x04 ASCII EOT / end of xmit
+#define IS_CHUNK_END(c) (c == ';' || c == '\n' || c == '\r' || c == 0x04) // 0x04 ASCII EOT / end of xmit
 #define IS_DEFER(c) (c == '+' || c == '~')
 #define IS_ATOM(c) (isalpha(c) || strchr("!%^*_=:\"'<>?/\\|`", c))
 #define IS_NUMBER_EX(c) (isxdigit(c) || strchr("-.eExX", c))

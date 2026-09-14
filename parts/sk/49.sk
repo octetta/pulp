@@ -5,7 +5,7 @@ v1 w205 f440 a20 r1 # snare drum preset
 /w3,300 # load hihat from file to wave slot 200
 v2 w300 f440 a30 r1 # put hihat into v2 (unused in this example)
 
-v10 w1 f277.183 a4 b1 J1 K1000 Q5.9504 c0,0 F12,1 P11,1 r1 # synth
+v10 w1 f277.183 a4 b1 j1 k1000 q5.9504 c0,0 F12,1 P11,1 r1 # synth
 v10 t0,.5,.4,0 # add ASDR
 v10 G5 H5 # link midi and velocity to v5
 v11 w0 f0.25 a1 m1 r1 # pan mod for synth

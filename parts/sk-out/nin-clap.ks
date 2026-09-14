@@ -16,15 +16,15 @@ P: d(X*C*4)
 
 / Burst 2 — slightly later, similar character
 J: r T
-D: 0.5 f J
-F: 0.1 f J
+D: 0.5 f j
+F: 0.1 f j
 G: D-F
 Y: w (T*e(T*(0-15%N)))
 Q: d(Y*G*4)
 
 / Burst 3 — main body, loudest, pushed through heavy saturation
 K: r T
-E: K-(0.114 f K)
+E: k-(0.114 f K)
 H: 0.256 f E
 Z: w (T*e(T*(0-6%N)))
 / clip harder for the main burst

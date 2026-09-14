@@ -11,7 +11,7 @@ R: +\(N#H)
 / 10 harmonics — full raw sawtooth
 A: 1 0.5 0.333 0.25 0.2 0.167 0.143 0.125 0.111 0.1
 S: P $ A
-U: Q $ A
+U: q $ A
 X: R $ A
 V: (S+U+X)*0.333
 / light tanh just for protection, not for warmth

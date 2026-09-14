@@ -11,7 +11,7 @@ P: +\(N#F)
 Q: +\(N#G)
 / parenthesise each sine to prevent FM parsing
 O: s P
-I: s Q
+I: s q
 S: B*((O+I)*.5)
 
 / Ring modulation carrier ~320Hz
@@ -19,7 +19,7 @@ S: B*((O+I)*.5)
 / = 505Hz, 550Hz (sum) and 135Hz, 90Hz (diff) — the metallic brittleness
 K: 320*((p 2)%(p 0))
 J: +\(N#K)
-M: s J
+M: s j
 / ring modulated body
 Y: S*M
 

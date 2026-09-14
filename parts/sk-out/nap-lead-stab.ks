@@ -8,7 +8,7 @@ P: +\(N#F)
 Q: +\(N#G)
 A: 1 0.5 0.333 0.25 0.2 0.167
 S: P $ A
-U: Q $ A
+U: q $ A
 V: (S+U)*0.5
 / filter snaps open fast then gone
 O: e(T*(0-50%N))

@@ -13,7 +13,7 @@ I: 8.0*e(T*(0-30%N))
 / can't do sin(P+I*sin(Q)) directly so approximate:
 / S = sin(P)*cos(I*sin(Q)) + cos(P)*sin(I*sin(Q))
 / simplified: since I is large, just slam sin(Q) into filter as modulator
-S: s Q
+S: s q
 B: 0.5+0.4*S
 / sawtooth at carrier, filter modulated by mod signal
 A: 1 0.5 0.333 0.25 0.2 0.167

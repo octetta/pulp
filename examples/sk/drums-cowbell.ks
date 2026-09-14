@@ -12,6 +12,6 @@ Q: +\(N#G)
 / harmonic content from $ — slightly square-ish
 A: 1 0 0.3 0 0.15
 J: P $ A
-K: Q $ A
+K: q $ A
 M: J+K*.8
 W: w E*M

@@ -17,7 +17,7 @@ E:e T*0-8%N
 K:(s T*(50+350*P)*(p 2)%(p 0))*E
 
 / Dynamic Bit Crush: Array 'L' defines levels per sample
-C:L v K
+C:L v k
 
 / Short Delay for "Metal" Resonance (800 samples ~ 18ms)
 D:(800 0.45) y C

@@ -14,11 +14,11 @@ P: +\(N#F)
 Q: +\(N#G)
 A: 1 0 0.3 0 0.15
 J: P $ A
-K: Q $ A
+K: q $ A
 M: J+K*.8
 
 / Static Chebyshev filter — cowbell channel
 C: 0.6 f M
 / 12-bit lo-fi
 Q: 4096 v (E*C)
-W: w Q
+W: w q

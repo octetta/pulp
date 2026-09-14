@@ -11,13 +11,13 @@ G: 2400*((p 2)%(p 0))
 P: +\(N#F)
 Q: +\(N#G)
 O: s P
-I: s Q
+I: s q
 S: (O+I*.6)
 
 / Ring mod on the tonal mix — extra metallic
 K: 520*((p 2)%(p 0))
 J: +\(N#K)
-M: s J
+M: s j
 Y: S*M
 
 / Clip it hard

@@ -11,7 +11,7 @@ Q: +\(N#G)
 R: +\(N#H)
 A: 1 0.5 0.333 0.25 0.2
 S: P $ A
-U: Q $ A
+U: q $ A
 X: R $ A
 V: (S+U+X)*0.333
 / very tight LP — muffled, dark

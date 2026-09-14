@@ -17,7 +17,7 @@ Q: +\(N#G)
 / Moog sawtooth
 A: 1 0.5 0.333 0.25 0.2 0.167 0.143
 S: P $ A
-U: Q $ A
+U: q $ A
 V: (S+U)*.5
 
 / Moog LP: tighter than strings — this is the percussive inner arp part

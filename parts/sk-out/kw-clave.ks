@@ -13,7 +13,7 @@ P: +\(N#F)
 Q: +\(N#G)
 A: 1 0 -.111 0 0.04
 O: P $ A
-I: Q $ A
+I: q $ A
 S: O+I*.4
 
 / Very fast noise click underneath

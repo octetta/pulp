@@ -9,7 +9,7 @@ Q: +\(N#G)
 / square wave approximation: odd harmonics
 A: 1 0 0.333 0 0.2 0 0.143 0 0.111
 S: P $ A
-U: Q $ A
+U: q $ A
 V: (S+U)*0.5
 / fuzz: clip very hard
 B: d(V*8.0)

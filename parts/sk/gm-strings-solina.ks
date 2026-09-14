@@ -22,7 +22,7 @@ R: +\(N#H)
 / Soft sawtooth — fewer harmonics than Moog (Solina was tonally softer)
 A: 1 0.5 0.25 0.125
 S: P $ A
-U: Q $ A
+U: q $ A
 X: R $ A
 
 / BBD ensemble chorus effect:

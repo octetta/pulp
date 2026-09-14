@@ -14,7 +14,7 @@ G: 250*((p 2)%(p 0))
 P: +\(N#F)
 Q: +\(N#G)
 O: s P
-I: s Q
+I: s q
 S: B*((O*.6+I*.4))
 
 / White noise: Moog white noise, Moog LP shaped envelope

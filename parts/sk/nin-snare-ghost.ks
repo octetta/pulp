@@ -9,11 +9,11 @@ G: 230*((p 2)%(p 0))
 P: +\(N#F)
 Q: +\(N#G)
 O: s P
-I: s Q
+I: s q
 S: B*((O+I)*.5)
 K: 320*((p 2)%(p 0))
 J: +\(N#K)
-M: s J
+M: s j
 Y: S*M
 D: d(Y*4)
 E: e(T*(0-6.9%N))

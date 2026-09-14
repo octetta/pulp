@@ -14,15 +14,15 @@ C: A-B
 X: w (T*e(T*(0-30%N)))
 
 J: r T
-D: 0.35 f J
-F: 0.06 f J
+D: 0.35 f j
+F: 0.06 f j
 G: D-F
 Y: w (T*e(T*(0-12%N)))
 
 K: r T
 / SP-12 static Chebyshev on clap channel
-L: 0.35 f K
-U: K-L
+L: 0.35 f k
+U: k-L
 Z: w (T*e(T*(0-6%N)))
 
 P: (X*C*.4)+(Y*G*.7)+Z*U

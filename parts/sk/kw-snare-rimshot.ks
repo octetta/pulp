@@ -14,7 +14,7 @@ Q: +\(N#G)
 A: 1 0 -.111 0 0.04
 / triangle spectrum on each
 O: P $ A
-I: Q $ A
+I: q $ A
 S: (O+I*.5)
 
 / Minimal noise — just the click

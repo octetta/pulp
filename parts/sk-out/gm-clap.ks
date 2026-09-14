@@ -15,8 +15,8 @@ B: e(T*(0-18%N))
 K: r T
 / Moog LP on the clap: moderate brightness
 L: 0.4 f R
-M: 0.4 f J
-X: 0.4 f K
+M: 0.4 f j
+X: 0.4 f k
 
 / The Moog VCA opening and closing rapidly = the clap character
 P: (T*A*L*.4)+(T*B*M*.7)+(T*e(T*(0-8%N))*X)

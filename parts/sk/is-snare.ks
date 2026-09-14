@@ -15,7 +15,7 @@ G: 225*((p 2)%(p 0))
 P: +\(N#F)
 Q: +\(N#G)
 O: s P
-I: s Q
+I: s q
 S: B*((O+I)*.5)
 
 / 12-bit quantize the body — the SP-12 sample grit

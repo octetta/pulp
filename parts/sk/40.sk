@@ -3,7 +3,7 @@ S100
 
 M201
 
-v0 w208 f242.603 J1 K200 Q10 q13 h8 a20 c1,.5 # bass
+v0 w208 f242.603 j1 k200 q10 bc13 h8 a20 c1,.5 # bass
 v1 w205 f440 a20  # snare
 
 /w3,300

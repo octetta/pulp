@@ -16,7 +16,7 @@ Q: +\(N#G)
 / Roland System 700 VCO: sawtooth (similar to Moog but slightly different wave)
 A: 1 0.5 0.333 0.25 0.2 0.167
 S: P $ A
-U: Q $ A
+U: q $ A
 V: (S+U)*.5
 
 / Roland IR3109 filter: similar to Moog ladder but slightly different character

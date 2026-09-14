@@ -14,13 +14,13 @@ X: w (T*e(T*(0-30%N)))
 
 / burst B: mid burst ~13ms (k=15), medium
 J: r T
-C: J-(0.114 f J)
+C: j-(0.114 f J)
 D: 0.256 f C
 Y: w (T*e(T*(0-15%N)))
 
 / burst C: main clap ~33ms (k=6), dominant
 K: r T
-E: K-(0.114 f K)
+E: k-(0.114 f K)
 F: 0.256 f E
 Z: w (T*e(T*(0-6%N)))
 

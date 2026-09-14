@@ -14,8 +14,8 @@ C: A-B
 X: w (T*e(T*(0-25%N)))
 
 J: r T
-D: 0.4 f J
-F: 0.08 f J
+D: 0.4 f j
+F: 0.08 f j
 G: D-F
 Y: w (T*e(T*(0-10%N)))
 
@@ -23,7 +23,7 @@ Y: w (T*e(T*(0-10%N)))
 E: e(T*(0-6.9%N))
 K: r T
 / Slight bandpass for the "tuned" quality
-L: 0.3 f K
-U: K-(0.08 f K)
+L: 0.3 f k
+U: k-(0.08 f K)
 
 W: w (X*C*.5)+(Y*G*.8)+(E*U*.2)

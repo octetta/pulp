@@ -16,7 +16,7 @@ Q: +\(N#G)
 / Prophet-5 sawtooth (CEM oscillator): full harmonic content
 A: 1 0.5 0.333 0.25 0.2 0.167 0.143
 S: P $ A
-U: Q $ A
+U: q $ A
 V: (S+U)*.5
 
 / CEM filter (Prophet-5): similar to Moog ladder — 4-pole LP

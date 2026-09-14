@@ -10,11 +10,11 @@ G: 845*((p 2)%(p 0))
 P: +\(N#F)
 Q: +\(N#G)
 O: s P
-I: s Q
+I: s q
 
 A: 1 0 0.3 0 0.15
 J: P $ A
-K: Q $ A
+K: q $ A
 M: J+K*.8
 
 / Ring mod carrier to make it industrial/harsh

@@ -26,7 +26,7 @@ B: s R
 / Strike transient
 V: e(T*(0-250%N))
 K: r T
-C: 0.1 f K
+C: 0.1 f k
 A: V*C
 
 W: w (E*B*.85)+(I*.3)+(A*.2)

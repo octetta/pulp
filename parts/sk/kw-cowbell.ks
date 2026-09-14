@@ -16,7 +16,7 @@ P: +\(N#F)
 Q: +\(N#G)
 A: 1 0 -.111 0 0.04
 O: P $ A
-I: Q $ A
+I: q $ A
 
 / Slight clip — Synthanorma treatment
 S: d((O+I*.7)*1.3)

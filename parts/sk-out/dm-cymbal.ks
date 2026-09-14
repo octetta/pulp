@@ -17,7 +17,7 @@ U: +\(N#(B*1.478))
 / Amplitude spectrum — odd harmonics, clean
 A: 1 0 0.5 0 0.25
 J: P $ A
-K: Q $ A
+K: q $ A
 L: R $ A
 M: S $ A
 X: U $ A

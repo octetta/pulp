@@ -15,8 +15,8 @@ X: w (T*e(T*(0-35%N)))
 
 / Burst 2 — slightly longer, same character
 J: r T
-D: 0.3 f J
-F: 0.06 f J
+D: 0.3 f j
+F: 0.06 f j
 G: D-F
 Y: w (T*e(T*(0-12%N)))
 
@@ -27,7 +27,7 @@ Q: d(Y*G*3)
 / Tail — very short, just the room-free reverb tail
 E: e(T*(0-6.9%N))
 K: r T
-L: 0.2 f K
+L: 0.2 f k
 U: E*L*.15
 
 W: w (P*.4)+(Q*.8)+U

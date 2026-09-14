@@ -63,7 +63,7 @@ most 32 operations.
 | `ds amount` | Send `0..1` or `0..15` | Sends the selected voice's mono signal to the delay owned by its record/scope track. The voice must be routed with `r1`..`r4`, centered with `p0`, and have no pan modulation. | No |
 | `DL track,coarse,fine,feedback,modfreq,moddepth,level` | Track `1..4`, DW-style delay parameters | Sets the mono-send/stereo-return delay attached to one record/scope track. Parameter ranges are `0..7`, `0..15`, `0..15`, `0..31`, `0..31`, `0..15`. | No |
 | `DG track [bits] [native]` | Track `1..4` | Sets the track delay bit-depth and optional quantization bypass. `bits` defaults to 12. | No |
-| `DL? [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. | No |
+| `?dl [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. | No |
 | `GS [full]` | Optional boolean | Displays copy/pasteable global synth state and the build version. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. | No |
 | `[filename.zip] GS>` | String filename | Saves a versioned, restorable REPL session as an ordinary ZIP archive. | No |
 | `[filename.zip] GS<` | String filename | Validates and restores a session ZIP into the current REPL context. | No |
@@ -86,9 +86,9 @@ most 32 operations.
 | `/pm pool,mode[,priority[,articulation]]` | Numeric mode values | Selects polyphonic or monophonic behavior. | No |
 | `?pg [group]` | Optional group | Shows copy/pasteable group definitions. | No |
 | `?pp [pool]` | Optional pool | Shows configuration and live allocation state. | No |
-| `pn pool,key,note,velocity[,cents]` | Numeric note identity and performance values | Allocates or updates a group instance and performs note-on. | Yes |
-| `pr pool,key[,release-velocity]` | Numeric note identity | Releases the allocation; unknown/stolen keys are harmless. | Yes |
-| `pb pool,key,semitones[,cents]` | Numeric note identity and bend | Bends one allocation; key `-1` bends the whole pool. | Yes |
+| `gn pool,key,note,velocity[,cents]` | Numeric note identity and performance values | Allocates or updates a group instance and performs note-on. | Yes |
+| `gr pool,key[,release-velocity]` | Numeric note identity | Releases the allocation; unknown/stolen keys are harmless. | Yes |
+| `gb pool,key,semitones[,cents]` | Numeric note identity and bend | Bends one allocation; key `-1` bends the whole pool. | Yes |
 | `/vg voice[,format[,depth]]` | Format `0` ASCII or `1` graph text | Shows the reachable voice dependency graph. | No |
 
 Steal policy values are `0` release-oldest, `1` oldest, `2` round-robin, `3`
@@ -108,7 +108,7 @@ articulation, refresh, cloning, graph protocol, and full examples.
 | `WL wave,start,end` | Wave index and sample boundaries | Sets the wave's loop start and end boundary. `start` is inclusive, `end` is exclusive, and `end` may equal the wave sample count. | No |
 | `VS start,end` | Sample boundaries on the selected voice | Overrides the selected voice's playable sample range after `w` has assigned a wave. `VS` with no arguments resets the voice to the full current wave range. | Yes |
 | `VL start,end` | Sample boundaries on the selected voice | Overrides the selected voice's loop points after `w` has assigned a wave. `VL` with no arguments resets the voice to the current wave's `WL` defaults. | Yes |
-| `q [bits] [curve]` | Bit-depth and quantization curve | Quantizes the waveform and adds bit-crusher distortion. `curve` is `0` (linear), `1` (companded), or `2` (dithered). Requires `CRUSH`. | Yes |
+| `bc [bits] [curve]` | Bit-depth and quantization curve | Quantizes the waveform and adds bit-crusher distortion. `curve` is `0` (linear), `1` (companded), or `2` (dithered). Requires `CRUSH`. | Yes |
 | `h [ratio] [mode]` | Sample-hold ratio | Holds oscillator values as a decimal fraction of the wave cycle, producing stepped or sample-and-hold distortion. `mode` is `0` (hard), `1` (smoothed), or `2` (jittered). Requires `SAH`. | Yes |
 | `[name] vt` | String | Gives the selected voice a display label. It does not alter sound. | No |
 | `[name] wt wave` | String and wave index | Gives a wavetable a display label. It does not alter sound. | No |
@@ -325,27 +325,27 @@ takes 500 ms to fade after `l0`.
 
 ### Filter Modes, Cutoff, and Resonance
 
-`J`, `K`, and `Q` describe one filter:
+`J`, `K`, and `q` describe one filter:
 
 - `J` selects the filter response or bypasses it.
 - `K` sets its cutoff or center frequency in hertz.
-- `Q` sets its quality factor. `Q0.707` is a useful neutral starting point.
+- `q` sets its quality factor. `Q0.707` is a useful neutral starting point.
   Higher positive values make the response narrower and more resonant around
   `K`; very low values make it broader and more damped.
 
 Practical cutoff values are generally between `20` and `20000` Hz, subject to
-the output sample rate. `Q` must be positive; values around `0.1` through `10`
+the output sample rate. `q` must be positive; values around `0.1` through `10`
 cover most conventional uses, though the implementation does not impose that
 range.
 
-| `J` mode | Filter | How `K` and `Q` affect the sound |
+| `J` mode | Filter | How `K` and `q` affect the sound |
 | --- | --- | --- |
-| `0` | Bypass | The filter is not processed. Stored `K` and `Q` values remain available when filtering is enabled again. |
-| `1` | Low-pass | `K` is the cutoff: frequencies above it are reduced. Raising `Q` emphasizes the cutoff, adding bite or ringing. |
-| `2` | High-pass | `K` is the cutoff: frequencies below it are reduced. Raising `Q` emphasizes the cutoff. |
-| `3` | Band-pass | `K` is the center frequency that remains prominent. Raising `Q` narrows the audible band. |
-| `4` | Notch | `K` is the center of the rejected frequency band. Raising `Q` narrows the notch. |
-| `5` | All-pass | The magnitude is broadly retained while phase changes around `K`; `Q` controls the width of that phase transition. This is most audible through interaction, modulation, or mixing. |
+| `0` | Bypass | The filter is not processed. Stored `K` and `q` values remain available when filtering is enabled again. |
+| `1` | Low-pass | `K` is the cutoff: frequencies above it are reduced. Raising `q` emphasizes the cutoff, adding bite or ringing. |
+| `2` | High-pass | `K` is the cutoff: frequencies below it are reduced. Raising `q` emphasizes the cutoff. |
+| `3` | Band-pass | `K` is the center frequency that remains prominent. Raising `q` narrows the audible band. |
+| `4` | Notch | `K` is the center of the rejected frequency band. Raising `q` narrows the notch. |
+| `5` | All-pass | The magnitude is broadly retained while phase changes around `K`; `q` controls the width of that phase transition. This is most audible through interaction, modulation, or mixing. |
 
 Examples:
 
@@ -359,8 +359,8 @@ J4 K1000 Q2     # notch around 1 kHz
 
 ### Filter ADSR
 
-`ft attack,decay,sustain,release` defines a second ADSR with the same time and
-level meanings as `t`. `fd depth` adds the envelope to the base `K` frequency:
+`kt attack,decay,sustain,release` defines a second ADSR with the same time and
+level meanings as `t`. `kd depth` adds the envelope to the base `K` frequency:
 
 ```text
 effective cutoff = K + (filter envelope * fd)
@@ -383,12 +383,12 @@ triggered.
 | Command | Parameters | Effect | Schedulable |
 | --- | --- | --- | --- |
 | `t attack,decay,sustain,release` | Times in seconds; sustain level `0..1` | Sets the amplitude envelope triggered by `l` and `T` and released by `l0`. Requires `ADSR`. | Yes |
-| `k mode` | Integer stored mode | Stores and reports the amplitude-envelope mode. The current envelope calculation does not branch on this value, so it presently has no audible effect. Requires `ADSR`. | Yes |
+| `am mode` | Integer stored mode | Stores and reports the amplitude-envelope mode. The current envelope calculation does not branch on this value, so it presently has no audible effect. Requires `ADSR`. | Yes |
 | `J [mode] [character]` | Selects response and character | `mode` is `0` (bypass), `1` (LP), `2` (HP), `3` (BP), `4` (Notch), `5` (All-pass). `character` is `0` (clean), `1` (driven), `2` (screamer). Requires `FILT`. | Yes |
-| `K hz` | Cutoff or center frequency in hertz | Sets the frequency interpreted according to `J`. Requires `FILT`. | Yes |
+| `k hz` | Cutoff or center frequency in hertz | Sets the frequency interpreted according to `j`. Requires `FILT`. | Yes |
 | `Q quality` | Positive quality factor | Sets resonance or bandwidth around `K`; `0.707` is a useful neutral value. Requires `FILT`. | Yes |
-| `ft attack,decay,sustain,release` | Times in seconds; sustain level `0..1` | Sets the filter envelope triggered and released with the amplitude envelope. Requires `FILT` and `FADSR`. | Yes |
-| `fd depth` | Cutoff movement in hertz | Adds a positive or negative envelope-controlled offset to `K`. Requires `FILT` and `FADSR`. | Yes |
+| `kt attack,decay,sustain,release` | Times in seconds; sustain level `0..1` | Sets the filter envelope triggered and released with the amplitude envelope. Requires `FILT` and `FADSR`. | Yes |
+| `kd depth` | Cutoff movement in hertz | Adds a positive or negative envelope-controlled offset to `k`. Requires `FILT` and `FADSR`. | Yes |
 
 ## Modulation and Timbre
 
@@ -928,13 +928,13 @@ immediately on the control thread.
 | `r>d [channel]` | Optional channel `-1`, `0`, or `1` | Copies the trimmed temporary recording into parser data without normalization. Stereo defaults to a mono downmix (`-1`); `0` or `1` selects a channel. |
 | `/r [slot[,mode[,channel]]]` | Wave destination and options | Loads the temporary recording into a mono wavetable. Mode is `0` cycle or `1` one-shot (default). Stereo recordings default to a mono downmix; channel `0` or `1` selects left or right. |
 | `/d [slot[,rate[,mode[,offset]]]]` | Wave destination and options | Loads parser data into a wavetable at the requested sample rate. Mode is `0` cycle (default) or `1` one-shot. |
-| `w> [frames]` | Start offset adjustment | Moves the temporary recording's start point. |
-| `w< [frames]` | End trim adjustment | Changes how many frames are removed from the recording end. |
+| `rs [frames]` | Start offset adjustment | Moves the temporary recording's start point. |
+| `re [frames]` | End trim adjustment | Changes how many frames are removed from the recording end. |
 | `w<> [threshold[,end-threshold[,margin-frames]]]` | Detection thresholds and optional frame margin | Finds useful start and end trim points from signal level. For stereo, either channel can make a frame audible. Defaults to a small silence threshold of `0.001`. |
 | `w!` | None | Applies current recording offsets and trims. |
 | `w*` | None | Resets recording offsets and trims. |
 | `/wex wave` | Dynamic wave index `200` through `999` | Expands storage for a dynamic wavetable slot. |
-| `<r seconds[,source[,voice]]`, `^r ...` | Duration, source mode, optional source voice | Records source `0` dry mono, `1` one selected voice, or `2` the audible stereo master. Source defaults to `0`; source `1` requires the voice argument. |
+| `a>r seconds[,source[,voice]]`, `^r ...` | Duration, source mode, optional source voice | Records source `0` dry mono, `1` one selected voice, or `2` the audible stereo master. Source defaults to `0`; source `1` requires the voice argument. |
 | `[filename] >r` | File name | Normalizes the completed temporary recording and writes it as a mono or stereo WAV at the main sample rate. |
 | `[filename] /rg [max-seconds]` | Output filename and optional limit | Starts multitrack WAV recording. Requires `RECORD`. |
 | `/rs` | None | Stops multitrack recording. Requires `RECORD`. |
@@ -956,7 +956,7 @@ extension when desired.
 before panning, delay returns, and master volume. `<r 5,1,12` captures voice
 12 after its voice processing but before pan and master volume. `<r 5,2`
 captures the audible stereo master after panning, delay returns, and master
-volume. The older `<r seconds,voice` form is intentionally replaced by the
+volume. The older `a>r seconds,voice` form is intentionally replaced by the
 unambiguous source-mode syntax.
 
 When `/r` installs a one-shot recording, it automatically records the
@@ -1284,12 +1284,12 @@ SysEx. These commands execute immediately and are not pattern-schedulable.
 | `?`, `v?` | None | Displays the selected voice. |
 | `\` | None | Displays the selected voice with additional detail. |
 | `??`, `v??` | None | Displays active voices. |
-| `W [wave[,end-or-width[,height]]]` | Optional display parameters | Displays one wavetable, recording data, or all loaded waves. A single-wave display includes sample count, baseline duration, playback mode, loop points, loop duration, stats, and a loop marker row under the waveform. |
-| `VW [voice[,width,height]]` | Optional voice and display dimensions | Displays the wavetable assigned to a voice and marks that voice's current loop points. With two arguments, they are interpreted as width and height for the selected voice. |
-| `WS wave` | Wavetable index | Displays a compact spectrogram over the wave's loop region. |
+| `?w [wave[,end-or-width[,height]]]` | Optional display parameters | Displays one wavetable, recording data, or all loaded waves. A single-wave display includes sample count, baseline duration, playback mode, loop points, loop duration, stats, and a loop marker row under the waveform. |
+| `?vw [voice[,width,height]]` | Optional voice and display dimensions | Displays the wavetable assigned to a voice and marks that voice's current loop points. With two arguments, they are interpreted as width and height for the selected voice. |
+| `?ws wave` | Wavetable index | Displays a compact spectrogram over the wave's loop region. |
 | `W* wave,param[,register]` | Wave, property, optional destination | Reads wave sample count (`0`), sample rate (`1`), duration (`2`), loop start (`3`), or loop end (`4`). |
 | `v* param[,register]` | Property and optional destination | Reads selected voice wave (`0`), amplitude (`1`), or frequency (`2`). |
-| `DL? [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. |
+| `?dl [track]` | Optional track `1..4` | Displays one track delay, or all four track delays, as copy/pasteable `DL...` commands. |
 | `GS [full]` | Optional boolean | Displays copy/pasteable version, master volume, tempo, and track delay commands. With a value greater than `0`, also prints a larger text snapshot for saving/reloading. |
 | `?s` | None | Displays the current parser string. |
 | `/s [section]` | Optional section number | Displays runtime, audio, synth, Skode, string, or benchmark state. |
@@ -1699,7 +1699,7 @@ backend unless `MIDI=1`:
 | `ADSR` | `k`, `t` |
 | `AM` | `A` |
 | `CRUSH` | `q` |
-| `FILT` | `J`, `K`, `Q` |
+| `FILT` | `J`, `K`, `q` |
 | `FILT` and `FADSR` | `ft`, `fd` |
 | `FM` | `F`, `FF`, `FB` |
 | `GLISS` | `g` |

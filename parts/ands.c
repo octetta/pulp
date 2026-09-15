@@ -762,7 +762,6 @@ int ands_consume(ands_t *s, char *line) {
                     buffer_push(&s->num, *ptr);
                     s->state = GET_NUMBER;
                 }
-                else if (IS_SEPARATOR(*ptr)) { /* skip */ }
                 else if (IS_STRING(*ptr))    {
                   buffer_clear(&s->string[s->string_idx]);
                   s->state = GET_STRING;
@@ -781,6 +780,7 @@ int ands_consume(ands_t *s, char *line) {
                 else if (IS_RETURN(*ptr))    { /* reserved return sigil */ }
                 else if (IS_COMMENT(*ptr))   { s->state = GET_COMMENT; }
                 else if (IS_CHUNK_END(*ptr)) { action_chunk_end(s); s->state = START; }
+		else if (IS_SEPARATOR(*ptr)) { /* skip */ }
                 else if (IS_DEFER(*ptr))     { action_chunk_end(s); s->defer_mode = *ptr; s->state = GET_DEFER_NUMBER; }
                 else if (iscntrl(*ptr))      { /* skip control chars */ }
                 else {

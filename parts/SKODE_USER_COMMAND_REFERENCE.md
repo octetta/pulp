@@ -307,7 +307,7 @@ The envelope output is multiplied by the supplied velocity. `l0` releases the
 envelopes; a nonzero sustain continues indefinitely until that release occurs.
 `T` retriggers at velocity `1`.
 
-Changing `t` or `ft` while an envelope is active does not reshape or restart
+Changing `t` or `kt` while an envelope is active does not reshape or restart
 that envelope. The new settings are stored and take effect on the next `l` or
 `T` trigger.
 
@@ -325,53 +325,53 @@ takes 500 ms to fade after `l0`.
 
 ### Filter Modes, Cutoff, and Resonance
 
-`J`, `K`, and `q` describe one filter:
+`j`, `k`, and `q` describe one filter:
 
-- `J` selects the filter response or bypasses it.
-- `K` sets its cutoff or center frequency in hertz.
-- `q` sets its quality factor. `Q0.707` is a useful neutral starting point.
+- `j` selects the filter response or bypasses it.
+- `k` sets its cutoff or center frequency in hertz.
+- `q` sets its quality factor. `q0.707` is a useful neutral starting point.
   Higher positive values make the response narrower and more resonant around
-  `K`; very low values make it broader and more damped.
+  `k`; very low values make it broader and more damped.
 
 Practical cutoff values are generally between `20` and `20000` Hz, subject to
 the output sample rate. `q` must be positive; values around `0.1` through `10`
 cover most conventional uses, though the implementation does not impose that
 range.
 
-| `J` mode | Filter | How `K` and `q` affect the sound |
+| `j` mode | Filter | How `k` and `q` affect the sound |
 | --- | --- | --- |
-| `0` | Bypass | The filter is not processed. Stored `K` and `q` values remain available when filtering is enabled again. |
-| `1` | Low-pass | `K` is the cutoff: frequencies above it are reduced. Raising `q` emphasizes the cutoff, adding bite or ringing. |
-| `2` | High-pass | `K` is the cutoff: frequencies below it are reduced. Raising `q` emphasizes the cutoff. |
-| `3` | Band-pass | `K` is the center frequency that remains prominent. Raising `q` narrows the audible band. |
-| `4` | Notch | `K` is the center of the rejected frequency band. Raising `q` narrows the notch. |
-| `5` | All-pass | The magnitude is broadly retained while phase changes around `K`; `q` controls the width of that phase transition. This is most audible through interaction, modulation, or mixing. |
+| `0` | Bypass | The filter is not processed. Stored `k` and `q` values remain available when filtering is enabled again. |
+| `1` | Low-pass | `k` is the cutoff: frequencies above it are reduced. Raising `q` emphasizes the cutoff, adding bite or ringing. |
+| `2` | High-pass | `k` is the cutoff: frequencies below it are reduced. Raising `q` emphasizes the cutoff. |
+| `3` | Band-pass | `k` is the center frequency that remains prominent. Raising `q` narrows the audible band. |
+| `4` | Notch | `k` is the center of the rejected frequency band. Raising `q` narrows the notch. |
+| `5` | All-pass | The magnitude is broadly retained while phase changes around `k`; `q` controls the width of that phase transition. This is most audible through interaction, modulation, or mixing. |
 
 Examples:
 
 ```text
-J1 K800 Q.707   # smooth low-pass
-J1 K800 Q5      # resonant low-pass
-J2 K200 Q.707   # remove low-frequency content
-J3 K1200 Q4     # narrow band centered near 1.2 kHz
-J4 K1000 Q2     # notch around 1 kHz
+j1 k800 q.707   # smooth low-pass
+j1 k800 q5      # resonant low-pass
+j2 k200 q.707   # remove low-frequency content
+j3 k1200 q4     # narrow band centered near 1.2 kHz
+j4 k1000 q2     # notch around 1 kHz
 ```
 
 ### Filter ADSR
 
 `kt attack,decay,sustain,release` defines a second ADSR with the same time and
-level meanings as `t`. `kd depth` adds the envelope to the base `K` frequency:
+level meanings as `t`. `kd depth` adds the envelope to the base `k` frequency:
 
 ```text
-effective cutoff = K + (filter envelope * fd)
+effective cutoff = k + (filter envelope * kd)
 ```
 
-`fd` is therefore measured in hertz. A positive depth sweeps upward from `K`;
+`kd` is therefore measured in hertz. A positive depth sweeps upward from `k`;
 a negative depth sweeps downward. While the filter envelope is active, the
 effective cutoff is clamped between `20` and `20000` Hz.
 
 ```text
-v0 J1 K300 Q2 ft.01,.3,.1,.4 fd2500 n48 l1
+v0 j1 k300 q2 kt.01,.3,.1,.4 kd2500 n48 l1
 ```
 
 This starts a low-pass sweep above the 300 Hz base cutoff, decays toward a
@@ -384,9 +384,9 @@ triggered.
 | --- | --- | --- | --- |
 | `t attack,decay,sustain,release` | Times in seconds; sustain level `0..1` | Sets the amplitude envelope triggered by `l` and `T` and released by `l0`. Requires `ADSR`. | Yes |
 | `am mode` | Integer stored mode | Stores and reports the amplitude-envelope mode. The current envelope calculation does not branch on this value, so it presently has no audible effect. Requires `ADSR`. | Yes |
-| `J [mode] [character]` | Selects response and character | `mode` is `0` (bypass), `1` (LP), `2` (HP), `3` (BP), `4` (Notch), `5` (All-pass). `character` is `0` (clean), `1` (driven), `2` (screamer). Requires `FILT`. | Yes |
+| `j [mode] [character]` | Selects response and character | `mode` is `0` (bypass), `1` (LP), `2` (HP), `3` (BP), `4` (Notch), `5` (All-pass). `character` is `0` (clean), `1` (driven), `2` (screamer). Requires `FILT`. | Yes |
 | `k hz` | Cutoff or center frequency in hertz | Sets the frequency interpreted according to `j`. Requires `FILT`. | Yes |
-| `Q quality` | Positive quality factor | Sets resonance or bandwidth around `K`; `0.707` is a useful neutral value. Requires `FILT`. | Yes |
+| `q quality` | Positive quality factor | Sets resonance or bandwidth around `k`; `0.707` is a useful neutral value. Requires `FILT`. | Yes |
 | `kt attack,decay,sustain,release` | Times in seconds; sustain level `0..1` | Sets the filter envelope triggered and released with the amplitude envelope. Requires `FILT` and `FADSR`. | Yes |
 | `kd depth` | Cutoff movement in hertz | Adds a positive or negative envelope-controlled offset to `k`. Requires `FILT` and `FADSR`. | Yes |
 
@@ -1465,7 +1465,7 @@ Moog bass patches. Requires `ADSR`, `FILT`, and `FADSR`.
 
 ```text
 S0
-v0 w2 a0 t.005,.18,.7,.25 J1 K120 Q5 ft.002,.25,.08,.3 fd2600 n36 l1
+v0 w2 a0 t.005,.18,.7,.25 j1 k120 q5 kt.002,.25,.08,.3 kd2600 n36 l1
 ~.75 v0 l0
 ```
 
@@ -1487,7 +1487,7 @@ Requires `ADSR`, `FILT`, and `FADSR`.
 
 ```text
 S0
-v0 w22 a0 t.08,.5,.7,.8 J1 K500 Q2 ft.12,.7,.3,.8 fd3200 n48 l1
+v0 w22 a0 t.08,.5,.7,.8 j1 k500 q2 kt.12,.7,.3,.8 kd3200 n48 l1
 ~1.5 v0 l0
 ```
 
@@ -1651,7 +1651,7 @@ v0 w0 n69 a0 p0 l1
 Create a filtered, enveloped note:
 
 ```text
-v0 w1 t.01,.2,.6,.4 k1 J0 K1200 Q.3 n48 l1
+v0 w1 t.01,.2,.6,.4 am1 j0 k1200 q.3 n48 l1
 ```
 
 Store and reuse a melodic macro:
@@ -1696,11 +1696,11 @@ backend unless `MIDI=1`:
 
 | Feature | Commands |
 | --- | --- |
-| `ADSR` | `k`, `t` |
+| `ADSR` | `am`, `t` |
 | `AM` | `A` |
-| `CRUSH` | `q` |
-| `FILT` | `J`, `K`, `q` |
-| `FILT` and `FADSR` | `ft`, `fd` |
+| `CRUSH` | `bc` |
+| `FILT` | `j`, `k`, `q` |
+| `FILT` and `FADSR` | `kt`, `kd` |
 | `FM` | `F`, `FF`, `FB` |
 | `GLISS` | `g` |
 | `KSYNTH` | `/ks`, `/k`, `ks`, `k!`, `kw`, `kw>`, `k?`, `k>d`, `k>w`, `d>k`, `w>k` |

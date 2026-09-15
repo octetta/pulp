@@ -593,10 +593,10 @@ void skode_double_dump(skode_t *ctx, double *data, int data_len) {
     for (int i = 0; i < data_len; i++) {
       if (i < DOT_NUM) {
         show_dots = 0;
-        ctx->printf(ctx, "%.8g ", data[i]);
+        if (isnan(data[i])) ctx->printf(ctx, "- "); else ctx->printf(ctx, "%.8g ", data[i]);
       } else if (i >= (data_len - DOT_NUM)) {
         show_dots = 0;
-        ctx->printf(ctx, "%.8g ", data[i]);
+        if (isnan(data[i])) ctx->printf(ctx, "- "); else ctx->printf(ctx, "%.8g ", data[i]);
       } else {
         show_dots = 1;
       }

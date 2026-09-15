@@ -1,0 +1,41 @@
+## samples from freesound.org
+M 50
+##
+/ws [kick.wav] 100
+/ws [snare.wav] 101
+/ws [pistab.wav] 102
+/ws [ohh.wav] 103
+/ws [orch.mp3] 104
+##
+v0 w100 f440 a20
+v1 w101 f440 a20
+v2 w102 f440 a20
+v3 w103 f440 a20
+v4 w104 f440 a20
+##
+y0
+[v0 n$0 l1] x0
+[v1 n$1 l1] x1
+[v0 n$0 l1 +.125 l.5] x2
+[v1 n$1 l0] x3
+##
+y1
+x0 [v2 n&0 l1 ]
+x1 [v2 n&0 l1 ]
+##
+y2
+[v3 l1 +.125 v3l1] x0
+[v3 l1 z*4] x1
+##
+y3 %4
+[#] x0
+[v4 l1] x1
+##
+= 0 69
+= 1 69
+= 2 69
+= 3 69
+##
+/SS 0 ( 69 72 57 45 -  67 63 -  )
+/SS 1 ( -  -  -  -  -  -  -  -  )
+##

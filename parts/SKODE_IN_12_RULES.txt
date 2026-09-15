@@ -1,0 +1,221 @@
+SKODE IN 12 RULES
+
+1. Everything is an atom followed by numbers
+
+v0
+w2
+n60
+a-6
+l1
+
+An atom says what.
+
+The following numbers say how much / which one.
+
+2. You can omit whitespace
+
+These mean the same thing:
+v0 w0 n60 a0 l1
+and:
+v0w0n60a0l1
+
+Whitespace is for humans, not the machine. The reference explicitly treats adjacent commands as legal syntax.
+
+3. Learn the ten sacred one-letter words first
+
+v   voice
+w   wave
+f   frequency
+n   note
+a   amplitude
+p   pan
+l   level/velocity/trigger
+t   envelope timing
+m   mute
+g   glide
+
+You should be able to look at:
+
+v3 w301 n48 a-6 p-.3 t.01,.2,.7,.3 l1
+
+and read it almost aloud:
+
+voice 3, wave 301, note 48, amplitude -6, pan left, envelope ..., trigger.
+
+4. One letter is for things you touch constantly
+
+This is the most important economy rule.
+
+Don't write:
+
+velocity
+frequency
+amplitude
+
+when you can write:
+
+l
+f
+a
+
+A command typed once per note deserves one character.
+
+That is why I reject vel or velo.
+
+5. Two letters describe a relationship
+
+The basic pattern is:
+<object><operation>
+
+Examples:
+
+fb   frequency bend
+ab   amplitude bend
+gn   group note
+gr   group release
+gb   group bend
+kt   filter envelope time
+kd   filter envelope depth
+ct   phase envelope
+cd   phase depth
+
+You don't memorize 100 abbreviations.
+
+You learn the letters.
+
+6. Three letters refine the two-letter operation
+
+For example:
+
+fbp
+abp
+
+Read them as:
+
+f + b + p
+a + b + p
+
+not as arbitrary abbreviations.
+
+The last character is a qualifier.
+
+That gives Skode a productive naming grammar.
+
+7. Case changes the level of thought
+
+A useful rule of thumb:
+
+a     direct amplitude
+A     amplitude modulation
+
+f     direct frequency
+F     frequency modulation
+
+p     direct pan
+P     pan modulation
+
+So lowercase tends to mean:
+
+set the thing
+
+while uppercase often means:
+
+make the thing participate in a relationship
+This is already present in the implementation.
+
+8. ? means “tell me”
+
+Learn this once:
+
+?
+v?
+?m
+?q
+?ce
+?pg
+?pp
+?R
+?d
+?w
+
+The question mark is your REPL introspection operator.
+
+This is one of the best parts of the language.
+
+9. / means “control the machinery”
+
+Examples:
+
+/pg
+/pp
+/pm
+
+/ce...
+/mi
+/mo
+
+/sg
+/rg
+/ls
+/ks
+
+You can think of / as:
+
+I'm talking to a subsystem rather than playing a note.
+
+10. > and < mean movement
+
+This is another powerful rule:
+
+w>d     wave → data
+d>r     data → recording
+r>d     recording → data
+d>k     data → Ksynth
+w>k     wave → Ksynth
+k>w     Ksynth → wave
+a>r     audio → recording
+r>f     recording → file
+
+Once you understand > as send this there, these commands stop being names you memorize.
+
+11. ! means “do it / force it / destroy it”
+
+Examples:
+
+e!
+w!
+/pg!
+/pp!
+R!
+R!!
+/ce!
+
+The exact operation varies by family, but the punctuation has a consistent emotional meaning:
+
+This isn't a query. Act.
+
+That's a very Tcl-like idea.
+
+12. Patterns have their own little language
+
+Learn:
+
+y   select pattern
+x   write step
+z   control playback
+Z   control all patterns
+
+Then:
+
+xa   append
+zg   goto
+zq   quantized start/stop
+z%   clock division
+z*   ratchet
+ym   mute
+yc   control events
+yt   name
+z?   inspect
+Z?   inspect all
+
+This is probably the most teachable subsystem in Skode today.

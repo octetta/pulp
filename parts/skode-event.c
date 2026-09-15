@@ -255,7 +255,7 @@ static int skode_compile_callback(ands_t *s, int info) {
       opcode = SKODE_OP_FILTER_MODE; min_argc = max_argc = 1; break;
     case SKODE_ATOM('k', '-', '-', '-'):
       opcode = SKODE_OP_FILTER_FREQ; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('a', 'm', '-', '-'):
+    case SKODE_ATOM('t', 'm', '-', '-'):
       opcode = SKODE_OP_ENVELOPE_MODE; min_argc = max_argc = 1; break;
     case SKODE_ATOM('N', '-', '-', '-'):
       opcode = SKODE_OP_MIDI_DETUNE; min_argc = 1; max_argc = 2;
@@ -446,7 +446,7 @@ int skode_is_legacy_realtime_opcode(uint32_t atom) {
     case SKODE_ATOM('k', '?', '-', '-'):
     case SKODE_ATOM('k', '>', 'd', '-'):
     case SKODE_ATOM('k', '>', 'w', '-'):
-    case SKODE_ATOM('a', 'm', '-', '-'):
+    case SKODE_ATOM('t', 'm', '-', '-'):
     case SKODE_ATOM('l', 'o', 'g', '-'):
     case SKODE_ATOM('M', '-', '-', '-'):
     case SKODE_ATOM('N', '-', '-', '-'):

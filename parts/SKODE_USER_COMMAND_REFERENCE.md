@@ -1651,7 +1651,7 @@ v0 w0 n69 a0 p0 l1
 Create a filtered, enveloped note:
 
 ```text
-v0 w1 t.01,.2,.6,.4 am1 j0 k1200 q.3 n48 l1
+v0 w1 t.01,.2,.6,.4 tm1 j0 k1200 q.3 n48 l1
 ```
 
 Store and reuse a melodic macro:

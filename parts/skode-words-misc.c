@@ -845,7 +845,7 @@ static skode_word_t word_fd = { WID("fd"), .execute = word_exec_pd, .safety = WO
 static skode_word_t word_pte = { WID("pte"), .execute = word_exec_pte, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
 static skode_word_t word_fte = { WID("fte"), .execute = word_exec_pte, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
 static skode_word_t word_MO = { WID("MO"), .execute = word_exec_MO, .safety = WORD_IMMEDIATE_ONLY , .category = "midi" };
-static skode_word_t word_am = { WID("am"), .execute = word_exec_k, .safety = WORD_IMMEDIATE_ONLY , .category = "misc" };
+static skode_word_t word_tm = { WID("tm"), .execute = word_exec_k, .safety = WORD_IMMEDIATE_ONLY , .category = "misc" };
 static skode_word_t word_wt = { WID("wt"), .execute = word_exec_wt, .safety = WORD_IMMEDIATE_ONLY , .category = "misc" };
 static skode_word_t word_d_gtMO = { WID("d>MO"), .execute = word_exec_d_gtMO, .safety = WORD_IMMEDIATE_ONLY , .category = "midi" };
 static skode_word_t word_WS = { WID("WS"), .execute = word_exec_WS, .safety = WORD_IMMEDIATE_ONLY , .category = "wave-specto" };
@@ -913,7 +913,7 @@ void skode_register_words_misc(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_pte);
   skode_dict_register(vocab, &word_fte);
   skode_dict_register(vocab, &word_MO);
-  skode_dict_register(vocab, &word_am);
+  skode_dict_register(vocab, &word_tm);
   skode_dict_register(vocab, &word_wt);
   skode_dict_register(vocab, &word_d_gtMO);
   skode_dict_register(vocab, &word_WS);

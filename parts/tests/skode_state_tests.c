@@ -1390,7 +1390,7 @@ static void test_one_shot_asr_mode(void) {
   sv.loop_enabled[voice] = 0;
   sv.loop_active[voice] = 0;
   sv.phase_inc[voice] = 1.0f;
-  consume(test, &ctx, "v5 am1");
+  consume(test, &ctx, "v5 tm1");
   envelope_set(voice, 0.0f, 0.0f, 1.0f, 3.0f / MAIN_SAMPLE_RATE);
   SAMPLE_COUNT_PUT(1000);
   envelope_velocity(voice, 1.0f);
@@ -1399,7 +1399,7 @@ static void test_one_shot_asr_mode(void) {
 
   configure_loop_test_voice(voice, 0);
   sv.phase_inc[voice] = 1.0f;
-  consume(test, &ctx, "v5 BC2 am1");
+  consume(test, &ctx, "v5 BC2 tm1");
   envelope_set(voice, 0.0f, 0.0f, 1.0f, 3.0f / MAIN_SAMPLE_RATE);
   SAMPLE_COUNT_PUT(2000);
   envelope_velocity(voice, 1.0f);
@@ -1868,7 +1868,7 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"L.01", SKODE_OP_TRIGGER_DELAY},
     {"j1", SKODE_OP_FILTER_MODE},
     {"k1200", SKODE_OP_FILTER_FREQ},
-    {"am1", SKODE_OP_ENVELOPE_MODE},
+    {"tm1", SKODE_OP_ENVELOPE_MODE},
     {"l1", SKODE_OP_VELOCITY},
     {"m1", SKODE_OP_MUTE},
     {"n60", SKODE_OP_MIDI_NOTE},

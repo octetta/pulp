@@ -231,9 +231,9 @@ static int skode_compile_callback(ands_t *s, int info) {
       opcode = SKODE_OP_FREQ_BEND; min_argc = max_argc = 1; break;
     case SKODE_ATOM('f', 'b', 'p', '-'):
       opcode = SKODE_OP_FREQ_BEND_PARAM; min_argc = 1; max_argc = 2; break;
-    case SKODE_ATOM('f', 't', '-', '-'):
+    case SKODE_ATOM('k', 't', '-', '-'):
       opcode = SKODE_OP_FILTER_ENVELOPE; min_argc = max_argc = 4; break;
-    case SKODE_ATOM('f', 'd', '-', '-'):
+    case SKODE_ATOM('k', 'd', '-', '-'):
       opcode = SKODE_OP_FILTER_ENVELOPE_DEPTH; min_argc = max_argc = 1; break;
     case SKODE_ATOM('F', '-', '-', '-'):
       opcode = SKODE_OP_FREQ_MOD; min_argc = 0; max_argc = 3; break;
@@ -251,20 +251,20 @@ static int skode_compile_callback(ands_t *s, int info) {
       opcode = SKODE_OP_LINK_VELOCITY; min_argc = 1; max_argc = 4; break;
     case SKODE_ATOM('L', '-', '-', '-'):
       opcode = SKODE_OP_TRIGGER_DELAY; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('J', '-', '-', '-'):
+    case SKODE_ATOM('j', '-', '-', '-'):
       opcode = SKODE_OP_FILTER_MODE; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('K', '-', '-', '-'):
-      opcode = SKODE_OP_FILTER_FREQ; min_argc = max_argc = 1; break;
     case SKODE_ATOM('k', '-', '-', '-'):
+      opcode = SKODE_OP_FILTER_FREQ; min_argc = max_argc = 1; break;
+    case SKODE_ATOM('a', 'm', '-', '-'):
       opcode = SKODE_OP_ENVELOPE_MODE; min_argc = max_argc = 1; break;
     case SKODE_ATOM('N', '-', '-', '-'):
       opcode = SKODE_OP_MIDI_DETUNE; min_argc = 1; max_argc = 2;
       default_mask = 1; break;
     case SKODE_ATOM('P', '-', '-', '-'):
       opcode = SKODE_OP_PAN_MOD; min_argc = 0; max_argc = 3; break;
-    case SKODE_ATOM('q', '-', '-', '-'):
+    case SKODE_ATOM('b', 'c', '-', '-'):
       opcode = SKODE_OP_QUANTIZE; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('Q', '-', '-', '-'):
+    case SKODE_ATOM('q', '-', '-', '-'):
       opcode = SKODE_OP_FILTER_RESONANCE; min_argc = max_argc = 1; break;
     case SKODE_ATOM('r', '-', '-', '-'):
       opcode = SKODE_OP_RECORD_TRACK; min_argc = max_argc = 1; break;
@@ -435,8 +435,8 @@ int skode_is_legacy_realtime_opcode(uint32_t atom) {
     case SKODE_ATOM('H', '-', '-', '-'):
     case SKODE_ATOM('/', 'D', '-', '-'):
     case SKODE_ATOM('I', '-', '-', '-'):
-    case SKODE_ATOM('J', '-', '-', '-'):
-    case SKODE_ATOM('K', '-', '-', '-'):
+    case SKODE_ATOM('j', '-', '-', '-'):
+    case SKODE_ATOM('k', '-', '-', '-'):
     case SKODE_ATOM('/', 'k', 's', '-'):
     case SKODE_ATOM('/', 'k', '-', '-'):
     case SKODE_ATOM('k', 's', '-', '-'):
@@ -446,7 +446,7 @@ int skode_is_legacy_realtime_opcode(uint32_t atom) {
     case SKODE_ATOM('k', '?', '-', '-'):
     case SKODE_ATOM('k', '>', 'd', '-'):
     case SKODE_ATOM('k', '>', 'w', '-'):
-    case SKODE_ATOM('k', '-', '-', '-'):
+    case SKODE_ATOM('a', 'm', '-', '-'):
     case SKODE_ATOM('l', 'o', 'g', '-'):
     case SKODE_ATOM('M', '-', '-', '-'):
     case SKODE_ATOM('N', '-', '-', '-'):
@@ -463,8 +463,8 @@ int skode_is_legacy_realtime_opcode(uint32_t atom) {
     case SKODE_ATOM('G', 'S', '>', '-'):
     case SKODE_ATOM('G', 'S', '<', '-'):
     case SKODE_ATOM('P', '-', '-', '-'):
+    case SKODE_ATOM('b', 'c', '-', '-'):
     case SKODE_ATOM('q', '-', '-', '-'):
-    case SKODE_ATOM('Q', '-', '-', '-'):
     case SKODE_ATOM('r', '-', '-', '-'):
     case SKODE_ATOM('r', 't', '-', '-'):
     case SKODE_ATOM('r', 'v', '-', '-'):

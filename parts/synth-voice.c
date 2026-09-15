@@ -187,7 +187,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" ds%g", sv.delay_send[v]);
 
     if (verbose || sv.filter_mode[v])
-        APPEND(" J%d %d K%g Q%g", sv.filter_mode[v] % 10, sv.filter_mode[v] / 10, sv.filter_freq[v], sv.filter_res[v]);
+        APPEND(" j%d %d k%g q%g", sv.filter_mode[v] % 10, sv.filter_mode[v] / 10, sv.filter_freq[v], sv.filter_res[v]);
 
     if (sv.filter_envelope[v].mode == 1) {
         APPEND(" (");
@@ -197,9 +197,9 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             APPEND("%g %g", time_val, sv.filter_envelope[v].levels[stage]);
             if (stage < sv.filter_envelope[v].num_stages - 1) APPEND(" ");
         }
-        APPEND(") fte fd %g", sv.filter_env_depth[v]);
+        APPEND(") kte kd %g", sv.filter_env_depth[v]);
     } else if (verbose || sv.use_filter_envelope[v]) {
-        APPEND(" ft %g %g %g %g fd %g",
+        APPEND(" kt %g %g %g %g kd %g",
             sv.filter_envelope[v].a,
             sv.filter_envelope[v].d,
             sv.filter_envelope[v].s,
@@ -252,7 +252,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
 
     if (verbose || sv.sample_hold_ratio[v] > 0.0f) APPEND(" h%g %d", sv.sample_hold_ratio[v], sv.sample_hold_mode[v]);
 
-    if (verbose || sv.quantize[v]) APPEND(" q%d %d", sv.quantize[v] % 100, sv.quantize[v] / 100);
+    if (verbose || sv.quantize[v]) APPEND(" bc%d %d", sv.quantize[v] % 100, sv.quantize[v] / 100);
 
     if (verbose || (sv.amp_mod_osc[v] >= 0 && sv.amp_mod_depth[v] != 0.0f))
         APPEND(" A%d,%g,%g", sv.amp_mod_osc[v], sv.amp_mod_depth[v], sv.amp_mod_adder[v]);
@@ -280,7 +280,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" g%g", sv.glissando_time[v]);
 
     if (verbose || !envelope_is_flat(v))
-        APPEND(" t%g,%g,%g,%g k%d",
+        APPEND(" t%g,%g,%g,%g am%d",
             sv.amp_envelope[v].a,
             sv.amp_envelope[v].d,
             sv.amp_envelope[v].s,

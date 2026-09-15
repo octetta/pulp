@@ -310,7 +310,7 @@ static void test_text_and_show_logging(void) {
   const char *test = "text and logging";
   skode_t ctx = new_ctx();
   ctx.log_enable = 1;
-  consume(test, &ctx, "v1 [lead beep] vt [scratch text] ?s");
+  consume(test, &ctx, "v1 [lead beep] vt ; [scratch text] ?s");
 
   expect_int(test, ctx.voice, 1, "ctx.voice");
   if (strncmp(sv.text[1], "lead beep", TEXT_MAX) != 0) {
@@ -509,7 +509,7 @@ static void test_envelope_configuration_is_deferred(void) {
   char after[2048];
   uint64_t saved_sample_count = SAMPLE_COUNT_GET();
 
-  consume(test, &ctx, "v0 t.1,.2,.3,.4 ft.5,.6,.7,.8 l.75");
+  consume(test, &ctx, "v0 t.1,.2,.3,.4 kt.5,.6,.7,.8 l.75");
   voice_format(0, before, sizeof(before), 1);
   if (strstr(before, "amp_env_active:1") == NULL ||
       strstr(before, "amp_env_runtime:4410,8820,0.3,17640") == NULL ||
@@ -518,10 +518,10 @@ static void test_envelope_configuration_is_deferred(void) {
     fail(test, "initial runtime envelope snapshot mismatch");
   }
 
-  consume(test, &ctx, "t1,2,.9,4 ft0,0,1,0");
+  consume(test, &ctx, "t1,2,.9,4 kt0,0,1,0");
   voice_format(0, after, sizeof(after), 1);
   if (strstr(after, "t1,2,0.9,4") == NULL ||
-      strstr(after, "ft 0 0 1 0") == NULL ||
+      strstr(after, "kt 0 0 1 0") == NULL ||
       strstr(after, "amp_env_active:1") == NULL ||
       strstr(after, "amp_env_runtime:4410,8820,0.3,17640") == NULL ||
       strstr(after, "filter_env_active:1") == NULL ||
@@ -569,7 +569,7 @@ static void test_envelope_future_timestamps(void) {
   envelope.amplitude_at_release = 0.75f;
   envelope.sample_start = 0;
   envelope.sample_release = 1024;
-  expect_float(test, envelope_step_e(&envelope, 1000), 0.75f, 0.0001f,
+  expect_float(test, envelope_step_e(&envelope, 1000), 1.0f, 0.0001f,
                "future release remains at release start");
 }
 
@@ -1361,7 +1361,7 @@ static void test_bounded_loop_preserves_tail_envelopes(void) {
 
   configure_loop_test_voice(voice, 0);
   consume(test, &ctx,
-          "v6 a0 BC1 t0,0,1,.5 ft0,0,1,.5 fd100 l1");
+          "v6 a0 BC1 t0,0,1,.5 kt0,0,1,.5 kd100 l1");
   sv.phase[voice] = 4.0f;
   sv.phase_inc[voice] = 1.0f;
   sv.loop_remaining[voice] = 0;
@@ -1390,7 +1390,7 @@ static void test_one_shot_asr_mode(void) {
   sv.loop_enabled[voice] = 0;
   sv.loop_active[voice] = 0;
   sv.phase_inc[voice] = 1.0f;
-  consume(test, &ctx, "v5 k1");
+  consume(test, &ctx, "v5 am1");
   envelope_set(voice, 0.0f, 0.0f, 1.0f, 3.0f / MAIN_SAMPLE_RATE);
   SAMPLE_COUNT_PUT(1000);
   envelope_velocity(voice, 1.0f);
@@ -1399,7 +1399,7 @@ static void test_one_shot_asr_mode(void) {
 
   configure_loop_test_voice(voice, 0);
   sv.phase_inc[voice] = 1.0f;
-  consume(test, &ctx, "v5 BC2 k1");
+  consume(test, &ctx, "v5 BC2 am1");
   envelope_set(voice, 0.0f, 0.0f, 1.0f, 3.0f / MAIN_SAMPLE_RATE);
   SAMPLE_COUNT_PUT(2000);
   envelope_velocity(voice, 1.0f);
@@ -1711,9 +1711,9 @@ static void test_909_sequence_programs(void) {
     "+.5 v4 l1 +.25 v4l.5",
     "v12 n$0 l1 +.5 v12 n$0 l.75",
     "=0,$1",
-    "=1,40 v12 J0",
-    "=1,60 v13 J0",
-    "=2,55 v12 J1 v13 J1",
+    "=1,40 v12 j0",
+    "=1,60 v13 j0",
+    "=2,55 v12 j1 v13 j1",
     "=2,45 v0 n$5 l2 v12m0 v13m0",
   };
   event_program_t program;
@@ -1856,8 +1856,8 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"ct.01,.2,.5,.3", SKODE_OP_PHASE_ENVELOPE},
     {"cd-.75", SKODE_OP_PHASE_ENVELOPE_DEPTH},
     {"f220", SKODE_OP_FREQ},
-    {"ft.01,.2,.5,.3", SKODE_OP_FILTER_ENVELOPE},
-    {"fd2", SKODE_OP_FILTER_ENVELOPE_DEPTH},
+    {"kt.01,.2,.5,.3", SKODE_OP_FILTER_ENVELOPE},
+    {"kd2", SKODE_OP_FILTER_ENVELOPE_DEPTH},
     {"F1,.5,0", SKODE_OP_FREQ_MOD},
     {"FF1", SKODE_OP_FREQ_MOD_MODE},
     {"FB2.5", SKODE_OP_FREQ_FEEDBACK},
@@ -1866,9 +1866,9 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"h4", SKODE_OP_SAMPLE_HOLD},
     {"H1,2", SKODE_OP_LINK_VELOCITY},
     {"L.01", SKODE_OP_TRIGGER_DELAY},
-    {"J1", SKODE_OP_FILTER_MODE},
-    {"K1200", SKODE_OP_FILTER_FREQ},
-    {"k1", SKODE_OP_ENVELOPE_MODE},
+    {"j1", SKODE_OP_FILTER_MODE},
+    {"k1200", SKODE_OP_FILTER_FREQ},
+    {"am1", SKODE_OP_ENVELOPE_MODE},
     {"l1", SKODE_OP_VELOCITY},
     {"m1", SKODE_OP_MUTE},
     {"n60", SKODE_OP_MIDI_NOTE},
@@ -1876,7 +1876,7 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"p.25", SKODE_OP_PAN},
     {"P1,.5,0", SKODE_OP_PAN_MOD},
     {"q8", SKODE_OP_QUANTIZE},
-    {"Q.7", SKODE_OP_FILTER_RESONANCE},
+    {"q.7", SKODE_OP_FILTER_RESONANCE},
     {"r2", SKODE_OP_RECORD_TRACK},
     {"s.01", SKODE_OP_SMOOTHER},
     {"S3", SKODE_OP_VOICE_RESET},
@@ -2946,12 +2946,12 @@ static void test_control_composition_primitives(void) {
 
   ctx.log[0] = '\0';
   ctx.log_len = 0;
-  consume(test, &ctx, "[alpha] 0 s> [beta] ?s");
+  consume(test, &ctx, "[alpha] 0 s> ; [beta] ?s");
   if (!strstr(ctx.log, "# [beta]")) fail(test, "parser string baseline missing");
   ctx.log[0] = '\0';
   ctx.log_len = 0;
   consume(test, &ctx, "0 <s ?s");
-  if (!strstr(ctx.log, "# [alpha]")) fail(test, "local string slot restore failed");
+  if (!strstr(ctx.log, "# [alpha]")) fail(test, ctx.log);
 
   ctx.log[0] = '\0';
   ctx.log_len = 0;

@@ -59,6 +59,7 @@ set(API_PLAIN_SOURCES
     skode-dict.c
     skqueue.c
     udp.c
+    udp-events.c
 )
 
 # 3. List modules

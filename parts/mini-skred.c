@@ -14,6 +14,7 @@ void usage(void) {
   printf("-r<requested-frame-size> (128 to ?)\n");
   printf("-n = do not use editor (for use as a subprocess)\n");
   printf("-p<udp-port> (0 means no udp)\n");
+  printf("-e<events-port> (0 means no udp events)\n");
   printf("-l show output/input devices\n");
   exit(1);
 }
@@ -104,6 +105,7 @@ int main(int argc, char **argv) {
   unsigned int vc = 64;
   unsigned int req = 128;
   int udp_port = 60440;
+  int events_port = 0; // Default off
   int output = -1;
   int input = -1;
   
@@ -114,6 +116,7 @@ int main(int argc, char **argv) {
         case 'v': vc = atoi(&argv[i][2]); break;
         case 'r': req = atoi(&argv[i][2]); break;
         case 'p': udp_port = (int)strtol(&(argv[i][2]), NULL, 0); break;
+        case 'e': events_port = (int)strtol(&(argv[i][2]), NULL, 0); break;
         case 'l': {
           skred_enumerate_devices(0);
           skred_enumerate_devices(1);
@@ -155,6 +158,10 @@ int main(int argc, char **argv) {
   if (skred_start(req, vc, udp_port) != 0) {
     return 1;
   }
+  
+  if (events_port > 0) {
+      skred_udp_events_start(events_port);
+  }
 
   skred_logger(1);
 
@@ -182,6 +189,7 @@ int main(int argc, char **argv) {
   }
 
   skred_control_dispatch_stop();
+  skred_udp_events_stop();
   skred_stop();
   
   if (useue) {

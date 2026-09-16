@@ -13,6 +13,11 @@ extern "C" {
 // Initialize the audio engine, state, and networking
 int skred_start(unsigned int req_audio_frames, unsigned int voices, int port);
 
+// Optional: Start a dedicated UDP event broadcast port for the >u command
+int skred_udp_events_start(int port);
+void skred_udp_events_stop(void);
+void skred_udp_events_emit(const char *msg);
+
 // Initialize the engine in headless mode (no audio device opened)
 int skred_start_headless(unsigned int voices, int sample_rate);
 

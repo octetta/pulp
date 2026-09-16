@@ -389,6 +389,38 @@ static int word_exec__slashls(const skode_word_t *self, skode_t *ctx, ands_t *s,
       return 0;
 }
 
+static int word_exec_gt_u(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)s;
+  if (strlen(ands_string(ctx->parse)) > 0) {
+      char buf[256];
+      buf[0] = '\0';
+      const char *fmt = ands_string(ctx->parse);
+      int a_idx = 0;
+      char *out = buf;
+      int remaining = sizeof(buf) - 1;
+      
+      while (*fmt && remaining > 0) {
+          if (*fmt == '%' && *(fmt+1) == 'g') {
+              int n = snprintf(out, remaining, "%g", a_idx < argc ? arg[a_idx] : 0.0);
+              if (n > 0) { out += n; remaining -= n; }
+              a_idx++;
+              fmt += 2;
+          } else if (*fmt == '%' && *(fmt+1) == 'd') {
+              int n = snprintf(out, remaining, "%d", a_idx < argc ? (int)arg[a_idx] : 0);
+              if (n > 0) { out += n; remaining -= n; }
+              a_idx++;
+              fmt += 2;
+          } else {
+              *out++ = *fmt++;
+              remaining--;
+          }
+      }
+      *out = '\0';
+      skred_udp_events_emit(buf);
+  }
+  return 1;
+}
+
 static int word_exec__slashws(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -662,6 +694,7 @@ static skode_word_t word__pctpwd = { WID("%pwd"), .execute = word_exec__pctpwd, 
 static skode_word_t word__pctcat = { WID("%cat"), .execute = word_exec__pctcat, .safety = WORD_IMMEDIATE_ONLY , .category = "files" };
 static skode_word_t word__pctcd = { WID("%cd"), .execute = word_exec__pctcd, .safety = WORD_IMMEDIATE_ONLY , .category = "files" };
 static skode_word_t word__pctls = { WID("%ls"), .execute = word_exec__pctls, .safety = WORD_IMMEDIATE_ONLY , .category = "files" };
+static skode_word_t word_gt_u = { WID(">u"), .execute = word_exec_gt_u, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
 
 void skode_register_words_system(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word__slashmd);
@@ -675,6 +708,7 @@ void skode_register_words_system(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_I);
 #ifdef UDP
   skode_dict_register(vocab, &word_udp);
+  skode_dict_register(vocab, &word_gt_u);
 #endif
   skode_dict_register(vocab, &word_log);
   skode_dict_register(vocab, &word_GS_gt);

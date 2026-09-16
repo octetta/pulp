@@ -94,7 +94,7 @@ static int mini_run_command(const char *line) {
   snprintf(buf, sizeof(buf), "%s", line);
   int r = skred_command(buf);
   char *log = skred_log();
-  if (strlen(log)) printf("%s", log);
+  if (strlen(log)) printf("LOG:\n%s---\n", log);
   if (r > 0) printf("r = %d\n", r);
   return r;
 }

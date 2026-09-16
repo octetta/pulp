@@ -664,12 +664,12 @@ static int action_finish_atom(ands_t *s) {
     if (s->atom_num != ATOM_NIL) {
         ands_return_clear(s);
         int ret = s->fn(s, FUNCTION);
+        atom_reset(s);
         if (ret < 0) return ret;
         if (ret == 0) {
             s->arg_len = 0;  // Clear args
         }
         s->string_fresh = 0;
-        atom_reset(s);
     }
 
     atom_finish(s);
@@ -698,9 +698,9 @@ static int action_chunk_end(ands_t *s) {
         if (s->trace) printf("# left-over ATOM\n");
         ands_return_clear(s);
         int ret = s->fn(s, FUNCTION);
+        atom_reset(s);
         if (ret < 0) return ret;
         s->string_fresh = 0;
-        atom_reset(s);
     }
 
     // Handle leftover defer
@@ -779,9 +779,9 @@ int ands_consume(ands_t *s, char *line) {
                 }
                 else if (IS_RETURN(*ptr))    { /* reserved return sigil */ }
                 else if (IS_COMMENT(*ptr))   { s->state = GET_COMMENT; }
-                else if (IS_CHUNK_END(*ptr)) { action_chunk_end(s); s->state = START; }
+                else if (IS_CHUNK_END(*ptr)) { if ((parse_err = action_chunk_end(s)) < 0) goto consume_end; s->state = START; }
 		else if (IS_SEPARATOR(*ptr)) { /* skip */ }
-                else if (IS_DEFER(*ptr))     { action_chunk_end(s); s->defer_mode = *ptr; s->state = GET_DEFER_NUMBER; }
+                else if (IS_DEFER(*ptr))     { if ((parse_err = action_chunk_end(s)) < 0) goto consume_end; s->defer_mode = *ptr; s->state = GET_DEFER_NUMBER; }
                 else if (iscntrl(*ptr))      { /* skip control chars */ }
                 else {
                     buffer_clear(&s->atom);
@@ -832,7 +832,7 @@ int ands_consume(ands_t *s, char *line) {
 
             case GET_COMMENT:
                 if (IS_CHUNK_END(*ptr)) {
-                    action_chunk_end(s);
+                    if ((parse_err = action_chunk_end(s)) < 0) goto consume_end;
                     s->state = START;
                 } else if (*ptr == '\n') {
                     s->state = START;

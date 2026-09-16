@@ -63,15 +63,25 @@ Whenever Pattern 0 wraps around to step 0, it emits the `SKRED_CONTROL_EVENT_PAT
 ---
 
 ## 3. Direct Step Triggers (Inside Patterns)
-If you don't want to use the global event dispatcher (`/cex`), you can also embed `>u` triggers directly into individual sequencer steps alongside your audio parameters.
+Because `>u` is an immediate word (it formats strings and interacts with the UDP subsystem), it **cannot** be compiled directly into a real-time pattern sequence. 
+
+Instead, use Skred's decoupled architecture: embed a user control event (`ce <id>`) into your pattern, and bind that ID to your `>u` macro!
 
 **Skode Input:**
 ```skode
-( Step 0: Play a kick on Voice 0 AND emit a UDP event )
-[ [ /drum/kick %g ] 1.0 >u v0 f60 a1 ] x0
+( Step 0: Play a kick on Voice 0 AND emit user event 42 )
+[ v0 f60 a1 ce42 ] x0
 
-( Step 4: Play a snare on Voice 1 AND emit a UDP event )
-[ [ /drum/snare %g ] 1.0 >u v1 f200 a1 ] x4
+( Step 4: Play a snare on Voice 1 AND emit user event 43 )
+[ v1 f200 a1 ce43 ] x4
+
+( Bind our UDP strings to those user events )
+( Type 4 is SKRED_CONTROL_EVENT_USER )
+[ [ /drum/kick %d ] 1 >u ] /ceb 4 42
+[ [ /drum/snare %d ] 1 >u ] /ceb 4 43
+
+( Start the dispatcher )
+/cer 1
 ```
 
 ---

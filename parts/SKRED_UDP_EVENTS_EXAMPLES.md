@@ -1,111 +1,101 @@
-# Skred UDP Events Reference
+# Advanced Skred UDP Events Reference
 
-The `>u` word allows Skred to broadcast custom-formatted ASCII strings to any subscribed UDP clients (like visualizers, external game engines, or OSC bridges). 
+The `>u` word broadcasts formatted ASCII strings to any subscribed UDP clients (like visualizers or external engines). While you can use `>u` manually, the real power comes from coupling it with Skred's **Control Event Dispatcher** (`/ce`, `/cex`). 
 
-Because Skred evaluates the string exactly as you format it, **you** define the "kinds" of events. The `>u` word acts as a string formatter (similar to `sprintf` in C) that pulls arguments directly off the Skode stack.
-
-> [!NOTE]
-> **Syntax Rules:**
-> - Push a string to the stack using `[ ... ]`
-> - Provide the arguments (up to 8) matching your format specifiers.
-> - Call `>u` to execute the string formatting and broadcast the UDP packet.
-> - Supported formatters are `%g` (for floats/doubles) and `%d` (for integers).
+This allows you to automatically broadcast UDP events exactly when samples finish, envelopes release, or sequencer patterns loop—with sample-accurate precision.
 
 ---
 
-## 1. Simple Triggers (No Arguments)
-Useful for basic clock ticks, resets, or transport controls where the string itself is the entire message.
+## 1. Voice Lifecycle: Envelope & Sample Endings
+You can track when an ADSR envelope enters its release phase (e.g. from `l0` or exiting a loop region) or when a one-shot audio sample completely finishes playing.
+
+Because the Skode parser uses `[` and `]` for string boundaries, nested brackets are not allowed. To use `>u` inside an event binding, we save the command to an **External Macro** (`e>N`) first, and bind it using `/cex`.
 
 **Skode Input:**
 ```skode
-[ /transport/play ] >u
-[ /clock/tick ] >u
+( 1. Create our UDP broadcast commands in macro slots 0 and 1 )
+[ [ /voice/finished %d ] 5 >u ] e>0
+[ [ /voice/release %d ] 5 >u ] e>1
+
+( 2. Select voice 5 and enable its lifecycle control events )
+v5 vc1
+
+( 3. Bind Macro 0 to Voice Finished (type 3) for Voice 5 )
+/cex 0 3 5
+
+( 4. Bind Macro 1 to Envelope Release (type 2) for Voice 5 )
+/cex 1 2 5
+
+( 5. Start the control event dispatcher thread )
+/cer 1
 ```
-**UDP Output:**
-```text
-/transport/play
-/clock/tick
-```
+
+Now, whenever Voice 5 is triggered and subsequently finishes playing its wave data, or its envelope is released, a UDP packet like `/voice/finished 5` will be automatically broadcast!
 
 ---
 
-## 2. Integer Parameters (`%d`)
-Useful for discrete state changes like steps in a sequencer, pattern changes, or voice indexes. Skred will automatically cast the stack value to an integer.
+## 2. Sequencer Sync: Pattern Loop Points
+You can trigger UDP broadcasts exactly when a sequencer pattern loops (starts or ends). This guarantees perfect visual synchronization with your generative patterns.
 
 **Skode Input:**
 ```skode
-[ /seq/step %d ] 4 >u
-[ /ui/scene/change %d ] 12 >u
+( 1. Create a macro to broadcast when pattern 0 starts/loops )
+[ [ /seq/loop %d ] 0 >u ] e>2
+
+( 2. Enable control events for pattern 0 )
+y0 yc1
+
+( 3. Bind Macro 2 to Pattern Start (type 5) for Pattern 0 )
+/cex 2 5 0
+
+( 4. Ensure the dispatcher is running )
+/cer 1
 ```
-**UDP Output:**
-```text
-/seq/step 4
-/ui/scene/change 12
-```
+Whenever Pattern 0 wraps around to step 0, it emits the `SKRED_CONTROL_EVENT_PATTERN_START` event, executing Macro 2 and sending `/seq/loop 0` over UDP.
+
+> [!TIP]
+> **Pattern Control Event Types:**
+> - `5`: Pattern Start (Downbeat / Loop point)
+> - `6`: Pattern End
+> - `9`: Pattern Step (Fires on every active step)
+> - `10`: Pattern Change (Fires when a sequence jumps to a new pattern)
 
 ---
 
-## 3. Float/Double Parameters (`%g`)
-The most common type of event in Skred. Useful for continuous parameters like frequencies, velocities, or modulations.
+## 3. Direct Step Triggers (Inside Patterns)
+If you don't want to use the global event dispatcher (`/cex`), you can also embed `>u` triggers directly into individual sequencer steps alongside your audio parameters.
 
 **Skode Input:**
 ```skode
-[ /filter/cutoff %g ] 440.5 >u
-[ /lfo/rate %g ] 0.125 >u
-```
-**UDP Output:**
-```text
-/filter/cutoff 440.5
-/lfo/rate 0.125
+( Step 0: Play a kick on Voice 0 AND emit a UDP event )
+[ [ /drum/kick %g ] 1.0 >u v0 f60 a1 ] x0
+
+( Step 4: Play a snare on Voice 1 AND emit a UDP event )
+[ [ /drum/snare %g ] 1.0 >u v1 f200 a1 ] x4
 ```
 
 ---
 
-## 4. Multi-Argument Events
-You can combine up to 8 arguments in a single event. The arguments are pulled from the stack in the order they appear in the string.
-
-**Skode Input:**
-```skode
-[ /voice/play %d %g %g ] 1 60.0 0.8 >u
-```
-*(Wait, let's look at the stack order. Skode reads left to right, so `1 60.0 0.8` places `0.8` at the top of the stack. However, for `>u`, arguments are processed sequentially from the stack bottom-to-top relative to the command, matching intuitive reading order.)*
-
-**UDP Output:**
-```text
-/voice/play 1 60 0.8
-```
-
----
-
-## 5. Dynamic & Calculated Events
-Because the arguments are just standard Skode stack values, they can be the result of math, variables, or iterators.
+## 4. Parameter Sweeps and Variables (`%g`)
+The `>u` word acts as a string formatter (like `sprintf`). It reads arguments off the stack right-to-left. You can use it to broadcast continuous data, variables, or math results.
 
 **Skode Input:**
 ```skode
 ( Read the 'I' iterator and divide by 100 for a dynamic sweep )
 [ /sweep/val %g ] I 100 / >u
 
-( Read from variable 'v0' )
+( Read from a shared variable 'v0' )
 [ /status/v0 %g ] v0 >u
+
+( Multi-argument event: Note and Velocity )
+[ /voice/play %d %g %g ] 1 60.0 0.8 >u
 ```
-**UDP Output:** (Assuming `I` was 50 and `v0` was 3.14)
+**UDP Output:**
 ```text
 /sweep/val 0.5
 /status/v0 3.14
+/voice/play 1 60 0.8
 ```
 
----
-
-## 6. Real-World Sequencer Example
-Here is how you might integrate UDP events directly into a Skode sequence pattern so that a visualizer perfectly syncs with your drum track:
-
-```skode
-( Pattern 0, Step 0: Play a kick on Voice 0, emit UDP event )
-[ /drum/kick %g ] 1.0 >u v0 f60 a1
-
-( Pattern 0, Step 4: Play a snare on Voice 1, emit UDP event )
-[ /drum/snare %g ] 0.8 >u v1 f200 a1
-```
-
-> [!TIP]
-> If you are building a visualizer in Python, Unity, or TouchDesigner, you can parse these incoming strings simply by splitting them on the space character: `parts = data.split(" ")` where `parts[0]` is the address (e.g. `"/drum/kick"`) and `parts[1]` is the value.
+> [!IMPORTANT]
+> The `>u` string parser currently supports up to 8 arguments formatted with `%g` (for floats/doubles) and `%d` (for values cast to integers). Ensure your stack values align with your format string!

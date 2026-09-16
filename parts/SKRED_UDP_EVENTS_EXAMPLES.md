@@ -86,7 +86,29 @@ Instead, use Skred's decoupled architecture: embed a user control event (`ce <id
 
 ---
 
-## 4. Parameter Sweeps and Variables (`%g`)
+## 4. Including Event Metadata (Time, Voice, Pattern)
+When your event macro executes, the dispatcher guarantees that the parser context knows exactly which voice, pattern, and step triggered the event. 
+
+You can use the `?time`, `?voice`, `?pattern`, and `?step` words to explicitly push these values onto the stack to embed them into your UDP strings! This gives your UDP clients sample-accurate timestamps.
+
+**Skode Input:**
+```skode
+( Broadcast event with timestamp and source info! )
+( Stack order: ?pattern pushes first, ?time pushes last )
+[ [ /seq/event %g %d %d ] ?pattern ?step ?time >u ] e>3
+
+( Bind to Pattern Change (type 10) for all patterns )
+/cex 3 10 -1
+/cer 1
+```
+**UDP Output:**
+```text
+/seq/event 12845920 0 4
+```
+
+---
+
+## 5. Parameter Sweeps and Variables (`%g`)
 The `>u` word acts as a string formatter (like `sprintf`). It reads arguments off the stack right-to-left. You can use it to broadcast continuous data, variables, or math results.
 
 **Skode Input:**

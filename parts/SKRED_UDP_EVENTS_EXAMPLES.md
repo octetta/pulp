@@ -131,3 +131,35 @@ The `>u` word acts as a string formatter (like `sprintf`). It reads arguments of
 
 > [!IMPORTANT]
 > The `>u` string parser currently supports up to 8 arguments formatted with `%g` (for floats/doubles) and `%d` (for values cast to integers). Ensure your stack values align with your format string!
+
+---
+
+## 6. Testing with Netcat (Quickstart)
+Skred uses a **"ping-to-subscribe"** architecture for UDP events. External clients must send a packet to the events port first so the engine knows where to send broadcasts. If a client goes silent for 10 seconds, it is automatically unsubscribed to prevent spamming dead ports.
+
+Here is a step-by-step example for testing the event system locally using `netcat` (`nc`) and `mini-skred`:
+
+**Step 1: Start Skred with the Events Port**
+Open your first terminal and start `mini-skred`, using the `-e` flag to specify the UDP events port (e.g., `60441`).
+```bash
+parts/build_maxed/mini-skred -e 60441
+```
+
+**Step 2: Start Netcat and Subscribe**
+Open a second terminal window and run `netcat` in UDP mode pointing to that port:
+```bash
+nc -u 127.0.0.1 60441
+```
+*(Once netcat is running, type **`SUB`** and press **Enter** to send the ping. Netcat will stay open listening for broadcasts).*
+
+**Step 3: Trigger an Event**
+Go back to your first terminal running `mini-skred` and manually fire an event using `>u`:
+```skode
+[ /hello/world %d ] 42 >u
+```
+
+**Step 4: See the Output**
+Look at your second terminal running `netcat`. You will immediately see the broadcast arrive:
+```text
+/hello/world 42
+```

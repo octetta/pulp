@@ -13,18 +13,22 @@ Because the Skode parser uses `[` and `]` for string boundaries, nested brackets
 
 **Skode Input:**
 ```skode
-( 1. Create our UDP broadcast commands in macro slots 0 and 1 )
-[ [ /voice/finished %d ] 5 >u ] e>0
-[ [ /voice/release %d ] 5 >u ] e>1
+( 1. Store our format strings )
+[ /voice/finished %d ] e>0
+[ /voice/release %d ] e>1
 
-( 2. Select voice 5 and enable its lifecycle control events )
+( 2. Create execution macros that load the strings via <e )
+[ <e0 5 >u ] e>2
+[ <e1 5 >u ] e>3
+
+( 3. Select voice 5 and enable its lifecycle control events )
 v5 vc1
 
-( 3. Bind Macro 0 to Voice Finished (type 3) for Voice 5 )
-/cex 0 3 5
+( 4. Bind Macro 2 to Voice Finished (type 3) for Voice 5 )
+/cex 2 3 5
 
-( 4. Bind Macro 1 to Envelope Release (type 2) for Voice 5 )
-/cex 1 2 5
+( 5. Bind Macro 3 to Envelope Release (type 2) for Voice 5 )
+/cex 3 2 5
 
 ( 5. Start the control event dispatcher thread )
 /cer 1
@@ -39,19 +43,20 @@ You can trigger UDP broadcasts exactly when a sequencer pattern loops (starts or
 
 **Skode Input:**
 ```skode
-( 1. Create a macro to broadcast when pattern 0 starts/loops )
-[ [ /seq/loop %d ] 0 >u ] e>2
+( 1. Store the format string and the execution macro )
+[ /seq/loop %d ] e>0
+[ <e0 0 >u ] e>1
 
 ( 2. Enable control events for pattern 0 )
 y0 yc1
 
-( 3. Bind Macro 2 to Pattern Start (type 5) for Pattern 0 )
-/cex 2 5 0
+( 3. Bind Macro 1 to Pattern Start (type 5) for Pattern 0 )
+/cex 1 5 0
 
 ( 4. Ensure the dispatcher is running )
 /cer 1
 ```
-Whenever Pattern 0 wraps around to step 0, it emits the `SKRED_CONTROL_EVENT_PATTERN_START` event, executing Macro 2 and sending `/seq/loop 0` over UDP.
+Whenever Pattern 0 wraps around to step 0, it emits the `SKRED_CONTROL_EVENT_PATTERN_START` event, executing Macro 1 and sending `/seq/loop 0` over UDP.
 
 > [!TIP]
 > **Pattern Control Event Types:**
@@ -77,8 +82,13 @@ Instead, use Skred's decoupled architecture: embed a user control event (`ce <id
 
 ( Bind our UDP strings to those user events )
 ( Type 4 is SKRED_CONTROL_EVENT_USER )
-[ [ /drum/kick %d ] 1 >u ] /ceb 4 42
-[ [ /drum/snare %d ] 1 >u ] /ceb 4 43
+[ /drum/kick %d ] e>0
+[ <e0 1 >u ] e>1
+/cex 1 4 42
+
+[ /drum/snare %d ] e>2
+[ <e2 1 >u ] e>3
+/cex 3 4 43
 
 ( Start the dispatcher )
 /cer 1
@@ -95,10 +105,11 @@ You can use the `?t`, `?v`, `?p`, and `?st` words to explicitly push these value
 ```skode
 ( Broadcast event with timestamp and source info! )
 ( Stack order: ?p pushes first, ?t pushes last )
-[ [ /seq/event %g %d %d ] ?p ?st ?t >u ] e>3
+[ /seq/event %g %d %d ] e>0
+[ <e0 ?p ?st ?t >u ] e>1
 
 ( Bind to Pattern Change (type 10) for all patterns )
-/cex 3 10 -1
+/cex 1 10 -1
 /cer 1
 ```
 **UDP Output:**
@@ -156,12 +167,13 @@ nc -u 127.0.0.1 60441
 Go back to your first terminal running `mini-skred`. We will bind a UDP broadcast to an envelope release event, and then trigger it:
 
 ```skode
-( 1. Save our broadcast macro )
-[ [ /voice/release %d ] 5 >u ] e>0
+( 1. Save our format string and broadcast macro )
+[ /voice/release %d ] e>0
+[ <e0 5 >u ] e>1
 
 ( 2. Enable control events for Voice 5 and bind the macro to Envelope Release )
 v5 vc1
-/cex 0 2 5
+/cex 1 2 5
 
 ( 3. Start the event dispatcher )
 /cer 1

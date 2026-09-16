@@ -9,7 +9,7 @@ This allows you to automatically broadcast UDP events exactly when samples finis
 ## 1. Voice Lifecycle: Envelope & Sample Endings
 You can track when an ADSR envelope enters its release phase (e.g. from `l0` or exiting a loop region) or when a one-shot audio sample completely finishes playing.
 
-Because the Skode parser uses `[` and `]` for string boundaries, nested brackets are not allowed. To use `>u` inside an event binding, we save the command to an **External Macro** (`e>N`) first, and bind it using `/cex`.
+Because the Skode parser uses `[` and `]` for string boundaries, nested brackets are not allowed. To use `>u` inside an event binding, we save the format string to one **External Macro** (`e>N`), and use another macro to load it via `<e` and execute `>u`.
 
 **Skode Input:**
 ```skode
@@ -30,9 +30,12 @@ v5 vc1
 ( 5. Bind Macro 3 to Envelope Release (type 2) for Voice 5 )
 /cex 3 2 5
 
-( 5. Start the control event dispatcher thread )
+( 6. Start the control event dispatcher thread )
 /cer 1
 ```
+
+> [!WARNING]
+> Do not try to test these dispatcher macros manually using `e!N` (e.g. `e!2`). The `e!` word attempts to compile macros for the real-time audio thread, which will fail with a **"command is not schedulable"** error because `<e` and `>u` are immediate front-end words. The dispatcher handles this correctly because it evaluates macros directly using the front-end parser. To test your broadcast manually, just type the inner string directly into the REPL (e.g., `<e0 5 >u`).
 
 Now, whenever Voice 5 is triggered and subsequently finishes playing its wave data, or its envelope is released, a UDP packet like `/voice/finished 5` will be automatically broadcast!
 

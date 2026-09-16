@@ -719,10 +719,10 @@ static int word_exec__qstep(const skode_word_t *self, skode_t *ctx, ands_t *s, d
 }
 
 static skode_word_t word_gt_u = { WID(">u"), .execute = word_exec_gt_u, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
-static skode_word_t word__qtime = { WID("?time"), .execute = word_exec__qtime, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
-static skode_word_t word__qvoice = { WID("?voice"), .execute = word_exec__qvoice, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
-static skode_word_t word__qpattern = { WID("?pattern"), .execute = word_exec__qpattern, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
-static skode_word_t word__qstep = { WID("?step"), .execute = word_exec__qstep, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
+static skode_word_t word__qt = { WID("?t"), .execute = word_exec__qtime, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
+static skode_word_t word__qv = { WID("?v"), .execute = word_exec__qvoice, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
+static skode_word_t word__qp = { WID("?p"), .execute = word_exec__qpattern, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
+static skode_word_t word__qs = { WID("?st"), .execute = word_exec__qstep, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
 
 void skode_register_words_system(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word__slashmd);
@@ -737,10 +737,10 @@ void skode_register_words_system(skode_vocab_t *vocab) {
 #ifdef UDP
   skode_dict_register(vocab, &word_udp);
   skode_dict_register(vocab, &word_gt_u);
-  skode_dict_register(vocab, &word__qtime);
-  skode_dict_register(vocab, &word__qvoice);
-  skode_dict_register(vocab, &word__qpattern);
-  skode_dict_register(vocab, &word__qstep);
+  skode_dict_register(vocab, &word__qt);
+  skode_dict_register(vocab, &word__qv);
+  skode_dict_register(vocab, &word__qp);
+  skode_dict_register(vocab, &word__qs);
 #endif
   skode_dict_register(vocab, &word_log);
   skode_dict_register(vocab, &word_GS_gt);

@@ -563,7 +563,7 @@ int wave_load_string(skode_t *ctx, char *name, int wave_index, int ch, int norma
     wave_install_memory(wave_index, table, len, (float)wav.SamplesRate, 1,
       resolved, 69.0f, (float)len / (float)wav.SamplesRate * 440.0f);
     wave_load_apply_smpl_loop(ctx, resolved, data, data_size, wave_index, len);
-    ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
+    if (0) ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
       len, resolved, wave_index, wav.Channels, wav.SamplesRate);
     normalize_preserve_zero(table, len);
   }
@@ -638,7 +638,7 @@ int wave_load(skode_t *ctx, int file_num, int wave_index, int ch, int normalize)
     wave_install_memory(wave_index, table, len, (float)wav.SamplesRate, 1,
       resolved, 69.0f, (float)len / (float)wav.SamplesRate * 440.0f);
     wave_load_apply_smpl_loop(ctx, resolved, data, data_size, wave_index, len);
-    ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
+    if (0) ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%d)\n",
       len, resolved, wave_index, wav.Channels, wav.SamplesRate);
     normalize_preserve_zero(table, len);
   }

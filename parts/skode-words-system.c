@@ -391,11 +391,21 @@ static int word_exec__slashls(const skode_word_t *self, skode_t *ctx, ands_t *s,
 
 static int word_exec_gt_u(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   (void)self; (void)s;
-  if (strlen(ands_string(ctx->parse)) > 0) {
+  const char *fmt = ands_string(ctx->parse);
+  int a_idx = 0;
+  char fallback_fmt[256] = "";
+  
+  if (strlen(fmt) == 0 && argc > 0) {
+      int macro_idx = (int)arg[0];
+      if (macro_idx >= 0 && macro_idx < 128 && skode_extra_copy(macro_idx, fallback_fmt, sizeof(fallback_fmt)) == 0) {
+          fmt = fallback_fmt;
+          a_idx = 1;
+      }
+  }
+
+  if (fmt && strlen(fmt) > 0) {
       char buf[256];
       buf[0] = '\0';
-      const char *fmt = ands_string(ctx->parse);
-      int a_idx = 0;
       char *out = buf;
       int remaining = sizeof(buf) - 1;
       

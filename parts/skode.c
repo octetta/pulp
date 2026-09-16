@@ -2478,12 +2478,10 @@ int skode_consume(char *line, skode_t *ctx) {
   }
   skode_log_reset(ctx);
   skode_ctx[skode_hash(ctx)] = ctx;
-
-  int r = 0;
+  ctx->quit = 0;
 
   ands_consume(ctx->parse, line);
   return ctx->quit;
-  return r;
 }
 
 int audio_show(skode_t *ctx) {

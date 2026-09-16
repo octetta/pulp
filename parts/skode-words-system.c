@@ -694,7 +694,35 @@ static skode_word_t word__pctpwd = { WID("%pwd"), .execute = word_exec__pctpwd, 
 static skode_word_t word__pctcat = { WID("%cat"), .execute = word_exec__pctcat, .safety = WORD_IMMEDIATE_ONLY , .category = "files" };
 static skode_word_t word__pctcd = { WID("%cd"), .execute = word_exec__pctcd, .safety = WORD_IMMEDIATE_ONLY , .category = "files" };
 static skode_word_t word__pctls = { WID("%ls"), .execute = word_exec__pctls, .safety = WORD_IMMEDIATE_ONLY , .category = "files" };
+static int word_exec__qtime(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)arg; (void)argc;
+  ands_return_push(s, (double)SAMPLE_COUNT_GET());
+  return 0;
+}
+
+static int word_exec__qvoice(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)arg; (void)argc;
+  ands_return_push(s, (double)ctx->voice);
+  return 0;
+}
+
+static int word_exec__qpattern(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)arg; (void)argc;
+  ands_return_push(s, (double)ctx->pattern);
+  return 0;
+}
+
+static int word_exec__qstep(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)arg; (void)argc;
+  ands_return_push(s, (double)ctx->step);
+  return 0;
+}
+
 static skode_word_t word_gt_u = { WID(">u"), .execute = word_exec_gt_u, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
+static skode_word_t word__qtime = { WID("?time"), .execute = word_exec__qtime, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
+static skode_word_t word__qvoice = { WID("?voice"), .execute = word_exec__qvoice, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
+static skode_word_t word__qpattern = { WID("?pattern"), .execute = word_exec__qpattern, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
+static skode_word_t word__qstep = { WID("?step"), .execute = word_exec__qstep, .safety = WORD_IMMEDIATE_ONLY, .category = "events" };
 
 void skode_register_words_system(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word__slashmd);
@@ -709,6 +737,10 @@ void skode_register_words_system(skode_vocab_t *vocab) {
 #ifdef UDP
   skode_dict_register(vocab, &word_udp);
   skode_dict_register(vocab, &word_gt_u);
+  skode_dict_register(vocab, &word__qtime);
+  skode_dict_register(vocab, &word__qvoice);
+  skode_dict_register(vocab, &word__qpattern);
+  skode_dict_register(vocab, &word__qstep);
 #endif
   skode_dict_register(vocab, &word_log);
   skode_dict_register(vocab, &word_GS_gt);

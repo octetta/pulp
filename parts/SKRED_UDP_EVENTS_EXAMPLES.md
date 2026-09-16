@@ -152,14 +152,27 @@ nc -u 127.0.0.1 60441
 ```
 *(Once netcat is running, type **`SUB`** and press **Enter** to send the ping. Netcat will stay open listening for broadcasts).*
 
-**Step 3: Trigger an Event**
-Go back to your first terminal running `mini-skred` and manually fire an event using `>u`:
+**Step 3: Trigger an ADSR Release Event**
+Go back to your first terminal running `mini-skred`. We will bind a UDP broadcast to an envelope release event, and then trigger it:
+
 ```skode
-[ /hello/world %d ] 42 >u
+( 1. Save our broadcast macro )
+[ [ /voice/release %d ] 5 >u ] e>0
+
+( 2. Enable control events for Voice 5 and bind the macro to Envelope Release )
+v5 vc1
+/cex 0 2 5
+
+( 3. Start the event dispatcher )
+/cer 1
+
+( 4. Trigger Voice 5's envelope, then release it! )
+v5 l1
+l0
 ```
 
 **Step 4: See the Output**
-Look at your second terminal running `netcat`. You will immediately see the broadcast arrive:
+The moment you send `l0`, the voice enters its ADSR release phase. Look at your second terminal running `netcat`. You will immediately see the broadcast arrive:
 ```text
-/hello/world 42
+/voice/release 5
 ```

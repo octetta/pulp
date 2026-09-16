@@ -48,7 +48,7 @@ void system_show(skode_t *ctx) {
     skode_init(ctx);
   }
   #ifdef UDP
-  ctx->printf(ctx, "# udp_port %d\n", udp_info());
+  ctx->printf(ctx, "# udp_port %d udp_events_port %d\n", udp_info(), skred_udp_events_info());
   #endif
 }
 

@@ -276,6 +276,10 @@ int skred_udp_events_start(int port) {
     return port;
 }
 
+int skred_udp_events_info(void) {
+    return udp_events_running ? udp_events_port : 0;
+}
+
 void skred_udp_events_stop(void) {
     udp_events_running = 0;
     notify_signal();

@@ -163,13 +163,6 @@ static void *udp_events_main(void *arg) {
         udp_events_running = 0;
         return NULL;
     }
-    
-    int opt = 1;
-#ifdef _WIN32
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(int));
-#else
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
-#endif
 
     struct sockaddr_in serve;
     memset(&serve, 0, sizeof(serve));

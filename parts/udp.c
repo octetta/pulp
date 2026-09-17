@@ -68,12 +68,10 @@ static int udp_open(int port) {
   }
 #endif
     SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
-    int opt = 1;
+    struct sockaddr_in serve;
 #ifdef _WIN32
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(int));
     memset(&serve, 0, sizeof(serve));
 #else
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
     bzero(&serve, sizeof(serve));
 #endif
     serve.sin_family = AF_INET;
@@ -134,6 +132,7 @@ static void *udp_main(void *arg) {
   atomic_store_int(&udp_thread_active, 1);
   int sock = udp_open(udp_port);
   
+printf("SOCK IS %d\n", sock);
   atomic_store_int(&udp_startup_status, (sock < 0) ? -1 : 1);
   
   if (sock < 0) {

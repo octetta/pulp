@@ -188,13 +188,26 @@ static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s, double
           const char *source = ands_string(ctx->parse);
           event_program_t program;
           int source_only = source[0] == '\0' || source[0] == '-';
+          char hint[16] = "";
           skode_compile_result_t result = source_only ?
-            SKODE_COMPILE_OK : skode_compile_program(source, &program);
+            SKODE_COMPILE_OK :
+            skode_compile_program_describe(source, &program, hint, sizeof(hint));
           if (result == SKODE_COMPILE_OK) {
             seq_step_set(ctx->pattern, ctx->step, source,
               source_only ? NULL : &program);
+          } else if (result == SKODE_COMPILE_IMMEDIATE_ONLY) {
+            if (hint[0])
+              ctx->printf(ctx,
+                "# '%s' is immediate-only and cannot be compiled into a pattern step\n"
+                "# use 'ce N' in the step and bind N with '/ceb 4 N'\n", hint);
+            else
+              ctx->printf(ctx,
+                "# step contains an immediate-only word (e.g. a string bracket or "
+                "word like >u, e>, /ceb)\n"
+                "# use 'ce N' in the step and bind N with '/ceb 4 N'\n");
           } else {
-            ctx->printf(ctx, "# sequence command is not schedulable (%d)\n", result);
+            ctx->printf(ctx, "# step could not be compiled (%d): [%s]\n",
+              result, source);
           }
         }
       }

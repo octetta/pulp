@@ -896,6 +896,60 @@ int skred_scheduled_event_snapshot(skred_scheduled_event_t *events,
   return snapshot.count;
 }
 
+/* --- Pattern inspection API --- */
+
+int skred_pattern_state(int pattern) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return -1;
+  seq_edit_lock();
+  int state = seq_state[pattern];
+  seq_edit_unlock();
+  return state;
+}
+
+int skred_pattern_step_count(int pattern) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return -1;
+  seq_edit_lock();
+  int count = seq_pattern_length[pattern];
+  seq_edit_unlock();
+  return count;
+}
+
+int skred_pattern_get_step(int pattern, int step, char *buf, int buf_size) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return -1;
+  if (step < 0 || step >= SEQ_STEPS_MAX) return -1;
+  if (!buf || buf_size <= 0) return -1;
+  seq_edit_lock();
+  const char *src = seq_pattern[pattern][step];
+  if (src[0] == '\0') {
+    seq_edit_unlock();
+    buf[0] = '\0';
+    return -1;
+  }
+  snprintf(buf, (size_t)buf_size, "%s", src);
+  seq_edit_unlock();
+  return 0;
+}
+
+int skred_pattern_modulo(int pattern) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return -1;
+  seq_edit_lock();
+  int mod = seq_modulo[pattern] > 0 ? seq_modulo[pattern] : 1;
+  seq_edit_unlock();
+  return mod;
+}
+
+int skred_pattern_muted(int pattern) {
+  if (pattern < 0 || pattern >= PATTERNS_MAX) return -1;
+  seq_edit_lock();
+  int m = seq_mute[pattern];
+  seq_edit_unlock();
+  return m;
+}
+
+int skred_pattern_master(void) {
+  return seq_master_pattern_get();
+}
+
 static atomic_uint64_t perf_callbacks;
 static atomic_uint64_t perf_frames;
 static atomic_uint64_t perf_callback_ns_total;

@@ -204,6 +204,22 @@ static int skode_compile_callback(ands_t *s, int info) {
   }
 
   switch (atom) {
+    case SKODE_ATOM('o', 'n', '-', '-'): {
+      /* 'on' = l1: gate open, no parser argument needed */
+      double gate_arg = 1.0;
+      if (skode_program_push(compile->program, SKODE_OP_VELOCITY, NULL,
+          &gate_arg, 1, 0, 0) != 0)
+        compile->result = SKODE_COMPILE_TOO_LARGE;
+      return 0;
+    }
+    case SKODE_ATOM('o', 'f', 'f', '-'): {
+      /* 'off' = l0: gate closed, no parser argument needed */
+      double gate_arg = 0.0;
+      if (skode_program_push(compile->program, SKODE_OP_VELOCITY, NULL,
+          &gate_arg, 1, 0, 0) != 0)
+        compile->result = SKODE_COMPILE_TOO_LARGE;
+      return 0;
+    }
     case SKODE_ATOM('l', '-', '-', '-'):
       opcode = SKODE_OP_VELOCITY;
       min_argc = max_argc = 1;
@@ -447,6 +463,8 @@ skode_compile_result_t skode_compile_program_describe(const char *text,
 
 int skode_is_legacy_realtime_opcode(uint32_t atom) {
   switch (atom) {
+    case SKODE_ATOM('o', 'n', '-', '-'):
+    case SKODE_ATOM('o', 'f', 'f', '-'):
     case SKODE_ATOM('l', '-', '-', '-'):
     case SKODE_ATOM('_', '_', '_', 'l'):
     case SKODE_ATOM('A', '-', '-', '-'):

@@ -1512,6 +1512,19 @@ static skode_word_t word_K = { WID("K"), .execute = word_exec_K, .safety = WORD_
 static skode_word_t word_k = { WID("k"), .execute = word_exec_K, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
 static skode_word_t word____l = { WID("___l"), .execute = word_exec____l, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_l = { WID("l"), .execute = word_exec_l, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
+/* 'on' and 'off' are gate-on / gate-off aliases for l1 / l0 */
+static int word_exec_on(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)s; (void)arg; (void)argc;
+  skode_linked_velocity(ctx->voice, 1.0, SAMPLE_COUNT_GET());
+  return 0;
+}
+static int word_exec_off(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)s; (void)arg; (void)argc;
+  skode_linked_velocity(ctx->voice, 0.0, SAMPLE_COUNT_GET());
+  return 0;
+}
+static skode_word_t word_on  = { WID("on"),  .execute = word_exec_on,  .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
+static skode_word_t word_off = { WID("off"), .execute = word_exec_off, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_M = { WID("M"), .execute = word_exec_M, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_N = { WID("N"), .execute = word_exec_N, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_ds = { WID("ds"), .execute = word_exec_ds, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
@@ -1599,6 +1612,8 @@ void skode_register_words_dsp(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_k);
   skode_dict_register(vocab, &word____l);
   skode_dict_register(vocab, &word_l);
+  skode_dict_register(vocab, &word_on);
+  skode_dict_register(vocab, &word_off);
   skode_dict_register(vocab, &word_M);
   skode_dict_register(vocab, &word_N);
   skode_dict_register(vocab, &word_ds);

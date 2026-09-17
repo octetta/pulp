@@ -390,6 +390,27 @@ int skred_scheduled_event_count(void);
 int skred_scheduled_event_snapshot(skred_scheduled_event_t *events,
                                    int max_events);
 
+/*
+ * Pattern inspection API — safe to call from any thread.
+ * All functions acquire the sequencer edit lock internally.
+ *
+ * skred_pattern_state(p)        Returns SEQ_STOPPED(0), SEQ_RUNNING(1), or
+ *                               SEQ_PAUSED(2).  Returns -1 if p is out of range.
+ * skred_pattern_step_count(p)   Returns the number of defined steps in pattern p.
+ * skred_pattern_get_step(p,s,buf,size)
+ *                               Copies the source text of step s into buf.
+ *                               Returns 0 on success, -1 on error or empty step.
+ * skred_pattern_modulo(p)       Returns the modulo (speed divisor) of pattern p.
+ * skred_pattern_muted(p)        Returns 1 if the pattern is muted, 0 otherwise.
+ * skred_pattern_master(void)    Returns the current master-pattern index (-1 = disabled).
+ */
+int skred_pattern_state(int pattern);
+int skred_pattern_step_count(int pattern);
+int skred_pattern_get_step(int pattern, int step, char *buf, int buf_size);
+int skred_pattern_modulo(int pattern);
+int skred_pattern_muted(int pattern);
+int skred_pattern_master(void);
+
 // Compatibility enumeration API.
 int skred_devices(int isCapture);
 int skred_device_idx(int isCapture, int idx);

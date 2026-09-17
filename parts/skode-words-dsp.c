@@ -1298,12 +1298,13 @@ static int word_exec_W(const skode_word_t *self, skode_t *ctx, ands_t *s, double
           h = wave_display_dim(arg[2], h, WAVE_DISPLAY_MIN_HEIGHT, WAVE_DISPLAY_MAX_HEIGHT);
         }
         if (!show_record_buffer && skode_wave_valid(x)) {
-        if (m == 0) {
+          if (argc != 2) {
             wavetable_waveform_show(ctx, x, w, h, sw.loop_start[x],
               sw.loop_end[x], NULL);
           } else {
+            ctx->printf(ctx, "# Wavetable Summary [%d..%d]\n", x, m);
             for (int i=x; i<=m; i++) {
-              wavetable_show(ctx, i);
+              wavetable_summary_show(ctx, i);
             }
           }
         } else {

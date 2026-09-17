@@ -437,8 +437,14 @@ int wavetable_summary_show(skode_t *ctx, int n) {
     int size = sw.size[n];
     float rate = sw.rate[n] > 0.0f ? sw.rate[n] : (float)MAIN_SAMPLE_RATE;
     float ms = (float)size * 1000.0f / rate;
-    ctx->printf(ctx, "# W%-3d | %6d smp | %6.1f ms | %s | ref#%-2d | [%s]\n", 
-      n, size, ms, readonly ? "R/O" : "R/W", refcount, sw.name[n]);
+    
+    if (sw.one_shot[n]) {
+      ctx->printf(ctx, "# W%-3d | %6d smp | %6.1f ms | %s | ref#%-2d | 1-shot %5gHz | [%s]\n", 
+        n, size, ms, readonly ? "R/O" : "R/W", refcount, rate, sw.name[n]);
+    } else {
+      ctx->printf(ctx, "# W%-3d | %6d smp | %6.1f ms | %s | ref#%-2d | cycle          | [%s]\n", 
+        n, size, ms, readonly ? "R/O" : "R/W", refcount, sw.name[n]);
+    }
   }
   return 0;
 }

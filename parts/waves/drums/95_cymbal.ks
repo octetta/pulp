@@ -1,28 +1,30 @@
-/ Classic 808-style Ride Cymbal
+/ Classic Analog Ride Cymbal
 N: 52920
 T: !N
-/ Tighter, higher tuned metallic cluster
-Z: 480 b T
+/ Metallic cluster
+Z: 400 b T
 
-/ Low ping filter (Bandpass @ 1500Hz, Q=3)
-C: 1500 3.0
+/ Bell character (Bandpass @ 2500Hz, moderate Q)
+C: 2500 1.5
 D: C g Z
 
-/ High ping filter (Bandpass @ 5500Hz, Q=3)
-F: 5500 3.0
+/ Wash character (Bandpass @ 6500Hz, wide Q)
+F: 6500 1.0
 H: F g Z
 
-/ Sharp stick hit noise (Highpass @ 10kHz)
-I: m T
-W: 10000 1.0
+/ White noise sizzle (Bandpass @ 9000Hz)
+I: r T
+W: 9000 1.0
 Y: W g I
 
-/ Envelopes: medium metal, very fast click
-E: e(T*(0-5.0%N))
-G: e(T*(0-40.0%N))
+/ Metal envelope (Long decay)
+E: e(T*(0-6.0%N))
+
+/ Noise envelope (Slightly faster decay)
+G: e(T*(0-10.0%N))
 
 / Mix
-M: E*(D*0.6 + H*0.4) + G*Y*0.6
+M: E*(D*0.4 + H*0.6) + G*(Y*0.3)
 
 O: 1
 M

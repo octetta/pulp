@@ -67,6 +67,14 @@ float tempo_step_seconds_get(void);
 uint64_t seq_overhead_ns_get(uint64_t *max_ns);
 void seq_overhead_reset(void);
 
+/* The master pattern is used as the downbeat reference when queueing other
+ * patterns with zq1.  While the master pattern is running, any other pattern
+ * with a pending queue waits for the master pattern's step 0 before starting.
+ * Default is 0.  Pass -1 to disable master-pattern sync entirely (each pattern
+ * queues independently on its own step 0). */
+void seq_master_pattern_set(int p);
+int  seq_master_pattern_get(void);
+
 void seq_modulo_set(int pattern, int m);
 void seq_modulo_set_locked(int pattern, int m);
 void seq_mute_set(int pattern, int state);

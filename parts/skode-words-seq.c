@@ -165,12 +165,25 @@ static int word_exec_xa(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
         const char *source = ands_string(ctx->parse);
         event_program_t program;
         int source_only = source[0] == '\0' || strcmp(source, "-") == 0;
+        char hint[16] = "";
         skode_compile_result_t result = source_only ?
-          SKODE_COMPILE_OK : skode_compile_program(source, &program);
+          SKODE_COMPILE_OK :
+          skode_compile_program_describe(source, &program, hint, sizeof(hint));
         if (result == SKODE_COMPILE_OK) {
           seq_step_append(ctx->pattern, source, source_only ? NULL : &program);
+        } else if (result == SKODE_COMPILE_IMMEDIATE_ONLY) {
+          if (hint[0])
+            ctx->printf(ctx,
+              "# '%s' is immediate-only and cannot be compiled into a pattern step\n"
+              "# use 'ce N' in the step and bind N with '/ceb 4 N'\n", hint);
+          else
+            ctx->printf(ctx,
+              "# step contains an immediate-only word (e.g. a string bracket or "
+              "word like >u, e>, /ceb)\n"
+              "# use 'ce N' in the step and bind N with '/ceb 4 N'\n");
         } else {
-          ctx->printf(ctx, "# sequence command is not schedulable (%d)\n", result);
+          ctx->printf(ctx, "# step could not be compiled (%d): [%s]\n",
+            result, source);
         }
       }
       return 0;
@@ -268,6 +281,29 @@ static int word_exec_yc(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) seq_control_events_set(ctx->pattern, x);
+      return 0;
+}
+
+static int word_exec_yp(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      if (argc) {
+        /* yp N  — set pattern N as master (use -1 to disable sync) */
+        seq_master_pattern_set(x);
+        ctx->printf(ctx, "# master pattern: %d\n", seq_master_pattern_get());
+      } else {
+        /* yp    — query current master pattern */
+        int mp = seq_master_pattern_get();
+        if (mp < 0)
+          ctx->printf(ctx, "# master pattern: disabled\n");
+        else
+          ctx->printf(ctx, "# master pattern: %d\n", mp);
+      }
       return 0;
 }
 
@@ -763,6 +799,7 @@ static skode_word_t word_ys_q = { WID("ys?"), .execute = word_exec_ys_q, .safety
 static skode_word_t word_yt = { WID("yt"), .execute = word_exec_yt, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_ym = { WID("ym"), .execute = word_exec_ym, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_yc = { WID("yc"), .execute = word_exec_yc, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
+static skode_word_t word_yp = { WID("yp"), .execute = word_exec_yp, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_Y = { WID("Y"), .execute = word_exec_Y, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_z = { WID("z"), .execute = word_exec_z, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_zg = { WID("zg"), .execute = word_exec_zg, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
@@ -810,6 +847,7 @@ void skode_register_words_seq(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_yt);
   skode_dict_register(vocab, &word_ym);
   skode_dict_register(vocab, &word_yc);
+  skode_dict_register(vocab, &word_yp);
   skode_dict_register(vocab, &word_Y);
   skode_dict_register(vocab, &word_z);
   skode_dict_register(vocab, &word_zg);

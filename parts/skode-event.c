@@ -49,6 +49,7 @@ typedef struct {
   uint64_t *macro_active;
   int accepts_empty;
   skode_vocab_t *private_vocab;
+  uint32_t offending_atom; // atom that caused SKODE_COMPILE_IMMEDIATE_ONLY
 } skode_compile_t;
 
 static int event_voice_valid(int voice) {
@@ -96,7 +97,7 @@ int skode_program_push(event_program_t *program, skode_opcode_t code,
 
 static skode_compile_result_t compile_program_inner(const char *text,
   event_program_t *program, int depth, uint64_t *macro_active,
-  skode_vocab_t *vocab);
+  skode_vocab_t *vocab, uint32_t *offending_atom_out);
 
 static int program_append(event_program_t *program,
     const event_program_t *nested) {
@@ -115,6 +116,7 @@ static int skode_compile_callback(ands_t *s, int info) {
 
   if (info == GOT_STRING || info == GOT_ARRAY || info == GOT_RETURN_REF) {
     compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
+    compile->offending_atom = ands_atom_num(s);
     return 0;
   }
   if (info == DEFER) {
@@ -138,7 +140,8 @@ static int skode_compile_callback(ands_t *s, int info) {
     }
     event_program_t nested = {0};
     compile->result = compile_program_inner(ands_defer_string(s), &nested,
-      compile->depth + 1, compile->macro_active, compile->private_vocab);
+      compile->depth + 1, compile->macro_active, compile->private_vocab,
+      &compile->offending_atom);
     if (compile->result != SKODE_COMPILE_OK) return 0;
     if (program_append(compile->program, &nested) != 0)
       compile->result = SKODE_COMPILE_TOO_LARGE;
@@ -157,6 +160,7 @@ static int skode_compile_callback(ands_t *s, int info) {
   if (atom == SKODE_ATOM('e', '!', '-', '-')) {
     if (argc != 1 || ands_arg_var(s, 0) >= 0) {
       compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
+      compile->offending_atom = atom;
       return 0;
     }
     if (!isfinite(arg[0]) || floor(arg[0]) != arg[0] || arg[0] < 0 ||
@@ -180,7 +184,8 @@ static int skode_compile_callback(ands_t *s, int info) {
     *active |= bit;
     event_program_t nested = {0};
     compile->result = compile_program_inner(macro, &nested,
-      compile->depth + 1, compile->macro_active, compile->private_vocab);
+      compile->depth + 1, compile->macro_active, compile->private_vocab,
+      &compile->offending_atom);
     *active &= ~bit;
     if (compile->result == SKODE_COMPILE_OK &&
         program_append(compile->program, &nested) != 0) {
@@ -340,11 +345,13 @@ static int skode_compile_callback(ands_t *s, int info) {
       opcode = SKODE_OP_RATCHET; min_argc = max_argc = 1; break;
     default:
       compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
+      compile->offending_atom = atom;
       return 0;
   }
 
   if (!skode_opcode_supported(opcode)) {
     compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
+    compile->offending_atom = atom;
     return 0;
   }
   if (argc < min_argc || argc > max_argc || argc > SEQ_OPCODE_ARG_MAX) {
@@ -366,7 +373,7 @@ static int skode_compile_callback(ands_t *s, int info) {
 
 static skode_compile_result_t compile_program_inner(const char *text,
     event_program_t *program, int depth, uint64_t *macro_active,
-    skode_vocab_t *vocab) {
+    skode_vocab_t *vocab, uint32_t *offending_atom_out) {
   if (!text || !program || depth > SKODE_COMPILE_DEPTH_MAX)
     return SKODE_COMPILE_INVALID;
   size_t len = strnlen(text, STEP_MAX);
@@ -390,6 +397,7 @@ static skode_compile_result_t compile_program_inner(const char *text,
   if (compile.result == SKODE_COMPILE_OK && program->count == 0 &&
       strchr(text, '#') == NULL && !compile.accepts_empty)
     return SKODE_COMPILE_INVALID;
+  if (offending_atom_out) *offending_atom_out = compile.offending_atom;
   return compile.result;
 }
 
@@ -403,7 +411,37 @@ skode_compile_result_t skode_compile_program_ex(const char *text,
   if (!program) return SKODE_COMPILE_INVALID;
   memset(program, 0, sizeof(*program));
   uint64_t macro_active[(SKODE_EXTRA_MAX + 63) / 64] = {0};
-  return compile_program_inner(text, program, 0, macro_active, vocab);
+  return compile_program_inner(text, program, 0, macro_active, vocab, NULL);
+}
+
+/* Like skode_compile_program but, on SKODE_COMPILE_IMMEDIATE_ONLY, writes the
+ * offending atom as a printable string into hint_buf (up to hint_size bytes).
+ * Returns the same result code as skode_compile_program. */
+skode_compile_result_t skode_compile_program_describe(const char *text,
+    event_program_t *program, char *hint_buf, size_t hint_size) {
+  if (!program) return SKODE_COMPILE_INVALID;
+  memset(program, 0, sizeof(*program));
+  if (hint_buf && hint_size > 0) hint_buf[0] = '\0';
+  uint64_t macro_active[(SKODE_EXTRA_MAX + 63) / 64] = {0};
+  uint32_t offending = 0;
+  skode_compile_result_t result =
+    compile_program_inner(text, program, 0, macro_active, NULL, &offending);
+  if (result == SKODE_COMPILE_IMMEDIATE_ONLY && hint_buf && hint_size > 0 &&
+      offending != 0) {
+    /* Unpack the 4-char atom back to a printable string */
+    char atom_str[5];
+    atom_str[0] = (char)((offending >> 24) & 0xff);
+    atom_str[1] = (char)((offending >> 16) & 0xff);
+    atom_str[2] = (char)((offending >>  8) & 0xff);
+    atom_str[3] = (char)( offending        & 0xff);
+    atom_str[4] = '\0';
+    /* Trim trailing '-' padding chars used by SKODE_ATOM macro */
+    int end = 3;
+    while (end > 0 && atom_str[end] == '-') end--;
+    atom_str[end + 1] = '\0';
+    snprintf(hint_buf, hint_size, "%s", atom_str);
+  }
+  return result;
 }
 
 

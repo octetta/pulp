@@ -52,6 +52,18 @@ static float tempo_subdivision_val = 16.0f;
 static atomic_int_t tempo_step_micros;
 static atomic_int_t tempo_bpm_milli;
 
+/* Master-pattern index used for downbeat-sync queuing (-1 = disabled). */
+static atomic_int_t seq_master_pattern_idx;
+
+void seq_master_pattern_set(int p) {
+  if (p < -1 || p >= PATTERNS_MAX) return;
+  atomic_store_int(&seq_master_pattern_idx, p);
+}
+
+int seq_master_pattern_get(void) {
+  return atomic_load_int(&seq_master_pattern_idx);
+}
+
 void seq_edit_lock(void) {
   simple_mutex_lock(&seq_edit_mutex);
 }
@@ -176,23 +188,27 @@ void do_pattern(uint64_t now,
         if (seq_pending_state[p] > 0) {
           int mod = seq_modulo[p] > 0 ? seq_modulo[p] : 1;
           int len = seq_pattern_length[p] > 0 ? seq_pattern_length[p] : 1;
-          int p0_running = (seq_state[0] == SEQ_RUNNING);
+          int mp = seq_master_pattern_get();
+          int mp_running = (mp >= 0 && mp < PATTERNS_MAX &&
+                            seq_state[mp] == SEQ_RUNNING);
           int trigger = 0;
-          
-          if (p0_running) {
-             // If master orchestrator (0) is running, wait for its exact step 0 tick
-             if ((master_tick % (uint64_t)seq_modulo[0]) == 0) {
-                 int64_t t0 = (int64_t)(master_tick / (uint64_t)seq_modulo[0]);
-                 int len0 = seq_pattern_length[0] > 0 ? seq_pattern_length[0] : 1;
-                 int step0 = (int)((((t0 - seq_offset[0]) % (int64_t)len0) + (int64_t)len0) % (int64_t)len0);
-                 trigger = (step0 == 0);
-             }
+
+          if (mp_running && mp != p) {
+            /* Wait for the master pattern's step 0 tick before starting */
+            int mp_mod = seq_modulo[mp] > 0 ? seq_modulo[mp] : 1;
+            if ((master_tick % (uint64_t)mp_mod) == 0) {
+              int64_t t0 = (int64_t)(master_tick / (uint64_t)mp_mod);
+              int mp_len = seq_pattern_length[mp] > 0 ? seq_pattern_length[mp] : 1;
+              int step0 = (int)((((t0 - seq_offset[mp]) % (int64_t)mp_len) +
+                                 (int64_t)mp_len) % (int64_t)mp_len);
+              trigger = (step0 == 0);
+            }
           } else {
-             // Otherwise wait for THIS pattern's exact modulo-wrap step 0
-             if ((master_tick % (uint64_t)mod) == 0) {
-                 int64_t tp = (int64_t)(master_tick / (uint64_t)mod);
-                 trigger = (tp % len) == 0;
-             }
+            /* No master pattern active: wait for THIS pattern's own step 0 */
+            if ((master_tick % (uint64_t)mod) == 0) {
+              int64_t tp = (int64_t)(master_tick / (uint64_t)mod);
+              trigger = (tp % len) == 0;
+            }
           }
 
           if (trigger) {
@@ -379,6 +395,7 @@ void seq_init(void) {
   }
   atomic_store_int(&tempo_step_micros, 125000);
   atomic_store_int(&tempo_bpm_milli, 120000);
+  atomic_store_int(&seq_master_pattern_idx, 0); /* pattern 0 is master by default */
   tempo_subdivision_val = 16.0f;
   tempo_time_per_step = 0.125f;
   seq_edit_lock();

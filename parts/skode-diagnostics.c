@@ -435,6 +435,7 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
     seq_state[pattern_pointer],
     seq_mute[pattern_pointer]);
   if (seq_control_events[pattern_pointer]) ctx->printf(ctx, " yc1");
+  if (seq_master_pattern_get() == pattern_pointer) ctx->printf(ctx, " yp%d", pattern_pointer);
   if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " [%s] yt", seq_text[pattern_pointer]);
   ctx->puts(ctx, "");
   if (verbose) {

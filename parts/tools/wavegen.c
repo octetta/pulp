@@ -18,14 +18,16 @@ char* read_file(const char* path, size_t *out_sz) {
 }
 
 int main(int argc, char **argv) {
-    if (argc != 4) {
-        fprintf(stderr, "Usage: wavegen <size> <array_name> <ks_file>\n");
+    if (argc != 6) {
+        fprintf(stderr, "Usage: wavegen <slot> <name> <array_name> <ks_file> <expected_size>\n");
         return 1;
     }
     
-    int expected_size = atoi(argv[1]);
-    const char *array_name = argv[2];
-    const char *path = argv[3];
+    int slot = atoi(argv[1]);
+    const char *name = argv[2];
+    const char *array_name = argv[3];
+    const char *path = argv[4];
+    int expected_size = atoi(argv[5]);
     
     size_t text_len = 0;
     char *text = read_file(path, &text_len);
@@ -71,13 +73,36 @@ int main(int argc, char **argv) {
     
     int actual_size = result->n;
     
-    printf("const int %s_SIZE = %d;\n", array_name, actual_size);
-    printf("float %s[%d] = {\n", array_name, actual_size);
+    float sample_rate = 44100.0f;
+    int loop_start = 0;
+    int loop_end = actual_size - 1;
+    int one_shot = 0;
+    
+    K k_s = k_get(ctx, 'S');
+    if (k_s && k_s->n == 1) sample_rate = k_s->f[0];
+    
+    K k_l = k_get(ctx, 'L');
+    if (k_l && k_l->n == 1) loop_start = (int)k_l->f[0];
+    
+    K k_e = k_get(ctx, 'E');
+    if (k_e && k_e->n == 1) loop_end = (int)k_e->f[0];
+    
+    K k_o = k_get(ctx, 'O');
+    if (k_o && k_o->n == 1 && k_o->f[0] > 0) {
+        one_shot = 1;
+        loop_start = 0;
+        loop_end = 0;
+    }
+    
+    printf("static const float %s_DATA[%d] = {\n", array_name, actual_size);
     for (int i = 0; i < actual_size; i++) {
         printf("%ff, ", (float)result->f[i]);
         if (i % 8 == 7) printf("\n");
     }
     printf("\n};\n\n");
+    
+    printf("static const static_wave_meta_t %s_META = { %d, \"%s\", %d, %ff, %d, %d, %d, %s_DATA };\n\n",
+           array_name, slot, name, actual_size, sample_rate, loop_start, loop_end, one_shot, array_name);
     
     free(text);
     ks_destroy(ctx);

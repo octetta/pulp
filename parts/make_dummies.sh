@@ -1,15 +1,18 @@
 #!/bin/bash
-for i in {1..32}; do
-    printf -v num "%02d" $i
-    cat << 'INNER' > "waves/esq1/50_esq1_${num}.ks"
+rm -f waves/esq1/*.ks waves/drums/*.ks
+for i in {0..31}; do
+    slot=$((50 + i))
+    printf -v num "%02d" $((i + 1))
+    cat << 'INNER' > "waves/esq1/${slot}_esq1_${num}.ks"
 N: 4096; X: (!N) % (N*1.0)
 s(X * (p 2))
 INNER
 done
 
-for i in {1..18}; do
-    printf -v num "%02d" $i
-    cat << 'INNER' > "waves/drums/82_drum_${num}.ks"
+for i in {0..17}; do
+    slot=$((82 + i))
+    printf -v num "%02d" $((i + 1))
+    cat << 'INNER' > "waves/drums/${slot}_drum_${num}.ks"
 N: 4096; X: (!N) % (N*1.0)
 s(X * (p 2)) * (1.0 - X)
 INNER

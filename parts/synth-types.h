@@ -17,6 +17,18 @@ extern int synth_sample_rate;
 #define NEG_60_DB_AS_LINEAR (0.001)
 #define SILENT NEG_60_DB
 
+
+typedef struct {
+    int slot;
+    const char *name;
+    int size;
+    float sample_rate;
+    int loop_start;
+    int loop_end;
+    int one_shot;
+    const float *data;
+} static_wave_meta_t;
+
 typedef enum {
   OSC_PLAYBACK_GENERAL = 0,
   OSC_PLAYBACK_CYCLE_SIMPLE = 1

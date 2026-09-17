@@ -240,6 +240,7 @@ void print_audio_ascii_wave(skode_t *ctx, float *data, int n, int width_chars, i
 void print_audio_braille_connected(skode_t *ctx, float *data, int n, int width_chars, int height_chars);
 void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_chars, int height_chars, int offset, int trim);
 int wavetable_show(skode_t *ctx, int n);
+int wavetable_summary_show(skode_t *ctx, int n);
 void wavetable_waveform_show(skode_t *ctx, int wave, int width, int height, int loop_start, int loop_end, const char *label);
 void spectro_fft(spectro_cplx_t *buf, int n);
 int spectro_next_pow2(int x);

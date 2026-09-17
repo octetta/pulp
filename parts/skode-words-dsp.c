@@ -1348,9 +1348,9 @@ static int word_exec_W(const skode_word_t *self, skode_t *ctx, ands_t *s, double
         }
       } else if (argc == 0) {
         int c = 0;
-        ctx->printf(ctx, "# MAX %d\n", synth_config.wave_table_max);
+        ctx->printf(ctx, "# Wavetable Summary (MAX %d)\n", synth_config.wave_table_max);
         for (int i=0; i<synth_config.wave_table_max; i++) {
-          wavetable_show(ctx, i);
+          wavetable_summary_show(ctx, i);
           c++;
         }
       }

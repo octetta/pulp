@@ -430,6 +430,19 @@ void print_audio_braille_labeled(skode_t *ctx, float *data, int n, int width_cha
     free(y_peak_max);
 }
 
+int wavetable_summary_show(skode_t *ctx, int n) {
+  if (skode_wave_valid(n) && sw.data[n] && sw.size[n]) {
+    int readonly = sw.readonly[n];
+    int refcount = sw.refcount[n];
+    int size = sw.size[n];
+    float rate = sw.rate[n] > 0.0f ? sw.rate[n] : (float)MAIN_SAMPLE_RATE;
+    float ms = (float)size * 1000.0f / rate;
+    ctx->printf(ctx, "# W%-3d | %6d smp | %6.1f ms | %s | ref#%-2d | [%s]\n", 
+      n, size, ms, readonly ? "R/O" : "R/W", refcount, sw.name[n]);
+  }
+  return 0;
+}
+
 int wavetable_show(skode_t *ctx, int n) {
   if (skode_wave_valid(n) && sw.data[n] && sw.size[n]) {
     int readonly = sw.readonly[n];

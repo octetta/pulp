@@ -1,0 +1,13 @@
+## 0 You should have started with -e60441
+
+## ADSR events
+
+v5 f110 w15 a0 t 0 0 1 .125 r1 ds.8 G6 H6
+v6 f110 w17 a0 N 12,5 L.05 g.1 t 0 0 1 .25
+## Store our format strings in macro slots 0 and 1 ) 
+
+( 33 45 37 43 - 33 50 45 ) /SS 0
+##
+y0 M60
+[ v5 n&0 l1 ] x0
+[ v5 l0 ] x1

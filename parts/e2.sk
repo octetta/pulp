@@ -24,16 +24,3 @@ v5 vc1
 y0 M60
 [ v5 n&0 l1 ] x0
 [ v5 l0 ] x1
-## SEQ events
-
-[ /seq/loop %d ] e>2
-
-y0 yc1
-
-[ 0 0 >u ] /ceb 5 2
-/cer 1
-
-M60
-y0
-[v5 l1] x0
-[v5 l0] x1

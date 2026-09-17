@@ -279,13 +279,22 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || sv.glissando_time[v] > 0.0f) 
         APPEND(" g%g", sv.glissando_time[v]);
 
-    if (verbose || !envelope_is_flat(v))
-        APPEND(" t%g,%g,%g,%g am%d",
-            sv.amp_envelope[v].a,
-            sv.amp_envelope[v].d,
-            sv.amp_envelope[v].s,
-            sv.amp_envelope[v].r,
-            sv.amp_envelope_mode[v]);
+    if (verbose || !envelope_is_flat(v)) {
+        if (sv.amp_envelope_mode[v] == 0) {
+            APPEND(" t%g,%g,%g,%g",
+                sv.amp_envelope[v].a,
+                sv.amp_envelope[v].d,
+                sv.amp_envelope[v].s,
+                sv.amp_envelope[v].r);
+        } else {
+            APPEND(" t%g,%g,%g,%g tm%d",
+                sv.amp_envelope[v].a,
+                sv.amp_envelope[v].d,
+                sv.amp_envelope[v].s,
+                sv.amp_envelope[v].r,
+                sv.amp_envelope_mode[v]);
+        }
+    }
 
     if (sv.text[v][0] != '\0') APPEND(" [%s] vt", sv.text[v]);
 

@@ -48,6 +48,7 @@ static int udp_port = 0;
 static volatile int udp_running = 1;
 static SOCKET udp_socket = INVALID_SOCKET;
 static atomic_int_t udp_thread_active;
+static atomic_int_t udp_startup_status;
 static atomic_uint64_t udp_packets;
 static atomic_uint64_t udp_commands;
 static atomic_uint64_t udp_errors;
@@ -132,6 +133,9 @@ static void *udp_main(void *arg) {
   }
   atomic_store_int(&udp_thread_active, 1);
   int sock = udp_open(udp_port);
+  
+  atomic_store_int(&udp_startup_status, (sock < 0) ? -1 : 1);
+  
   if (sock < 0) {
     puts("# udp thread cannot run");
     atomic_fetch_add_uint64(&udp_errors, 1);
@@ -222,10 +226,26 @@ int udp_start(int port) {
   atomic_store_uint64(&udp_packets, 0);
   atomic_store_uint64(&udp_commands, 0);
   atomic_store_uint64(&udp_errors, 0);
+  atomic_store_int(&udp_startup_status, 0);
+  
   pthread_attr_init(&udp_attr);
   pthread_attr_setstacksize(&udp_attr, 2 * 1024 * 1024);
   pthread_create(&udp_thread_handle, &udp_attr, udp_main, NULL);
   pthread_detach(udp_thread_handle);
+  
+  while (atomic_load_int(&udp_startup_status) == 0) {
+#ifdef _WIN32
+      Sleep(1);
+#else
+      usleep(1000); // 1ms
+#endif
+  }
+  
+  if (atomic_load_int(&udp_startup_status) < 0) {
+      udp_running = 0;
+      udp_port = 0;
+      return -1;
+  }
   return port;
 }
 

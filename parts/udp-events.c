@@ -49,6 +49,7 @@ static SOCKET udp_events_socket = INVALID_SOCKET;
 static pthread_t udp_events_thread_handle;
 static pthread_attr_t udp_events_attr;
 
+static atomic_int_t ev_startup_status;
 static atomic_int_t notify_signaled;
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
 static int notify_pipe[2] = {-1, -1};
@@ -158,6 +159,7 @@ static void *udp_events_main(void *arg) {
 
     SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == INVALID_SOCKET) {
+        atomic_store_int(&ev_startup_status, -1);
         udp_events_running = 0;
         return NULL;
     }
@@ -176,11 +178,14 @@ static void *udp_events_main(void *arg) {
     serve.sin_port = htons(udp_events_port);
     
     if (bind(sock, (struct sockaddr *)&serve, sizeof(serve)) < 0) {
+        atomic_store_int(&ev_startup_status, -1);
         printf("# WARN: udp-events port %d in use or unavailable\n", udp_events_port);
         CLOSE_SOCKET(sock);
         udp_events_running = 0;
         return NULL;
     }
+    
+    atomic_store_int(&ev_startup_status, 1);
     
     udp_events_socket = sock;
     memset(clients, 0, sizeof(clients));
@@ -269,10 +274,27 @@ int skred_udp_events_start(int port) {
     
     notify_init();
     
+    atomic_store_int(&ev_startup_status, 0);
+    
     pthread_attr_init(&udp_events_attr);
     pthread_attr_setstacksize(&udp_events_attr, 2 * 1024 * 1024);
     pthread_create(&udp_events_thread_handle, &udp_events_attr, udp_events_main, NULL);
     pthread_detach(udp_events_thread_handle);
+    
+    while (atomic_load_int(&ev_startup_status) == 0) {
+#ifdef _WIN32
+        Sleep(1);
+#else
+        usleep(1000); // 1ms
+#endif
+    }
+    
+    if (atomic_load_int(&ev_startup_status) < 0) {
+        udp_events_running = 0;
+        udp_events_port = 0;
+        return 0; // The original api returned 0 on error
+    }
+    
     return port;
 }
 

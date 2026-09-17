@@ -1987,7 +1987,6 @@ int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {
   #ifdef UDP
   skred_startup_trace("udp_start");
   udp_port = port;
-printf("SKRED START UDP %d\n", port);
   if (udp_port > 0) {
     int r = udp_start(udp_port);
     if (r != udp_port) udp_port = 0;

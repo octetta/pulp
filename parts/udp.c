@@ -132,7 +132,6 @@ static void *udp_main(void *arg) {
   atomic_store_int(&udp_thread_active, 1);
   int sock = udp_open(udp_port);
   
-printf("SOCK IS %d\n", sock);
   atomic_store_int(&udp_startup_status, (sock < 0) ? -1 : 1);
   
   if (sock < 0) {

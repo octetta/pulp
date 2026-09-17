@@ -64,13 +64,16 @@ int main(int argc, char **argv) {
         return 1;
     }
     
-    if (result->n != expected_size) {
+    if (expected_size > 0 && result->n != expected_size) {
         fprintf(stderr, "Expected size %d but got %d from %s\n", expected_size, result->n, path);
         return 1;
     }
     
-    printf("float %s[%d] = {\n", array_name, expected_size);
-    for (int i = 0; i < result->n; i++) {
+    int actual_size = result->n;
+    
+    printf("const int %s_SIZE = %d;\n", array_name, actual_size);
+    printf("float %s[%d] = {\n", array_name, actual_size);
+    for (int i = 0; i < actual_size; i++) {
         printf("%ff, ", (float)result->f[i]);
         if (i % 8 == 7) printf("\n");
     }

@@ -1,33 +1,28 @@
-/ 808-style Ride/Cymbal
+/ Classic 808-style Ride Cymbal
 N: 52920
 T: !N
-E: e(T*(0-6.9%N))
-G: e(T*(0-25.0%N))
+/ Tighter, higher tuned metallic cluster
+Z: 480 b T
 
-B: 450*((p 2)%(p 0))
-P: +\(N#(B*1.000))
-Q: +\(N#(B*1.342))
-R: +\(N#(B*1.200))
-S: +\(N#(B*1.618))
-U: +\(N#(B*1.478))
-V: +\(N#(B*1.784))
-
-A: 1 0 0.33 0 0.2
-J: P $ A
-K: Q $ A
-L: R $ A
-M: S $ A
-X: U $ A
-Y: V $ A
-Z: J+K+L+M+X+Y
-
-C: 800 2.0
+/ Low ping filter (Bandpass @ 1500Hz, Q=3)
+C: 1500 3.0
 D: C g Z
-F: 4200 2.0
+
+/ High ping filter (Bandpass @ 5500Hz, Q=3)
+F: 5500 3.0
 H: F g Z
 
+/ Sharp stick hit noise (Highpass @ 10kHz)
 I: m T
-W: 6000 1.0
+W: 10000 1.0
+Y: W g I
+
+/ Envelopes: medium metal, very fast click
+E: e(T*(0-5.0%N))
+G: e(T*(0-40.0%N))
+
+/ Mix
+M: E*(D*0.6 + H*0.4) + G*Y*0.6
 
 O: 1
-E*(D*0.5 + H*0.5) + G*(W g I)*0.4
+M

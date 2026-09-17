@@ -1,33 +1,28 @@
-/ 808-style Crash
+/ Classic 808-style Crash Cymbal
 N: 66150
 T: !N
-E: e(T*(0-5.0%N))
-G: e(T*(0-7.0%N))
+/ TR-808 6-oscillator metallic cluster
+Z: 300 b T
 
-B: 450*((p 2)%(p 0))
-P: +\(N#(B*1.000))
-Q: +\(N#(B*1.342))
-R: +\(N#(B*1.200))
-S: +\(N#(B*1.618))
-U: +\(N#(B*1.478))
-V: +\(N#(B*1.784))
-
-A: 1 0 0.33 0 0.2
-J: P $ A
-K: Q $ A
-L: R $ A
-M: S $ A
-X: U $ A
-Y: V $ A
-Z: J+K+L+M+X+Y
-
+/ Body filter (Bandpass @ 800Hz)
 C: 800 1.5
 D: C g Z
-F: 4000 1.5
+
+/ Splash filter (Bandpass @ 3800Hz)
+F: 3800 1.5
 H: F g Z
 
-I: m T
+/ White noise sizzle (Highpass @ 8000Hz)
+I: r T
 W: 8000 1.0
+Y: W g I
+
+/ Envelopes: long metal, shorter noise
+E: e(T*(0-4.0%N))
+G: e(T*(0-10.0%N))
+
+/ Mix
+M: E*(D*0.5 + H*0.5) + G*Y*0.4
 
 O: 1
-E*(D*0.3 + H*0.3) + G*(W g I)*0.3
+M

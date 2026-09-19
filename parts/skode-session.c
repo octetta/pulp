@@ -276,10 +276,12 @@ int skode_session_save(skode_t *ctx, const char *filename) {
   if (ok && ctx->ks) {
     simple_mutex_lock(&skode_ks_eval_mutex);
     for (int i = 0; ok && i < 26; i++) {
-      if (!ctx->ks->vars[i]) continue;
+      char vname[2] = {(char)('A' + i), 0};
+      K var = k_get_var_str(ctx->ks, vname);
+      if (!var) continue;
       char entry[64];
       snprintf(entry, sizeof(entry), "ksynth/%c.ksv", 'A' + i);
-      ok = skode_session_add_k(&zip, entry, ctx->ks->vars[i]);
+      ok = skode_session_add_k(&zip, entry, var);
     }
     if (ok && ctx->ks_result)
       ok = skode_session_add_k(&zip, "ksynth/result.ksv",
@@ -421,7 +423,6 @@ static int skode_session_restore_k(skode_t *ctx, mz_zip_archive *zip) {
   ks_ctx *ks = skode_ks_ctx(ctx);
   if (!ks) return 0;
   simple_mutex_lock(&skode_ks_eval_mutex);
-  ks_clear_vars(ks);
   skode_ks_result_clear(ctx);
   int ok = 1;
   for (int i = 0; ok && i < 26; i++) {
@@ -432,7 +433,10 @@ static int skode_session_restore_k(skode_t *ctx, mz_zip_archive *zip) {
     K value = skode_session_read_k(ks, data, size);
     mz_free(data);
     if (!value) ok = 0;
-    else ks->vars[i] = value;
+    else {
+      char vname[2] = {(char)('A' + i), 0};
+      k_set_var_str(ks, vname, value);
+    }
   }
   if (ok && skode_session_zip_has(zip, "ksynth/result.ksv")) {
     size_t size = 0;

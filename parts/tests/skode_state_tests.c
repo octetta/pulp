@@ -2783,17 +2783,17 @@ static void test_session_zip_round_trip(void) {
   expect_substr(test, skred_poly_pool_status(0), "/pm 0,1,2,1",
                 "poly pool mode restored");
 #ifdef SKRED_TEST_KSYNTH
-  if (!ctx.ks || !ctx.ks->vars[0] || ctx.ks->vars[0]->n != 3) {
+  if (!ctx.ks || !k_get_var_str(ctx.ks, "A") || k_get_var_str(ctx.ks, "A")->n != 3) {
     fail(test, "KSynth A variable was not restored");
   } else {
-    expect_float(test, (float)ctx.ks->vars[0]->f[2], 3.0f, 0.0001f,
+    expect_float(test, (float)k_get_var_str(ctx.ks, "A")->f[2], 3.0f, 0.0001f,
                  "KSynth A value restored");
   }
   if (!ctx.ks) fail(test, "KSynth context missing");
   if (!ctx.ks_result || ((K)ctx.ks_result)->n != 3)
     fail(test, "KSynth latest result was not restored");
-  if (!ctx.ks->vars[1] || !k_is_func(ctx.ks->vars[1]) ||
-      strcmp(k_func_body(ctx.ks->vars[1]), "x*2") != 0)
+  if (!k_get_var_str(ctx.ks, "B") || !k_is_func(k_get_var_str(ctx.ks, "B")) ||
+      strcmp(k_func_body(k_get_var_str(ctx.ks, "B")), "x*2") != 0)
     fail(test, "KSynth function variable was not restored");
 #endif
   ctx.trace = 0;

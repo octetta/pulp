@@ -80,6 +80,11 @@ enum {
   SKODE_OP_PATTERN_MODULO,
   SKODE_OP_PATTERN_STATE,
   SKODE_OP_PATTERN_LOOP,
+  SKODE_OP_PATTERN_SET,
+  SKODE_OP_PATTERN_MUTE,
+  SKODE_OP_PATTERN_QUEUE,
+  SKODE_OP_PATTERN_GOTO,
+  SKODE_OP_PATTERN_STATE_ALL,
   SKODE_OP_STREAM_COPY,
   SKODE_OP_STREAM_MODE,
   SKODE_OP_STREAM_POS,
@@ -196,7 +201,7 @@ int skode_extra_copy(int index, char *dst, size_t dst_size);
 int skode_queue_program(const event_program_t *program, int voice,
   uint64_t when, int tag);
 int skode_queue_program_deferred(const event_program_t *program, int voice,
-  uint64_t base, char mode, double delay, int tag);
+  uint64_t base, char mode, double delay, int tag, int pattern, int step);
 int skode_midi_note(int voice, float note, float cents);
 int skode_linked_velocity(int voice, float velocity, uint64_t sample);
 void skode_envelope_velocity(int voice, float x, uint64_t now);

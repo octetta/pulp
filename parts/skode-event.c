@@ -667,8 +667,9 @@ int skode_linked_velocity(int voice, float velocity, uint64_t sample) {
 
 extern double skode_stream_pull(void *ctx, int n);
 
-static int execute_opcode(const opcode_event_t *opcode, int voice) {
-  if (!opcode || !event_voice_valid(voice)) return -1;
+static int execute_opcode(const event_t *event, int voice) {
+  const opcode_event_t *opcode = &event->opcode;
+  if (!event || !opcode || !event_voice_valid(voice)) return -1;
   
   if (opcode->argc > SEQ_OPCODE_ARG_MAX) return -1;
   opcode_event_t resolved = *opcode;
@@ -691,7 +692,39 @@ static int execute_opcode(const opcode_event_t *opcode, int voice) {
   }
   resolved.var_mask = 0;
   resolved.stream_mask = 0;
-  return skode_execute_voice_opcode(&resolved, voice);
+  
+  int p = event->source_valid ? event->pattern : seq_current_pattern;
+  
+  switch (resolved.code) {
+    case SKODE_OP_PATTERN_SET:
+      if (resolved.argc >= 1 && resolved.arg[0] >= 0 && resolved.arg[0] < PATTERNS_MAX) {
+        seq_current_pattern = (int)resolved.arg[0];
+        skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_CHANGE, SAMPLE_COUNT_GET(), seq_current_pattern, 0);
+      }
+      return 0;
+    case SKODE_OP_PATTERN_MUTE:
+      if (resolved.argc >= 1 && p >= 0 && p < PATTERNS_MAX) {
+        seq_mute_set(p, (int)resolved.arg[0]);
+        skred_control_pattern_event(SKRED_CONTROL_EVENT_MUTE_CHANGE, SAMPLE_COUNT_GET(), p, (int)resolved.arg[0]);
+      }
+      return 0;
+    case SKODE_OP_PATTERN_QUEUE:
+      if (resolved.argc >= 1 && p >= 0 && p < PATTERNS_MAX) {
+        seq_state_queue(p, (int)resolved.arg[0]);
+        skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_QUEUE, SAMPLE_COUNT_GET(), p, (int)resolved.arg[0]);
+      }
+      return 0;
+    case SKODE_OP_PATTERN_GOTO:
+      if (resolved.argc >= 1 && resolved.arg[0] >= 0 && resolved.arg[0] < SEQ_STEPS_MAX && p >= 0 && p < PATTERNS_MAX) {
+        seq_step_goto_locked(p, (int)resolved.arg[0]);
+      }
+      return 0;
+    case SKODE_OP_PATTERN_STATE_ALL:
+      if (resolved.argc >= 1) seq_state_all((int)resolved.arg[0]);
+      return 0;
+    default:
+      return skode_execute_voice_opcode(&resolved, voice);
+  }
 }
 
 int skode_emit_control_event_opcode(const opcode_event_t *opcode, int voice,
@@ -747,7 +780,7 @@ int skode_execute_event(const event_t *event, skode_t *ctx) {
       event->source_valid ? event->step : -1,
       event->source_valid ? event->tag : -1);
   }
-  return execute_opcode(&event->opcode, voice);
+  return execute_opcode(event, voice);
 }
 
 static int delay_to_samples(char mode, double delay, uint64_t *samples) {
@@ -903,10 +936,10 @@ int skode_execute_program_state(const event_program_t *program, int *voice,
 }
 
 int skode_queue_program_deferred(const event_program_t *program, int voice,
-    uint64_t base, char mode, double delay, int tag) {
+    uint64_t base, char mode, double delay, int tag, int pattern, int step) {
   uint64_t relative;
   if (delay_to_samples(mode, delay, &relative) != 0) return -1;
   uint64_t when = relative > UINT64_MAX - base ? UINT64_MAX : base + relative;
   return run_program(program, voice, when, SAMPLE_COUNT_GET(), tag, 0, NULL,
-    -1, -1);
+    pattern, step);
 }

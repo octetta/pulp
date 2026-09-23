@@ -794,9 +794,13 @@ int skode_execute_event(const event_t *event, skode_t *ctx) {
 }
 
 static int delay_to_samples(char mode, double delay, uint64_t *samples) {
-  if (!samples || !isfinite(delay) || delay < 0.0) return -1;
+  if (!samples || !isfinite(delay)) return -1;
   if (mode != '+' && mode != '~') return -1;
-  if (mode == '+') delay *= tempo_step_seconds_get() * 4.0;
+  if (delay < 0.0) {
+    delay = -delay * tempo_step_seconds_get();
+  } else if (mode == '+') {
+    delay *= tempo_step_seconds_get() * 4.0;
+  }
   long double value = (long double)delay * (long double)MAIN_SAMPLE_RATE;
   if (value > (long double)UINT64_MAX) return -1;
   *samples = (uint64_t)value;
@@ -860,7 +864,6 @@ static int run_program(const event_program_t *program, int voice,
         if (op->opcode.argc != 1 ||
             resolve_program_arg(&op->opcode, 0, &delay) != 0)
           return -1;
-        if (delay < 0.0) delay = 0.0;
         if (delay_to_samples(op->opcode.mode, delay, &relative) != 0)
           return -1;
         when = relative > UINT64_MAX - when ? UINT64_MAX : when + relative;

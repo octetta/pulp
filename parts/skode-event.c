@@ -709,14 +709,15 @@ static int execute_opcode(const event_t *event, int voice) {
       return 0;
     case SKODE_OP_PATTERN_MUTE:
       if (resolved.argc >= 1 && p >= 0 && p < PATTERNS_MAX) {
-        seq_mute_set(p, (int)resolved.arg[0]);
+        seq_mute[p] = (int)resolved.arg[0];
         skred_control_pattern_event(SKRED_CONTROL_EVENT_MUTE_CHANGE, SAMPLE_COUNT_GET(), p, (int)resolved.arg[0]);
       }
       return 0;
     case SKODE_OP_PATTERN_QUEUE:
       if (resolved.argc >= 1 && p >= 0 && p < PATTERNS_MAX) {
-        seq_state_queue(p, (int)resolved.arg[0]);
-        skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_QUEUE, SAMPLE_COUNT_GET(), p, (int)resolved.arg[0]);
+        int state = (int)resolved.arg[0];
+        seq_pending_state[p] = state == 1 ? 1 : (state == 0 ? 2 : 0);
+        skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_QUEUE, SAMPLE_COUNT_GET(), p, state);
       }
       return 0;
     case SKODE_OP_PATTERN_GOTO:
@@ -725,7 +726,11 @@ static int execute_opcode(const event_t *event, int voice) {
       }
       return 0;
     case SKODE_OP_PATTERN_STATE_ALL:
-      if (resolved.argc >= 1) seq_state_all((int)resolved.arg[0]);
+      if (resolved.argc >= 1) {
+        for (int i = 0; i < PATTERNS_MAX; i++) {
+          seq_state_set_locked(i, (int)resolved.arg[0]);
+        }
+      }
       return 0;
     default:
       return skode_execute_voice_opcode(&resolved, voice);

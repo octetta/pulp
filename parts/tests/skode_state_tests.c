@@ -1776,13 +1776,13 @@ static void test_909_sequence_programs(void) {
   expect_float(test, sv.pan[6], -.5f, 0.0001f,
                "persistent variable voice follow-up");
 
-  global_var[4] = -1;
+  global_var[4] = -1; // -1 now means absolute tick delay
   expect_int(test, skode_compile_program("v6 ~$4 a-7", &program),
              SKODE_COMPILE_OK, "compile variable defer");
   expect_int(test, skode_execute_program(&program, 0, SAMPLE_COUNT_GET(), 0),
-             0, "execute clamped variable defer");
-  expect_float(test, sv.user_amp[6], -7, 0.0001f,
-               "clamped variable defer execution");
+             0, "execute tick variable defer");
+  expect_float(test, sv.user_amp[6], -9, 0.0001f,
+               "tick variable defer execution (deferred)");
 
   pattern_reset(9);
   expect_int(test, skode_compile_program("v$2 +.5 n$3", &program),

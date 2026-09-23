@@ -885,6 +885,12 @@ static int run_program(const event_program_t *program, int voice,
       if (op->opcode.code == SKODE_OP_RATCHET) {
         continue;
       }
+      if (op->opcode.code == SKODE_OP_PATTERN_SET) {
+        double new_p;
+        if (resolve_program_arg(&op->opcode, 0, &new_p) == 0 && new_p >= 0.0) {
+          pattern = (int)new_p;
+        }
+      }
 
       event_t event = {
         .voice = current_voice,

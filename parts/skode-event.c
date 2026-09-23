@@ -702,6 +702,11 @@ static int execute_opcode(const event_t *event, int voice) {
         skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_CHANGE, SAMPLE_COUNT_GET(), seq_current_pattern, 0);
       }
       return 0;
+    case SKODE_OP_PATTERN_STATE:
+      if (resolved.argc >= 1 && p >= 0 && p < PATTERNS_MAX) {
+        seq_state_set_locked(p, (int)resolved.arg[0]);
+      }
+      return 0;
     case SKODE_OP_PATTERN_MUTE:
       if (resolved.argc >= 1 && p >= 0 && p < PATTERNS_MAX) {
         seq_mute_set(p, (int)resolved.arg[0]);

@@ -15,3 +15,4 @@ tmp/*
 *.o
 mini-skred
 .ai-scratch/
+dist/

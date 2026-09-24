@@ -45,42 +45,15 @@ cd parts
 
 ## Features
 
+Most synthesis and routing features (ADSR, FM, FILT, RECORD, TRACKS, etc.) are now permanent, non-optional parts of the core Skred engine. 
+
+The following system-level integrations can still be optionally toggled via CMake options (they are `ON` by default):
+
 ```
-ADSR   # amplitude envelope
-AM     # amplitude modulation
-CRUSH  # reduce bit depth
-FILT   # multimode analog-ish filter
-FADSR  # filter envelope
-FM     # frequency modulation
-GLISS  # pitch glissando
-PANMOD # stereo panning modulation
-PD     # phase distortion
-SAH    # sample-and-hold distortion
-SEQ    # pattern sequencing
-SMOOTHER # volume change smoother
-XM     # ring modulation
-
-UDP    # receive skode on UDP
-KSYNTH # synchronous k-synth evaluation
-MIDI   # MIDI input/output, routing, and control bindings
-RECORD # multitrack WAV recording
-SCOPE  # shared-memory live audio publication
-TRACKS # four stem routes and their track-aligned delay buses without capture
-BENCH  # internal benchmark measurements
+SKRED_KSYNTH # synchronous k-synth evaluation
+SKRED_SCOPE  # shared-memory live audio publication
+SKRED_UDP    # receive skode on UDP
 ```
-
-The standard `maxed` target enables the features listed in
-`MAXED_KIT_OPTS` in `parts/Makefile`, including `XM` and `MIDI`. `ADSR` is
-always appended by CMake. `SCOPE` publishes the master and
-four stereo stems through a versioned shared-memory ring for external
-visualizers. The transport has POSIX shared-memory and Windows `Local\\`
-named-file-mapping implementations, but the current CMake configuration
-enables `SCOPE` only on POSIX targets.
-
-`TRACKS` is an internal generation option used when stem routing and delays are
-needed without recording or scope capture, notably in WASM. `RECORD` and
-`SCOPE` imply it automatically. It is not currently listed separately by
-`skred_features()`.
 
 ## API Releases
 
@@ -102,11 +75,11 @@ make native
 Runtime builds default to `Release`; use `make native BUILD_TYPE=Debug` when
 an unoptimized debugging build is intentional.
 
-To enable features manually with CMake:
+To disable specific integrations manually with CMake:
 
 ```sh
 cmake -B build_native -S . -DCMAKE_BUILD_TYPE=Release \
-  -DKIT_OPTS="ADSR=1 PD=1 FILT=1 FADSR=1"
+  -DSKRED_SCOPE=OFF -DSKRED_UDP=OFF
 cmake --build build_native
 ./build_native/mini-skred
 ```
@@ -291,21 +264,6 @@ cmake --build build_native --target synth_callback_bench
 
 The report includes average and worst callback time, the callback deadline,
 average deadline load, and the number of measured deadline overruns.
-
-## Static Analysis
-
-The project uses feature-gated C source templates. `make maxed` generates a
-fully expanded `MAXED_KIT_OPTS` source tree under `parts/build_maxed/`. This
-directory contains the canonical expanded `.c` and `.h` files suitable for
-static analysis tools (e.g. clang-tidy, cppcheck, or IDE indexers):
-
-```sh
-cd parts
-make maxed
-# Expanded sources are in parts/build_maxed/
-```
-
-Generated files under `parts/build_*` are disposable and ignored by git.
 
 ## WASM Build
 

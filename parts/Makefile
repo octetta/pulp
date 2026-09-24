@@ -131,3 +131,16 @@ clean:
 
 very-all:
 	make clean maxed dist-api wasm
+
+
+dist-api-linux-armhf:
+	$(CMAKE) -B build_linux_armhf -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_C_COMPILER="arm-linux-gnueabihf-gcc"
+	$(CMAKE) --build build_linux_armhf --target api api_shared mini-skred
+	$(CMAKE) --install build_linux_armhf --prefix $(DIST_ROOT)/linux-armhf/skred-$(VERSION)-maxed
+	$(CMAKE) -E chdir $(DIST_ROOT)/linux-armhf $(CMAKE) -E tar czf skred-$(VERSION)-maxed-linux-armhf.tar.gz --format=gnutar skred-$(VERSION)-maxed
+
+dist-api-linux-aarch64:
+	$(CMAKE) -B build_linux_aarch64 -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_C_COMPILER="aarch64-linux-gnu-gcc"
+	$(CMAKE) --build build_linux_aarch64 --target api api_shared mini-skred
+	$(CMAKE) --install build_linux_aarch64 --prefix $(DIST_ROOT)/linux-aarch64/skred-$(VERSION)-maxed
+	$(CMAKE) -E chdir $(DIST_ROOT)/linux-aarch64 $(CMAKE) -E tar czf skred-$(VERSION)-maxed-linux-aarch64.tar.gz --format=gnutar skred-$(VERSION)-maxed

@@ -27,7 +27,10 @@ y3 %1
 [v2 l1] x0
 
 /SS 1 (60 70 80 50)
-v20 w17 a5 t .2 .5 0 0
+
+v20 w17 a5 G21 H21 g0.1 t0.05,0.1,0,0
+v21 w18 a3 N0,25 g0.05 t0.01,0.25,0,0
+
 y4 %2
 [v20 n&1 l1] x0
 [v20 l0] x1
@@ -43,7 +46,11 @@ x4  [note y3 z0]
 x5  [note y2 z0]
 x6  [note y1 z0]
 x7  [y0 z0]
+x9  [note y3 z1]
 x10 [note y4 z0]
+x11 [note y3 z0 y0 z1]
+x13 [note y0 z0 y1 z1]
+x15 [note y1 z0]
 x16 [-]
 
 y 100

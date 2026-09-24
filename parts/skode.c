@@ -2463,6 +2463,18 @@ double skode_stream_pull(void *ctx, int n) {
 
 
 
+void skode_consume_macro(skode_t *ctx, const char *line) {
+  if (!ctx || !line) return;
+  ands_t *old_parse = ctx->parse;
+  ctx->parse = ands_new(skode_callback, (void *)ctx);
+  if (ctx->parse) {
+    ands_set_global(ctx->parse, global_var);
+    ands_consume(ctx->parse, (char *)line);
+    ands_free(ctx->parse);
+  }
+  ctx->parse = old_parse;
+}
+
 int skode_consume(char *line, skode_t *ctx) {
   if (!line || !ctx) return -1;
   skode_global_init();

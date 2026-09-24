@@ -592,8 +592,8 @@ static int word_exec_e_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
       return 0;
 }
 
-static int word_exec_e_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  uint32_t atom = ands_atom_num(s);
+static int word_exec_e_bang(const skode_word_t *self, skode_t *ctx, ands_t *s_in, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s_in);
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
@@ -610,10 +610,17 @@ static int word_exec_e_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, d
         }
         if (s[0] != '\0') {
           event_program_t program;
-          if (!skode_compile_scheduled(ctx, s, &program)) return 0;
-          uint64_t now = SAMPLE_COUNT_GET();
-          int tag = 0;
-          skode_queue_program(&program, voice, now, tag);
+          if (skode_compile_program_ex(s, &program, ctx->vocab) == SKODE_COMPILE_OK) {
+            uint64_t now = SAMPLE_COUNT_GET();
+            int tag = 0;
+            skode_queue_program(&program, voice, now, tag);
+          } else {
+            // Execution of immediate commands in a numbered macro fallback.
+            // Delegate to a helper that safely swaps the parser to avoid re-entrancy 
+            // corruption, while keeping the execution fully within the parent context.
+            extern void skode_consume_macro(skode_t *ctx, const char *line);
+            skode_consume_macro(ctx, s);
+          }
         }
       }
       return 0;

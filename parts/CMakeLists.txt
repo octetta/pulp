@@ -152,7 +152,7 @@ add_executable(mini-skred mini-skred.c)
 target_link_libraries(mini-skred PRIVATE api)
 
 # 7. Find the library portably
-find_library(MATH_LIB m)
+set(MATH_LIB m)
 
 if(MATH_LIB)
     # Link to the API library (PUBLIC so mini-skred inherits the math dependency)

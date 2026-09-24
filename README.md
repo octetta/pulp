@@ -10,6 +10,14 @@ or
 
 Nobody likes the pulp...
 
+
+## Web Interface
+
+The official interactive web interface and interactive tutorials for Skred have been moved to their own dedicated repository.
+
+- **[Live Web App Demo](https://octetta.github.io/skred-web/)**
+- **[skred-web Repository](https://github.com/octetta/skred-web)**
+
 ## Architecture
 
 See [parts/ARCHITECTURE.md](parts/ARCHITECTURE.md) for the runtime model,
@@ -304,6 +312,8 @@ Generated files under `parts/build_*` are disposable and ignored by git.
 ```sh
 make wasm
 ```
+
+This builds the WASM binaries and places `skred_api.js` and `skred_api.wasm` inside `build_wasm/`.
 
 ## Cross Compile
 

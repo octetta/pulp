@@ -91,17 +91,11 @@ wasm:
 	$(CMAKE) -B build_wasm -S . 
 	bash -c "$(CMAKE) --build build_wasm"
 	cp wasm-assets/mkwasm build_wasm/mkwasm
-	cp ../doc/index.html build_wasm/index.html
 	cp wasm-assets/test-wasm.html build_wasm/test-wasm.html
 	cp wasm-assets/serve-wasm.sh build_wasm/serve-wasm.sh
 	cd build_wasm && $(EM_ENV) bash ./mkwasm
 	bash -c "node wasm-assets/test-control-dispatch.js build_wasm/skred_api.js"
-	cp build_wasm/skred_api.js ../doc
-	cp build_wasm/skred_api.wasm ../doc
-	cp wasm-assets/serve-wasm.sh ../doc
-	@VERSION=$$(cat ../VERSION | tr -d '[:space:]'); \
-	echo "Stamping html files with version $$VERSION..."; \
-	perl -pi -e "s/skred_api\\.js(\\?v=[^\"]*)?/skred_api.js?v=$$VERSION/g" ../doc/*.html
+	
 
 wasm-test:
 	node wasm-assets/test-control-dispatch.js build_wasm/skred_api.js

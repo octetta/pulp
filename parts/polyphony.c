@@ -138,6 +138,8 @@ static int clone_voice(const poly_group_t *group, int source, int dest,
   /* Glide enable/time are configuration; phase, target and speed belong to
      the currently sounding note and must start clean in a new instance. */
   sv.glissando_enable[dest] = sv.glissando_enable[source];
+  sv.glissando_mode[dest] = sv.glissando_mode[source];
+  sv.glissando_delta[dest] = sv.glissando_delta[source];
   sv.glissando_time[dest] = sv.glissando_time[source];
   sv.phase_inc[dest] = osc_get_phase_inc(&skred_global_engine, dest, sv.freq[dest]);
   sv.glissando_target[dest] = sv.phase_inc[dest];

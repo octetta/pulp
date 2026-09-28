@@ -218,11 +218,15 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(use_amp_envelope,  int);
 
     VALLOC(glissando_enable,  int);
+    VALLOC(glissando_mode,    int);
+    VALLOC(glissando_delta,   float);
     VALLOC(glissando_speed,   float);
     VALLOC(glissando_target,  float);
     VALLOC(glissando_time,    float);
 
     VALLOC(smoother_enable,    int);
+    VALLOC(smoother_mode,      int);
+    VALLOC(smoother_delta,     float);
     VALLOC(smoother_gain,      float);
     VALLOC(smoother_smoothing, float);
 
@@ -313,8 +317,8 @@ void synth_free_voices(void) {
     VFREE(filter_env_depth);
     VFREE(filter_update_counter);
     VFREE(amp_envelope);     VFREE(amp_envelope_mode); VFREE(use_amp_envelope);
-    VFREE(glissando_enable); VFREE(glissando_speed); VFREE(glissando_target); VFREE(glissando_time);
-    VFREE(smoother_enable);  VFREE(smoother_gain);   VFREE(smoother_smoothing);
+    VFREE(glissando_enable); VFREE(glissando_mode); VFREE(glissando_delta); VFREE(glissando_speed); VFREE(glissando_target); VFREE(glissando_time);
+    VFREE(smoother_enable); VFREE(smoother_mode); VFREE(smoother_delta); VFREE(smoother_gain);   VFREE(smoother_smoothing);
     VFREE(sample_hold);      VFREE(sample_hold_count); VFREE(sample_hold_ratio); VFREE(sample_hold_mode);
     VFREE(sample_hold_smooth); VFREE(sample_hold_jitter_target);
     VFREE(freq_mod_osc);     VFREE(freq_mod_depth); VFREE(freq_mod_adder); VFREE(freq_mod_mode);

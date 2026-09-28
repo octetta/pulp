@@ -2302,7 +2302,11 @@ int skode_defer(ands_t *s, int info) {
     ctx->defer_sample_time = SAMPLE_COUNT_GET();
   }
   uint64_t dst = ctx->defer_sample_time;
-  if (mode == '+') delay *= (tempo_step_seconds_get() * 4.0f);
+  if (delay < 0.0) {
+    delay = -delay * tempo_step_seconds_get();
+  } else if (mode == '+') {
+    delay *= (tempo_step_seconds_get() * 4.0f);
+  }
   double t = ctx->defer_last + delay;
   uint64_t relative;
   if (!skode_seconds_to_samples(t, &relative)) return 0;

@@ -354,6 +354,7 @@ static int word_exec_g(const skode_word_t *self, skode_t *ctx, ands_t *s, double
         } else {
           sv.glissando_enable[voice] = 1;
           sv.glissando_time[voice] = arg[0];
+          sv.glissando_mode[voice] = (argc > 1) ? (int)arg[1] : 0;
         }
       }
       return 0;
@@ -847,6 +848,7 @@ static int word_exec_s(const skode_word_t *self, skode_t *ctx, ands_t *s, double
         } else {
           sv.smoother_enable[voice] = 1;
           sv.smoother_smoothing[voice] = arg[0];
+          sv.smoother_mode[voice] = (argc > 1) ? (int)arg[1] : 0;
         }
       }
       return 0;

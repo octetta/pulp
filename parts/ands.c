@@ -59,7 +59,7 @@ static double ands_strtod(char *s) {
 }
 
 static double ands_defer_time_clamp(double d) {
-  return (d < 0.0) ? 0.0 : d;
+  return d; // allow negative for tick-based defer
 }
 
 static int ands_var_parse(char **ptr, char *end) {

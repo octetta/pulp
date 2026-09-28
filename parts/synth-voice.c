@@ -358,7 +358,13 @@ int amp_set(int voice, float f) {
   if (sv.amp_bend) {
     total_db += sv.amp_bend[voice] * sv.amp_bend_range[voice] + sv.amp_bend_offset[voice];
   }
-  sv.amp[voice] = DB_TO_LINEAR(total_db);
+  float target = DB_TO_LINEAR(total_db);
+  if (sv.smoother_enable[voice] && sv.smoother_mode[voice] == 1) {
+      float samples = sv.smoother_smoothing[voice] * MAIN_SAMPLE_RATE;
+      if (samples > 0) sv.smoother_delta[voice] = (target - sv.smoother_gain[voice]) / samples;
+      else sv.smoother_delta[voice] = 0.0f;
+  }
+  sv.amp[voice] = target;
   return 0;
 }
 
@@ -431,8 +437,15 @@ int freq_set(int voice, float f) {
     sv.glissando_target[voice] = target_inc;
     float frames = glide_time * MAIN_SAMPLE_RATE;
     
-    // The multiplier 'm' that reaches target in N frames: start * m^N = target
-    sv.glissando_speed[voice] = powf(target_inc / sv.phase_inc[voice], 1.0f / frames);
+    if (sv.glissando_mode[voice] == 2) {
+      float p1 = 1.0f / sv.phase_inc[voice];
+      float p2 = 1.0f / target_inc;
+      sv.glissando_delta[voice] = (p2 - p1) / frames;
+    } else if (sv.glissando_mode[voice] == 1) {
+      sv.glissando_delta[voice] = (target_inc - sv.phase_inc[voice]) / frames;
+    } else {
+      sv.glissando_speed[voice] = powf(target_inc / sv.phase_inc[voice], 1.0f / frames);
+    }
     sv.glissando_enable[voice] = 1;
   } else {
     // Snap immediately if no glide time or starting from silence
@@ -744,6 +757,8 @@ int voice_copy(int v, int n) {
   mmf_init(&skred_global_engine, n, sv.filter_freq[v], sv.filter_res[v]);
   sv.phase_inc[n] = sv.phase_inc[v];
   sv.glissando_enable[n] = sv.glissando_enable[v];
+  sv.glissando_mode[n] = sv.glissando_mode[v];
+  sv.glissando_delta[n] = sv.glissando_delta[v];
   sv.glissando_speed[n] = sv.glissando_speed[v];
   sv.glissando_target[n] = sv.glissando_target[v];
   sv.glissando_time[n] = sv.glissando_time[v];
@@ -907,9 +922,13 @@ void voice_reset(int i) {
   sv.smoother_gain[i] = sv.amp[i];
 #endif
   sv.smoother_smoothing[i] = SMOOTH_DEFAULT;
+  sv.smoother_mode[i] = 0;
+  sv.smoother_delta[i] = 0.0f;
   //
   sv.phase_inc[i] = 1e-9; // ??here??
   sv.glissando_enable[i] = 0;
+  sv.glissando_mode[i] = 0;
+  sv.glissando_delta[i] = 0.0f;
   sv.glissando_speed[i] = 1.0f;
   sv.glissando_target[i] = 0.0f; // sv.freq[i]; // maybe 0.0f???
   sv.record[i] = 0;

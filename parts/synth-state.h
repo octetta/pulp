@@ -161,11 +161,15 @@ typedef struct {
     int        * restrict use_amp_envelope;
 
     int    * restrict glissando_enable;
+    int    * restrict glissando_mode;
+    float  * restrict glissando_delta;
     float  * restrict glissando_speed;
     float  * restrict glissando_target;
     float  * restrict glissando_time;
 
     int    * restrict smoother_enable;
+    int    * restrict smoother_mode;
+    float  * restrict smoother_delta;
     float  * restrict smoother_gain;
     float  * restrict smoother_smoothing;
 

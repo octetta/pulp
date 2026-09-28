@@ -234,7 +234,9 @@ void control_event_show(skode_t *ctx, int consume) {
 
 void opcode_arg_show(skode_t *ctx, const opcode_event_t *opcode,
     int n) {
-  if (opcode->var_mask & (1U << n)) {
+  if (opcode->stream_mask & (1U << n)) {
+    ctx->printf(ctx, " &%d", (int)opcode->arg[n]);
+  } else if (opcode->var_mask & (1U << n)) {
     ctx->printf(ctx, " $%d", (int)opcode->arg[n]);
   } else if (isnan(opcode->arg[n]) &&
       ((uint8_t)opcode->mode & (1U << n))) {
@@ -284,6 +286,7 @@ void opcode_queue_show(skode_t *ctx) {
       .argc = event->opcode_argc,
       .mode = event->opcode_mode,
       .var_mask = event->opcode_var_mask,
+      .stream_mask = event->opcode_stream_mask,
     };
     for (int i = 0; i < SEQ_OPCODE_ARG_MAX; i++)
       opcode.arg[i] = event->opcode_arg[i];

@@ -314,18 +314,32 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
         continue;
       }
       if (sv.glissando_enable[n]) {
-        // If multiplier is effectively 1, we are already there
-        if (sv.glissando_speed[n] == 1.0f) {
-          sv.glissando_enable[n] = 0;
+        if (sv.glissando_mode[n] == 2) {
+            float p = (1.0f / sv.phase_inc[n]) + sv.glissando_delta[n];
+            sv.phase_inc[n] = 1.0f / p;
+            if ((sv.glissando_delta[n] > 0.0f && sv.phase_inc[n] <= sv.glissando_target[n]) ||
+                (sv.glissando_delta[n] < 0.0f && sv.phase_inc[n] >= sv.glissando_target[n])) {
+                sv.phase_inc[n] = sv.glissando_target[n];
+                sv.glissando_enable[n] = 0;
+            }
+        } else if (sv.glissando_mode[n] == 1) {
+            sv.phase_inc[n] += sv.glissando_delta[n];
+            if ((sv.glissando_delta[n] > 0.0f && sv.phase_inc[n] >= sv.glissando_target[n]) ||
+                (sv.glissando_delta[n] < 0.0f && sv.phase_inc[n] <= sv.glissando_target[n])) {
+                sv.phase_inc[n] = sv.glissando_target[n];
+                sv.glissando_enable[n] = 0;
+            }
         } else {
-          sv.phase_inc[n] *= sv.glissando_speed[n];
-          
-          // Check if we crossed the target (works for both gliding up and down)
-          if ((sv.glissando_speed[n] > 1.0f && sv.phase_inc[n] >= sv.glissando_target[n]) ||
-              (sv.glissando_speed[n] < 1.0f && sv.phase_inc[n] <= sv.glissando_target[n])) {
-            sv.phase_inc[n] = sv.glissando_target[n];
-            sv.glissando_enable[n] = 0;
-          }
+            if (sv.glissando_speed[n] == 1.0f) {
+              sv.glissando_enable[n] = 0;
+            } else {
+              sv.phase_inc[n] *= sv.glissando_speed[n];
+              if ((sv.glissando_speed[n] > 1.0f && sv.phase_inc[n] >= sv.glissando_target[n]) ||
+                  (sv.glissando_speed[n] < 1.0f && sv.phase_inc[n] <= sv.glissando_target[n])) {
+                sv.phase_inc[n] = sv.glissando_target[n];
+                sv.glissando_enable[n] = 0;
+              }
+            }
         }
       }
       int was_finished = sv.finished[n];
@@ -470,7 +484,17 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
       float amp = sv.amp[n];
 #if 1
       if (sv.smoother_enable[n]) {
-        sv.smoother_gain[n] += sv.smoother_smoothing[n] * (amp - sv.smoother_gain[n]);
+        if (sv.smoother_mode[n] == 1) {
+            if (sv.smoother_delta[n] > 0.0f) {
+                sv.smoother_gain[n] += sv.smoother_delta[n];
+                if (sv.smoother_gain[n] >= amp) sv.smoother_gain[n] = amp;
+            } else if (sv.smoother_delta[n] < 0.0f) {
+                sv.smoother_gain[n] += sv.smoother_delta[n];
+                if (sv.smoother_gain[n] <= amp) sv.smoother_gain[n] = amp;
+            }
+        } else {
+            sv.smoother_gain[n] += sv.smoother_smoothing[n] * (amp - sv.smoother_gain[n]);
+        }
         amp = sv.smoother_gain[n];
       }
 #endif

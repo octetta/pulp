@@ -503,10 +503,19 @@ static int word_exec__pctz(const skode_word_t *self, skode_t *ctx, ands_t *s, do
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (strlen(ands_string(ctx->parse))) {
-        if (skred_vfs_mount(ands_string(ctx->parse)))
+        if (skred_vfs_mount(ands_string(ctx->parse))) {
           ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
-        else
+          void *data = NULL;
+          size_t size = 0;
+          char resolved[1024];
+          if (skode_asset_read("main.sk", SKODE_ASSET_SKODE, &data, &size, resolved, sizeof(resolved))) {
+            ctx->printf(ctx, "# auto-loading %s\n", resolved[0] ? resolved : "main.sk");
+            skode_load_buffer(ctx, (const char *)data, size, resolved[0] ? resolved : "main.sk", 0);
+            skred_vfs_free_file(data);
+          }
+        } else {
           ctx->printf(ctx, "# cannot mount %s\n", ands_string(ctx->parse));
+        }
       } else {
         ctx->printf(ctx, "# %%z requires [zip-or-directory]\n");
       }

@@ -295,7 +295,7 @@ static int word_exec_yp(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
       if (argc) {
         /* yp N  — set pattern N as master (use -1 to disable sync) */
         seq_master_pattern_set(x);
-        ctx->printf(ctx, "# master pattern: %d\n", seq_master_pattern_get());
+        // ctx->printf(ctx, "# master pattern: %d\n", seq_master_pattern_get());
       } else {
         /* yp    — query current master pattern */
         int mp = seq_master_pattern_get();
@@ -647,8 +647,7 @@ static int word_exec__slashceb(const skode_word_t *self, skode_t *ctx, ands_t *s
         if (skode_double_to_int(arg[1], &key) &&
             skred_control_response_bind((uint32_t)x, key,
               ands_string(ctx->parse)) == 0) {
-          ctx->printf(ctx, "# ce bound %d,%d -> %s\n", x, key,
-            ands_string(ctx->parse));
+          // ctx->printf(ctx, "# ce bound %d,%d -> %s\n", x, key, ands_string(ctx->parse));
         } else {
           ctx->printf(ctx, "# ce binding failed\n");
         }
@@ -675,7 +674,7 @@ static int word_exec__slashcex(const skode_word_t *self, skode_t *ctx, ands_t *s
             skode_extra_copy(index, command, sizeof(command)) == 0 &&
             command[0] != '\0' &&
             skred_control_response_bind((uint32_t)type, key, command) == 0) {
-          ctx->printf(ctx, "# ce bound %d,%d -> %s\n", type, key, command);
+          // ctx->printf(ctx, "# ce bound %d,%d -> %s\n", type, key, command);
         } else {
           ctx->printf(ctx, "# ce binding failed\n");
         }

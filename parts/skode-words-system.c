@@ -452,7 +452,7 @@ static int word_exec__slashws(const skode_word_t *self, skode_t *ctx, ands_t *s,
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      ctx->printf(ctx, "# [%s] /ws\n", ands_string(ctx->parse));
+      // ctx->printf(ctx, "# [%s] /ws\n", ands_string(ctx->parse));
       if (strlen(ands_string(ctx->parse))) {
         char *file_name = ands_string(ctx->parse);
         int wave_slot = EXT_SAMPLE_000;
@@ -463,7 +463,7 @@ static int word_exec__slashws(const skode_word_t *self, skode_t *ctx, ands_t *s,
             if (!skode_double_to_int(arg[1], &ch)) ch = -1;
           }
         }
-        ctx->printf(ctx, "# [%s] /ws %d %d\n", ands_string(ctx->parse), wave_slot, ch);
+        // ctx->printf(ctx, "# [%s] /ws %d %d\n", ands_string(ctx->parse), wave_slot, ch);
         wave_load_string(ctx, file_name, wave_slot, ch, 1);
       }
       return 0;

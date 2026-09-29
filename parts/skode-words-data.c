@@ -1,5 +1,79 @@
 #include "skode-internal.h"
 
+#include <ctype.h>
+
+#include <math.h>
+static int word_exec_m_gtf(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)arg; (void)argc; (void)s;
+  double *data = ands_data(ctx->parse);
+  int len = ands_data_len(ctx->parse);
+  if (data) {
+    for (int i = 0; i < len; i++) {
+      data[i] = pow(2.0, (data[i] - 69.0) / 12.0) * 440.0;
+    }
+  }
+  return 0;
+}
+static int word_exec_n_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)arg; (void)argc;
+  const char *str = ands_string(ctx->parse);
+  if (!str) return 0;
+
+  double notes[1024];
+  int note_count = 0;
+  
+  const char *p = str;
+  while (*p && note_count < 1024) {
+    while (*p && (isspace((unsigned char)*p) || *p == ',')) p++;
+    if (!*p) break;
+    
+    char c = toupper((unsigned char)*p);
+    if (c >= 'A' && c <= 'G') {
+      int note_idx = 0;
+      switch (c) {
+          case 'C': note_idx = 0; break;
+          case 'D': note_idx = 2; break;
+          case 'E': note_idx = 4; break;
+          case 'F': note_idx = 5; break;
+          case 'G': note_idx = 7; break;
+          case 'A': note_idx = 9; break;
+          case 'B': note_idx = 11; break;
+      }
+      p++;
+      if (*p == '#' || *p == '+') { note_idx++; p++; }
+      else if (*p == 'b' || *p == '-') { note_idx--; p++; }
+      
+      int octave = 0;
+      int sign = 1;
+      if (*p == '-') { sign = -1; p++; }
+      while (isdigit((unsigned char)*p)) {
+        octave = octave * 10 + (*p - '0');
+        p++;
+      }
+      octave *= sign;
+      
+      notes[note_count++] = (octave + 1) * 12 + note_idx;
+    } else {
+      // skip invalid token
+      while (*p && !isspace((unsigned char)*p) && *p != ',') p++;
+    }
+  }
+
+  if (note_count > ands_data_cap(ctx->parse)) {
+    ands_data_resize(ctx->parse, note_count);
+  }
+  
+  double *data = ands_data(ctx->parse);
+  if (data) {
+    for (int i = 0; i < note_count; i++) {
+      data[i] = notes[i];
+    }
+    ands_data_len_set(ctx->parse, note_count);
+  }
+
+  return 0;
+}
+
 static int word_exec_D(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -847,6 +921,8 @@ static skode_word_t word_kw = { WID("kw"), .execute = word_exec_kw, .safety = WO
 static skode_word_t word_kw_gt = { WID("kw>"), .execute = word_exec_kw_gt, .safety = WORD_IMMEDIATE_ONLY , .category = "ksynth" };
 static skode_word_t word_k_q = { WID("k?"), .execute = word_exec_k_q, .safety = WORD_IMMEDIATE_ONLY , .category = "ksynth" };
 static skode_word_t word_k_gtd = { WID("k>d"), .execute = word_exec_k_gtd, .safety = WORD_IMMEDIATE_ONLY , .category = "ksynth" };
+static skode_word_t word_n_gtd = { WID("n>d"), .execute = word_exec_n_gtd, .safety = WORD_IMMEDIATE_ONLY , .category = "data" };
+static skode_word_t word_m_gtf = { WID("m>f"), .execute = word_exec_m_gtf, .safety = WORD_IMMEDIATE_ONLY , .category = "data" };
 static skode_word_t word_k_gtw = { WID("k>w"), .execute = word_exec_k_gtw, .safety = WORD_IMMEDIATE_ONLY , .category = "ksynth" };
 static skode_word_t word__eqd = { WID("=d"), .execute = word_exec__eqd, .safety = WORD_IMMEDIATE_ONLY , .category = "data" };
 static skode_word_t word_d_bang = { WID("d!"), .execute = word_exec_d_bang, .safety = WORD_IMMEDIATE_ONLY , .category = "data" };
@@ -875,6 +951,7 @@ static skode_word_t word_a_eq = { WID("a="), .execute = word_exec_a_eq, .safety 
 static skode_word_t word_s_eq = { WID("s="), .execute = word_exec_s_eq, .safety = WORD_IMMEDIATE_ONLY , .category = "data" };
 static skode_word_t word__eq = { WID("="), .execute = word_exec__eq, .safety = WORD_IMMEDIATE_ONLY , .category = "data" };
 
+
 void skode_register_words_data(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_D);
   skode_dict_register(vocab, &word__qd);
@@ -887,6 +964,8 @@ void skode_register_words_data(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_kw_gt);
   skode_dict_register(vocab, &word_k_q);
   skode_dict_register(vocab, &word_k_gtd);
+  skode_dict_register(vocab, &word_n_gtd);
+  skode_dict_register(vocab, &word_m_gtf);
   skode_dict_register(vocab, &word_k_gtw);
   skode_dict_register(vocab, &word__eqd);
   skode_dict_register(vocab, &word_d_bang);

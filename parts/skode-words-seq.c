@@ -803,6 +803,7 @@ static skode_word_t word_yp = { WID("yp"), .execute = word_exec_yp, .safety = WO
 static skode_word_t word_Y = { WID("Y"), .execute = word_exec_Y, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_z = { WID("z"), .execute = word_exec_z, .opcode_id = SKODE_OP_PATTERN_STATE, .safety = 0, .max_args = 1 , .category = "sequencer" };
 static skode_word_t word_zg = { WID("zg"), .execute = word_exec_zg, .opcode_id = SKODE_OP_PATTERN_GOTO, .safety = 0, .max_args = 1 , .category = "sequencer" };
+static skode_word_t word__minusj = { WID("-j"), .execute = word_exec_zg, .opcode_id = SKODE_OP_PATTERN_GOTO, .safety = 0, .max_args = 1 , .category = "sequencer" };
 static skode_word_t word_zq = { WID("zq"), .execute = word_exec_zq, .opcode_id = SKODE_OP_PATTERN_QUEUE, .safety = 0, .max_args = 1 , .category = "sequencer" };
 static skode_word_t word_z_q = { WID("z?"), .execute = word_exec_z_q, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_Z = { WID("Z"), .execute = word_exec_Z, .opcode_id = SKODE_OP_PATTERN_STATE_ALL, .safety = 0, .max_args = 1 , .category = "sequencer" };

@@ -1,6 +1,9 @@
 #include "synth-types.h"
 #include "synth.h"
 #include "seq.h"
+
+#define ANDS_VAR_MAX 128
+extern double global_var[ANDS_VAR_MAX];
 #include "control-events.h"
 
 #include "skqueue.h"
@@ -250,7 +253,20 @@ void do_pattern(uint64_t now,
         seq_current_pattern = p;
         const char *step_str = seq_pattern[p][step];
         if (step_str[0] == '-') {
-          if (step_str[1] >= '0' && step_str[1] <= '9') {
+          if (step_str[1] == 'j') {
+            int jump_step = 0;
+            if (step_str[2] == '$') {
+              int var_id = atoi(&step_str[3]);
+              if (var_id >= 0 && var_id < ANDS_VAR_MAX) {
+                jump_step = (int)global_var[var_id];
+              }
+            } else {
+              jump_step = atoi(&step_str[2]);
+            }
+            if (jump_step >= 0 && jump_step < SEQ_STEPS_MAX) {
+              seq_step_goto_locked(p, jump_step);
+            }
+          } else if (step_str[1] >= '0' && step_str[1] <= '9') {
             int target_p = atoi(&step_str[1]);
             if (target_p >= 0 && target_p < PATTERNS_MAX &&
                 (target_p == p || (seq_state[target_p] == SEQ_RUNNING && seq_pointer[target_p] == 0))) {
@@ -270,6 +286,7 @@ void do_pattern(uint64_t now,
                 p, step);
             seq_state[p] = SEQ_STOPPED;
             seq_pointer[p] = 0;
+            seq_offset[p] = 0;
           }
         } else {
           if (program_fn && seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);

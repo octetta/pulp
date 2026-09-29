@@ -103,7 +103,7 @@ void global_status_show(skode_t *ctx, int full) {
   }
   ctx->printf(ctx, "# skred_version %s\n", skred_version());
   ctx->printf(ctx, "V%g\n", volume_get());
-  ctx->printf(ctx, "M%g\n", tempo_bpm_get());
+  ctx->printf(ctx, "M%g %g\n", tempo_bpm_get(), tempo_subdivision_get());
   ctx->printf(ctx, "# sample_rate %d voices %d waves %d\n",
     synth_sample_rate_get(), synth_config.voice_max, synth_config.wave_table_max);
   ctx->printf(ctx, "%s", delay_format());
@@ -444,7 +444,7 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
   if (seq_control_events[pattern_pointer]) ctx->printf(ctx, " yc1");
   if (seq_master_pattern_get() == pattern_pointer) ctx->printf(ctx, " yp%d", pattern_pointer);
   if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " [%s] yt", seq_text[pattern_pointer]);
-  ctx->puts(ctx, "");
+  ctx->printf(ctx, " # used:%d step:%d\n", seq_pattern_length[pattern_pointer], seq_pointer[pattern_pointer]);
   if (verbose) {
     for (int s = 0; s < len; s++) {
       char *line = seq_pattern[pattern_pointer][s];

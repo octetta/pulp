@@ -291,7 +291,7 @@ Sequence support is compiled under the `SEQ` feature.
 | `Y` | `pattern` | Clear a pattern | `pattern_reset()` |
 | `[commands] xa` | string | Append a compiled step | `seq_step_append()` |
 | `[commands] x step` | string | Set a compiled step; `x-` advances the edit cursor | `seq_step_set()` |
-| `[-N] x step` | string (`-0`..`-127`) | Cross-pattern wait step: holds pattern at step until target pattern `N` reaches step 0. Emits `SKRED_CONTROL_EVENT_PATTERN_WAIT` (code 8). | `seq_step_set()` |
+| `[-] x step` | string | Sequence flow commands: `-` stops pattern; `-N` waits for pattern `N`; `-jN`/`-j$N`/`-j&N` jump to step `N` (literal, variable, or stream); `-sN`/`-s$N`/`-s&N` stop if condition is non-zero. | `seq_step_set()` |
 | `<x step` | numeric | Copy a step's source text into the parser string | `seq_step_get()` |
 | `zg step`, `z g step` | `step` | Immediately jump pattern playback pointer to a specific step | `seq_step_goto()` |
 | `zq` | `0/1` | Queue pattern start (`zq1`) or stop (`zq0`) on next downbeat (`seq_pointer[0] == 0`) | `seq_state_queue()` |

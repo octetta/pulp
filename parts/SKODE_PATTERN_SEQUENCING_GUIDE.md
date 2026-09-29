@@ -141,16 +141,19 @@ x4 [v1l1 z%8]              # Halftime breakdown on step 4
 x6 [v0l1 z%32]             # Double-time build on step 6
 ```
 
-### C. Lockstep Polymetric Fills (`-0`)
-Create a 3-step drum fill in Pattern 1 that plays once and then pauses until Pattern 0 rolls back to step 0:
+### C. Sequence Flow Commands (`-`, `-j`, `-s`)
+Use special step strings beginning with `-` to control playback flow directly from the sequence timeline:
 
-```skode
-# Pattern 1 (Polymetric Fill):
-y1
-x0 [v1l1]                  # Snare hit
-x1 [v1l0.8 z*4]            # Snare ratchet fill
-x2 -0                      # Hold here until Pattern 0 reaches Step 0!
-```
+- **`-` (Stop)**: Halts the pattern and resets its pointer/offset to 0 (ready for a clean `z1` start).
+- **`-N` (Wait)**: Cross-pattern wait. Holds the pattern at this step until Pattern `N` reaches Step 0. Perfect for polymetric fills that lock back into the main beat:
+  ```skode
+  y1
+  x0 [v1l1]                  # Snare hit
+  x1 [v1l0.8 z*4]            # Snare ratchet fill
+  x2 -0                      # Hold here until Pattern 0 reaches Step 0!
+  ```
+- **`-j` (Jump)**: Jump the playhead instantly to a specific step. Accepts literals (`-j4`), variables (`-j$1`), or streams (`-j&0`). Useful for creating custom loop brackets inside a 128-step pattern.
+- **`-s` (Conditional Stop)**: Halts the pattern if a condition is non-zero (truthy). Accepts literals (`-s1` always stops, `-s0` never stops), variables (`-s$1`), or streams (`-s&0`).
 
 ---
 
@@ -209,6 +212,6 @@ Z0                                            # Stop all patterns at end of song
 | Quantized Downbeat Queue | `y<N> zq1` / `y<N> zq0` | `y1 zq1` (queue Pattern 1 to start on next bar) |
 | Jump Playhead | `zg <step>` | `zg4` (jump to step 4) |
 | Pattern Mute | `y<N> ym1` / `y<N> ym0` | `y1 ym1` (mute), `y1 ym0` (unmute) |
-| Cross-Pattern Wait Step | `[-N]` | `x2 -0` (wait at step 2 until Pattern 0 hits step 0) |
+| Sequence Flow | `-`, `-N`, `-jN`, `-sN` | `-` (stop), `-0` (wait for p0), `-j4` (jump), `-s&1` (cond stop) |
 
 Happy sequencing! 🎧🥁

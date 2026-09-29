@@ -4,6 +4,7 @@
 
 #define ANDS_VAR_MAX 128
 extern double global_var[ANDS_VAR_MAX];
+extern double skode_stream_pull(void *ctx, int n);
 #include "control-events.h"
 
 #include "skqueue.h"
@@ -260,11 +261,38 @@ void do_pattern(uint64_t now,
               if (var_id >= 0 && var_id < ANDS_VAR_MAX) {
                 jump_step = (int)global_var[var_id];
               }
+            } else if (step_str[2] == '&') {
+              int stream_id = atoi(&step_str[3]);
+              if (stream_id >= 0 && stream_id < 128) {
+                jump_step = (int)skode_stream_pull(NULL, stream_id);
+              }
             } else {
               jump_step = atoi(&step_str[2]);
             }
             if (jump_step >= 0 && jump_step < SEQ_STEPS_MAX) {
               seq_step_goto_locked(p, jump_step);
+            }
+          } else if (step_str[1] == 's') {
+            double condition_val = 0.0;
+            if (step_str[2] == '$') {
+              int var_id = atoi(&step_str[3]);
+              if (var_id >= 0 && var_id < ANDS_VAR_MAX) {
+                condition_val = global_var[var_id];
+              }
+            } else if (step_str[2] == '&') {
+              int stream_id = atoi(&step_str[3]);
+              if (stream_id >= 0 && stream_id < 128) {
+                condition_val = skode_stream_pull(NULL, stream_id);
+              }
+            } else {
+              condition_val = atof(&step_str[2]);
+            }
+            if (condition_val != 0.0) {
+              if (seq_control_events[p])
+                skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_END, now, p, step);
+              seq_state[p] = SEQ_STOPPED;
+              seq_pointer[p] = 0;
+              seq_offset[p] = 0;
             }
           } else if (step_str[1] >= '0' && step_str[1] <= '9') {
             int target_p = atoi(&step_str[1]);

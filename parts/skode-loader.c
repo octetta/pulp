@@ -252,7 +252,7 @@ int skode_asset_read(const char *path, skode_asset_kind_t kind,
   if (skode_asset_try_read(vfs_candidate, 0, data, size,
       resolved, resolved_size)) {
     if (resolved && resolved_size > 0)
-      snprintf(resolved, resolved_size, "%s", candidate);
+      snprintf(resolved, resolved_size, "%s", vfs_candidate);
     return 1;
   }
   if (skode_asset_try_read(candidate, 1, data, size, resolved, resolved_size))

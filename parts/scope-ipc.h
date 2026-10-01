@@ -7,7 +7,7 @@
 #include "synth-types.h"
 
 #define SKRED_SCOPE_MAGIC UINT32_C(0x534B5343)
-#define SKRED_SCOPE_VERSION 2
+#define SKRED_SCOPE_VERSION 3
 #define SKRED_SCOPE_NAME_MAX 128
 #define SKRED_SCOPE_DEFAULT_NAME "skred-scope"
 #define SKRED_SCOPE_DEFAULT_SECONDS 1.0
@@ -16,6 +16,15 @@
 #define SKRED_SCOPE_CHANNELS RECORD_CHANNELS
 #define SKRED_SCOPE_TRACK_NAME_MAX TEXT_MAX
 #define SKRED_SCOPE_ALL_CHANNELS ((UINT32_C(1) << SKRED_SCOPE_CHANNELS) - 1)
+
+
+#define SKRED_SCOPE_EVENT_TEXT_MAX 64
+#define SKRED_SCOPE_EVENT_CAPACITY 1024
+
+typedef struct {
+  uint64_t frame;
+  char text[SKRED_SCOPE_EVENT_TEXT_MAX];
+} skred_scope_event_t;
 
 typedef struct {
   uint32_t magic;
@@ -31,11 +40,13 @@ typedef struct {
   volatile uint64_t sequence;
   volatile uint64_t write_frame;
   volatile uint64_t active;
+  uint32_t event_capacity;
+  volatile uint64_t event_sequence;
   float track_volume_db[SKRED_SCOPE_TRACK_COUNT];
   char track_name[SKRED_SCOPE_TRACK_COUNT][SKRED_SCOPE_TRACK_NAME_MAX];
 } skred_scope_header_t;
 
-_Static_assert(sizeof(skred_scope_header_t) == 264,
+_Static_assert(sizeof(skred_scope_header_t) == 280,
                "scope IPC header layout changed");
 _Static_assert(offsetof(skred_scope_header_t, sequence) == 48,
                "scope IPC sequence offset changed");
@@ -77,11 +88,13 @@ void scope_ipc_status(skred_scope_status_t *status);
 int scope_ipc_track_metadata_set(int track, const char *name, float volume_db);
 synth_record_bus_t *scope_ipc_begin_block(int frame_count);
 void scope_ipc_publish(const float *frames, int frame_count);
+void scope_ipc_publish_event(const char *text);
 
 int scope_ipc_reader_open(skred_scope_reader_t *reader, const char *name);
 void scope_ipc_reader_close(skred_scope_reader_t *reader);
 int scope_ipc_reader_latest(const skred_scope_reader_t *reader, float *output,
                             uint32_t requested_frames,
                             uint64_t *first_frame_out);
+int scope_ipc_reader_latest_events(const skred_scope_reader_t *reader, uint64_t *last_event_sequence, skred_scope_event_t *out_events, uint32_t max_events);
 
 #endif

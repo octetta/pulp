@@ -861,6 +861,26 @@ static skode_word_t word__slashss = { WID("/ss"), .execute = word_exec__slashss,
 static skode_word_t word__slashs_q = { WID("/s?"), .execute = word_exec__slashs_q, .safety = WORD_IMMEDIATE_ONLY , .category = "scope" };
 #endif
 
+
+#ifdef SCOPE
+static int word_exec__slashsm(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  (void)self; (void)atom; (void)arg; (void)argc;
+  
+  if (ands_string_fresh(ctx->parse)) {
+    const char *text = ands_string(ctx->parse);
+    if (text) {
+      scope_ipc_publish_event(text);
+      ctx->printf(ctx, "# scope event published: %s\n", text);
+    }
+  } else {
+    ctx->printf(ctx, "# /sm requires a string argument, e.g. /sm \"hello\"\n");
+  }
+  return 0;
+}
+static skode_word_t word__slashsm = { WID("/sm"), .execute = word_exec__slashsm, .safety = WORD_IMMEDIATE_ONLY , .category = "scope" };
+#endif
+
 void skode_register_words_misc(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word__slashals);
   skode_dict_register(vocab, &word__slasha_q);
@@ -927,5 +947,6 @@ void skode_register_words_misc(skode_vocab_t *vocab) {
 #endif
 #ifdef SCOPE
   skode_dict_register(vocab, &word__slashs_q);
+  skode_dict_register(vocab, &word__slashsm);
 #endif
 }

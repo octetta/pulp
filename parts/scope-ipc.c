@@ -138,7 +138,7 @@ static size_t scope_mapping_bytes(uint32_t capacity_frames,
     return 0;
   }
   return sizeof(skred_scope_header_t) +
-    (size_t)capacity_frames * channels * sizeof(float);
+    (size_t)capacity_frames * channels * sizeof(float) + (size_t)SKRED_SCOPE_EVENT_CAPACITY * sizeof(skred_scope_event_t);
 }
 
 static void scope_ipc_track_metadata_defaults(void) {
@@ -292,10 +292,12 @@ int scope_ipc_start(const char *name, uint32_t channel_mask,
   scope_ipc.header->capacity_frames = capacity;
   scope_ipc.header->channel_mask = channel_mask;
   scope_ipc.header->generation = scope_ipc.generation;
+  scope_ipc.header->event_capacity = SKRED_SCOPE_EVENT_CAPACITY;
   scope_ipc_refresh_track_metadata_locked();
   scope_atomic_store(&scope_ipc.header->sequence, 0);
   scope_atomic_store(&scope_ipc.header->write_frame, 0);
   scope_atomic_store(&scope_ipc.header->active, 1);
+  scope_atomic_store(&scope_ipc.header->event_sequence, 0);
   atomic_store_int(&scope_ipc.enabled, 1);
   simple_mutex_unlock(&scope_ipc.lifecycle_mutex);
   return 0;
@@ -524,4 +526,54 @@ int scope_ipc_reader_latest(const skred_scope_reader_t *reader, float *output,
     }
   }
   return 0;
+}
+
+
+void scope_ipc_publish_event(const char *text) {
+  if (!atomic_load_int(&scope_ipc.enabled) || !scope_ipc.header) return;
+  
+  uint64_t seq = scope_atomic_load(&scope_ipc.header->event_sequence);
+  uint32_t cap = scope_ipc.header->event_capacity;
+  if (cap == 0) return;
+  
+  skred_scope_event_t *events = (skred_scope_event_t *)((char *)scope_ipc.header + 
+      sizeof(skred_scope_header_t) + 
+      (size_t)scope_ipc.header->capacity_frames * scope_ipc.header->channel_count * sizeof(float));
+      
+  uint32_t idx = seq % cap;
+  events[idx].frame = scope_atomic_load(&scope_ipc.header->write_frame);
+  strncpy(events[idx].text, text, SKRED_SCOPE_EVENT_TEXT_MAX - 1);
+  events[idx].text[SKRED_SCOPE_EVENT_TEXT_MAX - 1] = '\0';
+  
+  scope_atomic_store(&scope_ipc.header->event_sequence, seq + 1);
+}
+
+
+int scope_ipc_reader_latest_events(const skred_scope_reader_t *reader, uint64_t *last_event_sequence, skred_scope_event_t *out_events, uint32_t max_events) {
+  if (!reader || !reader->header) return -1;
+  uint64_t seq = reader->header->event_sequence;
+  if (*last_event_sequence >= seq) return 0; // no new events
+  
+  uint32_t cap = reader->header->event_capacity;
+  if (cap == 0) return 0;
+  
+  uint64_t start_seq = *last_event_sequence;
+  if (seq - start_seq > max_events) {
+    start_seq = seq - max_events;
+  }
+  if (seq - start_seq > cap) {
+    start_seq = seq - cap;
+  }
+  
+  skred_scope_event_t *events = (skred_scope_event_t *)((char *)reader->header + 
+      sizeof(skred_scope_header_t) + 
+      (size_t)reader->header->capacity_frames * reader->header->channel_count * sizeof(float));
+      
+  int count = 0;
+  for (uint64_t s = start_seq; s < seq; s++) {
+    out_events[count++] = events[s % cap];
+  }
+  
+  *last_event_sequence = seq;
+  return count;
 }

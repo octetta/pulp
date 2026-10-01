@@ -64,6 +64,22 @@ void wave_table_init(int flag) {
       case WAVE_TABLE_KRG14: name = "dwg-dbass"; break;
       case WAVE_TABLE_KRG15: name = "dwg-bell"; break;
       case WAVE_TABLE_KRG16: name = "dwg-whistle"; break;
+      case WAVE_TABLE_KRG17: name = "krg-17"; size = 2048; break;
+      case WAVE_TABLE_KRG18: name = "krg-18"; size = 2048; break;
+      case WAVE_TABLE_KRG19: name = "krg-19"; size = 2048; break;
+      case WAVE_TABLE_KRG20: name = "krg-20"; size = 2048; break;
+      case WAVE_TABLE_KRG21: name = "krg-21"; size = 2048; break;
+      case WAVE_TABLE_KRG22: name = "krg-22"; size = 2048; break;
+      case WAVE_TABLE_KRG23: name = "krg-23"; size = 2048; break;
+      case WAVE_TABLE_KRG24: name = "krg-24"; size = 2048; break;
+      case WAVE_TABLE_KRG25: name = "krg-25"; size = 2048; break;
+      case WAVE_TABLE_KRG26: name = "krg-26"; size = 2048; break;
+      case WAVE_TABLE_KRG27: name = "krg-27"; size = 2048; break;
+      case WAVE_TABLE_KRG28: name = "krg-28"; size = 2048; break;
+      case WAVE_TABLE_KRG29: name = "krg-29"; size = 2048; break;
+      case WAVE_TABLE_KRG30: name = "krg-30"; size = 2048; break;
+      case WAVE_TABLE_KRG31: name = "krg-31"; size = 2048; break;
+      case WAVE_TABLE_KRG32: name = "krg-32"; size = 2048; break;
       default: name = "?"; break;
     }
     strncpy(sw.name[w], name, WAVE_NAME_MAX);
@@ -113,6 +129,22 @@ void wave_table_init(int flag) {
         case WAVE_TABLE_KRG14: f = W14[off]; break;
         case WAVE_TABLE_KRG15: f = W15[off]; break;
         case WAVE_TABLE_KRG16: f = W16[off]; break;
+        case WAVE_TABLE_KRG17: f = W17[off]; break;
+        case WAVE_TABLE_KRG18: f = W18[off]; break;
+        case WAVE_TABLE_KRG19: f = W19[off]; break;
+        case WAVE_TABLE_KRG20: f = W20[off]; break;
+        case WAVE_TABLE_KRG21: f = W21[off]; break;
+        case WAVE_TABLE_KRG22: f = W22[off]; break;
+        case WAVE_TABLE_KRG23: f = W23[off]; break;
+        case WAVE_TABLE_KRG24: f = W24[off]; break;
+        case WAVE_TABLE_KRG25: f = W25[off]; break;
+        case WAVE_TABLE_KRG26: f = W26[off]; break;
+        case WAVE_TABLE_KRG27: f = W27[off]; break;
+        case WAVE_TABLE_KRG28: f = W28[off]; break;
+        case WAVE_TABLE_KRG29: f = W29[off]; break;
+        case WAVE_TABLE_KRG30: f = W30[off]; break;
+        case WAVE_TABLE_KRG31: f = W31[off]; break;
+        case WAVE_TABLE_KRG32: f = W32[off]; break;
         default: f = 0; break;
       }
       sw.data[w][off++] = f;

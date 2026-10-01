@@ -76,30 +76,47 @@ void seq_edit_unlock(void) {
   simple_mutex_unlock(&seq_edit_mutex);
 }
 
-int tempo_set_subdivision(float bpm, float subdivision) {
+int tempo_set_subdivision_locked(float bpm, float subdivision, int in_audio_thread) {
   if (!isfinite(bpm) || bpm < SEQ_TEMPO_MIN_BPM ||
       bpm > SEQ_TEMPO_MAX_BPM) return -1;
   if (!isfinite(subdivision) || subdivision <= 0.0f) subdivision = 16.0f;
-  seq_edit_lock();
+  
   uint64_t now = SAMPLE_COUNT_GET();
   double samples_per_step = tempo_time_per_step * (double)MAIN_SAMPLE_RATE;
   double tick_origin = (double)master_tick;
+  
   if (samples_per_step > 0.0 && now > seq_sample_origin) {
-    tick_origin = seq_tick_origin +
-      ((double)(now - seq_sample_origin) / samples_per_step);
-    if (tick_origin < (double)master_tick) tick_origin = (double)master_tick;
+    if (in_audio_thread) {
+      double exact_sample = (double)seq_sample_origin + 
+                            ((double)(master_tick - seq_tick_origin) * samples_per_step);
+      seq_sample_origin = (uint64_t)exact_sample;
+      tick_origin = (double)master_tick;
+    } else {
+      tick_origin = seq_tick_origin +
+        ((double)(now - seq_sample_origin) / samples_per_step);
+      if (tick_origin < (double)master_tick) tick_origin = (double)master_tick;
+      seq_sample_origin = now;
+    }
+  } else {
+    seq_sample_origin = now;
   }
-  seq_sample_origin = now;
+  
   seq_tick_origin = tick_origin;
   tempo_subdivision_val = subdivision;
   float step_freq_hz = (bpm * subdivision) / 240.0f;
   float time_per_step = 1.0f / step_freq_hz;
   tempo_time_per_step = time_per_step;
-  atomic_store_int(&tempo_step_micros,
-    (int)(time_per_step * 1000000.0f + 0.5f));
+  atomic_store_int(&tempo_step_micros, (int)(time_per_step * 1000000.0f + 0.5f));
   atomic_store_int(&tempo_bpm_milli, (int)(bpm * 1000.0f + 0.5f));
-  seq_edit_unlock();
+  
   return 0;
+}
+
+int tempo_set_subdivision(float bpm, float subdivision) {
+  seq_edit_lock();
+  int res = tempo_set_subdivision_locked(bpm, subdivision, 0);
+  seq_edit_unlock();
+  return res;
 }
 
 int tempo_set(float bpm) {

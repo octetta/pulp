@@ -5,6 +5,7 @@ set -euo pipefail
 rm -rf ../sk-out ../wav-out
 mkdir -p ../sk-out ../wav-out
 cp ../sk/909.sk ../sk-out     # from skred
+cp ../sk/910.sk ../sk-out     # from skred
 cp ../sk/124.sk ../sk-out     # from skred
 cp ../sk/20??.sk ../sk-out     # from skred
 cp ../sk/*.ks ../sk-out # from k-synth

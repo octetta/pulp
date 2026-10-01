@@ -95,6 +95,7 @@ enum {
   SKODE_OP_DELAY_TIME,
   SKODE_OP_DELAY_SYNC,
   SKODE_OP_DELAY_GRIT,
+  SKODE_OP_TEMPO,
 };
 
 typedef uint16_t skode_opcode_t;

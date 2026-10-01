@@ -3,18 +3,19 @@
 M 120
 
 # Load bundled Ksynth drum & synth patches into wave slots:
-[sk/drums-kick.ks]   /ks k>d d>r /r 100
-[sk/drums-snare.ks]  /ks k>d d>r /r 101
-[sk/drums-chh.ks]    /ks k>d d>r /r 102
-[sk/gm-lead-moog.ks] /ks k>d d>r /r 103
+# [sk/drums-kick.ks]   /ks k>d d>r /r 100
+# [sk/drums-snare.ks]  /ks k>d d>r /r 101
+# [sk/drums-chh.ks]    /ks k>d d>r /r 102
+# [sk/gm-lead-moog.ks] /ks k>d d>r /r 103
 
 # Voice Setup (Natural root pitch f440 for drums v0 auto-chokes kick tails):
 
-v0 w100 f440 a10          # Kick
-v1 w101 f440 a8           # Snare
-v2 w102 f440 a3           # Closed Hat
-v3 w103 f220 a8           # Moog Synth Lead
-
+v0 w82 f440 a10          # Kick
+v1 w83 f440 a8           # Snare
+v2 w84 f440 a3           # Closed Hat
+# v3 w103 f220 a8           # Moog Synth Lead
+v3 w15 a4 N-12    t .01 .4 0 0 G4 H4
+v4 w15 a4 N-24,10 t .01 .4 0 0
 # 16-Step Pattern (Full 4/4 Bar @ 120 BPM)
 y0
 [v0l1 v3n48l1] x0

@@ -76,6 +76,7 @@ void skode_repeat_macro(skode_t *ctx, const double *arg, int argc,
 int skode_opcode_supported(skode_opcode_t opcode) {
   switch (opcode) {
     case SKODE_OP_VOICE:
+    case SKODE_OP_TEMPO:
     case SKODE_OP_PATTERN_STATE:
     case SKODE_OP_PATTERN_LOOP:
     case SKODE_OP_STREAM_COPY:
@@ -616,6 +617,13 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
         return 0;
       }
       return -1;
+    case SKODE_OP_TEMPO:
+      if (opcode->argc >= 1) {
+        float bpm = (float)opcode->arg[0];
+        float sub = (opcode->argc >= 2 && opcode->arg[1] > 0.0) ? (float)opcode->arg[1] : 16.0f;
+        tempo_set_subdivision_locked(bpm, sub, 1);
+      }
+      return 0;
     case SKODE_OP_NONE:
     case SKODE_OP_DELAY:
     case SKODE_OP_VOICE:

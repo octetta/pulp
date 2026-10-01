@@ -60,6 +60,7 @@ uint64_t seq_master_tick(void);
 void pattern_reset(int p);
 int queue_event(uint64_t when, const event_t *event, int tag);
 int tempo_set_subdivision(float bpm, float subdivision);
+int tempo_set_subdivision_locked(float bpm, float subdivision, int in_audio_thread);
 int tempo_set(float bpm);
 float tempo_bpm_get(void);
 float tempo_subdivision_get(void);

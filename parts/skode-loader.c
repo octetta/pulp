@@ -234,29 +234,33 @@ int skode_asset_read(const char *path, skode_asset_kind_t kind,
     return 0;
   }
 
+  const char *dirs[] = { "wav", "sk", "ks" };
+  const char *primary_dir = NULL;
+  
   switch (kind) {
-    case SKODE_ASSET_SKODE: fallback_dir = "sk"; break;
-    case SKODE_ASSET_WAVE: fallback_dir = "wav"; break;
-    case SKODE_ASSET_KSYNTH: fallback_dir = "ks"; break;
+    case SKODE_ASSET_SKODE: primary_dir = "sk"; break;
+    case SKODE_ASSET_WAVE: primary_dir = "wav"; break;
+    case SKODE_ASSET_KSYNTH: primary_dir = "ks"; break;
     default: break;
   }
-  if (!fallback_dir) return 0;
 
-  snprintf(candidate, sizeof(candidate), "%s/%s", fallback_dir, path);
-  if (skode_asset_try_read(candidate, 0, data, size,
-      resolved, resolved_size)) {
-    return 1;
+  for (int i = -1; i < 3; i++) {
+    fallback_dir = (i == -1) ? primary_dir : dirs[i];
+    if (!fallback_dir) continue;
+    if (i >= 0 && primary_dir && strcmp(fallback_dir, primary_dir) == 0) continue; // Already tried primary
+
+    snprintf(candidate, sizeof(candidate), "%s/%s", fallback_dir, path);
+    if (skode_asset_try_read(candidate, 0, data, size, resolved, resolved_size)) return 1;
+
+    char vfs_candidate[2048];
+    snprintf(vfs_candidate, sizeof(vfs_candidate), "/%s", candidate);
+    if (skode_asset_try_read(vfs_candidate, 0, data, size, resolved, resolved_size)) {
+      if (resolved && resolved_size > 0)
+        snprintf(resolved, resolved_size, "%s", vfs_candidate);
+      return 1;
+    }
+    if (skode_asset_try_read(candidate, 1, data, size, resolved, resolved_size)) return 1;
   }
-  char vfs_candidate[2048];
-  snprintf(vfs_candidate, sizeof(vfs_candidate), "/%s", candidate);
-  if (skode_asset_try_read(vfs_candidate, 0, data, size,
-      resolved, resolved_size)) {
-    if (resolved && resolved_size > 0)
-      snprintf(resolved, resolved_size, "%s", vfs_candidate);
-    return 1;
-  }
-  if (skode_asset_try_read(candidate, 1, data, size, resolved, resolved_size))
-    return 1;
   return 0;
 }
 

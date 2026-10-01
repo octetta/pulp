@@ -1528,7 +1528,7 @@ static int word_exec_off(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 static skode_word_t word_on  = { WID("on"),  .execute = word_exec_on,  .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_off = { WID("off"), .execute = word_exec_off, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_M = { WID("M"), .execute = word_exec_M, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
+static skode_word_t word_M = { WID("M"), .opcode_id = SKODE_OP_TEMPO, .execute = word_exec_M, .safety = WORD_REAL_TIME_SAFE, .max_args = 2, .category = "voice" };
 static skode_word_t word_N = { WID("N"), .execute = word_exec_N, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_ds = { WID("ds"), .execute = word_exec_ds, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_DG = { WID("DG"), .execute = word_exec_DG, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };

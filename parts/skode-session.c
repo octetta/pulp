@@ -289,7 +289,7 @@ int skode_session_save(skode_t *ctx, const char *filename) {
     
     if (ok) {
       char load_cmd[256];
-      snprintf(load_cmd, sizeof(load_cmd), "[%s] %d /w\n", entry_name, wave);
+      snprintf(load_cmd, sizeof(load_cmd), "[%s] %d /ws\n", entry_name, wave);
       skode_session_buffer_append(&state, load_cmd, strlen(load_cmd));
     }
   }
@@ -326,6 +326,9 @@ int skode_session_save(skode_t *ctx, const char *filename) {
 }
 
 int skode_session_load(skode_t *ctx, const char *filename) {
+  char saved_filename[1024];
+  if (filename) snprintf(saved_filename, sizeof(saved_filename), "%s", filename);
+
   if (!ctx || !ctx->parse || !filename || !filename[0]) return -1;
   int live_capture_state = atomic_load_int(&sampling.state);
   if (live_capture_state == SAMPLE_STATE_ARMED || live_capture_state == SAMPLE_STATE_RECORDING) {
@@ -338,7 +341,7 @@ int skode_session_load(skode_t *ctx, const char *filename) {
     return -1;
   }
   
-  if (skred_vfs_mount(filename)) {
+  if (skred_vfs_mount(saved_filename)) {
     ctx->printf(ctx, "# vfs %s\n", skred_vfs_status());
     void *data = NULL;
     size_t size = 0;
@@ -384,7 +387,7 @@ int skode_session_load(skode_t *ctx, const char *filename) {
       }
       
       skred_vfs_free_file(data);
-      if (r == 0) ctx->printf(ctx, "# session restored [%s]\n", filename);
+      if (r == 0) ctx->printf(ctx, "# session restored [%s]\n", saved_filename);
       else ctx->printf(ctx, "# session restore failed\n");
       return r;
     } else {
@@ -392,7 +395,7 @@ int skode_session_load(skode_t *ctx, const char *filename) {
       return -1;
     }
   } else {
-    ctx->printf(ctx, "# cannot mount session [%s]\n", filename);
+    ctx->printf(ctx, "# cannot mount session [%s]\n", saved_filename);
     return -1;
   }
   return 0;

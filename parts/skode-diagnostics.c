@@ -146,7 +146,44 @@ void global_status_show(skode_t *ctx, int full) {
       ctx->printf(ctx, "# len=%d\n", global_stream[i].len);
     }
   }
+
+  for (int i = 0; i < SKODE_STRING_SLOT_MAX; i++) {
+    if (ctx->string_slot[i][0]) {
+      ctx->printf(ctx, "[%s] s> %d\n", ctx->string_slot[i], i);
+    }
+  }
+  if (ctx->parse && ands_data_len(ctx->parse) > 0) {
+    ctx->printf(ctx, "( ");
+    double *d = ands_data(ctx->parse);
+    for (int j = 0; j < ands_data_len(ctx->parse); j++) {
+      ctx->printf(ctx, "%g ", d[j]);
+    }
+    ctx->printf(ctx, ")\n");
+  }
+  {
+    skred_control_response_snapshot_t responses[64];
+    int response_count = skred_control_response_snapshot(responses, 64);
+    for (int i = 0; i < response_count; i++) {
+      ctx->printf(ctx, "[%s] %d %d /ceb\n", responses[i].command, responses[i].type, responses[i].key);
+    }
+    if (skred_control_response_enabled()) {
+      ctx->printf(ctx, "1 /ce!\n");
+    }
+  }
+  {
+    skred_midi_route_snapshot_t routes[SKRED_MIDI_ROUTE_MAX];
+    int route_count = skred_midi_route_snapshot(routes, SKRED_MIDI_ROUTE_MAX);
+    for (int i = 0; i < route_count; i++) {
+      ctx->printf(ctx, "%d %d %d %g /m%c\n", routes[i].channel, routes[i].target_type, routes[i].target, routes[i].bend_semitones, routes[i].target_type == SKRED_MIDI_ROUTE_VOICE ? 'v' : 'p');
+    }
+    skred_midi_binding_snapshot_t bindings[SKRED_MIDI_BINDING_MAX];
+    int binding_count = skred_midi_binding_snapshot(bindings, SKRED_MIDI_BINDING_MAX);
+    for (int i = 0; i < binding_count; i++) {
+      ctx->printf(ctx, "[%s] %d %d %d /mb\n", bindings[i].command, bindings[i].type, bindings[i].channel, bindings[i].data1);
+    }
+  }
 }
+
 
 int show_stats_cb(int n, uint64_t timestamp, uint64_t id, int tag, const event_t *e, void *user) {
   uint64_t now = SAMPLE_COUNT_GET();

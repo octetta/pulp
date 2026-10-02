@@ -349,43 +349,7 @@ int skode_session_load(skode_t *ctx, const char *filename) {
     if (skode_asset_read("main.sk", SKODE_ASSET_SKODE, &data, &size, resolved, sizeof(resolved))) {
       ctx->printf(ctx, "# auto-loading %s\n", resolved[0] ? resolved : "main.sk");
       
-      const char *text = (const char *)data;
-      size_t text_len = size;
-      size_t pos = 0;
-      int r = 0;
-      while (pos < text_len) {
-        size_t start = pos;
-        int in_string = 0;
-        int in_comment = 0;
-        
-        while (pos < text_len) {
-          char c = text[pos];
-          if (in_comment) {
-            if (c == '\n' || c == '\r') break;
-          } else if (in_string) {
-            if (c == ']') in_string = 0;
-          } else {
-            if (c == '[') in_string = 1;
-            else if (c == '#') in_comment = 1;
-            else if (c == '\n' || c == '\r') break;
-          }
-          pos++;
-        }
-        size_t len = pos - start;
-        char *chunk = (char *)malloc(len + 1);
-        if (chunk) {
-          memcpy(chunk, text + start, len);
-          chunk[len] = '\0';
-          r = skode_consume(chunk, ctx);
-          free(chunk);
-          if (r != 0) break;
-        }
-        
-        while (pos < text_len && (text[pos] == '\n' || text[pos] == '\r')) {
-            pos++;
-        }
-      }
-      
+      int r = skode_load_buffer(ctx, (const char *)data, size, resolved[0] ? resolved : "main.sk", 0);
       skred_vfs_free_file(data);
       if (r == 0) ctx->printf(ctx, "# session restored [%s]\n", saved_filename);
       else ctx->printf(ctx, "# session restore failed\n");

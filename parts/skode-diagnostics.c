@@ -48,6 +48,7 @@ void system_show(skode_t *ctx) {
     ctx = &wprime;
     skode_init(ctx);
   }
+  ctx->printf(ctx, "# active_voices_rendered %d\n", atomic_load_int(&skred_global_engine.active_voices_count));
   #ifdef UDP
   int u = udp_info();
   int e = skred_udp_events_info();

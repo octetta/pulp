@@ -232,6 +232,7 @@ typedef struct skred_engine_s {
     synth_config_t config;
     int sample_rate;
     atomic_uint64_t sample_count;
+    atomic_int_t active_voices_count;
 
     /* Allocations */
     synth_voices_t sv;

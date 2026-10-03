@@ -275,11 +275,14 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
 
   int block_active[VOICE_MAX_HARD_LIMIT / VOICE_ALIGN] = {0};
   int num_blocks = nvoices / VOICE_ALIGN;
+  int current_active_voices = 0;
   for (int n = 0; n < nvoices; n++) {
     if (!sv.finished[n] || sv.mark_go[n]) {
       block_active[n / VOICE_ALIGN] = 1;
+      current_active_voices++;
     }
   }
+  atomic_store_int(&skred_global_engine.active_voices_count, current_active_voices);
 
   uint64_t callback_sample = SAMPLE_COUNT_ADD(num_frames);
 

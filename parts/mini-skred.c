@@ -10,7 +10,7 @@
 
 void usage(void) {
   printf("# skred\n");
-  printf("-v<voice-count> (1 to 64)\n");
+  printf("-v<voice-count> (1 to 256)\n");
   printf("-r<requested-frame-size> (128 to ?)\n");
   printf("-n = do not use editor (for use as a subprocess)\n");
   printf("-p<udp-port> (0 means no udp)\n");
@@ -102,7 +102,7 @@ static int mini_run_command(const char *line) {
 
 int main(int argc, char **argv) {
   int useue = 1;
-  unsigned int vc = 64;
+  unsigned int vc = 256;
   unsigned int req = 128;
   int udp_port = 60440;
   int events_port = 0; // Default off

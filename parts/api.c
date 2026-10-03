@@ -1943,7 +1943,7 @@ void skred_set_audio_device(int playback_idx, int capture_idx) {
 }
 
 static unsigned int saved_req = 128;
-static unsigned int saved_voices = 64;
+static unsigned int saved_voices = 256;
 static int saved_port = 60440;
 
 int skred_start(unsigned int req_audio_frames, unsigned int voices, int port) {

@@ -10,7 +10,7 @@ extern "C" {
 
 #define SKRED_POLY_GROUP_MAX 16
 #define SKRED_POLY_POOL_MAX 16
-#define SKRED_POLY_GROUP_VOICE_MAX 64
+#define SKRED_POLY_GROUP_VOICE_MAX 256
 #define SKRED_POLY_HELD_MAX 256
 
 #include "synth-config.h"

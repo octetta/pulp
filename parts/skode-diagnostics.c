@@ -19,7 +19,8 @@ void voice_show(skode_t *ctx, int v, char c, int verbose) {
 
 int voice_show_all(skode_t *ctx, int voice, int verbose) {
   for (int i=0; i<synth_config.voice_max; i++) {
-    if (sv.user_amp[i] <= SILENT) continue;
+    int active = (!sv.finished[i] || sv.mark_go[i]);
+    if (!active && i != voice) continue;
     char t = ' ';
     if (i == voice) t = '*';
     voice_show(ctx, i, t, verbose);

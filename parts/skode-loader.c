@@ -337,6 +337,21 @@ int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
     ctx->printf(ctx, "# cannot load %s\n", label ? label : "(null)");
     r = -1;
   }
+  if (r == 0) {
+    ctx->voice = loader->voice;
+    ctx->pattern = loader->pattern;
+    ctx->step = loader->step;
+    ctx->flag = loader->flag;
+    ctx->trace = loader->trace;
+    ctx->verbose = loader->verbose;
+    memcpy(ctx->string_slot, loader->string_slot, sizeof(ctx->string_slot));
+    if (ctx->parse && loader->parse) {
+      int count = ands_data_len(loader->parse);
+      if (count > ands_data_cap(ctx->parse)) ands_data_resize(ctx->parse, count);
+      memcpy(ands_data(ctx->parse), ands_data(loader->parse), count * sizeof(double));
+      ands_data_len_set(ctx->parse, count);
+    }
+  }
   skode_free(loader);
   free(loader);
   return r;

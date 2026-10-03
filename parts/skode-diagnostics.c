@@ -339,9 +339,9 @@ void opcode_queue_show(skode_t *ctx) {
 }
 
 void opcode_pattern_step_show(skode_t *ctx, int pattern, int step) {
-  const event_program_t *program = &seq_program[pattern][step];
+  const event_program_t *program = &(*seq_step_program(pattern, step));
   ctx->printf(ctx, "# pattern:%d step:%d source:[%s]\n",
-    pattern, step, seq_pattern[pattern][step]);
+    pattern, step, seq_step_source(pattern, step));
   if (program->count == 0) {
     ctx->puts(ctx, "#   (no-op)");
     return;
@@ -484,7 +484,7 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
   ctx->printf(ctx, " # used:%d step:%d\n", seq_pattern_length[pattern_pointer], seq_pointer[pattern_pointer]);
   if (verbose) {
     for (int s = 0; s < len; s++) {
-      char *line = seq_pattern[pattern_pointer][s];
+      const char *line = seq_step_source(pattern_pointer, s);
       ctx->printf(ctx, "[%s] x%d", line, s);
       ctx->puts(ctx, "");
     }

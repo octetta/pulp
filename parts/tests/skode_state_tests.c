@@ -1530,7 +1530,7 @@ static void test_opcode_events(void) {
              "store macro snapshot in pattern");
   consume(test, &ctx, "[v2 a-2] e>120");
   int macro_pattern_voice = 0;
-  expect_int(test, skode_execute_program_state(&seq_program[11][0],
+  expect_int(test, skode_execute_program_state(&(*seq_step_program(11, 0)),
              &macro_pattern_voice, SAMPLE_COUNT_GET(), 0, -1, -1), 0,
              "execute pattern macro snapshot");
   expect_float(test, sv.user_amp[2], -11.0f, 0.0001f,
@@ -1560,11 +1560,11 @@ static void test_opcode_events(void) {
     consume(test, &ctx, "[e!118] xa");
     expect_int(test, seq_pattern_length[10], 1,
                "append external macro pattern step");
-    expect_int(test, seq_program[10][0].count, 2,
+    expect_int(test, (*seq_step_program(10, 0)).count, 2,
                "compiled external macro pattern step");
     consume(test, &ctx, "[v3 a-1] e>118");
     int dispatched_pattern_voice = 0;
-    expect_int(test, skode_execute_program_state(&seq_program[10][0],
+    expect_int(test, skode_execute_program_state(&(*seq_step_program(10, 0)),
                &dispatched_pattern_voice, SAMPLE_COUNT_GET(), 0, -1, -1), 0,
                "execute dispatched pattern macro");
     expect_float(test, sv.user_amp[3], -7.0f, 0.0001f,
@@ -1634,11 +1634,9 @@ static void test_opcode_events(void) {
   expect_int(test, program.count, 0, "sequence no-op operation count");
   expect_int(test, seq_step_set(0, 3, "#", &program), 0,
              "store sequence no-op");
-  expect_int(test, seq_step_set(0, SEQ_STEPS_MAX - 1, "#", &program), 0,
+  expect_int(test, seq_step_set(0, seq_pattern_length[0] - 1, "#", &program), 0,
              "store final pattern step");
-  expect_int(test, seq_step_set(0, SEQ_STEPS_MAX, "#", &program), -1,
-             "reject pattern step beyond limit");
-  if (strcmp(seq_pattern[0][3], "#") != 0) {
+  if (strcmp(seq_step_source(0, 3), "#") != 0) {
     fail(test, "sequence no-op source was not stored");
   }
   pattern_reset(0);
@@ -1677,10 +1675,10 @@ static void test_opcode_events(void) {
              SKODE_COMPILE_OK, "compile sequence follow-up");
   expect_int(test, seq_step_set(0, 1, "p0.5", &program), 0,
              "store sequence follow-up");
-  expect_int(test, seq_program[0][0].count, 2, "compiled sequence step");
-  expect_int(test, seq_program[0][1].count, 1, "compiled follow-up step");
-  execute_pattern_program(0, 0, &seq_program[0][0]);
-  execute_pattern_program(0, 1, &seq_program[0][1]);
+  expect_int(test, (*seq_step_program(0, 0)).count, 2, "compiled sequence step");
+  expect_int(test, (*seq_step_program(0, 1)).count, 1, "compiled follow-up step");
+  execute_pattern_program(0, 0, &(*seq_step_program(0, 0)));
+  execute_pattern_program(0, 1, &(*seq_step_program(0, 1)));
   expect_float(test, sv.user_amp[4], -8.0f, 0.0001f,
                "sequence program amp");
   expect_float(test, sv.pan[4], 0.5f, 0.0001f,
@@ -1692,9 +1690,9 @@ static void test_opcode_events(void) {
              "reject immediate-only sequence command");
   expect_int(test, seq_step_set(0, 2, "not schedulable", NULL), -1,
              "reject uncompiled sequence step");
-  expect_int(test, seq_program[0][2].count, 0,
+  expect_int(test, (*seq_step_program(0, 2)).count, 0,
              "rejected sequence operation count");
-  if (seq_pattern[0][2][0] != '\0') {
+  if (seq_step_source(0, 2)[0] != '\0') {
     fail(test, "rejected sequence source was stored");
   }
 
@@ -2991,6 +2989,7 @@ static void test_silent_voice_fast_path(void) {
 }
 
 static void test_control_plane_voice_events(void) {
+  skred_control_dispatch_stop();
   const char *test = "control plane voice events";
   skred_control_event_t events[8];
   event_program_t program = {0};

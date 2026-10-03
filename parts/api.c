@@ -924,7 +924,7 @@ int skred_pattern_get_step(int pattern, int step, char *buf, int buf_size) {
   if (step < 0 || step >= SEQ_STEPS_MAX) return -1;
   if (!buf || buf_size <= 0) return -1;
   seq_edit_lock();
-  const char *src = seq_pattern[pattern][step];
+  const char *src = seq_step_source(pattern, step);
   if (src[0] == '\0') {
     seq_edit_unlock();
     buf[0] = '\0';

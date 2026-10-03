@@ -22,7 +22,44 @@ extern double skode_stream_pull(void *ctx, int n);
 int requested_seq_frames_per_callback = SEQ_FRAMES_PER_CALLBACK;
 int seq_frames_per_callback = 0;
 
-char seq_pattern[PATTERNS_MAX][SEQ_STEPS_MAX][STEP_MAX] = {{{0}}};
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char *source;
+    event_program_t *program;
+} seq_step_t;
+
+typedef struct {
+    seq_step_t *steps;
+    int capacity;
+} seq_pattern_storage_t;
+
+static seq_pattern_storage_t seq_storage[PATTERNS_MAX];
+static const event_program_t empty_program = {0};
+
+const char *seq_step_source(int pattern, int step) {
+    if (pattern < 0 || pattern >= PATTERNS_MAX || step < 0 || step >= seq_pattern_length[pattern]) {
+        return "";
+    }
+    if (step >= seq_storage[pattern].capacity) return "";
+    const char *s = seq_storage[pattern].steps[step].source;
+    return s ? s : "";
+}
+
+const event_program_t *seq_step_program(int pattern, int step) {
+    if (pattern < 0 || pattern >= PATTERNS_MAX || step < 0 || step >= seq_pattern_length[pattern]) {
+        return &empty_program;
+    }
+    if (step >= seq_storage[pattern].capacity) return &empty_program;
+    event_program_t *p = seq_storage[pattern].steps[step].program;
+    return p ? p : &empty_program;
+}
+
+char *seq_step_get(int pattern, int step) {
+    return (char *)seq_step_source(pattern, step);
+}
+
 event_program_t seq_program[PATTERNS_MAX][SEQ_STEPS_MAX] = {{{0}}};
 int seq_pattern_length[PATTERNS_MAX] = {0};
 
@@ -170,8 +207,8 @@ char *seq_stats(void) {
 }
 
 static int pattern_length_compute(int p) {
-  for (int s = SEQ_STEPS_MAX - 1; s >= 0; s--) {
-    if (seq_pattern[p][s][0] != '\0') return s + 1;
+  for (int s = seq_storage[p].capacity - 1; s >= 0; s--) {
+    if (seq_storage[p].steps[s].source && seq_storage[p].steps[s].source[0] != '\0') return s + 1;
   }
   return 0;
 }
@@ -269,9 +306,9 @@ void do_pattern(uint64_t now,
           skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_STEP, now, p, step);
         }
         seq_current_pattern = p;
-        const char *step_str = seq_pattern[p][step];
+        const char *step_str = seq_step_source(p, step);
         if (step_str[0] == '-') {
-          if (step_str[1] == 'j') {
+          if (step_str[0] == '-' && step_str[1] == 'j') {
             int jump_step = 0;
             if (step_str[2] == '$') {
               int var_id = atoi(&step_str[3]);
@@ -286,7 +323,7 @@ void do_pattern(uint64_t now,
             } else {
               jump_step = atoi(&step_str[2]);
             }
-            if (jump_step >= 0 && jump_step < SEQ_STEPS_MAX) {
+            if (jump_step >= 0) {
               seq_step_goto_locked(p, jump_step);
             }
           } else if (step_str[1] == 's') {
@@ -318,7 +355,7 @@ void do_pattern(uint64_t now,
               seq_offset[p] = ticks_so_far;
               step = 0;
               seq_pointer[p] = 0;
-              if (program_fn && seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);
+              if (program_fn && seq_mute[p] == 0) program_fn(p, step, seq_step_program(p, step));
             } else {
               seq_offset[p] = ticks_so_far - step;
               if (seq_control_events[p])
@@ -334,9 +371,9 @@ void do_pattern(uint64_t now,
             seq_offset[p] = 0;
           }
         } else {
-          if (program_fn && seq_mute[p] == 0) program_fn(p, step, &seq_program[p][step]);
+          if (program_fn && seq_mute[p] == 0) program_fn(p, step, seq_step_program(p, step));
           if (seq_control_events[p] &&
-              (step == len - 1 || seq_pattern[p][step + 1][0] == '-')) {
+              (step == len - 1 || (seq_step_source(p, step + 1)[0] == '-'))) {
             skred_control_pattern_event(SKRED_CONTROL_EVENT_PATTERN_END, now,
               p, step);
           }
@@ -430,10 +467,13 @@ static void pattern_reset_locked(int p) {
   seq_control_events[p] = 0;
   seq_pattern_length[p] = 0;
   seq_offset[p] = 0;
-  for (int s = 0; s < SEQ_STEPS_MAX; s++) {
-    seq_pattern[p][s][0] = '\0';
-    seq_program[p][s].count = 0;
+  for (int s = 0; s < seq_storage[p].capacity; s++) {
+    free(seq_storage[p].steps[s].source);
+    free(seq_storage[p].steps[s].program);
   }
+  free(seq_storage[p].steps);
+  seq_storage[p].steps = NULL;
+  seq_storage[p].capacity = 0;
   seq_text[p][0] = '\0';
   atomic_fetch_add_int(&seq_generation[p], 1);
 }
@@ -509,31 +549,67 @@ void seq_control_events_set(int pattern, int state) {
 int seq_step_set(int pattern, int step, const char *source,
     const event_program_t *program) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return -1;
-  if (step < 0 || step >= SEQ_STEPS_MAX) return -1;
+  if (step < 0) return -1;
   if (source && strnlen(source, STEP_MAX) >= STEP_MAX) return -1;
-  seq_edit_lock();
-  if (source == NULL || source[0] == '\0') {
-    seq_pattern[pattern][step][0] = '\0';
-    seq_program[pattern][step].count = 0;
-  } else if (source[0] == '-') {
-    snprintf(seq_pattern[pattern][step], STEP_MAX, "%s", source);
-    seq_program[pattern][step].count = 0;
-  } else if (!program || program->count > SEQ_PROGRAM_OP_MAX) {
-    seq_edit_unlock();
-    return -1;
-  } else {
-    snprintf(seq_pattern[pattern][step], STEP_MAX, "%s", source);
-    seq_program[pattern][step] = *program;
+
+  char *new_source = NULL;
+  event_program_t *new_program = NULL;
+
+  if (source && source[0] != '\0') {
+      new_source = strdup(source);
+      if (!new_source) return -1;
   }
+
+  if (source && source[0] != '-' && program && program->count > 0 && program->count <= SEQ_PROGRAM_OP_MAX) {
+      new_program = malloc(sizeof(event_program_t));
+      if (!new_program) {
+          free(new_source);
+          return -1;
+      }
+      *new_program = *program;
+  } else if (source && source[0] != '-' && (!program || program->count > SEQ_PROGRAM_OP_MAX)) {
+      free(new_source);
+      return -1;
+  }
+
+  seq_edit_lock();
+
+  seq_pattern_storage_t *st = &seq_storage[pattern];
+  if (step >= st->capacity) {
+      int new_cap = st->capacity == 0 ? 16 : st->capacity;
+      while (new_cap <= step) {
+          new_cap *= 2;
+          if (new_cap <= 0) { // overflow
+              seq_edit_unlock();
+              free(new_source);
+              free(new_program);
+              return -1;
+          }
+      }
+      seq_step_t *new_steps = realloc(st->steps, new_cap * sizeof(seq_step_t));
+      if (!new_steps) {
+          seq_edit_unlock();
+          free(new_source);
+          free(new_program);
+          return -1;
+      }
+      memset(&new_steps[st->capacity], 0, (new_cap - st->capacity) * sizeof(seq_step_t));
+      st->steps = new_steps;
+      st->capacity = new_cap;
+  }
+
+  char *old_source = st->steps[step].source;
+  event_program_t *old_program = st->steps[step].program;
+
+  st->steps[step].source = new_source;
+  st->steps[step].program = new_program;
+
   seq_pattern_length[pattern] = pattern_length_compute(pattern);
   seq_edit_unlock();
-  return 0;
-}
 
-char *seq_step_get(int pattern, int step) {
-  if (pattern < 0 || pattern >= PATTERNS_MAX) return "";
-  if (step < 0 || step >= SEQ_STEPS_MAX) return "";
-  return seq_pattern[pattern][step];
+  free(old_source);
+  free(old_program);
+  return 0;
 }
 
 int seq_step_append(int pattern, const char *source,
@@ -548,8 +624,15 @@ int seq_step_append(int pattern, const char *source,
 void seq_pattern_length_set(int pattern, int len) {
   if (pattern < 0 || pattern >= PATTERNS_MAX) return;
   if (len < 0) len = 0;
-  if (len > SEQ_STEPS_MAX) len = SEQ_STEPS_MAX;
   seq_edit_lock();
+  if (len < seq_pattern_length[pattern]) {
+      for (int i = len; i < seq_storage[pattern].capacity; i++) {
+          free(seq_storage[pattern].steps[i].source);
+          seq_storage[pattern].steps[i].source = NULL;
+          free(seq_storage[pattern].steps[i].program);
+          seq_storage[pattern].steps[i].program = NULL;
+      }
+  }
   seq_pattern_length[pattern] = len;
   seq_edit_unlock();
 }

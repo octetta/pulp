@@ -3,17 +3,17 @@
 M 124
 
 # Load bundled Ksynth drum & bass patches:
-[sk/drums-kick.ks]/ks k>d d>r /r100
-[sk/drums-snare.ks]/ks k>d d>r /r101
-[sk/drums-chh.ks]/ks k>d d>r /r102
-[sk/nap-bass-acid.ks]/ks k>d d>r /r103
+#[sk/drums-kick.ks]/ks k>d d>r /r100
+#[sk/drums-snare.ks]/ks k>d d>r /r101
+#[sk/drums-chh.ks]/ks k>d d>r /r102
+#[sk/nap-bass-acid.ks]/ks k>d d>r /r103
 
 # Voice Assignments (Drums at natural unpitched f440):
-v0 w100 f440 a10          # Kick (Natural unpitched playback)
-v1 w101 f440 a8           # Snare
-v2 w102 f440 a3           # Closed Hat
-v3 w103 f440 a8 N24       # Acid Bass (Pitched via note numbers)
-
+v0 w82 f440 a10          # Kick (Natural unpitched playback)
+v1 w83 f440 a8           # Snare
+v2 w84 f440 a3           # Closed Hat
+#v3 w103 f440 a8 N24       # Acid Bass (Pitched via note numbers)
+v3 w52 a20 j1 k900 q5 t .01 .07 0 0
 # Master 16-Step Groove (Pattern 0)
 y0
 [v0l1 v3n36l1] x0

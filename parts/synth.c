@@ -272,7 +272,17 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
 
   //BEN_MARK_A(bench, benchp, num_frames, bencho);
 
+
+  int block_active[VOICE_MAX_HARD_LIMIT / VOICE_ALIGN] = {0};
+  int num_blocks = nvoices / VOICE_ALIGN;
+  for (int n = 0; n < nvoices; n++) {
+    if (!sv.finished[n] || sv.mark_go[n]) {
+      block_active[n / VOICE_ALIGN] = 1;
+    }
+  }
+
   uint64_t callback_sample = SAMPLE_COUNT_ADD(num_frames);
+
   for (int i = 0; i < num_frames; i++) {
     uint64_t current_sample = callback_sample + (uint64_t)i;
     float sample_left = 0.0f;
@@ -297,7 +307,10 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
     uint64_t noise_raw = audio_rng_next(&synth_random);
     float whiteish = 0.0f;
     int whiteish_ready = 0;
-    for (int n = 0; n < nvoices; n++) {
+    for (int block = 0; block < num_blocks; block++) {
+      if (!block_active[block]) continue;
+      for (int b = 0; b < VOICE_ALIGN; b++) {
+        int n = block * VOICE_ALIGN + b;
       if (sv.mark_go[n]) {
         //clock_gettime(VOICE_CLOCK, &sv.mark_b[n]);
         sv.mark_go[n] = 0;
@@ -584,7 +597,8 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
         sample_left  += left;
         sample_right += right;
       }
-    }
+      } // end block b
+    } // end block
 
     for (int bus = 0; bus < DELAY_BUS_COUNT; bus++) {
       if (delay_input[bus] != 0.0f) delay_bus[bus].active = 1;

@@ -3,16 +3,20 @@
 M 120
 
 # Load bundled Ksynth drum & lead patches:
-[sk/drums-kick.ks]/ks k>d d>r /r100
-[sk/drums-snare.ks]/ks k>d d>r /r101
-[sk/drums-chh.ks]/ks k>d d>r /r102
-[sk/gm-lead-moog.ks]/ks k>d d>r /r103
+# [sk/drums-kick.ks]/ks k>d d>r /r100
+# [sk/drums-snare.ks]/ks k>d d>r /r101
+# [sk/drums-chh.ks]/ks k>d d>r /r102
+# [sk/gm-lead-moog.ks]/ks k>d d>r /r103
 
 # Voice Assignments (Drum voices trigger at natural pitch f440):
-v0 w100 f440 a20          # Kick
-v1 w101 f440 a15           # Snare
-v2 w102 f440 a5           # Closed Hat
-v3 w103 f440 a8 N-12      # Moog Lead
+v0 w82 f440 a20          # Kick
+v1 w83 f440 a15           # Snare
+v2 w84 f440 a5           # Closed Hat
+# v3 w103 f440 a8 N-12      # Moog Lead
+v3 w15 a4 N-12    t .01 .4 0 0 G4 H4
+v4 m1 w15 a4 N-24,10 t .01 .4 0 0
+
+(60 63) /SS 0
 
 # 16-Step Trap Pattern with Micro-Ratchet Hat & Snare Rolls
 y0
@@ -20,11 +24,11 @@ y0
 [v2l0.4] x1
 [v2l0.4] x2
 [v2l0.4 z*3] x3           # Triplet Hat Roll
-[v1l1 v3n60l1] x4         # Snare Backbeat
+[v1l1 v3n&0l1] x4         # Snare Backbeat
 [v2l0.4] x5
 [v0l0.8] x6
 [v2l0.4 z*4] x7           # 32nd-Note Hat Burst
-[v0l1 v3n63l1] x8
+[v0l1 v3n&0l1] x8
 [v2l0.4] x9
 [v0l0.8] x10
 [v2l0.4] x11
@@ -38,6 +42,7 @@ y1 %32
 [v3N-12] x1
 [v3N-5] x2
 [v3N-24] x3
+
 
 # Start Pattern
 Z1

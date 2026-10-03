@@ -6,7 +6,7 @@
 #define SKRED_DEFAULT_SAMPLE_RATE (44100)
 extern int synth_sample_rate;
 #define MAIN_SAMPLE_RATE (synth_sample_rate)
-#define VOICE_MAX (64)
+#define VOICE_MAX (256)
 #define AUDIO_CHANNELS (2)
 #define RECORD_TRACK_MAX (4)
 #define RECORD_TRACK_COUNT (RECORD_TRACK_MAX + 1)

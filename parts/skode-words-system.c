@@ -184,7 +184,7 @@ static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s, double
         } else {
           ctx->step = x;
         }
-        if (x >= 0 && x < SEQ_STEPS_MAX) {
+        if (x >= 0 && 1) {
           const char *source = ands_string(ctx->parse);
           event_program_t program;
           int source_only = source[0] == '\0' || source[0] == '-';

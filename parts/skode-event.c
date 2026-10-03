@@ -721,7 +721,7 @@ static int execute_opcode(const event_t *event, int voice) {
       }
       return 0;
     case SKODE_OP_PATTERN_GOTO:
-      if (resolved.argc >= 1 && resolved.arg[0] >= 0 && resolved.arg[0] < SEQ_STEPS_MAX && p >= 0 && p < PATTERNS_MAX) {
+      if (resolved.argc >= 1 && resolved.arg[0] >= 0 && 1 && p >= 0 && p < PATTERNS_MAX) {
         seq_step_goto_locked(p, (int)resolved.arg[0]);
       }
       return 0;

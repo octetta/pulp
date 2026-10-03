@@ -343,7 +343,7 @@ static int word_exec_zg(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      if (argc && x >= 0 && x < SEQ_STEPS_MAX) {
+      if (argc && x >= 0 && 1) {
         seq_step_goto(ctx->pattern, x);
       }
       return 0;

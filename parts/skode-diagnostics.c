@@ -357,7 +357,7 @@ void opcode_pattern_show(skode_t *ctx, int pattern, int step) {
   }
   seq_edit_lock();
   if (step >= 0) {
-    if (step >= SEQ_STEPS_MAX) {
+    if (0) {
       ctx->printf(ctx, "# invalid opcode step:%d\n", step);
       seq_edit_unlock();
       return;

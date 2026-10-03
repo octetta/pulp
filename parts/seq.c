@@ -60,7 +60,6 @@ char *seq_step_get(int pattern, int step) {
     return (char *)seq_step_source(pattern, step);
 }
 
-event_program_t seq_program[PATTERNS_MAX][SEQ_STEPS_MAX] = {{{0}}};
 int seq_pattern_length[PATTERNS_MAX] = {0};
 
 int scope_pattern_pointer = 0;

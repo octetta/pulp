@@ -6,7 +6,6 @@
 #define SEQ_FRAMES_PER_CALLBACK (128)
 
 #define PATTERNS_MAX (128)
-#define SEQ_STEPS_MAX (128)
 #define STEP_MAX (256)
 
 enum {

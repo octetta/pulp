@@ -276,8 +276,29 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
   int block_active[VOICE_MAX_HARD_LIMIT / VOICE_ALIGN] = {0};
   int num_blocks = nvoices / VOICE_ALIGN;
   int current_active_voices = 0;
+  uint8_t voice_active[VOICE_MAX] = {0};
   for (int n = 0; n < nvoices; n++) {
-    if (!sv.finished[n] || sv.mark_go[n]) {
+    if (sv.amp_envelope[n].is_active || sv.mark_go[n] || (!sv.finished[n] && sv.one_shot[n])) {
+      voice_active[n] = 1;
+    }
+  }
+
+  int changed = 1;
+  while (changed) {
+    changed = 0;
+    for (int n = 0; n < nvoices; n++) {
+      if (voice_active[n]) {
+        int m;
+        m = sv.cz_mod_osc[n];   if (m >= 0 && m < nvoices && !voice_active[m]) { voice_active[m] = 1; changed = 1; }
+        m = sv.freq_mod_osc[n]; if (m >= 0 && m < nvoices && !voice_active[m]) { voice_active[m] = 1; changed = 1; }
+        m = sv.pan_mod_osc[n];  if (m >= 0 && m < nvoices && !voice_active[m]) { voice_active[m] = 1; changed = 1; }
+        m = sv.amp_mod_osc[n];  if (m >= 0 && m < nvoices && !voice_active[m]) { voice_active[m] = 1; changed = 1; }
+      }
+    }
+  }
+
+  for (int n = 0; n < nvoices; n++) {
+    if (voice_active[n]) {
       block_active[n / VOICE_ALIGN] = 1;
       current_active_voices++;
     }

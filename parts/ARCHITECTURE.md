@@ -172,22 +172,7 @@ Literal external macros such as `e!12` are expanded while compiling. Existing
 patterns and queued events therefore keep snapshot semantics when the macro is
 edited later.
 
-### Features Produce Different C Programs
-
-Files ending in `.c` and `.h` are source templates processed by
-`kit.c`. Directives such as:
-
-```c
-@if(FILT)
-/* filter implementation */
-@endif
-```
-
-include or remove code before the C compiler runs. `KIT_OPTS` therefore
-selects features structurally rather than merely disabling them at runtime.
-
-This keeps small builds genuinely small, but it means contributors must test
-more than one feature configuration. Generated files in build directories are
+### Voice State Architecture
 
 Voice state is stored in `synth_voices_t sv` as a struct of pointers to
 parallel arrays:
@@ -685,11 +670,10 @@ make warn-maxed   # strict canonical maxed-preset build
 make wasm         # rebuild browser artifacts
 ```
 
-Feature selection is passed to CMake through `KIT_OPTS`:
+System-level integrations can be toggled via CMake (e.g. `SKRED_SCOPE=OFF`), but most engine features (filters, envelopes, recording) are now permanent and always included.
 
 ```sh
-cmake -B build_native -S . \
-  -DKIT_OPTS="SEQ=1 ADSR=1 FILT=1 FADSR=1 UDP=1"
+cmake -B build_native -S . -DSKRED_SCOPE=OFF -DSKRED_UDP=OFF
 cmake --build build_native
 ```
 
@@ -715,9 +699,6 @@ cmake --preset cross-windows-zig-ninja
 cmake --build --preset cross-windows-zig-ninja --target mini-skred
 ```
 
-When changing feature-gated code, test both a minimal build and a build where
-the feature is enabled. A symbol that is valid in the maximum build may be
-unused or absent in the default build.
 
 ## Tests
 

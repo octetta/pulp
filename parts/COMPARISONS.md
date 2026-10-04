@@ -512,8 +512,4 @@ more structurally powerful systems above.
   filter's state or crossfade it?" doesn't apply in SKRED; the closer
   question is simply "does this voice or pattern already exist, and if so
   what am I adding to it?"
-- **Across all of them:** SKRED's feature-gated builds are
-  the one thing none of these ten do — every other system here ships as
-  one build with everything compiled in. That buys genuinely small SKRED
-  builds at the cost of needing to test more than one feature
-  configuration when you touch feature-gated code.
+- **Across all of them:** In the past, SKRED offered extreme feature-gated builds, but it has since matured into shipping a single unified engine like the others (with advanced system-level integrations like UDP and Scope still togglable in CMake). This preserves a small embeddable footprint without the overhead of testing a dozen permutations.

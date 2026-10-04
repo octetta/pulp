@@ -204,7 +204,9 @@ better opportunity to vectorize the audio loop. Voice counts are rounded to
 `VOICE_ALIGN`, and all voice and wave storage is allocated during
 `synth_init()`.
 
-The sample loop avoids source work that cannot affect the current frame.
+The sample loop uses a sparsity bitmap to entirely skip rendering for inactive voices, allowing large pool configurations (e.g., the default 256 voices in the `maxed` and WASM builds) to run efficiently. A voice is considered active if it has a running amplitude envelope, an unfinished one-shot sample, or is manually flagged to go. The loop recursively checks `cz_mod_osc`, `freq_mod_osc`, `pan_mod_osc`, and `amp_mod_osc` to ensure that any LFOs or operators acting as modulators for active voices are also kept awake.
+
+Furthermore, the sample loop avoids source work that cannot affect the current frame.
 Reset voices at or below the `-60 dB` silence floor exit before oscillator
 processing. Capture input is read only when an active capture voice requests
 it. The audio RNG still advances exactly once per frame to preserve the noise
@@ -349,7 +351,7 @@ Files:
 The sequencer owns:
 
 - 128 patterns
-- up to 128 textual steps per pattern
+- dynamically expanding, unlimited textual steps per pattern
 - one compiled program beside each step
 - pattern length, position, state, mute, and modulus
 - tempo and master tick state
@@ -357,8 +359,7 @@ The sequencer owns:
 
 Source text is retained for editing and display, but playback uses the
 compiled program. Each pattern also retains its current voice between steps.
-The 128-step limit balances the larger 32-operation compiled programs while
-keeping the fixed pattern table bounded.
+Pattern capacities dynamically expand up to the memory limit (reallocating automatically), removing the historic 128-step ceiling.
 Clearing a pattern advances its generation so the API layer resets that
 persistent voice.
 

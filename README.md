@@ -47,6 +47,8 @@ cd parts
 
 Most synthesis and routing features (ADSR, FM, FILT, RECORD, TRACKS, etc.) are now permanent, non-optional parts of the core Skred engine. 
 
+As of the latest releases, the **maxed** and **WASM** builds now support **256 simultaneous voices** (made possible by a new sparse-rendering DSP loop that skips inactive voices entirely), and patterns have had their 128-step ceiling removed to support **unlimited steps** (dynamically allocating up to available memory).
+
 The following system-level integrations can still be optionally toggled via CMake options (they are `ON` by default):
 
 ```

@@ -456,7 +456,7 @@ A rough guide, based on everything above:
   the schedulable path rather than trusting yourself not to allocate in
   the wrong place; or if you want to inspect and reason about pending work
   as a real, persistent, taggable queue rather than a recomputed pattern
-  or a self-rescheduling closure.
+  or a self-rescheduling closure. The default `maxed` and `WASM` builds (published to GitHub Releases) also support efficiently scaling up to 256 active voices and unlimited sequence patterns, making it highly capable for complex compositions.
 - **Look elsewhere** if you want automatic state preservation across a
   live edit without thinking about it (mimium's whole-program diff or
   NKIDO's per-node semantic IDs solve this more elegantly than SKRED does,

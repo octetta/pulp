@@ -1,4 +1,6 @@
-SKODE IN 12 RULES
+SKODE IN 12 IDIOMS
+
+(Note: These are not strict compiler rules. The parser only sees atoms and numbers. These are the human-facing design idioms that make Skode's terse vocabulary consistent and learnable.)
 
 1. Everything is an atom followed by numbers
 
@@ -44,7 +46,7 @@ voice 3, wave 301, note 48, amplitude -6, pan left, envelope ..., trigger.
 
 4. One letter is for things you touch constantly
 
-This is the most important economy rule.
+This is the most important economy idiom.
 
 Don't write:
 
@@ -165,7 +167,7 @@ I'm talking to a subsystem rather than playing a note.
 
 10. > and < mean movement
 
-This is another powerful rule:
+This is another powerful idiom:
 
 w>d     wave → data
 d>r     data → recording

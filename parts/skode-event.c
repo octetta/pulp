@@ -725,6 +725,9 @@ static int execute_opcode(const event_t *event, int voice) {
         seq_step_goto_locked(p, (int)resolved.arg[0]);
       }
       return 0;
+    case SKODE_OP_PATTERN_REWIND:
+      seq_rewind();
+      return 0;
     case SKODE_OP_PATTERN_STATE_ALL:
       if (resolved.argc >= 1) {
         for (int i = 0; i < PATTERNS_MAX; i++) {

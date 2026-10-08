@@ -75,9 +75,9 @@ v6 G7 H7
 # 303 acid: screamer filter, glide for slides, delay bus 3
 v8 w15 a0 t.002,.20,0,.06 j1,2 k350 q10 ft.001,.18,0,.06 fd2600 g.03 r3 p0 ds.3
 
-# industrial clang: heavy FM phase modulation, operator feedback
-v9 w0 f311 a3 t.001,.35,0,.2 FF2 FB6 F10,2.5 r2 p0 ds.3 H10
-v10 w0 f187 a0 t.001,.30,0,.2 m1
+# industrial clang: ring mod of two inharmonic oscillators, crushed
+v9 w16 f311 a0 t.001,.35,0,.2 bc5 r2 p0 ds.3 XM10 H10
+v10 w15 f187 a0 t.001,.30,0,.2 m1
 
 # metal FM stab: phase-mod + operator feedback, modulator tracks pitch (+21 st)
 v11 w0 a0 p-.35 t.001,.45,0,.35 FF2 FB4 F12,2.2 G12 H12
@@ -398,7 +398,7 @@ y0
 [=126,5] x5
 [=126,6] x6
 [=126,7] x7
-[y1 z1 v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10 v16 l0] x8
+[y1 z1 y7 z0 v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10 v16 l0] x8
 [=126,9] x9
 [=126,10] x10
 [=126,11] x11
@@ -422,7 +422,7 @@ y0
 [=126,29] x29
 [=126,30] x30
 [y2 z0 y13 z1 y17 z1] x31
-[v21 l1 DF 1 1 y1 z0 y3 z0 y4 z0 y5 z0 y6 z0 y8 z0 y9 z0 y14 z0 y10 z1] x32
+[v21 l1 DF 1 1 y1 z0 y3 z0 y4 z0 y5 z0 y6 z0 y8 z0 y9 z0 y14 z0 y10 z1 y7 z1] x32
 [v13 l0 v14 l0 v15 l0 v6 l0 v11 l0 v8 l0] x33
 [v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10] x34
 [v13 a-8 v14 a-8 v15 a-11 v11 a0] x35
@@ -430,7 +430,7 @@ y0
 [=126,37] x37
 [=126,38] x38
 [=126,39] x39
-[y1 z1 y3 z1 v16 l0 y10 z0] x40
+[y1 z1 y3 z1 v16 l0 y10 z0 y7 z0] x40
 [=126,41] x41
 [y13 z1 y17 z1] x42
 [y13 z1 y17 z1 v13 k5200 v14 k5200 v15 k5200 y16 z0] x43
@@ -450,7 +450,7 @@ y0
 [=126,57] x57
 [=126,58] x58
 [y2 z0 y13 z1 y17 z1] x59
-[v21 l1 y9 z0 y8 z0 y5 z0 y6 z0 y10 z0 y4 z0 y14 z0 y2 z1 y3 z%2] x60
+[v21 l1 y7 z1 y9 z0 y8 z0 y5 z0 y6 z0 y10 z0 y4 z0 y14 z0 y2 z1 y3 z%2] x60
 [v13 l0 v14 l0 v15 l0 v6 l0 v11 l0 v8 l0] x61
 [v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10] x62
 [v13 a-8 v14 a-8 v15 a-11 v11 a0] x63
@@ -461,5 +461,5 @@ y0
 [v21 l1 v22 l.8 y1 z0 y3 z0 y7 z0 y11 z0 y14 z0 Z0 +8 ce 99] x68
 
 [use 'play' to start the song, 'stop' to stop it] puts
-[play] : Z0 Z! y0 z1 ;
+[play] : Z0 y0 z1 ;
 [stop] : Z0 O DQ ;

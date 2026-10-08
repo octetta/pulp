@@ -79,6 +79,10 @@ v8 w15 a0 t.002,.20,0,.06 j1,2 k350 q10 ft.001,.18,0,.06 fd2600 g.03 r3 p0 ds.3
 v9 w16 f311 a0 t.001,.35,0,.2 bc5 r2 p0 ds.3 XM10 H10
 v10 w15 f187 a0 t.001,.30,0,.2 m1
 
+# fm clang solo (v18, v19)
+v18 w0 f311 a0 t.001,.35,0,.2 FF2 FB6 F19,2.5 r2 p0 ds.3 H19
+v19 w0 f187 a0 t.001,.30,0,.2 m1
+
 # metal FM stab: phase-mod + operator feedback, modulator tracks pitch (+21 st)
 v11 w0 a0 p-.35 t.001,.45,0,.35 FF2 FB4 F12,2.2 G12 H12
 v12 w0 a0 t.001,.30,0,.30 N21 m1
@@ -387,6 +391,14 @@ y16
 # ======================================================================
 # CONDUCTOR (pattern 0: one step per bar, 68 bars)
 # ======================================================================
+y12
+[fm clang solo 7/16] yt
+[v18 p-1 f800 v19 f480 v18 l1] x0
+[v18 p1 f420 v19 f252 v18 l0.8] x2
+[v18 p0 f233 v19 f139 v18 l0.6] x3
+[v18 p0.5 f600 v19 f360 v18 l0.9] x5
+[=127,0] x6
+
 y0
 [conductor] yt
 %16
@@ -422,7 +434,7 @@ y0
 [=126,29] x29
 [=126,30] x30
 [y2 z0 y13 z1 y17 z1] x31
-[v21 l1 DF 1 1 y1 z0 y3 z0 y4 z0 y5 z0 y6 z0 y8 z0 y9 z0 y14 z0 y10 z1 y7 z1] x32
+[v21 l1 DF 1 1 y1 z0 y3 z0 y4 z0 y5 z0 y6 z0 y8 z0 y9 z0 y14 z0 y10 z1 y12 z1] x32
 [v13 l0 v14 l0 v15 l0 v6 l0 v11 l0 v8 l0] x33
 [v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10] x34
 [v13 a-8 v14 a-8 v15 a-11 v11 a0] x35
@@ -430,7 +442,7 @@ y0
 [=126,37] x37
 [=126,38] x38
 [=126,39] x39
-[y1 z1 y3 z1 v16 l0 y10 z0 y7 z0] x40
+[y1 z1 y3 z1 v16 l0 y10 z0 y7 z0 y12 z0] x40
 [=126,41] x41
 [y13 z1 y17 z1] x42
 [y13 z1 y17 z1 v13 k5200 v14 k5200 v15 k5200 y16 z0] x43
@@ -461,5 +473,5 @@ y0
 [v21 l1 v22 l.8 y1 z0 y3 z0 y7 z0 y11 z0 y14 z0 Z0 +8 ce 99] x68
 
 [use 'play' to start the song, 'stop' to stop it] puts
-[play] : Z0 y0 z1 ;
+[play] : Z0 Z! y0 z1 ;
 [stop] : Z0 O DQ ;

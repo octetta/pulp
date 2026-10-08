@@ -71,7 +71,7 @@ int osc_loop_crossings(double distance, double loop_length);
 int clampi(int value, int min_value, int max_value);
 
 #endif
-#define VOLUME_DEFAULT (-20.0f)
+#define VOLUME_DEFAULT (-6.0f)
 #define DB_TO_LINEAR(v) powf(10.f, (v) / 20.0f)
 #define SYNTH_INVALID_VOICE (100)
 #define DELAY_MAX_FRAMES (65536)

@@ -20,7 +20,25 @@ void voice_show(skode_t *ctx, int v, char c, int verbose) {
 int voice_show_all(skode_t *ctx, int voice, int verbose) {
   for (int i=0; i<synth_config.voice_max; i++) {
     int active = (sv.amp_envelope[i].is_active || sv.mark_go[i] || (!sv.finished[i] && sv.one_shot[i]));
-    if (!active && i != voice) continue;
+    int configured = 
+        sv.wave_table_index[i] != 0 || 
+        sv.freq[i] != 440.0f || 
+        sv.user_amp[i] != 0.0f || 
+        sv.pan[i] != 0.0f || 
+        sv.disconnect[i] != 0 || 
+        sv.amp_mod_osc[i] != -1 || 
+        sv.freq_mod_osc[i] != -1 || 
+        sv.ring_osc[i] != -1 || 
+        sv.cz_mod_osc[i] != -1 || 
+        sv.filter_mode[i] != 0 || 
+        sv.delay_send[i] != 0.0f ||
+        sv.amp_envelope[i].attack_time != 0.0f ||
+        sv.amp_envelope[i].decay_time != 0.0f ||
+        sv.amp_envelope[i].sustain_level != 1.0f ||
+        sv.amp_envelope[i].release_time != 0.0f;
+        
+    if (!active && !configured && i != voice) continue;
+    
     char t = ' ';
     if (i == voice) t = '*';
     voice_show(ctx, i, t, verbose);

@@ -139,7 +139,7 @@ UI, scripts, and embedding applications the same control vocabulary.
 Skode is deliberately compact:
 
 ```text
-v0 w0 n60 a0 l1
+v0 w0 n60 a-10 l1
 [v0 n36 l1] xa
 ~0.25 v0 l0
 ```

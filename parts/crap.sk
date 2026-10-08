@@ -8,9 +8,9 @@ M 120
 [sk/drums-tomhi.ks]/ks 1 k>d d>r /r102
 
 # Voice Assignments:
-v0 w100 f440 a10          # Kick
-v1 w101 f440 a8           # Snare
-v2 w102 f440 a8           # High Tom
+v0 w100 f440 a0          # Kick
+v1 w101 f440 a-2           # Snare
+v2 w102 f440 a-2           # High Tom
 
 # Pattern 0: Changes step speed dynamically mid-pattern!
 y0

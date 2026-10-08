@@ -184,8 +184,8 @@ In the Mini-Skred REPL, route voices to optional stereo stems and start a
 ten-channel WAV recording:
 
 ```text
-v0 r1 w0 f440 a0 t.01,.2,.7,.3
-v1 r2 w1 f660 a0 t.01,.2,.6,.3
+v0 r1 w0 f440 a-10 t.01,.2,.7,.3
+v1 r2 w1 f660 a-10 t.01,.2,.6,.3
 [take.wav]/rg
 v0 l1
 v1 l1

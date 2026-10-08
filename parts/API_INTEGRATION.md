@@ -109,7 +109,7 @@ int main(void) {
     }
 
     skred_logger(1);
-    skred_command("v0 w0 f440 a0 l1");
+    skred_command("v0 w0 f440 a-10 l1");
 
     puts("Press Enter to stop...");
     (void)getchar();

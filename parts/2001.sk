@@ -1,5 +1,5 @@
 # s <- $
-S100 v0 w0 a10 t 0 .25 0 0 l1
+S100 v0 w0 a0 t 0 .25 0 0 l1
 [./sk/gm-kick.ks] /ks k>d d>r /r 300
 [./sk/drums-kick.ks] /ks k>d d>r /r 301
 [./sk/dm-kick-deep.ks] /ks k>d d>r /r 302

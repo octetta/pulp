@@ -51,11 +51,11 @@ M 130
 [sk/nap-bass-acid.ks]/ks 1 k>d d>r /r104
 
 # 3. Assign Dedicated Voices:
-v0 w100 f440 a10          # Kick (v0 auto-chokes sub-bass tails on re-trigger)
-v1 w101 f440 a8           # Snare
-v2 w102 f440 a3           # Closed Hi-Hat
-v3 w103 f440 a5           # Open Hi-Hat
-v4 w104 f440 a6           # 303 Acid Synth
+v0 w100 f440 a0          # Kick (v0 auto-chokes sub-bass tails on re-trigger)
+v1 w101 f440 a-2           # Snare
+v2 w102 f440 a-7           # Closed Hi-Hat
+v3 w103 f440 a-5           # Open Hi-Hat
+v4 w104 f440 a-4           # 303 Acid Synth
 
 # 4. Program Pattern 0 (16-Step Bar)
 y0

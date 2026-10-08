@@ -7,11 +7,11 @@ M 50
 /ws [ohh.wav] 103
 /ws [orch.mp3] 104
 ##
-v0 w100 f440 a20
-v1 w101 f440 a20
-v2 w102 f440 a20
-v3 w103 f440 a20
-v4 w104 f440 a20
+v0 w100 f440 a10
+v1 w101 f440 a10
+v2 w102 f440 a10
+v3 w103 f440 a10
+v4 w104 f440 a10
 ##
 y0
 [v0 n$0 l1] x0

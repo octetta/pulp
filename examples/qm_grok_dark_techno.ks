@@ -25,16 +25,16 @@ DD 1 9 4
 # ======================================================================
 
 # Kick – heavy, long tail, low
-v 0 w100 f440 a12
+v 0 w100 f440 a2
 
 # Snare / Clap / Rim
-v 1 w101 f440 a7
-v 5 w104 f440 a6
-v 4 w105 f440 a5
+v 1 w101 f440 a-3
+v 5 w104 f440 a-4
+v 4 w105 f440 a-5
 
 # Hats – darker, lower level
-v 2 w102 f440 a2.8
-v 3 w103 f440 a3.5
+v 2 w102 f440 a-7.2
+v 3 w103 f440 a-6.5
 
 # Dark stab ensemble (Voices 6–9)
 # Lower cutoff, higher resonance, slower attack, longer decay

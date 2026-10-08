@@ -23,14 +23,14 @@ DD 1 4 2
 # ======================================================================
 
 # Kick – solid four-on-the-floor
-v 0 w100 f440 a12
+v 0 w100 f440 a2
 
 # Hats
-v 1 w101 f440 a3.0          # closed
-v 2 w102 f440 a4.5          # open (off-beat)
+v 1 w101 f440 a-7          # closed
+v 2 w102 f440 a-5.5          # open (off-beat)
 
 # Clap / perc accent
-v 3 w103 f440 a5
+v 3 w103 f440 a-5
 
 # Moog-style sequenced bass (the star)
 v 4

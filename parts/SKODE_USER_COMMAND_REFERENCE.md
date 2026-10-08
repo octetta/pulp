@@ -14,7 +14,7 @@ Skode is case-sensitive. Commands may be separated by spaces or written
 together:
 
 ```text
-v0 w1 n60 a0 l1
+v0 w1 n60 a-10 l1
 v0w1n60a0l1
 ```
 
@@ -984,8 +984,8 @@ make maxed
 Configure two voices, assign them to stereo stems, and start recording:
 
 ```text
-v0 r1 w0 f440 a0 t.01,.2,.7,.3
-v1 r2 w1 f660 a0 t.01,.2,.6,.3
+v0 r1 w0 f440 a-10 t.01,.2,.7,.3
+v1 r2 w1 f660 a-10 t.01,.2,.6,.3
 [take.wav]/rg
 v0 l1
 v1 l1
@@ -1218,7 +1218,7 @@ channel directly to it. Channels are zero-based, so this listens to MIDI
 channel 1 and uses a ±2-semitone pitch-bend range:
 
 ```text
-v0 w0 a0 t.01,.15,.7,.35
+v0 w0 a-10 t.01,.15,.7,.35
 /mv 0 0 2
 ```
 
@@ -1233,7 +1233,7 @@ voice 2 as a one-voice prototype, materializes one instance at voice 16, selects
 last-note legato mode, and maps MIDI channel 1 with a ±12-semitone bend range:
 
 ```text
-v2 w0 a0 t.01,.15,.7,.35
+v2 w0 a-10 t.01,.15,.7,.35
 /pg 1 2 1 0
 /pp 1 1 16 1 0
 /pm 1 1 0 1
@@ -1251,8 +1251,8 @@ then route MIDI to the pool. This two-voice sound layers an octave above its
 root and creates four playable instances in voices 8 through 15:
 
 ```text
-v0 w0 a0 t.01,.15,.7,.35 N0 G1 H1
-v1 w0 a0 t.005,.1,.5,.25 N12
+v0 w0 a-10 t.01,.15,.7,.35 N0 G1 H1
+v1 w0 a-10 t.005,.1,.5,.25 N12
 /pg 0 0 2 0
 /pp 0 0 8 4 0
 /mp 0 0 2
@@ -1465,7 +1465,7 @@ Moog bass patches. Requires `ADSR`, `FILT`, and `FADSR`.
 
 ```text
 S0
-v0 w2 a0 t.005,.18,.7,.25 j1 k120 q5 kt.002,.25,.08,.3 kd2600 n36 l1
+v0 w2 a-10 t.005,.18,.7,.25 j1 k120 q5 kt.002,.25,.08,.3 kd2600 n36 l1
 ~.75 v0 l0
 ```
 
@@ -1474,7 +1474,7 @@ gives a bright, slightly hollow digital brass tone. Requires `ADSR` and `PD`.
 
 ```text
 S0
-v0 w0 a0 c6,-.15 ct.01,.3,.35,.45 cd.9 t.015,.35,.55,.45 n48 l1
+v0 w0 a-10 c6,-.15 ct.01,.3,.35,.45 cd.9 t.015,.35,.55,.45 n48 l1
 ~1 v0 l0
 ```
 
@@ -1487,7 +1487,7 @@ Requires `ADSR`, `FILT`, and `FADSR`.
 
 ```text
 S0
-v0 w22 a0 t.08,.5,.7,.8 j1 k500 q2 kt.12,.7,.3,.8 kd3200 n48 l1
+v0 w22 a-10 t.08,.5,.7,.8 j1 k500 q2 kt.12,.7,.3,.8 kd3200 n48 l1
 ~1.5 v0 l0
 ```
 
@@ -1500,8 +1500,8 @@ note and velocity commands also reach the modulator. Requires `ADSR` and `FM`.
 
 ```text
 S0 S1
-v0 w0 m1 N12,0 a0 t.001,.28,0,.18 FF2 FB.2
-v1 w0 G0 H0 a0 t.002,1.2,.18,.6 FF2 F0,1.38 n52 l1
+v0 w0 m1 N12,0 a-10 t.001,.28,0,.18 FF2 FB.2
+v1 w0 G0 H0 a-10 t.002,1.2,.18,.6 FF2 F0,1.38 n52 l1
 ~1.5 v1 l0
 ```
 
@@ -1515,9 +1515,9 @@ give approximate 3:1, 2:1, and 1:1 ratios. Requires `ADSR` and `FM`.
 
 ```text
 S0 S1 S2
-v0 w0 m1 N19,2 a0 t.001,.16,0,.25 FF2 FB.54
-v1 w0 m1 N12,0 a0 t.001,.7,0,.5 FF2 F0,.89
-v2 w0 G0,1 H0,1 a0 t.001,2.4,0,1.2 FF2 F1,1.05 n69 l1
+v0 w0 m1 N19,2 a-10 t.001,.16,0,.25 FF2 FB.54
+v1 w0 m1 N12,0 a-10 t.001,.7,0,.5 FF2 F0,.89
+v2 w0 G0,1 H0,1 a-10 t.001,2.4,0,1.2 FF2 F1,1.05 n69 l1
 ~2.5 v2 l0
 ```
 
@@ -1530,8 +1530,8 @@ growling attack that decays into a sine fundamental. Requires `ADSR` and `FM`.
 
 ```text
 S0 S1
-v0 w0 m1 N0,0 a0 t.001,.22,.08,.18 FF2 FB1.27
-v1 w0 G0 H0 a0 t.002,.35,.7,.3 FF2 F0,1.51 n36 l1
+v0 w0 m1 N0,0 a-10 t.001,.22,.08,.18 FF2 FB1.27
+v1 w0 G0 H0 a-10 t.002,.35,.7,.3 FF2 F0,1.51 n36 l1
 ~1 v1 l0
 ```
 
@@ -1543,8 +1543,8 @@ feedback produce an inharmonic digital strike. Requires `ADSR` and `FM`.
 
 ```text
 S0 S1
-v0 w0 m1 N7,0 a0 t.0005,.09,0,.08 FF2 FB2.01
-v1 w0 G0 H0 a0 t.0005,.55,0,.25 FF2 F0,2.9 n57 l1
+v0 w0 m1 N7,0 a-10 t.0005,.09,0,.08 FF2 FB2.01
+v1 w0 G0 H0 a-10 t.0005,.55,0,.25 FF2 F0,2.9 n57 l1
 ~.7 v1 l0
 ```
 
@@ -1597,9 +1597,9 @@ trigger macros.
 Assign each sample to a voice and trigger it with `l1` or `T`:
 
 ```text
-v0 w300 f440 a10
-v1 w301 f440 a10
-v2 w302 f440 a10
+v0 w300 f440 a0
+v1 w301 f440 a0
+v2 w302 f440 a0
 
 v0 T
 ~.25 v2 T
@@ -1620,9 +1620,9 @@ and game-like effects:
 [sk/nap-noise-sweep.ks] /ks k>d d>r /r311
 [sk/nap-perc-zap.ks] /ks k>d d>r /r312
 
-v3 w310 f440 a10
-v4 w311 f440 a10
-v5 w312 f440 a10
+v3 w310 f440 a0
+v4 w311 f440 a0
+v5 w312 f440 a0
 ```
 
 Trigger the alarm, a rising noise transition, or an electric zap:
@@ -1645,7 +1645,7 @@ v5 f220 T
 Play a centered A4 on voice 0:
 
 ```text
-v0 w0 n69 a0 p0 l1
+v0 w0 n69 a-10 p0 l1
 ```
 
 Create a filtered, enveloped note:

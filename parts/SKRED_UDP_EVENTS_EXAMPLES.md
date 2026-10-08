@@ -70,10 +70,10 @@ Instead, use Skred's decoupled architecture: embed a user control event (`ce <id
 **Skode Input:**
 ```skode
 ( Step 0: Play a kick on Voice 0 AND emit user event 42 )
-[ v0 f60 a1 ce42 ] x0
+[ v0 f60 a-9 ce42 ] x0
 
 ( Step 4: Play a snare on Voice 1 AND emit user event 43 )
-[ v1 f200 a1 ce43 ] x4
+[ v1 f200 a-9 ce43 ] x4
 
 ( Store our UDP format strings )
 [ /drum/kick %d ] e>0

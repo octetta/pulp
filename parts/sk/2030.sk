@@ -3,12 +3,12 @@
 M 80
 
 # Voice Assignments:
-v0 w82 f440 a15          # Kick (Natural unpitched playback)
-v1 w83 f440 a20          # Snare
-v2 w85 f440 a20          # Open Hat
-v3 w89 f440 a15          # Mid Tom
-v4 w15 f440 a3 t 0 .25 0 0 G5 H5#
-v5 w16 N0,5 a3 t 0 .25 0 0 #
+v0 w82 f440 a5          # Kick (Natural unpitched playback)
+v1 w83 f440 a10          # Snare
+v2 w85 f440 a10          # Open Hat
+v3 w89 f440 a5          # Mid Tom
+v4 w15 f440 a-7 t 0 .25 0 0 G5 H5#
+v5 w16 N0,5 a-7 t 0 .25 0 0 #
 
 /SS 0 (36 48)
 

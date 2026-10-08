@@ -17,7 +17,7 @@
 
 #include "portable_atomic.h"
 
-#define SCOPE_TRACK_VOLUME_DEFAULT (-20.0f)
+#define SCOPE_TRACK_VOLUME_DEFAULT (-6.0f)
 
 typedef struct {
   int initialized;

@@ -24,16 +24,16 @@ DD 1 4 2
 # ======================================================================
 
 v 0 vt [Kick]
-w100 f440 a12
+w100 f440 a2
 
 v 1 vt [ClosedHat]
-w101 f440 a3.0
+w101 f440 a-7
 
 v 2 vt [OpenHat]
-w102 f440 a4.5
+w102 f440 a-5.5
 
 v 3 vt [Clap]
-w103 f440 a5
+w103 f440 a-5
 
 # --- Fat Moog-style bass (saw + linked square) ---
 v 4 vt [MoogBass]

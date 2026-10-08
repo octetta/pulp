@@ -842,8 +842,8 @@ void voice_reset(int i) {
   sv.table_size[i] = 0;
   sv.sample[i] = 0;
   sv.finished[i] = 1;
-  sv.amp[i] = NEG_60_DB_AS_LINEAR;
-  sv.user_amp[i] = NEG_60_DB;
+  sv.amp[i] = 1.0f;
+  sv.user_amp[i] = 0.0f;
   sv.use_amp_envelope[i] = 1;
   voice_control_events_set(i, 0);
   sv.disconnect[i] = 0;

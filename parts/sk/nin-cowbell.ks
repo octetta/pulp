@@ -14,7 +14,7 @@ I: s q
 
 A: 1 0 0.3 0 0.15
 J: P $ A
-K: q $ A
+K: Q $ A
 M: J+K*.8
 
 / Ring mod carrier to make it industrial/harsh

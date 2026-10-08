@@ -14,12 +14,12 @@ M 140
 [sk/drums-ohh.ks]/ks k>d d>r /r103
 
 # Voice Assignments:
-v0 w100 f440 a15          # Kick (Natural unpitched playback)
-v1 w101 f440 a15          # Snare
-v2 w102 f440 a3           # Closed Hat
-v3 w103 f440 a20          # Open Hat
-v4 w15 f440 a0 G5H5 t 0 .25 0 0           # Sub Bass (Pitched via note numbers)
-v5 w16 f440 a0 N0,25 t 0 .25 0 0
+v0 w100 f440 a5          # Kick (Natural unpitched playback)
+v1 w101 f440 a5          # Snare
+v2 w102 f440 a-7           # Closed Hat
+v3 w103 f440 a10          # Open Hat
+v4 w15 f440 a-10 G5H5 t 0 .25 0 0           # Sub Bass (Pitched via note numbers)
+v5 w16 f440 a-10 N0,25 t 0 .25 0 0
 
 # 16-Step Pattern (Full 4/4 Bar @ 165 BPM)
 y0

@@ -1,5 +1,5 @@
 # s <- $
-S100 v0 w0 a10 t 0 .25 0 0 l1
+S100 v0 w0 a0 t 0 .25 0 0 l1
 [./sk/gm-snare-chase.ks] /ks kw 50 k>d d>r /r 300
 [./sk/gm-snare.ks] /ks kw 50 k>d d>r /r 301
 [./sk/drums-snare.ks] /ks kw 50 k>d d>r /r 302

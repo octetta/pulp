@@ -9,10 +9,10 @@ M 140
 [sk/gm-lead-moog.ks]/ks 1 k>d d>r /r103
 
 # Voice Assignments (Drum voices trigger at natural pitch f440):
-v0 w100 f440 a10          # Kick
-v1 w101 f440 a8           # Snare
-v2 w102 f440 a3           # Closed Hat
-v3 w103 f440 a8           # Moog Lead
+v0 w100 f440 a0          # Kick
+v1 w101 f440 a-2           # Snare
+v2 w102 f440 a-7           # Closed Hat
+v3 w103 f440 a-2           # Moog Lead
 
 # 16-Step Trap Pattern with Micro-Ratchet Hat & Snare Rolls
 y0

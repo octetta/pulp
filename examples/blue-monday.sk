@@ -24,11 +24,11 @@ DD 1 6 2
 # ======================================================================
 
 # Drums
-v 0 w100 f440 a11          # kick
-v 1 w101 f440 a7           # snare
-v 2 w102 f440 a3.2         # closed hat
-v 3 w103 f440 a4.5         # open hat
-v 4 w104 f440 a5           # clap
+v 0 w100 f440 a1          # kick
+v 1 w101 f440 a-3           # snare
+v 2 w102 f440 a-6.8         # closed hat
+v 3 w103 f440 a-5.5         # open hat
+v 4 w104 f440 a-5           # clap
 
 # Synth Bass (classic jumping octaves)
 v 5

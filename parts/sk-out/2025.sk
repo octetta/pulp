@@ -9,11 +9,11 @@ M 120
 # [sk/gm-lead-moog.ks]/ks k>d d>r /r103
 
 # Voice Assignments (Drum voices trigger at natural pitch f440):
-v0 w82 f440 a20          # Kick
-v1 w83 f440 a15           # Snare
-v2 w84 f440 a5           # Closed Hat
-# v3 w103 f440 a8 N-12      # Moog Lead
-v3 w15 a4 N-12    t .01 .4 0 0 G4 H4
+v0 w82 f440 a10          # Kick
+v1 w83 f440 a5           # Snare
+v2 w84 f440 a-5           # Closed Hat
+# v3 w103 f440 a-2 N-12      # Moog Lead
+v3 w15 a-6 N-12    t .01 .4 0 0 G4 H4
 v4 m1 w15 a4 N-24,10 t .01 .4 0 0
 
 (60 63) /SS 0

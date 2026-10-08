@@ -2,16 +2,16 @@ M120
 DL1,4,0,15,0,31,7 DD0,0 DF0 DP0 DG0,0
 DL2,3,0,15,0,31,7 DD0,0 DF0 DP0 DG0,0
 
-v0 w15 f440 n69,0 a0 G1 H1 ds0.6 r1 t0.01,0.25,0,0
-v1 w15 f440 n69,0 a0 N-12,25 ds0.5 r2 t0.01,0.25,0,0
+v0 w15 f440 n69,0 a-10 G1 H1 ds0.6 r1 t0.01,0.25,0,0
+v1 w15 f440 n69,0 a-10 N-12,25 ds0.5 r2 t0.01,0.25,0,0
 
 [sk/drums-kick.ks]  /ks k>d d>r /r 100
 [sk/drums-snare.ks] /ks k>d d>r /r 101
 [sk/drums-chh.ks]   /ks k>d d>r /r 102
 
-v10 w100 f440 n69,0 a10
-v11 w101 f440 n69,0 a10
-v12 w102 f440 n69,0 a5
+v10 w100 f440 n69,0 a0
+v11 w101 f440 n69,0 a0
+v12 w102 f440 n69,0 a-5
 
 y0 %2 z0 ym0
 [v0 n&0 l1] x0

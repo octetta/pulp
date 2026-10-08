@@ -9,10 +9,10 @@ M 124
 [sk/nap-bass-acid.ks]/ks 1 k>d d>r /r103
 
 # Voice Assignments (Drums at natural unpitched f440):
-v0 w100 f440 a10          # Kick (Natural unpitched playback)
-v1 w101 f440 a8           # Snare
-v2 w102 f440 a3           # Closed Hat
-v3 w103 f440 a8           # Acid Bass (Pitched via note numbers)
+v0 w100 f440 a0          # Kick (Natural unpitched playback)
+v1 w101 f440 a-2           # Snare
+v2 w102 f440 a-7           # Closed Hat
+v3 w103 f440 a-2           # Acid Bass (Pitched via note numbers)
 
 # Master 16-Step Groove (Pattern 0)
 y0

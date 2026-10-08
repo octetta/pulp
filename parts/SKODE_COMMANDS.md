@@ -10,7 +10,7 @@ separated by commas or whitespace, and commands may be placed next to each
 other:
 
 ```text
-v0 w0 f220 a0 l1
+v0 w0 f220 a-10 l1
 v1n60l1
 ```
 

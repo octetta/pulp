@@ -24,7 +24,7 @@
 #define SAMPLE_COUNT_GET() atomic_load_uint64(&synth_sample_count)
 #define SAMPLE_COUNT_ADD(n) atomic_fetch_add_uint64(&synth_sample_count, n)
 
-#define VOLUME_DEFAULT (-20.0f)
+#define VOLUME_DEFAULT (-6.0f)
 #define DB_TO_LINEAR(v) powf(10.f, (v) / 20.0f)
 #define SYNTH_INVALID_VOICE (100)
 
@@ -239,6 +239,12 @@ synth_sample_t sampling = {
 #define volume_threshold (engine->volume_threshold)
 #undef volume_smoother_higher_smoothing
 #define volume_smoother_higher_smoothing (engine->volume_smoother_higher_smoothing)
+static inline float master_soft_clip(float x) {
+  // Cubic soft-clip: transparent near zero, rounds peaks, hard clips at 1.5
+  if (x < -1.5f) return -1.0f;
+  if (x > 1.5f) return 1.0f;
+  return x - 0.148148148f * x * x * x;
+}
 
 void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_frames,
                    int num_channels, int input_channels, void *user) {
@@ -293,6 +299,7 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
         m = sv.freq_mod_osc[n]; if (m >= 0 && m < nvoices && !voice_active[m]) { voice_active[m] = 1; changed = 1; }
         m = sv.pan_mod_osc[n];  if (m >= 0 && m < nvoices && !voice_active[m]) { voice_active[m] = 1; changed = 1; }
         m = sv.amp_mod_osc[n];  if (m >= 0 && m < nvoices && !voice_active[m]) { voice_active[m] = 1; changed = 1; }
+        m = sv.ring_osc[n];      if (m >= 0 && m < nvoices && !voice_active[m]) { voice_active[m] = 1; changed = 1; }
       }
     }
   }
@@ -344,12 +351,6 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
         // hold last value to modulator consumers see statle output after one-shot ends
         continue;
       }  
-      if (sv.user_amp[n] <= SILENT) {
-        sv.sample[n] = 0.0f;
-        sv.freq_mod_feedback_z1[n] = 0.0f;
-        sv.freq_mod_feedback_z2[n] = 0.0f;
-        continue;
-      }
       if (sv.glissando_enable[n]) {
         if (sv.glissando_mode[n] == 2) {
             float p = (1.0f / sv.phase_inc[n]) + sv.glissando_delta[n];
@@ -554,6 +555,7 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
 
       if (sv.amp_mod_osc[n] >= 0) {
         int m = sv.amp_mod_osc[n];
+        m = sv.ring_osc[n];      if (m >= 0 && m < nvoices && !voice_active[m]) { voice_active[m] = 1; changed = 1; }
         mod = sv.sample[m] * sv.amp_mod_depth[n] + sv.amp_mod_adder[n];
       }
       
@@ -645,8 +647,8 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
     volume_smoother_gain += volume_smoother_smoothing * (volume_final - volume_smoother_gain);
     float volume_adjusted = volume_smoother_gain;
 
-    sample_left  *= volume_adjusted;
-    sample_right *= volume_adjusted;
+    sample_left  = master_soft_clip(sample_left * volume_adjusted);
+    sample_right = master_soft_clip(sample_right * volume_adjusted);
 
     if (sample_state == SAMPLE_STATE_RECORDING &&
         atomic_load_int(&sampling.frames) > 0) {

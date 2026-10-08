@@ -19,7 +19,7 @@
 M 128 16
 
 # Drop master volume slightly for headroom
-V -20
+V-6
 
 # Set up the 4 Delay Busses for group effects processing
 # Delay Bus 1: Rhythmic syncopation for the Moog Bass

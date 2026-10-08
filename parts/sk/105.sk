@@ -1,5 +1,5 @@
 # show extra/external/event (macro)
-v0 a4 f440 t 0 .5 0 0 >1v1 f881 >2v2 w2 f220
+v0 a-6 f440 t 0 .5 0 0 >1v1 f881 >2v2 w2 f220
 [v0l1]e>0
 [v1l1]e>1
 [v2l1]e>2

@@ -56,39 +56,36 @@ DP 4 1
 # ======================================================================
 # VOICES
 # ======================================================================
-v0 w82 f440 a6 p0                          # kick
-v1 w83 f440 a7 r2 p0 ds.2                    # snare
+v0 w82 f440 a6 p 0                          # kick
+v1 w83 f440 a7 r2 p 0 ds.2                    # snare
 v2 w84 f440 a-3 p.25                        # closed hat
 v3 w85 f440 a-2 p-.25                       # open hat
-v4 w86 f440 a7 r2 p0 ds.3                    # clap
-v5 w0 a-3 p0 t.002,.30,0,.10 j1 k180 q.7     # sub boom (pitch-dropped by glide)
+v4 w86 f440 a7 r2 p 0 ds.3                    # clap
+v5 w0 a-3 p 0 t.002,.30,0,.10 j1 k180 q.7     # sub boom (pitch-dropped by glide)
 v21 w94 f440 a5 p.2                         # crash
-v22 w96 f440 a3 p-.3 r2 p0 ds.3              # cowbell
+v22 w96 f440 a3 p-.3 r2 p 0 ds.3              # cowbell
 v23 w87 f440 a5 p.3                         # rim
 
 # reese bass: two detuned saws, one note drives both (G/H links)
-v6 w15 a-1 p0 t.002,.17,0,.06 j1 k650 q4 ft.001,.15,0,.05 fd2000
+v6 w15 a-1 p 0 t.002,.17,0,.06 j1 k650 q4 ft.001,.15,0,.05 fd2000
 v6 >7
 v7 N0,14
 v6 G7 H7
 
 # 303 acid: screamer filter, glide for slides, delay bus 3
-v8 w15 a0 t.002,.20,0,.06 j1,2 k350 q10 ft.001,.18,0,.06 fd2600 g.03 r3 p0 ds.3
+v8 w15 a0 t.002,.20,0,.06 j1,2 k350 q10 ft.001,.18,0,.06 fd2600 g.03 r3 p 0 ds.3
 
 # industrial clang: ring mod of two inharmonic oscillators, crushed
-v9 w16 f311 a0 t.001,.35,0,.2 bc5 r2 p0 ds.3 XM10 H10
+v9 w16 f311 a0 t.001,.35,0,.2 bc5 r2 p 0 ds.3 XM10 H10
 v10 w15 f187 a0 t.001,.30,0,.2 m1
 
-# fm clang solo (v18, v19)
-v18 w0 f311 a0 t.001,.35,0,.2 FF2 FB6 F19,2.5 r2 p0 ds.3 H19
-v19 w0 f187 a0 t.001,.30,0,.2 m1
 
 # metal FM stab: phase-mod + operator feedback, modulator tracks pitch (+21 st)
 v11 w0 a0 p-.35 t.001,.45,0,.35 FF2 FB4 F12,2.2 G12 H12
 v12 w0 a0 t.001,.30,0,.30 N21 m1
 
 # poppy hook: phase-distortion saw trio, detuned and spread
-v13 w15 a-8 p0 t.004,.25,.4,.14 j1 k5200 q1.4 c4,.35 ct.001,.2,0,.1 cd.5 r1 ds.4
+v13 w15 a-8 p 0 t.004,.25,.4,.14 j1 k5200 q1.4 c4,.35 ct.001,.2,0,.1 cd.5 r1 ds.4
 v13 >14
 v13 >15
 v14 N0,10 p-.55 r0
@@ -96,9 +93,9 @@ v15 w16 a-11 N0,-10 p.55 r0
 v13 G14,15 H14,15
 
 # chorus chops: vocal wavetable, crushed, wash bus
-v17 w61 a-2 t.002,.18,.3,.1 j1 k4200 q1 bc8 r4 p0 ds.45
+v17 w61 a-2 t.002,.18,.3,.1 j1 k4200 q1 bc8 r4 p 0 ds.45
 # riser: K-synth noise+sweep sample (sk/hammer-riser.ks), stretched to ~7 s by playback rate
-v16 w301 f187 a8 p0 t.005,.01,1,.4 r4 ds.3
+v16 w301 f187 a8 p 0 t.005,.01,1,.4 r4 ds.3
 # pad: poly pool (POLYPHONY.md): 2-voice prototype (detuned saw pair, L/R), 5 instances -> v28..v37
 v24 w0 f.31 a0 t0,0,1,0 m1
 v26 w15 a-8 p-.5 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2 G27 H27
@@ -391,18 +388,11 @@ y16
 # ======================================================================
 # CONDUCTOR (pattern 0: one step per bar, 68 bars)
 # ======================================================================
-y12
-[fm clang solo 7/16] yt
-[v18 p-1 f800 v19 f480 v18 l1] x0
-[v18 p1 f420 v19 f252 v18 l0.8] x2
-[v18 p0 f233 v19 f139 v18 l0.6] x3
-[v18 p0.5 f600 v19 f360 v18 l0.9] x5
-[=127,0] x6
 
 y0
 [conductor] yt
 %16
-[y11 z1 y7 z1 v28 a-14 v29 a-16 v30 a-14 v31 a-16 v32 a-14 v33 a-16 v34 a-14 v35 a-16 v36 a-14 v37 a-16] x0
+[y11 z1 v28 a-14 v29 a-16 v30 a-14 v31 a-16 v32 a-14 v33 a-16 v34 a-14 v35 a-16 v36 a-14 v37 a-16] x0
 [=126,1] x1
 [=126,2] x2
 [=126,3] x3
@@ -410,7 +400,7 @@ y0
 [=126,5] x5
 [=126,6] x6
 [=126,7] x7
-[y1 z1 y7 z0 v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10 v16 l0] x8
+[y1 z1 v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10 v16 l0] x8
 [=126,9] x9
 [=126,10] x10
 [=126,11] x11
@@ -434,7 +424,7 @@ y0
 [=126,29] x29
 [=126,30] x30
 [y2 z0 y13 z1 y17 z1] x31
-[v21 l1 DF 1 1 y1 z0 y3 z0 y4 z0 y5 z0 y6 z0 y8 z0 y9 z0 y14 z0 y10 z1 y12 z1] x32
+[v21 l1 DF 1 1 y1 z0 y3 z0 y4 z0 y5 z0 y6 z0 y8 z0 y9 z0 y14 z0 y10 z1 y7 z1] x32
 [v13 l0 v14 l0 v15 l0 v6 l0 v11 l0 v8 l0] x33
 [v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10] x34
 [v13 a-8 v14 a-8 v15 a-11 v11 a0] x35
@@ -442,7 +432,7 @@ y0
 [=126,37] x37
 [=126,38] x38
 [=126,39] x39
-[y1 z1 y3 z1 v16 l0 y10 z0 y7 z0 y12 z0] x40
+[y1 z1 y3 z1 v16 l0 y10 z0 y7 z0] x40
 [=126,41] x41
 [y13 z1 y17 z1] x42
 [y13 z1 y17 z1 v13 k5200 v14 k5200 v15 k5200 y16 z0] x43
@@ -462,7 +452,7 @@ y0
 [=126,57] x57
 [=126,58] x58
 [y2 z0 y13 z1 y17 z1] x59
-[v21 l1 y7 z1 y9 z0 y8 z0 y5 z0 y6 z0 y10 z0 y4 z0 y14 z0 y2 z1 y3 z%2] x60
+[v21 l1 y9 z0 y8 z0 y5 z0 y6 z0 y10 z0 y4 z0 y14 z0 y2 z1 y3 z%2] x60
 [v13 l0 v14 l0 v15 l0 v6 l0 v11 l0 v8 l0] x61
 [v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10] x62
 [v13 a-8 v14 a-8 v15 a-11 v11 a0] x63
@@ -470,7 +460,7 @@ y0
 [=126,65] x65
 [=126,66] x66
 [DF 1 1] x67
-[v21 l1 v22 l.8 y1 z0 y3 z0 y7 z0 y11 z0 y14 z0 Z0 +8 ce 99] x68
+[v21 l1 v22 l.8 y1 z0 y3 z0 y11 z0 y14 z0 Z0 +8 ce 99] x68
 
 [use 'play' to start the song, 'stop' to stop it] puts
 [play] : Z0 Z! y0 z1 ;

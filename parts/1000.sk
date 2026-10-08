@@ -8,31 +8,31 @@ v18 w4 a0 t 0 .012 0 0 f 8  m1
 # 808 KICK
 # 50Hz sine, high-Q resonant LPF, long decay
 # ============================================================
-v0 w0 a0 t 0 .6 0 0 f 50 q0 J1 K 90 Q 5.0 l1
+v0 w0 a-10 t 0 .6 0 0 f 50 q0 J1 K 90 Q 5.0 l1
 # ============================================================
 # 808 SNARE
 # v2: 1-bit noise body bandpass 200Hz
 # v3: high-pass sizzle
 # v4: 180Hz sine snap
 # ============================================================
-v2 w6 a0  t 0 .100 0 0 q1 J2 K 200  Q 0.50 H3,4,-1,-1
-v3 w6 a-8 t 0 .050 0 0    J0 K 1000 Q 0.20
-v4 w0 a-2 t 0 .100 0 0 f 180 l1
+v2 w6 a-10  t 0 .100 0 0 q1 J2 K 200  Q 0.50 H3,4,-1,-1
+v3 w6 a-18 t 0 .050 0 0    J0 K 1000 Q 0.20
+v4 w0 a-12 t 0 .100 0 0 f 180 l1
 # ============================================================
 # 808 CLAP
 # v7:  2-bit noise crack 800Hz bandpass 10ms
 # v8:  2-bit noise body  600Hz bandpass 30ms
 # v9:  short tail 1200Hz lowpass 60ms + AM swell via v16
 # ============================================================
-v7 w6 a8  t 0 .010 0 0 q2 J2 K 800  Q 0.60 H8,9,16,-1
-v8 w6 a4  t 0 .030 0 0 q1 J2 K 600  Q 0.50
-v9 w6 a0  t 0 .060 0 0    J1 K 1200 Q 0.20 A16,0.7,0.3 l1
+v7 w6 a-2  t 0 .010 0 0 q2 J2 K 800  Q 0.60 H8,9,16,-1
+v8 w6 a-6  t 0 .030 0 0 q1 J2 K 600  Q 0.50
+v9 w6 a-10  t 0 .060 0 0    J1 K 1200 Q 0.20 A16,0.7,0.3 l1
 # ============================================================
 # CLOSED HI-HAT (808/909 shared voice v20)
 # Retriggering v20 naturally chokes open HH
 # Short 1-bit noise burst, high bandpass, very dry
 # ============================================================
-v20 w6 a0 t 0 .018 0 0 q1 J2 K 8000 Q 0.30 l1
+v20 w6 a-10 t 0 .018 0 0 q1 J2 K 8000 Q 0.30 l1
 # ============================================================
 # OPEN HI-HAT (808/909 shared voice v20)
 # Same voice — closed HH retrigger kills this naturally
@@ -41,7 +41,7 @@ v20 w6 a0 t 0 .018 0 0 q1 J2 K 8000 Q 0.30 l1
 # overwriting v20 with longer decay before triggering
 # ============================================================
 # open HH is triggered by redefining v20 with longer decay:
-# v20 w6 a0 t 0 .320 0 0 q1 J2 K 7000 Q 0.25 l1
+# v20 w6 a-10 t 0 .320 0 0 q1 J2 K 7000 Q 0.25 l1
 # closed HH kills it by retriggering the short version
 # ============================================================
 # 808 COWBELL
@@ -52,37 +52,37 @@ v20 w6 a0 t 0 .018 0 0 q1 J2 K 8000 Q 0.30 l1
 # High-Q bandpass on both tonal voices for metallic ring
 # Q kept under 1.0 — resonance from filter not Q>1 squeal
 # ============================================================
-v23 w1 a-2 t 0 .500 0 0 f 540 q0 J2 K 540 Q 0.80 H24,25,-1,-1
-v24 w1 a-4 t 0 .400 0 0 f 450 q0 J2 K 450 Q 0.70
-v25 w6 a-6 t 0 .008 0 0 q1 J1 K 600 Q 0.20 l1
+v23 w1 a-12 t 0 .500 0 0 f 540 q0 J2 K 540 Q 0.80 H24,25,-1,-1
+v24 w1 a-14 t 0 .400 0 0 f 450 q0 J2 K 450 Q 0.70
+v25 w6 a-16 t 0 .008 0 0 q1 J1 K 600 Q 0.20 l1
 # ============================================================
 # 808 MARACAS
 # Very short broadband noise burst — HPF strips low end
 # Two layers: attack transient + body
 # ============================================================
-v26 w6 a-2 t 0 .012 0 0 q2 J0 K 5000 Q 0.20 H27,-1,-1,-1
-v27 w6 a-8 t 0 .030 0 0 q1 J2 K 7000 Q 0.25 l1
+v26 w6 a-12 t 0 .012 0 0 q2 J0 K 5000 Q 0.20 H27,-1,-1,-1
+v27 w6 a-18 t 0 .030 0 0 q1 J2 K 7000 Q 0.25 l1
 # ============================================================
 # 808 RIMSHOT
 # Short pitched click + noise burst
 # v28: 400Hz sine click — very short, the "rim" tone
 # v29: broadband noise HPF — the "shot" crack
 # ============================================================
-v28 w0 a0  t 0 .025 0 0 f 400 q0 J2 K 400 Q 0.60 H29,-1,-1,-1
-v29 w6 a-2 t 0 .015 0 0 q1 J0 K 800 Q 0.20 l1
+v28 w0 a-10  t 0 .025 0 0 f 400 q0 J2 K 400 Q 0.60 H29,-1,-1,-1
+v29 w6 a-12 t 0 .015 0 0 q1 J0 K 800 Q 0.20 l1
 # ============================================================
 # 808 CONGA HI
 # Pitched sine with fast decay, mid-Q bandpass
 # Subtle pitch snap modulated by v18 (reused)
 # ============================================================
-v30 w0 a0 t 0 .120 0 0 f 320 q0 F18,40,320 J2 K 400 Q 0.55 H31,-1,-1,-1
-v31 w6 a-6 t 0 .020 0 0 q1 J0 K 500 Q 0.20 l1
+v30 w0 a-10 t 0 .120 0 0 f 320 q0 F18,40,320 J2 K 400 Q 0.55 H31,-1,-1,-1
+v31 w6 a-16 t 0 .020 0 0 q1 J0 K 500 Q 0.20 l1
 # ============================================================
 # 808 CONGA LO
 # Lower pitched version of conga, longer decay
 # ============================================================
-v32 w0 a0 t 0 .180 0 0 f 220 q0 F18,30,220 J2 K 280 Q 0.55 H33,-1,-1,-1
-v33 w6 a-6 t 0 .020 0 0 q1 J0 K 400 Q 0.20 l1
+v32 w0 a-10 t 0 .180 0 0 f 220 q0 F18,30,220 J2 K 280 Q 0.55 H33,-1,-1,-1
+v33 w6 a-16 t 0 .020 0 0 q1 J0 K 400 Q 0.20 l1
 # ============================================================
 # 909 KICK
 # v10: Saw click transient 6ms 1-bit grit
@@ -92,9 +92,9 @@ v33 w6 a-6 t 0 .020 0 0 q1 J0 K 400 Q 0.20 l1
 #
 # SWEEP: t=0ms f=107Hz  t=22ms f=79Hz  t=45ms f=52Hz
 # ============================================================
-v10 w2 a6  t 0 .006 0 0 f 130 q1 J1 K 280 Q 0.30 H11,12,17,-1
-v11 w0 a2  t 0 .045 0 0 f 52  q0 F17,55,52  J1 K 180 Q 0.40
-v12 w0 a0  t 0 .380 0 0 f 52  q0            J1 K 80  Q 4.80 l1
+v10 w2 a-4  t 0 .006 0 0 f 130 q1 J1 K 280 Q 0.30 H11,12,17,-1
+v11 w0 a-8  t 0 .045 0 0 f 52  q0 F17,55,52  J1 K 180 Q 0.40
+v12 w0 a-10  t 0 .380 0 0 f 52  q0            J1 K 80  Q 4.80 l1
 # ============================================================
 # 909 SNARE
 # v13: broadband noise HPF 200Hz — membrane strike
@@ -102,9 +102,9 @@ v12 w0 a0  t 0 .380 0 0 f 52  q0            J1 K 80  Q 4.80 l1
 # v15: subtle sine body 160Hz pulled back -4dB
 # No pitch sweep — was causing sqweep artifact
 # ============================================================
-v13 w6 a8  t 0 .018 0 0 q1 J0 K 200  Q 0.30 H14,15,-1,-1
-v14 w6 a4  t 0 .120 0 0 q2 J2 K 3500 Q 0.25
-v15 w0 a-4 t 0 .070 0 0 f 160 q0 J1 K 300 Q 0.40 l1
+v13 w6 a-2  t 0 .018 0 0 q1 J0 K 200  Q 0.30 H14,15,-1,-1
+v14 w6 a-6  t 0 .120 0 0 q2 J2 K 3500 Q 0.25
+v15 w0 a-14 t 0 .070 0 0 f 160 q0 J1 K 300 Q 0.40 l1
 # ============================================================
 # 909 RIMSHOT
 # Harder and snappier than 808 rimshot
@@ -112,9 +112,9 @@ v15 w0 a-4 t 0 .070 0 0 f 160 q0 J1 K 300 Q 0.40 l1
 # v37: tight noise burst HPF
 # v38: subtle 600Hz sine snap
 # ============================================================
-v36 w2 a2  t 0 .010 0 0 f 600 q1 J2 K 600 Q 0.50 H37,38,-1,-1
-v37 w6 a0  t 0 .012 0 0 q1 J0 K 1000 Q 0.20
-v38 w0 a-4 t 0 .020 0 0 f 600 q0 J2 K 700 Q 0.40 l1
+v36 w2 a-8  t 0 .010 0 0 f 600 q1 J2 K 600 Q 0.50 H37,38,-1,-1
+v37 w6 a-10  t 0 .012 0 0 q1 J0 K 1000 Q 0.20
+v38 w0 a-14 t 0 .020 0 0 f 600 q0 J2 K 700 Q 0.40 l1
 # ============================================================
 # 909 CYMBAL (crash/ride character)
 # Multiple detuned square waves for metallic shimmer
@@ -124,9 +124,9 @@ v38 w0 a-4 t 0 .020 0 0 f 600 q0 J2 K 700 Q 0.40 l1
 # v40: 4140Hz square detuned +3.5%
 # v41: noise wash tail
 # ============================================================
-v39 w1 a-4 t 0 .800 0 0 f 4000 q1 J2 K 4000 Q 0.60 H40,41,-1,-1
-v40 w1 a-6 t 0 .600 0 0 f 4140 q1 J2 K 4200 Q 0.50
-v41 w6 a-8 t 0 .500 0 0 q2 J0 K 6000 Q 0.20 l1
+v39 w1 a-14 t 0 .800 0 0 f 4000 q1 J2 K 4000 Q 0.60 H40,41,-1,-1
+v40 w1 a-16 t 0 .600 0 0 f 4140 q1 J2 K 4200 Q 0.50
+v41 w6 a-18 t 0 .500 0 0 q2 J0 K 6000 Q 0.20 l1
 # ============================================================
 # 909 CLAP
 # Tighter and harder than 808 clap
@@ -134,9 +134,9 @@ v41 w6 a-8 t 0 .500 0 0 q2 J0 K 6000 Q 0.20 l1
 # v43: mid noise body
 # v44: short tail — no AM swell, 909 clap is drier
 # ============================================================
-v42 w6 a10 t 0 .008 0 0 q1 J2 K 1100 Q 0.65 H43,44,-1,-1
-v43 w6 a4  t 0 .025 0 0 q2 J2 K 900  Q 0.55
-v44 w6 a0  t 0 .050 0 0    J1 K 1800 Q 0.20 l1
+v42 w6 a0 t 0 .008 0 0 q1 J2 K 1100 Q 0.65 H43,44,-1,-1
+v43 w6 a-6  t 0 .025 0 0 q2 J2 K 900  Q 0.55
+v44 w6 a-10  t 0 .050 0 0    J1 K 1800 Q 0.20 l1
 # ============================================================
 # DEMO PATTERN — classic 808/909 hybrid groove at 120 BPM
 #

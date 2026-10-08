@@ -1,8 +1,8 @@
 # s <- $
 S100
-v0 w0 a10
-v1 w0 a10
-v2 w0 a10
+v0 w0 a0
+v1 w0 a0
+v2 w0 a0
 [./sk/998.ks] /ks k>d d>r /r 300
 [./sk/waves.ks] /ks k>d d>r /r 301
 [./sk/vowels.ks] /ks k>d d>r /r 302
@@ -155,7 +155,7 @@ v2 w0 a10
 [./sk/bell.ks] /ks k>d d>r /r 449
 [./998.ks] /ks k>d d>r /r 450
 [./999.ks] /ks k>d d>r /r 451
-v10 w1 a0 f440 t 0 .25 0 0
+v10 w1 a-10 f440 t 0 .25 0 0
 y0
 [v0 w300 l1] x0
 [v0 w301 l1] xa

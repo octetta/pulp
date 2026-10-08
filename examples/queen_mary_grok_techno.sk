@@ -24,15 +24,15 @@ DD 1 5 2
 # ======================================================================
 
 # Kick
-v 0 w100 f440 a10
+v 0 w100 f440 a0
 
 # Snare / Clap
-v 1 w101 f440 a8
-v 5 w104 f440 a7
+v 1 w101 f440 a-2
+v 5 w104 f440 a-3
 
 # Hats
-v 2 w102 f440 a4          # closed
-v 3 w103 f440 a5          # open
+v 2 w102 f440 a-6          # closed
+v 3 w103 f440 a-5          # open
 
 # Brass / Stab ensemble (Voices 6–9)
 [bras] : v $$0 w 18 a 0.40 t 0.004 0.10 0.30 0.06 J 1 K 2200 Q 2.6 ;

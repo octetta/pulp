@@ -6,9 +6,9 @@ DL1,2,15,15,31,15,15
 DL2,0,0,3,0,31,15
 DL3,5,4,10,0,0,8
 DL4,0,0,0,0,31,15
-v3 w400 n75 a5 ds1 r4 [ohh] vt
-v4 w401 f440 a15 ds0.5 r1 [kick-0] vt # *
-v5 w402 f440 a20 ds1 r2 [snare] vt
+v3 w400 n75 a-5 ds1 r4 [ohh] vt
+v4 w401 f440 a5 ds0.5 r1 [kick-0] vt # *
+v5 w402 f440 a10 ds1 r2 [snare] vt
 y1 [ohh] yt
 [v3 l1 +.25 v3 l1 +.25 v3 l1 +.25 v3 l1] x0
 y2 [kick] yt

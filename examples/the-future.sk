@@ -24,10 +24,10 @@ DD 1 7 3
 # ======================================================================
 
 # Kick / percussion
-v 0 w100 f440 a9
-v 1 w101 f440 a3.5          # closed hat
-v 2 w102 f440 a5            # clap
-v 3 w103 f440 a4            # rim
+v 0 w100 f440 a-1
+v 1 w101 f440 a-6.5          # closed hat
+v 2 w102 f440 a-5            # clap
+v 3 w103 f440 a-6            # rim
 
 # Bass (deep, clean OMD-style)
 v 4

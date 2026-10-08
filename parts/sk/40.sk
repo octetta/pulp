@@ -3,11 +3,11 @@ S100
 
 M201
 
-v0 w208 f242.603 j1 k200 q10 bc13 h8 a20 c1,.5 # bass
-v1 w205 f440 a20  # snare
+v0 w208 f242.603 j1 k200 q10 bc13 h8 a10 c1,.5 # bass
+v1 w205 f440 a10  # snare
 
 /w3,300
-v2 w300 a20 P20,1 # cymbal or hi-hat?
+v2 w300 a10 P20,1 # cymbal or hi-hat?
 v20 m1 f1 a1
 
 y0 # select pattern 0

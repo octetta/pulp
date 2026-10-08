@@ -13,10 +13,10 @@ M 80
 [sk/drums-tomhi.ks]/ks k>d d>r /r103
 
 # 2. Voice Assignments (using f440 natural sample root frequency):
-v0 w100 f440 a20          # Kick
-v1 w101 f440 a15          # Snare
-v2 w102 f440 a6           # Closed Hi-Hat
-v3 w103 f440 a8           # High Tom
+v0 w100 f440 a10          # Kick
+v1 w101 f440 a5          # Snare
+v2 w102 f440 a-4           # Closed Hi-Hat
+v3 w103 f440 a-2           # High Tom
 
 # -------------------------------------------------------------------------
 # PATTERN 0: Main Groove with a Half-Speed Breakdown on Beat 3 (z%2)

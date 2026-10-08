@@ -47,6 +47,16 @@ static int word_exec_R_bang_bang(const skode_word_t *self, skode_t *ctx, ands_t 
       return 0;
 }
 
+static int word_exec_DQ(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  int x = 0;
+  if (argc > 0 && skode_double_to_int(arg[0], &x)) {
+    seq_kill_by_tag(x);
+  } else {
+    seq_kill_all();
+  }
+  return 0;
+}
+
 static int word_exec_RR(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -789,6 +799,7 @@ static skode_word_t word_eRR = { WID("eRR"), .execute = word_exec_eRR, .safety =
 static skode_word_t word_eR = { WID("eR"), .execute = word_exec_eR, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_DO_q = { WID("DO?"), .execute = word_exec_DO_q, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_R = { WID("R"), .execute = word_exec_R, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
+static skode_word_t word_DQ = { WID("DQ"), .execute = word_exec_DQ, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_xg = { WID("xg"), .execute = word_exec_xg, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word__gtx = { WID(">x"), .execute = word_exec__gtx, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word_xa = { WID("xa"), .execute = word_exec_xa, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
@@ -838,6 +849,7 @@ void skode_register_words_seq(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_eR);
   skode_dict_register(vocab, &word_DO_q);
   skode_dict_register(vocab, &word_R);
+  skode_dict_register(vocab, &word_DQ);
   skode_dict_register(vocab, &word_xg);
   skode_dict_register(vocab, &word__gtx);
   skode_dict_register(vocab, &word_xa);

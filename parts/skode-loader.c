@@ -484,7 +484,7 @@ int rec_load(skode_t *ctx, int wave_slot, int one_shot, int channel, int verbose
 
 int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offset) {
   if (ctx == NULL) return 100; // fix todo
-  ctx->printf(ctx, "# data_load(ctx, %d, %d, %g, %g)\n", wave_slot, one_shot, rate, offset);
+  if (0) ctx->printf(ctx, "# data_load(ctx, %d, %d, %g, %g)\n", wave_slot, one_shot, rate, offset);
   if (!skode_wave_valid(wave_slot)) {
     ctx->printf(ctx, "# invalid slot %d\n", wave_slot);
     return -1;
@@ -527,7 +527,7 @@ int data_load(skode_t *ctx, int wave_slot, int one_shot, float rate, float offse
       offset > 0 ? 69.0f : 0.0f, offset_hz);
     char *name = "data";
     int channels = 1;
-    ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%g)\n", len, name, wave_slot, channels, rate);
+    if (0) ctx->printf(ctx, "# read %d frames from %s to %d (ch:%d sr:%g)\n", len, name, wave_slot, channels, rate);
   return 0;
 }
 

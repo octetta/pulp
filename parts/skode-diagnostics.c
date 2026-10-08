@@ -485,10 +485,33 @@ void pattern_show(skode_t *ctx, int pattern_pointer, int verbose) {
   if (seq_text[pattern_pointer][0] != '\0') ctx->printf(ctx, " [%s] yt", seq_text[pattern_pointer]);
   ctx->printf(ctx, " # used:%d step:%d\n", seq_pattern_length[pattern_pointer], seq_pointer[pattern_pointer]);
   if (verbose) {
-    for (int s = 0; s < len; s++) {
+    int s = 0;
+    while (s < len) {
       const char *line = seq_step_source(pattern_pointer, s);
+      
+      int is_blank = (line == NULL || line[0] == '\0' || strcmp(line, "-") == 0 || strcmp(line, "---") == 0);
+      if (is_blank) {
+        int count = 1;
+        int end_s = s;
+        while (end_s + 1 < len) {
+          const char *next_line = seq_step_source(pattern_pointer, end_s + 1);
+          if (next_line == NULL || next_line[0] == '\0' || strcmp(next_line, "-") == 0 || strcmp(next_line, "---") == 0) {
+            count++;
+            end_s++;
+          } else {
+            break;
+          }
+        }
+        if (count > 1) {
+          ctx->printf(ctx, "[] x%d # .. x%d", s, end_s);
+          ctx->puts(ctx, "");
+          s = end_s + 1;
+          continue;
+        }
+      }      
       ctx->printf(ctx, "[%s] x%d", line, s);
       ctx->puts(ctx, "");
+      s++;
     }
   }
   seq_edit_unlock();

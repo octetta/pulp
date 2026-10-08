@@ -495,6 +495,15 @@ static int word_exec____l(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
       if (argc && isfinite(arg[0])) envelope_velocity(voice, arg[0]);
       return 0;
 }
+static int word_exec_O(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  (void)self; (void)atom; (void)voice;
+  for (int i = 0; i < synth_config.voice_max; i++) {
+    envelope_velocity(i, 0.0);
+  }
+  return 0;
+}
 
 static int word_exec_l(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
@@ -1515,6 +1524,7 @@ static skode_word_t word_K = { WID("K"), .execute = word_exec_K, .safety = WORD_
 static skode_word_t word_k = { WID("k"), .execute = word_exec_K, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
 static skode_word_t word____l = { WID("___l"), .execute = word_exec____l, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_l = { WID("l"), .execute = word_exec_l, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
+static skode_word_t word_O = { WID("O"), .execute = word_exec_O, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 /* 'on' and 'off' are gate-on / gate-off aliases for l1 / l0 */
 static int word_exec_on(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   (void)self; (void)s; (void)arg; (void)argc;
@@ -1615,6 +1625,7 @@ void skode_register_words_dsp(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_k);
   skode_dict_register(vocab, &word____l);
   skode_dict_register(vocab, &word_l);
+  skode_dict_register(vocab, &word_O);
   skode_dict_register(vocab, &word_on);
   skode_dict_register(vocab, &word_off);
   skode_dict_register(vocab, &word_M);

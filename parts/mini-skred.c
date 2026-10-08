@@ -149,9 +149,9 @@ int main(int argc, char **argv) {
     setvbuf(stdout, NULL, _IOLBF, 0);
   }
 
-  printf("# ( %s)\n", skred_features());
-  printf("# frames/callback %d\n", req);
-  printf("# voices %d\n", vc);
+  printf("# skred v%s with %s\n", skred_version(), skred_features());
+  if (0) printf("# frames/callback %d\n", req);
+  if (0) printf("# voices %d\n", vc);
 
   skred_set_audio_device(output, input);
 

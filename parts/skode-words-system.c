@@ -125,6 +125,17 @@ static int word_exec_udp(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
 }
 #endif
 
+static int word_exec_puts(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)arg; (void)argc; (void)s;
+  const char* str = ands_string(ctx->parse);
+  if (str && str[0] != '\0') {
+    ctx->printf(ctx, "# %s\n", str);
+  } else {
+    ctx->printf(ctx, "#\n");
+  }
+  return 0;
+}
+
 static int word_exec_log(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -703,6 +714,7 @@ static skode_word_t word_I = { WID("I"), .execute = word_exec_I, .safety = WORD_
 static skode_word_t word_udp = { WID("udp"), .execute = word_exec_udp, .safety = WORD_IMMEDIATE_ONLY , .category = "runtime" };
 #endif
 static skode_word_t word_log = { WID("log"), .execute = word_exec_log, .safety = WORD_IMMEDIATE_ONLY , .category = "runtime" };
+static skode_word_t word_puts = { WID("puts"), .execute = word_exec_puts, .safety = WORD_IMMEDIATE_ONLY , .category = "runtime" };
 static skode_word_t word_GS_gt = { WID("GS>"), .execute = word_exec_GS_gt, .safety = WORD_IMMEDIATE_ONLY , .category = "files" };
 static skode_word_t word_GS_lt = { WID("GS<"), .execute = word_exec_GS_lt, .safety = WORD_IMMEDIATE_ONLY , .category = "files" };
 static skode_word_t word_x = { WID("x"), .execute = word_exec_x, .safety = WORD_IMMEDIATE_ONLY , .category = "parser" };
@@ -775,6 +787,7 @@ void skode_register_words_system(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word__qs);
 #endif
   skode_dict_register(vocab, &word_log);
+  skode_dict_register(vocab, &word_puts);
   skode_dict_register(vocab, &word_GS_gt);
   skode_dict_register(vocab, &word_GS_lt);
   skode_dict_register(vocab, &word_x);

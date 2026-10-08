@@ -239,8 +239,7 @@ void do_pattern(uint64_t now,
     if (target_tick > master_tick &&
         target_tick - master_tick > SEQ_MAX_CATCHUP_TICKS)
       master_tick = target_tick - SEQ_MAX_CATCHUP_TICKS;
-    while (master_tick < target_tick) {
-      master_tick++;
+    while (master_tick <= target_tick) {
       for (int p = 0; p < PATTERNS_MAX; p++) {
         if (seq_pending_state[p] > 0) {
           int mod = seq_modulo[p] > 0 ? seq_modulo[p] : 1;
@@ -379,6 +378,7 @@ void do_pattern(uint64_t now,
         }
         seq_current_pattern = -1;
       }
+      master_tick++;
     }
   }
   seq_edit_unlock();

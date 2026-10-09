@@ -555,7 +555,6 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
 
       if (sv.amp_mod_osc[n] >= 0) {
         int m = sv.amp_mod_osc[n];
-        m = sv.ring_osc[n];      if (m >= 0 && m < nvoices && !voice_active[m]) { voice_active[m] = 1; changed = 1; }
         mod = sv.sample[m] * sv.amp_mod_depth[n] + sv.amp_mod_adder[n];
       }
       

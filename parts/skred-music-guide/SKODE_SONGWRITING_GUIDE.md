@@ -1,13 +1,12 @@
 # Making Sounds, Patterns and Songs in PULP/SKRED (Skode)
 
-Field notes from building *HAMMER THE SIGNAL* (134 BPM industrial techno-pop, 68 bars,
-about two minutes) entirely as a Skode script, then rendering and measuring it headless.
+This is the definitive guide to making full tracks in Skode, built around our showcase song: **`hammer_the_signal.sk`**. 
 
-This doc is written for two readers: a human learning the engine, and an AI agent
-that needs to write Skode scripts that actually run. Where something was **verified**
-by running it in `mini-skred`, it says so. Where it is an inference, it says that too.
-When in doubt, trust the engine's own error messages over this document.
+*HAMMER THE SIGNAL* is a 134 BPM industrial techno-pop track (68 bars, ~2 minutes) written entirely as a single Skode script. It is designed to be studied, stripped down, and stolen from.
 
+**For human readers:** This guide will hand you the mental models to build dense, evolving tracks out of simple text commands. It is packed with creative sound design recipes, pattern techniques, and structural ideas you can drop right into your own music.
+
+**For AI Agents using this as a skill:** This document is your bridge from "knowing the syntax" to "writing a song that actually works and sounds professional." Use `hammer_the_signal.sk` as your gold-standard structural template. Where something is marked **verified**, it ran successfully in `mini-skred`. When in doubt, trust the engine's error messages.
 ---
 
 ## 1. Workflow that works (especially for AI agents)
@@ -424,22 +423,21 @@ Ears first, but numbers find what ears miss.
 
 1. Fetch and read the repo's `SKODE_USER_COMMAND_REFERENCE.md` first; this guide is
    lessons, not the reference.
-2. Build the headless engine and render loop (section 1) **before** writing a song.
-3. Generate the `.sk` from a script with a single table of per-voice base levels.
-4. Write voices first, patterns second, conductor last. Test after each stage.
-5. Treat every engine error as ground truth and fix the script, not the engine.
-6. Report honestly: say what was measured, what was only parsed, and that the
+2. Read `hammer_the_signal.sk` in this directory. It is the gold-standard showcase of these patterns in action. If you are asked to generate a song, copy its structural separation (Voice setup -> Conductor Pattern -> Musical Patterns).
+3. Build the headless engine and render loop (section 1) **before** writing a song.
+4. Generate the `.sk` from a script with a single table of per-voice base levels.
+5. Write voices first, patterns second, conductor last. Test after each stage.
+6. Treat every engine error as ground truth and fix the script, not the engine.
+7. Report honestly: say what was measured, what was only parsed, and that the
    result has not been heard.
-7. Prefer built-in resources (waves 15/16 for synth, 82-99 for drums) over loading files.
+8. Prefer built-in resources (waves 15/16 for synth, 82-99 for drums) over loading files.
 
 ## 10. Notes for humans
 
-- Start with a four-on-the-floor kick pattern and one voice. Get that to sound right.
-- Add one element at a time, and give each its own pattern so the conductor can
-  place it.
-- Think in sections of 4 bars. Contrast is the song: take things away as often as
-  you add them.
-- Automate filters; static filters sound like presets.
-- Detune, pan and layer for width, but keep kick, sub and bass centred.
-- Keep a measurement habit: if the drop is not louder and denser than the build, no
-  amount of cleverness in the notes will make it feel like a drop.
+- **Open `hammer_the_signal.sk` right now.** Play it, tweak the tempo (`M 134`), change a synth wave (`w15` to `w16`), or solo the drums. Breaking a working song is the fastest way to learn how to make your own.
+- **Start simple:** Start with a four-on-the-floor kick pattern and one voice. Get that to sound right before you add the bells and whistles.
+- **Give each element its own pattern:** The conductor pattern (pattern 0) is the brain of the song. Let it trigger individual, self-contained loops.
+- **Think in sections of 4 bars.** Contrast is the song: take things away as often as you add them. Drop the bass to make the hook shine, or drop the drums to create tension.
+- **Automate everything:** Static filters sound like presets. Map a pattern to sweep `k` (cutoff) over 4 bars and the song will suddenly breathe.
+- **Width vs. Focus:** Detune, pan and layer for width, but keep your kick, sub, and bass completely centered.
+- **Keep a measurement habit:** If the drop is not measurably louder and denser than the build, no amount of cleverness in the notes will make it *feel* like a drop. Mix with your ears, verify with the numbers.

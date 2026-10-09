@@ -1,0 +1,189 @@
+## SWEET DREAMS (instrumental cover sketch) for PULP/SKRED
+#  125 BPM, C minor, 40 bars (~1:17).  Instrumental only - no vocal/lyrics.
+#  Load:   [sweet_dreams.sk] /ls      then:   play     (stop:  stop)
+#  UNTESTED / UNHEARD.  Riff notes taken from published bass tabs:
+#  all pitch material is in the STREAMS section - fix notes there only.
+#  Bass = 2-bar, 9-note riff C C C Eb C | Ab Ab G G, rhythm inferred from
+#  ASCII bass tabs (so the timing is a best guess - see RIFF_STEPS).
+#  Pad: Cm | Ab Gm, looped (intro harmony per a published chord chart).
+#  Sections start with a '##' line so you can run them one at a time.
+
+[SWEET DREAMS cover sketch] puts
+M 125 16
+
+## DELAY BUS 1 (hook echo)
+DS 1 125 .75
+DL 1 - - 8 3 3 11
+DD 1 7 3
+
+## VOICES
+v0 w82 f440 a6 p 0                              # kick
+v1 w83 f440 a7 p 0                              # snare
+v2 w84 f440 a-3 p.25                            # closed hat
+v3 w85 f440 a-2 p-.25                           # open hat
+v4 w86 f440 a5 p 0                              # clap
+v5 w94 f440 a4 p.2                              # crash
+
+# SH-101 style sequenced bass: saw, resonant LP (no filter env: ft/fd rejected at load)
+v6 w15 a-1 p 0 t.002,.20,0,.05 j1 k900 q2.5
+
+# Oberheim-ish lead: detuned saw trio, centre voice feeds delay
+v8 w15 a-8 p 0 t.01,.30,.5,.30 j1 k3200 q1.2 c4,.25 r1 ds.3
+v8 >9
+v8 >10
+v9 N0,9 p-.5 r0
+v10 w16 a-11 N0,-9 p.5 r0
+v8 G9,10 H9,10
+
+# Juno-ish pad: poly pool (copied from hammer_the_signal pattern)
+v24 w0 f.31 a0 t0,0,1,0 m1
+v26 w15 a-8 p-.5 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2 G27 H27
+v27 w15 a-10 p.5 N0,9 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2
+/pg 0,26,2,0
+/pp 0,0,28,5,0
+v24 l1
+
+## EVENTS (end-of-song cleanup responder)
+[O DQ] /ceb 4 99
+/cer 1
+
+## STREAMS (all pitch material lives here - edit to correct notes)
+# bass riff, 2 bars, 9 notes: C C C Eb C | Ab Ab G G  (MIDI 36 36 36 39 36 32 32 31 31)
+( 36 36 36 39 36 32 32 31 31 ) /SS 1
+# bass velocities, one per riff note
+( 1 .75 .8 1 .8 1 .8 1 .8 ) /SS 2
+# lead: one note per half bar, 2 bars (placeholder harmony notes)
+( 67 63 68 67 ) /SS 3
+
+
+## PATTERNS (kick, snare, hats, bass riff, lead, pad, snare roll)
+
+y1
+[kick] yt
+[v0 l1] x0
+[v0 l1] x4
+[v0 l1] x8
+[v0 l1] x12
+[=127,0] x15
+
+y2
+[snare+clap] yt
+[v1 l1 v4 l.9] x4
+[v1 l1 v4 l.9] x12
+[=127,0] x15
+
+y3
+[hats] yt
+[v2 l.4] x0
+[v2 l.4] x4
+[v2 l.4] x8
+[v2 l.4] x12
+[v3 l.7 v2 l0] x2
+[v3 l.7 v2 l0] x6
+[v3 l.7 v2 l0] x10
+[v3 l.7 v2 l0] x14
+[v2 l.2] x15
+
+y6
+[bass riff] yt
+[v6 n&1 l&2] x0
+[v6 n&1 l&2] x4
+[v6 n&1 l&2] x6
+[v6 n&1 l&2] x8
+[v6 n&1 l&2] x10
+[v6 n&1 l&2] x16
+[v6 n&1 l&2] x20
+[v6 n&1 l&2] x24
+[v6 n&1 l&2] x28
+[=127,0] x31
+
+y8
+[lead] yt
+[v8 n&3 l.9] x0
+[v8 l0] x6
+[v8 n&3 l.85] x8
+[v8 l0] x15
+[v8 n&3 l.9] x16
+[v8 l0] x22
+[v8 n&3 l.85] x24
+[v8 l0] x31
+
+y11
+[pad] yt
+[pn 0,101,55,.9 pn 0,102,60,.9 pn 0,103,63,.9] x0
+[pr 0,101 pr 0,102 pr 0,103] x15
+[pn 0,104,56,.9 pn 0,105,60,.9 pn 0,106,63,.9] x16
+[pr 0,104 pr 0,105 pr 0,106] x23
+[pn 0,107,55,.9 pn 0,108,58,.9 pn 0,109,62,.9] x24
+[pr 0,107 pr 0,108 pr 0,109] x31
+
+y13
+[snare roll] yt
+[v1 l0.2] x0
+[v1 l0.25] x1
+[v1 l0.3] x2
+[v1 l0.35] x3
+[v1 l0.4] x4
+[v1 l0.45] x5
+[v1 l0.5] x6
+[v1 l0.55] x7
+[v1 l0.6 z*2] x8
+[v1 l0.65 z*2] x9
+[v1 l0.7 z*2] x10
+[v1 l0.75 z*2] x11
+[v1 l0.8 z*4] x12
+[v1 l0.85 z*4] x13
+[v1 l0.9 z*4] x14
+[v1 l0.95 z*8] x15
+[-] x16
+
+## CONDUCTOR (pattern 0, one step per bar)
+y0
+[conductor] yt
+%16
+[y6 z1 /SP 1 0 /SP 2 0] x0
+[=126,1] x1
+[y3 z1] x2
+[=126,3] x3
+[v5 l1 y1 z1 y2 z1] x4
+[=126,5] x5
+[=126,6] x6
+[=126,7] x7
+[y11 z1] x8
+[=126,9] x9
+[=126,10] x10
+[y2 z0 y13 z1] x11
+[v5 l1 y2 z1 /SP 3 0 y8 z1] x12
+[=126,13] x13
+[=126,14] x14
+[=126,15] x15
+[=126,16] x16
+[=126,17] x17
+[=126,18] x18
+[=126,19] x19
+[y1 z0 y2 z0 y8 z0] x20
+[=126,21] x21
+[=126,22] x22
+[=126,23] x23
+[v5 l1 y1 z1 y2 z1 /SP 3 0 y8 z1] x24
+[=126,25] x25
+[=126,26] x26
+[=126,27] x27
+[=126,28] x28
+[=126,29] x29
+[=126,30] x30
+[y2 z0 y13 z1] x31
+[v5 l1 y2 z1] x32
+[=126,33] x33
+[=126,34] x34
+[=126,35] x35
+[y8 z0 y1 z0 y2 z0] x36
+[=126,37] x37
+[y3 z0 y6 z0] x38
+[v5 l1 y11 z0] x39
+[Z0 +8 ce 99] x40
+
+## MACROS (play / stop)
+[use 'play' to start the song, 'stop' to stop it] puts
+[play] : Z0 Z! y0 z1 ;
+[stop] : Z0 O DQ ;

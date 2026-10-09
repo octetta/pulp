@@ -407,6 +407,7 @@ Ears first, but numbers find what ears miss.
 ## 8. Mistakes to avoid (checklist)
 
 - Using uppercase `J`/`K`/`Q` (old names). Filter commands are lowercase `j k q`, and bitcrush is `bc`.
+- Using semicolons in comments. A semicolon stops the comment and the parser immediately starts looking for atoms or numbers again, which can cause confusing errors.
 - Writing `m0` to hide a voice. It is `m1`.
 - `ds` values above 1.
 - Forgetting that a pump or automation pattern overrides setup levels.

@@ -839,11 +839,8 @@ static skode_word_t word_gr = { WID("gr"), .execute = word_exec_pr, .safety = WO
 static skode_word_t word_pb = { WID("pb"), .execute = word_exec_pb, .safety = WORD_IMMEDIATE_ONLY };
 static skode_word_t word_gb = { WID("gb"), .execute = word_exec_pb, .safety = WORD_IMMEDIATE_ONLY };
 static skode_word_t word_pt = { WID("pt"), .execute = word_exec_pt, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
-static skode_word_t word_ft = { WID("ft"), .execute = word_exec_pt, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
 static skode_word_t word_pd = { WID("pd"), .execute = word_exec_pd, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
-static skode_word_t word_fd = { WID("fd"), .execute = word_exec_pd, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
 static skode_word_t word_pte = { WID("pte"), .execute = word_exec_pte, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
-static skode_word_t word_fte = { WID("fte"), .execute = word_exec_pte, .safety = WORD_IMMEDIATE_ONLY , .category = "pitch" };
 static skode_word_t word_MO = { WID("MO"), .execute = word_exec_MO, .safety = WORD_IMMEDIATE_ONLY , .category = "midi" };
 static skode_word_t word_tm = { WID("tm"), .execute = word_exec_k, .safety = WORD_IMMEDIATE_ONLY , .category = "misc" };
 static skode_word_t word_wt = { WID("wt"), .execute = word_exec_wt, .safety = WORD_IMMEDIATE_ONLY , .category = "misc" };
@@ -927,11 +924,8 @@ void skode_register_words_misc(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_pb);
   skode_dict_register(vocab, &word_gb);
   skode_dict_register(vocab, &word_pt);
-  skode_dict_register(vocab, &word_ft);
   skode_dict_register(vocab, &word_pd);
-  skode_dict_register(vocab, &word_fd);
   skode_dict_register(vocab, &word_pte);
-  skode_dict_register(vocab, &word_fte);
   skode_dict_register(vocab, &word_MO);
   skode_dict_register(vocab, &word_tm);
   skode_dict_register(vocab, &word_wt);

@@ -1,0 +1,304 @@
+## POCKET CALCULATOR (instrumental cover) for PULP/SKRED
+#  134 BPM, bright major electronic, 88 bars (~2:38). Instrumental only.
+#  Self-contained: drums are built-in waves 82-99.
+#     [pocket_calculator.sk] /ls      then:   play     (stop:  stop)
+#
+#  Inspired by Kraftwerk’s 1981 classic.
+#  Key elements:
+#    - Steady motorik 4/4 pulse
+#    - Deep sequenced bass
+#    - Bright square/saw lead for the main riff
+#    - Distinct high “little melody” (the calculator motif)
+#    - Sparse, precise arrangement with clear breathing room
+#
+#  VOICE MAP
+#    v0 kick   v1 snare   v2 closed hat   v3 open hat   v5 crash
+#    v6 deep bass (centre) + v7 subtle detuned partner
+#    v8 main lead (bright square)
+#    v13 little melody / calculator motif (high, pure)
+#    v16 soft noise / texture
+#    v24 pad LFO   v26-v27 pad prototype   v28-v35 pad pool
+#  DELAY BUSES
+#    1  short clean slap on lead
+#    2  longer wash on pad / melody
+#  PATTERNS
+#    0 conductor   1 kick   2 snare   3 hats
+#    6 bass        8 main lead   9 little melody
+#    11 pad        13 fill       14 pump
+# ======================================================================
+
+[POCKET CALCULATOR] puts
+M 134 16
+
+## DELAY BUSES (clean and restrained)
+DS 1 134 .25
+DL 1 - - 3 0 0 7
+DD 1 9 4
+DS 2 134 .75
+DL 2 - - 6 1 1 9
+DD 2 7 3
+
+## VOICES
+v0 w82 f440 a5 p0                                # kick – solid but not huge
+v1 w83 f440 a5 p0                                # snare – crisp
+v2 w84 f440 a-5 p.15                             # closed hat
+v3 w85 f440 a-4 p-.15                            # open hat
+v5 w94 f440 a2 p.1                               # crash (used sparingly)
+
+# deep sequenced bass
+v6 w15 a-2 p0 t.002,.18,0,.05 j1 k900 q2.8
+v6 >7
+v7 w16 a-8 N0,5 p.35
+v6 G7 H7
+
+# main lead – bright, slightly phase-distorted square
+v8 w16 a-7 p0 t.003,.22,.15,.08 j1 k3200 q1.1 c4,.18 r1 ds.18
+
+# “little melody” – pure high tone (the calculator voice)
+v13 w0 a-6 p.2 t.001,.25,0,.12 j1 k4800 q.8 r2 ds.15
+
+# soft texture / noise bed
+v16 w5 f800 a-14 p0 t.01,.4,0,.3 j2 k1800 q.6
+
+# warm pad (very restrained)
+v24 w0 f.22 a0 t0,0,1,0 m1
+v26 w15 a-14 p-.4 t1.6,.5,.7,1.8 j1 k1600 q.5 c4,.1 C24,.1 G27 H27
+v27 w15 a-16 p.4 N0,4 t1.6,.5,.7,1.8 j1 k1600 q.5 c4,.1 C24,.1
+/pg 0,26,2,0
+/pp 0,0,28,4,0
+v24 l1
+
+## EVENTS
+[O DQ] /ceb 4 99
+/cer 1
+
+## STREAMS
+# stream 1: main bass sequence (one bar, looping)
+( 36 36 36 43 36 36 41 43 ) /SS 1
+# stream 2: bass velocities
+( 1 .7 .85 .75 1 .7 .85 .75 ) /SS 2
+
+# stream 3: main lead riff (two bars)
+( 60 60 62 60 58 60 62 63 60 60 62 60 58 55 58 60 ) /SS 3
+# stream 4: lead velocities
+( 1 .8 .9 .75 1 .8 .9 .8 1 .8 .9 .75 1 .8 .85 .9 ) /SS 4
+
+# stream 5: “little melody” (the calculator motif – distinctive & memorable)
+( 72 74 72 69 72 74 76 74 72 69 67 69 72 74 72 69 ) /SS 5
+
+# stream 6: higher variation of little melody
+( 76 77 76 74 72 74 76 77 76 74 72 69 72 74 72 69 ) /SS 6
+
+## PATTERNS
+
+y1
+[kick] yt
+[v0 l1] x0
+[v0 l.9] x4
+[v0 l1] x8
+[v0 l.9] x12
+[=127,0] x15
+
+y2
+[snare] yt
+[v1 l1] x4
+[v1 l1] x12
+[=127,0] x15
+
+y3
+[hats – precise 8ths] yt
+[v2 l.35] x0
+[v2 l.25] x2
+[v2 l.35] x4
+[v2 l.25] x6
+[v2 l.35] x8
+[v2 l.25] x10
+[v2 l.35] x12
+[v3 l.65 v2 l0] x14
+
+y6
+[bass] yt
+[v6 n&1 l&2] x0
+[v6 n&1 l&2] x2
+[v6 n&1 l&2] x4
+[v6 n&1 l&2] x6
+[v6 n&1 l&2] x8
+[v6 n&1 l&2] x10
+[v6 n&1 l&2] x12
+[v6 n&1 l&2] x14
+[=127,0] x15
+
+y8
+[main lead] yt
+[v8 n&3 l&4] x0
+[v8 n&3 l&4] x2
+[v8 n&3 l&4] x4
+[v8 n&3 l&4] x6
+[v8 n&3 l&4] x8
+[v8 n&3 l&4] x10
+[v8 n&3 l&4] x12
+[v8 n&3 l&4] x14
+[v8 n&3 l&4] x16
+[v8 n&3 l&4] x18
+[v8 n&3 l&4] x20
+[v8 n&3 l&4] x22
+[v8 n&3 l&4] x24
+[v8 n&3 l&4] x26
+[v8 n&3 l&4] x28
+[v8 n&3 l&4] x30
+[=127,0] x31
+
+y9
+[little melody – calculator] yt
+[v13 n&5 l.9] x0
+[v13 n&5 l.85] x2
+[v13 n&5 l.9] x4
+[v13 n&5 l.85] x6
+[v13 n&5 l.9] x8
+[v13 n&5 l.85] x10
+[v13 n&5 l.9] x12
+[v13 n&5 l.85] x14
+[=127,0] x15
+
+y10
+[little melody variation] yt
+[v13 n&6 l.9] x0
+[v13 n&6 l.85] x2
+[v13 n&6 l.9] x4
+[v13 n&6 l.85] x6
+[v13 n&6 l.9] x8
+[v13 n&6 l.85] x10
+[v13 n&6 l.9] x12
+[v13 n&6 l.85] x14
+[=127,0] x15
+
+y11
+[pad – very soft] yt
+[pn 0,101,48,.7 pn 0,102,52,.7 pn 0,103,55,.7] x0
+[pr 0,101 pr 0,102 pr 0,103] x31
+
+y13
+[short fill] yt
+[v1 l0.3] x0
+[v1 l0.4] x2
+[v1 l0.5] x4
+[v1 l0.6 z*2] x6
+[v1 l0.7 z*2] x8
+[v1 l0.8 z*4] x10
+[v1 l0.9 z*4] x12
+[v1 l1 z*8] x14
+[-] x16
+
+y14
+[subtle pump] yt
+[v28 a-16 v29 a-18 v30 a-16 v31 a-18 v8 a-14 v13 a-12] x0
+[v28 a-11 v29 a-13 v30 a-11 v31 a-13 v8 a-10 v13 a-8] x1
+[v28 a-7 v29 a-9 v30 a-7 v31 a-9 v8 a-6 v13 a-4] x2
+[v28 a-4 v29 a-6 v30 a-4 v31 a-6 v8 a-3 v13 a-1] x3
+
+## CONDUCTOR
+y0
+[conductor] yt
+%16
+
+# 0-7  pure pulse + bass
+[y6 z1 /SP 1,0 /SP 2,0] x0
+[=126,1] x1
+[y1 z1 y3 z1] x2
+[=126,3] x3
+[y2 z1] x4
+[=126,5] x5
+[=126,6] x6
+[=126,7] x7
+
+# 8-23  main lead enters
+[v5 l.8 /SP 3,0 /SP 4,0 y8 z1] x8
+[=126,9] x9
+[=126,10] x10
+[=126,11] x11
+[=126,12] x12
+[=126,13] x13
+[=126,14] x14
+[=126,15] x15
+[=126,16] x16
+[=126,17] x17
+[=126,18] x18
+[=126,19] x19
+[=126,20] x20
+[=126,21] x21
+[=126,22] x22
+[y2 z0 y13 z1] x23
+
+# 24-39  little melody appears
+[v5 l.8 /SP 5,0 y9 z1 y14 z1] x24
+[=126,25] x25
+[=126,26] x26
+[=126,27] x27
+[=126,28] x28
+[=126,29] x29
+[=126,30] x30
+[=126,31] x31
+[=126,32] x32
+[=126,33] x33
+[=126,34] x34
+[=126,35] x35
+[=126,36] x36
+[=126,37] x37
+[=126,38] x38
+[y2 z0 y13 z1] x39
+
+# 40-55  variation + pad
+[v5 l.8 y9 z0 /SP 6,0 y10 z1 y11 z1] x40
+[=126,41] x41
+[=126,42] x42
+[=126,43] x43
+[=126,44] x44
+[=126,45] x45
+[=126,46] x46
+[=126,47] x47
+[=126,48] x48
+[=126,49] x49
+[=126,50] x50
+[=126,51] x51
+[=126,52] x52
+[=126,53] x53
+[=126,54] x54
+[y2 z0 y13 z1] x55
+
+# 56-71  full return
+[v5 l1 y10 z0 /SP 5,0 y9 z1 y8 z1] x56
+[=126,57] x57
+[=126,58] x58
+[=126,59] x59
+[=126,60] x60
+[=126,61] x61
+[=126,62] x62
+[=126,63] x63
+[=126,64] x64
+[=126,65] x65
+[=126,66] x66
+[=126,67] x67
+[=126,68] x68
+[=126,69] x69
+[=126,70] x70
+[y2 z0 y13 z1] x71
+
+# 72-87  strip back + end
+[v5 l.7 y9 z0 y8 z0 y11 z0 y14 z0] x72
+[=126,73] x73
+[=126,74] x74
+[y3 z%2] x75
+[=126,76] x76
+[y1 z0 y2 z0] x77
+[=126,78] x78
+[y6 z0] x79
+[=126,80] x80
+[v5 l1] x81
+[=126,82] x82
+[=126,83] x83
+[Z0 +6 ce 99] x84
+
+## MACROS
+[use 'play' to start the song, 'stop' to stop it] puts
+[play] : Z0 Z! y0 z1 ;
+[stop] : Z0 O DQ ;

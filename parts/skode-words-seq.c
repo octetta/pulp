@@ -325,7 +325,7 @@ static int word_exec_Y(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      if (argc && x >= 0 && x < PATTERNS_MAX) {
+      if (argc && x_valid && (x < 0 || x < PATTERNS_MAX)) {
         pattern_reset(x);
       }
       return 0;
@@ -397,7 +397,7 @@ static int word_exec_Z(const skode_word_t *self, skode_t *ctx, ands_t *s, double
       if (argc) {
         seq_state_all(x);
       } else {
-        ctx->printf(ctx, "M%g\n", tempo_bpm_get());
+        ctx->printf(ctx, "M%g %g\n", tempo_bpm_get(), tempo_subdivision_get());
         for (int p = 0; p < PATTERNS_MAX; p++) {
           if (seq_pattern_length[p] > 0 || seq_text[p][0] != '\0')
             pattern_show(ctx, p, 0);
@@ -432,7 +432,7 @@ static int word_exec_Z_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      ctx->printf(ctx, "M%g\n", tempo_bpm_get());
+      ctx->printf(ctx, "M%g %g\n", tempo_bpm_get(), tempo_subdivision_get());
       for (int p = 0; p < PATTERNS_MAX; p++) {
         if (seq_pattern_length[p] > 0 || seq_text[p][0] != '\0')
           pattern_show(ctx, p, 1);

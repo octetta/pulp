@@ -127,7 +127,7 @@ their named build option is enabled.
 | `rv` | `track,dB` | immediate | `synth_track_volume_set()` | `TRACKS`, `RECORD`, or `SCOPE` |
 | `?r` | none | immediate | show track names, volumes, and assigned voices | `TRACKS`, `RECORD`, or `SCOPE` |
 | `s` | `amount` | `SKODE_OP_SMOOTHER` | Enables or disables amplitude smoothing | `SMOOTHER` |
-| `S` | `voice` | `SKODE_OP_VOICE_RESET` | `wave_reset()` | base |
+| `S` | `voice` | `SKODE_OP_VOICE_RESET` | `wave_reset()`; voice < 0 resets all voices | base |
 | `t` | `attack, decay, sustain, release` | `SKODE_OP_ENVELOPE` | Configures the amplitude envelope for its next trigger | `ADSR` |
 | `T` | none | `SKODE_OP_TRIGGER` | Calls `envelope_velocity(..., 1)` on the voice and velocity links | base |
 | `w` | `wave [, interpolate [, mode]]` | `SKODE_OP_WAVE` | `wave_set()` and optional voice flags; mode `0` is cycle and `1` is one-shot | base |
@@ -288,7 +288,7 @@ Sequence support is compiled under the `SEQ` feature.
 | `y` | `pattern` | Select the editing pattern | `ctx->pattern` |
 | `[text] yt` | string | Name the selected pattern | `seq_text[]` |
 | `ym` | `0/1` | Mute the selected pattern | `seq_mute_set()` |
-| `Y` | `pattern` | Clear a pattern | `pattern_reset()` |
+| `Y` | `pattern` | Clear a pattern; pattern < 0 clears all patterns | `pattern_reset()` |
 | `[commands] xa` | string | Append a compiled step | `seq_step_append()` |
 | `[commands] x step` | string | Set a compiled step; `x-` advances the edit cursor | `seq_step_set()` |
 | `[-] x step` | string | Sequence flow commands: `-` stops pattern; `-N` waits for pattern `N`; `-jN`/`-j$N`/`-j&N` jump to step `N` (literal, variable, or stream); `-sN`/`-s$N`/`-s&N` stop if condition is non-zero. | `seq_step_set()` |

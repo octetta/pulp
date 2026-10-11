@@ -871,7 +871,7 @@ static int word_exec_S(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      if (argc) wave_reset(x);
+      if (argc && x_valid) wave_reset(x);
       return 0;
 }
 

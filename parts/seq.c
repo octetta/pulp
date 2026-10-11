@@ -479,7 +479,13 @@ static void pattern_reset_locked(int p) {
 
 void pattern_reset(int p) {
   seq_edit_lock();
-  pattern_reset_locked(p);
+  if (p < 0) {
+    for (int i = 0; i < PATTERNS_MAX; i++) {
+      pattern_reset_locked(i);
+    }
+  } else {
+    pattern_reset_locked(p);
+  }
   seq_edit_unlock();
 }
 

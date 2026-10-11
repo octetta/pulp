@@ -954,8 +954,9 @@ void voice_init(void) {
 
 
 int wave_reset(int voice) {
-  if (voice_invalid(voice)) voice_init();
-  else voice_reset(voice);
+  if (voice < 0) voice_init();
+  else if (voice < synth_config.voice_max) voice_reset(voice);
+  else return SYNTH_INVALID_VOICE;
   return 0;
 }
 

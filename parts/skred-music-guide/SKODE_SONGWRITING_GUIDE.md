@@ -60,7 +60,7 @@ solo renders) and measure from its onset.
 | `y`, `z`, `Z`, `x`, `ce`, `=N,v`, `DF`, `DS`, `G`, `H`, `P`, `C`, `A`, `XM`, `a`, `l`, `n`, `g`, `N` are schedulable | Patterns can start and stop other patterns. That is how the conductor works. |
 | `?M 1` lists the schedulable commands | Check it before assuming a command works inside a step. |
 | `nS<N>` (stream read by name) is immediate-only; `n&<N>` is the schedulable form | Use `&N` in steps. |
-| `ft` / `fd` (filter envelope) | I only ever set these at voice setup and trigger them with `l`. I did not test scheduling them. |
+| `ft` / `fd` (filter envelope) | I only ever set these at voice setup and trigger them with `l`. I did not test scheduling them. **Another build rejected both at load** (`SKODE_UNKNOWN_FUNCTION`), see section 2c. If you cannot run the engine, leave them out and use a static filter, or ask for a load log. |
 | Filter modes `j2` (HP) and `j3` (BP) work on noise | An earlier "silent HP/BP on noise" result came from using the old uppercase `K`/`Q`, not from the modes. |
 | K-synth source: `N: 264600` ran **out of memory**; `N: 131072` was fine | Keep inline samples short. Stretch them with playback frequency. |
 
@@ -87,6 +87,31 @@ solo renders) and measure from its onset.
   ```
   Verified: the freeze holds for the 8 beats, then the output decays to silence.
 
+### 2c. Parser quirks that bite when loading
+
+Found while building a cover song on a real build.
+
+| Quirk | What happens |
+|---|---|
+| A `;` anywhere inside a `#` comment | The comment ends there and the parser starts looking for commands again. Never write semicolons in comments. The `;` that closes a `[name] : ... ;` macro definition is fine. |
+
+**Reading load errors.** `SKODE_UNKNOWN_FUNCTION <n>` means the engine does not accept a
+command at that point in the load. One build rejected `ft` and `fd` (filter envelope) in
+voice setup. Remove them, move them into a pattern step, or try the documented names
+`kt` and `kd`. Check `?M` for what your build supports.
+
+**Run it section by section.** Start each logical block of the file with a comment line that
+begins `##`, so a REPL or editor can run one block at a time. A good order is: header and
+`M`, delay buses, voices, events, streams, patterns, conductor, macros. Later blocks refer
+to earlier ones, so run them in file order. When something fails you immediately know which
+block to look at.
+
+**Keep a voice map at the top of the file.** A short comment table (kick v0, bass v6 with
+partner v7, pad pool v28-v37, boom v38 to v40) stops two sections from claiming the same
+voice number.
+
+---
+
 ## 3. Waves worth knowing
 
 Verified by `W` listing and by ear-free measurement:
@@ -110,7 +135,7 @@ You do not need to load drum sample files. Use these directly.
 
 ---
 
-## 4. Sound design recipes (each one ran)
+## 4. Sound design recipes (each one ran, except where marked)
 
 Syntax shape: `v<N>` selects a voice, then commands follow. Amplitude `a` is in dB.
 
@@ -212,6 +237,36 @@ DF 1 1            # freeze (used for the final tail)
 ```
 Route a voice with `r<track>` and set its send with `ds<0..1>`.
 Delay needs the voice **centred** (`p0`).
+
+**Detuned partner voice (width, while keeping a centred voice for the delay send).** *Added later, written but not yet load-tested.*
+```
+v6 w15 a-1 p0 t.002,.20,0,.05 j1 k900 q2.5
+v6 >7
+v7 w16 a-5 N0,9 p.5 r0
+v6 G7 H7
+```
+`>` copies the voice, `N0,9` detunes the partner 9 cents sharp, the partner is panned and
+has no delay route, and `G`/`H` make it follow the main voice's notes and triggers. A
+saw plus a square sounds thicker than two saws. Only the centred voice may feed a delay.
+
+**An audible sub boom.** *Added later, not yet heard by the author. The first version with a 32 Hz target was reported as a high "dink", this is the revised version.* A sine sweep that ends near 32 Hz sounds like a high "dink" on
+laptop speakers and headphones, because only the first milliseconds of the drop are
+audible. End the sweep around 65 Hz (C2) or higher, give it a long decay, add a delay
+tail, and layer a slowed kick sample. Playback frequency changes pitch and length, so
+`f110` is two octaves down and four times longer.
+```
+v38 w0 a0 p0 t.002,.90,0,.40 j1 k260 q.7 r3 ds.3
+v40 w82 f110 a4 p0
+# in a step:  [v38 g0 n48 g.15 n36 l1 v40 l1] x16
+```
+
+**Choosing the delay time.** *Reasoning from a cover song build, the steady-pulse blur was reported by ear.* The last number of `DS` is in beats: `.25` sixteenth, `.5`
+eighth, `.75` dotted eighth, `1` quarter. A dotted-eighth echo lands between constant
+eighth notes and blurs a steady pulse. Use a short sixteenth slapback to thicken a
+driving bass, and save dotted eighths for sparse leads. You can keep a voice routed
+(`r2`) and silence it with `ds0`, then raise `ds` later without touching anything else.
+There are four buses, one per track 1 to 4, and a routed voice also lands in that
+track's stem.
 
 ---
 
@@ -387,6 +442,47 @@ A hook that rises to the high A on the last bar of its four-bar phrase is what m
 
 ---
 
+## 6b. Covering an existing song
+
+Notes from building an instrumental cover. Make an instrumental arrangement of the
+riffs and harmony. Do not transcribe lyrics.
+
+1. **Gather two or three sources**: bass tabs, piano tutorials, chord charts, a
+   production write-up. Cross-check them. Confirm key and tempo as well as notes.
+2. **Count the notes.** A tutorial that lists the riff as "C x4, Eb x2, C x2, Ab x3, C,
+   G x3, C" gives 16 notes, which is exactly two bars of eighth notes. A count settles
+   a rhythm argument that no tab can.
+3. **Do not trust ASCII tab spacing for rhythm.** It is hand aligned. Use tabs for
+   pitches and counts or the audible pulse for timing.
+4. **Write every note that sounds, not just the changes.** My first pass wrote only
+   "C Eb C Ab G" with gaps and it sounded like stumbling. The real line repeats each
+   pitch on every eighth and is steady.
+5. **Look for layered riffs.** Many records pair a constant riff with an intermittent
+   one, often panned apart. Build the constant one first, it carries recognition.
+6. **Tab to MIDI.** Bass guitar open strings: E1 28, A1 33, D2 38, G2 43, then add the
+   fret. A capo shifts chord shapes up by that many semitones, so capo 3 on Am F Dm E
+   is really Cm Ab Fm G.
+7. **Make it correctable by ear.** Put all pitch in streams and all rhythm in one step
+   list so a human can fix a note without touching anything else.
+```
+( 36 36 36 36 39 39 36 36 32 32 32 36 31 31 31 36 ) /SS 1
+# every eighth note over 2 bars: edit this list to change the rhythm
+# RIFF_STEPS = 0 2 4 ... 30
+```
+   Make the stream length equal the hits per loop, and reset it with `/SP 1,0` in the
+   conductor step that starts the pattern.
+8. **Label guesses as guesses** in comments, and say which lines are placeholders.
+9. **Iterate with the listener.** Ask which note is late or missing, then change one
+   number. "Right notes, strange rhythm" almost always means the step list, not the
+   sound.
+
+**Step grid cheat sheet** (with `M 125 16`, one pattern step is one sixteenth note):
+4 steps per beat, 16 per bar. Eighth notes are every 2 steps, quarters every 4. A 2-bar
+loop is 32 steps, so pin it with `[=127,0] x31`. A conductor on `%16` advances one
+step per bar.
+
+---
+
 ## 7. Mixing by measurement
 
 Ears first, but numbers find what ears miss.
@@ -404,6 +500,24 @@ Ears first, but numbers find what ears miss.
 
 ---
 
+## 7b. Checking your work when you cannot run the engine
+
+If you are an agent without the engine, or a human sharing a script with someone who has
+it, you still have options.
+
+1. **Generate the file from a script** with one table for notes, one for levels and one
+   for step lists. You will edit a number, not hunt through the file.
+2. **Lint before you hand it over.** `skode_lint.py` (next to this guide) checks for
+   semicolons in comments, unbalanced brackets and long steps. Its long-step
+   check is only a token-count guess, so the real 32-operation count still comes from
+   the engine.
+3. **Ask for the load log, section by section.** Because each block starts with a
+   `##` line, a failing line points at a block. Fix one block, rerun, move on.
+4. **Say exactly what was verified.** Written, linted, loaded, heard and measured are
+   five different claims. Report only the ones that are true.
+
+---
+
 ## 8. Mistakes to avoid (checklist)
 
 - Using uppercase `J`/`K`/`Q` (old names). Filter commands are lowercase `j k q`, and bitcrush is `bc`.
@@ -417,6 +531,12 @@ Ears first, but numbers find what ears miss.
 - Giving panned voices a delay send.
 - Judging a mix by the script. Render and measure.
 - Assuming a command is schedulable. Check `?M 1`.
+- Putting `ft` / `fd` in voice setup on a build that rejects them. Remove them or ask for a load log.
+- A dotted-eighth echo on a constant eighth-note part. It blurs the pulse.
+- A sub boom that ends below about 60 Hz. It reads as a click on small speakers.
+- Writing only the note changes of a riff and not each repeated note.
+- Taking rhythm from ASCII tab spacing.
+- Two sections claiming the same voice number. Keep a voice map.
 
 ---
 
@@ -432,6 +552,9 @@ Ears first, but numbers find what ears miss.
 7. Report honestly: say what was measured, what was only parsed, and that the
    result has not been heard.
 8. Prefer built-in resources (waves 15/16 for synth, 82-99 for drums) over loading files.
+9. Keep semicolons out of comments (section 2c) and start each block with a `##` comment so the human can run it in pieces.
+10. If you cannot run the engine, say so, run `skode_lint.py`, and ask for load logs by block (section 7b).
+11. For covers, follow section 6b: cross-check sources, count the notes, write every repeated note, and keep pitch and rhythm in separate editable places.
 
 ## 10. Notes for humans
 
@@ -441,4 +564,6 @@ Ears first, but numbers find what ears miss.
 - **Think in sections of 4 bars.** Contrast is the song: take things away as often as you add them. Drop the bass to make the hook shine, or drop the drums to create tension.
 - **Automate everything:** Static filters sound like presets. Map a pattern to sweep `k` (cutoff) over 4 bars and the song will suddenly breathe.
 - **Width vs. Focus:** Detune, pan and layer for width, but keep your kick, sub, and bass completely centered.
+- **Run a song in `##` blocks.** Load the header, then delay, voices, events, streams, patterns, conductor and macros one at a time. When something is wrong you will know which block.
+- **Fix by ear with one number.** Good scripts keep notes in a stream and the rhythm in a single step list, so "the third note is late" is a one-number change.
 - **Keep a measurement habit:** If the drop is not measurably louder and denser than the build, no amount of cleverness in the notes will make it *feel* like a drop. Mix with your ears, verify with the numbers.

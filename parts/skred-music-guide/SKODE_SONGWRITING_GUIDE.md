@@ -61,7 +61,9 @@ solo renders) and measure from its onset.
 | `?M 1` lists the schedulable commands | Check it before assuming a command works inside a step. |
 | `nS<N>` (stream read by name) is immediate-only; `n&<N>` is the schedulable form | Use `&N` in steps. |
 | `ft` / `fd` (filter envelope) | I only ever set these at voice setup and trigger them with `l`. I did not test scheduling them. **Another build rejected both at load** (`SKODE_UNKNOWN_FUNCTION`), see section 2c. If you cannot run the engine, leave them out and use a static filter, or ask for a load log. |
-| Filter modes `j2` (HP) and `j3` (BP) work on noise | An earlier "silent HP/BP on noise" result came from using the old uppercase `K`/`Q`, not from the modes. |
+| `[name] vt` | Sets the voice text label (e.g. `v13 [vocal lead synth] vt`). When inspecting voices via `v<N> ?` or `v??`, Pulp prints the voice string with its label. Essential for debugging arrangements with 20+ voices. |
+| `[ ... ] n>d` | Converts a space-separated string of note names into a data array. Supports note names (`C4`, `F#2`, `Bb1`), octaves, numbers, and rest symbols (`-`, `.`, `~`, `R`) which emit `NAN`. |
+| Rest handling (`NAN`) | When reading a stream via `n&<S>`, a `NAN` rest automatically releases the voice and suppresses subsequent `l` (gate) triggers in that step. |
 | K-synth source: `N: 264600` ran **out of memory**; `N: 131072` was fine | Keep inline samples short. Stretch them with playback frequency. |
 
 ---
@@ -109,6 +111,54 @@ block to look at.
 **Keep a voice map at the top of the file.** A short comment table (kick v0, bass v6 with
 partner v7, pad pool v28-v37, boom v38 to v40) stops two sections from claiming the same
 voice number.
+
+### 2d. Labeling voices via `[name] vt`
+
+In complex arrangements with 20 to 40 voices (like our full cover arrangements), tracking which voice does what becomes difficult if voices are anonymous numbers. Pulp supports voice text tagging via `vt`:
+```
+v0  w82 f440 a7 p0 [kick motorik] vt
+v1  w83 f440 a8 p0 r3 ds.25 [snare 80s] vt
+v6  w15 a-1 p0 t.001,.18,0,.04 [moog bass saw] vt
+v13 w15 a-6 p0 t.003,.26,0,.08 [vocal lead synth] vt
+```
+When you inspect a voice at the REPL or in a script (`v13 ?` or dump active voices with `v??`), Pulp displays the full voice state with its label:
+```
+v13 w15 f440 n69,0 a-6 G14,-,-,-,-,- H14,-,-,-,-,- ds0.3 j1 2 k3000 q1.8 c4,0.2 r1 g0.015 t0.003,0.26,0,0.08 [vocal lead synth] vt
+```
+This makes diagnosing arrangement bugs, envelope releases, and voice routing dramatically simpler.
+
+### 2e. Defining note streams with `n>d` and rest syntax
+
+Instead of writing raw numeric MIDI arrays by hand, use `[ ... ] n>d`:
+```
+[Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Ab1 - Ab1 -] n>d /SS 1
+```
+- **Note names**: `C`, `D`, `E`, `F`, `G`, `A`, `B`.
+- **Accidentals**: `#` or `+` for sharps, `b` or `-` for flats (e.g. `Bb1`, `F#2`, `Eb4`).
+- **Octaves**: Direct digit after the note name (`0` through `9`).
+- **Rests**: `-`, `.`, `~`, or `R` emit `NAN` into the data stream.
+- **Step Sequencer Integration**: In a pattern step, read the stream with `[v6 n&1 l1] x0`. When `n&1` encounters a rest (`NAN`), the engine:
+  1. Sets `voice_is_rest = 1` for that voice.
+  2. Calls `voice_release(...)` to cleanly release the amplitude envelope.
+  3. Suppresses any subsequent `l` (gate) in the same step, guaranteeing the rest stays completely silent without re-triggering.
+
+### 2f. The Anti-Hanging Pattern (Preventing Stuck Notes)
+
+A classic trap in step sequencer arrangements is voices getting "stuck" droning on their sustain level. This occurs when a conductor pattern transition stops a pattern (`y10 z0`) while a voice has an active note and an envelope with non-zero sustain (`s > 0`).
+
+**The two rules to prevent stuck notes:**
+1. **Use `s=0` decay envelopes for melodic leads and vocals**:
+   Instead of `t.004,.35,.6,.25` (sustain = 0.6), write:
+   ```
+   v13 w15 a-6 p0 t.003,.26,0,.08 [vocal lead synth] vt
+   ```
+   With `s=0`, notes naturally decay to silence over their decay time, so even if a pattern halts abruptly, the voice will never drone.
+2. **Explicitly release voices on conductor pattern stops**:
+   Whenever the conductor silences a pattern, add explicit `l0` commands:
+   ```
+   # When vocal pattern y10 stops, kill any lingering release tail:
+   y10 z0 v13 l0
+   ```
 
 ---
 
@@ -462,19 +512,29 @@ riffs and harmony. Do not transcribe lyrics.
 6. **Tab to MIDI.** Bass guitar open strings: E1 28, A1 33, D2 38, G2 43, then add the
    fret. A capo shifts chord shapes up by that many semitones, so capo 3 on Am F Dm E
    is really Cm Ab Fm G.
-7. **Make it correctable by ear.** Put all pitch in streams and all rhythm in one step
-   list so a human can fix a note without touching anything else.
+7. **Make it correctable by ear using `n>d` streams with rests.** Put all notes in named streams using `[ ... ] n>d` where `-` represents a rest:
 ```
-( 36 36 36 36 39 39 36 36 32 32 32 36 31 31 31 36 ) /SS 1
-# every eighth note over 2 bars: edit this list to change the rhythm
-# RIFF_STEPS = 0 2 4 ... 30
+# Authentic B-flat minor Vince Clarke 16th bassline:
+[Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Ab1 - Ab1 -  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Db2 - Eb2 -] n>d /SS 1
 ```
-   Make the stream length equal the hits per loop, and reset it with `/SP 1,0` in the
-   conductor step that starts the pattern.
+   In the pattern, read the stream sequentially:
+```
+y4
+[vince clarke 16th bassline] yt
+[v6 n&1 l1] x0
+[v6 n&1 l1] x1
+# ...
+[v6 n&1 l1] x31
+[=127,0] x31
+```
+   When `n&1` hits `-`, the engine automatically releases the voice envelope and suppresses `l` triggers in that step. Reset streams in the conductor with `/SP 1,0` whenever looping or starting a section.
 8. **Label guesses as guesses** in comments, and say which lines are placeholders.
-9. **Iterate with the listener.** Ask which note is late or missing, then change one
-   number. "Right notes, strange rhythm" almost always means the step list, not the
-   sound.
+9. **Iterate with the listener.** Ask which note is late or missing, then change one note name in the stream.
+10. **Showcase Repertoire in `parts/skred-music-guide/`**:
+    - **`hammer_the_signal.sk`** (134 BPM, E minor): Original industrial techno-pop demo demonstrating 32-op limits, delay freeze drone capture, and polymeter clangs.
+    - **`whip_it.sk`** (158 BPM, E Mixolydian): DEVO's 1980 new wave classic. Demonstrates the whip crack via slowed snare (`w83 f175`), motorik Alan Myers drum feel, Moog bass/guitar chug trio linked via `>7 >8 G7 H7 G8 H8`, call-and-response vocal lead synth with safe `s=0` decay envelopes, and full `[name] vt` voice labeling.
+    - **`dont_go.sk`** (128 BPM, B-flat minor): Yazoo's 1982 synthpop masterpiece by Vince Clarke & Alison Moyet. Demonstrates the authentic B-flat minor key, the signature opening staccato synth brass hook with octaves (`Db5 - C5 - Bb4 - F4` and leap to `F5`), relentless 16th-note bouncing bassline with rests, 16th Vince Clarke arpeggio feeding dotted-eighth echo Bus 1, and Alison's vocal laugh/cry formant pitch glides.
+    - **`closer.sk`** (90 BPM, C minor): Nine Inch Nails' 1994 industrial tour-de-force by Trent Reznor. Features the "Nightclubbing" heartbeat kick (`w82` + sub glide `w0`), rubbery Minimoog bassline with octave snaps and chromatic slides, the ascending chromatic tension hook (`E -> F -> G -> Ab`), singing vocal lead synth lines, crushing chorus synth brass and sidechain pumping, delay freeze drone capture (`DF 1 1`), and the haunting Downward Spiral outro piano solo through ping-pong hall delay.
 
 **Step grid cheat sheet** (with `M 125 16`, one pattern step is one sixteenth note):
 4 steps per beat, 16 per bar. Eighth notes are every 2 steps, quarters every 4. A 2-bar

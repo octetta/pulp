@@ -86,49 +86,50 @@ DP 4 1
 
 ## VOICES
 # Motorik drums (Alan Myers style)
-v0 w82 f440 a7 p0
-v1 w83 f440 a8 p0 r3 ds.25
-v2 w84 f440 a-3 p.25
-v3 w85 f440 a-2 p-.25
-v4 w86 f440 a6 p0
-v5 w94 f440 a4 p.2
+v0 w82 f440 a7 p0 [kick motorik] vt
+v1 w83 f440 a8 p0 r3 ds.25 [snare 80s] vt
+v2 w84 f440 a-3 p.25 [closed hat] vt
+v3 w85 f440 a-2 p-.25 [open hat] vt
+v4 w86 f440 a6 p0 [electronic clap] vt
+v5 w94 f440 a4 p.2 [crash cymbal] vt
 
 # Moog bass + guitar trio: v6 (centre saw), v7 (right square), v8 (left guitar chug)
 # Linked via G and H so v7 and v8 track v6 note and gate automatically!
-v6 w15 a-1 p0 t.001,.18,0,.04 j1,2 k1800 q3.5 r2 ds.08
+v6 w15 a-1 p0 t.001,.18,0,.04 j1,2 k1800 q3.5 r2 ds.08 [moog bass saw] vt
 v6 >7
-v7 w16 a-5 N0,7 p.4 r0
+v7 w16 a-5 N0,7 p.4 r0 [moog bass square] vt
 v6 >8
-v8 w16 a-6 N0,0 p-.35 t.001,.15,0,.03 j1 k3200 q1 c4,.15
+v8 w16 a-6 N0,0 p-.35 t.001,.15,0,.03 j1 k3200 q1 c4,.15 [guitar chug] vt
 v6 G7 H7 G8 H8
 
 # DEVO Solo Lead: bright saw/pulse pair with phase distortion c4, delay Bus 1
-v11 w15 a-6 p0 t.002,.20,.5,.10 j1 k3800 q2.2 c4,.25 r1 ds.35
+v11 w15 a-6 p0 t.002,.20,0,.10 j1 k3800 q2.2 c4,.25 r1 ds.35 [solo lead saw] vt
 v11 >12
-v12 w16 a-9 N12,9 p.55 r0
+v12 w16 a-9 N12,9 p.55 r0 [solo partner pulse] vt
 v11 G12 H12
 
 # Vocal Lead Synth: Mark Mothersbaugh / Gerald Casale vocal line
-v13 w15 a-6 p0 t.003,.28,.6,.18 j1,2 k3000 q1.8 g.015 c4,.20 r1 ds.3
+# Uses s=0 envelope (decay to 0) so vocal notes never hang or get stuck!
+v13 w15 a-6 p0 t.003,.26,0,.08 j1,2 k3000 q1.8 g.015 c4,.20 r1 ds.3 [vocal lead synth] vt
 v13 >14
-v14 w15 a-8 N0,10 p-.5 r0
+v14 w15 a-8 N0,10 p-.5 r0 [vocal partner saw] vt
 v13 G14 H14
 
 # ====================================================================
 # THE WHIP CRACK: Snare played at a slower rate (w83 at f175)
 # Layered with sharp rim crack (w87) and noise lash tail (w5)
 # ====================================================================
-v21 w83 f175 a9 p0 r1 ds.35
-v22 w87 f350 a7 p-.1
-v23 w5 f1400 a-3 p.2 t.001,.09,0,.03 j2 k2800 q2
+v21 w83 f175 a9 p0 r1 ds.35 [whip slowed snare] vt
+v22 w87 f350 a7 p-.1 [whip rim crack] vt
+v23 w5 f1400 a-3 p.2 t.001,.09,0,.03 j2 k2800 q2 [whip noise lash] vt
 
 # Riser: stretched K-synth one-shot
-v16 w301 f160 a8 p0 t.005,.01,1,.4 r4 ds.3
+v16 w301 f160 a8 p0 t.005,.01,1,.4 r4 ds.3 [ksynth riser] vt
 
 # Pad: Poly pool, 2-voice prototype (detuned stereo saw pair), 5 instances at v28-v37
-v24 w0 f.30 a0 t0,0,1,0 m1
-v26 w15 a-10 p-.5 t1.0,.4,.8,1.2 j1 k2200 q.8 c4,.2 C24,.2 G27 H27
-v27 w15 a-12 p.5 N0,8 t1.0,.4,.8,1.2 j1 k2200 q.8 c4,.2 C24,.2
+v24 w0 f.30 a0 t0,0,1,0 m1 [pad lfo] vt
+v26 w15 a-10 p-.5 t1.0,.4,.8,1.2 j1 k2200 q.8 c4,.2 C24,.2 G27 H27 [pad proto left] vt
+v27 w15 a-12 p.5 N0,8 t1.0,.4,.8,1.2 j1 k2200 q.8 c4,.2 C24,.2 [pad proto right] vt
 /pg 0,26,2,0
 /pp 0,0,28,5,0
 v24 l1
@@ -901,7 +902,7 @@ y0
 [y6 z0 y7 z1 /SP 2,0] x17
 [y7 z0 y6 z1 /SP 1,0] x18
 [y6 z0 y8 z1 /SP 3,0] x19
-[v5 l1 y8 z0 y6 z1 /SP 1,0 y9 z0 y10 z1 /SP 6,0] x20
+[v5 l1 y8 z0 y6 z1 /SP 1,0 y9 z0 v13 l0 y10 z1 /SP 6,0] x20
 [y6 z0 y7 z1 /SP 2,0] x21
 [y7 z0 y6 z1 /SP 1,0] x22
 [y6 z0 y8 z1 /SP 3,0] x23
@@ -909,7 +910,7 @@ y0
 [y6 z0 y7 z1 /SP 2,0] x25
 [y7 z0 y6 z1 /SP 1,0 v16 l1] x26
 [y6 z0 y8 z1 /SP 3,0 y2 z0 y16 z1] x27
-[v5 l1 y8 z0 y10 z0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y17 z1 y2 z1 v6 k2600 v7 k2400] x28
+[v5 l1 y8 z0 y10 z0 v13 l0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y17 z1 y2 z1 v6 k2600 v7 k2400] x28
 [=126,29] x29
 [=126,30] x30
 [=126,31] x31
@@ -917,7 +918,7 @@ y0
 [=126,33] x33
 [=126,34] x34
 [y2 z0 y16 z1] x35
-[v5 l1 y11 z0 y13 z0 y14 z0 y17 z0 y6 z1 /SP 1,0 y2 z1 v6 k1800 v7 k1800] x36
+[v5 l1 y11 z0 y13 z0 y14 z0 v13 l0 y17 z0 y6 z1 /SP 1,0 y2 z1 v6 k1800 v7 k1800] x36
 [y6 z0 y7 z1 /SP 2,0] x37
 [y7 z0 y6 z1 /SP 1,0] x38
 [y6 z0 y8 z1 /SP 3,0] x39
@@ -933,7 +934,7 @@ y0
 [y6 z0 y7 z1 /SP 2,0] x49
 [y7 z0 y6 z1 /SP 1,0] x50
 [y6 z0 y8 z1 /SP 3,0] x51
-[v5 l1 y8 z0 y6 z1 /SP 1,0 y9 z0 y10 z1 /SP 6,0] x52
+[v5 l1 y8 z0 y6 z1 /SP 1,0 y9 z0 v13 l0 y10 z1 /SP 6,0] x52
 [y6 z0 y7 z1 /SP 2,0] x53
 [y7 z0 y6 z1 /SP 1,0] x54
 [y6 z0 y8 z1 /SP 3,0] x55
@@ -941,7 +942,7 @@ y0
 [y6 z0 y7 z1 /SP 2,0] x57
 [y7 z0 y6 z1 /SP 1,0 v16 l1] x58
 [y6 z0 y8 z1 /SP 3,0 y2 z0 y16 z1] x59
-[v5 l1 y8 z0 y10 z0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y17 z1 y2 z1 v6 k2600 v7 k2400] x60
+[v5 l1 y8 z0 y10 z0 v13 l0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y17 z1 y2 z1 v6 k2600 v7 k2400] x60
 [=126,61] x61
 [=126,62] x62
 [=126,63] x63
@@ -949,7 +950,7 @@ y0
 [=126,65] x65
 [=126,66] x66
 [y2 z0 y16 z1] x67
-[v5 l1 y11 z0 y13 z0 y14 z0 y17 z0 y6 z1 /SP 1,0 y12 z1 /SP 9,0 y2 z1 v6 k1800 v7 k1800] x68
+[v5 l1 y11 z0 y13 z0 y14 z0 v13 l0 y17 z0 y6 z1 /SP 1,0 y12 z1 /SP 9,0 y2 z1 v6 k1800 v7 k1800] x68
 [y6 z0 y7 z1 /SP 2,0] x69
 [y7 z0 y6 z1 /SP 1,0] x70
 [y6 z0 y8 z1 /SP 3,0] x71
@@ -965,14 +966,14 @@ y0
 [=126,81] x81
 [=126,82] x82
 [y16 z1] x83
-[v5 l1 y11 z0 y13 z0 y14 z0 y17 z0 y6 z1 /SP 1,0 y15 z1] x84
+[v5 l1 y11 z0 y13 z0 y14 z0 v13 l0 y17 z0 y6 z1 /SP 1,0 y15 z1] x84
 [y6 z0 y7 z1 /SP 2,0] x85
 [y7 z0 y6 z1 /SP 1,0 y15 z1] x86
 [y6 z0 y8 z1 /SP 3,0] x87
 [v5 l.8 y8 z0 y6 z1 /SP 1,0 y15 z1] x88
 [y6 z0 y7 z1 /SP 2,0] x89
 [y7 z0 y6 z1 /SP 1,0 y15 z1] x90
-[y1 z0 y2 z0 y4 z0 y6 z0 y7 z0 y8 z0 v21 l1 v22 l1 v23 l1] x91
+[y1 z0 y2 z0 y4 z0 y6 z0 y7 z0 y8 z0 v13 l0 v11 l0 v21 l1 v22 l1 v23 l1] x91
 [Z0 +4 ce 99] x92
 
 ## MACROS (play / stop)

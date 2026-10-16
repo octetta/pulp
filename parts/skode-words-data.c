@@ -53,6 +53,19 @@ static int word_exec_n_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       octave *= sign;
       
       notes[note_count++] = (octave + 1) * 12 + note_idx;
+    } else if (*p == '-' || *p == '.' || *p == '~' || c == 'R') {
+      notes[note_count++] = NAN;
+      p++;
+      while (*p && !isspace((unsigned char)*p) && *p != ',') p++;
+    } else if (isdigit((unsigned char)*p)) {
+      char *endp = NULL;
+      double val = strtod(p, &endp);
+      if (endp && endp > p) {
+        notes[note_count++] = val;
+        p = endp;
+      } else {
+        p++;
+      }
     } else {
       // skip invalid token
       while (*p && !isspace((unsigned char)*p) && *p != ',') p++;

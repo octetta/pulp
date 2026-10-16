@@ -962,6 +962,7 @@ int wave_reset(int voice) {
 
 int envelope_velocity(int voice, float f) {
     if (voice_invalid(voice)) return SYNTH_INVALID_VOICE;
+    if (isnan(f)) f = 0.0f;
     if (f < 0 && sv.one_shot[voice]) {
         sv.loop_stop_requested[voice] = 0;
         sv.loop_release_tail[voice] = 0;

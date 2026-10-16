@@ -128,6 +128,22 @@ int main(void) {
          "compact core command did not update voice state");
   synth_free();
 
+  /* Test n>d note-to-data conversion with rest '-' notation */
+  {
+    skode_t sk_ntod = SKODE_EMPTY();
+    skode_init(&sk_ntod);
+    skode_consume("[C3 - D3 - E3] n>d", &sk_ntod);
+    double *data = ands_data(sk_ntod.parse);
+    int len = ands_data_len(sk_ntod.parse);
+    expect(len == 5, "n>d with rests produced expected length");
+    expect(data && data[0] == 48.0, "n>d first note is C3 (48)");
+    expect(data && isnan(data[1]), "n>d second element is rest (NAN)");
+    expect(data && data[2] == 50.0, "n>d third note is D3 (50)");
+    expect(data && isnan(data[3]), "n>d fourth element is rest (NAN)");
+    expect(data && data[4] == 52.0, "n>d fifth note is E3 (52)");
+    skode_free(&sk_ntod);
+  }
+
   synth_init(8);
   wave_table_init(0);
   voice_init();

@@ -640,9 +640,16 @@ int skode_is_legacy_realtime_opcode(uint32_t atom) {
   return 0;
 }
 
+static uint8_t voice_is_rest[VOICE_MAX];
+
 int skode_midi_note(int voice, float note, float cents) {
   if (!event_voice_valid(voice)) return -1;
-  if (isnan(note)) note = -1.0f;
+  if (isnan(note) || note < 0.0f) {
+    voice_is_rest[voice] = 1;
+    skode_linked_velocity(voice, 0.0f, SAMPLE_COUNT_GET());
+    return 0;
+  }
+  voice_is_rest[voice] = 0;
   int result = freq_midi(voice, note, cents);
   if (sv.link_midi_0[voice] >= 0) freq_midi(sv.link_midi_0[voice], note, cents);
   if (sv.link_midi_1[voice] >= 0) freq_midi(sv.link_midi_1[voice], note, cents);
@@ -655,6 +662,9 @@ int skode_midi_note(int voice, float note, float cents) {
 
 int skode_linked_velocity(int voice, float velocity, uint64_t sample) {
   if (!event_voice_valid(voice)) return -1;
+  if (voice_is_rest[voice]) {
+    velocity = 0.0f;
+  }
   skode_envelope_velocity(voice, velocity, sample);
   if (sv.link_velo_0[voice] >= 0) skode_envelope_velocity(sv.link_velo_0[voice], velocity, sample);
   if (sv.link_velo_1[voice] >= 0) skode_envelope_velocity(sv.link_velo_1[voice], velocity, sample);
@@ -858,6 +868,7 @@ static int run_program(const event_program_t *program, int voice,
     int current_voice = voice;
     uint8_t current_voice_var = 0;
     int r_exec_due = (r == 0) ? execute_due : 0;
+    memset(voice_is_rest, 0, sizeof(voice_is_rest));
 
     for (int i = 0; i < program->count; i++) {
       const program_op_t *op = &program->op[i];

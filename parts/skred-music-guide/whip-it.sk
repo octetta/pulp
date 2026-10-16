@@ -1,311 +1,520 @@
-## WHIP IT (instrumental cover) for PULP/SKRED
-#  158 BPM, E Mixolydian / E major, 80 bars (~2:32). Instrumental only.
-#  Self-contained: drums are built-in waves 82-99.
-#     [whip_it.sk] /ls      then:   play     (stop:  stop)
+## DEVO - WHIP IT (Full Instrumental Cover for PULP / SKRED)
+#  158 BPM, E Mixolydian / E Major, 92 bars (~2:20).
+#  Self-contained: drums from built-in waves 82-99, inline K-synth riser.
+#  Uses slowed snare sample (w83 at f175) for the authentic whip crack sound!
+#  Uses n>d to convert note name strings (with '-' rests) to MIDI streams.
+#  Load:   [whip_it.sk] /ls
+#  Start:  play        Stop:  stop
 #
-#  WHAT THE SOURCES SAID
-#    - Tempo ~158-160 BPM, key E (Mixolydian colour)
-#    - Iconic riff: low E E A B D (and close variants) played by guitar + bass + synth
-#    - Motorik 4/4 beat, palm-muted chugs, short synth stabs
-#    - Verse progression E5 – D – A, chorus C – G – D
-#  GUESSES (edit freely)
-#    - exact bar counts of sections
-#    - placement of the higher “whip it” stabs and fill rolls
-#    - mix levels
-#  UNTESTED and UNHEARD at the time of writing.
+#  VOICE MAP:
+#    v0  motorik electronic kick (w82)
+#    v1  crisp 80s snare (w83) + v4 electronic clap (w86)
+#    v2  closed hat (w84)  v3  open hat (w85)  v5  crash cymbal (w94)
+#    v6  Moog bass saw (w15, centre) + v7 partner square (w16, right)
+#    v8  guitar-style chug (w16, left)
+#    v11 guitar / synth solo voice (w15) + v12 partner pulse (w16)
+#    v13 vocal lead synth (w15) + v14 partner saw (w15)
+#    v16 K-synth build riser (w301)
+#    v21 slowed snare whip crack (w83 at f175, delay Bus 1)
+#    v22 whip initial transient crack (w87)
+#    v23 whip leather lash tail (w5 noise)
+#    v24 pad LFO  v26,v27 pad prototype  v28-v37 poly pool (chorus synth chords)
 #
-#  VOICE MAP
-#    v0 kick   v1 snare   v2 closed hat   v3 open hat   v4 clap   v5 crash
-#    v6 bass / main riff (centre saw) + v7 detuned partner
-#    v8 guitar-style chug (bright square)
-#    v11 FM stab + v12 modulator
-#    v13 high synth stab / “whip” accent
-#    v24 pad LFO   v26-v27 pad prototype   v28-v37 pad pool (used sparingly)
-#  DELAY BUSES
-#    1  short slap on stabs
-#    2  light wash on pad / lead
-#  PATTERNS
-#    0 conductor   1 kick   2 snare   3 hats   6 main riff
-#    7 chorus bass/chords   8 chug   9 high stab   11 pad
-#    13 snare roll   14 pump
-#  SECTIONS (bars)
-#     0-7   intro riff
-#     8-23  verse 1
-#    24-31  chorus
-#    32-47  verse 2
-#    48-55  bridge / “whip it good”
-#    56-71  final chorus + riff
-#    72-79  outro
+#  DELAY BUSES:
+#    Bus 1: Whip crack & lead slapback (DS 1 158 .25, DL 1 - - 5 0 0 9)
+#    Bus 2: Bass slapback sixteenth (DS 2 158 .25, DL 2 - - 4 0 0 8)
+#    Bus 3: Gated snare room (DS 3 158 .5, DL 3 - - 6 0 0 9)
+#    Bus 4: Synth chorus wash (DS 4 158 .75, DL 4 - - 10 4 8 10, DP 4 1)
+#
+#  ARRANGEMENT (92 bars):
+#    0-3   Intro drums (Alan Myers motorik beat enters)
+#    4-7   Iconic E riff enters in guitar + Moog bass unison
+#    8-23  Verse 1: 'Crack that whip!' + whip cracks on offbeats
+#    24-39 Chorus 1: C - G - D - C progression, vocal lead + whip cracks
+#    40-47 Return to main riff + whip accents
+#    48-63 Verse 2: 'When something's going wrong...' + builds
+#    64-71 Bob Mothersbaugh's angular synth/guitar solo
+#    72-87 Final Chorus: full explosive wall of sound, continuous whip snaps
+#    88-91 Outro vamp & final whip crack flurry
+#    92    End cleanup
 # ======================================================================
 
-[WHIP IT] puts
+[DEVO - WHIP IT] puts
 M 158 16
 
-## DELAY BUSES (mostly dry, short slap only)
+## INLINE K-SYNTH RISER (one-shot wave 301)
+[
+/ riser: exponential sweep + highpass noise, zero DC
+N: 131072
+T: !N
+E: (e(T*(4.6%N)))%100
+R: r T
+L: 0.35 f R
+H: R-L
+F: 900*(e(T*(2.7%N)))*((p 2)%(p 0))
+P: +\F
+S: s P
+W: w E*((S*.35)+(H*.6))
+] k!
+k>w301,44100,1
+
+## DELAY BUSES
+# Bus 1: Whip crack & lead slapback
 DS 1 158 .25
-DL 1 - - 4 0 0 9
+DL 1 - - 5 0 0 9
 DD 1 8 3
-DS 2 158 .5
-DL 2 - - 6 1 1 8
-DD 2 7 3
+
+# Bus 2: Bass slapback sixteenth
+DS 2 158 .25
+DL 2 - - 4 0 0 8
+DD 2 6 3
+
+# Bus 3: Snare room tail
+DS 3 158 .5
+DL 3 - - 6 0 0 9
+DD 3 5 4
+
+# Bus 4: Synth chorus wash
+DS 4 158 .75
+DL 4 - - 10 4 8 10
+DD 4 8 2
+DP 4 1
 
 ## VOICES
-v0 w82 f440 a6 p0                                # kick
-v1 w83 f440 a6 p0                                # snare
-v2 w84 f440 a-4 p.2                              # closed hat
-v3 w85 f440 a-3 p-.2                             # open hat
-v4 w86 f440 a4 p0                                # clap
-v5 w94 f440 a3 p.15                              # crash
+# Motorik drums
+v0 w82 f440 a7 p0
+v1 w83 f440 a8 p0 r3 ds.25
+v2 w84 f440 a-3 p.25
+v3 w85 f440 a-2 p-.25
+v4 w86 f440 a6 p0
+v5 w94 f440 a4 p.2
 
-# main riff / bass: tight plucky saw + detuned partner
-v6 w15 a-1 p0 t.001,.11,0,.04 j1 k1600 q2.2
+# Moog bass: snappy plucky saw + detuned square partner
+v6 w15 a-1 p0 t.001,.11,0,.04 j1,2 k1800 q3.5 r2 ds.08
 v6 >7
-v7 w16 a-6 N0,6 p.4
+v7 w16 a-5 N0,7 p.4 r0
 v6 G7 H7
 
-# guitar-style chug (bright, short)
-v8 w16 a-7 p-.15 t.001,.09,0,.03 j1 k3800 q.8 c4,.12
+# Guitar-style chug (tight, palm-muted square tone)
+v8 w16 a-6 p-.25 t.001,.09,0,.03 j1 k3400 q1 c4,.15
 
-# FM metal-ish stab (for accents)
-v11 w0 a-3 p-.3 t.001,.35,0,.25 FF2 FB3 F12,2.0 G12 H12
-v12 w0 a0 t.001,.25,0,.25 N19 m1
+# DEVO Solo Lead: bright saw/pulse pair with phase distortion c4, delay Bus 1
+v11 w15 a-6 p0 t.002,.20,.5,.10 j1 k3800 q2.2 c4,.25 r1 ds.35
+v11 >12
+v12 w16 a-9 N0,9 p.55 r0
+v11 G12 H12
 
-# high “whip” synth stab
-v13 w15 a-8 p.25 t.001,.12,0,.05 j1 k5200 q1.6 r1 ds.2
+# Vocal Lead Synth: Mark Mothersbaugh / Gerald Casale vocal line
+v13 w15 a-6 p0 t.003,.28,.6,.18 j1,2 k3000 q1.8 g.015 c4,.20 r1 ds.3
+v13 >14
+v14 w15 a-8 N0,10 p-.5 r0
+v13 G14 H14
 
-# light pad (used sparingly under choruses)
-v24 w0 f.28 a0 t0,0,1,0 m1
-v26 w15 a-12 p-.4 t1.1,.4,.6,1.3 j1 k2200 q.6 c4,.12 C24,.12 G27 H27
-v27 w15 a-14 p.4 N0,5 t1.1,.4,.6,1.3 j1 k2200 q.6 c4,.12 C24,.12
+# ====================================================================
+# THE WHIP CRACK: Snare played at a slower rate (w83 at f175)
+# Layered with sharp rim crack (w87) and noise lash tail (w5)
+# ====================================================================
+v21 w83 f175 a9 p0 r1 ds.35
+v22 w87 f350 a7 p-.1
+v23 w5 f1400 a-3 p.2 t.001,.09,0,.03 j2 k2800 q2
+
+# Riser: stretched K-synth one-shot
+v16 w301 f160 a8 p0 t.005,.01,1,.4 r4 ds.3
+
+# Pad: Poly pool, 2-voice prototype (detuned stereo saw pair), 5 instances at v28-v37
+v24 w0 f.30 a0 t0,0,1,0 m1
+v26 w15 a-10 p-.5 t1.0,.4,.8,1.2 j1 k2200 q.8 c4,.2 C24,.2 G27 H27
+v27 w15 a-12 p.5 N0,8 t1.0,.4,.8,1.2 j1 k2200 q.8 c4,.2 C24,.2
 /pg 0,26,2,0
-/pp 0,0,28,4,0
+/pp 0,0,28,5,0
 v24 l1
 
 ## EVENTS
 [O DQ] /ceb 4 99
 /cer 1
 
-## STREAMS (all pitch material)
-# stream 1: classic main riff cell (E E A B D) – one bar of eighths
-( 40 40 45 47 50 40 40 45 ) /SS 1
-# stream 2: velocities / accents for the riff
-( 1 .75 .9 .7 1 .75 .9 .7 ) /SS 2
-# stream 3: verse ending turnaround (A G F#)
-( 45 45 43 42 ) /SS 3
-# stream 4: chorus roots (C G D C) – two bars
-( 48 48 48 48 43 43 43 43 50 50 50 50 48 48 48 48 ) /SS 4
-# stream 5: chorus velocities
-( 1 .7 .85 .7 1 .7 .85 .7 1 .7 .85 .7 1 .7 .85 .7 ) /SS 5
-# stream 6: high stab notes
-( 64 67 64 62 ) /SS 6
+## STREAMS (Note arrays converted via n>d with '-' rests)
+# Stream 1: DEVO iconic main riff (E E E E A B D -) – 1 bar of eighths
+[E2 E2 E2 E2 A2 B2 D3 -] n>d /SS 1
+
+# Stream 2: Main riff velocities / accents
+[1 .75 .9 .75 1 .85 1 -] n>d /SS 2
+
+# Stream 3: Verse ending turnaround (A G F# E)
+[A2 A2 G2 G2 F#2 F#2 E2 -] n>d /SS 3
+
+# Stream 4: Chorus bass roots (C G D C, 2 bars of eighths)
+[C2 C2 C2 C2 C2 C2 C2 C2  G1 G1 G1 G1 G1 G1 G1 G1  D2 D2 D2 D2 D2 D2 D2 D2  C2 C2 C2 C2 C2 C2 C2 C2] n>d /SS 4
+
+# Stream 5: Verse 1 Vocal Line ('Crack that whip! ... Give the past a slip!')
+# 2 bars / 32 sixteenth steps
+[B3 - B3 - B3 - - - - - - - - - - -  B3 - B3 - B3 - B3 - B3 - - - - - - -] n>d /SS 5
+
+# Stream 6: Chorus Vocal Line ('When a problem comes along... you must whip it!')
+# 4 bars / 64 sixteenth steps
+[G4 - E4 - G4 - E4 - G4 - E4 - G4 - - -  - - E4 - G4 - E4 - E4 - - - - - - -  A4 - F#4 - A4 - F#4 - A4 - F#4 - A4 - F#4 -  - - E4 - G4 - E4 - E4 - - - - - - -] n>d /SS 6
+
+# Stream 7: Bob Mothersbaugh's Angular Synth Solo (2 bars / 32 eighth notes)
+[E4 G4 A4 B4  D5 B4 A4 G4  E4 G4 A4 B4  D5 E5 D5 B4  E4 G4 A4 B4  D5 B4 A4 G4  A4 B4 D5 E5  G5 E5 D5 B4] n>d /SS 7
 
 ## PATTERNS
 
 y1
 [kick motorik] yt
 [v0 l1] x0
-[v0 l1] x4
+[v0 l.9] x4
 [v0 l1] x8
-[v0 l1] x12
+[v0 l.95] x12
 [=127,0] x15
 
 y2
-[snare on 2 & 4] yt
-[v1 l1] x4
-[v1 l1] x12
-[v1 l.3] x14
+[snare+clap on 2 & 4] yt
+[v1 l1 v4 l.9] x4
+[v1 l1 v4 l.9] x12
+[v1 l.25] x14
 [=127,0] x15
 
 y3
-[hats 8ths + open] yt
-[v2 l.4] x0
+[hats 8ths + open sizzle] yt
+[v2 l.5] x0
 [v2 l.3] x2
-[v2 l.4] x4
-[v2 l.3] x6
-[v2 l.4] x8
+[v2 l.5] x4
+[v3 l.75 v2 l0] x6
+[v2 l.5] x8
 [v2 l.3] x10
-[v2 l.4] x12
-[v3 l.7 v2 l0] x14
-
-y6
-[main riff] yt
-[v6 n&1 l&2] x0
-[v6 n&1 l&2] x2
-[v6 n&1 l&2] x4
-[v6 n&1 l&2] x6
-[v6 n&1 l&2] x8
-[v6 n&1 l&2] x10
-[v6 n&1 l&2] x12
-[v6 n&1 l&2] x14
+[v2 l.5] x12
+[v3 l.85 v2 l0] x14
 [=127,0] x15
 
-y7
-[chorus roots] yt
-[v6 n&4 l&5] x0
-[v6 n&4 l&5] x2
-[v6 n&4 l&5] x4
-[v6 n&4 l&5] x6
-[v6 n&4 l&5] x8
-[v6 n&4 l&5] x10
-[v6 n&4 l&5] x12
-[v6 n&4 l&5] x14
-[v6 n&4 l&5] x16
-[v6 n&4 l&5] x18
-[v6 n&4 l&5] x20
-[v6 n&4 l&5] x22
-[v6 n&4 l&5] x24
-[v6 n&4 l&5] x26
-[v6 n&4 l&5] x28
-[v6 n&4 l&5] x30
-[=127,0] x31
+y18
+[hats 16ths groove] yt
+[v2 l.45] x0
+[v2 l.25] x1
+[v3 l.75 v2 l0] x2
+[v2 l.25] x3
+[v2 l.5] x4
+[v2 l.25] x5
+[v3 l.85 v2 l0] x6
+[v2 l.25] x7
+[v2 l.45] x8
+[v2 l.25] x9
+[v3 l.75 v2 l0] x10
+[v2 l.25] x11
+[v2 l.5] x12
+[v2 l.25] x13
+[v3 l.85 v2 l0] x14
+[v2 l.25] x15
+[=127,0] x15
+
+y6
+[iconic main riff] yt
+%2
+[v6 n&1 l&2] x0
+[v6 n&1 l&2] x1
+[v6 n&1 l&2] x2
+[v6 n&1 l&2] x3
+[v6 n&1 l&2] x4
+[v6 n&1 l&2] x5
+[v6 n&1 l&2] x6
+[v6 n&1 l&2] x7
+[=127,0] x7
 
 y8
-[guitar chug on riff] yt
-[v8 n&1 l.75] x0
-[v8 n&1 l.7] x2
-[v8 n&1 l.75] x4
-[v8 n&1 l.7] x6
-[v8 n&1 l.75] x8
-[v8 n&1 l.7] x10
-[v8 n&1 l.75] x12
-[v8 n&1 l.7] x14
+[guitar chug in unison] yt
+%2
+[v8 n&1 l.8] x0
+[v8 n&1 l.8] x1
+[v8 n&1 l.8] x2
+[v8 n&1 l.8] x3
+[v8 n&1 l.8] x4
+[v8 n&1 l.8] x5
+[v8 n&1 l.8] x6
+[v8 n&1 l.8] x7
+[=127,0] x7
+
+y7
+[chorus bass roots] yt
+%2
+[v6 n&4 l1 v8 n&4 l.75] x0
+[v6 n&4 l1 v8 n&4 l.75] x1
+[v6 n&4 l1 v8 n&4 l.75] x2
+[v6 n&4 l1 v8 n&4 l.75] x3
+[v6 n&4 l1 v8 n&4 l.75] x4
+[v6 n&4 l1 v8 n&4 l.75] x5
+[v6 n&4 l1 v8 n&4 l.75] x6
+[v6 n&4 l1 v8 n&4 l.75] x7
+[v6 n&4 l1 v8 n&4 l.75] x8
+[v6 n&4 l1 v8 n&4 l.75] x9
+[v6 n&4 l1 v8 n&4 l.75] x10
+[v6 n&4 l1 v8 n&4 l.75] x11
+[v6 n&4 l1 v8 n&4 l.75] x12
+[v6 n&4 l1 v8 n&4 l.75] x13
+[v6 n&4 l1 v8 n&4 l.75] x14
+[v6 n&4 l1 v8 n&4 l.75] x15
 [=127,0] x15
 
 y9
-[high “whip” stabs] yt
-[v13 n&6 l.85] x0
-[v13 n&6 l.8] x4
-[v13 n&6 l.85] x8
-[v13 n&6 l.8] x12
-[=127,0] x15
+[chorus polyphonic synth chords] yt
+[pn 0,101,48,.95 pn 0,102,52,.95 pn 0,103,55,.95] x0
+[pr 0,101 pr 0,102 pr 0,103] x15
+[pn 0,104,43,.95 pn 0,105,47,.95 pn 0,106,50,.95] x16
+[pr 0,104 pr 0,105 pr 0,106] x31
+[pn 0,107,45,.95 pn 0,108,50,.95 pn 0,109,54,.95] x32
+[pr 0,107 pr 0,108 pr 0,109] x47
+[pn 0,101,48,.95 pn 0,102,52,.95 pn 0,103,55,.95] x48
+[pr 0,101 pr 0,102 pr 0,103] x63
+[=127,0] x63
+
+y5
+[vocal lead verse 1] yt
+[v13 n&5 l.95] x0
+[v13 n&5 l.95] x1
+[v13 n&5 l.95] x2
+[v13 n&5 l.95] x3
+[v13 n&5 l.95] x4
+[v13 n&5 l.95] x5
+[v13 n&5 l.95] x6
+[v13 n&5 l.95] x7
+[v13 n&5 l.95] x8
+[v13 n&5 l.95] x9
+[v13 n&5 l.95] x10
+[v13 n&5 l.95] x11
+[v13 n&5 l.95] x12
+[v13 n&5 l.95] x13
+[v13 n&5 l.95] x14
+[v13 n&5 l.95] x15
+[v13 n&5 l.95] x16
+[v13 n&5 l.95] x17
+[v13 n&5 l.95] x18
+[v13 n&5 l.95] x19
+[v13 n&5 l.95] x20
+[v13 n&5 l.95] x21
+[v13 n&5 l.95] x22
+[v13 n&5 l.95] x23
+[v13 n&5 l.95] x24
+[v13 n&5 l.95] x25
+[v13 n&5 l.95] x26
+[v13 n&5 l.95] x27
+[v13 n&5 l.95] x28
+[v13 n&5 l.95] x29
+[v13 n&5 l.95] x30
+[v13 n&5 l.95] x31
+[=127,0] x31
+
+y12
+[vocal lead chorus line] yt
+[v13 n&6 l1] x0
+[v13 n&6 l1] x1
+[v13 n&6 l1] x2
+[v13 n&6 l1] x3
+[v13 n&6 l1] x4
+[v13 n&6 l1] x5
+[v13 n&6 l1] x6
+[v13 n&6 l1] x7
+[v13 n&6 l1] x8
+[v13 n&6 l1] x9
+[v13 n&6 l1] x10
+[v13 n&6 l1] x11
+[v13 n&6 l1] x12
+[v13 n&6 l1] x13
+[v13 n&6 l1] x14
+[v13 n&6 l1] x15
+[v13 n&6 l1] x16
+[v13 n&6 l1] x17
+[v13 n&6 l1] x18
+[v13 n&6 l1] x19
+[v13 n&6 l1] x20
+[v13 n&6 l1] x21
+[v13 n&6 l1] x22
+[v13 n&6 l1] x23
+[v13 n&6 l1] x24
+[v13 n&6 l1] x25
+[v13 n&6 l1] x26
+[v13 n&6 l1] x27
+[v13 n&6 l1] x28
+[v13 n&6 l1] x29
+[v13 n&6 l1] x30
+[v13 n&6 l1] x31
+[v13 n&6 l1] x32
+[v13 n&6 l1] x33
+[v13 n&6 l1] x34
+[v13 n&6 l1] x35
+[v13 n&6 l1] x36
+[v13 n&6 l1] x37
+[v13 n&6 l1] x38
+[v13 n&6 l1] x39
+[v13 n&6 l1] x40
+[v13 n&6 l1] x41
+[v13 n&6 l1] x42
+[v13 n&6 l1] x43
+[v13 n&6 l1] x44
+[v13 n&6 l1] x45
+[v13 n&6 l1] x46
+[v13 n&6 l1] x47
+[v13 n&6 l1] x48
+[v13 n&6 l1] x49
+[v13 n&6 l1] x50
+[v13 n&6 l1] x51
+[v13 n&6 l1] x52
+[v13 n&6 l1] x53
+[v13 n&6 l1] x54
+[v13 n&6 l1] x55
+[v13 n&6 l1] x56
+[v13 n&6 l1] x57
+[v13 n&6 l1] x58
+[v13 n&6 l1] x59
+[v13 n&6 l1] x60
+[v13 n&6 l1] x61
+[v13 n&6 l1] x62
+[v13 n&6 l1] x63
+[=127,0] x63
 
 y11
-[light pad under chorus] yt
-[pn 0,101,48,.8 pn 0,102,52,.8 pn 0,103,55,.8] x0
-[pr 0,101 pr 0,102 pr 0,103] x15
-[pn 0,104,43,.8 pn 0,105,47,.8 pn 0,106,50,.8] x16
-[pr 0,104 pr 0,105 pr 0,106] x31
+[devo synth solo] yt
+%2
+[v11 n&7 l.95] x0
+[v11 n&7 l.95] x1
+[v11 n&7 l.95] x2
+[v11 n&7 l.95] x3
+[v11 n&7 l.95] x4
+[v11 n&7 l.95] x5
+[v11 n&7 l.95] x6
+[v11 n&7 l.95] x7
+[v11 n&7 l.95] x8
+[v11 n&7 l.95] x9
+[v11 n&7 l.95] x10
+[v11 n&7 l.95] x11
+[v11 n&7 l.95] x12
+[v11 n&7 l.95] x13
+[v11 n&7 l.95] x14
+[v11 n&7 l.95] x15
+[=127,0] x15
+
+y10
+[the whip crack!] yt
+[v21 l1 v22 l1 v23 l1] x6
+[v21 l1 v22 l1 v23 l1] x14
+[=127,0] x15
 
 y13
-[snare roll] yt
-[v1 l0.2] x0
-[v1 l0.25] x1
-[v1 l0.3] x2
-[v1 l0.35] x3
-[v1 l0.4] x4
-[v1 l0.45] x5
-[v1 l0.5] x6
-[v1 l0.55] x7
-[v1 l0.6 z*2] x8
-[v1 l0.65 z*2] x9
-[v1 l0.7 z*2] x10
-[v1 l0.75 z*2] x11
-[v1 l0.8 z*4] x12
-[v1 l0.85 z*4] x13
-[v1 l0.9 z*4] x14
+[snare ratchet roll] yt
+[v1 l0.20] x0
+[v1 l0.25] x2
+[v1 l0.30] x4
+[v1 l0.35] x6
+[v1 l0.45 z*2] x8
+[v1 l0.55 z*2] x10
+[v1 l0.70 z*4] x12
+[v1 l0.85 z*4] x14
 [v1 l0.95 z*8] x15
 [-] x16
 
 y14
-[pump] yt
-[v28 a-18 v29 a-20 v30 a-18 v31 a-20 v8 a-18 v13 a-16] x0
-[v28 a-12 v29 a-14 v30 a-12 v31 a-14 v8 a-12 v13 a-10] x1
-[v28 a-8 v29 a-10 v30 a-8 v31 a-10 v8 a-8 v13 a-6] x2
-[v28 a-5 v29 a-7 v30 a-5 v31 a-7 v8 a-5 v13 a-3] x3
+[fake sidechain pump] yt
+[v28 a-18 v29 a-20 v30 a-18 v31 a-20 v8 a-16] x0
+[v28 a-12 v29 a-14 v30 a-12 v31 a-14 v8 a-12] x1
+[v28 a-8 v29 a-10 v30 a-8 v31 a-10 v8 a-8] x2
+[v28 a-5 v29 a-7 v30 a-5 v31 a-7 v8 a-5] x3
 
-## CONDUCTOR
+## CONDUCTOR (pattern 0, one step per bar, 92 bars)
 y0
 [conductor] yt
 %16
-# 0-7 intro riff only
-[y6 z1 /SP 1,0 /SP 2,0] x0
+[y1 z1 y3 z1 v6 k1800 v7 k1800] x0
 [=126,1] x1
-[y3 z1] x2
+[y2 z1] x2
 [=126,3] x3
-[v5 l1 y1 z1 y2 z1] x4
+[v5 l1 y6 z1 y8 z1 /SP 1,0 /SP 2,0] x4
 [=126,5] x5
-[=126,6] x6
-[=126,7] x7
-# 8-23 verse 1
-[v5 l1 y8 z1] x8
+[y10 z1] x6
+[y13 z1] x7
+[v5 l1 y5 z1 /SP 5,0 y18 z1 y3 z0] x8
 [=126,9] x9
-[=126,10] x10
+[/SP 5,0 y5 z1] x10
 [=126,11] x11
-[=126,12] x12
+[/SP 5,0 y5 z1] x12
 [=126,13] x13
-[=126,14] x14
+[/SP 5,0 y5 z1] x14
 [=126,15] x15
-[=126,16] x16
+[v5 l.8 /SP 5,0 y5 z1] x16
 [=126,17] x17
-[=126,18] x18
+[/SP 5,0 y5 z1] x18
 [=126,19] x19
-[=126,20] x20
+[/SP 5,0 y5 z1] x20
 [=126,21] x21
-[=126,22] x22
+[y16 z1 v16 l1] x22
 [y2 z0 y13 z1] x23
-# 24-31 chorus
-[v5 l1 y6 z0 y8 z0 /SP 4,0 /SP 5,0 y7 z1 y9 z1 y11 z1 y14 z1 y2 z1] x24
+[v5 l1 y6 z0 y8 z0 y7 z1 /SP 4,0 y9 z1 y12 z1 /SP 6,0 y14 z1 y2 z1 v6 k2600 v7 k2400] x24
 [=126,25] x25
 [=126,26] x26
 [=126,27] x27
-[=126,28] x28
+[/SP 4,0 y7 z1 /SP 6,0 y12 z1] x28
 [=126,29] x29
 [=126,30] x30
-[y2 z0 y13 z1] x31
-# 32-47 verse 2
-[v5 l1 y7 z0 y9 z0 y11 z0 y14 z0 /SP 1,0 /SP 2,0 y6 z1 y8 z1 y2 z1] x32
+[=126,31] x31
+[v5 l.8 /SP 4,0 y7 z1 /SP 6,0 y12 z1] x32
 [=126,33] x33
 [=126,34] x34
 [=126,35] x35
-[=126,36] x36
+[/SP 4,0 y7 z1 /SP 6,0 y12 z1] x36
 [=126,37] x37
 [=126,38] x38
-[=126,39] x39
-[=126,40] x40
+[y2 z0 y13 z1] x39
+[v5 l1 y7 z0 y9 z0 y12 z0 y14 z0 y6 z1 y8 z1 /SP 1,0 /SP 2,0 y2 z1 v6 k1800 v7 k1800] x40
 [=126,41] x41
 [=126,42] x42
 [=126,43] x43
-[=126,44] x44
+[y10 z1] x44
 [=126,45] x45
 [=126,46] x46
-[y2 z0 y13 z1] x47
-# 48-55 bridge / “whip it good”
-[v5 l1 y6 z0 y8 z0 y11 z1 y9 z1] x48
+[y13 z1] x47
+[v5 l1 y5 z1 /SP 5,0 y18 z0 y3 z1] x48
 [=126,49] x49
-[y11 z0] x50
+[=126,50] x50
 [=126,51] x51
-[y11 z1] x52
+[/SP 5,0 y5 z1 y18 z1 y3 z0] x52
 [=126,53] x53
-[y11 z0 y13 z1] x54
+[=126,54] x54
 [=126,55] x55
-# 56-71 final chorus + riff return
-[v5 l1 /SP 4,0 /SP 5,0 y7 z1 y9 z1 y11 z1 y14 z1 y1 z1 y2 z1 y3 z1] x56
+[v5 l.8 /SP 5,0 y5 z1] x56
 [=126,57] x57
 [=126,58] x58
 [=126,59] x59
-[=126,60] x60
+[v16 l1 y10 z1] x60
 [=126,61] x61
 [=126,62] x62
-[=126,63] x63
-[y7 z0 y9 z0 y11 z0 y14 z0 /SP 1,0 /SP 2,0 y6 z1 y8 z1] x64
+[y2 z0 y13 z1] x63
+[v5 l1 y11 z1 /SP 7,0 y2 z1] x64
 [=126,65] x65
 [=126,66] x66
 [=126,67] x67
-[=126,68] x68
+[/SP 7,0 y11 z1 y10 z1] x68
 [=126,69] x69
 [=126,70] x70
-[y2 z0 y13 z1] x71
-# 72-79 outro
-[v5 l1 y8 z0 y3 z%2] x72
+[y11 z0 y2 z0 y13 z1] x71
+[v5 l1 y6 z0 y8 z0 y7 z1 /SP 4,0 y9 z1 y12 z1 /SP 6,0 y14 z1 y2 z1 v6 k2800 v7 k2600] x72
 [=126,73] x73
 [=126,74] x74
-[y1 z0 y6 z0] x75
-[=126,76] x76
-[v5 l1] x77
+[=126,75] x75
+[v5 l.8 /SP 4,0 y7 z1 /SP 6,0 y12 z1] x76
+[=126,77] x77
 [=126,78] x78
-[Z0 +4 ce 99] x79
+[=126,79] x79
+[v5 l.8 /SP 4,0 y7 z1 /SP 6,0 y12 z1] x80
+[=126,81] x81
+[=126,82] x82
+[=126,83] x83
+[/SP 4,0 y7 z1 /SP 6,0 y12 z1] x84
+[=126,85] x85
+[=126,86] x86
+[y13 z1] x87
+[v5 l1 y7 z0 y9 z0 y12 z0 y14 z0 y6 z1 y8 z1 /SP 1,0 /SP 2,0 y10 z1] x88
+[=126,89] x89
+[v5 l.8 y10 z1] x90
+[y1 z0 y2 z0 y18 z0 y6 z0 y8 z0 v21 l1 v22 l1 v23 l1] x91
+[Z0 +4 ce 99] x92
 
-## MACROS
+## MACROS (play / stop)
 [use 'play' to start the song, 'stop' to stop it] puts
 [play] : Z0 Z! y0 z1 ;
 [stop] : Z0 O DQ ;

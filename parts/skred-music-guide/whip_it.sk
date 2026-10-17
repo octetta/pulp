@@ -19,7 +19,7 @@
 #    v21 slowed snare whip crack (w83 at f175, delay Bus 1)
 #    v22 whip initial transient crack (w87)
 #    v23 whip leather lash tail (w5 noise)
-#    v24 pad LFO  v26,v27 pad prototype  v28-v37 poly pool (chorus synth chords)
+#    v18 chorus synth stab left (w15) + v19 right (w15), v20 centre (w16, linked to v18)
 #
 #  DELAY BUSES:
 #    Bus 1: Whip crack & lead slapback (DS 1 158 .25, DL 1 - - 5 0 0 9)
@@ -126,13 +126,14 @@ v23 w5 f1400 a-3 p.2 t.001,.09,0,.03 j2 k2800 q2 [whip noise lash] vt
 # Riser: stretched K-synth one-shot
 v16 w301 f160 a8 p0 t.005,.01,1,.4 r4 ds.3 [ksynth riser] vt
 
-# Pad: Poly pool, 2-voice prototype (detuned stereo saw pair), 5 instances at v28-v37
-v24 w0 f.30 a0 t0,0,1,0 m1 [pad lfo] vt
-v26 w15 a-10 p-.5 t1.0,.4,.8,1.2 j1 k2200 q.8 c4,.2 C24,.2 G27 H27 [pad proto left] vt
-v27 w15 a-12 p.5 N0,8 t1.0,.4,.8,1.2 j1 k2200 q.8 c4,.2 C24,.2 [pad proto right] vt
-/pg 0,26,2,0
-/pp 0,0,28,5,0
-v24 l1
+# Chorus Synth Stabs: punchy analog chord trio (centre/left/right), delay Bus 4
+# Envelope has s=0 (decay to 0) so stabs decay naturally to 0 and never hang or drone!
+v18 w15 a-6 p-.35 t.002,.20,0,.06 j1 k2800 q2 r4 ds.25 [chorus synth stab left] vt
+v18 >19
+v18 >20
+v19 w15 a-8 p.35 N0,7 t.002,.20,0,.06 j1 k2800 q2 r4 ds.25 [chorus synth stab right] vt
+v20 w16 a-8 p0 N0,12 t.002,.20,0,.06 j1 k2800 q2 r4 ds.25 [chorus synth stab centre] vt
+v18 G19,20 H19,20
 
 ## EVENTS
 [O DQ] /ceb 4 99
@@ -773,15 +774,23 @@ y12
 [=127,0] x127
 
 y13
-[chorus polyphonic synth chords] yt
-[pn 0,101,48,.95 pn 0,102,52,.95 pn 0,103,55,.95] x0
-[pr 0,101 pr 0,102 pr 0,103] x15
-[pn 0,104,43,.95 pn 0,105,47,.95 pn 0,106,50,.95] x16
-[pr 0,104 pr 0,105 pr 0,106] x31
-[pn 0,107,45,.95 pn 0,108,50,.95 pn 0,109,54,.95] x32
-[pr 0,107 pr 0,108 pr 0,109] x47
-[pn 0,101,48,.95 pn 0,102,52,.95 pn 0,103,55,.95] x48
-[pr 0,101 pr 0,102 pr 0,103] x63
+[chorus synth chord stabs] yt
+[v18 n48 l.9] x0
+[v18 n48 l.75] x4
+[v18 n48 l.9] x8
+[v18 n48 l.75] x12
+[v18 n43 l.9] x16
+[v18 n43 l.75] x20
+[v18 n43 l.9] x24
+[v18 n43 l.75] x28
+[v18 n45 l.9] x32
+[v18 n45 l.75] x36
+[v18 n45 l.9] x40
+[v18 n45 l.75] x44
+[v18 n48 l.9] x48
+[v18 n48 l.75] x52
+[v18 n48 l.9] x56
+[v18 n48 l.75] x60
 [=127,0] x63
 
 y14
@@ -871,13 +880,6 @@ y16
 [v1 l0.95 z*8] x15
 [-] x16
 
-y17
-[sidechain ducking pump] yt
-[v28 a-18 v29 a-20 v30 a-18 v31 a-20 v8 a-16] x0
-[v28 a-12 v29 a-14 v30 a-12 v31 a-14 v8 a-12] x1
-[v28 a-8 v29 a-10 v30 a-8 v31 a-10 v8 a-8] x2
-[v28 a-5 v29 a-7 v30 a-5 v31 a-7 v8 a-5] x3
-
 ## CONDUCTOR (pattern 0, one step per bar, 92 bars)
 y0
 [conductor] yt
@@ -910,7 +912,7 @@ y0
 [y6 z0 y7 z1 /SP 2,0] x25
 [y7 z0 y6 z1 /SP 1,0 v16 l1] x26
 [y6 z0 y8 z1 /SP 3,0 y2 z0 y16 z1] x27
-[v5 l1 y8 z0 y10 z0 v13 l0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y17 z1 y2 z1 v6 k2600 v7 k2400] x28
+[v5 l1 y8 z0 y10 z0 v13 l0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y2 z1 v6 k2600 v7 k2400] x28
 [=126,29] x29
 [=126,30] x30
 [=126,31] x31
@@ -918,7 +920,7 @@ y0
 [=126,33] x33
 [=126,34] x34
 [y2 z0 y16 z1] x35
-[v5 l1 y11 z0 y13 z0 y14 z0 v13 l0 y17 z0 y6 z1 /SP 1,0 y2 z1 v6 k1800 v7 k1800] x36
+[v5 l1 y11 z0 y13 z0 v18 l0 v19 l0 v20 l0 y14 z0 v13 l0 y6 z1 /SP 1,0 y2 z1 v6 k1800 v7 k1800] x36
 [y6 z0 y7 z1 /SP 2,0] x37
 [y7 z0 y6 z1 /SP 1,0] x38
 [y6 z0 y8 z1 /SP 3,0] x39
@@ -942,7 +944,7 @@ y0
 [y6 z0 y7 z1 /SP 2,0] x57
 [y7 z0 y6 z1 /SP 1,0 v16 l1] x58
 [y6 z0 y8 z1 /SP 3,0 y2 z0 y16 z1] x59
-[v5 l1 y8 z0 y10 z0 v13 l0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y17 z1 y2 z1 v6 k2600 v7 k2400] x60
+[v5 l1 y8 z0 y10 z0 v13 l0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y2 z1 v6 k2600 v7 k2400] x60
 [=126,61] x61
 [=126,62] x62
 [=126,63] x63
@@ -950,7 +952,7 @@ y0
 [=126,65] x65
 [=126,66] x66
 [y2 z0 y16 z1] x67
-[v5 l1 y11 z0 y13 z0 y14 z0 v13 l0 y17 z0 y6 z1 /SP 1,0 y12 z1 /SP 9,0 y2 z1 v6 k1800 v7 k1800] x68
+[v5 l1 y11 z0 y13 z0 v18 l0 v19 l0 v20 l0 y14 z0 v13 l0 y6 z1 /SP 1,0 y12 z1 /SP 9,0 y2 z1 v6 k1800 v7 k1800] x68
 [y6 z0 y7 z1 /SP 2,0] x69
 [y7 z0 y6 z1 /SP 1,0] x70
 [y6 z0 y8 z1 /SP 3,0] x71
@@ -958,7 +960,7 @@ y0
 [y6 z0 y7 z1 /SP 2,0] x73
 [y7 z0 y6 z1 /SP 1,0] x74
 [y6 z0 y8 z1 /SP 3,0 y12 z0 y2 z0 y16 z1] x75
-[v5 l1 y8 z0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y17 z1 y2 z1 v6 k2800 v7 k2600] x76
+[v5 l1 y8 z0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y2 z1 v6 k2800 v7 k2600] x76
 [=126,77] x77
 [=126,78] x78
 [=126,79] x79
@@ -966,14 +968,14 @@ y0
 [=126,81] x81
 [=126,82] x82
 [y16 z1] x83
-[v5 l1 y11 z0 y13 z0 y14 z0 v13 l0 y17 z0 y6 z1 /SP 1,0 y15 z1] x84
+[v5 l1 y11 z0 y13 z0 v18 l0 v19 l0 v20 l0 y14 z0 v13 l0 y6 z1 /SP 1,0 y15 z1] x84
 [y6 z0 y7 z1 /SP 2,0] x85
 [y7 z0 y6 z1 /SP 1,0 y15 z1] x86
 [y6 z0 y8 z1 /SP 3,0] x87
 [v5 l.8 y8 z0 y6 z1 /SP 1,0 y15 z1] x88
 [y6 z0 y7 z1 /SP 2,0] x89
 [y7 z0 y6 z1 /SP 1,0 y15 z1] x90
-[y1 z0 y2 z0 y4 z0 y6 z0 y7 z0 y8 z0 v13 l0 v11 l0 v21 l1 v22 l1 v23 l1] x91
+[y1 z0 y2 z0 y4 z0 y6 z0 y7 z0 y8 z0 y13 z0 v18 l0 v19 l0 v20 l0 v13 l0 v11 l0 v21 l1 v22 l1 v23 l1] x91
 [Z0 +4 ce 99] x92
 
 ## MACROS (play / stop)

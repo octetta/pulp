@@ -146,8 +146,8 @@ Instead of writing raw numeric MIDI arrays by hand, use `[ ... ] n>d`:
 
 A classic trap in step sequencer arrangements is voices getting "stuck" droning on their sustain level. This occurs when a conductor pattern transition stops a pattern (`y10 z0`) while a voice has an active note and an envelope with non-zero sustain (`s > 0`).
 
-**The two rules to prevent stuck notes:**
-1. **Use `s=0` decay envelopes for melodic leads and vocals**:
+**The three rules to prevent stuck notes:**
+1. **Use `s=0` decay envelopes for melodic leads, vocals, and chords**:
    Instead of `t.004,.35,.6,.25` (sustain = 0.6), write:
    ```
    v13 w15 a-6 p0 t.003,.26,0,.08 [vocal lead synth] vt
@@ -159,6 +159,16 @@ A classic trap in step sequencer arrangements is voices getting "stuck" droning 
    # When vocal pattern y10 stops, kill any lingering release tail:
    y10 z0 v13 l0
    ```
+3. **Prefer dedicated linked voices (`G`, `H`) over poly voice pools (`/pp`) for sequenced chords**:
+   Poly voice pools (`pn`, `pr`) manage voices dynamically by note key. However, when a pattern is stopped with `z0`, the engine does NOT automatically release active voices in the poly pool! If the prototype envelope has `s > 0`, the allocated voice will drone forever. Furthermore, pools consume extra operations and cannot easily be sidechain-pumped without individually automating every voice in the pool. Dedicated voice trios (`v18 G19,20 H19,20`) with `s=0` decay envelopes are completely immune to hanging notes and consume a fraction of the operations.
+
+### 2g. Stream Length Alignment (Preventing Cumulative Desync)
+
+When reading note streams via `n&<S>` inside a looping pattern, **the number of tokens in the stream must exactly equal the pattern step length** (or a clean sub-multiple):
+- If a 64-step pattern reads a stream containing 74 tokens, each loop will consume 64 tokens, leaving 10 unread. On the next loop, the melody starts 10 steps late! Across just a few bars, the song will drift completely out of sync.
+- Always verify token counts: in Python generators, assert `len(notes) == pattern_steps`.
+- For sustained notes (e.g. 2-beat piano chords or slow lead notes), do NOT fill non-trigger steps with rest tokens (`-`) if the step program evaluates `n&<S>` on every step, because `NAN` immediately releases the voice envelope! Instead, trigger the note on the onset step and leave intermediate steps empty or un-evaluated.
+
 
 ---
 
@@ -595,8 +605,10 @@ it, you still have options.
 - A dotted-eighth echo on a constant eighth-note part. It blurs the pulse.
 - A sub boom that ends below about 60 Hz. It reads as a click on small speakers.
 - Writing only the note changes of a riff and not each repeated note.
-- Taking rhythm from ASCII tab spacing.
 - Two sections claiming the same voice number. Keep a voice map.
+- Leaving poly pools active when stopping patterns with `z0` (voices drone forever if `s > 0`; use linked voices with `s=0` decay envelopes instead).
+- Token count in note streams mismatching pattern length, causing cumulative timing desync across pattern loops.
+- Placing rest tokens (`-` / `NAN`) on intermediate steps of a sustained note when reading a stream on every step (causes premature choke).
 
 ---
 

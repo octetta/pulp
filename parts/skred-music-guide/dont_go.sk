@@ -17,7 +17,6 @@
 #    v17 crash cymbal (w94)
 #    v18 hi tom (w90)  v19 mid tom (w91)  v20 lo tom (w92) = Simmons tom roll
 #    v21 Alison Moyet vocal laugh / cry FX (w15 formant glide)
-#    v24 pad LFO  v26,v27 pad prototype  v28-v37 poly pool (5 stereo pairs)
 #    v38 sub boom sine (w0) + v40 slowed kick sample (w82 f110)
 #
 #  DELAY BUSES:
@@ -28,14 +27,14 @@
 #
 #  ARRANGEMENT (96 bars):
 #    0-3   Intro: Alison's vocal laugh FX + 16th bassline enters alone
-#    4-7   Signature synth brass hook explodes in (Db5 - C5 - Bb4 - F4/F5)
-#    8-15  Full electronic drums + Vince Clarke 16th arpeggio joins
-#    16-31 Verse 1: vocal lead enters, staccato brass stabs on offbeats
-#    32-47 Chorus 1: Gb - Ab - Bbm - Db chord progression, soaring vocal lead
-#    48-55 Post-Chorus: arpeggio hook & brass hook front & centre, Simmons fills
-#    56-71 Verse 2: stripped back groove, vocal lead verse 2, filter build
+#    4-7   Signature synth brass hook explodes in with drums (Db5 - C5 - Bb4 - F4/F5)
+#    8-15  Brass rests, Vince Clarke 16th arpeggio explodes in alone with drums & bass
+#    16-31 Verse 1: vocal lead enters, staccato brass stabs on offbeats, arpeggio groove
+#    32-47 Chorus 1: Gb - Ab - Bbm - Db progression, brass chords, vocal chorus hook
+#    48-55 Post-Chorus: signature brass hook returns front & centre, Simmons fills
+#    56-71 Verse 2: stripped back groove, vocal lead verse 2, filter cutoff sweep
 #    72-87 Chorus 2 & Climax: full wall of sound, energetic electronic funk
-#    88-95 Outro: arpeggio vamp & vocal refrain over driving bass, echo tail
+#    88-95 Outro: arpeggio vamp & brass hook refrain over driving bass, echo tail
 #    96    End cleanup
 # ======================================================================
 
@@ -138,14 +137,6 @@ v16 w301 f140 a8 p0 t.005,.01,1,.4 r4 ds.3 [ksynth build riser] vt
 v38 w0 a0 p0 t.002,.90,0,.40 j1 k240 q.7 r3 ds.3 [sub boom sine] vt
 v40 w82 f110 a5 p0 [slowed kick drop] vt
 
-# Pad: Poly pool, 2-voice prototype (detuned stereo saw pair), 5 instances at v28-v37
-v24 w0 f.25 a0 t0,0,1,0 m1 [pad lfo] vt
-v26 w15 a-10 p-.5 t1.2,.4,0,1.4 j1 k2000 q.8 c4,.2 C24,.2 G27 H27 [pad proto left] vt
-v27 w15 a-12 p.5 N0,8 t1.2,.4,0,1.4 j1 k2000 q.8 c4,.2 C24,.2 [pad proto right] vt
-/pg 0,26,2,0
-/pp 0,0,28,5,0
-v24 l1
-
 ## EVENTS
 [O DQ] /ceb 4 99
 /cer 1
@@ -155,17 +146,17 @@ v24 l1
 # Notice '-' rests providing the authentic syncopated bounce!
 [Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Ab1 - Ab1 -  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Db2 - Eb2 -] n>d /SS 1
 
-# Stream 2: Chorus Bassline Roots (Gb -> Ab -> Bbm -> Db)
+# Stream 2: Chorus Bassline Roots (Gb -> Ab -> Bbm -> Db, 2 bars / 32 sixteenths)
 [Gb1 Gb1 Gb2 Gb1  Gb1 Gb1 Gb2 Gb1  Ab1 Ab1 Ab2 Ab1  Ab1 Ab1 Ab2 Ab1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Db2 Db2 Db3 Db2  Db2 Db2 Db3 Db2] n>d /SS 2
 
 # Stream 3: The Famous Brass Hook (2 bars / 32 steps in Bb minor)
 # Bar 1 has F4, Bar 2 leaps up to high F5!
 [Db5 - Db5 - C5 - C5 - Bb4 F4 - F4 - Ab4 Bb4 Ab4  Db5 - Db5 - C5 - C5 - Bb4 F5 - F5 - Ab4 Bb4 Ab4] n>d /SS 3
 
-# Stream 4: Vocal Lead Chorus Hook ('Baby don't go, baby don't go...')
+# Stream 4: Vocal Lead Chorus Hook ('Baby don't go, baby don't go...', 2 bars / 32 steps)
 [Db5 C5 Bb4 - Db5 C5 Bb4 - F5 - Eb5 Db5 C5 Bb4 - -  Db5 C5 Bb4 - Db5 C5 Bb4 - F5 - Ab5 Gb5 F5 Eb5 - -] n>d /SS 4
 
-# Stream 5: Vocal Lead Verse 1 ('Came in from the city, walked into the door...')
+# Stream 5: Vocal Lead Verse 1 ('Came in from the city, walked into the door...', 4 bars / 64 steps)
 [Bb4 Bb4 Bb4 Bb4 Ab4 F4 - - F4 Ab4 Bb4 - - - - -  Bb4 Bb4 Bb4 Bb4 Ab4 F4 - - F4 Ab4 Bb4 - - - - -  Db5 Db5 Db5 Db5 C5 Ab4 - - Ab4 C5 Db5 - - - - -  Eb5 Eb5 Eb5 Eb5 Db5 Bb4 - - F5 - - - - - - -] n>d /SS 5
 
 # Stream 6: Vince Clarke 16th Arpeggio (4 bars / 64 steps)
@@ -511,16 +502,24 @@ y10
 [v13 n&4 l.95] x31
 [=127,0] x31
 
+y11
+[verse brass offbeat stabs] yt
+[v8 n61 l.85] x6
+[v8 n65 l.9] x14
+[v8 n61 l.85] x22
+[v8 n68 l.9] x30
+[=127,0] x31
+
 y9
-[chorus polyphonic pad chords] yt
-[pn 0,101,54,.95 pn 0,102,58,.95 pn 0,103,61,.95 pn 0,104,65,.95] x0
-[pr 0,101 pr 0,102 pr 0,103 pr 0,104] x7
-[pn 0,105,56,.95 pn 0,106,60,.95 pn 0,107,63,.95 pn 0,108,66,.95] x8
-[pr 0,105 pr 0,106 pr 0,107 pr 0,108] x15
-[pn 0,109,58,.95 pn 0,110,61,.95 pn 0,111,65,.95 pn 0,112,68,.95] x16
-[pr 0,109 pr 0,110 pr 0,111 pr 0,112] x23
-[pn 0,113,61,.95 pn 0,114,65,.95 pn 0,115,68,.95 pn 0,116,72,.95] x24
-[pr 0,113 pr 0,114 pr 0,115 pr 0,116] x31
+[chorus synth brass chords] yt
+[v8 n54 l.9] x0
+[v8 n54 l.75] x4
+[v8 n56 l.9] x8
+[v8 n56 l.75] x12
+[v8 n58 l.9] x16
+[v8 n58 l.75] x20
+[v8 n61 l.9] x24
+[v8 n61 l.75] x28
 [=127,0] x31
 
 y13
@@ -581,11 +580,11 @@ y0
 [v21 g0 n75 g.08 n68 l.9] x1
 [v21 g0 n73 g.12 n65 l.85] x2
 [v21 g0 n77 g.20 n65 l1] x3
-[v17 l.8 y5 z1 /SP 3,0] x4
+[v17 l1 y1 z1 y2 z1 y18 z1 y15 z1 y5 z1 /SP 3,0] x4
 [=126,5] x5
 [=126,6] x6
 [=126,7] x7
-[v17 l1 y1 z1 y2 z1 y18 z1 y15 z1 y6 z1 /SP 6,0] x8
+[v17 l.8 y5 z0 v8 l0 y6 z1 /SP 6,0] x8
 [=126,9] x9
 [=126,10] x10
 [=126,11] x11
@@ -593,7 +592,7 @@ y0
 [=126,13] x13
 [=126,14] x14
 [y13 z1] x15
-[v17 l.8 y6 z0 v11 l0 y7 z1 /SP 5,0 y3 z1 y18 z0 v6 k520 v7 k520] x16
+[v17 l.8 y7 z1 /SP 5,0 y11 z1 y3 z1 y18 z0 v6 k520 v7 k520] x16
 [=126,17] x17
 [=126,18] x18
 [=126,19] x19
@@ -608,7 +607,7 @@ y0
 [v16 l1 y16 z1] x28
 [=126,29] x29
 [=126,30] x30
-[y7 z0 v13 l0 y13 z1] x31
+[y7 z0 v13 l0 y11 z0 v8 l0 y13 z1] x31
 [v17 l1 y4 z0 y8 z1 /SP 2,0 y9 z1 y10 z1 /SP 4,0 y14 z1 y16 z0 v6 k2600 v7 k2400] x32
 [=126,33] x33
 [=126,34] x34
@@ -621,11 +620,11 @@ y0
 [=126,41] x41
 [=126,42] x42
 [=126,43] x43
-[y8 z0 y4 z1 /SP 1,0 y10 z0 v13 l0 v6 k800 v7 k800] x44
+[y8 z0 y4 z1 /SP 1,0 y9 z0 v8 l0 y10 z0 v13 l0 v6 k800 v7 k800] x44
 [=126,45] x45
 [=126,46] x46
 [y13 z1] x47
-[v17 l1 y9 z0 y5 z1 /SP 3,0 y6 z1 /SP 6,0] x48
+[v17 l1 y5 z1 /SP 3,0 y6 z0 v11 l0] x48
 [=126,49] x49
 [=126,50] x50
 [=126,51] x51
@@ -633,7 +632,7 @@ y0
 [=126,53] x53
 [=126,54] x54
 [y13 z1] x55
-[v17 l.7 y5 z0 v8 l0 y6 z0 v11 l0 y7 z1 /SP 5,0 y18 z0 y3 z1 v6 k520 v7 k520] x56
+[v17 l.7 y5 z0 v8 l0 y6 z1 /SP 6,0 y7 z1 /SP 5,0 y11 z1 y18 z0 y3 z1 v6 k520 v7 k520] x56
 [=126,57] x57
 [=126,58] x58
 [=126,59] x59
@@ -648,7 +647,7 @@ y0
 [v16 l1] x68
 [=126,69] x69
 [=126,70] x70
-[y7 z0 v13 l0 y13 z1] x71
+[y7 z0 v13 l0 y11 z0 v8 l0 y13 z1] x71
 [v17 l1 y4 z0 y8 z1 /SP 2,0 y9 z1 y10 z1 /SP 4,0 y14 z1 y16 z0 v6 k2800 v7 k2600] x72
 [=126,73] x73
 [=126,74] x74
@@ -661,11 +660,11 @@ y0
 [=126,81] x81
 [=126,82] x82
 [=126,83] x83
-[y8 z0 y4 z1 /SP 1,0 y5 z1 /SP 3,0 y6 z1 /SP 6,0 v6 k900 v7 k900] x84
+[y8 z0 y4 z1 /SP 1,0 y9 z0 v8 l0 y10 z0 v13 l0 y5 z1 /SP 3,0 v6 k900 v7 k900] x84
 [=126,85] x85
 [=126,86] x86
 [y13 z1] x87
-[v17 l1 y9 z0 y10 z1 /SP 4,0 y1 z0 y2 z0 y18 z0 y15 z0] x88
+[v17 l1 y10 z1 /SP 4,0 y6 z1 /SP 6,0 y1 z0 y2 z0 y18 z0 y15 z0] x88
 [=126,89] x89
 [v17 l.6 y1 z1 y2 z1] x90
 [=126,91] x91

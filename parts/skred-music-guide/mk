@@ -1,0 +1,12 @@
+#!/bin/bash
+a='hammer_the_signal.sk
+dont_go.sk
+closer.sk
+whip-it.sk
+i_feel_love.sk
+sweet_dreams.sk'
+for i in $a
+do
+z=$(basename $i .sk)
+printf "%s %s\n" $i $z
+done

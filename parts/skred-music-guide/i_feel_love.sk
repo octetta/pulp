@@ -1,403 +1,560 @@
-## I FEEL LOVE (instrumental cover) for PULP/SKRED
-#  128 BPM, C major, 96 bars (~3:00). Instrumental only, no vocals or lyrics.
-#  Self-contained: drums are built-in waves 82-99.
-#     [i_feel_love.sk] /ls      then:   play     (stop:  stop)
+## DONNA SUMMER / GIORGIO MORODER - I FEEL LOVE (Instrumental Cover for PULP / SKRED)
+#  128 BPM, C minor / modal progression (C -> Eb -> F -> G), 96 bars (~3:00).
+#  Produced by Giorgio Moroder & Pete Bellotte (1977).
+#  Self-contained: drums from built-in waves 82-99, inline K-synth riser.
+#  Uses n>d to convert note name strings (with '-' rests) to MIDI note streams.
+#  Load:   [i_feel_love.sk] /ls
+#  Start:  play        Stop:  stop
 #
-#  WHAT THE SOURCES SAID
-#    - Tempo ~127-128 BPM, key C major (with sequential rises to Eb, F, G)
-#    - Iconic sequenced bass: short-note cell C C G Bb (and transpositions)
-#      doubled by delay for the classic strobe / flicker effect
-#    - Four-on-the-floor kick + continuous off-beat hi-hat (proto techno/house)
-#    - Moog-style bass with filter envelope, layered pads, key changes for variety
-#  GUESSES (edit freely)
-#    - exact section lengths and when the key rises occur
-#    - soft lead contour approximating the vocal phrases
-#    - mix levels and filter settings
-#  UNTESTED and UNHEARD at the time of writing.
+#  VOICE MAP (all labeled via [name] vt):
+#    v0  four-on-the-floor kick (w82) + v5 sub boom (w0)
+#    v1  disco snare (w83) + v4 electronic clap (w86)
+#    v2  closed hat 16ths (w84)  v3  open hat offbeat (w85)
+#    v6  Moog bass saw centre (w15) + v7 partner square (w16, right)
+#    v8  Donna Summer vocal lead centre (w15) + v9 (left w15), v10 (right w16)
+#    v11 Donna chorus falsetto lead centre (w15) + v12 partner (w16)
+#    v13 high sparkle arpeggio centre (w16) + v14 partner saw (w15)
+#    v16 K-synth build riser (w301)
+#    v17 crash cymbal (w94)
+#    v18 hi tom (w90)  v19 mid tom (w91)  v20 lo tom (w92) = Simmons tom roll
+#    v21 Moroder white noise wind sweep (w5 resonant filter sweep)
+#    v26 disco strings root (w15) + v27 3rd (w15 left), v28 5th (w16 right)
 #
-#  VOICE MAP
-#    v0 kick   v1 snare   v2 closed hat   v3 open hat   v4 clap   v5 crash
-#    v6 bass centre (saw + filter env) + v7 detuned partner (right)
-#    v8 soft lead (centre) + v9/v10 detuned partners
-#    v13 high arpeggio / sparkle
-#    v16 riser (optional)
-#    v24 pad LFO   v26-v27 pad prototype   v28-v37 pad pool
-#  DELAY BUSES
-#    1  bass stereo flicker (dotted 8th / ping-pong)
-#    2  lead / pad wash
-#    3  short slap for arps
-#    4  riser / freeze bus
-#  PATTERNS
-#    0 conductor   1 kick   2 snare+clap   3 hats   6 main bass cell
-#    7 key-rise bass   8 lead   9 high arp   11 pad   13 snare roll
-#    14 pump   15 boom/impact   16 filter sweep
-#  SECTIONS (bars)
-#     0-7   intro bass + hats
-#     8-15  drums in, pad, filter opens
-#    16-31  verse A (C)
-#    32-39  rise to Eb / F
-#    40-55  chorus / "I feel love" feel
-#    56-63  breakdown (delay freeze)
-#    64-79  final chorus (full + key rise)
-#    80-95  outro strip + freeze cleanup
+#  DELAY BUSES:
+#    Bus 1: Moog bass 16th slapback / ping-pong gallop (DS 1 128 .25, DP 1 1)
+#    Bus 2: Donna vocal lead tape echo (DS 2 128 .75, dotted eighth)
+#    Bus 3: Snare & Clap room tail + sparkle arp slap (DS 3 128 .5)
+#    Bus 4: Disco strings & riser stereo hall wash (DS 4 128 1, DP 4 1)
+#
+#  ARRANGEMENT (96 bars):
+#    0-7   Intro: Lone Moog bass starts dark, 16th hats fade in, sparkle arp enters
+#    8-15  Groove drops: 4-on-floor kick slams in, filter sweep opens, claps & strings
+#    16-31 Verse 1: Donna Summer vocal lead ('Ooh, it's so good...'), C -> Eb -> F/G
+#    32-47 Chorus 1: 'Ooh, I feel love...' soaring hook, sparkling arps, wall of sound
+#    48-55 Breakdown: Drums drop out, delay freezes (DF 1 1), cosmic floating drone
+#    56-63 Re-build: Kick returns, white noise wind rises, filter opens, tom roll build
+#    64-79 Chorus 2 & Climax: Full wall of sound, energetic electronic funk
+#    80-87 Extended Climax Vamp: High vocal ad-libs, modulating through C-Eb-F-G
+#    88-95 Outro: Drums thin out, bass returns to C, hats half-time, final delay freeze
+#    96    End cleanup
 # ======================================================================
 
-[I FEEL LOVE] puts
+[DONNA SUMMER - I FEEL LOVE] puts
 M 128 16
 
-## INLINE K-SYNTH (short riser / impact noise, stretched by playback rate)
+## INLINE K-SYNTH RISER (one-shot wave 301)
 [
 N: 65536
 T: !N
-E: (e(T*(3.8%N)))%100
+E: (e(T*(4.2%N)))%100
 R: r T
-L: 0.3 f R
+L: 0.32 f R
 H: R-L
-F: 700*(e(T*(2.2%N)))*((p 2)%(p 0))
+F: 750*(e(T*(2.5%N)))*((p 2)%(p 0))
 P: +\F
 S: s P
-W: w E*((S*.4)+(H*.55))
+W: w E*((S*.35)+(H*.55))
 ] k!
 k>w301,44100,1
 
 ## DELAY BUSES
-DS 1 128 .75
-DL 1 - - 9 2 3 12
+# Bus 1: Moog bass 16th slapback / ping-pong gallop (creates the Moroder pulse!)
+DS 1 128 .25
+DL 1 - - 8 2 2 11
 DD 1 6 2
 DP 1 1
-DS 2 128 .5
-DL 2 - - 7 1 2 10
-DD 2 7 3
-DS 3 128 .25
-DL 3 - - 4 0 0 8
-DD 3 8 4
+
+# Bus 2: Donna Summer vocal lead dotted-eighth space echo
+DS 2 128 .75
+DL 2 - - 8 3 4 10
+DD 2 7 2
+DP 2 1
+
+# Bus 3: Snare & Clap room tail + sparkle slap
+DS 3 128 .5
+DL 3 - - 6 1 1 8
+DD 3 7 3
+
+# Bus 4: Disco strings & riser stereo hall wash
 DS 4 128 1
-DL 4 - - 11 3 6 11
+DL 4 - - 10 3 6 11
 DD 4 7 2
 DP 4 1
 
 ## VOICES
-v0 w82 f440 a6 p0                                # kick
-v1 w83 f440 a6 p0                                # snare
-v2 w84 f440 a-4 p.2                              # closed hat
-v3 w85 f440 a-3 p-.2                             # open hat
-v4 w86 f440 a4 p0                                # clap
-v5 w94 f440 a3 p.15                              # crash
+# Drums: four-on-the-floor kick + sub boom
+v0 w82 f440 a7 p0 [kick electronic] vt
+v5 w0 a-2 p0 t.001,.22,0,.06 j1 k160 q.7 [kick sub punch] vt
 
-# iconic bass: short plucky saw + detuned square partner, heavy delay send
-v6 w15 a-2 p0 t.001,.12,0,.04 j1 k1100 q3.2 r1 ds.35
+# Crisp disco snare, claps, hats, crash
+v1 w83 f440 a7 p0 r3 ds.25 [snare 80s gated] vt
+v2 w84 f440 a-3 p.25 [closed hat] vt
+v3 w85 f440 a-2 p-.25 [open hat] vt
+v4 w86 f440 a7 p0 [electronic clap] vt
+v17 w94 f440 a4 p.2 [crash cymbal] vt
+
+# Simmons Electronic Toms (hi, mid, lo)
+v18 w90 f480 a6 p-.3 [hi simmons tom] vt
+v19 w91 f380 a6 p0 [mid simmons tom] vt
+v20 w92 f280 a6 p.3 [lo simmons tom] vt
+
+# The Iconic Moog Modular Bassline: punchy resonant saw (centre) + detuned square (right)
+# Sends ds.35 to Bus 1 for the famous galloping 16th tape-echo bounce!
+v6 w15 a-2 p0 t.001,.14,0,.04 j1,2 k1200 q3.8 g0 r1 ds.35 [moog bass saw] vt
 v6 >7
-v7 w16 a-7 N0,7 p.45 r0
+v7 w16 a-6 N0,8 p.45 r0 [moog bass square] vt
 v6 G7 H7
 
-# soft lead approximating vocal contour (detuned trio)
-v8 w15 a-9 p0 t.008,.35,.4,.25 j1 k2800 q1.1 c4,.2 r2 ds.25
+# Donna Summer Vocal Lead (Verse): ethereal, floating singing synth with subtle glide
+# Safe s=0 envelope (decay to 0) prevents any hanging notes across sections
+v8 w15 a-6 p0 t.003,.35,0,.12 j1,2 k3400 q1.8 g.02 c4,.25 r2 ds.30 [donna vocal lead] vt
 v8 >9
 v8 >10
-v9 N0,8 p-.4 r0
-v10 w16 a-12 N0,-8 p.4 r0
+v9 w15 a-8 N0,10 p-.5 r0 [donna vocal left] vt
+v10 w16 a-9 N0,-10 p.5 r0 [donna vocal right] vt
 v8 G9,10 H9,10
 
-# high sparkle / secondary arp
-v13 w16 a-11 p-.35 t.001,.15,0,.06 j1 k4200 q1.4 r3 ds.2
+# Donna Summer Chorus Falsetto Hook ('I feel love, I feel love...')
+v11 w15 a-5 p0 t.003,.30,0,.10 j1,2 k3800 q2.0 g.015 c4,.25 r2 ds.35 [donna chorus hook] vt
+v11 >12
+v12 w16 a-8 N0,9 p.5 r0 [donna chorus partner] vt
+v11 G12 H12
 
-# optional riser / impact
-v16 w301 f220 a6 p0 t.004,.01,1,.35 r4 ds.25
+# High Sparkle Arpeggio: bright detuned pulse/saw pair with phase distortion c4, delay Bus 3
+v13 w16 a-9 p-.35 t.001,.16,0,.06 j1 k4500 q2.0 c4,.2 r3 ds.25 [high sparkle arp] vt
+v13 >14
+v14 w15 a-11 N0,12 p.35 r0 [sparkle partner saw] vt
+v13 G14 H14
 
-# pad pool (warm detuned saws)
-v24 w0 f.25 a0 t0,0,1,0 m1
-v26 w15 a-9 p-.45 t1.4,.5,.7,1.6 j1 k1800 q.7 c4,.15 C24,.15 G27 H27
-v27 w15 a-11 p.45 N0,6 t1.4,.5,.7,1.6 j1 k1800 q.7 c4,.15 C24,.15
-/pg 0,26,2,0
-/pp 0,0,28,5,0
-v24 l1
+# Giorgio Moroder White Noise Wind Sweep (resonant filter wash)
+v21 w5 a-5 p0 t.04,1.4,0,.4 j1,1 k600 q4 [moroder noise wind] vt
 
-## EVENTS (end-of-song cleanup)
+# Riser: stretched K-synth one-shot
+v16 w301 f220 a6 p0 t.005,.01,1,.35 r4 ds.3 [ksynth riser] vt
+
+# 1970s Solina / ARP Disco Strings (Trio: Root, 3rd, 5th, delay Bus 4)
+v26 w15 a-8 p0 t.06,.50,.4,.30 j1 k2200 q1.2 c4,.2 r4 ds.3 [disco strings root] vt
+v27 w15 a-9 p-.55 t.06,.50,.4,.30 j1 k2200 q1.2 c4,.2 r4 ds.3 [disco strings 3rd] vt
+v28 w16 a-9 p.55 t.06,.50,.4,.30 j1 k2200 q1.2 c4,.2 r4 ds.3 [disco strings 5th] vt
+
+## EVENTS
 [O DQ] /ceb 4 99
 /cer 1
 
-## STREAMS (all pitch material lives here)
-# stream 1: classic C-cell (C C G Bb) eighth-notes, one bar, loopable
-( 48 48 43 46 48 48 43 46 ) /SS 1
-# stream 2: velocities / accents for the cell
-( 1 .7 .85 .7 1 .7 .85 .7 ) /SS 2
-# stream 3: Eb transposition of the cell
-( 51 51 46 49 51 51 46 49 ) /SS 3
-# stream 4: F transposition
-( 53 53 48 51 53 53 48 51 ) /SS 4
-# stream 5: G transposition
-( 55 55 50 53 55 55 50 53 ) /SS 5
-# stream 6: soft lead contour (approx "ooh / I feel love" phrases, half-bar)
-( 60 62 63 65 67 65 63 60 58 60 62 63 65 63 60 58 ) /SS 6
-# stream 7: high arp notes
-( 72 74 75 72 70 72 74 75 77 75 74 72 ) /SS 7
+## STREAMS (Note arrays converted via n>d with '-' rests)
+# Stream 1: Active Moog Bassline (16 steps / 1 bar, starts in C minor)
+# Note pattern: C2 C2 C3 C3  G2 G2 Bb2 Bb2  C2 C2 C3 C3  G2 G2 Bb2 Bb2
+[C2 C2 C3 C3  G2 G2 Bb2 Bb2  C2 C2 C3 C3  G2 G2 Bb2 Bb2] n>d /SS 1
+
+# Stream 2: Bank - C Minor Bass Cell
+[C2 C2 C3 C3  G2 G2 Bb2 Bb2  C2 C2 C3 C3  G2 G2 Bb2 Bb2] n>d /SS 2
+
+# Stream 3: Bank - Eb Major Bass Cell
+[Eb2 Eb2 Eb3 Eb3  Bb2 Bb2 Db3 Db3  Eb2 Eb2 Eb3 Eb3  Bb2 Bb2 Db3 Db3] n>d /SS 3
+
+# Stream 4: Bank - F Major Bass Cell
+[F2 F2 F3 F3  C3 C3 Eb3 Eb3  F2 F2 F3 F3  C3 C3 Eb3 Eb3] n>d /SS 4
+
+# Stream 5: Bank - G Minor / G7 Bass Cell
+[G2 G2 G3 G3  D3 D3 F3 F3  G2 G2 G3 G3  D3 D3 F3 F3] n>d /SS 5
+
+# Stream 6: Donna Summer Verse Vocal ('Ooh, it's so good...', 4 bars / 64 steps)
+[G5 - - -  F5 - Eb5 -  D5 - C5 -  - - - -  G5 - - -  F5 - Eb5 -  D5 - C5 -  - - - -  Bb5 - - -  Ab5 - G5 -  F5 - Eb5 -  - - - -  C6 - - -  Bb5 - Ab5 -  G5 - F5 -  - - - -] n>d /SS 6
+
+# Stream 7: Donna Summer Chorus Vocal ('Ooh, I feel love...', 4 bars / 64 steps)
+[C5 - D5 -  Eb5 - G5 -  F5 - Eb5 -  C5 - - -  C5 - D5 -  Eb5 - G5 -  F5 - Eb5 -  C5 - - -  Eb5 - F5 -  G5 - Bb5 -  Ab5 - G5 -  Eb5 - - -  F5 - G5 -  Ab5 - C6 -  Bb5 - Ab5 -  G5 - - -] n>d /SS 7
+
+# Stream 8: Active Sparkle Arp (16 steps / 1 bar, starts in C)
+[C5 Eb5 G5 C6  Eb5 G5 C6 Eb6  C5 Eb5 G5 C6  Eb5 G5 C6 Eb6] n>d /SS 8
+
+# Stream 9: Bank - Sparkle Arp in Eb
+[Eb5 G5 Bb5 Eb6  G5 Bb5 Eb6 G6  Eb5 G5 Bb5 Eb6  G5 Bb5 Eb6 G6] n>d /SS 9
+
+# Stream 10: Bank - Sparkle Arp in F
+[F5 A5 C6 F6  A5 C6 F6 A6  F5 A5 C6 F6  A5 C6 F6 A6] n>d /SS 10
+
+# Stream 11: Bank - Sparkle Arp in G
+[G5 Bb5 D6 G6  Bb5 D6 G6 Bb6  G5 Bb5 D6 G6  Bb5 D6 G6 Bb6] n>d /SS 11
 
 ## PATTERNS
 
 y1
-[kick 4-on-floor] yt
-[v0 l1] x0
-[v0 l1] x4
-[v0 l1] x8
-[v0 l1] x12
+[kick 4-on-the-floor] yt
+[v0 l1 v5 g0 n52 g.06 n30 l1] x0
+[v0 l.95 v5 g0 n50 g.06 n30 l.9] x4
+[v0 l1 v5 g0 n52 g.06 n30 l1] x8
+[v0 l.95 v5 g0 n50 g.06 n30 l.9] x12
 [=127,0] x15
 
 y2
-[snare + clap] yt
-[v1 l1 v4 l.85] x4
-[v1 l1 v4 l.85] x12
-[v1 l.25] x14
+[snare+clap on 2 & 4] yt
+[v1 l1 v4 l.95] x4
+[v1 l.25] x6
+[v1 l.20] x11
+[v1 l1 v4 l.95] x12
+[v1 l.30] x14
 [=127,0] x15
 
 y3
-[hats off-beat + open] yt
-[v2 l.35] x0
+[hats 16ths groove + offbeat sizzle] yt
+[v2 l.50] x0
 [v2 l.25] x1
-[v3 l.75 v2 l0] x2
+[v3 l.80 v2 l0] x2
 [v2 l.25] x3
-[v2 l.35] x4
+[v2 l.55] x4
 [v2 l.25] x5
-[v3 l.75 v2 l0] x6
+[v3 l.85 v2 l0] x6
 [v2 l.25] x7
-[v2 l.35] x8
+[v2 l.50] x8
 [v2 l.25] x9
-[v3 l.75 v2 l0] x10
+[v3 l.80 v2 l0] x10
 [v2 l.25] x11
-[v2 l.35] x12
+[v2 l.55] x12
 [v2 l.25] x13
-[v3 l.75 v2 l0] x14
-[v2 l.2] x15
+[v3 l.85 v2 l0] x14
+[v2 l.25] x15
 
 y6
-[main bass cell - C] yt
-[v6 n&1 l&2] x0
-[v6 n&1 l&2] x2
-[v6 n&1 l&2] x4
-[v6 n&1 l&2] x6
-[v6 n&1 l&2] x8
-[v6 n&1 l&2] x10
-[v6 n&1 l&2] x12
-[v6 n&1 l&2] x14
-[=127,0] x15
-
-y7
-[bass key-rise cells] yt
-# Eb
-[v6 n&3 l&2] x0
-[v6 n&3 l&2] x2
-[v6 n&3 l&2] x4
-[v6 n&3 l&2] x6
-# F
-[v6 n&4 l&2] x8
-[v6 n&4 l&2] x10
-[v6 n&4 l&2] x12
-[v6 n&4 l&2] x14
-# G
-[v6 n&5 l&2] x16
-[v6 n&5 l&2] x18
-[v6 n&5 l&2] x20
-[v6 n&5 l&2] x22
-[v6 n&5 l&2] x24
-[v6 n&5 l&2] x26
-[v6 n&5 l&2] x28
-[v6 n&5 l&2] x30
-[=127,0] x31
+[the iconic moog bassline] yt
+[v6 n&1 l1] x0
+[v6 n&1 l0.75] x1
+[v6 n&1 l0.9] x2
+[v6 n&1 l0.75] x3
+[v6 n&1 l1] x4
+[v6 n&1 l0.75] x5
+[v6 n&1 l0.9] x6
+[v6 n&1 l0.75] x7
+[v6 n&1 l1] x8
+[v6 n&1 l0.75] x9
+[v6 n&1 l0.9] x10
+[v6 n&1 l0.75] x11
+[v6 n&1 l1] x12
+[v6 n&1 l0.75] x13
+[v6 n&1 l0.9] x14
+[v6 n&1 l0.75] x15
 
 y8
-[soft lead] yt
-[v8 n&6 l.85] x0
-[v8 l0] x4
-[v8 n&6 l.8] x8
-[v8 l0] x12
-[v8 n&6 l.85] x16
-[v8 l0] x20
-[v8 n&6 l.8] x24
-[v8 l0] x28
-[=127,0] x31
+[donna summer verse vocal] yt
+[v8 n&6 l.9] x0
+[v8 n&6 l.9] x1
+[v8 n&6 l.9] x2
+[v8 n&6 l.9] x3
+[v8 n&6 l.9] x4
+[v8 n&6 l.9] x5
+[v8 n&6 l.9] x6
+[v8 n&6 l.9] x7
+[v8 n&6 l.9] x8
+[v8 n&6 l.9] x9
+[v8 n&6 l.9] x10
+[v8 n&6 l.9] x11
+[v8 n&6 l.9] x12
+[v8 n&6 l.9] x13
+[v8 n&6 l.9] x14
+[v8 n&6 l.9] x15
+[v8 n&6 l.9] x16
+[v8 n&6 l.9] x17
+[v8 n&6 l.9] x18
+[v8 n&6 l.9] x19
+[v8 n&6 l.9] x20
+[v8 n&6 l.9] x21
+[v8 n&6 l.9] x22
+[v8 n&6 l.9] x23
+[v8 n&6 l.9] x24
+[v8 n&6 l.9] x25
+[v8 n&6 l.9] x26
+[v8 n&6 l.9] x27
+[v8 n&6 l.9] x28
+[v8 n&6 l.9] x29
+[v8 n&6 l.9] x30
+[v8 n&6 l.9] x31
+[v8 n&6 l.9] x32
+[v8 n&6 l.9] x33
+[v8 n&6 l.9] x34
+[v8 n&6 l.9] x35
+[v8 n&6 l.9] x36
+[v8 n&6 l.9] x37
+[v8 n&6 l.9] x38
+[v8 n&6 l.9] x39
+[v8 n&6 l.9] x40
+[v8 n&6 l.9] x41
+[v8 n&6 l.9] x42
+[v8 n&6 l.9] x43
+[v8 n&6 l.9] x44
+[v8 n&6 l.9] x45
+[v8 n&6 l.9] x46
+[v8 n&6 l.9] x47
+[v8 n&6 l.9] x48
+[v8 n&6 l.9] x49
+[v8 n&6 l.9] x50
+[v8 n&6 l.9] x51
+[v8 n&6 l.9] x52
+[v8 n&6 l.9] x53
+[v8 n&6 l.9] x54
+[v8 n&6 l.9] x55
+[v8 n&6 l.9] x56
+[v8 n&6 l.9] x57
+[v8 n&6 l.9] x58
+[v8 n&6 l.9] x59
+[v8 n&6 l.9] x60
+[v8 n&6 l.9] x61
+[v8 n&6 l.9] x62
+[v8 n&6 l.9] x63
+
+y10
+[donna summer chorus hook] yt
+[v11 n&7 l.95] x0
+[v11 n&7 l.95] x1
+[v11 n&7 l.95] x2
+[v11 n&7 l.95] x3
+[v11 n&7 l.95] x4
+[v11 n&7 l.95] x5
+[v11 n&7 l.95] x6
+[v11 n&7 l.95] x7
+[v11 n&7 l.95] x8
+[v11 n&7 l.95] x9
+[v11 n&7 l.95] x10
+[v11 n&7 l.95] x11
+[v11 n&7 l.95] x12
+[v11 n&7 l.95] x13
+[v11 n&7 l.95] x14
+[v11 n&7 l.95] x15
+[v11 n&7 l.95] x16
+[v11 n&7 l.95] x17
+[v11 n&7 l.95] x18
+[v11 n&7 l.95] x19
+[v11 n&7 l.95] x20
+[v11 n&7 l.95] x21
+[v11 n&7 l.95] x22
+[v11 n&7 l.95] x23
+[v11 n&7 l.95] x24
+[v11 n&7 l.95] x25
+[v11 n&7 l.95] x26
+[v11 n&7 l.95] x27
+[v11 n&7 l.95] x28
+[v11 n&7 l.95] x29
+[v11 n&7 l.95] x30
+[v11 n&7 l.95] x31
+[v11 n&7 l.95] x32
+[v11 n&7 l.95] x33
+[v11 n&7 l.95] x34
+[v11 n&7 l.95] x35
+[v11 n&7 l.95] x36
+[v11 n&7 l.95] x37
+[v11 n&7 l.95] x38
+[v11 n&7 l.95] x39
+[v11 n&7 l.95] x40
+[v11 n&7 l.95] x41
+[v11 n&7 l.95] x42
+[v11 n&7 l.95] x43
+[v11 n&7 l.95] x44
+[v11 n&7 l.95] x45
+[v11 n&7 l.95] x46
+[v11 n&7 l.95] x47
+[v11 n&7 l.95] x48
+[v11 n&7 l.95] x49
+[v11 n&7 l.95] x50
+[v11 n&7 l.95] x51
+[v11 n&7 l.95] x52
+[v11 n&7 l.95] x53
+[v11 n&7 l.95] x54
+[v11 n&7 l.95] x55
+[v11 n&7 l.95] x56
+[v11 n&7 l.95] x57
+[v11 n&7 l.95] x58
+[v11 n&7 l.95] x59
+[v11 n&7 l.95] x60
+[v11 n&7 l.95] x61
+[v11 n&7 l.95] x62
+[v11 n&7 l.95] x63
 
 y9
-[high sparkle arp] yt
-[v13 n&7 l.7] x0
-[v13 n&7 l.65] x2
-[v13 n&7 l.7] x4
-[v13 n&7 l.6] x6
-[v13 n&7 l.7] x8
-[v13 n&7 l.65] x10
-[v13 n&7 l.7] x12
-[v13 n&7 l.6] x14
-[=127,0] x15
+[high sparkle arpeggio] yt
+[v13 n&8 l0.75] x0
+[v13 n&8 l0.6] x1
+[v13 n&8 l0.75] x2
+[v13 n&8 l0.6] x3
+[v13 n&8 l0.75] x4
+[v13 n&8 l0.6] x5
+[v13 n&8 l0.75] x6
+[v13 n&8 l0.6] x7
+[v13 n&8 l0.75] x8
+[v13 n&8 l0.6] x9
+[v13 n&8 l0.75] x10
+[v13 n&8 l0.6] x11
+[v13 n&8 l0.75] x12
+[v13 n&8 l0.6] x13
+[v13 n&8 l0.75] x14
+[v13 n&8 l0.6] x15
 
 y11
-[pad - C major colours] yt
-[pn 0,101,48,.85 pn 0,102,52,.85 pn 0,103,55,.85] x0
-[pr 0,101 pr 0,102 pr 0,103] x15
-[pn 0,104,51,.85 pn 0,105,55,.85 pn 0,106,58,.85] x16
-[pr 0,104 pr 0,105 pr 0,106] x23
-[pn 0,107,53,.85 pn 0,108,57,.85 pn 0,109,60,.85] x24
-[pr 0,107 pr 0,108 pr 0,109] x31
+[disco strings chords] yt
+[v26 n48 l.85 v27 n51 l.85 v28 n55 l.85] x0
+[v26 n48 l.70 v27 n51 l.70 v28 n55 l.70] x16
+[=127,0] x31
+
+y12
+[disco strings modulation Eb and F] yt
+[v26 n51 l.85 v27 n55 l.85 v28 n58 l.85] x0
+[v26 n53 l.85 v27 n57 l.85 v28 n60 l.85] x16
+[=127,0] x31
 
 y13
-[snare roll] yt
-[v1 l0.2] x0
-[v1 l0.25] x1
-[v1 l0.3] x2
-[v1 l0.35] x3
-[v1 l0.4] x4
-[v1 l0.45] x5
-[v1 l0.5] x6
-[v1 l0.55] x7
-[v1 l0.6 z*2] x8
-[v1 l0.65 z*2] x9
-[v1 l0.7 z*2] x10
-[v1 l0.75 z*2] x11
-[v1 l0.8 z*4] x12
-[v1 l0.85 z*4] x13
-[v1 l0.9 z*4] x14
-[v1 l0.95 z*8] x15
+[simmons tom roll fill] yt
+[v18 l.8] x0
+[v18 l.85] x2
+[v18 l.9] x4
+[v18 l.95] x6
+[v19 l.85] x8
+[v19 l.9] x10
+[v20 l.95] x12
+[v20 l1] x14
 [-] x16
 
-y14
-[pump / fake sidechain] yt
-[v28 a-20 v29 a-22 v30 a-20 v31 a-22 v32 a-20 v33 a-22 v34 a-20 v35 a-22 v36 a-20 v37 a-22 v8 a-20 v9 a-20 v10 a-23] x0
-[v28 a-14 v29 a-16 v30 a-14 v31 a-16 v32 a-14 v33 a-16 v34 a-14 v35 a-16 v36 a-14 v37 a-16 v8 a-14 v9 a-14 v10 a-17] x1
-[v28 a-9 v29 a-11 v30 a-9 v31 a-11 v32 a-9 v33 a-11 v34 a-9 v35 a-11 v36 a-9 v37 a-11 v8 a-9 v9 a-9 v10 a-12] x2
-[v28 a-6 v29 a-8 v30 a-6 v31 a-8 v32 a-6 v33 a-8 v34 a-6 v35 a-8 v36 a-6 v37 a-8 v8 a-6 v9 a-6 v10 a-9] x3
-
 y15
-[impact / noise hit] yt
-[v16 l1] x0
-[=127,0] x15
+[moroder noise wind sweep] yt
+[v21 l1] x0
+[-] x1
 
 y16
 [bass filter sweep open] yt
-[v6 k800 v7 k800] x0
-[v6 k920 v7 k920] x2
-[v6 k1060 v7 k1060] x4
-[v6 k1220 v7 k1220] x6
-[v6 k1400 v7 k1400] x8
-[v6 k1610 v7 k1610] x10
-[v6 k1850 v7 k1850] x12
-[v6 k2100 v7 k2100] x14
-[v6 k2400 v7 k2400] x16
-[v6 k2750 v7 k2750] x18
-[v6 k3150 v7 k3150] x20
-[v6 k3600 v7 k3600] x22
-[v6 k4100 v7 k4100] x24
-[v6 k4700 v7 k4700] x26
-[v6 k5400 v7 k5400] x28
-[v6 k6200 v7 k6200] x30
-[=127,0] x31
+[v6 k750 v7 k750] x0
+[v6 k789 v7 k789] x2
+[v6 k830 v7 k830] x4
+[v6 k873 v7 k873] x6
+[v6 k918 v7 k918] x8
+[v6 k966 v7 k966] x10
+[v6 k1016 v7 k1016] x12
+[v6 k1069 v7 k1069] x14
+[v6 k1124 v7 k1124] x16
+[v6 k1183 v7 k1183] x18
+[v6 k1244 v7 k1244] x20
+[v6 k1309 v7 k1309] x22
+[v6 k1376 v7 k1376] x24
+[v6 k1448 v7 k1448] x26
+[v6 k1523 v7 k1523] x28
+[v6 k1602 v7 k1602] x30
+[v6 k1685 v7 k1685] x32
+[v6 k1773 v7 k1773] x34
+[v6 k1865 v7 k1865] x36
+[v6 k1962 v7 k1962] x38
+[v6 k2063 v7 k2063] x40
+[v6 k2170 v7 k2170] x42
+[v6 k2283 v7 k2283] x44
+[v6 k2402 v7 k2402] x46
+[v6 k2526 v7 k2526] x48
+[v6 k2657 v7 k2657] x50
+[v6 k2795 v7 k2795] x52
+[v6 k2940 v7 k2940] x54
+[v6 k3093 v7 k3093] x56
+[v6 k3254 v7 k3254] x58
+[v6 k3422 v7 k3422] x60
+[v6 k3600 v7 k3600] x62
+[=127,0] x63
 
-## CONDUCTOR (one step per bar)
+## CONDUCTOR (pattern 0, one step per bar, 96 bars)
 y0
 [conductor] yt
 %16
-# 0-7 intro: bass + hats only
-[y6 z1 /SP 1,0 /SP 2,0 v6 k900 v7 k900] x0
+[y6 z1 /SP 1,0 v6 k700 v7 k700] x0
 [=126,1] x1
 [y3 z1] x2
 [=126,3] x3
-[v5 l1 y11 z1] x4
+[v6 k1100 v7 k1100 y9 z1 /SP 8,0] x4
 [=126,5] x5
 [=126,6] x6
-[=126,7] x7
-# 8-15 drums + pad + filter open
-[v5 l1 y1 z1 y2 z1 y16 z1] x8
-[v28 a-12 v29 a-14 v30 a-12 v31 a-14 v32 a-12 v33 a-14 v34 a-12 v35 a-14 v36 a-12 v37 a-14] x9
+[y13 z1] x7
+[v17 l1 y1 z1 y16 z1] x8
+[=126,9] x9
 [=126,10] x10
 [=126,11] x11
-[=126,12] x12
+[y2 z1 y11 z1 v6 k2200 v7 k2200] x12
 [=126,13] x13
 [=126,14] x14
-[=126,15] x15
-# 16-31 verse A (C cell + lead + sparkle)
-[v5 l1 /SP 6,0 y8 z1 /SP 7,0 y9 z1 y14 z1] x16
+[y13 z1 y15 z1] x15
+[v17 l.8 y8 z1 /SP 6,0 /SC 1 2 /SP 1,0] x16
 [=126,17] x17
 [=126,18] x18
 [=126,19] x19
-[=126,20] x20
+[v6 k2400 v7 k2400] x20
 [=126,21] x21
 [=126,22] x22
 [=126,23] x23
-[=126,24] x24
+[/SC 1 3 /SP 1,0 /SC 8 9 /SP 8,0 y11 z0 y12 z1] x24
 [=126,25] x25
 [=126,26] x26
 [=126,27] x27
-[=126,28] x28
+[/SC 1 4 /SP 1,0 /SC 8 10 /SP 8,0] x28
 [=126,29] x29
-[=126,30] x30
-[y2 z0 y13 z1] x31
-# 32-39 key rise (Eb / F / G)
-[v5 l1 y6 z0 /SP 3,0 /SP 4,0 /SP 5,0 y7 z1 y2 z1] x32
+[/SC 1 5 /SP 1,0 /SC 8 11 /SP 8,0] x30
+[y8 z0 v8 l0 y13 z1 y15 z1] x31
+[v17 l1 /SC 1 2 /SP 1,0 /SC 8 8 /SP 8,0 y12 z0 y11 z1 y10 z1 /SP 7,0 v6 k3200 v7 k3200] x32
 [=126,33] x33
 [=126,34] x34
 [=126,35] x35
-[=126,36] x36
+[v17 l.6] x36
 [=126,37] x37
 [=126,38] x38
 [=126,39] x39
-# 40-55 chorus feel
-[v5 l1 y7 z0 /SP 1,0 /SP 2,0 y6 z1 y14 z1] x40
+[/SC 1 3 /SP 1,0 /SC 8 9 /SP 8,0 y11 z0 y12 z1] x40
 [=126,41] x41
 [=126,42] x42
 [=126,43] x43
-[=126,44] x44
+[/SC 1 4 /SP 1,0 /SC 8 10 /SP 8,0] x44
 [=126,45] x45
-[=126,46] x46
-[=126,47] x47
-[=126,48] x48
-[=126,49] x49
-[=126,50] x50
+[/SC 1 5 /SP 1,0 /SC 8 11 /SP 8,0] x46
+[y10 z0 v11 l0 y13 z1 y15 z1] x47
+[v17 l1 DF 1 1 y1 z0 y2 z0 y3 z0 y6 z0 y9 z0 y12 z0 v6 l0 v7 l0 v13 l0] x48
+[v8 l0 v11 l0] x49
+[y11 z1] x50
 [=126,51] x51
-[=126,52] x52
+[v16 l1] x52
 [=126,53] x53
 [=126,54] x54
-[y2 z0 y13 z1] x55
-# 56-63 breakdown - freeze the bass delay
-[v5 l1 DF 1 1 y1 z0 y2 z0 y3 z0 y6 z0 y8 z0 y9 z0 y14 z0] x56
-[v8 l0 v9 l0 v10 l0 v6 l0 v7 l0 v13 l0] x57
-[v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10] x58
+[y13 z1 y15 z1] x55
+[DF 1 0 v17 l1 y1 z1 /SC 1 2 /SP 1,0 y6 z1 v6 k800 v7 k800 y16 z1] x56
+[=126,57] x57
+[y3 z1] x58
 [=126,59] x59
-[y15 z1] x60
+[y9 z1 /SC 8 8 /SP 8,0] x60
 [=126,61] x61
-[y13 z1] x62
-[=126,63] x63
-# 64-79 final chorus (everything + key rise again)
-[v5 l1 DF 1 0 /SP 1,0 /SP 2,0 y6 z1 y1 z1 y2 z1 y3 z1 /SP 6,0 y8 z1 /SP 7,0 y9 z1 y14 z1] x64
+[=126,62] x62
+[y13 z1 y15 z1] x63
+[v17 l1 y2 z1 y10 z1 /SP 7,0 y11 z1 v6 k3600 v7 k3600] x64
 [=126,65] x65
 [=126,66] x66
 [=126,67] x67
-[=126,68] x68
+[v17 l.7] x68
 [=126,69] x69
 [=126,70] x70
 [=126,71] x71
-[y6 z0 /SP 3,0 /SP 4,0 /SP 5,0 y7 z1] x72
+[/SC 1 3 /SP 1,0 /SC 8 9 /SP 8,0 y11 z0 y12 z1] x72
 [=126,73] x73
 [=126,74] x74
 [=126,75] x75
-[=126,76] x76
+[/SC 1 4 /SP 1,0 /SC 8 10 /SP 8,0] x76
 [=126,77] x77
-[=126,78] x78
-[y2 z0 y13 z1] x79
-# 80-95 outro strip-back + freeze
-[v5 l1 y7 z0 y8 z0 y9 z0 y14 z0 y2 z0 y3 z%2 /SP 1,0 /SP 2,0 y6 z1] x80
-[v28 a-10 v29 a-12 v30 a-10 v31 a-12 v32 a-10 v33 a-12 v34 a-10 v35 a-12 v36 a-10 v37 a-12] x81
+[/SC 1 5 /SP 1,0 /SC 8 11 /SP 8,0] x78
+[y13 z1 y15 z1] x79
+[v17 l1 /SC 1 2 /SP 1,0 /SC 8 8 /SP 8,0 y12 z0 y11 z1 y10 z0 v11 l0 y8 z1 /SP 6,0] x80
+[=126,81] x81
 [=126,82] x82
 [=126,83] x83
-[DF 1 1 y1 z0] x84
+[/SC 1 3 /SP 1,0 /SC 8 9 /SP 8,0 y11 z0 y12 z1] x84
 [=126,85] x85
 [=126,86] x86
-[y6 z0 v6 l0 v7 l0] x87
-[y11 z0] x88
+[y8 z0 v8 l0 y13 z1] x87
+[v17 l.8 /SC 1 2 /SP 1,0 /SC 8 8 /SP 8,0 y12 z0 y11 z0 y2 z0 y3 z%2 v6 k1400 v7 k1400] x88
 [=126,89] x89
-[=126,90] x90
+[v6 k900 v7 k900 y9 z0 v13 l0] x90
 [=126,91] x91
-[v5 l1] x92
+[DF 1 1 y1 z0] x92
 [=126,93] x93
-[=126,94] x94
-[Z0 +8 ce 99] x95
+[y6 z0 y3 z0 v6 l0 v7 l0] x94
+[=126,95] x95
+[Z0 +8 ce 99] x96
 
-## MACROS
+## MACROS (play / stop)
 [use 'play' to start the song, 'stop' to stop it] puts
 [play] : Z0 Z! y0 z1 ;
 [stop] : Z0 O DQ ;
+

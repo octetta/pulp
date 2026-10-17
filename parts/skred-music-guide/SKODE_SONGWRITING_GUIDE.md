@@ -538,7 +538,6 @@ y4
 [v6 n&1 l1] x1
 # ...
 [v6 n&1 l1] x31
-[=127,0] x31
 ```
    When `n&1` hits `-`, the engine automatically releases the voice envelope and suppresses `l` triggers in that step. Reset streams in the conductor with `/SP 1,0` whenever looping or starting a section.
 8. **Label guesses as guesses** in comments, and say which lines are placeholders.
@@ -548,6 +547,7 @@ y4
     - **`whip_it.sk`** (158 BPM, E Mixolydian): DEVO's 1980 new wave classic. Demonstrates the whip crack via slowed snare (`w83 f175`), motorik Alan Myers drum feel, Moog bass/guitar chug trio linked via `>7 >8 G7 H7 G8 H8`, call-and-response vocal lead synth with safe `s=0` decay envelopes, and full `[name] vt` voice labeling.
     - **`dont_go.sk`** (128 BPM, B-flat minor): Yazoo's 1982 synthpop masterpiece by Vince Clarke & Alison Moyet. Demonstrates the authentic B-flat minor key, the signature opening staccato synth brass hook with octaves (`Db5 - C5 - Bb4 - F4` and leap to `F5`), relentless 16th-note bouncing bassline with rests, 16th Vince Clarke arpeggio feeding dotted-eighth echo Bus 1, and Alison's vocal laugh/cry formant pitch glides.
     - **`closer.sk`** (90 BPM, C minor): Nine Inch Nails' 1994 industrial tour-de-force by Trent Reznor. Features the "Nightclubbing" heartbeat kick (`w82` + sub glide `w0`), rubbery Minimoog bassline with octave snaps and chromatic slides, the ascending chromatic tension hook (`E -> F -> G -> Ab`), singing vocal lead synth lines, crushing chorus synth brass and sidechain pumping, delay freeze drone capture (`DF 1 1`), and the haunting Downward Spiral outro piano solo through ping-pong hall delay.
+    - **`i_feel_love.sk`** (128 BPM, C modal): Donna Summer & Giorgio Moroder's 1977 electronic disco foundation. Features the iconic machine-gun Moog modular 16th-note bouncing bassline (`C -> Eb -> F -> G`), 16th-note slapback / ping-pong tape delay recreation on Bus 1, Donna Summer singing leads ("Ooh, it's so good...", "I feel love..."), cascading high sparkle arpeggios, 1970s Solina/ARP disco strings, Moroder white noise wind sweeps, and the legendary delay freeze breakdown (`DF 1 1`).
 
 **Step grid cheat sheet** (with `M 125 16`, one pattern step is one sixteenth note):
 4 steps per beat, 16 per bar. Eighth notes are every 2 steps, quarters every 4. A 2-bar

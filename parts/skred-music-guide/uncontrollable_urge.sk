@@ -1,1490 +1,885 @@
-## DEVO - UNCONTROLLABLE URGE (Full Post-Punk Showcase Cover for PULP / SKRED)
-#  184 BPM, Key of A Major / A Mixolydian, 128 bars (~2:47).
+## DEVO - UNCONTROLLABLE URGE (Modernized Showcase Cover for PULP / SKRED)
+#  158 BPM, Key of A Major / A Mixolydian, 136 bars (~3:26).
 #  Written by Mark Mothersbaugh & Gerald Casale (1978, Q: Are We Not Men? A: We Are Devo!).
-#  Self-contained: drums from built-in waves 82-99, inline K-synth riser.
+#  Self-contained: drums from built-in waves 82-99.
 #  Uses n>d to convert note name strings (with '-' rests) to MIDI streams.
 #  Load:   [devo_uncontrollable_urge.sk] /ls
 #  Start:  play        Stop:  stop
 #
 #  VOICE MAP (all labeled via [name] vt):
-#    v0  motorik electronic kick (w82) + v5 sub punch (w0)
-#    v1  crack 70s snare (w83) + v4 tight clap (w86)
+#    v0  motorik kick (w82)
+#    v1  crack 70s snare (w83)
 #    v2  closed hat 8ths (w84)  v3  open hat offbeat (w85)
-#    v17 crash cymbal (w94)
-#    v18 hi tom (w90)  v19 mid tom (w91)  v20 lo tom (w92) = Simmons toms
+#    v5  crash cymbal (w94)
 #    v6  Gerald Casale bass saw centre (w15) + v7 partner square right (w16)
 #    v8  Bob Mothersbaugh guitar root left (w15) + v9 fifth (w15), v10 octave (w16)
-#    v14 Bob Casale rhythm guitar root right (w16) + v15 fifth left (w15)
-#    v11 Mark Mothersbaugh Minimoog lead saw (w15) + v12 pulse partner (w16)
-#    v16 K-synth build riser (w301)
-#    v21 DEVO vocal lead centre (w15) + v22 left (w16), v23 right (w15)
-#    v24 DEVO FM metal stab / pick scrape (w0) + v25 modulator (w0)
+#    v11 FM metal stab (w0) + v12 stab modulator (w0)
+#    v13 Mark Mothersbaugh vocal lead (w15) + v14 vocal partner pulse (w16)
 #
 #  DELAY BUSES:
-#    Bus 1: Vocal slapback sixteenth (DS 1 184 .25, DL 1 - - 5 0 0 9)
-#    Bus 2: Bass slapback sixteenth (DS 2 184 .25, DL 2 - - 4 0 0 8)
-#    Bus 3: Snare room reverb tail (DS 3 184 .5, DL 3 - - 6 0 0 9)
-#    Bus 4: Minimoog stereo chorus wash (DS 4 184 .75, DL 4 - - 8 3 6 10, DP 4 1)
+#    Bus 1: FM metal stab & vocal echo (DS 1 158 .75, DL 1 - - 6 2 2 9, DD 1 7 3)
+#    Bus 2: Bass slapback sixteenth (DS 2 158 .25, DL 2 - - 4 0 0 8, DD 2 6 3)
 #
-#  ARRANGEMENT (128 bars):
-#    0-1   Alan Myers 4-count hi-hat clicks
-#    2-5   Intro F -> G build riff + machine-gun snare roll & sudden dead stop
-#    6-13  Main Unison Riff explosion & manic 'YEAH!' shouts
-#    14-29 Verse 1: 'Got an urge, got a surge, and it's out of control...'
-#    30-37 Chorus 1: 'It's got style, it's got class... And I say: YEAH!'
-#    38-41 Main Riff & 'YEAH!' reprise
-#    42-49 Start-Stop Breaks 1: sudden dead stops with metallic scrapes
-#    50-65 Verse 2: 'Got an urge, I wanna purge, 'cause I'm losing control...'
-#    66-73 Chorus 2: 'It's got style, it's got class...'
-#    74-89 Bridge & Bob Mothersbaugh Angular Guitar Solo + Minimoog madness
-#    90-97 Start-Stop Breaks 2: precision unison cuts
-#    98-105 Final Climax Chorus: maximum power, 16th hats, crashing cymbals
-#    106-121 Outro Vamp: frantic 'Uncontrollable Urge!' chanting
-#    122-125 Final 'Yeah Yeah' sprint & sudden precision cutoff
-#    126   Final unison crash hit
-#    127   Cleanup and stop
+#  ARRANGEMENT (136 bars):
+#    0-7   Intro build (solo bass -> +drums -> +guitar chug -> +FM stab -> snare roll)
+#    8-15  Start-Stop Break 1 (groove -> dead stop FM echo -> groove -> dead stop -> roll)
+#    16-31 Verse 1: driving A drone + staccato guitar chug + Mark's vocal leads
+#    32-47 Chorus 1: E5 -> D5 -> A5 power chords + vocal hook ('It's driving me insane!')
+#    48-55 Start-Stop Break 2 (dead stop tension & echoing FM stabs)
+#    56-71 Verse 2: 'Got an urge, I wanna purge, 'cause I'm losing control...'
+#    72-87 Chorus 2
+#    88-95 Start-Stop Break 3
+#    96-111 Final Chorus: maximum energy wall of sound
+#    112-135 Outro Vamp: relentless motorik drive + frantic chanting
+#    136   Hard stop, crash hit & cleanup
 # ======================================================================
 
 [DEVO - UNCONTROLLABLE URGE] puts
-M 184 16
-
-## INLINE K-SYNTH RISER (one-shot wave 301)
-[
-/ riser: exponential sweep + highpass noise, zero DC
-N: 65536
-T: !N
-E: (e(T*(4.2%N)))%100
-R: r T
-L: 0.35 f R
-H: R-L
-F: 950*(e(T*(2.6%N)))*((p 2)%(p 0))
-P: +\F
-S: s P
-W: w E*((S*.35)+(H*.55))
-] k!
-k>w301,44100,1
+M 158 16
 
 ## DELAY BUSES
-# Bus 1: Vocal & guitar slapback sixteenth
-DS 1 184 .25
-DL 1 - - 5 0 0 9
+# Bus 1: FM metal stab echo (dotted eighth delay, gives that eerie cavernous DEVO space)
+DS 1 158 .75
+DL 1 - - 6 2 2 9
 DD 1 7 3
 
-# Bus 2: Bass slapback sixteenth (tight low-end punch)
-DS 2 184 .25
+# Bus 2: Bass slapback sixteenth
+DS 2 158 .25
 DL 2 - - 4 0 0 8
 DD 2 6 3
 
-# Bus 3: Snare room tail
-DS 3 184 .5
-DL 3 - - 6 0 0 9
-DD 3 5 4
-
-# Bus 4: Minimoog stereo chorus wash
-DS 4 184 .75
-DL 4 - - 8 3 6 10
-DD 4 7 2
-DP 4 1
-
 ## VOICES
-# Alan Myers motorik drums: kick, sub punch, crack snare, clap, hats, crash, toms
-v0 w82 f440 a7 p0 [kick motorik] vt
-v5 w0 a-2 p0 t.001,.18,0,.05 j1 k160 q.7 [kick sub punch] vt
-v1 w83 f440 a8 p0 r3 ds.18 [snare 70s crack] vt
-v4 w86 f440 a6 p0 [clap tight] vt
+# Alan Myers motorik drums: kick, crack snare, closed/open hats, crash
+v0 w82 f440 a6 p0 [kick motorik] vt
+v1 w83 f440 a7 p0 r3 ds.18 [snare 70s crack] vt
 v2 w84 f440 a-3 p.25 [closed hat] vt
 v3 w85 f440 a-2 p-.25 [open hat] vt
-v17 w94 f440 a5 p.2 [crash cymbal] vt
-v18 w90 f440 a6 p-.35 [hi tom] vt
-v19 w91 f360 a6 p0 [mid tom] vt
-v20 w92 f280 a6 p.35 [lo tom] vt
+v5 w94 f440 a4 p.2 [crash cymbal] vt
 
-# Gerald Casale Bass: gritty, driving Moog/Rickenbacker saw + square pair
-v6 w15 a-1 p0 t.001,.14,0,.04 j1,2 k1400 q2.8 r2 ds.08 [casale bass saw] vt
+# Gerald Casale Bass: plucky saw plus detuned square partner on the right
+v6 w15 a-1 p0 t.002,.14,.25,.06 j1 k1300 q1.8 r2 ds.08 [casale bass saw] vt
 v6 >7
-v7 w16 a-5 N0,7 p.35 r0 [casale bass square] vt
+v7 w16 a-6 N0,8 p.4 [casale bass square] vt
 v6 G7 H7
 
-# Bob Mothersbaugh ('Bob 1') Punk Guitar Power Chord Trio: root, fifth, octave
-# Crisp staccato attack, character drive j1,2, slight bitcrush, and delay slapback
-v8 w15 a-5 p-.30 t.001,.11,0,.03 j1,2 k3400 q1.2 c4,.20 r1 ds.12 [bob1 guitar root] vt
+# Bob Mothersbaugh Guitar Power Chord from ONE note: root v8, fifth v9 (+7), octave v10 (+12)
+v8 w15 a-8 p-.25 t.002,.09,.15,.05 j1 k3800 q.7 c4,.15 [bob1 guitar root] vt
 v8 >9
 v8 >10
-v9 w15 a-7 N7,5 p.25 r1 [bob1 guitar fifth] vt
-v10 w16 a-9 N12,0 p-.45 r1 [bob1 guitar octave] vt
+v9 N7 a-10 p.3 [bob1 guitar fifth] vt
+v10 N12 a-12 p-.5 [bob1 guitar octave] vt
 v8 G9,10 H9,10
 
-# Bob Casale ('Bob 2') Rhythm Guitar: stereo spread double-tracking
-v14 w16 a-7 p.40 t.001,.10,0,.03 j1 k3000 q1.0 c4,.15 [bob2 guitar root] vt
-v14 >15
-v15 w15 a-9 N7,7 p-.20 [bob2 guitar fifth] vt
-v14 G15 H15
+# Metal FM Stab: signature DEVO metallic clang echoed into delay Bus 1
+v11 w0 a-2 p-.35 t.001,.45,0,.35 FF2 FB4 F12,2.2 G12 H12 r1 ds.25 [devo metal stab] vt
+v12 w0 a0 t.001,.30,0,.30 N21 m1 [stab modulator] vt
 
-# Mark Mothersbaugh Minimoog Lead & Quirky Stabs (centre-left saw + pulse partner)
-v11 w15 a-3 p-.20 t.002,.20,0,.05 j1 k2600 q4.0 g.03 r1 ds.25 [minimoog lead saw] vt
-v11 >12
-v12 w16 a-6 N0,12 p.20 [minimoog lead pulse] vt
-v11 G12 H12
-
-# Inline K-Synth Riser Voice
-v16 w301 f440 a5 p0 [ksynth riser] vt
-
-# DEVO Vocal Lead: Searing punk vocal synth trio with safe s=0 envelope
-v21 w15 a-2 p0 t.003,.16,0,.04 j1,2 k3600 q2.2 r1 ds.20 [devo vocal lead] vt
-v21 >22
-v21 >23
-v22 w16 a-6 N0,5 p-.40 [devo vocal left] vt
-v23 w15 a-6 N0,-5 p.40 [devo vocal right] vt
-v21 G22,23 H22,23
-
-# DEVO FM Metal Stab / Pick Scrape (signature start-stop accent)
-v24 w0 a-3 p-.35 t.001,.30,0,.20 FF2 FB4 F25,2.4 G25 H25 [devo metal stab] vt
-v25 w0 a0 t.001,.20,0,.20 N21 m1 [stab modulator] vt
+# Mark Mothersbaugh Vocal Lead: punchy staccato synth lead with safe s=0 envelope
+v13 w15 a-3 p0 t.003,.16,0,.04 j1 k3600 q2.0 r1 ds.20 [devo vocal lead] vt
+v13 >14
+v14 w16 a-7 N0,12 p.25 [vocal partner pulse] vt
+v13 G14 H14
 
 ## EVENTS (end-of-song cleanup responder)
 [O DQ] /ceb 4 99
 /cer 1
 
-## STREAMS (Note arrays converted via n>d with '-' rests)
+## STREAMS
 
-# Stream 1: Intro F -> G Bass Riff (16 sixteenth steps)
-[F2 - F2 - F2 - G2 - - - - - - - - -] n>d /SS 1
+# Stream 1: Verse bass drone, one bar of eighths on A2
+[A2 A2 A2 A2 A2 A2 A2 A2] n>d /SS 1
 
-# Stream 2: Intro F -> G Guitar Riff (16 sixteenth steps)
-[F3 - F3 - F3 - G3 - - - - - - - - -] n>d /SS 2
+# Stream 2: Bass velocities, light accent on each beat
+( 1 .75 .9 .75 1 .75 .9 .75 ) /SS 2
 
-# Stream 3: Intro G Chug Bass (16 sixteenth steps)
-[G2 - G2 - G2 - G2 - G2 - G2 - G2 - - -] n>d /SS 3
+# Stream 3: Chorus bass, 4 bars of eighths: E2 | D2 | A2 | A2
+[E2 E2 E2 E2 E2 E2 E2 E2  D2 D2 D2 D2 D2 D2 D2 D2  A2 A2 A2 A2 A2 A2 A2 A2  A2 A2 A2 A2 A2 A2 A2 A2] n>d /SS 3
 
-# Stream 4: Intro G Chug Guitar (16 sixteenth steps)
-[G3 - G3 - G3 - G3 - G3 - G3 - G3 - - -] n>d /SS 4
+# Stream 4: Chorus guitar roots, 4 bars of eighths: E3 | D3 | A3 | A3
+[E3 E3 E3 E3 E3 E3 E3 E3  D3 D3 D3 D3 D3 D3 D3 D3  A3 A3 A3 A3 A3 A3 A3 A3  A3 A3 A3 A3 A3 A3 A3 A3] n>d /SS 4
 
-# Stream 5: Main Unison Riff Bass (16 sixteenth steps: A2 -> G2 -> E2)
-[A2 - A2 - G2 - E2 - A2 - A2 - G2 - E2 -] n>d /SS 5
+# Stream 5: Guitar chug velocities, accent on each beat
+( 1 .45 .7 .45 1 .45 .7 .45 ) /SS 5
 
-# Stream 6: Main Unison Riff Guitar (16 sixteenth steps: A3 -> G3 -> E3)
-[A3 - A3 - G3 - E3 - A3 - A3 - G3 - E3 -] n>d /SS 6
+# Stream 6: Intro bass riff notes: A2 on 0, rests on 1-9, G2 pickups on 10, 12, 14
+[A2 - - - - - - - - - G2 - G2 - G2 -] n>d /SS 6
 
-# Stream 7: Verse Bass Drone (16 sixteenth steps: 8 steady eighths on A2)
-[A2 - A2 - A2 - A2 - A2 - A2 - A2 - A2 -] n>d /SS 7
-
-# Stream 8: Verse Guitar Chug (16 sixteenth steps: 8 steady eighths on A3)
-[A3 - A3 - A3 - A3 - A3 - A3 - A3 - A3 -] n>d /SS 8
-
-# Stream 9: 'YEAH!' Manic Vocal Shouts (2 bars / 32 steps)
+# Stream 7: Verse 1 Vocal Line ('Got an urge... got a surge... and it's out of control!')
+# 16 bars / 256 sixteenth steps with spacious breathing room between calls
 [
-E5 - - - E5 - - - E5 - E5 - E5 - E5 -
-G5 - - - G5 - - - G5 - G5 - G5 - A5 -
-] n>d /SS 9
-
-# Stream 10: Verse 1 Vocal Part 1 ('Got an urge, got a surge, and it's out of control...')
-# 4 bars / 64 sixteenth steps
-[
-A4 - A4 - C#5 - - - A4 - A4 - C#5 - - -
+A4 - A4 - C#5 - - - - - - - - - - -
+A4 - A4 - C#5 - - - - - - - - - - -
 D5 - D5 - C#5 - B4 - A4 - - - - - - -
 - - - - - - - - - - - - - - - -
-- - - - - - - - - - - - - - - -
-] n>d /SS 10
-
-# Stream 11: Verse 1 Vocal Part 2 ('Got an urge, I wanna purge, cause I'm losing control...')
-# 4 bars / 64 sixteenth steps
-[
-A4 - A4 - C#5 - - - A4 - A4 - C#5 - - -
+A4 - A4 - C#5 - - - - - - - - - - -
+A4 - A4 - C#5 - - - - - - - - - - -
 D5 - D5 - C#5 - B4 - A4 - - - - - - -
 - - - - - - - - - - - - - - - -
-- - - - - - - - - - - - - - - -
-] n>d /SS 11
-
-# Stream 12: Verse 1 Vocal Part 3 ('Uncontrollable urge, I wanna tell you all about it...')
-# 4 bars / 64 sixteenth steps
-[
 E5 - E5 - E5 - E5 - C#5 - - - - - - -
 A4 - A4 - B4 - C#5 - B4 - A4 - - - - -
 - - - - - - - - - - - - - - - -
 - - - - - - - - - - - - - - - -
-] n>d /SS 12
-
-# Stream 13: Verse 1 Vocal Part 4 ('Uncontrollable urge, makes me scream and shout it...')
-# 4 bars / 64 sixteenth steps
-[
 E5 - E5 - E5 - E5 - C#5 - - - - - - -
 A4 - A4 - B4 - C#5 - B4 - A4 - - - - -
 - - - - - - - - - - - - - - - -
 - - - - - - - - - - - - - - - -
-] n>d /SS 13
+] n>d /SS 7
 
-# Stream 14: Chorus Bass Progression (D -> C -> F -> G -> D -> G -> A -> A)
-# 8 bars / 128 sixteenth steps
+# Stream 8: Chorus Vocal Hook ('It's driving me insane! ... Got an uncontrollable urge!')
+# 4 bars / 64 sixteenth steps, loops across the chorus
 [
-D2 - D2 - D2 - D2 - D2 - D2 - D2 - D2 -
-C2 - C2 - C2 - C2 - C2 - C2 - C2 - C2 -
-F2 - F2 - F2 - F2 - F2 - F2 - F2 - F2 -
-G2 - G2 - G2 - G2 - G2 - G2 - G2 - G2 -
-D2 - D2 - D2 - D2 - D2 - D2 - D2 - D2 -
-G2 - G2 - G2 - G2 - G2 - G2 - G2 - G2 -
-A2 - A2 - A2 - A2 - A2 - A2 - A2 - A2 -
-A2 - A2 - A2 - A2 - A2 - A2 - A2 - A2 -
-] n>d /SS 14
+E5 - E5 - E5 - E5 - C#5 - - - - - - -
+D5 - D5 - D5 - C#5 - A4 - - - - - - -
+A4 - - - A4 - - - - - - - - - - -
+A4 - A4 - A4 - A4 - - - - - - - - -
+] n>d /SS 8
 
-# Stream 15: Chorus Guitar Power Chords (8 bars / 128 sixteenth steps)
-[
-D3 - D3 - D3 - D3 - D3 - D3 - D3 - D3 -
-C3 - C3 - C3 - C3 - C3 - C3 - C3 - C3 -
-F3 - F3 - F3 - F3 - F3 - F3 - F3 - F3 -
-G3 - G3 - G3 - G3 - G3 - G3 - G3 - G3 -
-D3 - D3 - D3 - D3 - D3 - D3 - D3 - D3 -
-G3 - G3 - G3 - G3 - G3 - G3 - G3 - G3 -
-A3 - A3 - A3 - A3 - A3 - A3 - A3 - A3 -
-A3 - A3 - A3 - A3 - A3 - A3 - A3 - A3 -
-] n>d /SS 15
-
-# Stream 16: Chorus Vocal Lead ('It's got style, it's got class... And I say: YEAH!')
-# 8 bars / 128 sixteenth steps
-[
-D5 - D5 - F#5 - - - - - - - - - - - -
-C5 - C5 - E5 - - - - - - - - - - - -
-F5 - F5 - A5 - - - - - - - - - - - -
-G5 - G5 - B5 - B5 - - - - - - - - - -
-D5 - D5 - D5 - D5 - E5 - F#5 - - - - -
-G5 - G5 - G5 - G5 - A5 - B5 - - - - -
-- - - - - - - - B5 - - - C#6 - - -
-C#6 - - - - - - - - - - - - - - -
-] n>d /SS 16
-
-# Stream 17: Bob Mothersbaugh's Angular Guitar Solo (4 bars / 64 sixteenth steps)
-[
-A4 - C#5 - E5 - A5 - E5 - C#5 - A4 - C#5 -
-G5 - G5 - E5 - E5 - D5 - D5 - C5 - A4 -
-E5 - G5 - A5 - G5 - E5 - D5 - C#5 - A4 -
-A5 - A5 - A5 - A5 - G5 - E5 - G5 - A5 -
-] n>d /SS 17
-
-# Stream 18: Outro Frantic Vocal Chants ('Uncontrollable urge! Out of control!')
+# Stream 9: Outro Frantic Vocal Hook ('Uncontrollable urge! Out of control!')
 # 4 bars / 64 sixteenth steps
 [
 E5 - E5 - E5 - E5 - C#5 - - - A4 - - -
 D5 - D5 - C#5 - B4 - A4 - - - - - - -
 E5 - E5 - E5 - E5 - C#5 - - - A4 - - -
 G5 - G5 - G5 - G5 - A5 - - - - - - -
-] n>d /SS 18
+] n>d /SS 9
 
 ## PATTERNS
 
 y1
-[kick motorik on 1 & 3] yt
-[v0 l1 v5 l.9] x0
-[v0 l1 v5 l.9] x8
+[kick on 1 and 3] yt
+[v0 l1] x0
+[v0 l1] x8
 [=127,0] x15
 
 y2
-[snare+clap on 2 & 4] yt
-[v1 l1 v4 l.9] x4
-[v1 l1 v4 l.9] x12
+[snare on 2 and 4] yt
+[v1 l1] x4
+[v1 l1] x12
 [=127,0] x15
 
 y3
-[hats 8ths + open sizzle] yt
-[v2 l.5] x0
-[v2 l.35] x2
-[v2 l.5] x4
-[v2 l.35] x6
-[v2 l.5] x8
-[v2 l.35] x10
-[v2 l.5] x12
-[v3 l.75 v2 l0] x14
-[=127,0] x15
-
-y12
-[hats 16ths high energy] yt
-[v2 l.55] x0
-[v2 l.35] x1
-[v2 l.55] x2
-[v2 l.35] x3
-[v2 l.55] x4
-[v2 l.35] x5
-[v2 l.55] x6
-[v2 l.35] x7
-[v2 l.55] x8
-[v2 l.35] x9
-[v2 l.55] x10
-[v2 l.35] x11
-[v2 l.55] x12
-[v2 l.35] x13
-[v3 l.8 v2 l0] x14
-[v2 l.35 =127,0] x15
-
-y13
-[snare roll crescendo] yt
-[v1 l0.25] x0
-[v1 l0.30] x1
-[v1 l0.35] x2
-[v1 l0.40] x3
-[v1 l0.45] x4
-[v1 l0.50] x5
-[v1 l0.55] x6
-[v1 l0.60] x7
-[v1 l0.65 z*2] x8
-[v1 l0.70 z*2] x9
-[v1 l0.75 z*2] x10
-[v1 l0.80 z*2] x11
-[v1 l0.85 z*4] x12
-[v1 l0.90 z*4] x13
-[v1 l1.00 z*4] x14
-[- =127,0] x15
-
-y14
-[intro hi-hat 4-count clicks] yt
-[v2 l.8] x0
-[v2 l.8] x4
-[v2 l.8] x8
-[v2 l.8 =127,0] x12
-
-y15
-[simmons tom fill] yt
-[v18 l.9] x8
-[v18 l.9] x10
-[v19 l.9] x12
-[v20 l1 =127,0] x14
-
-y16
-[start-stop break hit and dead stop] yt
-[v0 l1 v5 l1 v17 l1 v6 n45 l.3 v8 n57 l.3 v14 n57 l.3] x0
-[v6 l0 v8 l0 v14 l0] x2
-[v24 n69 l.9] x12
-[v1 l.7] x14
+[hats 8ths, open hat on the last offbeat] yt
+[v2 l.4] x0
+[v2 l.4] x2
+[v2 l.4] x4
+[v2 l.4] x6
+[v2 l.4] x8
+[v2 l.4] x10
+[v2 l.4] x12
+[v3 l.7 v2 l0] x14
 [=127,0] x15
 
 y4
-[intro F to G riff 1 bar] yt
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x0
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x1
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x2
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x3
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x4
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x5
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x6
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x7
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x8
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x9
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x10
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x11
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x12
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x13
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75] x14
-[v6 n&1 l.9 v8 n&2 l.85 v14 n&2 l.75 =127,0] x15
-
-y17
-[intro G chug build 1 bar] yt
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x0
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x1
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x2
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x3
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x4
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x5
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x6
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x7
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x8
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x9
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x10
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x11
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x12
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x13
-[v6 n&3 l.9 v8 n&4 l.85 v14 n&4 l.75] x14
-[v6 l0 v8 l0 v14 l0 =127,0] x15
-
-y5
-[verse bass drone on A2] yt
-[v6 n&7 l.95] x0
-[v6 n&7 l.50] x1
-[v6 n&7 l.75] x2
-[v6 n&7 l.50] x3
-[v6 n&7 l.95] x4
-[v6 n&7 l.50] x5
-[v6 n&7 l.75] x6
-[v6 n&7 l.50] x7
-[v6 n&7 l.95] x8
-[v6 n&7 l.50] x9
-[v6 n&7 l.75] x10
-[v6 n&7 l.50] x11
-[v6 n&7 l.95] x12
-[v6 n&7 l.50] x13
-[v6 n&7 l.75] x14
-[v6 n&7 l.50 =127,0] x15
-
-y6
-[main unison bass riff A-G-E] yt
-[v6 n&5 l.9] x0
-[v6 n&5 l.9] x1
-[v6 n&5 l.9] x2
-[v6 n&5 l.9] x3
-[v6 n&5 l.9] x4
-[v6 n&5 l.9] x5
-[v6 n&5 l.9] x6
-[v6 n&5 l.9] x7
-[v6 n&5 l.9] x8
-[v6 n&5 l.9] x9
-[v6 n&5 l.9] x10
-[v6 n&5 l.9] x11
-[v6 n&5 l.9] x12
-[v6 n&5 l.9] x13
-[v6 n&5 l.9] x14
-[v6 n&5 l.9 =127,0] x15
-
-y7
-[chorus bass progression 8 bars] yt
-[v6 n&14 l.9] x0
-[v6 n&14 l.9] x1
-[v6 n&14 l.9] x2
-[v6 n&14 l.9] x3
-[v6 n&14 l.9] x4
-[v6 n&14 l.9] x5
-[v6 n&14 l.9] x6
-[v6 n&14 l.9] x7
-[v6 n&14 l.9] x8
-[v6 n&14 l.9] x9
-[v6 n&14 l.9] x10
-[v6 n&14 l.9] x11
-[v6 n&14 l.9] x12
-[v6 n&14 l.9] x13
-[v6 n&14 l.9] x14
-[v6 n&14 l.9] x15
-[v6 n&14 l.9] x16
-[v6 n&14 l.9] x17
-[v6 n&14 l.9] x18
-[v6 n&14 l.9] x19
-[v6 n&14 l.9] x20
-[v6 n&14 l.9] x21
-[v6 n&14 l.9] x22
-[v6 n&14 l.9] x23
-[v6 n&14 l.9] x24
-[v6 n&14 l.9] x25
-[v6 n&14 l.9] x26
-[v6 n&14 l.9] x27
-[v6 n&14 l.9] x28
-[v6 n&14 l.9] x29
-[v6 n&14 l.9] x30
-[v6 n&14 l.9] x31
-[v6 n&14 l.9] x32
-[v6 n&14 l.9] x33
-[v6 n&14 l.9] x34
-[v6 n&14 l.9] x35
-[v6 n&14 l.9] x36
-[v6 n&14 l.9] x37
-[v6 n&14 l.9] x38
-[v6 n&14 l.9] x39
-[v6 n&14 l.9] x40
-[v6 n&14 l.9] x41
-[v6 n&14 l.9] x42
-[v6 n&14 l.9] x43
-[v6 n&14 l.9] x44
-[v6 n&14 l.9] x45
-[v6 n&14 l.9] x46
-[v6 n&14 l.9] x47
-[v6 n&14 l.9] x48
-[v6 n&14 l.9] x49
-[v6 n&14 l.9] x50
-[v6 n&14 l.9] x51
-[v6 n&14 l.9] x52
-[v6 n&14 l.9] x53
-[v6 n&14 l.9] x54
-[v6 n&14 l.9] x55
-[v6 n&14 l.9] x56
-[v6 n&14 l.9] x57
-[v6 n&14 l.9] x58
-[v6 n&14 l.9] x59
-[v6 n&14 l.9] x60
-[v6 n&14 l.9] x61
-[v6 n&14 l.9] x62
-[v6 n&14 l.9] x63
-[v6 n&14 l.9] x64
-[v6 n&14 l.9] x65
-[v6 n&14 l.9] x66
-[v6 n&14 l.9] x67
-[v6 n&14 l.9] x68
-[v6 n&14 l.9] x69
-[v6 n&14 l.9] x70
-[v6 n&14 l.9] x71
-[v6 n&14 l.9] x72
-[v6 n&14 l.9] x73
-[v6 n&14 l.9] x74
-[v6 n&14 l.9] x75
-[v6 n&14 l.9] x76
-[v6 n&14 l.9] x77
-[v6 n&14 l.9] x78
-[v6 n&14 l.9] x79
-[v6 n&14 l.9] x80
-[v6 n&14 l.9] x81
-[v6 n&14 l.9] x82
-[v6 n&14 l.9] x83
-[v6 n&14 l.9] x84
-[v6 n&14 l.9] x85
-[v6 n&14 l.9] x86
-[v6 n&14 l.9] x87
-[v6 n&14 l.9] x88
-[v6 n&14 l.9] x89
-[v6 n&14 l.9] x90
-[v6 n&14 l.9] x91
-[v6 n&14 l.9] x92
-[v6 n&14 l.9] x93
-[v6 n&14 l.9] x94
-[v6 n&14 l.9] x95
-[v6 n&14 l.9] x96
-[v6 n&14 l.9] x97
-[v6 n&14 l.9] x98
-[v6 n&14 l.9] x99
-[v6 n&14 l.9] x100
-[v6 n&14 l.9] x101
-[v6 n&14 l.9] x102
-[v6 n&14 l.9] x103
-[v6 n&14 l.9] x104
-[v6 n&14 l.9] x105
-[v6 n&14 l.9] x106
-[v6 n&14 l.9] x107
-[v6 n&14 l.9] x108
-[v6 n&14 l.9] x109
-[v6 n&14 l.9] x110
-[v6 n&14 l.9] x111
-[v6 n&14 l.9] x112
-[v6 n&14 l.9] x113
-[v6 n&14 l.9] x114
-[v6 n&14 l.9] x115
-[v6 n&14 l.9] x116
-[v6 n&14 l.9] x117
-[v6 n&14 l.9] x118
-[v6 n&14 l.9] x119
-[v6 n&14 l.9] x120
-[v6 n&14 l.9] x121
-[v6 n&14 l.9] x122
-[v6 n&14 l.9] x123
-[v6 n&14 l.9] x124
-[v6 n&14 l.9] x125
-[v6 n&14 l.9] x126
-[v6 n&14 l.9 =127,0] x127
-
-y9
-[verse guitar staccato chug on A3] yt
-[v8 n&8 l.85 v14 n&8 l.75] x0
-[v8 n&8 l.40 v14 n&8 l.40] x1
-[v8 n&8 l.60 v14 n&8 l.55] x2
-[v8 n&8 l.40 v14 n&8 l.40] x3
-[v8 n&8 l.85 v14 n&8 l.75] x4
-[v8 n&8 l.40 v14 n&8 l.40] x5
-[v8 n&8 l.60 v14 n&8 l.55] x6
-[v8 n&8 l.40 v14 n&8 l.40] x7
-[v8 n&8 l.85 v14 n&8 l.75] x8
-[v8 n&8 l.40 v14 n&8 l.40] x9
-[v8 n&8 l.60 v14 n&8 l.55] x10
-[v8 n&8 l.40 v14 n&8 l.40] x11
-[v8 n&8 l.85 v14 n&8 l.75] x12
-[v8 n&8 l.40 v14 n&8 l.40] x13
-[v8 n&8 l.60 v14 n&8 l.55] x14
-[v8 n&8 l.40 v14 n&8 l.40 =127,0] x15
-
-y10
-[main unison guitar riff A-G-E] yt
-[v8 n&6 l.9 v14 n&6 l.8] x0
-[v8 n&6 l.9 v14 n&6 l.8] x1
-[v8 n&6 l.9 v14 n&6 l.8] x2
-[v8 n&6 l.9 v14 n&6 l.8] x3
-[v8 n&6 l.9 v14 n&6 l.8] x4
-[v8 n&6 l.9 v14 n&6 l.8] x5
-[v8 n&6 l.9 v14 n&6 l.8] x6
-[v8 n&6 l.9 v14 n&6 l.8] x7
-[v8 n&6 l.9 v14 n&6 l.8] x8
-[v8 n&6 l.9 v14 n&6 l.8] x9
-[v8 n&6 l.9 v14 n&6 l.8] x10
-[v8 n&6 l.9 v14 n&6 l.8] x11
-[v8 n&6 l.9 v14 n&6 l.8] x12
-[v8 n&6 l.9 v14 n&6 l.8] x13
-[v8 n&6 l.9 v14 n&6 l.8] x14
-[v8 n&6 l.9 v14 n&6 l.8 =127,0] x15
-
-y11
-[chorus guitar power chords 8 bars] yt
-[v8 n&15 l.85 v14 n&15 l.75] x0
-[v8 n&15 l.85 v14 n&15 l.75] x1
-[v8 n&15 l.85 v14 n&15 l.75] x2
-[v8 n&15 l.85 v14 n&15 l.75] x3
-[v8 n&15 l.85 v14 n&15 l.75] x4
-[v8 n&15 l.85 v14 n&15 l.75] x5
-[v8 n&15 l.85 v14 n&15 l.75] x6
-[v8 n&15 l.85 v14 n&15 l.75] x7
-[v8 n&15 l.85 v14 n&15 l.75] x8
-[v8 n&15 l.85 v14 n&15 l.75] x9
-[v8 n&15 l.85 v14 n&15 l.75] x10
-[v8 n&15 l.85 v14 n&15 l.75] x11
-[v8 n&15 l.85 v14 n&15 l.75] x12
-[v8 n&15 l.85 v14 n&15 l.75] x13
-[v8 n&15 l.85 v14 n&15 l.75] x14
-[v8 n&15 l.85 v14 n&15 l.75] x15
-[v8 n&15 l.85 v14 n&15 l.75] x16
-[v8 n&15 l.85 v14 n&15 l.75] x17
-[v8 n&15 l.85 v14 n&15 l.75] x18
-[v8 n&15 l.85 v14 n&15 l.75] x19
-[v8 n&15 l.85 v14 n&15 l.75] x20
-[v8 n&15 l.85 v14 n&15 l.75] x21
-[v8 n&15 l.85 v14 n&15 l.75] x22
-[v8 n&15 l.85 v14 n&15 l.75] x23
-[v8 n&15 l.85 v14 n&15 l.75] x24
-[v8 n&15 l.85 v14 n&15 l.75] x25
-[v8 n&15 l.85 v14 n&15 l.75] x26
-[v8 n&15 l.85 v14 n&15 l.75] x27
-[v8 n&15 l.85 v14 n&15 l.75] x28
-[v8 n&15 l.85 v14 n&15 l.75] x29
-[v8 n&15 l.85 v14 n&15 l.75] x30
-[v8 n&15 l.85 v14 n&15 l.75] x31
-[v8 n&15 l.85 v14 n&15 l.75] x32
-[v8 n&15 l.85 v14 n&15 l.75] x33
-[v8 n&15 l.85 v14 n&15 l.75] x34
-[v8 n&15 l.85 v14 n&15 l.75] x35
-[v8 n&15 l.85 v14 n&15 l.75] x36
-[v8 n&15 l.85 v14 n&15 l.75] x37
-[v8 n&15 l.85 v14 n&15 l.75] x38
-[v8 n&15 l.85 v14 n&15 l.75] x39
-[v8 n&15 l.85 v14 n&15 l.75] x40
-[v8 n&15 l.85 v14 n&15 l.75] x41
-[v8 n&15 l.85 v14 n&15 l.75] x42
-[v8 n&15 l.85 v14 n&15 l.75] x43
-[v8 n&15 l.85 v14 n&15 l.75] x44
-[v8 n&15 l.85 v14 n&15 l.75] x45
-[v8 n&15 l.85 v14 n&15 l.75] x46
-[v8 n&15 l.85 v14 n&15 l.75] x47
-[v8 n&15 l.85 v14 n&15 l.75] x48
-[v8 n&15 l.85 v14 n&15 l.75] x49
-[v8 n&15 l.85 v14 n&15 l.75] x50
-[v8 n&15 l.85 v14 n&15 l.75] x51
-[v8 n&15 l.85 v14 n&15 l.75] x52
-[v8 n&15 l.85 v14 n&15 l.75] x53
-[v8 n&15 l.85 v14 n&15 l.75] x54
-[v8 n&15 l.85 v14 n&15 l.75] x55
-[v8 n&15 l.85 v14 n&15 l.75] x56
-[v8 n&15 l.85 v14 n&15 l.75] x57
-[v8 n&15 l.85 v14 n&15 l.75] x58
-[v8 n&15 l.85 v14 n&15 l.75] x59
-[v8 n&15 l.85 v14 n&15 l.75] x60
-[v8 n&15 l.85 v14 n&15 l.75] x61
-[v8 n&15 l.85 v14 n&15 l.75] x62
-[v8 n&15 l.85 v14 n&15 l.75] x63
-[v8 n&15 l.85 v14 n&15 l.75] x64
-[v8 n&15 l.85 v14 n&15 l.75] x65
-[v8 n&15 l.85 v14 n&15 l.75] x66
-[v8 n&15 l.85 v14 n&15 l.75] x67
-[v8 n&15 l.85 v14 n&15 l.75] x68
-[v8 n&15 l.85 v14 n&15 l.75] x69
-[v8 n&15 l.85 v14 n&15 l.75] x70
-[v8 n&15 l.85 v14 n&15 l.75] x71
-[v8 n&15 l.85 v14 n&15 l.75] x72
-[v8 n&15 l.85 v14 n&15 l.75] x73
-[v8 n&15 l.85 v14 n&15 l.75] x74
-[v8 n&15 l.85 v14 n&15 l.75] x75
-[v8 n&15 l.85 v14 n&15 l.75] x76
-[v8 n&15 l.85 v14 n&15 l.75] x77
-[v8 n&15 l.85 v14 n&15 l.75] x78
-[v8 n&15 l.85 v14 n&15 l.75] x79
-[v8 n&15 l.85 v14 n&15 l.75] x80
-[v8 n&15 l.85 v14 n&15 l.75] x81
-[v8 n&15 l.85 v14 n&15 l.75] x82
-[v8 n&15 l.85 v14 n&15 l.75] x83
-[v8 n&15 l.85 v14 n&15 l.75] x84
-[v8 n&15 l.85 v14 n&15 l.75] x85
-[v8 n&15 l.85 v14 n&15 l.75] x86
-[v8 n&15 l.85 v14 n&15 l.75] x87
-[v8 n&15 l.85 v14 n&15 l.75] x88
-[v8 n&15 l.85 v14 n&15 l.75] x89
-[v8 n&15 l.85 v14 n&15 l.75] x90
-[v8 n&15 l.85 v14 n&15 l.75] x91
-[v8 n&15 l.85 v14 n&15 l.75] x92
-[v8 n&15 l.85 v14 n&15 l.75] x93
-[v8 n&15 l.85 v14 n&15 l.75] x94
-[v8 n&15 l.85 v14 n&15 l.75] x95
-[v8 n&15 l.85 v14 n&15 l.75] x96
-[v8 n&15 l.85 v14 n&15 l.75] x97
-[v8 n&15 l.85 v14 n&15 l.75] x98
-[v8 n&15 l.85 v14 n&15 l.75] x99
-[v8 n&15 l.85 v14 n&15 l.75] x100
-[v8 n&15 l.85 v14 n&15 l.75] x101
-[v8 n&15 l.85 v14 n&15 l.75] x102
-[v8 n&15 l.85 v14 n&15 l.75] x103
-[v8 n&15 l.85 v14 n&15 l.75] x104
-[v8 n&15 l.85 v14 n&15 l.75] x105
-[v8 n&15 l.85 v14 n&15 l.75] x106
-[v8 n&15 l.85 v14 n&15 l.75] x107
-[v8 n&15 l.85 v14 n&15 l.75] x108
-[v8 n&15 l.85 v14 n&15 l.75] x109
-[v8 n&15 l.85 v14 n&15 l.75] x110
-[v8 n&15 l.85 v14 n&15 l.75] x111
-[v8 n&15 l.85 v14 n&15 l.75] x112
-[v8 n&15 l.85 v14 n&15 l.75] x113
-[v8 n&15 l.85 v14 n&15 l.75] x114
-[v8 n&15 l.85 v14 n&15 l.75] x115
-[v8 n&15 l.85 v14 n&15 l.75] x116
-[v8 n&15 l.85 v14 n&15 l.75] x117
-[v8 n&15 l.85 v14 n&15 l.75] x118
-[v8 n&15 l.85 v14 n&15 l.75] x119
-[v8 n&15 l.85 v14 n&15 l.75] x120
-[v8 n&15 l.85 v14 n&15 l.75] x121
-[v8 n&15 l.85 v14 n&15 l.75] x122
-[v8 n&15 l.85 v14 n&15 l.75] x123
-[v8 n&15 l.85 v14 n&15 l.75] x124
-[v8 n&15 l.85 v14 n&15 l.75] x125
-[v8 n&15 l.85 v14 n&15 l.75] x126
-[v8 n&15 l.85 v14 n&15 l.75 =127,0] x127
-
-y18
-[bob mothersbaugh guitar solo 4 bars] yt
-[v8 n&17 l.9] x0
-[v8 n&17 l.9] x1
-[v8 n&17 l.9] x2
-[v8 n&17 l.9] x3
-[v8 n&17 l.9] x4
-[v8 n&17 l.9] x5
-[v8 n&17 l.9] x6
-[v8 n&17 l.9] x7
-[v8 n&17 l.9] x8
-[v8 n&17 l.9] x9
-[v8 n&17 l.9] x10
-[v8 n&17 l.9] x11
-[v8 n&17 l.9] x12
-[v8 n&17 l.9] x13
-[v8 n&17 l.9] x14
-[v8 n&17 l.9] x15
-[v8 n&17 l.9] x16
-[v8 n&17 l.9] x17
-[v8 n&17 l.9] x18
-[v8 n&17 l.9] x19
-[v8 n&17 l.9] x20
-[v8 n&17 l.9] x21
-[v8 n&17 l.9] x22
-[v8 n&17 l.9] x23
-[v8 n&17 l.9] x24
-[v8 n&17 l.9] x25
-[v8 n&17 l.9] x26
-[v8 n&17 l.9] x27
-[v8 n&17 l.9] x28
-[v8 n&17 l.9] x29
-[v8 n&17 l.9] x30
-[v8 n&17 l.9] x31
-[v8 n&17 l.9] x32
-[v8 n&17 l.9] x33
-[v8 n&17 l.9] x34
-[v8 n&17 l.9] x35
-[v8 n&17 l.9] x36
-[v8 n&17 l.9] x37
-[v8 n&17 l.9] x38
-[v8 n&17 l.9] x39
-[v8 n&17 l.9] x40
-[v8 n&17 l.9] x41
-[v8 n&17 l.9] x42
-[v8 n&17 l.9] x43
-[v8 n&17 l.9] x44
-[v8 n&17 l.9] x45
-[v8 n&17 l.9] x46
-[v8 n&17 l.9] x47
-[v8 n&17 l.9] x48
-[v8 n&17 l.9] x49
-[v8 n&17 l.9] x50
-[v8 n&17 l.9] x51
-[v8 n&17 l.9] x52
-[v8 n&17 l.9] x53
-[v8 n&17 l.9] x54
-[v8 n&17 l.9] x55
-[v8 n&17 l.9] x56
-[v8 n&17 l.9] x57
-[v8 n&17 l.9] x58
-[v8 n&17 l.9] x59
-[v8 n&17 l.9] x60
-[v8 n&17 l.9] x61
-[v8 n&17 l.9] x62
-[v8 n&17 l.9 =127,0] x63
-
-y21
-[yeah manic vocal shouts 2 bars] yt
-[v21 n&9 l1] x0
-[v21 n&9 l1] x1
-[v21 n&9 l1] x2
-[v21 n&9 l1] x3
-[v21 n&9 l1] x4
-[v21 n&9 l1] x5
-[v21 n&9 l1] x6
-[v21 n&9 l1] x7
-[v21 n&9 l1] x8
-[v21 n&9 l1] x9
-[v21 n&9 l1] x10
-[v21 n&9 l1] x11
-[v21 n&9 l1] x12
-[v21 n&9 l1] x13
-[v21 n&9 l1] x14
-[v21 n&9 l1] x15
-[v21 n&9 l1] x16
-[v21 n&9 l1] x17
-[v21 n&9 l1] x18
-[v21 n&9 l1] x19
-[v21 n&9 l1] x20
-[v21 n&9 l1] x21
-[v21 n&9 l1] x22
-[v21 n&9 l1] x23
-[v21 n&9 l1] x24
-[v21 n&9 l1] x25
-[v21 n&9 l1] x26
-[v21 n&9 l1] x27
-[v21 n&9 l1] x28
-[v21 n&9 l1] x29
-[v21 n&9 l1] x30
-[v21 n&9 l1 =127,0] x31
-
-y22
-[verse vocal part 1 got an urge] yt
-[v21 n&10 l1] x0
-[v21 n&10 l1] x1
-[v21 n&10 l1] x2
-[v21 n&10 l1] x3
-[v21 n&10 l1] x4
-[v21 n&10 l1] x5
-[v21 n&10 l1] x6
-[v21 n&10 l1] x7
-[v21 n&10 l1] x8
-[v21 n&10 l1] x9
-[v21 n&10 l1] x10
-[v21 n&10 l1] x11
-[v21 n&10 l1] x12
-[v21 n&10 l1] x13
-[v21 n&10 l1] x14
-[v21 n&10 l1] x15
-[v21 n&10 l1] x16
-[v21 n&10 l1] x17
-[v21 n&10 l1] x18
-[v21 n&10 l1] x19
-[v21 n&10 l1] x20
-[v21 n&10 l1] x21
-[v21 n&10 l1] x22
-[v21 n&10 l1] x23
-[v21 n&10 l1] x24
-[v21 n&10 l1] x25
-[v21 n&10 l1] x26
-[v21 n&10 l1] x27
-[v21 n&10 l1] x28
-[v21 n&10 l1] x29
-[v21 n&10 l1] x30
-[v21 n&10 l1] x31
-[v21 n&10 l1] x32
-[v21 n&10 l1] x33
-[v21 n&10 l1] x34
-[v21 n&10 l1] x35
-[v21 n&10 l1] x36
-[v21 n&10 l1] x37
-[v21 n&10 l1] x38
-[v21 n&10 l1] x39
-[v21 n&10 l1] x40
-[v21 n&10 l1] x41
-[v21 n&10 l1] x42
-[v21 n&10 l1] x43
-[v21 n&10 l1] x44
-[v21 n&10 l1] x45
-[v21 n&10 l1] x46
-[v21 n&10 l1] x47
-[v21 n&10 l1] x48
-[v21 n&10 l1] x49
-[v21 n&10 l1] x50
-[v21 n&10 l1] x51
-[v21 n&10 l1] x52
-[v21 n&10 l1] x53
-[v21 n&10 l1] x54
-[v21 n&10 l1] x55
-[v21 n&10 l1] x56
-[v21 n&10 l1] x57
-[v21 n&10 l1] x58
-[v21 n&10 l1] x59
-[v21 n&10 l1] x60
-[v21 n&10 l1] x61
-[v21 n&10 l1] x62
-[v21 n&10 l1 =127,0] x63
-
-y23
-[verse vocal part 2 wanna purge] yt
-[v21 n&11 l1] x0
-[v21 n&11 l1] x1
-[v21 n&11 l1] x2
-[v21 n&11 l1] x3
-[v21 n&11 l1] x4
-[v21 n&11 l1] x5
-[v21 n&11 l1] x6
-[v21 n&11 l1] x7
-[v21 n&11 l1] x8
-[v21 n&11 l1] x9
-[v21 n&11 l1] x10
-[v21 n&11 l1] x11
-[v21 n&11 l1] x12
-[v21 n&11 l1] x13
-[v21 n&11 l1] x14
-[v21 n&11 l1] x15
-[v21 n&11 l1] x16
-[v21 n&11 l1] x17
-[v21 n&11 l1] x18
-[v21 n&11 l1] x19
-[v21 n&11 l1] x20
-[v21 n&11 l1] x21
-[v21 n&11 l1] x22
-[v21 n&11 l1] x23
-[v21 n&11 l1] x24
-[v21 n&11 l1] x25
-[v21 n&11 l1] x26
-[v21 n&11 l1] x27
-[v21 n&11 l1] x28
-[v21 n&11 l1] x29
-[v21 n&11 l1] x30
-[v21 n&11 l1] x31
-[v21 n&11 l1] x32
-[v21 n&11 l1] x33
-[v21 n&11 l1] x34
-[v21 n&11 l1] x35
-[v21 n&11 l1] x36
-[v21 n&11 l1] x37
-[v21 n&11 l1] x38
-[v21 n&11 l1] x39
-[v21 n&11 l1] x40
-[v21 n&11 l1] x41
-[v21 n&11 l1] x42
-[v21 n&11 l1] x43
-[v21 n&11 l1] x44
-[v21 n&11 l1] x45
-[v21 n&11 l1] x46
-[v21 n&11 l1] x47
-[v21 n&11 l1] x48
-[v21 n&11 l1] x49
-[v21 n&11 l1] x50
-[v21 n&11 l1] x51
-[v21 n&11 l1] x52
-[v21 n&11 l1] x53
-[v21 n&11 l1] x54
-[v21 n&11 l1] x55
-[v21 n&11 l1] x56
-[v21 n&11 l1] x57
-[v21 n&11 l1] x58
-[v21 n&11 l1] x59
-[v21 n&11 l1] x60
-[v21 n&11 l1] x61
-[v21 n&11 l1] x62
-[v21 n&11 l1 =127,0] x63
-
-y24
-[verse vocal part 3 uncontrollable urge] yt
-[v21 n&12 l1] x0
-[v21 n&12 l1] x1
-[v21 n&12 l1] x2
-[v21 n&12 l1] x3
-[v21 n&12 l1] x4
-[v21 n&12 l1] x5
-[v21 n&12 l1] x6
-[v21 n&12 l1] x7
-[v21 n&12 l1] x8
-[v21 n&12 l1] x9
-[v21 n&12 l1] x10
-[v21 n&12 l1] x11
-[v21 n&12 l1] x12
-[v21 n&12 l1] x13
-[v21 n&12 l1] x14
-[v21 n&12 l1] x15
-[v21 n&12 l1] x16
-[v21 n&12 l1] x17
-[v21 n&12 l1] x18
-[v21 n&12 l1] x19
-[v21 n&12 l1] x20
-[v21 n&12 l1] x21
-[v21 n&12 l1] x22
-[v21 n&12 l1] x23
-[v21 n&12 l1] x24
-[v21 n&12 l1] x25
-[v21 n&12 l1] x26
-[v21 n&12 l1] x27
-[v21 n&12 l1] x28
-[v21 n&12 l1] x29
-[v21 n&12 l1] x30
-[v21 n&12 l1] x31
-[v21 n&12 l1] x32
-[v21 n&12 l1] x33
-[v21 n&12 l1] x34
-[v21 n&12 l1] x35
-[v21 n&12 l1] x36
-[v21 n&12 l1] x37
-[v21 n&12 l1] x38
-[v21 n&12 l1] x39
-[v21 n&12 l1] x40
-[v21 n&12 l1] x41
-[v21 n&12 l1] x42
-[v21 n&12 l1] x43
-[v21 n&12 l1] x44
-[v21 n&12 l1] x45
-[v21 n&12 l1] x46
-[v21 n&12 l1] x47
-[v21 n&12 l1] x48
-[v21 n&12 l1] x49
-[v21 n&12 l1] x50
-[v21 n&12 l1] x51
-[v21 n&12 l1] x52
-[v21 n&12 l1] x53
-[v21 n&12 l1] x54
-[v21 n&12 l1] x55
-[v21 n&12 l1] x56
-[v21 n&12 l1] x57
-[v21 n&12 l1] x58
-[v21 n&12 l1] x59
-[v21 n&12 l1] x60
-[v21 n&12 l1] x61
-[v21 n&12 l1] x62
-[v21 n&12 l1 =127,0] x63
-
-y25
-[verse vocal part 4 scream and shout it] yt
-[v21 n&13 l1] x0
-[v21 n&13 l1] x1
-[v21 n&13 l1] x2
-[v21 n&13 l1] x3
-[v21 n&13 l1] x4
-[v21 n&13 l1] x5
-[v21 n&13 l1] x6
-[v21 n&13 l1] x7
-[v21 n&13 l1] x8
-[v21 n&13 l1] x9
-[v21 n&13 l1] x10
-[v21 n&13 l1] x11
-[v21 n&13 l1] x12
-[v21 n&13 l1] x13
-[v21 n&13 l1] x14
-[v21 n&13 l1] x15
-[v21 n&13 l1] x16
-[v21 n&13 l1] x17
-[v21 n&13 l1] x18
-[v21 n&13 l1] x19
-[v21 n&13 l1] x20
-[v21 n&13 l1] x21
-[v21 n&13 l1] x22
-[v21 n&13 l1] x23
-[v21 n&13 l1] x24
-[v21 n&13 l1] x25
-[v21 n&13 l1] x26
-[v21 n&13 l1] x27
-[v21 n&13 l1] x28
-[v21 n&13 l1] x29
-[v21 n&13 l1] x30
-[v21 n&13 l1] x31
-[v21 n&13 l1] x32
-[v21 n&13 l1] x33
-[v21 n&13 l1] x34
-[v21 n&13 l1] x35
-[v21 n&13 l1] x36
-[v21 n&13 l1] x37
-[v21 n&13 l1] x38
-[v21 n&13 l1] x39
-[v21 n&13 l1] x40
-[v21 n&13 l1] x41
-[v21 n&13 l1] x42
-[v21 n&13 l1] x43
-[v21 n&13 l1] x44
-[v21 n&13 l1] x45
-[v21 n&13 l1] x46
-[v21 n&13 l1] x47
-[v21 n&13 l1] x48
-[v21 n&13 l1] x49
-[v21 n&13 l1] x50
-[v21 n&13 l1] x51
-[v21 n&13 l1] x52
-[v21 n&13 l1] x53
-[v21 n&13 l1] x54
-[v21 n&13 l1] x55
-[v21 n&13 l1] x56
-[v21 n&13 l1] x57
-[v21 n&13 l1] x58
-[v21 n&13 l1] x59
-[v21 n&13 l1] x60
-[v21 n&13 l1] x61
-[v21 n&13 l1] x62
-[v21 n&13 l1 =127,0] x63
-
-y26
-[chorus vocal lead 8 bars] yt
-[v21 n&16 l1] x0
-[v21 n&16 l1] x1
-[v21 n&16 l1] x2
-[v21 n&16 l1] x3
-[v21 n&16 l1] x4
-[v21 n&16 l1] x5
-[v21 n&16 l1] x6
-[v21 n&16 l1] x7
-[v21 n&16 l1] x8
-[v21 n&16 l1] x9
-[v21 n&16 l1] x10
-[v21 n&16 l1] x11
-[v21 n&16 l1] x12
-[v21 n&16 l1] x13
-[v21 n&16 l1] x14
-[v21 n&16 l1] x15
-[v21 n&16 l1] x16
-[v21 n&16 l1] x17
-[v21 n&16 l1] x18
-[v21 n&16 l1] x19
-[v21 n&16 l1] x20
-[v21 n&16 l1] x21
-[v21 n&16 l1] x22
-[v21 n&16 l1] x23
-[v21 n&16 l1] x24
-[v21 n&16 l1] x25
-[v21 n&16 l1] x26
-[v21 n&16 l1] x27
-[v21 n&16 l1] x28
-[v21 n&16 l1] x29
-[v21 n&16 l1] x30
-[v21 n&16 l1] x31
-[v21 n&16 l1] x32
-[v21 n&16 l1] x33
-[v21 n&16 l1] x34
-[v21 n&16 l1] x35
-[v21 n&16 l1] x36
-[v21 n&16 l1] x37
-[v21 n&16 l1] x38
-[v21 n&16 l1] x39
-[v21 n&16 l1] x40
-[v21 n&16 l1] x41
-[v21 n&16 l1] x42
-[v21 n&16 l1] x43
-[v21 n&16 l1] x44
-[v21 n&16 l1] x45
-[v21 n&16 l1] x46
-[v21 n&16 l1] x47
-[v21 n&16 l1] x48
-[v21 n&16 l1] x49
-[v21 n&16 l1] x50
-[v21 n&16 l1] x51
-[v21 n&16 l1] x52
-[v21 n&16 l1] x53
-[v21 n&16 l1] x54
-[v21 n&16 l1] x55
-[v21 n&16 l1] x56
-[v21 n&16 l1] x57
-[v21 n&16 l1] x58
-[v21 n&16 l1] x59
-[v21 n&16 l1] x60
-[v21 n&16 l1] x61
-[v21 n&16 l1] x62
-[v21 n&16 l1] x63
-[v21 n&16 l1] x64
-[v21 n&16 l1] x65
-[v21 n&16 l1] x66
-[v21 n&16 l1] x67
-[v21 n&16 l1] x68
-[v21 n&16 l1] x69
-[v21 n&16 l1] x70
-[v21 n&16 l1] x71
-[v21 n&16 l1] x72
-[v21 n&16 l1] x73
-[v21 n&16 l1] x74
-[v21 n&16 l1] x75
-[v21 n&16 l1] x76
-[v21 n&16 l1] x77
-[v21 n&16 l1] x78
-[v21 n&16 l1] x79
-[v21 n&16 l1] x80
-[v21 n&16 l1] x81
-[v21 n&16 l1] x82
-[v21 n&16 l1] x83
-[v21 n&16 l1] x84
-[v21 n&16 l1] x85
-[v21 n&16 l1] x86
-[v21 n&16 l1] x87
-[v21 n&16 l1] x88
-[v21 n&16 l1] x89
-[v21 n&16 l1] x90
-[v21 n&16 l1] x91
-[v21 n&16 l1] x92
-[v21 n&16 l1] x93
-[v21 n&16 l1] x94
-[v21 n&16 l1] x95
-[v21 n&16 l1] x96
-[v21 n&16 l1] x97
-[v21 n&16 l1] x98
-[v21 n&16 l1] x99
-[v21 n&16 l1] x100
-[v21 n&16 l1] x101
-[v21 n&16 l1] x102
-[v21 n&16 l1] x103
-[v21 n&16 l1] x104
-[v21 n&16 l1] x105
-[v21 n&16 l1] x106
-[v21 n&16 l1] x107
-[v21 n&16 l1] x108
-[v21 n&16 l1] x109
-[v21 n&16 l1] x110
-[v21 n&16 l1] x111
-[v21 n&16 l1] x112
-[v21 n&16 l1] x113
-[v21 n&16 l1] x114
-[v21 n&16 l1] x115
-[v21 n&16 l1] x116
-[v21 n&16 l1] x117
-[v21 n&16 l1] x118
-[v21 n&16 l1] x119
-[v21 n&16 l1] x120
-[v21 n&16 l1] x121
-[v21 n&16 l1] x122
-[v21 n&16 l1] x123
-[v21 n&16 l1] x124
-[v21 n&16 l1] x125
-[v21 n&16 l1] x126
-[v21 n&16 l1 =127,0] x127
-
-y27
-[outro vocal chants uncontrollable urge] yt
-[v21 n&18 l1] x0
-[v21 n&18 l1] x1
-[v21 n&18 l1] x2
-[v21 n&18 l1] x3
-[v21 n&18 l1] x4
-[v21 n&18 l1] x5
-[v21 n&18 l1] x6
-[v21 n&18 l1] x7
-[v21 n&18 l1] x8
-[v21 n&18 l1] x9
-[v21 n&18 l1] x10
-[v21 n&18 l1] x11
-[v21 n&18 l1] x12
-[v21 n&18 l1] x13
-[v21 n&18 l1] x14
-[v21 n&18 l1] x15
-[v21 n&18 l1] x16
-[v21 n&18 l1] x17
-[v21 n&18 l1] x18
-[v21 n&18 l1] x19
-[v21 n&18 l1] x20
-[v21 n&18 l1] x21
-[v21 n&18 l1] x22
-[v21 n&18 l1] x23
-[v21 n&18 l1] x24
-[v21 n&18 l1] x25
-[v21 n&18 l1] x26
-[v21 n&18 l1] x27
-[v21 n&18 l1] x28
-[v21 n&18 l1] x29
-[v21 n&18 l1] x30
-[v21 n&18 l1] x31
-[v21 n&18 l1] x32
-[v21 n&18 l1] x33
-[v21 n&18 l1] x34
-[v21 n&18 l1] x35
-[v21 n&18 l1] x36
-[v21 n&18 l1] x37
-[v21 n&18 l1] x38
-[v21 n&18 l1] x39
-[v21 n&18 l1] x40
-[v21 n&18 l1] x41
-[v21 n&18 l1] x42
-[v21 n&18 l1] x43
-[v21 n&18 l1] x44
-[v21 n&18 l1] x45
-[v21 n&18 l1] x46
-[v21 n&18 l1] x47
-[v21 n&18 l1] x48
-[v21 n&18 l1] x49
-[v21 n&18 l1] x50
-[v21 n&18 l1] x51
-[v21 n&18 l1] x52
-[v21 n&18 l1] x53
-[v21 n&18 l1] x54
-[v21 n&18 l1] x55
-[v21 n&18 l1] x56
-[v21 n&18 l1] x57
-[v21 n&18 l1] x58
-[v21 n&18 l1] x59
-[v21 n&18 l1] x60
-[v21 n&18 l1] x61
-[v21 n&18 l1] x62
-[v21 n&18 l1 =127,0] x63
-
-y28
-[minimoog quirky synth bleeps] yt
-[v11 n81 l.75] x6
-[v11 n88 l.85] x14
+[intro bass riff: tonic on 1, three pickups on the last 3 eighths] yt
+[v6 n&6 l1] x0
+[v6 n&6 l.9] x10
+[v6 n&6 l.9] x12
+[v6 n&6 l.9] x14
 [=127,0] x15
 
-y29
-[minimoog chorus squeals] yt
-[v11 n76 l.8] x2
-[v11 n79 l.8] x6
-[v11 n81 l.85] x10
-[v11 n88 l.9 =127,0] x14
+y5
+[verse bass drone] yt
+[v6 n&1 l&2] x0
+[v6 n&1 l&2] x2
+[v6 n&1 l&2] x4
+[v6 n&1 l&2] x6
+[v6 n&1 l&2] x8
+[v6 n&1 l&2] x10
+[v6 n&1 l&2] x12
+[v6 n&1 l&2] x14
+[=127,0] x15
 
-## CONDUCTOR (Pattern 0, %16: 1 step = 1 bar / 16 sixteenths, 128 bars)
+y8
+[chorus bass E D A A, 4 bars] yt
+[v6 n&3 l&2] x0
+[v6 n&3 l&2] x2
+[v6 n&3 l&2] x4
+[v6 n&3 l&2] x6
+[v6 n&3 l&2] x8
+[v6 n&3 l&2] x10
+[v6 n&3 l&2] x12
+[v6 n&3 l&2] x14
+[v6 n&3 l&2] x16
+[v6 n&3 l&2] x18
+[v6 n&3 l&2] x20
+[v6 n&3 l&2] x22
+[v6 n&3 l&2] x24
+[v6 n&3 l&2] x26
+[v6 n&3 l&2] x28
+[v6 n&3 l&2] x30
+[v6 n&3 l&2] x32
+[v6 n&3 l&2] x34
+[v6 n&3 l&2] x36
+[v6 n&3 l&2] x38
+[v6 n&3 l&2] x40
+[v6 n&3 l&2] x42
+[v6 n&3 l&2] x44
+[v6 n&3 l&2] x46
+[v6 n&3 l&2] x48
+[v6 n&3 l&2] x50
+[v6 n&3 l&2] x52
+[v6 n&3 l&2] x54
+[v6 n&3 l&2] x56
+[v6 n&3 l&2] x58
+[v6 n&3 l&2] x60
+[v6 n&3 l&2] x62
+[=127,0] x63
+
+y9
+[chorus guitar power chords, 4 bars] yt
+[v8 n&4 l&5] x0
+[v8 n&4 l&5] x2
+[v8 n&4 l&5] x4
+[v8 n&4 l&5] x6
+[v8 n&4 l&5] x8
+[v8 n&4 l&5] x10
+[v8 n&4 l&5] x12
+[v8 n&4 l&5] x14
+[v8 n&4 l&5] x16
+[v8 n&4 l&5] x18
+[v8 n&4 l&5] x20
+[v8 n&4 l&5] x22
+[v8 n&4 l&5] x24
+[v8 n&4 l&5] x26
+[v8 n&4 l&5] x28
+[v8 n&4 l&5] x30
+[v8 n&4 l&5] x32
+[v8 n&4 l&5] x34
+[v8 n&4 l&5] x36
+[v8 n&4 l&5] x38
+[v8 n&4 l&5] x40
+[v8 n&4 l&5] x42
+[v8 n&4 l&5] x44
+[v8 n&4 l&5] x46
+[v8 n&4 l&5] x48
+[v8 n&4 l&5] x50
+[v8 n&4 l&5] x52
+[v8 n&4 l&5] x54
+[v8 n&4 l&5] x56
+[v8 n&4 l&5] x58
+[v8 n&4 l&5] x60
+[v8 n&4 l&5] x62
+[=127,0] x63
+
+y10
+[verse guitar chug on A] yt
+[v8 n57 l&5] x0
+[v8 n57 l&5] x2
+[v8 n57 l&5] x4
+[v8 n57 l&5] x6
+[v8 n57 l&5] x8
+[v8 n57 l&5] x10
+[v8 n57 l&5] x12
+[v8 n57 l&5] x14
+[=127,0] x15
+
+y11
+[FM stab on beat 1] yt
+[v11 n69 l.9] x0
+[=127,0] x15
+
+y13
+[snare roll] yt
+[v1 l0.2] x0
+[v1 l0.25] x1
+[v1 l0.3] x2
+[v1 l0.35] x3
+[v1 l0.4] x4
+[v1 l0.45] x5
+[v1 l0.5] x6
+[v1 l0.55] x7
+[v1 l0.6 z*2] x8
+[v1 l0.65 z*2] x9
+[v1 l0.7 z*2] x10
+[v1 l0.75 z*2] x11
+[v1 l0.8 z*4] x12
+[v1 l0.85 z*4] x13
+[v1 l0.9 z*4] x14
+[v1 l0.95 z*8] x15
+[-] x16
+
+y21
+[verse vocal lead 16 bars] yt
+[v13 n&7 l1] x0
+[v13 n&7 l1] x1
+[v13 n&7 l1] x2
+[v13 n&7 l1] x3
+[v13 n&7 l1] x4
+[v13 n&7 l1] x5
+[v13 n&7 l1] x6
+[v13 n&7 l1] x7
+[v13 n&7 l1] x8
+[v13 n&7 l1] x9
+[v13 n&7 l1] x10
+[v13 n&7 l1] x11
+[v13 n&7 l1] x12
+[v13 n&7 l1] x13
+[v13 n&7 l1] x14
+[v13 n&7 l1] x15
+[v13 n&7 l1] x16
+[v13 n&7 l1] x17
+[v13 n&7 l1] x18
+[v13 n&7 l1] x19
+[v13 n&7 l1] x20
+[v13 n&7 l1] x21
+[v13 n&7 l1] x22
+[v13 n&7 l1] x23
+[v13 n&7 l1] x24
+[v13 n&7 l1] x25
+[v13 n&7 l1] x26
+[v13 n&7 l1] x27
+[v13 n&7 l1] x28
+[v13 n&7 l1] x29
+[v13 n&7 l1] x30
+[v13 n&7 l1] x31
+[v13 n&7 l1] x32
+[v13 n&7 l1] x33
+[v13 n&7 l1] x34
+[v13 n&7 l1] x35
+[v13 n&7 l1] x36
+[v13 n&7 l1] x37
+[v13 n&7 l1] x38
+[v13 n&7 l1] x39
+[v13 n&7 l1] x40
+[v13 n&7 l1] x41
+[v13 n&7 l1] x42
+[v13 n&7 l1] x43
+[v13 n&7 l1] x44
+[v13 n&7 l1] x45
+[v13 n&7 l1] x46
+[v13 n&7 l1] x47
+[v13 n&7 l1] x48
+[v13 n&7 l1] x49
+[v13 n&7 l1] x50
+[v13 n&7 l1] x51
+[v13 n&7 l1] x52
+[v13 n&7 l1] x53
+[v13 n&7 l1] x54
+[v13 n&7 l1] x55
+[v13 n&7 l1] x56
+[v13 n&7 l1] x57
+[v13 n&7 l1] x58
+[v13 n&7 l1] x59
+[v13 n&7 l1] x60
+[v13 n&7 l1] x61
+[v13 n&7 l1] x62
+[v13 n&7 l1] x63
+[v13 n&7 l1] x64
+[v13 n&7 l1] x65
+[v13 n&7 l1] x66
+[v13 n&7 l1] x67
+[v13 n&7 l1] x68
+[v13 n&7 l1] x69
+[v13 n&7 l1] x70
+[v13 n&7 l1] x71
+[v13 n&7 l1] x72
+[v13 n&7 l1] x73
+[v13 n&7 l1] x74
+[v13 n&7 l1] x75
+[v13 n&7 l1] x76
+[v13 n&7 l1] x77
+[v13 n&7 l1] x78
+[v13 n&7 l1] x79
+[v13 n&7 l1] x80
+[v13 n&7 l1] x81
+[v13 n&7 l1] x82
+[v13 n&7 l1] x83
+[v13 n&7 l1] x84
+[v13 n&7 l1] x85
+[v13 n&7 l1] x86
+[v13 n&7 l1] x87
+[v13 n&7 l1] x88
+[v13 n&7 l1] x89
+[v13 n&7 l1] x90
+[v13 n&7 l1] x91
+[v13 n&7 l1] x92
+[v13 n&7 l1] x93
+[v13 n&7 l1] x94
+[v13 n&7 l1] x95
+[v13 n&7 l1] x96
+[v13 n&7 l1] x97
+[v13 n&7 l1] x98
+[v13 n&7 l1] x99
+[v13 n&7 l1] x100
+[v13 n&7 l1] x101
+[v13 n&7 l1] x102
+[v13 n&7 l1] x103
+[v13 n&7 l1] x104
+[v13 n&7 l1] x105
+[v13 n&7 l1] x106
+[v13 n&7 l1] x107
+[v13 n&7 l1] x108
+[v13 n&7 l1] x109
+[v13 n&7 l1] x110
+[v13 n&7 l1] x111
+[v13 n&7 l1] x112
+[v13 n&7 l1] x113
+[v13 n&7 l1] x114
+[v13 n&7 l1] x115
+[v13 n&7 l1] x116
+[v13 n&7 l1] x117
+[v13 n&7 l1] x118
+[v13 n&7 l1] x119
+[v13 n&7 l1] x120
+[v13 n&7 l1] x121
+[v13 n&7 l1] x122
+[v13 n&7 l1] x123
+[v13 n&7 l1] x124
+[v13 n&7 l1] x125
+[v13 n&7 l1] x126
+[v13 n&7 l1] x127
+[v13 n&7 l1] x128
+[v13 n&7 l1] x129
+[v13 n&7 l1] x130
+[v13 n&7 l1] x131
+[v13 n&7 l1] x132
+[v13 n&7 l1] x133
+[v13 n&7 l1] x134
+[v13 n&7 l1] x135
+[v13 n&7 l1] x136
+[v13 n&7 l1] x137
+[v13 n&7 l1] x138
+[v13 n&7 l1] x139
+[v13 n&7 l1] x140
+[v13 n&7 l1] x141
+[v13 n&7 l1] x142
+[v13 n&7 l1] x143
+[v13 n&7 l1] x144
+[v13 n&7 l1] x145
+[v13 n&7 l1] x146
+[v13 n&7 l1] x147
+[v13 n&7 l1] x148
+[v13 n&7 l1] x149
+[v13 n&7 l1] x150
+[v13 n&7 l1] x151
+[v13 n&7 l1] x152
+[v13 n&7 l1] x153
+[v13 n&7 l1] x154
+[v13 n&7 l1] x155
+[v13 n&7 l1] x156
+[v13 n&7 l1] x157
+[v13 n&7 l1] x158
+[v13 n&7 l1] x159
+[v13 n&7 l1] x160
+[v13 n&7 l1] x161
+[v13 n&7 l1] x162
+[v13 n&7 l1] x163
+[v13 n&7 l1] x164
+[v13 n&7 l1] x165
+[v13 n&7 l1] x166
+[v13 n&7 l1] x167
+[v13 n&7 l1] x168
+[v13 n&7 l1] x169
+[v13 n&7 l1] x170
+[v13 n&7 l1] x171
+[v13 n&7 l1] x172
+[v13 n&7 l1] x173
+[v13 n&7 l1] x174
+[v13 n&7 l1] x175
+[v13 n&7 l1] x176
+[v13 n&7 l1] x177
+[v13 n&7 l1] x178
+[v13 n&7 l1] x179
+[v13 n&7 l1] x180
+[v13 n&7 l1] x181
+[v13 n&7 l1] x182
+[v13 n&7 l1] x183
+[v13 n&7 l1] x184
+[v13 n&7 l1] x185
+[v13 n&7 l1] x186
+[v13 n&7 l1] x187
+[v13 n&7 l1] x188
+[v13 n&7 l1] x189
+[v13 n&7 l1] x190
+[v13 n&7 l1] x191
+[v13 n&7 l1] x192
+[v13 n&7 l1] x193
+[v13 n&7 l1] x194
+[v13 n&7 l1] x195
+[v13 n&7 l1] x196
+[v13 n&7 l1] x197
+[v13 n&7 l1] x198
+[v13 n&7 l1] x199
+[v13 n&7 l1] x200
+[v13 n&7 l1] x201
+[v13 n&7 l1] x202
+[v13 n&7 l1] x203
+[v13 n&7 l1] x204
+[v13 n&7 l1] x205
+[v13 n&7 l1] x206
+[v13 n&7 l1] x207
+[v13 n&7 l1] x208
+[v13 n&7 l1] x209
+[v13 n&7 l1] x210
+[v13 n&7 l1] x211
+[v13 n&7 l1] x212
+[v13 n&7 l1] x213
+[v13 n&7 l1] x214
+[v13 n&7 l1] x215
+[v13 n&7 l1] x216
+[v13 n&7 l1] x217
+[v13 n&7 l1] x218
+[v13 n&7 l1] x219
+[v13 n&7 l1] x220
+[v13 n&7 l1] x221
+[v13 n&7 l1] x222
+[v13 n&7 l1] x223
+[v13 n&7 l1] x224
+[v13 n&7 l1] x225
+[v13 n&7 l1] x226
+[v13 n&7 l1] x227
+[v13 n&7 l1] x228
+[v13 n&7 l1] x229
+[v13 n&7 l1] x230
+[v13 n&7 l1] x231
+[v13 n&7 l1] x232
+[v13 n&7 l1] x233
+[v13 n&7 l1] x234
+[v13 n&7 l1] x235
+[v13 n&7 l1] x236
+[v13 n&7 l1] x237
+[v13 n&7 l1] x238
+[v13 n&7 l1] x239
+[v13 n&7 l1] x240
+[v13 n&7 l1] x241
+[v13 n&7 l1] x242
+[v13 n&7 l1] x243
+[v13 n&7 l1] x244
+[v13 n&7 l1] x245
+[v13 n&7 l1] x246
+[v13 n&7 l1] x247
+[v13 n&7 l1] x248
+[v13 n&7 l1] x249
+[v13 n&7 l1] x250
+[v13 n&7 l1] x251
+[v13 n&7 l1] x252
+[v13 n&7 l1] x253
+[v13 n&7 l1] x254
+[v13 n&7 l1] x255
+
+y22
+[chorus vocal lead 4 bars] yt
+[v13 n&8 l1] x0
+[v13 n&8 l1] x1
+[v13 n&8 l1] x2
+[v13 n&8 l1] x3
+[v13 n&8 l1] x4
+[v13 n&8 l1] x5
+[v13 n&8 l1] x6
+[v13 n&8 l1] x7
+[v13 n&8 l1] x8
+[v13 n&8 l1] x9
+[v13 n&8 l1] x10
+[v13 n&8 l1] x11
+[v13 n&8 l1] x12
+[v13 n&8 l1] x13
+[v13 n&8 l1] x14
+[v13 n&8 l1] x15
+[v13 n&8 l1] x16
+[v13 n&8 l1] x17
+[v13 n&8 l1] x18
+[v13 n&8 l1] x19
+[v13 n&8 l1] x20
+[v13 n&8 l1] x21
+[v13 n&8 l1] x22
+[v13 n&8 l1] x23
+[v13 n&8 l1] x24
+[v13 n&8 l1] x25
+[v13 n&8 l1] x26
+[v13 n&8 l1] x27
+[v13 n&8 l1] x28
+[v13 n&8 l1] x29
+[v13 n&8 l1] x30
+[v13 n&8 l1] x31
+[v13 n&8 l1] x32
+[v13 n&8 l1] x33
+[v13 n&8 l1] x34
+[v13 n&8 l1] x35
+[v13 n&8 l1] x36
+[v13 n&8 l1] x37
+[v13 n&8 l1] x38
+[v13 n&8 l1] x39
+[v13 n&8 l1] x40
+[v13 n&8 l1] x41
+[v13 n&8 l1] x42
+[v13 n&8 l1] x43
+[v13 n&8 l1] x44
+[v13 n&8 l1] x45
+[v13 n&8 l1] x46
+[v13 n&8 l1] x47
+[v13 n&8 l1] x48
+[v13 n&8 l1] x49
+[v13 n&8 l1] x50
+[v13 n&8 l1] x51
+[v13 n&8 l1] x52
+[v13 n&8 l1] x53
+[v13 n&8 l1] x54
+[v13 n&8 l1] x55
+[v13 n&8 l1] x56
+[v13 n&8 l1] x57
+[v13 n&8 l1] x58
+[v13 n&8 l1] x59
+[v13 n&8 l1] x60
+[v13 n&8 l1] x61
+[v13 n&8 l1] x62
+[v13 n&8 l1] x63
+
+y23
+[outro vocal lead 4 bars] yt
+[v13 n&9 l1] x0
+[v13 n&9 l1] x1
+[v13 n&9 l1] x2
+[v13 n&9 l1] x3
+[v13 n&9 l1] x4
+[v13 n&9 l1] x5
+[v13 n&9 l1] x6
+[v13 n&9 l1] x7
+[v13 n&9 l1] x8
+[v13 n&9 l1] x9
+[v13 n&9 l1] x10
+[v13 n&9 l1] x11
+[v13 n&9 l1] x12
+[v13 n&9 l1] x13
+[v13 n&9 l1] x14
+[v13 n&9 l1] x15
+[v13 n&9 l1] x16
+[v13 n&9 l1] x17
+[v13 n&9 l1] x18
+[v13 n&9 l1] x19
+[v13 n&9 l1] x20
+[v13 n&9 l1] x21
+[v13 n&9 l1] x22
+[v13 n&9 l1] x23
+[v13 n&9 l1] x24
+[v13 n&9 l1] x25
+[v13 n&9 l1] x26
+[v13 n&9 l1] x27
+[v13 n&9 l1] x28
+[v13 n&9 l1] x29
+[v13 n&9 l1] x30
+[v13 n&9 l1] x31
+[v13 n&9 l1] x32
+[v13 n&9 l1] x33
+[v13 n&9 l1] x34
+[v13 n&9 l1] x35
+[v13 n&9 l1] x36
+[v13 n&9 l1] x37
+[v13 n&9 l1] x38
+[v13 n&9 l1] x39
+[v13 n&9 l1] x40
+[v13 n&9 l1] x41
+[v13 n&9 l1] x42
+[v13 n&9 l1] x43
+[v13 n&9 l1] x44
+[v13 n&9 l1] x45
+[v13 n&9 l1] x46
+[v13 n&9 l1] x47
+[v13 n&9 l1] x48
+[v13 n&9 l1] x49
+[v13 n&9 l1] x50
+[v13 n&9 l1] x51
+[v13 n&9 l1] x52
+[v13 n&9 l1] x53
+[v13 n&9 l1] x54
+[v13 n&9 l1] x55
+[v13 n&9 l1] x56
+[v13 n&9 l1] x57
+[v13 n&9 l1] x58
+[v13 n&9 l1] x59
+[v13 n&9 l1] x60
+[v13 n&9 l1] x61
+[v13 n&9 l1] x62
+[v13 n&9 l1] x63
+
+## CONDUCTOR (pattern 0, one step per bar, 136 bars)
 y0
-[devo conductor 128 bars] yt
+[conductor] yt
 %16
 
-# Bars 0-1: Alan Myers hi-hat count-in
-[y14 z1] x0
+# Bars 0-1: Solo bass intro riff
+[y4 z1] x0
 [=126,1] x1
+# Bars 2-3: Drums enter with bass riff
+[y1 z1 y2 z1 y3 z1] x2
+[=126,3] x3
+# Bars 4-5: Guitar chug enters
+[y10 z1] x4
+[=126,5] x5
+# Bar 6: FM stab enters on beat 1
+[y11 z1] x6
+# Bar 7: Sudden break - all cut, snare roll builds!
+[y11 z0 y1 z0 y2 z0 y13 z1] x7
 
-# Bars 2-4: Intro F -> G build riff (3 bars) + Bar 5: G chug & snare crescendo
-[y14 z0 y4 z1 /SP 1,0 /SP 2,0] x2
-[/SP 1,0 /SP 2,0] x3
-[/SP 1,0 /SP 2,0] x4
-[y4 z0 y17 z1 y13 z1 /SP 3,0 /SP 4,0] x5
+# Bars 8-9: Full groove hits with crash cymbal!
+[v5 l1 y4 z0 y8 z0 y9 z0 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 /SP 1,0 /SP 2,0] x8
+[=126,9] x9
+# Bars 10-11: DEAD STOP! Complete band cutoff, only FM stab echoes into the void!
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y11 z1] x10
+[=126,11] x11
+# Bars 12-13: Full groove slams back in!
+[y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 /SP 1,0 /SP 2,0] x12
+[=126,13] x13
+# Bar 14: DEAD STOP! FM stab echo rings!
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y11 z1] x14
+# Bar 15: Snare roll builds into the verse!
+[y11 z0 y13 z1] x15
 
-# Bars 6-13: Main Unison Riff explosion & 'YEAH!' manic shouts
-[v17 l1 y17 z0 y13 z0 y1 z1 y2 z1 y3 z1 y6 z1 y10 z1 y21 z1 /SP 5,0 /SP 6,0 /SP 9,0] x6
-[/SP 5,0 /SP 6,0] x7
-[/SP 5,0 /SP 6,0 /SP 9,0] x8
-[/SP 5,0 /SP 6,0] x9
-[/SP 5,0 /SP 6,0 /SP 9,0] x10
-[/SP 5,0 /SP 6,0] x11
-[/SP 5,0 /SP 6,0 /SP 9,0] x12
-[/SP 5,0 /SP 6,0 y15 z1] x13
-
-# Bars 14-17: Verse 1 Part 1 ('Got an urge, got a surge, and it's out of control...')
-[v17 l1 y6 z0 y10 z0 y21 z0 y15 z0 y5 z1 y9 z1 y28 z1 y22 z1 /SP 7,0 /SP 8,0 /SP 10,0] x14
-[=126,15] x15
-[=126,16] x16
+# Bars 16-30: Verse 1 ('Got an urge, got a surge, and it's out of control...')
+[v5 l1 y4 z0 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 y21 z1 /SP 1,0 /SP 2,0 /SP 7,0] x16
 [=126,17] x17
-
-# Bars 18-21: Verse 1 Part 2 ('Got an urge, I wanna purge, cause I'm losing control...')
-[y22 z0 y23 z1 /SP 11,0] x18
+[=126,18] x18
 [=126,19] x19
 [=126,20] x20
 [=126,21] x21
-
-# Bars 22-25: Verse 1 Part 3 ('Uncontrollable urge, I wanna tell you all about it...')
-[y23 z0 y24 z1 /SP 12,0] x22
+[=126,22] x22
 [=126,23] x23
 [=126,24] x24
 [=126,25] x25
-
-# Bars 26-29: Verse 1 Part 4 ('Uncontrollable urge, makes me scream and shout it...')
-[y24 z0 y25 z1 /SP 13,0] x26
+[=126,26] x26
 [=126,27] x27
 [=126,28] x28
-[y25 z0 y28 z0 y13 z1] x29
+[=126,29] x29
+[=126,30] x30
+# Bar 31: Snare roll into chorus!
+[y2 z0 y13 z1] x31
 
-# Bars 30-37: Chorus 1 ('It's got style, it's got class... And I say: YEAH!')
-[v17 l1 y5 z0 y9 z0 y13 z0 y3 z0 y12 z1 y7 z1 y11 z1 y29 z1 y26 z1 /SP 14,0 /SP 15,0 /SP 16,0] x30
-[=126,31] x31
-[=126,32] x32
+# Bars 32-46: Chorus 1 (E -> D -> A power chords)
+[v5 l1 y5 z0 y10 z0 y21 z0 y2 z1 y8 z1 y9 z1 y22 z1 /SP 3,0 /SP 4,0 /SP 8,0] x32
 [=126,33] x33
 [=126,34] x34
 [=126,35] x35
 [=126,36] x36
-[y15 z1] x37
+[=126,37] x37
+[=126,38] x38
+[=126,39] x39
+[=126,40] x40
+[=126,41] x41
+[=126,42] x42
+[=126,43] x43
+[=126,44] x44
+[=126,45] x45
+[=126,46] x46
+# Bar 47: Snare roll into break 2!
+[y2 z0 y13 z1] x47
 
-# Bars 38-41: Re-Intro Main Riff & 'YEAH!' Reprise
-[v17 l1 y12 z0 y7 z0 y11 z0 y29 z0 y26 z0 y15 z0 y3 z1 y6 z1 y10 z1 y21 z1 /SP 5,0 /SP 6,0 /SP 9,0] x38
-[/SP 5,0 /SP 6,0] x39
-[/SP 5,0 /SP 6,0 /SP 9,0] x40
-[/SP 5,0 /SP 6,0 y15 z1] x41
-
-# Bars 42-49: Start-Stop Breaks 1 (sudden dead stops & explosive pickups)
-[v17 l1 y6 z0 y10 z0 y21 z0 y15 z0 y5 z1 y9 z1 /SP 7,0 /SP 8,0] x42
-[y1 z0 y2 z0 y3 z0 y5 z0 y9 z0 y16 z1] x43
-[y16 z0 y1 z1 y2 z1 y3 z1 y5 z1 y9 z1 /SP 7,0 /SP 8,0] x44
-[y1 z0 y2 z0 y3 z0 y5 z0 y9 z0 y16 z1] x45
-[y16 z0 y1 z1 y2 z1 y3 z1 y5 z1 y9 z1 /SP 7,0 /SP 8,0] x46
-[y1 z0 y2 z0 y3 z0 y5 z0 y9 z0 y16 z1] x47
-[y16 z0 y1 z1 y2 z1 y3 z1 y5 z1 y9 z1 /SP 7,0 /SP 8,0] x48
-[y13 z1 y15 z1] x49
-
-# Bars 50-53: Verse 2 Part 1 ('Got an urge, got a surge, and it's out of control...')
-[v17 l1 y13 z0 y15 z0 y28 z1 y22 z1 /SP 7,0 /SP 8,0 /SP 10,0] x50
+# Bars 48-49: Groove crashes back in!
+[v5 l1 y8 z0 y9 z0 y22 z0 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 /SP 1,0 /SP 2,0] x48
+[=126,49] x49
+# Bars 50-51: DEAD STOP! FM stab echo!
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y11 z1] x50
 [=126,51] x51
-[=126,52] x52
+# Bars 52-53: Groove returns!
+[y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 /SP 1,0 /SP 2,0] x52
 [=126,53] x53
+# Bar 54: DEAD STOP! FM stab echo!
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y11 z1] x54
+# Bar 55: Snare roll into verse 2!
+[y11 z0 y13 z1] x55
 
-# Bars 54-57: Verse 2 Part 2 ('Got an urge, I wanna purge, cause I'm losing control...')
-[y22 z0 y23 z1 /SP 11,0] x54
-[=126,55] x55
-[=126,56] x56
+# Bars 56-70: Verse 2 ('Got an urge, I wanna purge, 'cause I'm losing control...')
+[v5 l1 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 y21 z1 /SP 1,0 /SP 2,0 /SP 7,0] x56
 [=126,57] x57
-
-# Bars 58-61: Verse 2 Part 3 ('Uncontrollable urge, I wanna tell you all about it...')
-[y23 z0 y24 z1 /SP 12,0] x58
+[=126,58] x58
 [=126,59] x59
 [=126,60] x60
 [=126,61] x61
-
-# Bars 62-65: Verse 2 Part 4 ('Uncontrollable urge, makes me scream and shout it...')
-[y24 z0 y25 z1 /SP 13,0] x62
+[=126,62] x62
 [=126,63] x63
 [=126,64] x64
-[y25 z0 y28 z0 y13 z1] x65
-
-# Bars 66-73: Chorus 2 ('It's got style, it's got class... And I say: YEAH!')
-[v17 l1 y5 z0 y9 z0 y13 z0 y3 z0 y12 z1 y7 z1 y11 z1 y29 z1 y26 z1 /SP 14,0 /SP 15,0 /SP 16,0] x66
+[=126,65] x65
+[=126,66] x66
 [=126,67] x67
 [=126,68] x68
 [=126,69] x69
 [=126,70] x70
-[=126,71] x71
-[=126,72] x72
-[y15 z1] x73
+# Bar 71: Snare roll into chorus 2!
+[y2 z0 y13 z1] x71
 
-# Bars 74-89: Bridge & Bob Mothersbaugh Angular Guitar Solo + Minimoog sweeps
-[v17 l1 y12 z0 y7 z0 y11 z0 y29 z0 y26 z0 y15 z0 y3 z1 y5 z1 y18 z1 y28 z1 /SP 7,0 /SP 17,0] x74
+# Bars 72-86: Chorus 2 (E -> D -> A power chords)
+[v5 l1 y5 z0 y10 z0 y21 z0 y2 z1 y8 z1 y9 z1 y22 z1 /SP 3,0 /SP 4,0 /SP 8,0] x72
+[=126,73] x73
+[=126,74] x74
 [=126,75] x75
 [=126,76] x76
 [=126,77] x77
-[/SP 17,0] x78
+[=126,78] x78
 [=126,79] x79
 [=126,80] x80
 [=126,81] x81
-[/SP 17,0] x82
+[=126,82] x82
 [=126,83] x83
 [=126,84] x84
 [=126,85] x85
-[/SP 17,0] x86
-[=126,87] x87
-[=126,88] x88
-[y18 z0 y28 z0 y13 z1 y15 z1] x89
+[=126,86] x86
+# Bar 87: Snare roll into break 3!
+[y2 z0 y13 z1] x87
 
-# Bars 90-97: Start-Stop Breaks 2 (precision unison cuts)
-[v17 l1 y13 z0 y15 z0 y9 z1 /SP 7,0 /SP 8,0] x90
-[y1 z0 y2 z0 y3 z0 y5 z0 y9 z0 y16 z1] x91
-[y16 z0 y1 z1 y2 z1 y3 z1 y5 z1 y9 z1 /SP 7,0 /SP 8,0] x92
-[y1 z0 y2 z0 y3 z0 y5 z0 y9 z0 y16 z1] x93
-[y16 z0 y1 z1 y2 z1 y3 z1 y5 z1 y9 z1 /SP 7,0 /SP 8,0] x94
-[y1 z0 y2 z0 y3 z0 y5 z0 y9 z0 y16 z1] x95
-[y16 z0 y1 z1 y2 z1 y3 z1 y5 z1 y9 z1 /SP 7,0 /SP 8,0] x96
-[y13 z1 y15 z1] x97
+# Bars 88-89: Groove returns!
+[v5 l1 y8 z0 y9 z0 y22 z0 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 /SP 1,0 /SP 2,0] x88
+[=126,89] x89
+# Bars 90-91: DEAD STOP! FM stab echo!
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y11 z1] x90
+[=126,91] x91
+# Bars 92-93: Groove returns!
+[y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 /SP 1,0 /SP 2,0] x92
+[=126,93] x93
+# Bar 94: DEAD STOP! FM stab echo!
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y11 z1] x94
+# Bar 95: Snare roll into final chorus!
+[y11 z0 y13 z1] x95
 
-# Bars 98-105: Final Climax Chorus (Maximum power wall of sound)
-[v17 l1 y5 z0 y9 z0 y13 z0 y15 z0 y3 z0 y12 z1 y7 z1 y11 z1 y29 z1 y26 z1 /SP 14,0 /SP 15,0 /SP 16,0] x98
+# Bars 96-110: Final Chorus: maximum energy wall of sound!
+[v5 l1 y5 z0 y10 z0 y2 z1 y8 z1 y9 z1 y22 z1 /SP 3,0 /SP 4,0 /SP 8,0] x96
+[=126,97] x97
+[=126,98] x98
 [=126,99] x99
 [=126,100] x100
 [=126,101] x101
-[v17 l1] x102
+[=126,102] x102
 [=126,103] x103
-[=126,104] x104
-[y15 z1] x105
-
-# Bars 106-121: Outro Vamp: Frantic 'Uncontrollable Urge!' chanting
-[v17 l1 y12 z0 y7 z0 y11 z0 y29 z0 y26 z0 y15 z0 y3 z1 y5 z1 y9 z1 y27 z1 /SP 7,0 /SP 8,0 /SP 18,0] x106
+# Bar 104: Extra crash accent!
+[v5 l1] x104
+[=126,105] x105
+[=126,106] x106
 [=126,107] x107
 [=126,108] x108
 [=126,109] x109
-[/SP 18,0] x110
-[=126,111] x111
-[=126,112] x112
+[=126,110] x110
+# Bar 111: Snare roll into outro vamp!
+[y2 z0 y13 z1] x111
+
+# Bars 112-119: Outro vamp groove + frantic vocal chanting
+[v5 l1 y8 z0 y9 z0 y22 z0 y2 z1 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 y23 z1 /SP 1,0 /SP 2,0 /SP 9,0] x112
 [=126,113] x113
-[v17 l1 /SP 18,0 y28 z1] x114
+[=126,114] x114
 [=126,115] x115
 [=126,116] x116
 [=126,117] x117
-[/SP 18,0] x118
+[=126,118] x118
 [=126,119] x119
-[=126,120] x120
-[y15 z1] x121
+# Bar 120: FM stab re-enters as an accent layer!
+[v5 l1 y11 z1] x120
+[=126,121] x121
+[=126,122] x122
+[=126,123] x123
+[=126,124] x124
+[=126,125] x125
+[=126,126] x126
+# Bar 127: FM stab cuts out
+[y11 z0] x127
+# Bar 128: Crash hit!
+[v5 l1] x128
+[=126,129] x129
+[=126,130] x130
+[=126,131] x131
+[=126,132] x132
+[=126,133] x133
+[=126,134] x134
+# Bar 135: Final accelerating snare roll build!
+[y2 z0 y13 z1] x135
 
-# Bars 122-125: Final 'Yeah Yeah' sprint & sudden precision cutoff
-[v17 l1 y27 z0 y28 z0 y15 z0 y6 z1 y10 z1 y21 z1 /SP 5,0 /SP 6,0 /SP 9,0] x122
-[/SP 5,0 /SP 6,0] x123
-[/SP 5,0 /SP 6,0 /SP 9,0] x124
-[/SP 5,0 /SP 6,0 y13 z1] x125
-
-# Bars 126-127: Final unison crash hit & cleanup
-[v0 l1 v5 l1 v17 l1 v6 n45 l1 v8 n57 l1 v14 n57 l1 y6 z0 y10 z0 y21 z0 y13 z0] x126
-[Z0 +4 ce 99] x127
+# Bar 136: Final unison crash hit & hard stop cleanup
+[v5 l1 Z0 +4 ce 99] x136
 
 ## MACROS (play / stop)
 [use 'play' to start the song, 'stop' to stop it] puts

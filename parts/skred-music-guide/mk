@@ -12,6 +12,7 @@ do
 b=$(basename $i .sk)
 z=$(printf "%s.zip" $b)
 cp $i main.sk
-zip $z main.sk
+echo $z
+zip -q $z main.sk
 done
 rm -f main.sk

@@ -1,8 +1,8 @@
 ## SOFT CELL - TAINTED LOVE
 #  Full Arrangement Cover for PULP / SKRED. 144 BPM, G minor, 105 bars (~2:55).
 #  Written by Ed Cobb (1964), Produced by Mike Thorne, Performed by Soft Cell (1981).
-#  Self-contained: drums from built-in waves 82-99, Synare S3X bink-bink,
-#  Korg Synthe-Bass, Synclavier II brass and bells, Marc Almond vocal lead.
+#  Self-contained: drums from built-in waves 82-99, Prophet-5 synth hook stabs,
+#  Korg Synthe-Bass, octave synth comp, Synclavier bells, Marc Almond vocal lead.
 #  Zero synthetic noise risers - dynamic builds driven by authentic 1981 synthpop.
 #  Load:   [tainted_love.sk] /ls
 #  Start:  play        Stop:  stop
@@ -12,23 +12,23 @@
 #    v1  CR-78 crisp gated snare (w83) + v4 electronic clap (w86)
 #    v2  closed hat 8ths/16ths (w84)  v3  open hat offbeat (w85)
 #    v17 crash cymbal (w94)  v18 hi tom (w90)  v19 mid tom (w91)
-#    v11 Synare S3X 'bink-bink' lead (w10) + v12 ring (w11) -> Bus 1 DL4 delay
-#    v6  Korg Synthe-Bass saw (w1) + v7 sub pulse (w2)
-#    v21 Synclavier brass root (w15)  v22 3rd (w15)  v23 5th (w16) -> Bus 3
+#    v11 main synth stab root (w15) + v12 5th (w15) + v13 oct (w16) -> Bus 1
+#    v6  Korg Synthe-Bass low saw (w1) + v7 sub pulse oct (w2)
+#    v21 octave synth comp low (w15)  v22 comp high (w16) -> Bus 3
 #    v15 Synclavier bell lead (w10) + v16 chime (w10)
 #    v8  Marc Almond vocal lead (w15) + v9 (w15 left), v10 (w16 right) -> Bus 2
-#    v13 Marc Almond backing vocal (w15) + v14 (w16 right)
+#    v14 Marc Almond backing vocal (w15) + v14 right
 #
 #  DELAY BUSES:
-#    Bus 1: Delta Labs DL4 digital slapback / ping-pong for Synare bink-bink (16th)
+#    Bus 1: Delta Labs DL4 digital slapback / ping-pong for synth stabs (16th)
 #    Bus 2: Marc Almond vocal hall space echo (dotted eighth, 144 BPM)
-#    Bus 3: Synclavier brass stabs & bell reverb wash (quarter note)
+#    Bus 3: Synclavier octave comp & bell reverb wash (quarter note)
 #    Bus 4: Snare & electronic clap gated room tail (eighth note)
 #
 #  ARRANGEMENT (105 bars):
-#    0-3   Intro: Solo Synare S3X 'bink-bink' ping-pong delay hook
-#    4-7   Korg Synthe-Bass enters with closed hats and bink-bink
-#    8-23  Verse 1: Full groove, kick, snare, brass stabs, Marc's vocal
+#    0-3   Intro: Solo Prophet-5 synth stab hook + closed hats
+#    4-7   Korg Synthe-Bass enters with octave comp and full beat
+#    8-23  Verse 1: Full groove, kick, snare, claps, Marc's vocal
 #    24-35 Chorus 1: G-major lift, 'Once I ran to you...', D-major tension
 #    36-39 Interlude: Riff vamp + Synclavier bell hook ('Tainted love!')
 #    40-55 Verse 2: 'Now I know I've got to run away...', full driving beat
@@ -36,14 +36,14 @@
 #    68-79 Bridge: Drums drop to kick pulse, tense breakdown ('Don't touch me...')
 #    80-91 Chorus 3: Climax wall of sound, full emotional release
 #    92-103 Outro Vamp: Extended club groove, Marc's ad-libs, cascading bells
-#    104   Hard cold end on beat 1, solo bink-bink delay tail into silence
+#    104   Hard cold end on beat 1, solo synth stab delay tail into silence
 # ======================================================================
 
 [TAINTED LOVE - SOFT CELL] puts
 M 144 16
 
 ## DELAY BUSES
-# Bus 1: Delta Labs DL4 digital slapback / ping-pong for Synare Bink-Bink (16th note)
+# Bus 1: Delta Labs DL4 digital slapback / ping-pong for Synth Hook Stabs (16th note)
 DS 1 144 .25
 DL 1 - - 4 0 0 8
 DD 1 7 2
@@ -55,7 +55,7 @@ DL 2 - - 8 2 3 11
 DD 2 6 3
 DP 2 1
 
-# Bus 3: Synclavier brass stabs & bell reverb wash (quarter note)
+# Bus 3: Synclavier octave comp & bell reverb wash (quarter note)
 DS 3 144 1
 DL 3 - - 10 3 6 12
 DD 3 7 3
@@ -71,7 +71,7 @@ v0 w82 f440 a7 p0 [kick electronic] vt
 v5 w0 a-2 p0 t.001,.20,0,.05 j1 k180 q.7 [kick sub punch] vt
 
 # Crisp snare, claps, hats, crash, toms
-v1 w83 f440 a8 p0 r3 ds.25 [snare cr78 gated] vt
+v1 w83 f440 a8 p0 r3 ds.20 [snare cr78 gated] vt
 v2 w84 f440 a-3 p.25 [closed hat] vt
 v3 w85 f440 a-2 p-.25 [open hat] vt
 v4 w86 f440 a7 p0 ds.20 [electronic clap] vt
@@ -79,23 +79,24 @@ v17 w94 f440 a4 p.2 [crash cymbal] vt
 v18 w90 f480 a6 p-.3 [electronic hi tom] vt
 v19 w91 f380 a6 p.3 [electronic mid tom] vt
 
-# The Iconic Synare S3X 'Bink-Bink' (v11 lead + v12 stereo ring)
-# Highly resonant FM/ping with pitch envelope, feeding Bus 1 ping-pong delay
-v11 w10 a4 p-.2 t.001,.09,0,.03 j1 k3800 q4.5 r1 ds.40 [synare bink lead] vt
+# The REAL Iconic Main Synth Stab Hook (Prophet-5 G-D-G power chord)
+# Heavy analog punch on beats 1 and 2, and upbeat 2-and and beat 4
+v11 w15 a-2 p-.25 t.002,.16,0,.04 j1,2 k2600 q2.5 r1 ds.30 [synth stab root] vt
 v11 >12
-v12 w11 a1 N0,7 p.25 r0 ds.35 [synare bink ring] vt
-v11 G12 H12
+v11 >13
+v12 w15 a-3 p.25 t.002,.16,0,.04 j1,2 k2600 q2.5 r1 ds.30 [synth stab 5th] vt
+v13 w16 a-4 N0,12 p0 r0 ds.25 [synth stab oct] vt
+v11 G12,13 H12,13
 
-# Dave Ball's Korg Synthe-Bass (v6 saw center + v7 sub pulse right)
-v6 w1 a2 p-.1 t.002,.18,0,.04 j1 k1400 q2.8 r2 ds.08 [korg bass saw] vt
+# Dave Ball's Korg Synthe-Bass (G1-Bb1-Eb1-C1 with sub octave pulse)
+v6 w1 a3 p-.1 t.002,.18,0,.04 j1 k1300 q2.8 r2 ds.08 [korg bass low] vt
 v6 >7
-v7 w2 a-3 N0,8 p.35 r0 [korg bass sub pulse] vt
+v7 w2 a-2 N0,12 p.25 r0 [korg bass oct] vt
 v6 G7 H7
 
-# Mike Thorne's NED Synclavier II Digital Brass Triad (v21 root, v22 3rd, v23 5th)
-v21 w15 a-4 p-.35 t.005,.22,0,.06 j1 k2600 q1.8 ds.20 [synclavier brass root] vt
-v22 w15 a-5 p0 t.005,.22,0,.06 j1 k2600 q1.8 ds.20 [synclavier brass 3rd] vt
-v23 w16 a-5 p.35 t.005,.22,0,.06 j1 k2800 q1.8 ds.20 [synclavier brass 5th] vt
+# Octave Synth Comp (doubles the bass ostinato in upper octaves)
+v21 w15 a-5 p-.35 t.003,.16,0,.04 j1 k2400 q1.8 ds.15 [octave synth low] vt
+v22 w16 a-5 p.35 t.003,.16,0,.04 j1 k2400 q1.8 ds.15 [octave synth high] vt
 
 # Synclavier Crystalline Bell Chimes & Arpeggio (v15 center + v16 stereo right)
 v15 w10 a-3 p-.25 t.002,.45,0,.15 j1 k4200 q3.0 ds.35 [synclavier bell lead] vt
@@ -104,19 +105,16 @@ v16 w10 a-6 N0,12 p.4 r0 ds.30 [synclavier bell chime] vt
 v15 G16 H16
 
 # Marc Almond Vocal Lead: expressive, theatrical, soulful singing synth
-# Portamento glide P18, smooth attack, vibrato, zero-hanging decay
-v8 w15 a-3 p0 t.03,1.4,0,.25 j1 k2800 q1.2 g.08 c4,.25 r1 ds.35 P18 [marc almond lead] vt
+# Authentic G3..G4 tenor register with portamento glide P18, zero-hanging decay
+v8 w15 a-3 p0 t.03,1.4,0,.25 j1 k2600 q1.2 g.08 c4,.25 r1 ds.35 P18 [marc almond lead] vt
 v8 >9
 v8 >10
 v9 w15 a-6 N0,8 p-.45 r0 [marc vocal left] vt
 v10 w16 a-7 N0,-8 p.45 r0 [marc vocal right] vt
 v8 G9,10 H9,10
 
-# Marc Almond Backing Vocal / Echo Shouts (v13 lead + v14 right)
-v13 w15 a-5 p-.3 t.02,.9,0,.15 j1 k3200 q1.5 ds.30 P12 [marc backing shout] vt
-v13 >14
-v14 w16 a-7 N0,12 p.3 r0 ds.25 [marc backing right] vt
-v13 G14 H14
+# Marc Almond Backing Vocal / Shouts
+v14 w15 a-5 p-.3 t.02,.9,0,.15 j1 k3000 q1.5 ds.30 P12 [marc backing shout] vt
 
 ## PATTERNS
 y1
@@ -148,77 +146,100 @@ y4
 [v3 l.7 =127,0] x14
 
 y5
-[synare bink-bink hook 2 bars] yt
-[v11 n79 l.5] x4
-[v11 n79 l.5] x6
-[v11 n79 l.5] x12
-[v11 n79 l.5] x14
-[v11 n79 l.5] x20
-[v11 n79 l.5] x22
-[v11 n79 l.5] x28
-[v11 n79 l.5 =127,0] x30
+[iconic synth stab hook 2 bars] yt
+[v11 n55 l.6 v12 n62 l.6] x0
+[v11 n55 l.6 v12 n62 l.6] x4
+[v11 n55 l.6 v12 n62 l.6] x22
+[v11 n55 l.6 v12 n62 l.6 =127,0] x28
 
 y6
-[korg synthe-bass main riff 2 bars] yt
-[v6 n43 l.7] x0
-[v6 n43 l.7] x2
-[v6 n46 l.7] x8
-[v6 n46 l.7] x10
+[korg synthe-bass 2 bars] yt
+[v6 n31 l.7] x0
+[v6 n31 l.7] x4
+[v6 n34 l.7] x8
+[v6 n34 l.7] x12
 [v6 n39 l.7] x16
-[v6 n39 l.7] x18
-[v6 n41 l.7] x24
-[v6 n41 l.7 =127,0] x26
-
-y7
-[korg bass chorus part 1 2 bars] yt
-[v6 n43 l.7] x0
-[v6 n43 l.7] x2
-[v6 n46 l.7] x8
-[v6 n46 l.7] x10
-[v6 n39 l.7] x16
-[v6 n39 l.7] x18
-[v6 n36 l.7] x24
+[v6 n39 l.7] x20
+[v6 n34 l.7] x24
 [v6 n36 l.7 =127,0] x26
 
+y7
+[octave synth comp 2 bars] yt
+[v21 n55 l.7 v22 n67 l.7] x0
+[v21 n55 l.7 v22 n67 l.7] x4
+[v21 n58 l.7 v22 n70 l.7] x8
+[v21 n58 l.7 v22 n70 l.7] x12
+[v21 n63 l.7 v22 n75 l.7] x16
+[v21 n63 l.7 v22 n75 l.7] x20
+[v21 n58 l.7 v22 n70 l.7] x24
+[v21 n60 l.7 v22 n72 l.7 =127,0] x26
+
 y8
-[korg bass chorus part 2 d-dominant 2 bars] yt
-[v6 n38 l.7] x0
-[v6 n38 l.7] x2
-[v6 n38 l.7] x4
-[v6 n38 l.7] x6
-[v6 n38 l.7] x8
-[v6 n38 l.7] x10
-[v6 n38 l.7] x12
-[v6 n38 l.7] x14
-[v6 n38 l.7] x16
-[v6 n38 l.7] x18
-[v6 n43 l.7 =127,0] x30
+[chorus bass g 2 bars] yt
+[v6 n31 l.7] x0
+[v6 n31 l.7] x4
+[v6 n31 l.7] x8
+[v6 n31 l.7] x12
+[v6 n31 l.7] x16
+[v6 n31 l.7] x20
+[v6 n31 l.7] x24
+[v6 n31 l.7 =127,0] x28
 
 y9
-[synclavier brass stabs main riff 2 bars] yt
-[v21 n55 l.7 v22 n58 l.7 v23 n62 l.7] x0
-[v21 n53 l.7 v22 n58 l.7 v23 n62 l.7] x8
-[v21 n51 l.7 v22 n55 l.7 v23 n58 l.7] x16
-[v21 n53 l.7 v22 n57 l.7 v23 n60 l.7 =127,0] x24
+[chorus bass bb 2 bars] yt
+[v6 n34 l.7] x0
+[v6 n34 l.7] x4
+[v6 n34 l.7] x8
+[v6 n34 l.7] x12
+[v6 n34 l.7] x16
+[v6 n34 l.7] x20
+[v6 n34 l.7] x24
+[v6 n34 l.7 =127,0] x28
 
 y10
-[synclavier brass chorus stabs 2 bars] yt
-[v21 n55 l.7 v22 n59 l.7 v23 n62 l.7] x0
-[v21 n53 l.7 v22 n58 l.7 v23 n62 l.7] x8
-[v21 n51 l.7 v22 n55 l.7 v23 n58 l.7] x16
-[v21 n48 l.7 v22 n55 l.7 v23 n60 l.7 =127,0] x24
+[chorus bass eb 2 bars] yt
+[v6 n39 l.7] x0
+[v6 n39 l.7] x4
+[v6 n39 l.7] x8
+[v6 n39 l.7] x12
+[v6 n39 l.7] x16
+[v6 n39 l.7] x20
+[v6 n39 l.7] x24
+[v6 n39 l.7 =127,0] x28
 
 y11
-[synclavier brass d-dominant stabs 2 bars] yt
-[v21 n50 l.8 v22 n54 l.8 v23 n57 l.8] x0
-[v21 n50 l.8 v22 n54 l.8 v23 n57 l.8] x4
-[v21 n50 l.8 v22 n54 l.8 v23 n57 l.8] x8
-[v21 n50 l.8 v22 n54 l.8 v23 n57 l.8] x12
-[v21 n50 l.8 v22 n54 l.8 v23 n57 l.8] x16
-[v21 n50 l.8 v22 n54 l.8 v23 n57 l.8] x20
-[v21 n55 l1 v22 n58 l1 v23 n62 l1 =127,0] x28
+[chorus bass c 2 bars] yt
+[v6 n36 l.7] x0
+[v6 n36 l.7] x4
+[v6 n36 l.7] x8
+[v6 n36 l.7] x12
+[v6 n36 l.7] x16
+[v6 n36 l.7] x20
+[v6 n36 l.7] x24
+[v6 n36 l.7 =127,0] x28
 
 y12
+[chorus bass d tension 2 bars] yt
+[v6 n38 l.7] x0
+[v6 n38 l.7] x4
+[v6 n38 l.7] x8
+[v6 n38 l.7] x12
+[v6 n38 l.7] x16
+[v6 n38 l.7] x20
+[v6 n38 l.7] x24
+[v6 n31 l.7 =127,0] x28
+
+y13
+[cr78 snare roll fill 1 bar] yt
+[v1 l.4] x0
+[v1 l.4] x4
+[v1 l.4] x8
+[v1 l.4] x10
+[v1 l.4] x12
+[v1 l.4] x14
+[=127,0] x15
+
+y14
 [synclavier bell chimes hook 4 bars] yt
 [v15 n79 l.8] x0
 [v15 n74 l.7] x4
@@ -233,228 +254,276 @@ y12
 [v15 n77 l.8] x52
 [v15 n79 l1.2 =127,0] x56
 
-y13
-[cr78 snare roll fill 1 bar] yt
-[v1 l.4] x0
-[v1 l.4] x4
-[v1 l.4] x8
-[v1 l.4] x10
-[v1 l.4] x12
-[v1 l.4] x14
-[=127,0] x15
-
-y14
-[bridge breakdown bass 4 bars] yt
-[v6 n43 l.8] x0
-[v6 n43 l.8] x8
-[v6 n43 l.8] x16
-[v6 n43 l.8] x24
-[v6 n43 l.8] x32
-[v6 n43 l.8] x40
-[v6 n46 l.8] x48
-[v6 n41 l.8 =127,0] x56
-
 y15
-[synare solo bink-bink 1 bar] yt
-[v11 n79 l.5] x4
-[v11 n79 l.5 =127,0] x6
+[solo opening synth hook 2 bars] yt
+[v11 n55 l.6 v12 n62 l.6] x0
+[v11 n55 l.6 v12 n62 l.6 =127,0] x4
 
 y21
 [verse 1 vocal phrase 1 4 bars] yt
-[v8 n67 l.8] x0
-[v8 n70 l.8] x4
-[v8 n74 l.9] x8
-[v8 n74 l.6] x11
-[v8 n72 l.8] x13
-[v8 n70 l.8] x18
-[v8 n67 l.8] x22
-[v8 n67 l1.2] x24
-[v8 n67 l.8] x32
-[v8 n70 l.8] x36
-[v8 n74 l.9] x40
-[v8 n72 l.7] x43
-[v8 n70 l1.2] x45
-[v8 n67 l1.5 =127,0] x48
+[v8 n60 l.8] x10
+[v8 n62 l1.0] x14
+[v8 n55 l1.0] x24
+[v8 n58 l.6] x30
+[v8 n55 l.8] x32
+[v8 n55 l.8] x36
+[v8 n58 l.8] x40
+[v8 n60 l.8] x44
+[v8 n62 l.8] x56
+[v8 n55 l.8] x58
+[v8 n58 l.8 =127,0] x62
 
 y22
 [verse 1 vocal phrase 2 4 bars] yt
-[v8 n74 l.8] x0
-[v8 n72 l.8] x4
-[v8 n70 l.8] x8
-[v8 n67 l.8] x12
-[v8 n70 l.9] x16
-[v8 n67 l2.2 =127,0] x20
+[v8 n55 l.8] x2
+[v8 n55 l.6] x6
+[v8 n58 l.8] x8
+[v8 n60 l.8] x12
+[v8 n62 l.8] x24
+[v8 n55 l.8] x26
+[v8 n58 l.8] x30
+[v8 n55 l.8] x34
+[v8 n55 l.6] x38
+[v8 n58 l.8] x40
+[v8 n60 l.8] x44
+[v8 n62 l.8] x48
+[v8 n55 l.8] x50
+[v8 n55 l.8] x54
+[v8 n53 l.8] x58
+[v8 n53 l.8 =127,0] x62
 
 y23
 [verse 1 vocal phrase 3 4 bars] yt
-[v8 n70 l.8] x0
-[v8 n72 l.8] x4
-[v8 n74 l.9] x8
-[v8 n72 l.8] x12
-[v8 n70 l1.5] x16
-[v8 n67 l1.0 =127,0] x24
+[v8 n55 l.8] x0
+[v8 n58 l.6] x2
+[v8 n62 l.8] x4
+[v8 n62 l1.0] x6
+[v8 n65 l.8] x12
+[v8 n62 l1.5] x14
+[v8 n55 l1.0] x24
+[v8 n58 l.6] x30
+[v8 n55 l1.0] x32
+[v8 n58 l.8] x40
+[v8 n60 l.8] x44
+[v8 n62 l1.0] x48
+[v8 n55 l1.0 =127,0] x56
 
 y24
 [verse 1 vocal phrase 4 4 bars] yt
-[v8 n65 l.8] x0
-[v8 n67 l.8] x4
-[v8 n70 l1.2] x8
-[v8 n72 l.7] x16
-[v8 n74 l.8] x20
-[v8 n72 l1.0] x24
-[v8 n70 l.8] x32
-[v8 n67 l.8] x36
-[v8 n67 l1.8 =127,0] x40
+[v8 n58 l.6] x14
+[v8 n55 l.8] x16
+[v8 n58 l.8] x24
+[v8 n60 l.8] x26
+[v8 n62 l.8] x30
+[v8 n55 l1.0] x40
+[v8 n58 l.6] x46
+[v8 n55 l.8] x48
+[v8 n58 l.8] x56
+[v8 n60 l.8] x58
+[v8 n62 l.8 =127,0] x62
 
 y25
 [chorus vocal part 1 4 bars] yt
-[v8 n71 l.9] x0
-[v8 n74 l.9] x4
-[v8 n76 l1.5] x8
-[v13 n79 l.8] x14
-[v13 n76 l1.0] x18
-[v8 n70 l.9] x32
-[v8 n74 l.9] x36
-[v8 n77 l2.0 =127,0] x40
+[v8 n62 l.8] x2
+[v8 n62 l.8] x6
+[v8 n60 l.8] x10
+[v8 n62 l.8] x12
+[v8 n62 l.8] x16
+[v8 n62 l.8] x20
+[v8 n62 l.8] x24
+[v8 n59 l.9] x38
+[v8 n57 l.8] x44
+[v8 n55 l.8] x46
+[v8 n57 l.8] x48
+[v8 n55 l.8] x52
+[v8 n55 l1.2 =127,0] x54
 
 y26
 [chorus vocal part 2 4 bars] yt
-[v8 n75 l.9] x0
-[v8 n74 l.8] x4
-[v8 n72 l.8] x8
-[v8 n70 l1.2] x12
-[v8 n72 l.8] x16
-[v8 n72 l.8] x20
-[v8 n74 l.8] x24
-[v8 n75 l1.2 =127,0] x28
+[v8 n62 l.9] x6
+[v8 n60 l.8] x12
+[v8 n58 l.8] x14
+[v8 n62 l.8] x16
+[v8 n55 l.8] x20
+[v8 n58 l1.0] x22
+[v8 n63 l.8] x34
+[v8 n63 l.8] x38
+[v8 n63 l.8] x44
+[v8 n63 l.8] x46
+[v8 n63 l.8] x50
+[v8 n65 l.8] x54
+[v8 n63 l.8] x60
+[v8 n63 l.8 =127,0] x62
 
 y27
 [chorus vocal part 3 4 bars] yt
-[v8 n69 l.8] x0
-[v8 n71 l.8] x4
-[v8 n73 l.9] x8
-[v8 n74 l.9] x12
-[v8 n74 l2.5] x16
-[v8 n77 l1.0] x32
-[v8 n74 l.9] x36
-[v8 n67 l2.0 =127,0] x40
+[v8 n60 l.8] x0
+[v8 n60 l.8] x4
+[v8 n60 l.8] x6
+[v8 n60 l.8] x12
+[v8 n62 l.8] x14
+[v8 n60 l.8] x18
+[v8 n60 l.8] x22
+[v8 n62 l.8] x26
+[v8 n62 l.8] x32
+[v8 n62 l.8] x36
+[v8 n62 l.8] x40
+[v8 n62 l.8] x44
+[v8 n62 l.8] x48
+[v8 n62 l.8] x52
+[v8 n62 l.8] x56
+[v8 n62 l.8] x58
+[v8 n67 l1.5 =127,0] x62
 
 y28
 [interlude vocal hook 4 bars] yt
-[v8 n74 l.9] x0
-[v8 n67 l1.8] x4
-[v8 n74 l.9] x32
-[v8 n67 l1.8 =127,0] x36
+[v8 n55 l.8] x10
+[v8 n55 l.8] x14
+[v8 n58 l.8] x16
+[v8 n55 l1.5] x18
+[v8 n62 l.8] x38
+[v8 n55 l.8] x44
+[v8 n58 l.8] x46
+[v8 n55 l2.0 =127,0] x48
 
 y29
 [verse 2 vocal phrase 1 4 bars] yt
-[v8 n67 l.8] x0
-[v8 n70 l.8] x4
-[v8 n74 l.9] x8
-[v8 n74 l.6] x11
-[v8 n72 l.8] x13
-[v8 n70 l.8] x18
-[v8 n67 l.8] x22
-[v8 n67 l1.2] x24
-[v8 n67 l.8] x32
-[v8 n70 l.8] x36
-[v8 n74 l.9] x40
-[v8 n72 l.7] x43
-[v8 n70 l1.2] x45
-[v8 n67 l1.5 =127,0] x48
+[v8 n60 l.8] x10
+[v8 n62 l1.0] x14
+[v8 n55 l1.0] x24
+[v8 n58 l.6] x30
+[v8 n55 l.8] x32
+[v8 n55 l.8] x36
+[v8 n58 l.8] x40
+[v8 n60 l.8] x44
+[v8 n62 l.8] x56
+[v8 n55 l.8] x58
+[v8 n58 l.8 =127,0] x62
 
 y30
 [verse 2 vocal phrase 2 4 bars] yt
-[v8 n74 l.8] x0
-[v8 n72 l.8] x4
-[v8 n70 l.8] x8
-[v8 n67 l.8] x12
-[v8 n70 l.9] x16
-[v8 n67 l2.2 =127,0] x20
+[v8 n55 l.8] x2
+[v8 n55 l.6] x6
+[v8 n58 l.8] x8
+[v8 n60 l.8] x12
+[v8 n62 l.8] x24
+[v8 n55 l.8] x26
+[v8 n58 l.8] x30
+[v8 n55 l.8] x34
+[v8 n55 l.6] x38
+[v8 n58 l.8] x40
+[v8 n60 l.8] x44
+[v8 n62 l.8] x48
+[v8 n55 l.8] x50
+[v8 n55 l.8] x54
+[v8 n53 l.8] x58
+[v8 n53 l.8 =127,0] x62
 
 y31
 [verse 2 vocal phrase 3 4 bars] yt
-[v8 n70 l.8] x0
-[v8 n72 l.8] x4
-[v8 n74 l.9] x8
-[v8 n72 l.8] x12
-[v8 n70 l.9] x16
-[v8 n67 l.8] x20
-[v8 n70 l1.2 =127,0] x24
+[v8 n55 l.8] x0
+[v8 n58 l.6] x2
+[v8 n62 l.8] x4
+[v8 n62 l1.0] x6
+[v8 n65 l.8] x12
+[v8 n62 l1.5] x14
+[v8 n55 l1.0] x24
+[v8 n58 l.6] x30
+[v8 n55 l1.0] x32
+[v8 n58 l.8] x40
+[v8 n60 l.8] x44
+[v8 n62 l1.0] x48
+[v8 n55 l1.0 =127,0] x56
 
 y32
 [verse 2 vocal phrase 4 4 bars] yt
-[v8 n65 l.8] x0
-[v8 n67 l.8] x4
-[v8 n70 l1.2] x8
-[v8 n72 l.7] x16
-[v8 n74 l.8] x20
-[v8 n72 l1.0] x24
-[v8 n70 l.8] x32
-[v8 n67 l.8] x36
-[v8 n67 l1.8 =127,0] x40
+[v8 n58 l.6] x14
+[v8 n55 l.8] x16
+[v8 n58 l.8] x24
+[v8 n60 l.8] x26
+[v8 n62 l.8] x30
+[v8 n55 l1.0] x40
+[v8 n58 l.6] x46
+[v8 n55 l.8] x48
+[v8 n58 l.8] x56
+[v8 n60 l.8] x58
+[v8 n62 l.8 =127,0] x62
 
 y33
-[bridge vocal breakdown 8 bars] yt
-[v8 n67 l.9] x0
-[v8 n70 l.9] x4
-[v8 n74 l1.2] x8
-[v8 n72 l.8] x16
-[v8 n70 l.8] x20
-[v8 n67 l.8] x24
-[v8 n65 l.8] x28
-[v8 n67 l1.5] x32
-[v8 n70 l.8] x48
-[v8 n72 l.8] x52
-[v8 n74 l1.0] x56
-[v8 n72 l.8] x64
-[v8 n70 l.8] x68
-[v8 n67 l1.2] x72
-[v8 n65 l.8] x80
-[v8 n67 l.8] x84
-[v8 n70 l1.0] x88
-[v8 n72 l1.0] x96
-[v8 n74 l1.2] x104
-[v8 n67 l2.0 =127,0] x112
+[bridge breakdown vocal 8 bars] yt
+[v8 n69 l.9] x10
+[v8 n67 l1.2] x16
+[v8 n67 l1.0] x24
+[v8 n67 l.8] x32
+[v8 n61 l.8] x36
+[v8 n60 l.8] x40
+[v8 n61 l.8] x42
+[v8 n58 l.8] x46
+[v8 n55 l.8] x52
+[v8 n55 l.8] x54
+[v8 n55 l1.2] x58
+[v8 n67 l.8] x64
+[v8 n61 l.8] x74
+[v8 n62 l.8] x80
+[v8 n55 l.8] x82
+[v8 n55 l.8] x84
+[v8 n55 l.8] x86
+[v8 n58 l.8] x88
+[v8 n55 l.8] x90
+[v8 n55 l1.0] x94
+[v8 n58 l.8] x104
+[v8 n60 l.8] x108
+[v8 n62 l.8] x112
+[v8 n62 l.8] x116
+[v8 n62 l.8] x118
+[v8 n62 l1.5 =127,0] x124
 
 y34
-[outro vocal vamp ad-libs 8 bars] yt
-[v8 n74 l.9] x0
-[v8 n77 l.9] x4
-[v8 n79 l1.5] x8
-[v13 n74 l.8] x16
-[v13 n67 l1.2] x20
-[v8 n77 l.9] x32
-[v8 n74 l.9] x36
-[v8 n70 l1.2] x40
-[v13 n74 l.8] x48
-[v13 n67 l1.2] x52
-[v8 n74 l.9] x64
-[v8 n77 l.9] x68
-[v8 n79 l1.8] x72
-[v8 n77 l1.0] x88
-[v8 n74 l1.0] x96
-[v8 n67 l2.5 =127,0] x104
+[outro vocal ad-libs 8 bars] yt
+[v8 n55 l.8] x6
+[v8 n55 l.8] x10
+[v8 n55 l.8] x12
+[v8 n55 l.8] x14
+[v8 n58 l.8] x16
+[v8 n55 l.8] x20
+[v8 n55 l1.5] x24
+[v8 n55 l.8] x38
+[v8 n55 l.8] x42
+[v8 n55 l.8] x44
+[v8 n55 l.8] x46
+[v8 n58 l.8] x48
+[v8 n55 l.8] x52
+[v8 n55 l1.5] x56
+[v8 n67 l.9] x72
+[v8 n65 l.8] x74
+[v8 n67 l1.2] x78
+[v8 n67 l.9] x86
+[v8 n65 l.8] x90
+[v8 n67 l1.2] x94
+[v8 n62 l.8] x102
+[v8 n55 l.8] x106
+[v8 n58 l.8] x110
+[v8 n55 l2.5 =127,0] x112
 
 ## CONDUCTOR (pattern 0, one step per bar, 105 bars)
 y0
 [conductor] yt
 %16
 
-# Bars 0-3: Solo Synare 'bink-bink' hook through Bus 1 ping-pong delay
-[y5 z1] x0
+# Bars 0-3: Solo Prophet-5 synth stab hook + closed hi-hat pulse
+[y15 z1 y3 z1] x0
 [=126,1] x1
 [=126,2] x2
 [=126,3] x3
-# Bars 4-7: Korg Synthe-Bass enters with 8th hats and bink-bink
-[y6 z1 y3 z1] x4
+# Bars 4-7: Korg Synthe-Bass enters with octave comp and main hook
+[y15 z0 y5 z1 y6 z1 y7 z1] x4
 [=126,5] x5
 [=126,6] x6
 # Bar 7: Snare roll pickup into Verse 1
 [y13 z1] x7
 
 # Bars 8-11: Verse 1 Phrase 1 ('Sometimes I feel I've got to run away...')
-[v17 l1 y1 z1 y2 z1 y9 z1 y21 z1] x8
+[v17 l1 y1 z1 y2 z1 y21 z1] x8
 [=126,9] x9
 [=126,10] x10
 [=126,11] x11
@@ -475,32 +544,34 @@ y0
 # Bar 23: Open hi-hat + snare roll into Chorus 1
 [y4 z1 y13 z1] x23
 
-# Bars 24-27: Chorus 1 Part 1 ('Once I ran to you, now I'll run from you...')
-[v17 l1 y6 z0 y9 z0 y24 z0 y7 z1 y10 z1 y12 z1 y25 z1] x24
+# Bars 24-25: Chorus 1 Part 1 ('Once I ran to you...') - G major lift
+[v17 l1 y5 z0 y6 z0 y7 z0 y24 z0 y8 z1 y14 z1 y25 z1] x24
 [=126,25] x25
-[=126,26] x26
+# Bars 26-27: Chorus 1 Part 2 ('Now I'll run from you...') - Bb major
+[y8 z0 y9 z1] x26
 [=126,27] x27
-# Bars 28-31: Chorus 1 Part 2 ('This tainted love you've given...')
-[y25 z0 y26 z1] x28
+# Bars 28-29: Chorus 1 Part 3 ('This tainted love you've given...') - Eb major
+[y9 z0 y25 z0 y10 z1 y26 z1] x28
 [=126,29] x29
-[=126,30] x30
+# Bars 30-31: Chorus 1 Part 4 ('I give you all a boy could give you...') - C minor
+[y10 z0 y11 z1] x30
 [=126,31] x31
-# Bars 32-35: Chorus 1 Part 3 ('Take my tears and that's not nearly all... Oh tainted love!')
-# D-dominant tension builds, then resolves back to G minor!
-[y7 z0 y10 z0 y26 z0 y8 z1 y11 z1 y27 z1] x32
+# Bars 32-34: Chorus 1 Part 5 ('Take my tears and that's not nearly all...') - D dominant tension
+[y11 z0 y26 z0 y12 z1 y27 z1] x32
 [=126,33] x33
-[y8 z0 y11 z0 y6 z1 y9 z1] x34
-[=126,35] x35
+[=126,34] x34
+# Bar 35: Resolution back to G minor! ('Oh... tainted love!')
+[y12 z0 y5 z1 y6 z1 y7 z1] x35
 
 # Bars 36-39: Interlude vamp + Synclavier bell hook
-[y27 z0 y12 z1 y28 z1] x36
+[y27 z0 y28 z1] x36
 [=126,37] x37
 [=126,38] x38
 # Bar 39: Snare roll pickup into Verse 2
 [y13 z1] x39
 
 # Bars 40-43: Verse 2 Phrase 1 ('Now I know I've got to run away...')
-[v17 l1 y12 z0 y28 z0 y29 z1] x40
+[v17 l1 y14 z0 y28 z0 y29 z1] x40
 [=126,41] x41
 [=126,42] x42
 [=126,43] x43
@@ -521,25 +592,28 @@ y0
 # Bar 55: Open hat + snare roll into Chorus 2
 [y4 z1 y13 z1] x55
 
-# Bars 56-59: Chorus 2 Part 1 ('Once I ran to you, now I'll run from you...')
-[v17 l1 y6 z0 y9 z0 y32 z0 y7 z1 y10 z1 y12 z1 y25 z1] x56
+# Bars 56-57: Chorus 2 Part 1 ('Once I ran to you...') - G major
+[v17 l1 y5 z0 y6 z0 y7 z0 y32 z0 y8 z1 y14 z1 y25 z1] x56
 [=126,57] x57
-[=126,58] x58
+# Bars 58-59: Chorus 2 Part 2 ('Now I'll run from you...') - Bb major
+[y8 z0 y9 z1] x58
 [=126,59] x59
-# Bars 60-63: Chorus 2 Part 2 ('This tainted love you've given...')
-[y25 z0 y26 z1] x60
+# Bars 60-61: Chorus 2 Part 3 ('This tainted love you've given...') - Eb major
+[y9 z0 y25 z0 y10 z1 y26 z1] x60
 [=126,61] x61
-[=126,62] x62
+# Bars 62-63: Chorus 2 Part 4 ('I give you all a boy could give you...') - C minor
+[y10 z0 y11 z1] x62
 [=126,63] x63
-# Bars 64-67: Chorus 2 Part 3 ('Take my tears... Oh tainted love!')
-[y7 z0 y10 z0 y26 z0 y8 z1 y11 z1 y27 z1] x64
+# Bars 64-66: Chorus 2 Part 5 ('Take my tears... Oh tainted love!') - D dominant tension
+[y11 z0 y26 z0 y12 z1 y27 z1] x64
 [=126,65] x65
-[y8 z0 y11 z0 y6 z1 y9 z1] x66
-[=126,67] x67
+[=126,66] x66
+# Bar 67: Resolution back to G minor!
+[y12 z0 y5 z1 y6 z1 y7 z1] x67
 
 # Bars 68-75: Bridge Breakdown ('Don't touch me please, I cannot stand the way you tease...')
 # Minimalist electronic soul breakdown - stark, intimate, tense
-[y2 z0 y4 z0 y9 z0 y12 z0 y27 z0 y6 z0 y14 z1 y33 z1] x68
+[y2 z0 y4 z0 y14 z0 y27 z0 y7 z0 y33 z1] x68
 [=126,69] x69
 [=126,70] x70
 [=126,71] x71
@@ -547,31 +621,34 @@ y0
 [=126,73] x73
 [=126,74] x74
 [=126,75] x75
-# Bars 76-79: Tension mounts, bass riff returns, snare roll builds
-[y14 z0 y6 z1 y9 z1 y12 z1] x76
+# Bars 76-79: Tension mounts, octave comp returns, snare roll builds
+[y7 z1 y14 z1] x76
 [=126,77] x77
 [y2 z1] x78
 # Bar 79: Snare roll pickup into Final Chorus Climax!
 [y33 z0 y13 z1] x79
 
-# Bars 80-83: Final Chorus Part 1: Maximum power, full band slams back in!
-[v17 l1 y6 z0 y9 z0 y7 z1 y10 z1 y25 z1] x80
+# Bars 80-81: Final Chorus Part 1: Maximum power, full band slams back in!
+[v17 l1 y5 z0 y6 z0 y7 z0 y8 z1 y25 z1] x80
 [=126,81] x81
-[=126,82] x82
+# Bars 82-83: Final Chorus Part 2 - Bb major
+[y8 z0 y9 z1] x82
 [=126,83] x83
-# Bars 84-87: Final Chorus Part 2 ('This tainted love you've given...')
-[y25 z0 y26 z1] x84
+# Bars 84-85: Final Chorus Part 3 - Eb major
+[y9 z0 y25 z0 y10 z1 y26 z1] x84
 [=126,85] x85
-[=126,86] x86
+# Bars 86-87: Final Chorus Part 4 - C minor
+[y10 z0 y11 z1] x86
 [=126,87] x87
-# Bars 88-91: Final Chorus Part 3 ('Take my tears... Oh tainted love!')
-[y7 z0 y10 z0 y26 z0 y8 z1 y11 z1 y27 z1] x88
+# Bars 88-90: Final Chorus Part 5 - D dominant tension
+[y11 z0 y26 z0 y12 z1 y27 z1] x88
 [=126,89] x89
-[y8 z0 y11 z0 y6 z1 y9 z1] x90
-[=126,91] x91
+[=126,90] x90
+# Bar 91: Resolution back to G minor!
+[y12 z0 y5 z1 y6 z1 y7 z1] x91
 
 # Bars 92-99: Outro Vamp ('Touch me baby, tainted love! Don't touch me please...')
-[v17 l1 y27 z0 y34 z1 y12 z1] x92
+[v17 l1 y27 z0 y34 z1 y14 z1] x92
 [=126,93] x93
 [=126,94] x94
 [=126,95] x95
@@ -579,15 +656,20 @@ y0
 [=126,97] x97
 [=126,98] x98
 [=126,99] x99
-# Bars 100-103: Final vamp loop, Marc's vocal fades to echo, bass & bink-bink drive
+# Bars 100-103: Final vamp loop, Marc's vocal fades to echo, bass & stabs drive
 [y34 z0] x100
 [=126,101] x101
 [=126,102] x102
 [=126,103] x103
 
-# Bar 104: Hard cold stop on beat 1, solo bink-bink echoes on Bus 1 delay line into silence
-[v17 l1 y1 z0 y2 z0 y3 z0 y5 z0 y6 z0 y9 z0 y12 z0 y15 z1 Z0 +4 ce 99] x104
+# Bar 104: Hard cold stop on beat 1, solo synth stab echoes on Bus 1 into silence
+[v17 l1 y1 z0 y2 z0 y3 z0 y5 z0 y6 z0 y7 z0 y14 z0 y15 z1 Z0 +4 ce 99] x104
+
+## EVENTS
+[O DQ] /ceb 4 99
+/cer 1
 
 ## MACROS (play / stop)
-/play  [y0 z1 /SP 0,0] $
-/stop  [Z0 ce 99] $
+[use 'play' to start the song, 'stop' to stop it] puts
+[play] : Z0 Z! y0 z1 ;
+[stop] : Z0 O DQ ;

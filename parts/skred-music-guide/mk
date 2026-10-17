@@ -4,9 +4,14 @@ dont_go.sk
 closer.sk
 whip-it.sk
 i_feel_love.sk
-sweet_dreams.sk'
+sweet_dreams.sk
+devo_uncontrollable_urge.sk
+uncontrollable_urge.sk'
 for i in $a
 do
-z=$(basename $i .sk)
-printf "%s %s\n" $i $z
+b=$(basename $i .sk)
+z=$(printf "%s.zip" $b)
+cp $i main.sk
+zip $z main.sk
 done
+rm -f main.sk

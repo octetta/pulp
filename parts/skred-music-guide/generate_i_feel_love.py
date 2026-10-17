@@ -148,17 +148,18 @@ def build_i_feel_love():
     emit("v7 w16 a-6 N0,8 p.45 r0 [moog bass square] vt")
     emit("v6 G7 H7")
     emit()
-    emit("# Donna Summer Vocal Lead (Verse): ethereal, floating singing synth with subtle glide")
-    emit("# Safe s=0 envelope (decay to 0) prevents any hanging notes across sections")
-    emit("v8 w15 a-6 p0 t.003,.35,0,.12 j1,2 k3400 q1.8 g.02 c4,.25 r2 ds.30 [donna vocal lead] vt")
+    emit("# Donna Summer Vocal Lead (Verse): ethereal, floating singing synth with smooth glide")
+    emit("# Soft attack (60ms) and long singing decay (1.8s) eliminate the chopped/spastic transient")
+    emit("v8 w15 a-6 p0 t.06,1.8,0,.45 j1 k2300 q1.1 g.09 c4,.15 r2 ds.40 [donna vocal lead] vt")
     emit("v8 >9")
     emit("v8 >10")
-    emit("v9 w15 a-8 N0,10 p-.5 r0 [donna vocal left] vt")
-    emit("v10 w16 a-9 N0,-10 p.5 r0 [donna vocal right] vt")
+    emit("v9 w15 a-8 N0,9 p-.5 r0 [donna vocal left] vt")
+    emit("v10 w16 a-9 N0,-9 p.5 r0 [donna vocal right] vt")
     emit("v8 G9,10 H9,10")
     emit()
     emit("# Donna Summer Chorus Falsetto Hook ('I feel love, I feel love...')")
-    emit("v11 w15 a-5 p0 t.003,.30,0,.10 j1,2 k3800 q2.0 g.015 c4,.25 r2 ds.35 [donna chorus hook] vt")
+    emit("# Silky attack and long decay with 90ms portamento glide")
+    emit("v11 w15 a-5 p0 t.06,1.6,0,.40 j1 k2600 q1.2 g.09 c4,.20 r2 ds.40 [donna chorus hook] vt")
     emit("v11 >12")
     emit("v12 w16 a-8 N0,9 p.5 r0 [donna chorus partner] vt")
     emit("v11 G12 H12")
@@ -208,12 +209,6 @@ def build_i_feel_love():
     emit()
     emit("# Stream 5: Bank - G Minor / G7 Bass Cell")
     emit("[G2 G2 G3 G3  D3 D3 F3 F3  G2 G2 G3 G3  D3 D3 F3 F3] n>d /SS 5")
-    emit()
-    emit("# Stream 6: Donna Summer Verse Vocal ('Ooh, it's so good...', 4 bars / 64 steps)")
-    emit("[G5 - - -  F5 - Eb5 -  D5 - C5 -  - - - -  G5 - - -  F5 - Eb5 -  D5 - C5 -  - - - -  Bb5 - - -  Ab5 - G5 -  F5 - Eb5 -  - - - -  C6 - - -  Bb5 - Ab5 -  G5 - F5 -  - - - -] n>d /SS 6")
-    emit()
-    emit("# Stream 7: Donna Summer Chorus Vocal ('Ooh, I feel love...', 4 bars / 64 steps)")
-    emit("[C5 - D5 -  Eb5 - G5 -  F5 - Eb5 -  C5 - - -  C5 - D5 -  Eb5 - G5 -  F5 - Eb5 -  C5 - - -  Eb5 - F5 -  G5 - Bb5 -  Ab5 - G5 -  Eb5 - - -  F5 - G5 -  Ab5 - C6 -  Bb5 - Ab5 -  G5 - - -] n>d /SS 7")
     emit()
     emit("# Stream 8: Active Sparkle Arp (16 steps / 1 bar, starts in C)")
     emit("[C5 Eb5 G5 C6  Eb5 G5 C6 Eb6  C5 Eb5 G5 C6  Eb5 G5 C6 Eb6] n>d /SS 8")
@@ -285,18 +280,55 @@ def build_i_feel_love():
         emit(f"[v6 n&1 l{velo}] x{step}")
     emit()
 
-    # Pattern 8: Donna Summer Verse Vocal ('Ooh, it's so good...', reads Stream 6, 64 steps)
+    # Pattern 8: Donna Summer Verse Vocal ('Ooh, it's so good...', 64 steps / 4 bars)
+    # Sparsely triggered on beat onsets without intermediate rests so notes ring and float!
     emit("y8")
     emit("[donna summer verse vocal] yt")
-    for step in range(64):
-        emit(f"[v8 n&6 l.9] x{step}")
+    # Bar 1 (over C): 'Oooooh...' holds across beats 1-2, 'it's so good' on 3-4
+    emit("[v8 n79 l.9] x0")     # G5 ('Oooooh...')
+    emit("[v8 n75 l.85] x8")    # Eb5 ('It's so...')
+    emit("[v8 n77 l.9] x12")    # F5 ('...good')
+    # Bar 2 (over C): 'Oooooh...' holds across beats 1-2, 'it's so good' into root C
+    emit("[v8 n79 l.9] x16")    # G5 ('Oooooh...')
+    emit("[v8 n75 l.85] x24")   # Eb5 ('It's so...')
+    emit("[v8 n72 l.9] x28")    # C5 ('...good')
+    # Bar 3 (over Eb): 'Heaven knows...' soaring
+    emit("[v8 n82 l.9] x32")    # Bb5 ('Heaven...')
+    emit("[v8 n79 l.85] x40")   # G5 ('...knows...')
+    emit("[v8 n75 l.9] x44")    # Eb5 ('...it's good')
+    # Bar 4 (over F / G): Soaring climax phrase
+    emit("[v8 n84 l.95] x48")   # C6 (High soaring falsetto peak)
+    emit("[v8 n82 l.85] x54")   # Bb5
+    emit("[v8 n79 l.9] x58")    # G5
+    emit("[v8 n77 l.85] x62")   # F5
+    emit("[=127,0] x63")
     emit()
 
-    # Pattern 10: Donna Summer Chorus Hook ('I feel love...', reads Stream 7, 64 steps)
+    # Pattern 10: Donna Summer Chorus Hook ('I feel love...', 64 steps / 4 bars)
+    # Sparsely triggered on melodic accents so notes sing smoothly through space delay!
     emit("y10")
     emit("[donna summer chorus hook] yt")
-    for step in range(64):
-        emit(f"[v11 n&7 l.95] x{step}")
+    # Bar 1 (over C): 'Ooh, I feel love...'
+    emit("[v11 n72 l.9] x0")    # C5 ('Ooh...')
+    emit("[v11 n75 l.85] x6")   # Eb5 ('...I...')
+    emit("[v11 n79 l.95] x8")   # G5 ('...FEEL...')
+    emit("[v11 n77 l.9] x12")   # F5 ('...love...')
+    # Bar 2 (over C): 'Ooh, I feel love...'
+    emit("[v11 n72 l.9] x16")   # C5
+    emit("[v11 n75 l.85] x22")  # Eb5
+    emit("[v11 n79 l.95] x24")  # G5
+    emit("[v11 n72 l.9] x28")   # C5
+    # Bar 3 (over Eb): Soaring higher
+    emit("[v11 n75 l.9] x32")   # Eb5
+    emit("[v11 n79 l.85] x38")  # G5
+    emit("[v11 n82 l.95] x40")  # Bb5 ('...FEEL...')
+    emit("[v11 n79 l.9] x44")   # G5 ('...love...')
+    # Bar 4 (over F / G): Climax
+    emit("[v11 n77 l.9] x48")   # F5
+    emit("[v11 n84 l.95] x52")  # C6 (High C6 peak!)
+    emit("[v11 n82 l.9] x56")   # Bb5
+    emit("[v11 n79 l.85] x60")  # G5
+    emit("[=127,0] x63")
     emit()
 
     # Pattern 9: High Sparkle Arpeggio (16 steps, reads Stream 8 via n&8)
@@ -382,7 +414,7 @@ def build_i_feel_love():
     c_add(15, "y13 z1 y15 z1")
 
     # Bars 16-31: Verse 1 - Donna Summer vocal lead ('Ooh, it's so good...'), C -> Eb -> F/G
-    c_add(16, "v17 l.8 y8 z1 /SP 6,0 /SC 1 2 /SP 1,0")
+    c_add(16, "v17 l.8 y8 z1 /SC 1 2 /SP 1,0")
     c_add(20, "v6 k2400 v7 k2400")
     c_add(24, "/SC 1 3 /SP 1,0 /SC 8 9 /SP 8,0 y11 z0 y12 z1")
     c_add(28, "/SC 1 4 /SP 1,0 /SC 8 10 /SP 8,0")
@@ -390,7 +422,7 @@ def build_i_feel_love():
     c_add(31, "y8 z0 v8 l0 y13 z1 y15 z1")
 
     # Bars 32-47: Chorus 1 - 'Ooh, I feel love...', wall of sound, soaring strings & sparkle
-    c_add(32, "v17 l1 /SC 1 2 /SP 1,0 /SC 8 8 /SP 8,0 y12 z0 y11 z1 y10 z1 /SP 7,0 v6 k3200 v7 k3200")
+    c_add(32, "v17 l1 /SC 1 2 /SP 1,0 /SC 8 8 /SP 8,0 y12 z0 y11 z1 y10 z1 v6 k3200 v7 k3200")
     c_add(36, "v17 l.6")
     c_add(40, "/SC 1 3 /SP 1,0 /SC 8 9 /SP 8,0 y11 z0 y12 z1")
     c_add(44, "/SC 1 4 /SP 1,0 /SC 8 10 /SP 8,0")
@@ -412,7 +444,7 @@ def build_i_feel_love():
     c_add(63, "y13 z1 y15 z1")
 
     # Bars 64-79: Chorus 2 & Climax - Maximum energy, wall of sound!
-    c_add(64, "v17 l1 y2 z1 y10 z1 /SP 7,0 y11 z1 v6 k3600 v7 k3600")
+    c_add(64, "v17 l1 y2 z1 y10 z1 y11 z1 v6 k3600 v7 k3600")
     c_add(68, "v17 l.7")
     c_add(72, "/SC 1 3 /SP 1,0 /SC 8 9 /SP 8,0 y11 z0 y12 z1")
     c_add(76, "/SC 1 4 /SP 1,0 /SC 8 10 /SP 8,0")
@@ -420,7 +452,7 @@ def build_i_feel_love():
     c_add(79, "y13 z1 y15 z1")
 
     # Bars 80-87: Extended Climax Vamp - Soaring vocal lead verse melody over chorus groove
-    c_add(80, "v17 l1 /SC 1 2 /SP 1,0 /SC 8 8 /SP 8,0 y12 z0 y11 z1 y10 z0 v11 l0 y8 z1 /SP 6,0")
+    c_add(80, "v17 l1 /SC 1 2 /SP 1,0 /SC 8 8 /SP 8,0 y12 z0 y11 z1 y10 z0 v11 l0 y8 z1")
     c_add(84, "/SC 1 3 /SP 1,0 /SC 8 9 /SP 8,0 y11 z0 y12 z1")
     c_add(87, "y8 z0 v8 l0 y13 z1")
 

@@ -313,7 +313,6 @@ def build_whip_it():
     emit("[v2 l.25] x13")
     emit("[v3 l.85 v2 l0] x14")
     emit("[v2 l.25] x15")
-    emit("[=127,0] x15")
     emit()
 
     # Pattern 6: Main Riff Bar A (16 steps, reads Stream 1)
@@ -322,7 +321,6 @@ def build_whip_it():
     emit("[main riff bar A] yt")
     for step in range(16):
         emit(f"[v6 n&1 l1] x{step}")
-    emit("[=127,0] x15")
     emit()
 
     # Pattern 7: Main Riff Bar B1 (16 steps, reads Stream 2)
@@ -334,7 +332,6 @@ def build_whip_it():
             emit(f"[v6 n&2 l1 v21 l1 v22 l1 v23 l1] x{step}")
         else:
             emit(f"[v6 n&2 l1] x{step}")
-    emit("[=127,0] x15")
     emit()
 
     # Pattern 8: Main Riff Bar B2 (16 steps, turnaround walking bass into E)
@@ -346,7 +343,6 @@ def build_whip_it():
             emit(f"[v6 n&3 l1 v21 l1 v22 l1 v23 l1] x{step}")
         else:
             emit(f"[v6 n&3 l1] x{step}")
-    emit("[=127,0] x15")
     emit()
 
     # Pattern 9: Verse 1 Vocal Line ('Crack that whip! ...')
@@ -360,7 +356,6 @@ def build_whip_it():
             emit(f"[v13 n&5 l1 v21 l1 v22 l1 v23 l1] x{step}")
         else:
             emit(f"[v13 n&5 l1] x{step}")
-    emit("[=127,0] x127")
     emit()
 
     # Pattern 10: Pre-Chorus Vocal Line ('When a problem comes along... you must whip it!')
@@ -374,7 +369,6 @@ def build_whip_it():
             emit(f"[v13 n&6 l1 v21 l1 v22 l1 v23 l1] x{step}")
         else:
             emit(f"[v13 n&6 l1] x{step}")
-    emit("[=127,0] x127")
     emit()
 
     # Pattern 11: Chorus Bass Roots (64 sixteenth steps across 4 bars, reads Stream 7)
@@ -382,7 +376,6 @@ def build_whip_it():
     emit("[chorus bass roots 4 bars] yt")
     for step in range(64):
         emit(f"[v6 n&7 l1] x{step}")
-    emit("[=127,0] x63")
     emit()
 
     # Pattern 12: Bob Mothersbaugh's Angular Synth Solo (reads Stream 9)
@@ -391,7 +384,6 @@ def build_whip_it():
     emit("[devo synth solo 8 bars] yt")
     for step in range(128):
         emit(f"[v11 n&9 l.95] x{step}")
-    emit("[=127,0] x127")
     emit()
 
     # Pattern 13: Chorus Synth Stabs (Cmaj -> Gmaj -> Dmaj -> Cmaj, 4 bars / 64 steps)
@@ -429,7 +421,7 @@ def build_whip_it():
             emit(f"[v13 n&8 l1 v21 l1 v22 l1 v23 l1] x{step}")
         else:
             emit(f"[v13 n&8 l1] x{step}")
-    emit("[=127,0] x63")
+    emit()
     emit()
 
     # Pattern 15: Double Whip Crack for Section Turnarounds!

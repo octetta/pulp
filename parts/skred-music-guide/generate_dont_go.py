@@ -278,7 +278,6 @@ def build_dont_go():
     emit("[v2 l.25] x13")
     emit("[v3 l.85 v2 l0] x14")
     emit("[v2 l.25] x15")
-    emit("[=127,0] x15")
     emit()
 
     # Pattern 15: Syncopated Cowbell
@@ -297,7 +296,6 @@ def build_dont_go():
     emit("[vince clarke 16th bassline] yt")
     for step in range(32):
         emit(f"[v6 n&1 l1] x{step}")
-    emit("[=127,0] x31")
     emit()
 
     # Pattern 8: Chorus Bass Roots (reads Stream 2 via n&2, 32 steps)
@@ -305,7 +303,6 @@ def build_dont_go():
     emit("[chorus bass roots] yt")
     for step in range(32):
         emit(f"[v6 n&2 l1] x{step}")
-    emit("[=127,0] x31")
     emit()
 
     # Pattern 5: The Iconic Synth Brass Hook (reads Stream 3 via n&3, 32 steps)
@@ -313,7 +310,6 @@ def build_dont_go():
     emit("[the iconic synth brass hook] yt")
     for step in range(32):
         emit(f"[v8 n&3 l.95] x{step}")
-    emit("[=127,0] x31")
     emit()
 
     # Pattern 6: Vince Clarke 16th Arpeggio (reads Stream 6 via n&6, 64 steps)
@@ -321,7 +317,6 @@ def build_dont_go():
     emit("[vince clarke 16th arpeggio] yt")
     for step in range(64):
         emit(f"[v11 n&6 l.85] x{step}")
-    emit("[=127,0] x63")
     emit()
 
     # Pattern 7: Vocal Lead Verse 1 (reads Stream 5 via n&5, 64 steps)
@@ -329,7 +324,6 @@ def build_dont_go():
     emit("[vocal lead verse 1] yt")
     for step in range(64):
         emit(f"[v13 n&5 l.9] x{step}")
-    emit("[=127,0] x63")
     emit()
 
     # Pattern 10: Vocal Lead Chorus Hook ('Baby don't go...', reads Stream 4, 32 steps)
@@ -337,7 +331,6 @@ def build_dont_go():
     emit("[vocal lead chorus hook] yt")
     for step in range(32):
         emit(f"[v13 n&4 l.95] x{step}")
-    emit("[=127,0] x31")
     emit()
 
     # Pattern 11: Staccato Brass Offbeat Chords for Verse (32 steps)

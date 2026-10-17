@@ -247,7 +247,6 @@ y4
 [v2 l.25] x13
 [v3 l.85 v2 l0] x14
 [v2 l.25] x15
-[=127,0] x15
 
 y6
 [main riff bar A] yt
@@ -267,7 +266,6 @@ y6
 [v6 n&1 l1] x13
 [v6 n&1 l1] x14
 [v6 n&1 l1] x15
-[=127,0] x15
 
 y7
 [main riff bar B1 with whip cracks] yt
@@ -287,7 +285,6 @@ y7
 [v6 n&2 l1] x13
 [v6 n&2 l1] x14
 [v6 n&2 l1] x15
-[=127,0] x15
 
 y8
 [main riff bar B2 turnaround] yt
@@ -307,7 +304,6 @@ y8
 [v6 n&3 l1] x13
 [v6 n&3 l1] x14
 [v6 n&3 l1] x15
-[=127,0] x15
 
 y9
 [verse 1 vocal lead + whip cracks] yt
@@ -439,7 +435,6 @@ y9
 [v13 n&5 l1] x125
 [v13 n&5 l1] x126
 [v13 n&5 l1] x127
-[=127,0] x127
 
 y10
 [pre-chorus vocal lead + whip cracks] yt
@@ -571,7 +566,6 @@ y10
 [v13 n&6 l1] x125
 [v13 n&6 l1] x126
 [v13 n&6 l1] x127
-[=127,0] x127
 
 y11
 [chorus bass roots 4 bars] yt
@@ -639,7 +633,6 @@ y11
 [v6 n&7 l1] x61
 [v6 n&7 l1] x62
 [v6 n&7 l1] x63
-[=127,0] x63
 
 y12
 [devo synth solo 8 bars] yt
@@ -771,7 +764,6 @@ y12
 [v11 n&9 l.95] x125
 [v11 n&9 l.95] x126
 [v11 n&9 l.95] x127
-[=127,0] x127
 
 y13
 [chorus synth chord stabs] yt
@@ -859,7 +851,7 @@ y14
 [v13 n&8 l1] x61
 [v13 n&8 l1] x62
 [v13 n&8 l1] x63
-[=127,0] x63
+
 
 y15
 [double whip crack on 3 & 4] yt

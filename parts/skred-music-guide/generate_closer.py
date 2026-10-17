@@ -283,7 +283,6 @@ def build_closer():
     emit("[v6 g0 n48 l.95] x28")
     emit("[v6 g.04 n42 l.85] x30")
     emit("[v6 g0 n43 l.9] x31")
-    emit("[=127,0] x31")
     emit()
 
     # Pattern 5: Industrial Clangs & Machine FX
@@ -335,7 +334,6 @@ def build_closer():
     emit("[pr 0,101 pr 0,102 pr 0,103 pr 0,104] x15")
     emit("[pn 0,105,58,.95 pn 0,106,62,.95 pn 0,107,65,.95 pn 0,108,70,.95] x16")
     emit("[pr 0,105 pr 0,106 pr 0,107 pr 0,108] x31")
-    emit("[=127,0] x31")
     emit()
 
     # Pattern 9: Chorus Synth Brass Stabs (C minor power stabs)
@@ -353,7 +351,6 @@ def build_closer():
     emit("[v8 n67 l.95] x24")
     emit("[v8 n72 l1] x28")
     emit("[v8 l0] x31")
-    emit("[=127,0] x31")
     emit()
 
     # Pattern 10: The Outro Piano (The Downward Spiral Descending Motif, 4 bars / 64 steps)
@@ -369,7 +366,6 @@ def build_closer():
     emit("[v13 n62 l.80] x54")
     emit("[v13 n60 l.90] x56")
     emit("[v13 l0] x63")
-    emit("[=127,0] x63")
     emit()
 
     # Pattern 11: Dark Verse Atmosphere Pad (Cm drone)
@@ -377,7 +373,6 @@ def build_closer():
     emit("[verse dark pad] yt")
     emit("[pn 0,109,48,.8 pn 0,110,55,.8 pn 0,111,58,.8] x0")
     emit("[pr 0,109 pr 0,110 pr 0,111] x31")
-    emit("[=127,0] x31")
     emit()
 
     # Pattern 13: Snare Ratchet Roll (one-shot with stop marker '-')

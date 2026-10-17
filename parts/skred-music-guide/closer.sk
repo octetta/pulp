@@ -218,7 +218,6 @@ y4
 [v6 g0 n48 l.95] x28
 [v6 g.04 n42 l.85] x30
 [v6 g0 n43 l.9] x31
-[=127,0] x31
 
 y5
 [industrial machine clangs] yt
@@ -262,7 +261,6 @@ y8
 [pr 0,101 pr 0,102 pr 0,103 pr 0,104] x15
 [pn 0,105,58,.95 pn 0,106,62,.95 pn 0,107,65,.95 pn 0,108,70,.95] x16
 [pr 0,105 pr 0,106 pr 0,107 pr 0,108] x31
-[=127,0] x31
 
 y9
 [chorus synth brass stabs] yt
@@ -278,7 +276,6 @@ y9
 [v8 n67 l.95] x24
 [v8 n72 l1] x28
 [v8 l0] x31
-[=127,0] x31
 
 y10
 [the downward spiral outro piano] yt
@@ -292,13 +289,11 @@ y10
 [v13 n62 l.80] x54
 [v13 n60 l.90] x56
 [v13 l0] x63
-[=127,0] x63
 
 y11
 [verse dark pad] yt
 [pn 0,109,48,.8 pn 0,110,55,.8 pn 0,111,58,.8] x0
 [pr 0,109 pr 0,110 pr 0,111] x31
-[=127,0] x31
 
 y13
 [snare ratchet roll] yt

@@ -168,6 +168,9 @@ When reading note streams via `n&<S>` inside a looping pattern, **the number of 
 - If a 64-step pattern reads a stream containing 74 tokens, each loop will consume 64 tokens, leaving 10 unread. On the next loop, the melody starts 10 steps late! Across just a few bars, the song will drift completely out of sync.
 - Always verify token counts: in Python generators, assert `len(notes) == pattern_steps`.
 - For sustained notes (e.g. 2-beat piano chords or slow lead notes), do NOT fill non-trigger steps with rest tokens (`-`) if the step program evaluates `n&<S>` on every step, because `NAN` immediately releases the voice envelope! Instead, trigger the note on the onset step and leave intermediate steps empty or un-evaluated.
+- **NEVER overwrite the final step with `[=127,0] x<last>`**:
+  A common technique to extend sparse patterns to their full bar length is pinning the last step (e.g. `[=127,0] x15` or `x31`). **Only do this if the last step is actually empty!** If a pattern already writes an event on step 31 (such as `for step in range(32): emit(f"[v8 n&3 l.95] x{step}")`), writing `[=127,0] x31` immediately overwrites step 31, replacing the stream pull with register zeroing. Because token 31 is never pulled, the stream falls 1 token behind on each loop cycle, causing the entire melody to slip off-beat by one sixteenth step on every single repeat! If step $N$ already has an event, the pattern length is already pinned to $N+1$ steps; never overwrite it.
+
 
 
 ---

@@ -13,6 +13,8 @@ Authentic 1981 synth-pop masterpiece:
 - Octave synth comp (G3/G4 -> Bb3/Bb4 | Eb4/Eb5 -> C4/C5)
 - Synclavier II bell arpeggios
 - Marc Almond's authentic theatrical vocal delivery in the true G3..G4 tenor register
+- All pattern lengths strictly pinned to full bar boundaries (16, 32, 64, 128 steps):
+  NO premature resets or polyrhythmic drifting!
 - Clean macros: [play] : Z0 Z! y0 z1 ; and [stop] : Z0 O DQ ;
 - ZERO NOISE RISERS: Transitions driven purely by Northern Soul syncopation, drum breaks,
   and dominant D-major chord turnarounds.
@@ -32,6 +34,7 @@ def build_tainted_love():
     emit("#  Self-contained: drums from built-in waves 82-99, Prophet-5 synth hook stabs,")
     emit("#  Korg Synthe-Bass, octave synth comp, Synclavier bells, Marc Almond vocal lead.")
     emit("#  Zero synthetic noise risers - dynamic builds driven by authentic 1981 synthpop.")
+    emit("#  All patterns strictly pinned to exact bar boundaries (x15, x31, x63, x127).")
     emit("#  Load:   [tainted_love.sk] /ls")
     emit("#  Start:  play        Stop:  stop")
     emit("#")
@@ -152,38 +155,41 @@ def build_tainted_love():
     # Patterns
     emit("## PATTERNS")
 
-    # y1: Four on the floor kick
+    # y1: Four on the floor kick (1 bar = 16 steps, pinned at x15)
     emit("y1")
     emit("[kick 4-on-the-floor] yt")
     emit("[v0 l.5 v5 l.5] x0")
     emit("[v0 l.5 v5 l.5] x4")
     emit("[v0 l.5 v5 l.5] x8")
-    emit("[v0 l.5 v5 l.5 =127,0] x12")
+    emit("[v0 l.5 v5 l.5] x12")
+    emit("[=127,0] x15")
     emit()
 
-    # y2: Snare + Clap on 2 and 4
+    # y2: Snare + Clap on 2 and 4 (1 bar = 16 steps, pinned at x15)
     emit("y2")
     emit("[snare and clap on 2 and 4] yt")
     emit("[v1 l.8 v4 l.8] x4")
-    emit("[v1 l.8 v4 l.8 =127,0] x12")
+    emit("[v1 l.8 v4 l.8] x12")
+    emit("[=127,0] x15")
     emit()
 
-    # y3: Closed hi-hat 8ths
+    # y3: Closed hi-hat 8ths (1 bar = 16 steps, pinned at x15)
     emit("y3")
     emit("[closed hat 8ths] yt")
-    for s in range(0, 14, 2):
+    for s in range(0, 16, 2):
         emit(f"[v2 l.5] x{s}")
-    emit("[v2 l.5 =127,0] x14")
+    emit("[=127,0] x15")
     emit()
 
-    # y4: Open hi-hat offbeats
+    # y4: Open hi-hat offbeats (1 bar = 16 steps, pinned at x15)
     emit("y4")
     emit("[open hat offbeats] yt")
     emit("[v3 l.7] x6")
-    emit("[v3 l.7 =127,0] x14")
+    emit("[v3 l.7] x14")
+    emit("[=127,0] x15")
     emit()
 
-    # y5: The REAL Iconic Prophet-5 Synth Stab Hook (2 bars = 32 steps)
+    # y5: The REAL Iconic Prophet-5 Synth Stab Hook (2 bars = 32 steps, pinned at x31)
     # Bar 1: Step 0 (beat 1), Step 4 (beat 2)
     # Bar 2: Step 22 (beat 2-and), Step 28 (beat 4)
     # G3 (55) + D4 (62) + G4 (67)
@@ -192,10 +198,11 @@ def build_tainted_love():
     emit("[v11 n55 l.6 v12 n62 l.6] x0")
     emit("[v11 n55 l.6 v12 n62 l.6] x4")
     emit("[v11 n55 l.6 v12 n62 l.6] x22")
-    emit("[v11 n55 l.6 v12 n62 l.6 =127,0] x28")
+    emit("[v11 n55 l.6 v12 n62 l.6] x28")
+    emit("[=127,0] x31")
     emit()
 
-    # y6: The REAL Korg Synthe-Bass Line (2 bars = 32 steps)
+    # y6: The REAL Korg Synthe-Bass Line (2 bars = 32 steps, pinned at x31)
     # Bar 1: G1 on 0, 4; Bb1 on 8, 12
     # Bar 2: Eb1 on 16, 20; Bb1 on 24; C1 on 26 (pickup)
     emit("y6")
@@ -207,10 +214,11 @@ def build_tainted_love():
     emit("[v6 n39 l.7] x16")
     emit("[v6 n39 l.7] x20")
     emit("[v6 n34 l.7] x24")
-    emit("[v6 n36 l.7 =127,0] x26")
+    emit("[v6 n36 l.7] x26")
+    emit("[=127,0] x31")
     emit()
 
-    # y7: The REAL Octave Synth Comp (2 bars = 32 steps)
+    # y7: The REAL Octave Synth Comp (2 bars = 32 steps, pinned at x31)
     # Doubling the bass in upper octaves
     emit("y7")
     emit("[octave synth comp 2 bars] yt")
@@ -221,10 +229,11 @@ def build_tainted_love():
     emit("[v21 n63 l.7 v22 n75 l.7] x16")
     emit("[v21 n63 l.7 v22 n75 l.7] x20")
     emit("[v21 n58 l.7 v22 n70 l.7] x24")
-    emit("[v21 n60 l.7 v22 n72 l.7 =127,0] x26")
+    emit("[v21 n60 l.7 v22 n72 l.7] x26")
+    emit("[=127,0] x31")
     emit()
 
-    # y8: Chorus Bass Line Part 1 - G (2 bars = 32 steps)
+    # y8: Chorus Bass Line Part 1 - G (2 bars = 32 steps, pinned at x31)
     emit("y8")
     emit("[chorus bass g 2 bars] yt")
     emit("[v6 n31 l.7] x0")
@@ -234,10 +243,11 @@ def build_tainted_love():
     emit("[v6 n31 l.7] x16")
     emit("[v6 n31 l.7] x20")
     emit("[v6 n31 l.7] x24")
-    emit("[v6 n31 l.7 =127,0] x28")
+    emit("[v6 n31 l.7] x28")
+    emit("[=127,0] x31")
     emit()
 
-    # y9: Chorus Bass Line Part 2 - Bb (2 bars = 32 steps)
+    # y9: Chorus Bass Line Part 2 - Bb (2 bars = 32 steps, pinned at x31)
     emit("y9")
     emit("[chorus bass bb 2 bars] yt")
     emit("[v6 n34 l.7] x0")
@@ -247,10 +257,11 @@ def build_tainted_love():
     emit("[v6 n34 l.7] x16")
     emit("[v6 n34 l.7] x20")
     emit("[v6 n34 l.7] x24")
-    emit("[v6 n34 l.7 =127,0] x28")
+    emit("[v6 n34 l.7] x28")
+    emit("[=127,0] x31")
     emit()
 
-    # y10: Chorus Bass Line Part 3 - Eb (2 bars = 32 steps)
+    # y10: Chorus Bass Line Part 3 - Eb (2 bars = 32 steps, pinned at x31)
     emit("y10")
     emit("[chorus bass eb 2 bars] yt")
     emit("[v6 n39 l.7] x0")
@@ -260,10 +271,11 @@ def build_tainted_love():
     emit("[v6 n39 l.7] x16")
     emit("[v6 n39 l.7] x20")
     emit("[v6 n39 l.7] x24")
-    emit("[v6 n39 l.7 =127,0] x28")
+    emit("[v6 n39 l.7] x28")
+    emit("[=127,0] x31")
     emit()
 
-    # y11: Chorus Bass Line Part 4 - C (2 bars = 32 steps)
+    # y11: Chorus Bass Line Part 4 - C (2 bars = 32 steps, pinned at x31)
     emit("y11")
     emit("[chorus bass c 2 bars] yt")
     emit("[v6 n36 l.7] x0")
@@ -273,10 +285,11 @@ def build_tainted_love():
     emit("[v6 n36 l.7] x16")
     emit("[v6 n36 l.7] x20")
     emit("[v6 n36 l.7] x24")
-    emit("[v6 n36 l.7 =127,0] x28")
+    emit("[v6 n36 l.7] x28")
+    emit("[=127,0] x31")
     emit()
 
-    # y12: Chorus Bass Line Part 5 - D Dominant Tension (2 bars = 32 steps)
+    # y12: Chorus Bass Line Part 5 - D Dominant Tension (2 bars = 32 steps, pinned at x31)
     emit("y12")
     emit("[chorus bass d tension 2 bars] yt")
     emit("[v6 n38 l.7] x0")
@@ -286,10 +299,11 @@ def build_tainted_love():
     emit("[v6 n38 l.7] x16")
     emit("[v6 n38 l.7] x20")
     emit("[v6 n38 l.7] x24")
-    emit("[v6 n31 l.7 =127,0] x28")
+    emit("[v6 n31 l.7] x28")
+    emit("[=127,0] x31")
     emit()
 
-    # y13: CR-78 Snare Roll Fill (1 bar = 16 steps)
+    # y13: CR-78 Snare Roll Fill (1 bar = 16 steps, pinned at x15)
     emit("y13")
     emit("[cr78 snare roll fill 1 bar] yt")
     emit("[v1 l.4] x0")
@@ -301,7 +315,7 @@ def build_tainted_love():
     emit("[=127,0] x15")
     emit()
 
-    # y14: Synclavier Bell Chimes Hook (4 bars = 64 steps)
+    # y14: Synclavier Bell Chimes Hook (4 bars = 64 steps, pinned at x63)
     emit("y14")
     emit("[synclavier bell chimes hook 4 bars] yt")
     emit("[v15 n79 l.8] x0")
@@ -315,17 +329,11 @@ def build_tainted_love():
     emit("[v15 n79 l.8] x40")
     emit("[v15 n74 l.8] x48")
     emit("[v15 n77 l.8] x52")
-    emit("[v15 n79 l1.2 =127,0] x56")
+    emit("[v15 n79 l1.2] x56")
+    emit("[=127,0] x63")
     emit()
 
-    # y15: Solo Opening Synth Hook (2 bars = 32 steps)
-    emit("y15")
-    emit("[solo opening synth hook 2 bars] yt")
-    emit("[v11 n55 l.6 v12 n62 l.6] x0")
-    emit("[v11 n55 l.6 v12 n62 l.6 =127,0] x4")
-    emit()
-
-    # Vocal Lead Patterns (Authentic G3..G4 tenor register)
+    # Vocal Lead Patterns (Authentic G3..G4 tenor register, pinned at x63)
     # y21: Verse 1 Phrase 1 (4 bars = 64 steps)
     # "Sometimes I feel I've got to run away, I've got to get away..."
     emit("y21")
@@ -340,10 +348,11 @@ def build_tainted_love():
     emit("[v8 n60 l.8] x44")
     emit("[v8 n62 l.8] x56")
     emit("[v8 n55 l.8] x58")
-    emit("[v8 n58 l.8 =127,0] x62")
+    emit("[v8 n58 l.8] x62")
+    emit("[=127,0] x63")
     emit()
 
-    # y22: Verse 1 Phrase 2 (4 bars = 64 steps)
+    # y22: Verse 1 Phrase 2 (4 bars = 64 steps, pinned at x63)
     # "From the pain you drive into the heart of me..."
     emit("y22")
     emit("[verse 1 vocal phrase 2 4 bars] yt")
@@ -362,10 +371,11 @@ def build_tainted_love():
     emit("[v8 n55 l.8] x50")
     emit("[v8 n55 l.8] x54")
     emit("[v8 n53 l.8] x58")
-    emit("[v8 n53 l.8 =127,0] x62")
+    emit("[v8 n53 l.8] x62")
+    emit("[=127,0] x63")
     emit()
 
-    # y23: Verse 1 Phrase 3 (4 bars = 64 steps)
+    # y23: Verse 1 Phrase 3 (4 bars = 64 steps, pinned at x63)
     # "The love we share seems to go nowhere..."
     emit("y23")
     emit("[verse 1 vocal phrase 3 4 bars] yt")
@@ -381,10 +391,11 @@ def build_tainted_love():
     emit("[v8 n58 l.8] x40")
     emit("[v8 n60 l.8] x44")
     emit("[v8 n62 l1.0] x48")
-    emit("[v8 n55 l1.0 =127,0] x56")
+    emit("[v8 n55 l1.0] x56")
+    emit("[=127,0] x63")
     emit()
 
-    # y24: Verse 1 Phrase 4 (4 bars = 64 steps)
+    # y24: Verse 1 Phrase 4 (4 bars = 64 steps, pinned at x63)
     # "And I've lost my light, for I toss and turn, I can't sleep at night..."
     emit("y24")
     emit("[verse 1 vocal phrase 4 4 bars] yt")
@@ -398,10 +409,11 @@ def build_tainted_love():
     emit("[v8 n55 l.8] x48")
     emit("[v8 n58 l.8] x56")
     emit("[v8 n60 l.8] x58")
-    emit("[v8 n62 l.8 =127,0] x62")
+    emit("[v8 n62 l.8] x62")
+    emit("[=127,0] x63")
     emit()
 
-    # y25: Chorus Part 1 (4 bars = 64 steps)
+    # y25: Chorus Part 1 (4 bars = 64 steps, pinned at x63)
     # "Once I ran to you (I ran!), now I'll run from you..."
     emit("y25")
     emit("[chorus vocal part 1 4 bars] yt")
@@ -417,10 +429,11 @@ def build_tainted_love():
     emit("[v8 n55 l.8] x46")
     emit("[v8 n57 l.8] x48")
     emit("[v8 n55 l.8] x52")
-    emit("[v8 n55 l1.2 =127,0] x54")
+    emit("[v8 n55 l1.2] x54")
+    emit("[=127,0] x63")
     emit()
 
-    # y26: Chorus Part 2 (4 bars = 64 steps)
+    # y26: Chorus Part 2 (4 bars = 64 steps, pinned at x63)
     # "This tainted love you've given, I give you all a boy could give you..."
     emit("y26")
     emit("[chorus vocal part 2 4 bars] yt")
@@ -437,10 +450,11 @@ def build_tainted_love():
     emit("[v8 n63 l.8] x50")
     emit("[v8 n65 l.8] x54")
     emit("[v8 n63 l.8] x60")
-    emit("[v8 n63 l.8 =127,0] x62")
+    emit("[v8 n63 l.8] x62")
+    emit("[=127,0] x63")
     emit()
 
-    # y27: Chorus Part 3 (4 bars = 64 steps)
+    # y27: Chorus Part 3 (4 bars = 64 steps, pinned at x63)
     # "Take my tears and that's not nearly all... Oh... tainted love!"
     emit("y27")
     emit("[chorus vocal part 3 4 bars] yt")
@@ -460,10 +474,11 @@ def build_tainted_love():
     emit("[v8 n62 l.8] x52")
     emit("[v8 n62 l.8] x56")
     emit("[v8 n62 l.8] x58")
-    emit("[v8 n67 l1.5 =127,0] x62")
+    emit("[v8 n67 l1.5] x62")
+    emit("[=127,0] x63")
     emit()
 
-    # y28: Interlude Vocal Hook (4 bars = 64 steps)
+    # y28: Interlude Vocal Hook (4 bars = 64 steps, pinned at x63)
     # "Tainted love... tainted love..."
     emit("y28")
     emit("[interlude vocal hook 4 bars] yt")
@@ -474,10 +489,11 @@ def build_tainted_love():
     emit("[v8 n62 l.8] x38")
     emit("[v8 n55 l.8] x44")
     emit("[v8 n58 l.8] x46")
-    emit("[v8 n55 l2.0 =127,0] x48")
+    emit("[v8 n55 l2.0] x48")
+    emit("[=127,0] x63")
     emit()
 
-    # y29: Verse 2 Phrase 1 (4 bars = 64 steps)
+    # y29: Verse 2 Phrase 1 (4 bars = 64 steps, pinned at x63)
     # "Now I know I've got to run away, I've got to get away..."
     emit("y29")
     emit("[verse 2 vocal phrase 1 4 bars] yt")
@@ -491,10 +507,11 @@ def build_tainted_love():
     emit("[v8 n60 l.8] x44")
     emit("[v8 n62 l.8] x56")
     emit("[v8 n55 l.8] x58")
-    emit("[v8 n58 l.8 =127,0] x62")
+    emit("[v8 n58 l.8] x62")
+    emit("[=127,0] x63")
     emit()
 
-    # y30: Verse 2 Phrase 2 (4 bars = 64 steps)
+    # y30: Verse 2 Phrase 2 (4 bars = 64 steps, pinned at x63)
     # "You don't really want any more from me..."
     emit("y30")
     emit("[verse 2 vocal phrase 2 4 bars] yt")
@@ -513,10 +530,11 @@ def build_tainted_love():
     emit("[v8 n55 l.8] x50")
     emit("[v8 n55 l.8] x54")
     emit("[v8 n53 l.8] x58")
-    emit("[v8 n53 l.8 =127,0] x62")
+    emit("[v8 n53 l.8] x62")
+    emit("[=127,0] x63")
     emit()
 
-    # y31: Verse 2 Phrase 3 (4 bars = 64 steps)
+    # y31: Verse 2 Phrase 3 (4 bars = 64 steps, pinned at x63)
     # "To make things right you need someone to hold you tight..."
     emit("y31")
     emit("[verse 2 vocal phrase 3 4 bars] yt")
@@ -532,10 +550,11 @@ def build_tainted_love():
     emit("[v8 n58 l.8] x40")
     emit("[v8 n60 l.8] x44")
     emit("[v8 n62 l1.0] x48")
-    emit("[v8 n55 l1.0 =127,0] x56")
+    emit("[v8 n55 l1.0] x56")
+    emit("[=127,0] x63")
     emit()
 
-    # y32: Verse 2 Phrase 4 (4 bars = 64 steps)
+    # y32: Verse 2 Phrase 4 (4 bars = 64 steps, pinned at x63)
     # "And you think love is to pray, but I don't pray that way..."
     emit("y32")
     emit("[verse 2 vocal phrase 4 4 bars] yt")
@@ -549,10 +568,11 @@ def build_tainted_love():
     emit("[v8 n55 l.8] x48")
     emit("[v8 n58 l.8] x56")
     emit("[v8 n60 l.8] x58")
-    emit("[v8 n62 l.8 =127,0] x62")
+    emit("[v8 n62 l.8] x62")
+    emit("[=127,0] x63")
     emit()
 
-    # y33: Bridge Breakdown Vocal (8 bars = 128 steps)
+    # y33: Bridge Breakdown Vocal (8 bars = 128 steps, pinned at x127)
     # "Don't touch me please, I cannot stand the way you tease...
     #  I love you though you hurt me so, now I'm gonna pack my things and go..."
     emit("y33")
@@ -582,10 +602,11 @@ def build_tainted_love():
     emit("[v8 n62 l.8] x112")
     emit("[v8 n62 l.8] x116")
     emit("[v8 n62 l.8] x118")
-    emit("[v8 n62 l1.5 =127,0] x124")
+    emit("[v8 n62 l1.5] x124")
+    emit("[=127,0] x127")
     emit()
 
-    # y34: Outro Vocal Ad-libs (8 bars = 128 steps)
+    # y34: Outro Vocal Ad-libs (8 bars = 128 steps, pinned at x127)
     # "Touch me baby, tainted love! Don't touch me please..."
     emit("y34")
     emit("[outro vocal ad-libs 8 bars] yt")
@@ -612,7 +633,8 @@ def build_tainted_love():
     emit("[v8 n62 l.8] x102")
     emit("[v8 n55 l.8] x106")
     emit("[v8 n58 l.8] x110")
-    emit("[v8 n55 l2.5 =127,0] x112")
+    emit("[v8 n55 l2.5] x112")
+    emit("[=127,0] x127")
     emit()
 
     # Conductor (pattern 0, one step per bar, 105 bars)
@@ -623,14 +645,15 @@ def build_tainted_love():
     emit()
 
     # Section 1: Intro (Bars 0-7, 8 bars)
-    # Bars 0-3: Solo Prophet-5 synth stab hook on beats 1 and 2
-    emit("# Bars 0-3: Solo Prophet-5 synth stab hook + closed hi-hat pulse")
-    emit("[y15 z1 y3 z1] x0")
+    # Clean authentic build: Closed hat pulse + synth stab hook (2 bars loop)
+    emit("# Bars 0-1: Solo Prophet-5 synth stab hook + closed hi-hat pulse")
+    emit("[y5 z1 y3 z1] x0")
     emit("[=126,1] x1")
-    emit("[=126,2] x2")
+    emit("# Bars 2-3: Korg Synthe-Bass enters in perfect sync")
+    emit("[y6 z1] x2")
     emit("[=126,3] x3")
-    emit("# Bars 4-7: Korg Synthe-Bass enters with octave comp and main hook")
-    emit("[y15 z0 y5 z1 y6 z1 y7 z1] x4")
+    emit("# Bars 4-7: Octave synth comp + kick drum pulse enter")
+    emit("[y7 z1 y1 z1] x4")
     emit("[=126,5] x5")
     emit("[=126,6] x6")
     emit("# Bar 7: Snare roll pickup into Verse 1")
@@ -638,9 +661,9 @@ def build_tainted_love():
     emit()
 
     # Section 2: Verse 1 (Bars 8-23, 16 bars)
-    # Bar 8: Crash hit + Kick + Snare + Marc Vocal Phrase 1
+    # Bar 8: Crash hit + Snare + Claps + Marc Vocal Phrase 1
     emit("# Bars 8-11: Verse 1 Phrase 1 ('Sometimes I feel I've got to run away...')")
-    emit("[v17 l1 y1 z1 y2 z1 y21 z1] x8")
+    emit("[v17 l1 y2 z1 y21 z1] x8")
     emit("[=126,9] x9")
     emit("[=126,10] x10")
     emit("[=126,11] x11")
@@ -790,7 +813,7 @@ def build_tainted_love():
     # Section 10: Hard Cold End (Bar 104)
     # Beat 1 crash hit and hard band stop, single solo synth stab echoes on Bus 1 into silence!
     emit("# Bar 104: Hard cold stop on beat 1, solo synth stab echoes on Bus 1 into silence")
-    emit("[v17 l1 y1 z0 y2 z0 y3 z0 y5 z0 y6 z0 y7 z0 y14 z0 y15 z1 Z0 +4 ce 99] x104")
+    emit("[v17 l1 y1 z0 y2 z0 y3 z0 y5 z0 y6 z0 y7 z0 y14 z0 Z0 +4 ce 99] x104")
     emit()
 
     # Events & Macros

@@ -2363,6 +2363,13 @@ int skode_callback(ands_t *s, int info) {
       if (index >= 0 && ands_macro_get(s, index, name, sizeof(name),
           body, sizeof(body), &argc)) {
         skode_vocab_t *vocab = skode_dict_global_vocab();
+        const skode_word_t *builtin = skode_dict_find_by_name(vocab, name);
+        if (builtin && !skode_dict_word_is_promoted_macro(builtin)) {
+          ctx->printf(ctx, "# WARNING: macro [%s] shadows built-in word '%s'%s%s\n",
+            name, builtin->name,
+            builtin->summary ? " - " : "",
+            builtin->summary ? builtin->summary : "");
+        }
         skode_dict_unpromote_macro(vocab, name);
         skode_compile_result_t result =
           skode_dict_macro_compile_status(vocab, body);

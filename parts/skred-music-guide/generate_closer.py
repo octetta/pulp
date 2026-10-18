@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_closer.py - Generates closer.sk for PULP / SKRED.
+generate_closer.py - Generates closer.sk and closer_compact.sk for PULP / SKRED.
 An authentic, tour-de-force instrumental cover of Nine Inch Nails "Closer" (1994).
 Written and produced by Trent Reznor.
 
@@ -15,13 +15,14 @@ Features:
 - Industrial machine ring mod clangs (w16 f311 XM19 H19 bc5) & bitcrushed noise bursts (w5 bc6)
 - Stretched inline K-synth build riser (w301, zero DC offset)
 - Delay freeze drone capture (DF 1 1)
-- All voices clearly labeled and inspected via [name] vt
-- The iconic Outro Piano ("The Downward Spiral" descending melody through hall delay bus 4)
-- Safe s=0 decay envelopes and explicit conductor releases so notes never hang
+- In-engine K-synth dynamic curve generation ([ ... ] k! k>d /SS 6)
+- Stream parameter consumption across multi-voice layers ([=0,&6 v6 k$0 v7 k$0])
+- Multi-step pattern assignment (x#,#,#,#) for compact drum grooves & sweeps
+- 4-character safe macro definitions ([play], [stop]) free of shadowing
 - 92-bar arrangement sequenced via Pattern 0 Conductor at %16
 """
 
-import os, sys, math
+import os, sys
 
 def build_closer():
     lines = []
@@ -32,10 +33,15 @@ def build_closer():
     # ----------------------------------------------------
     # Header & Song Metadata
     # ----------------------------------------------------
-    emit("## NINE INCH NAILS - CLOSER (Instrumental Cover for PULP / SKRED)")
+    emit("## NINE INCH NAILS - CLOSER (Compact Pattern & K-Synth Stream Demo)")
     emit("#  90 BPM, C minor / C blues modal tension, 92 bars (about 4:05). Trent Reznor (1994).")
-    emit("#  Self-contained: drums from built-in waves 82-99, inline K-synth riser.")
-    emit("#  Load:   [closer.sk] /ls")
+    emit("#  Demonstrating:")
+    emit("#    1. In-engine K-synth dynamic curve generation ([ ... ] k! k>d /SS 6)")
+    emit("#    2. Stream parameter consumption across multi-voice layers ([=0,&6 v6 k$0 v7 k$0])")
+    emit("#    3. Multi-step pattern assignment (x#,#,#,#) for compact drum grooves & sweeps")
+    emit("#    4. 4-character safe macro definitions ([play], [stop]) free of shadowing")
+    emit("#")
+    emit("#  Load:   [closer_compact.sk] /ls")
     emit("#  Start:  play        Stop:  stop")
     emit("#")
     emit("#  VOICE MAP (all labeled via [name] vt):")
@@ -58,23 +64,9 @@ def build_closer():
     emit("#    Bus 2: Bass slapback sixteenth (DS 2 90 .25)")
     emit("#    Bus 3: Snare & Clap gated industrial tail (DS 3 90 .5)")
     emit("#    Bus 4: Outro piano & Riser deep hall wash (DS 4 90 .75, DP 4 1)")
-    emit("#")
-    emit("#  ARRANGEMENT (92 bars):")
-    emit("#    0-3   Intro: heartbeat kick & industrial noise pulse")
-    emit("#    4-7   Minimoog bass enters alone with heartbeat kick")
-    emit("#    8-15  Verse 1: snare, clap, closed hats, clangs, industrial funk groove")
-    emit("#    16-23 Verse 1 Pre-Chorus: 16th hats, pad swells, bass filter opens")
-    emit("#    24-31 Post-Chorus Hook 1: E-F-G-Ab lead explodes with dotted echo")
-    emit("#    32-39 Verse 2: stripped industrial funk groove, machine percussion")
-    emit("#    40-47 Build-up: snare ratchet roll, K-synth riser, bass sweep")
-    emit("#    48-63 Full Chorus: wall of sound (Ab - Bb - Cm), brass stabs, sidechain")
-    emit("#    64-71 Climax & Delay Freeze: hook returns, freeze drone capture (DF 1 1)")
-    emit("#    72-87 Outro: Downward Spiral piano solo over heartbeat kick & hall delay")
-    emit("#    88-91 Fade to black: final piano echo decays, heartbeat stops")
-    emit("#    92    End cleanup")
     emit("# ======================================================================")
     emit()
-    emit("[NINE INCH NAILS - CLOSER] puts")
+    emit("[NINE INCH NAILS - CLOSER (COMPACT)] puts")
     emit("M 90 16")
     emit()
 
@@ -199,12 +191,21 @@ def build_closer():
     emit()
 
     # ----------------------------------------------------
+    # K-Synth Parameter Creation (Bass Cutoff Sweep Stream)
+    # ----------------------------------------------------
+    emit("## K-SYNTH PARAMETER CREATION (Bass Cutoff Sweep Stream)")
+    emit("# Synthesize 32-step exponential sweep (440 Hz -> 2800 Hz) directly into /SS 6:")
+    emit("[440 * ((2800%440) ^ ((!32)%31))] k! k>d /SS 6")
+    emit()
+
+    # ----------------------------------------------------
     # Patterns
     # ----------------------------------------------------
     emit("## PATTERNS")
     emit()
 
     # Pattern 1: Heartbeat Kick
+    emit("# Pattern 1: Heartbeat Kick")
     emit("y1")
     emit("[kick heartbeat] yt")
     emit("[v0 l1 v5 g0 n52 g.08 n28 l1] x0")
@@ -215,77 +216,53 @@ def build_closer():
     emit("[=127,0] x15")
     emit()
 
-    # Pattern 2: Snare + Clap
+    # Pattern 2: Snare + Clap (Compact multi-step: backbeat on 4 & 12)
+    emit("# Pattern 2: Snare + Clap (Compact multi-step: backbeat on 4 & 12)")
     emit("y2")
     emit("[snare+clap] yt")
-    emit("[v1 l1 v4 l.95] x4")
+    emit("[v1 l1 v4 l.95] x4,12")
     emit("[v1 l.25] x6")
     emit("[v1 l.20] x11")
-    emit("[v1 l1 v4 l.95] x12")
     emit("[=127,0] x15")
     emit()
 
-    # Pattern 3: Closed Hats 8ths (Verse)
+    # Pattern 3: Closed Hats 8ths (Compact multi-step)
+    emit("# Pattern 3: Closed Hats 8ths (Compact multi-step: downbeats on 0,4,8,12 and offbeats on 2,6,10,14)")
     emit("y3")
     emit("[hats 8ths] yt")
-    emit("[v2 l.5] x0")
-    emit("[v2 l.3] x2")
-    emit("[v2 l.5] x4")
-    emit("[v2 l.3] x6")
-    emit("[v2 l.5] x8")
-    emit("[v2 l.3] x10")
-    emit("[v2 l.5] x12")
-    emit("[v2 l.3] x14")
+    emit("[v2 l.5] x0,4,8,12")
+    emit("[v2 l.3] x2,6,10,14")
     emit("[=127,0] x15")
     emit()
 
-    # Pattern 18: Hats 16ths with Open Hat Offbeat Chokes
+    # Pattern 18: Hats 16ths with Open Hat Offbeat Chokes (Compact multi-step)
+    emit("# Pattern 18: Hats 16ths with Open Hat Offbeat Chokes (Compact multi-step)")
     emit("y18")
     emit("[hats 16ths + open accents] yt")
-    emit("[v2 l.45] x0")
-    emit("[v2 l.25] x1")
-    emit("[v3 l.75 v2 l0] x2")
-    emit("[v2 l.25] x3")
-    emit("[v2 l.5] x4")
-    emit("[v2 l.25] x5")
-    emit("[v3 l.85 v2 l0] x6")
-    emit("[v2 l.25] x7")
-    emit("[v2 l.45] x8")
-    emit("[v2 l.25] x9")
-    emit("[v3 l.75 v2 l0] x10")
-    emit("[v2 l.25] x11")
-    emit("[v2 l.5] x12")
-    emit("[v2 l.25] x13")
-    emit("[v3 l.85 v2 l0] x14")
-    emit("[v2 l.25] x15")
+    emit("[v2 l.25] x1,3,5,7,9,11,13,15")
+    emit("[v2 l.45] x0,8")
+    emit("[v2 l.5] x4,12")
+    emit("[v3 l.75 v2 l0] x2,10")
+    emit("[v3 l.85 v2 l0] x6,14")
     emit("[=127,0] x15")
     emit()
 
     # Pattern 4: Minimoog Rubber Bassline (2-bar 32-step loop)
-    # Features C1 bounces, C2 octave snaps, and F#1->G1 chromatic slides
+    emit("# Pattern 4: Minimoog Rubber Bassline (2-bar 32-step loop)")
     emit("y4")
     emit("[minimoog rubber bass 2-bar loop] yt")
-    emit("[v6 g0 n36 l1] x0")
-    emit("[v6 g0 n36 l.85] x2")
-    emit("[v6 g0 n48 l.95] x4")
-    emit("[v6 g0 n36 l.85] x6")
-    emit("[v6 g0 n36 l1] x8")
+    emit("[v6 g0 n36 l1] x0,8,16")
+    emit("[v6 g0 n36 l.85] x2,6,18,22")
+    emit("[v6 g0 n48 l.95] x4,12,20,28")
     emit("[v6 g0 n39 l.9] x10")
-    emit("[v6 g0 n48 l.95] x12")
-    emit("[v6 g.04 n42 l.85] x14")
-    emit("[v6 g0 n43 l.9] x15")
-    emit("[v6 g0 n36 l1] x16")
-    emit("[v6 g0 n36 l.85] x18")
-    emit("[v6 g0 n48 l.95] x20")
-    emit("[v6 g0 n36 l.85] x22")
+    emit("[v6 g.04 n42 l.85] x14,30")
+    emit("[v6 g0 n43 l.9] x15,31")
     emit("[v6 g0 n34 l.95] x24")
     emit("[v6 g0 n34 l.85] x26")
-    emit("[v6 g0 n48 l.95] x28")
-    emit("[v6 g.04 n42 l.85] x30")
-    emit("[v6 g0 n43 l.9] x31")
     emit()
 
     # Pattern 5: Industrial Clangs & Machine FX
+    emit("# Pattern 5: Industrial Clangs & Machine FX")
     emit("y5")
     emit("[industrial machine clangs] yt")
     emit("[v18 f311 v19 f187 v18 l.85] x3")
@@ -298,21 +275,21 @@ def build_closer():
     emit("[=127,0] x31")
     emit()
 
-    # Pattern 6: Chorus Bass Roots (Ab -> Bb, 2-bar loop)
+    # Pattern 6: Chorus Bass Roots (Ab -> Bb, 2-bar loop) (Compact multi-step)
+    emit("# Pattern 6: Chorus Bass Roots (Ab -> Bb, 2-bar loop) (Compact multi-step)")
     emit("y6")
     emit("[chorus bass Ab and Bb roots] yt")
     emit("[v6 g0 n32 l1] x0")
-    emit("[v6 g0 n32 l.85] x4")
+    emit("[v6 g0 n32 l.85] x4,12")
     emit("[v6 g0 n44 l.95] x8")
-    emit("[v6 g0 n32 l.85] x12")
     emit("[v6 g0 n34 l1] x16")
-    emit("[v6 g0 n34 l.85] x20")
+    emit("[v6 g0 n34 l.85] x20,28")
     emit("[v6 g0 n46 l.95] x24")
-    emit("[v6 g0 n34 l.85] x28")
     emit("[=127,0] x31")
     emit()
 
     # Pattern 7: Post-Chorus Ascending Hook (E -> F -> G -> Ab over C minor)
+    emit("# Pattern 7: Post-Chorus Ascending Hook (E -> F -> G -> Ab over C minor)")
     emit("y7")
     emit("[post-chorus ascending hook] yt")
     emit("[v11 g0 n64 l.9] x0")
@@ -328,6 +305,7 @@ def build_closer():
     emit()
 
     # Pattern 8: Chorus Pad Chords (Abmaj7 -> Bb9)
+    emit("# Pattern 8: Chorus Pad Chords (Abmaj7 -> Bb9)")
     emit("y8")
     emit("[chorus pad Abmaj7 and Bb9] yt")
     emit("[pn 0,101,56,.95 pn 0,102,60,.95 pn 0,103,63,.95 pn 0,104,67,.95] x0")
@@ -337,23 +315,19 @@ def build_closer():
     emit()
 
     # Pattern 9: Chorus Synth Brass Stabs (C minor power stabs)
+    emit("# Pattern 9: Chorus Synth Brass Stabs (C minor power stabs)")
     emit("y9")
     emit("[chorus synth brass stabs] yt")
-    emit("[v8 n60 l1 v15 l.8] x0")
-    emit("[v8 n63 l.9] x3")
-    emit("[v8 n67 l.95] x6")
-    emit("[v8 n60 l1 v15 l.8] x8")
+    emit("[v8 n60 l1 v15 l.8] x0,8,16")
+    emit("[v8 n63 l.9] x3,20")
+    emit("[v8 n67 l.95] x6,24")
     emit("[v8 n70 l1] x12")
-    emit("[v8 n72 l1] x14")
-    emit("[v8 l0] x15")
-    emit("[v8 n60 l1 v15 l.8] x16")
-    emit("[v8 n63 l.9] x20")
-    emit("[v8 n67 l.95] x24")
-    emit("[v8 n72 l1] x28")
-    emit("[v8 l0] x31")
+    emit("[v8 n72 l1] x14,28")
+    emit("[v8 l0] x15,31")
     emit()
 
     # Pattern 10: The Outro Piano (The Downward Spiral Descending Motif, 4 bars / 64 steps)
+    emit("# Pattern 10: The Outro Piano (The Downward Spiral Descending Motif, 4 bars / 64 steps)")
     emit("y10")
     emit("[the downward spiral outro piano] yt")
     emit("[v13 n70 l.85] x0")
@@ -369,6 +343,7 @@ def build_closer():
     emit()
 
     # Pattern 11: Dark Verse Atmosphere Pad (Cm drone)
+    emit("# Pattern 11: Dark Verse Atmosphere Pad (Cm drone)")
     emit("y11")
     emit("[verse dark pad] yt")
     emit("[pn 0,109,48,.8 pn 0,110,55,.8 pn 0,111,58,.8] x0")
@@ -376,6 +351,7 @@ def build_closer():
     emit()
 
     # Pattern 13: Snare Ratchet Roll (one-shot with stop marker '-')
+    emit("# Pattern 13: Snare Ratchet Roll (one-shot with stop marker '-')")
     emit("y13")
     emit("[snare ratchet roll] yt")
     emit("[v1 l0.20] x0")
@@ -391,6 +367,7 @@ def build_closer():
     emit()
 
     # Pattern 14: Fake Sidechain Pump (4 steps = 1 beat)
+    emit("# Pattern 14: Fake Sidechain Pump (4 steps = 1 beat)")
     emit("y14")
     emit("[fake sidechain pump] yt")
     emit("[v8 a-20 v9 a-20 v10 a-22 v28 a-20 v29 a-22 v30 a-20 v31 a-22 v32 a-20 v33 a-22 v34 a-20 v35 a-22 v36 a-20 v37 a-22] x0")
@@ -400,22 +377,23 @@ def build_closer():
     emit()
 
     # Pattern 15: Sub Boom Drop (one-shot with stop marker '-')
+    emit("# Pattern 15: Sub Boom Drop (one-shot with stop marker '-')")
     emit("y15")
     emit("[sub boom drop] yt")
     emit("[v38 g0 n48 g.15 n36 l1 v40 l1] x0")
     emit("[-] x1")
     emit()
 
-    # Pattern 16: Bass Cutoff Sweep (4 bars, 32 two-step increments from 440 Hz to 2800 Hz)
+    # Pattern 16: Bass Cutoff Sweep Lane (4 bars, 32 increments from 440 Hz to 2800 Hz)
+    # Reads Stream 6 (generated via K-synth above) and caches into $0 for both v6 and v7
+    emit("# Pattern 16: Bass Cutoff Sweep Lane (4 bars, 32 increments from 440 Hz to 2800 Hz)")
+    emit("# Reads Stream 6 (generated via K-synth above) and caches into $0 for both v6 and v7")
     emit("y16")
     emit("[bass cutoff sweep] yt")
-    f_start = 440.0
-    f_end = 2800.0
-    num_steps = 32
-    for s in range(num_steps):
-        phase = s / float(num_steps - 1)
-        cutoff = int(round(f_start * math.pow(f_end / f_start, phase)))
-        emit(f"[v6 k{cutoff} v7 k{cutoff}] x{s*2}")
+    emit("[=0,&6 v6 k$0 v7 k$0] x0,2,4,6,8,10,12,14")
+    emit("[=0,&6 v6 k$0 v7 k$0] x16,18,20,22,24,26,28,30")
+    emit("[=0,&6 v6 k$0 v7 k$0] x32,34,36,38,40,42,44,46")
+    emit("[=0,&6 v6 k$0 v7 k$0] x48,50,52,54,56,58,60,62")
     emit("[=127,0] x63")
     emit()
 
@@ -426,6 +404,7 @@ def build_closer():
     emit("y0")
     emit("[conductor] yt")
     emit("%16")
+    emit()
 
     conductor = {}
     def c_add(bar, cmd):
@@ -489,14 +468,10 @@ def build_closer():
     # Bar 92: End Cleanup
     c_add(92, "Z0 +8 ce 99")
 
-    # Output conductor steps
-    for bar in range(93):
-        cmds = conductor.get(bar)
-        if cmds:
-            line_str = " ".join(cmds)
-            emit(f"[{line_str}] x{bar}")
-        else:
-            emit(f"[=126,{bar}] x{bar}")
+    # Output conductor steps (sparse)
+    for bar in sorted(conductor.keys()):
+        cmds = " ".join(conductor[bar])
+        emit(f"[{cmds}] x{bar}")
     emit()
 
     # ----------------------------------------------------
@@ -512,7 +487,9 @@ def build_closer():
 
 if __name__ == "__main__":
     song_text = build_closer()
-    out_path = os.path.join(os.path.dirname(__file__), "closer.sk")
-    with open(out_path, "w") as f:
-        f.write(song_text)
-    print(f"Wrote {len(song_text.splitlines())} lines to {out_path}")
+    out_dir = os.path.dirname(__file__)
+    for name in ["closer.sk", "closer_compact.sk"]:
+        out_path = os.path.join(out_dir, name)
+        with open(out_path, "w") as f:
+            f.write(song_text)
+        print(f"Wrote {len(song_text.splitlines())} lines to {out_path}")

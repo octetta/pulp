@@ -232,20 +232,17 @@ def build_i_feel_love():
     # Pattern 1: Four-on-the-floor Electronic Kick
     emit("y1")
     emit("[kick 4-on-the-floor] yt")
-    emit("[v0 l1 v5 g0 n52 g.06 n30 l1] x0")
-    emit("[v0 l.95 v5 g0 n50 g.06 n30 l.9] x4")
-    emit("[v0 l1 v5 g0 n52 g.06 n30 l1] x8")
-    emit("[v0 l.95 v5 g0 n50 g.06 n30 l.9] x12")
+    emit("[v0 l1 v5 g0 n52 g.06 n30 l1] x0,8")
+    emit("[v0 l.95 v5 g0 n50 g.06 n30 l.9] x4,12")
     emit("[=127,0] x15")
     emit()
 
     # Pattern 2: Gated Snare + Electronic Clap on 2 & 4
     emit("y2")
     emit("[snare+clap on 2 & 4] yt")
-    emit("[v1 l1 v4 l.95] x4")
+    emit("[v1 l1 v4 l.95] x4,12")
     emit("[v1 l.25] x6")
     emit("[v1 l.20] x11")
-    emit("[v1 l1 v4 l.95] x12")
     emit("[v1 l.30] x14")
     emit("[=127,0] x15")
     emit()
@@ -253,31 +250,22 @@ def build_i_feel_love():
     # Pattern 3: Running 16th Closed Hats with Accents & Offbeat Open Sizzle
     emit("y3")
     emit("[hats 16ths groove + offbeat sizzle] yt")
-    emit("[v2 l.50] x0")
-    emit("[v2 l.25] x1")
-    emit("[v3 l.80 v2 l0] x2")
-    emit("[v2 l.25] x3")
-    emit("[v2 l.55] x4")
-    emit("[v2 l.25] x5")
-    emit("[v3 l.85 v2 l0] x6")
-    emit("[v2 l.25] x7")
-    emit("[v2 l.50] x8")
-    emit("[v2 l.25] x9")
-    emit("[v3 l.80 v2 l0] x10")
-    emit("[v2 l.25] x11")
-    emit("[v2 l.55] x12")
-    emit("[v2 l.25] x13")
-    emit("[v3 l.85 v2 l0] x14")
-    emit("[v2 l.25] x15")
+    emit("[v2 l.25] x1,3,5,7,9,11,13,15")
+    emit("[v2 l.50] x0,8")
+    emit("[v2 l.55] x4,12")
+    emit("[v3 l.80 v2 l0] x2,10")
+    emit("[v3 l.85 v2 l0] x6,14")
+    emit("[=127,0] x15")
     emit()
 
     # Pattern 6: The Iconic Moog Bassline (16 steps, reads Stream 1 via n&1)
     # Velocity accents built directly into steps for the machine-gun pulse!
     emit("y6")
     emit("[the iconic moog bassline] yt")
-    for step in range(16):
-        velo = "1" if step % 4 == 0 else ("0.9" if step % 2 == 0 else "0.75")
-        emit(f"[v6 n&1 l{velo}] x{step}")
+    emit("[v6 n&1 l1] x0,4,8,12")
+    emit("[v6 n&1 l0.9] x2,6,10,14")
+    emit("[v6 n&1 l0.75] x1,3,5,7")
+    emit("[v6 n&1 l0.75] x9,11,13,15")
     emit()
 
     # Pattern 8: Donna Summer Verse Vocal ('Ooh, it's so good...', 64 steps / 4 bars)
@@ -334,9 +322,8 @@ def build_i_feel_love():
     # Pattern 9: High Sparkle Arpeggio (16 steps, reads Stream 8 via n&8)
     emit("y9")
     emit("[high sparkle arpeggio] yt")
-    for step in range(16):
-        velo = "0.75" if step % 2 == 0 else "0.6"
-        emit(f"[v13 n&8 l{velo}] x{step}")
+    emit("[v13 n&8 l0.75] x0,2,4,6,8,10,12,14")
+    emit("[v13 n&8 l0.60] x1,3,5,7,9,11,13,15")
     emit()
 
     # Pattern 11: Disco Strings Chords (32 steps = 2 bars, C minor colour)
@@ -377,16 +364,17 @@ def build_i_feel_love():
     emit("[-] x1")
     emit()
 
-    # Pattern 16: Bass Filter Sweep Lane (4 bars, 32 two-step increments from 750 Hz to 3600 Hz)
+    ## K-SYNTH PARAMETER CREATION (Bass Filter Sweep Stream)
+    emit("## K-SYNTH PARAMETER CREATION (Bass Filter Sweep Stream)")
+    emit("# Synthesize 32-step exponential sweep (750 Hz -> 3600 Hz) directly into /SS 12:")
+    emit("[750 * ((3600%750) ^ ((!32)%31))] k! k>d /SS 12")
+    emit()
     emit("y16")
     emit("[bass filter sweep open] yt")
-    f_start = 750.0
-    f_end = 3600.0
-    num_steps = 32
-    for s in range(num_steps):
-        phase = s / float(num_steps - 1)
-        cutoff = int(round(f_start * math.pow(f_end / f_start, phase)))
-        emit(f"[v6 k{cutoff} v7 k{cutoff}] x{s*2}")
+    emit("[=0,&12 v6 k$0 v7 k$0] x0,2,4,6,8,10,12,14")
+    emit("[=0,&12 v6 k$0 v7 k$0] x16,18,20,22,24,26,28,30")
+    emit("[=0,&12 v6 k$0 v7 k$0] x32,34,36,38,40,42,44,46")
+    emit("[=0,&12 v6 k$0 v7 k$0] x48,50,52,54,56,58,60,62")
     emit("[=127,0] x63")
     emit()
 
@@ -465,14 +453,10 @@ def build_i_feel_love():
     # Bar 96: End Cleanup
     c_add(96, "Z0 +8 ce 99")
 
-    # Output conductor steps
-    for bar in range(97):
-        cmds = conductor.get(bar)
-        if cmds:
-            line_str = " ".join(cmds)
-            emit(f"[{line_str}] x{bar}")
-        else:
-            emit(f"[=126,{bar}] x{bar}")
+    # Output conductor steps (sparse)
+    for bar in sorted(conductor.keys()):
+        cmds = conductor[bar]
+        emit(f"[{' '.join(cmds)}] x{bar}")
     emit()
 
     # ----------------------------------------------------

@@ -261,12 +261,23 @@ def build_whip_it():
     emit("## PATTERNS")
     emit()
 
+    def emit_stream_steps(cmd, count, loop_step=True):
+        limit = (count - 1) if (loop_step and count > 0) else count
+        for i in range(0, limit, 8):
+            steps = ",".join(str(s) for s in range(i, min(i+8, limit)))
+            emit(f"{cmd} x{steps}")
+        if loop_step and count > 0:
+            if cmd.endswith("]"):
+                loop_cmd = cmd[:-1] + " =127,0]"
+            else:
+                loop_cmd = cmd + " =127,0"
+            emit(f"{loop_cmd} x{count-1}")
+
     # Pattern 1: Alan Myers Motorik Four-on-the-Floor Kick
     emit("y1")
     emit("[kick motorik] yt")
-    emit("[v0 l1] x0")
+    emit("[v0 l1] x0,8")
     emit("[v0 l.9] x4")
-    emit("[v0 l1] x8")
     emit("[v0 l.95] x12")
     emit("[=127,0] x15")
     emit()
@@ -274,8 +285,7 @@ def build_whip_it():
     # Pattern 2: Crisp Gated Snare + Clap on 2 & 4
     emit("y2")
     emit("[snare+clap on 2 & 4] yt")
-    emit("[v1 l1 v4 l.9] x4")
-    emit("[v1 l1 v4 l.9] x12")
+    emit("[v1 l1 v4 l.9] x4,12")
     emit("[v1 l.25] x14")
     emit("[=127,0] x15")
     emit()
@@ -283,13 +293,9 @@ def build_whip_it():
     # Pattern 3: Closed Hats 8ths with Offbeat Open Hats
     emit("y3")
     emit("[hats 8ths + open sizzle] yt")
-    emit("[v2 l.5] x0")
-    emit("[v2 l.3] x2")
-    emit("[v2 l.5] x4")
+    emit("[v2 l.5] x0,4,8,12")
+    emit("[v2 l.3] x2,10")
     emit("[v3 l.75 v2 l0] x6")
-    emit("[v2 l.5] x8")
-    emit("[v2 l.3] x10")
-    emit("[v2 l.5] x12")
     emit("[v3 l.85 v2 l0] x14")
     emit("[=127,0] x15")
     emit()
@@ -297,52 +303,39 @@ def build_whip_it():
     # Pattern 4: Relentless 16th Hats (High energy sections)
     emit("y4")
     emit("[hats 16ths groove] yt")
-    emit("[v2 l.45] x0")
-    emit("[v2 l.25] x1")
-    emit("[v3 l.75 v2 l0] x2")
-    emit("[v2 l.25] x3")
-    emit("[v2 l.5] x4")
-    emit("[v2 l.25] x5")
-    emit("[v3 l.85 v2 l0] x6")
-    emit("[v2 l.25] x7")
-    emit("[v2 l.45] x8")
-    emit("[v2 l.25] x9")
-    emit("[v3 l.75 v2 l0] x10")
-    emit("[v2 l.25] x11")
-    emit("[v2 l.5] x12")
-    emit("[v2 l.25] x13")
-    emit("[v3 l.85 v2 l0] x14")
-    emit("[v2 l.25] x15")
+    emit("[v2 l.25] x1,3,5,7,9,11,13,15")
+    emit("[v2 l.45] x0,8")
+    emit("[v2 l.5] x4,12")
+    emit("[v3 l.75 v2 l0] x2,10")
+    emit("[v3 l.85 v2 l0] x6,14")
+    emit("[=127,0] x15")
     emit()
 
     # Pattern 6: Main Riff Bar A (16 steps, reads Stream 1)
     # DUN-DUN da-da-DUN on 0, 2, 4, 6, 8, rests on 9-15!
     emit("y6")
     emit("[main riff bar A] yt")
-    for step in range(16):
-        emit(f"[v6 n&1 l1] x{step}")
+    emit_stream_steps("[v6 n&1 l1]", 16)
     emit()
 
     # Pattern 7: Main Riff Bar B1 (16 steps, reads Stream 2)
     # D stab on 0, WHIP CRACK on 4, A stab on 8, WHIP CRACK on 12!
     emit("y7")
     emit("[main riff bar B1 with whip cracks] yt")
-    for step in range(16):
-        if step == 4 or step == 12:
-            emit(f"[v6 n&2 l1 v21 l1 v22 l1 v23 l1] x{step}")
-        else:
-            emit(f"[v6 n&2 l1] x{step}")
+    emit("[v6 n&2 l1] x0,1,2,3,5,6,7")
+    emit("[v6 n&2 l1 v21 l1 v22 l1 v23 l1] x4,12")
+    emit("[v6 n&2 l1] x8,9,10,11,13,14")
+    emit("[v6 n&2 l1 =127,0] x15")
     emit()
 
     # Pattern 8: Main Riff Bar B2 (16 steps, turnaround walking bass into E)
     # D stab on 0, WHIP CRACK on 4, A on 8 & 10, G on 12, F# on 14!
     emit("y8")
     emit("[main riff bar B2 turnaround] yt")
-    for step in range(16):
-        if step == 4:
-            emit(f"[v6 n&3 l1 v21 l1 v22 l1 v23 l1] x{step}")
-        else:
-            emit(f"[v6 n&3 l1] x{step}")
+    emit("[v6 n&3 l1] x0,1,2,3,5,6,7")
+    emit("[v6 n&3 l1 v21 l1 v22 l1 v23 l1] x4")
+    emit("[v6 n&3 l1] x8,9,10,11,12,13,14")
+    emit("[v6 n&3 l1 =127,0] x15")
     emit()
 
     # Pattern 9: Verse 1 Vocal Line ('Crack that whip! ...')
@@ -351,64 +344,56 @@ def build_whip_it():
     emit("y9")
     emit("[verse 1 vocal lead + whip cracks] yt")
     whip_verse_steps = {20, 60, 84, 124}
-    for step in range(128):
-        if step in whip_verse_steps:
-            emit(f"[v13 n&5 l1 v21 l1 v22 l1 v23 l1] x{step}")
-        else:
-            emit(f"[v13 n&5 l1] x{step}")
+    normal_v1_steps = [s for s in range(128) if s not in whip_verse_steps and s != 127]
+    for i in range(0, len(normal_v1_steps), 8):
+        steps = ",".join(str(s) for s in normal_v1_steps[i:i+8])
+        emit(f"[v13 n&5 l1] x{steps}")
+    emit("[v13 n&5 l1 v21 l1 v22 l1 v23 l1] x20,60,84,124")
+    emit("[v13 n&5 l1 =127,0] x127")
     emit()
 
     # Pattern 10: Pre-Chorus Vocal Line ('When a problem comes along... you must whip it!')
     # 8 bars / 128 sixteenth steps, reads Stream 6
-    # Whip cracks on "whip it!" at steps 28, 60, 92, 124!
+    # Whip cracks on 'whip it!' at steps 28, 60, 92, 124!
     emit("y10")
     emit("[pre-chorus vocal lead + whip cracks] yt")
     whip_pre_steps = {28, 60, 92, 124}
-    for step in range(128):
-        if step in whip_pre_steps:
-            emit(f"[v13 n&6 l1 v21 l1 v22 l1 v23 l1] x{step}")
-        else:
-            emit(f"[v13 n&6 l1] x{step}")
+    normal_pre_steps = [s for s in range(128) if s not in whip_pre_steps and s != 127]
+    for i in range(0, len(normal_pre_steps), 8):
+        steps = ",".join(str(s) for s in normal_pre_steps[i:i+8])
+        emit(f"[v13 n&6 l1] x{steps}")
+    emit("[v13 n&6 l1 v21 l1 v22 l1 v23 l1] x28,60,92,124")
+    emit("[v13 n&6 l1 =127,0] x127")
     emit()
 
     # Pattern 11: Chorus Bass Roots (64 sixteenth steps across 4 bars, reads Stream 7)
     emit("y11")
     emit("[chorus bass roots 4 bars] yt")
-    for step in range(64):
-        emit(f"[v6 n&7 l1] x{step}")
+    emit_stream_steps("[v6 n&7 l1]", 64)
     emit()
 
     # Pattern 12: Bob Mothersbaugh's Angular Synth Solo (reads Stream 9)
     # 8 bars / 128 sixteenth steps
     emit("y12")
     emit("[devo synth solo 8 bars] yt")
-    for step in range(128):
-        emit(f"[v11 n&9 l.95] x{step}")
+    emit_stream_steps("[v11 n&9 l.95]", 128)
     emit()
 
     # Pattern 13: Chorus Synth Stabs (Cmaj -> Gmaj -> Dmaj -> Cmaj, 4 bars / 64 steps)
     emit("y13")
     emit("[chorus synth chord stabs] yt")
     # C major (bar 1: steps 0-15)
-    emit("[v18 n48 l.9] x0")
-    emit("[v18 n48 l.75] x4")
-    emit("[v18 n48 l.9] x8")
-    emit("[v18 n48 l.75] x12")
+    emit("[v18 n48 l.9] x0,8")
+    emit("[v18 n48 l.75] x4,12")
     # G major (bar 2: steps 16-31)
-    emit("[v18 n43 l.9] x16")
-    emit("[v18 n43 l.75] x20")
-    emit("[v18 n43 l.9] x24")
-    emit("[v18 n43 l.75] x28")
+    emit("[v18 n43 l.9] x16,24")
+    emit("[v18 n43 l.75] x20,28")
     # D major (bar 3: steps 32-47)
-    emit("[v18 n45 l.9] x32")
-    emit("[v18 n45 l.75] x36")
-    emit("[v18 n45 l.9] x40")
-    emit("[v18 n45 l.75] x44")
+    emit("[v18 n45 l.9] x32,40")
+    emit("[v18 n45 l.75] x36,44")
     # C major (bar 4: steps 48-63)
-    emit("[v18 n48 l.9] x48")
-    emit("[v18 n48 l.75] x52")
-    emit("[v18 n48 l.9] x56")
-    emit("[v18 n48 l.75] x60")
+    emit("[v18 n48 l.9] x48,56")
+    emit("[v18 n48 l.75] x52,60")
     emit("[=127,0] x63")
     emit()
 
@@ -416,19 +401,18 @@ def build_whip_it():
     # 4 bars / 64 sixteenth steps, reads Stream 8
     emit("y14")
     emit("[chorus vocal hook line] yt")
-    for step in range(64):
-        if step == 60:
-            emit(f"[v13 n&8 l1 v21 l1 v22 l1 v23 l1] x{step}")
-        else:
-            emit(f"[v13 n&8 l1] x{step}")
-    emit()
+    normal_c_steps = [s for s in range(64) if s != 60 and s != 63]
+    for i in range(0, len(normal_c_steps), 8):
+        steps = ",".join(str(s) for s in normal_c_steps[i:i+8])
+        emit(f"[v13 n&8 l1] x{steps}")
+    emit("[v13 n&8 l1 v21 l1 v22 l1 v23 l1] x60")
+    emit("[v13 n&8 l1 =127,0] x63")
     emit()
 
     # Pattern 15: Double Whip Crack for Section Turnarounds!
     emit("y15")
     emit("[double whip crack on 3 & 4] yt")
-    emit("[v21 l1 v22 l1 v23 l1] x8")
-    emit("[v21 l1 v22 l1 v23 l1] x12")
+    emit("[v21 l1 v22 l1 v23 l1] x8,12")
     emit("[=127,0] x15")
     emit()
 
@@ -564,14 +548,10 @@ def build_whip_it():
     # Bar 92: End Cleanup
     c_add(92, "Z0 +4 ce 99")
 
-    # Output conductor steps
-    for bar in range(93):
-        cmds = conductor.get(bar)
-        if cmds:
-            line_str = " ".join(cmds)
-            emit(f"[{line_str}] x{bar}")
-        else:
-            emit(f"[=126,{bar}] x{bar}")
+    # Output conductor steps (sparse)
+    for bar in sorted(conductor.keys()):
+        cmds = " ".join(conductor[bar])
+        emit(f"[{cmds}] x{bar}")
     emit()
 
     # ----------------------------------------------------

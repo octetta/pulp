@@ -224,13 +224,16 @@ def build_dont_go():
     emit("## PATTERNS")
     emit()
 
+    def emit_stream_steps(cmd, count):
+        for i in range(0, count, 8):
+            steps = ",".join(str(s) for s in range(i, min(i+8, count)))
+            emit(f"{cmd} x{steps}")
+
     # Pattern 1: Four-on-the-floor Electronic Kick
     emit("y1")
     emit("[kick 4-on-the-floor] yt")
-    emit("[v0 l1 v5 g0 n52 g.06 n30 l1] x0")
-    emit("[v0 l.95 v5 g0 n50 g.06 n30 l.9] x4")
-    emit("[v0 l1 v5 g0 n52 g.06 n30 l1] x8")
-    emit("[v0 l.95 v5 g0 n50 g.06 n30 l.9] x12")
+    emit("[v0 l1 v5 g0 n52 g.06 n30 l1] x0,8")
+    emit("[v0 l.95 v5 g0 n50 g.06 n30 l.9] x4,12")
     emit("[v0 l.7] x14")
     emit("[=127,0] x15")
     emit()
@@ -238,55 +241,37 @@ def build_dont_go():
     # Pattern 2: Gated Snare + Clap on 2 & 4
     emit("y2")
     emit("[snare+clap on 2 & 4] yt")
-    emit("[v1 l1 v4 l.95] x4")
+    emit("[v1 l1 v4 l.95] x4,12")
     emit("[v1 l.25] x6")
     emit("[v1 l.20] x11")
-    emit("[v1 l1 v4 l.95] x12")
     emit("[=127,0] x15")
     emit()
 
     # Pattern 3: Closed Hats 8ths (Verse)
     emit("y3")
     emit("[hats 8ths] yt")
-    emit("[v2 l.5] x0")
-    emit("[v2 l.3] x2")
-    emit("[v2 l.5] x4")
-    emit("[v2 l.3] x6")
-    emit("[v2 l.5] x8")
-    emit("[v2 l.3] x10")
-    emit("[v2 l.5] x12")
-    emit("[v2 l.3] x14")
+    emit("[v2 l.5] x0,4,8,12")
+    emit("[v2 l.3] x2,6,10,14")
     emit("[=127,0] x15")
     emit()
 
     # Pattern 18: Hats 16ths Groove with Offbeat Open Hats
     emit("y18")
     emit("[hats 16ths + open sizzle] yt")
-    emit("[v2 l.45] x0")
-    emit("[v2 l.25] x1")
-    emit("[v3 l.75 v2 l0] x2")
-    emit("[v2 l.25] x3")
-    emit("[v2 l.5] x4")
-    emit("[v2 l.25] x5")
-    emit("[v3 l.85 v2 l0] x6")
-    emit("[v2 l.25] x7")
-    emit("[v2 l.45] x8")
-    emit("[v2 l.25] x9")
-    emit("[v3 l.75 v2 l0] x10")
-    emit("[v2 l.25] x11")
-    emit("[v2 l.5] x12")
-    emit("[v2 l.25] x13")
-    emit("[v3 l.85 v2 l0] x14")
-    emit("[v2 l.25] x15")
+    emit("[v2 l.25] x1,3,5,7,9,11,13,15")
+    emit("[v2 l.45] x0,8")
+    emit("[v2 l.5] x4,12")
+    emit("[v3 l.75 v2 l0] x2,10")
+    emit("[v3 l.85 v2 l0] x6,14")
+    emit("[=127,0] x15")
     emit()
 
     # Pattern 15: Syncopated Cowbell
     emit("y15")
     emit("[syncopated cowbell] yt")
     emit("[v15 l.85] x2")
-    emit("[v15 l.65] x5")
+    emit("[v15 l.65] x5,11")
     emit("[v15 l.80] x8")
-    emit("[v15 l.65] x11")
     emit("[v15 l.90] x14")
     emit("[=127,0] x15")
     emit()
@@ -294,51 +279,44 @@ def build_dont_go():
     # Pattern 4: Vince Clarke 16th Bassline (reads Stream 1 via n&1, 32 steps)
     emit("y4")
     emit("[vince clarke 16th bassline] yt")
-    for step in range(32):
-        emit(f"[v6 n&1 l1] x{step}")
+    emit_stream_steps("[v6 n&1 l1]", 32)
     emit()
 
     # Pattern 8: Chorus Bass Roots (reads Stream 2 via n&2, 32 steps)
     emit("y8")
     emit("[chorus bass roots] yt")
-    for step in range(32):
-        emit(f"[v6 n&2 l1] x{step}")
+    emit_stream_steps("[v6 n&2 l1]", 32)
     emit()
 
     # Pattern 5: The Iconic Synth Brass Hook (reads Stream 3 via n&3, 32 steps)
     emit("y5")
     emit("[the iconic synth brass hook] yt")
-    for step in range(32):
-        emit(f"[v8 n&3 l.95] x{step}")
+    emit_stream_steps("[v8 n&3 l.95]", 32)
     emit()
 
     # Pattern 6: Vince Clarke 16th Arpeggio (reads Stream 6 via n&6, 64 steps)
     emit("y6")
     emit("[vince clarke 16th arpeggio] yt")
-    for step in range(64):
-        emit(f"[v11 n&6 l.85] x{step}")
+    emit_stream_steps("[v11 n&6 l.85]", 64)
     emit()
 
     # Pattern 7: Vocal Lead Verse 1 (reads Stream 5 via n&5, 64 steps)
     emit("y7")
     emit("[vocal lead verse 1] yt")
-    for step in range(64):
-        emit(f"[v13 n&5 l.9] x{step}")
+    emit_stream_steps("[v13 n&5 l.9]", 64)
     emit()
 
     # Pattern 10: Vocal Lead Chorus Hook ('Baby don't go...', reads Stream 4, 32 steps)
     emit("y10")
     emit("[vocal lead chorus hook] yt")
-    for step in range(32):
-        emit(f"[v13 n&4 l.95] x{step}")
+    emit_stream_steps("[v13 n&4 l.95]", 32)
     emit()
 
     # Pattern 11: Staccato Brass Offbeat Chords for Verse (32 steps)
     emit("y11")
     emit("[verse brass offbeat stabs] yt")
-    emit("[v8 n61 l.85] x6")
+    emit("[v8 n61 l.85] x6,22")
     emit("[v8 n65 l.9] x14")
-    emit("[v8 n61 l.85] x22")
     emit("[v8 n68 l.9] x30")
     emit("[=127,0] x31")
     emit()
@@ -375,16 +353,17 @@ def build_dont_go():
     emit("[-] x1")
     emit()
 
-    # Pattern 16: Bass Cutoff Sweep Lane (4 bars, 32 two-step increments from 520 Hz to 2800 Hz)
+    ## K-SYNTH PARAMETER CREATION (Bass Cutoff Sweep Stream)
+    emit("## K-SYNTH PARAMETER CREATION (Bass Cutoff Sweep Stream)")
+    emit("# Synthesize 32-step exponential sweep (520 Hz -> 2800 Hz) directly into /SS 7:")
+    emit("[520 * ((2800%520) ^ ((!32)%31))] k! k>d /SS 7")
+    emit()
     emit("y16")
     emit("[bass cutoff sweep] yt")
-    f_start = 520.0
-    f_end = 2800.0
-    num_steps = 32
-    for s in range(num_steps):
-        phase = s / float(num_steps - 1)
-        cutoff = int(round(f_start * math.pow(f_end / f_start, phase)))
-        emit(f"[v6 k{cutoff} v7 k{cutoff}] x{s*2}")
+    emit("[=0,&7 v6 k$0 v7 k$0] x0,2,4,6,8,10,12,14")
+    emit("[=0,&7 v6 k$0 v7 k$0] x16,18,20,22,24,26,28,30")
+    emit("[=0,&7 v6 k$0 v7 k$0] x32,34,36,38,40,42,44,46")
+    emit("[=0,&7 v6 k$0 v7 k$0] x48,50,52,54,56,58,60,62")
     emit("[=127,0] x63")
     emit()
 
@@ -456,14 +435,10 @@ def build_dont_go():
     # Bar 96: End Cleanup
     c_add(96, "Z0 +8 ce 99")
 
-    # Output conductor steps
-    for bar in range(97):
-        cmds = conductor.get(bar)
-        if cmds:
-            line_str = " ".join(cmds)
-            emit(f"[{line_str}] x{bar}")
-        else:
-            emit(f"[=126,{bar}] x{bar}")
+    # Output conductor steps (sparse)
+    for bar in sorted(conductor.keys()):
+        cmds = conductor[bar]
+        emit(f"[{' '.join(cmds)}] x{bar}")
     emit()
 
     # ----------------------------------------------------

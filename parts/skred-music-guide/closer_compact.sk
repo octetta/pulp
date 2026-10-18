@@ -309,58 +309,35 @@ y0
 [conductor] yt
 %16
 
-# Bars 0-3: Intro Heartbeat
 [y1 z1 v6 k440 v7 k440] x0
 [v20 l.6] x2
-
-# Bars 4-7: Minimoog Bass enters alone with heartbeat
 [y4 z1] x4
-
-# Bars 8-15: Verse 1 (Snare, Clap, Closed Hats, Industrial Clangs)
 [v17 l.8 y2 z1 y3 z1 y5 z1] x8
 [v6 k550 v7 k550] x12
-
-# Bars 16-23: Verse 1 Pre-Chorus (16th Hats, Dark Pad Swell, Sweep)
 [v17 l.6 y3 z0 y18 z1 y11 z1 y16 z1] x16
 [v16 l1] x20
 [y1 z0 y2 z0 y13 z1] x23
-
-# Bars 24-31: Post-Chorus Hook 1 (E -> F -> G -> Ab Ascending Lead)
 [v17 l1 y1 z1 y2 z1 y18 z1 y7 z1 y15 z1 y16 z0 v6 k900 v7 k900] x24
 [y7 z0 v11 l0] x31
-
-# Bars 32-39: Verse 2 (Stripped Industrial Funk Groove)
 [v17 l.6 y18 z0 y3 z1 y11 z0 v6 k460 v7 k460] x32
 [v6 k600 v7 k600 y5 z1] x36
-
-# Bars 40-47: Build-Up (Snare Roll, K-Synth Riser, Sweep)
 [v17 l.7 y3 z0 y18 z1 y16 z1] x40
 [v16 l1] x44
 [y1 z0 y2 z0 y13 z1] x47
-
-# Bars 48-63: Full Chorus (Wall of Sound: Brass Stabs, Sidechain, Roots)
 [v17 l1 y1 z1 y2 z1 y18 z1 y4 z0 y6 z1 y8 z1 y14 z1 y16 z0 v6 k3200 v7 k3000] x48
 [y6 z0 y4 z1 y9 z1] x52
 [v17 l.8 y4 z0 y9 z0 v8 l0 y6 z1 y8 z1] x56
 [y6 z0 y4 z1 y9 z1] x60
 [y2 z0 y13 z1] x63
-
-# Bars 64-71: Climax & Delay Freeze
 [v17 l1 y2 z1 y7 z1] x64
 [v16 l1] x70
 [DF 1 1 y1 z0 y2 z0 y18 z0 y4 z0 y6 z0 y7 z0 y8 z0 y9 z0 y14 z0 v11 l0 v8 l0 v6 l0 v7 l0] x71
-
-# Bars 72-87: Outro (Downward Spiral Piano Solo over Hall Delay & Heartbeat)
 [DF 1 0 y1 z1 y10 z1 y15 z1 v11 l0 v8 l0 v6 l0 v7 l0] x72
 [v20 l.5] x76
 [y15 z1] x80
 [v20 l.4] x84
-
-# Bars 88-91: Fade to Black
 [y10 z0 v13 l0 y1 z0 v0 l1 v5 g0 n52 g.10 n28 l1] x88
 [v0 l.8 v5 g0 n52 g.10 n28 l.8] x90
-
-# Bar 92: Final Cleanup
 [Z0 +8 ce 99] x92
 
 ## MACROS (play / stop)

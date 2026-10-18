@@ -120,136 +120,74 @@ v14 w15 a-5 p-.3 t.02,.9,0,.15 j1 k3000 q1.5 ds.30 P12 [marc backing shout] vt
 ## PATTERNS
 y1
 [kick 4-on-the-floor] yt
-[v0 l.5 v5 l.5] x0
-[v0 l.5 v5 l.5] x4
-[v0 l.5 v5 l.5] x8
-[v0 l.5 v5 l.5] x12
+[v0 l.5 v5 l.5] x0,4,8,12
 [=127,0] x15
 
 y2
 [snare and clap on 2 and 4] yt
-[v1 l.8 v4 l.8] x4
-[v1 l.8 v4 l.8] x12
+[v1 l.8 v4 l.8] x4,12
 [=127,0] x15
 
 y3
 [closed hat 8ths] yt
-[v2 l.5] x0
-[v2 l.5] x2
-[v2 l.5] x4
-[v2 l.5] x6
-[v2 l.5] x8
-[v2 l.5] x10
-[v2 l.5] x12
-[v2 l.5] x14
+[v2 l.5] x0,2,4,6,8,10,12,14
 [=127,0] x15
 
 y4
 [open hat offbeats] yt
-[v3 l.7] x6
-[v3 l.7] x14
+[v3 l.7] x6,14
 [=127,0] x15
 
 y5
 [iconic synth stab hook 2 bars] yt
-[v11 n55 l.6 v12 n62 l.6] x0
-[v11 n55 l.6 v12 n62 l.6] x4
-[v11 n55 l.6 v12 n62 l.6] x22
-[v11 n55 l.6 v12 n62 l.6] x28
+[v11 n55 l.6 v12 n62 l.6] x0,4,22,28
 [=127,0] x31
 
 y6
 [korg synthe-bass 2 bars] yt
-[v6 n31 l.7] x0
-[v6 n31 l.7] x4
-[v6 n34 l.7] x8
-[v6 n34 l.7] x12
-[v6 n39 l.7] x16
-[v6 n39 l.7] x20
-[v6 n34 l.7] x24
+[v6 n31 l.7] x0,4
+[v6 n34 l.7] x8,12,24
+[v6 n39 l.7] x16,20
 [v6 n36 l.7] x26
 [=127,0] x31
 
 y7
 [octave synth comp 2 bars] yt
-[v21 n55 l.7 v22 n67 l.7] x0
-[v21 n55 l.7 v22 n67 l.7] x4
-[v21 n58 l.7 v22 n70 l.7] x8
-[v21 n58 l.7 v22 n70 l.7] x12
-[v21 n63 l.7 v22 n75 l.7] x16
-[v21 n63 l.7 v22 n75 l.7] x20
-[v21 n58 l.7 v22 n70 l.7] x24
+[v21 n55 l.7 v22 n67 l.7] x0,4
+[v21 n58 l.7 v22 n70 l.7] x8,12,24
+[v21 n63 l.7 v22 n75 l.7] x16,20
 [v21 n60 l.7 v22 n72 l.7] x26
 [=127,0] x31
 
 y8
 [chorus bass g 2 bars] yt
-[v6 n31 l.7] x0
-[v6 n31 l.7] x4
-[v6 n31 l.7] x8
-[v6 n31 l.7] x12
-[v6 n31 l.7] x16
-[v6 n31 l.7] x20
-[v6 n31 l.7] x24
-[v6 n31 l.7] x28
+[v6 n31 l.7] x0,4,8,12,16,20,24,28
 [=127,0] x31
 
 y9
 [chorus bass bb 2 bars] yt
-[v6 n34 l.7] x0
-[v6 n34 l.7] x4
-[v6 n34 l.7] x8
-[v6 n34 l.7] x12
-[v6 n34 l.7] x16
-[v6 n34 l.7] x20
-[v6 n34 l.7] x24
-[v6 n34 l.7] x28
+[v6 n34 l.7] x0,4,8,12,16,20,24,28
 [=127,0] x31
 
 y10
 [chorus bass eb 2 bars] yt
-[v6 n39 l.7] x0
-[v6 n39 l.7] x4
-[v6 n39 l.7] x8
-[v6 n39 l.7] x12
-[v6 n39 l.7] x16
-[v6 n39 l.7] x20
-[v6 n39 l.7] x24
-[v6 n39 l.7] x28
+[v6 n39 l.7] x0,4,8,12,16,20,24,28
 [=127,0] x31
 
 y11
 [chorus bass c 2 bars] yt
-[v6 n36 l.7] x0
-[v6 n36 l.7] x4
-[v6 n36 l.7] x8
-[v6 n36 l.7] x12
-[v6 n36 l.7] x16
-[v6 n36 l.7] x20
-[v6 n36 l.7] x24
-[v6 n36 l.7] x28
+[v6 n36 l.7] x0,4,8,12,16,20,24,28
 [=127,0] x31
 
 y12
 [chorus bass d tension 2 bars] yt
-[v6 n38 l.7] x0
-[v6 n38 l.7] x4
-[v6 n38 l.7] x8
-[v6 n38 l.7] x12
-[v6 n38 l.7] x16
-[v6 n38 l.7] x20
-[v6 n38 l.7] x24
+[v6 n38 l.7] x0,4,8,12,16,20,24
 [v6 n31 l.7] x28
 [=127,0] x31
 
 y13
 [cr78 snare roll fill 1 bar] yt
-[v1 l.4] x0
-[v1 l.4] x4
-[v1 l.4] x8
-[v1 l.4] x10
-[v1 l.4] x12
-[v1 l.4] x14
+[v1 l.4] x0,4,8,10,12,14
 [=127,0] x15
 
 y14

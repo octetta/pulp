@@ -171,9 +171,69 @@ When reading note streams via `n&<S>` inside a looping pattern, **the number of 
 - **NEVER overwrite the final step with `[=127,0] x<last>`**:
   A common technique to extend sparse patterns to their full bar length is pinning the last step (e.g. `[=127,0] x15` or `x31`). **Only do this if the last step is actually empty!** If a pattern already writes an event on step 31 (such as `for step in range(32): emit(f"[v8 n&3 l.95] x{step}")`), writing `[=127,0] x31` immediately overwrites step 31, replacing the stream pull with register zeroing. Because token 31 is never pulled, the stream falls 1 token behind on each loop cycle, causing the entire melody to slip off-beat by one sixteenth step on every single repeat! If step $N$ already has an event, the pattern length is already pinned to $N+1$ steps; never overwrite it.
 
+### 2h. Compact Multi-Step Assignment (`x#,#,#,#`)
 
+Instead of writing out repeated steps line-by-line, `x` supports assigning up to 8 steps at once using a comma-separated list of step indices:
 
----
+```forth
+# 8th-note closed hi-hats (Pattern 3):
+y3
+[hats 8ths] yt
+[v2 l.5] x0,4,8,12            # Downbeat hits
+[v2 l.3] x2,6,10,14           # Offbeat hits
+[=127,0] x15
+```
+
+- **Safety & Argument Limit**: The maximum number of arguments per `x` command is 8 (`#define ARG_MAX 8`). Lists up to 8 items fit standard 4-on-the-floor (`x0,4,8,12`), 2 & 4 backbeats (`x4,12`), 8th-note subdivisions (`x0,2,4,6,8,10,12,14`), and bar-hold conductor lines (`x16,18,20,22,24,26,28,30`).
+- **Memory & Parsing**: The step body is compiled once into an `event_program_t`, and then applied to all specified steps in sequence using `seq_step_set()`. This eliminates redundant compilation overhead.
+
+### 2i. Macro Rules, Shadow Warnings, and Undefining Macros
+
+ANDS macros (`[name] : ... ;`) provide clean session shortcuts and aliases, but follow strict parser rules:
+
+1. **4-Character Name Limit (`ATOM4`)**: ANDS packs macro names into 32-bit unsigned integers (`uint32_t`). Macro names must be **at most 4 characters**. Names longer than 4 characters are silently truncated to the first 4 characters (e.g. `play_verbose` and `play_compact` both truncate to `"play"`, clobbering each other!). Always use $\le 4$ character names: `play`, `stop`, `pv`, `pc`, `riff`, `drop`.
+2. **Built-in Word Shadowing Warning**: ANDS expands macros before dictionary word lookup. Defining a macro with the same name as a built-in Forth word (like `[v]`, `[wait]`, `[dup]`) overrides that command across the entire engine. Skred inspects macro names upon definition and prints an explicit warning if a built-in word is shadowed:
+   ```text
+   # WARNING: macro [wait] shadows built-in word 'wait'
+   # WARNING: macro [v] shadows built-in word 'v' - voice-select voice
+   ```
+   Safe macro names that do not collide with built-ins register silently.
+3. **Inspecting and Undefining Macros**:
+   - `?m`: Dumps all currently active macros, their source bodies, parameter counts, and real-time safety.
+   - `[name] /m`: Undefines and removes a single macro (e.g. `[riff] /m` $\to$ `# macro [riff] removed`).
+   - `/m!`: Clears all user-defined macros from the session ($\to$ `# macros cleared`).
+
+### 2j. Dynamic Curve Generation via K-Synth (`k! k>d /SS`) and Variable Caching
+
+Offline Python loops calculating filter cutoff sweeps or modulation tables can be replaced entirely by in-engine K-synth vector math:
+
+1. **Synthesize into a Stream (`/SS`)**:
+   An inline K-synth expression (`[ ... ] k!`) calculates vector expressions in memory. `k>d` transfers the result vector to Skode's data buffer, and `/SS <slot>` installs it into a sequence stream:
+   ```forth
+   # Synthesize a 32-point exponential sweep from 440 Hz to 2800 Hz into Stream 6:
+   [440 * ((2800%440) ^ ((!32)%31))] k! k>d /SS 6
+   ```
+   Here, `!32` creates integers `0..31`, `%31` normalizes the phase to `0.0..1.0`, and `^` computes the exponential curve.
+2. **Sequential vs. Cached Stream Pulls (`$0`)**:
+   Each `&<slot>` token in a pattern step consumes the next value from the stream and advances its playback head. If a step contains:
+   ```forth
+   [v6 k&6 v7 k&6] x0   # BUG: v6 gets value 0, v7 gets value 1!
+   ```
+   To modulate multiple voice layers (e.g. detuned saws v6 and v7) with the **exact same curve point**, cache the stream pull into a temporary variable (`$0`..`$127`):
+   ```forth
+   [=0,&6 v6 k$0 v7 k$0] x0   # Correct: pulls once into $0, sets both voices
+   ```
+3. **Combining K-Synth Curves with Multi-Step Assignments**:
+   A 4-bar filter sweep (32 steps across 64 ticks) that previously required 34 handwritten lines collapses into 4 compact multi-step assignments:
+   ```forth
+   y16
+   [bass cutoff sweep] yt
+   [=0,&6 v6 k$0 v7 k$0] x0,2,4,6,8,10,12,14
+   [=0,&6 v6 k$0 v7 k$0] x16,18,20,22,24,26,28,30
+   [=0,&6 v6 k$0 v7 k$0] x32,34,36,38,40,42,44,46
+   [=0,&6 v6 k$0 v7 k$0] x48,50,52,54,56,58,60,62
+   [=127,0] x63
+   ```
 
 ## 3. Waves worth knowing
 
@@ -616,6 +676,10 @@ it, you still have options.
 - Leaving poly pools active when stopping patterns with `z0` (voices drone forever if `s > 0`; use linked voices with `s=0` decay envelopes instead).
 - Token count in note streams mismatching pattern length, causing cumulative timing desync across pattern loops.
 - Placing rest tokens (`-` / `NAN`) on intermediate steps of a sustained note when reading a stream on every step (causes premature choke).
+- Naming macros longer than 4 characters (they silently truncate to 4 characters in ANDS `ATOM4`).
+- Naming macros after built-in Forth words (shadows built-in commands; pay attention to Skred's `# WARNING: macro [...] shadows built-in word` console warning).
+- Reading a stream multiple times in the same step (`[v6 k&6 v7 k&6]`) when voices need identical values (advances stream pointer twice; cache via `[=0,&6 v6 k$0 v7 k$0]`).
+- Exceeding 8 arguments in multi-step assignments `x#,#,#...` (engine limit is `ARG_MAX 8`).
 
 ---
 

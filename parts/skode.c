@@ -1742,7 +1742,7 @@ float record_frame_mono(int frame) {
     /* @doc(command.x)
     name: x
     category: sequencer
-    summary: set-step-string step
+    summary: set-step-string step[,step...] (multi-step assignment)
     @enddoc */
 
     /* @doc(command.y)

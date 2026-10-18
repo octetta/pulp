@@ -290,8 +290,8 @@ Sequence support is compiled under the `SEQ` feature.
 | `ym` | `0/1` | Mute the selected pattern | `seq_mute_set()` |
 | `Y` | `pattern` | Clear a pattern; pattern < 0 clears all patterns | `pattern_reset()` |
 | `[commands] xa` | string | Append a compiled step | `seq_step_append()` |
-| `[commands] x step` | string | Set a compiled step; `x-` advances the edit cursor | `seq_step_set()` |
-| `[-] x step` | string | Sequence flow commands: `-` stops pattern; `-N` waits for pattern `N`; `-jN`/`-j$N`/`-j&N` jump to step `N` (literal, variable, or stream); `-sN`/`-s$N`/`-s&N` stop if condition is non-zero. | `seq_step_set()` |
+| `[commands] x step[,step...]` | string | Set compiled step(s) (supports multi-step assignment, up to 8 steps); `x-` advances the edit cursor | `seq_step_set()` |
+| `[-] x step[,step...]` | string | Sequence flow commands: `-` stops pattern; `-N` waits for pattern `N`; `-jN`/`-j$N`/`-j&N` jump to step `N` (literal, variable, or stream); `-sN`/`-s$N`/`-s&N` stop if condition is non-zero. | `seq_step_set()` |
 | `<x step` | numeric | Copy a step's source text into the parser string | `seq_step_get()` |
 | `zg step`, `z g step` | `step` | Immediately jump pattern playback pointer to a specific step | `seq_step_goto()` |
 | `zq` | `0/1` | Queue pattern start (`zq1`) or stop (`zq0`) on next downbeat (`seq_pointer[0] == 0`) | `seq_state_queue()` |

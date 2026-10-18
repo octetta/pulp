@@ -841,11 +841,21 @@ Every definition is checked immediately using the real Skode compiler:
 
 Inspect and manage definitions with:
 
-| Command | Effect |
-| --- | --- |
-| `?m` | Show every named macro, parameter count, and capability status. |
-| `[name] /m` | Remove one named macro and any cached dictionary program. |
-| `/m!` | Clear all named macros and cached programs. |
+| Command | Effect | Example |
+| --- | --- | --- |
+| `?m` | Show every named macro, parameter count, and capability status. | `?m` |
+| `[name] /m` | Remove one named macro and any cached dictionary program. | `[play] /m` |
+| `/m!` | Clear all named macros and cached programs. | `/m!` |
+
+### Macro Naming Constraints and Collision Protection
+
+1. **4-Character Name Limit (`ATOM4`)**: ANDS packs macro names into 32-bit integers (`uint32_t`). Macro names must be **at most 4 characters** (e.g. `play`, `stop`, `pv`, `pc`, `riff`). Names longer than 4 characters are automatically truncated to the first 4 characters (e.g. `play_verbose` becomes `play`).
+2. **Shadow Warning for Built-in Words**: ANDS expands macros before dictionary word lookup. If a macro is accidentally named after an existing built-in word (such as `v`, `w`, `a`, `f`, `k`, `x`, `y`, `z`, `wait`, `dup`, `drop`), Skred detects the collision and issues a console warning:
+   ```text
+   # WARNING: macro [wait] shadows built-in word 'wait'
+   # WARNING: macro [v] shadows built-in word 'v' - voice-select voice
+   ```
+   Safe macro names that do not collide with built-ins register silently.
 
 Redefinition replaces the stored text, classification, and cached program.
 Named macros loaded from Skode files are global and remain available for later

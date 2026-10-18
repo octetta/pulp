@@ -85,6 +85,25 @@ Z1
 
 ---
 
+### Compact Multi-Step Assignment (`x#,#,#,#`)
+
+Instead of writing out identical pattern steps one line at a time, Skode supports assigning up to 8 steps at once with a comma-separated list of step indices:
+
+```forth
+# 4-on-the-floor kick + snare on 2 & 4 + 8th-note hats:
+y0
+[v0 l1] x0,4,8,12             # Kick on every beat downbeat
+[v1 l1] x4,12                 # Snare on beats 2 & 4
+[v2 l0.5] x0,4,8,12           # On-beat closed hats
+[v2 l0.35] x2,6,10,14         # Off-beat closed hats
+[v3 l0.8] x2,6,10             # Off-beat open hats
+[v1 l0.8 z*4] x15             # 32nd-note fill into beat 1
+```
+
+This cuts pattern script size dramatically while preserving exact timing and step clarity.
+
+---
+
 ## 3. Live Jamming & Quantized Downbeat Queuing (`zq`)
 
 When jamming live, you don't want patterns to switch mid-beat (which sounds glitchy). You want new patterns to enter cleanly on the **downbeat** (beat 1 of the next bar).
@@ -206,6 +225,7 @@ Z0                                            # Stop all patterns at end of song
 | Set Master Tempo | `M <BPM> [subdivision]` | `M 120` (16th notes) or `M 120 8` (8th notes) |
 | Select Pattern | `y <pattern>` | `y0`, `y1`, `y2` |
 | Set Step Content | `x <step> [<commands>]` | `x0 [v0l1 v4n36l1]` |
+| Multi-Step Assignment | `[<commands>] x<s0>,<s1>,...` | `[v0 l1] x0,4,8,12` (up to 8 steps per `x`) |
 | Step Ratchet | `z* <count>` | `z*3` (triplet), `z*4` (32nd), `z*8` (64th) |
 | Speed Division | `z% <modulo>` | `z%16` (16th notes), `z%8` (8th notes) |
 | Start Pattern | `y<N> z1` or `Z1` | `y0 z1` (start Pattern 0), `Z1` (start all) |
@@ -213,5 +233,11 @@ Z0                                            # Stop all patterns at end of song
 | Jump Playhead | `zg <step>` | `zg4` (jump to step 4) |
 | Pattern Mute | `y<N> ym1` / `y<N> ym0` | `y1 ym1` (mute), `y1 ym0` (unmute) |
 | Sequence Flow | `-`, `-N`, `-jN`, `-sN` | `-` (stop), `-0` (wait for p0), `-j4` (jump), `-s&1` (cond stop) |
+| Synthesize Stream Curve | `[<k-expr>] k! k>d /SS <slot>` | `[440*((2800%440)^((!32)%31))] k! k>d /SS 6` |
+| Read Stream in Step | `&<slot>` / `=0,&<slot>` | `[v6 k&6]` or cached across voices: `[=0,&6 v6 k$0 v7 k$0]` |
+| Define Macro | `[name] : <cmds> ;` | `[play] : Z0 y0 z1 ;` (name $\le 4$ chars; warns if shadowing built-ins) |
+| Undefine Macro | `[name] /m` | `[play] /m` (removes macro from table) |
+| Clear All Macros | `/m!` | `/m!` (wipes user macros) |
+| Inspect Macros | `?m` | `?m` (dumps all active macros) |
 
 Happy sequencing! 🎧🥁

@@ -46,21 +46,6 @@
 [DEVO - WHIP IT] puts
 M 158 16
 
-## INLINE K-SYNTH RISER (one-shot wave 301)
-[
-/ riser: exponential sweep + highpass noise, zero DC
-N: 131072
-T: !N
-E: (e(T*(4.6%N)))%100
-R: r T
-L: 0.35 f R
-H: R-L
-F: 900*(e(T*(2.7%N)))*((p 2)%(p 0))
-P: +\F
-S: s P
-W: w E*((S*.35)+(H*.6))
-] k!
-k>w301,44100,1
 
 ## DELAY BUSES
 # Bus 1: Whip crack & lead slapback
@@ -95,11 +80,11 @@ v5 w94 f440 a4 p.2 [crash cymbal] vt
 
 # Moog bass + guitar trio: v6 (centre saw), v7 (right square), v8 (left guitar chug)
 # Linked via G and H so v7 and v8 track v6 note and gate automatically!
-v6 w15 a-1 p0 t.001,.18,0,.04 j1,2 k1800 q3.5 r2 ds.08 [moog bass saw] vt
+v6 w15 a1 p0 t.001,.22,.18,.16 j1,2 k2000 q3.0 r2 ds.08 [moog bass saw] vt
 v6 >7
-v7 w16 a-5 N0,7 p.4 r0 [moog bass square] vt
+v7 w16 a-3 N0,7 p.4 r0 [moog bass square] vt
 v6 >8
-v8 w16 a-6 N0,0 p-.35 t.001,.15,0,.03 j1 k3200 q1 c4,.15 [guitar chug] vt
+v8 w16 a-4 N0,0 p-.35 t.001,.18,.15,.14 j1 k3200 q1 c4,.15 [guitar chug] vt
 v6 G7 H7 G8 H8
 
 # DEVO Solo Lead: bright saw/pulse pair with phase distortion c4, delay Bus 1
@@ -122,9 +107,6 @@ v13 G14 H14
 v21 w83 f175 a9 p0 r1 ds.35 [whip slowed snare] vt
 v22 w87 f350 a7 p-.1 [whip rim crack] vt
 v23 w5 f1400 a-3 p.2 t.001,.09,0,.03 j2 k2800 q2 [whip noise lash] vt
-
-# Riser: stretched K-synth one-shot
-v16 w301 f160 a8 p0 t.005,.01,1,.4 r4 ds.3 [ksynth riser] vt
 
 # Chorus Synth Stabs: punchy analog chord trio (centre/left/right), delay Bus 4
 # Envelope has s=0 (decay to 0) so stabs decay naturally to 0 and never hang or drone!
@@ -203,33 +185,26 @@ E5 - - - E5 - - - D5 - - - E5 - - -
 ## PATTERNS
 
 y1
-[kick motorik] yt
-[v0 l1] x0,8
-[v0 l.9] x4
-[v0 l.95] x12
+[kick four on the floor] yt
+[v0 l1] x0,4,8,12
 [=127,0] x15
 
 y2
-[snare+clap on 2 & 4] yt
-[v1 l1 v4 l.9] x4,12
-[v1 l.25] x14
+[snare and clap on 2 & 4] yt
+[v1 l1 v4 l.95] x4,12
 [=127,0] x15
 
 y3
-[hats 8ths + open sizzle] yt
-[v2 l.5] x0,4,8,12
-[v2 l.3] x2,10
-[v3 l.75 v2 l0] x6
-[v3 l.85 v2 l0] x14
+[hats 16ths alan myers metronome] yt
+[v2 l.50] x0,2,4,6,8,10,12,14
+[v2 l.35] x1,3,5,7,9,11,13,15
 [=127,0] x15
 
 y4
-[hats 16ths groove] yt
-[v2 l.25] x1,3,5,7,9,11,13,15
-[v2 l.45] x0,8
-[v2 l.5] x4,12
-[v3 l.75 v2 l0] x2,10
-[v3 l.85 v2 l0] x6,14
+[hats 16ths accent] yt
+[v2 l.55] x0,4,8,12
+[v2 l.40] x2,6,10,14
+[v2 l.30] x1,3,5,7,9,11,13,15
 [=127,0] x15
 
 y6
@@ -239,16 +214,15 @@ y6
 [v6 n&1 l1 =127,0] x15
 
 y7
-[main riff bar B1 with whip cracks] yt
-[v6 n&2 l1] x0,1,2,3,5,6,7
-[v6 n&2 l1 v21 l1 v22 l1 v23 l1] x4,12
+[main riff bar B1 with whip crack] yt
+[v6 n&2 l1] x0,1,2,3,4,5,6,7
 [v6 n&2 l1] x8,9,10,11,13,14
+[v6 n&2 l1 v21 l1 v22 l1 v23 l1] x12
 [v6 n&2 l1 =127,0] x15
 
 y8
 [main riff bar B2 turnaround] yt
-[v6 n&3 l1] x0,1,2,3,5,6,7
-[v6 n&3 l1 v21 l1 v22 l1 v23 l1] x4
+[v6 n&3 l1] x0,1,2,3,4,5,6,7
 [v6 n&3 l1] x8,9,10,11,12,13,14
 [v6 n&3 l1 =127,0] x15
 
@@ -397,12 +371,12 @@ y0
 [y6 z0 y8 z1 /SP 3,0] x23
 [v5 l.8 y8 z0 y6 z1 /SP 1,0] x24
 [y6 z0 y7 z1 /SP 2,0] x25
-[y7 z0 y6 z1 /SP 1,0 v16 l1] x26
+[y7 z0 y6 z1 /SP 1,0] x26
 [y6 z0 y8 z1 /SP 3,0 y2 z0 y16 z1] x27
 [v5 l1 y8 z0 y10 z0 v13 l0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y2 z1 v6 k2600 v7 k2400] x28
 [v5 l.8 /SP 7,0 y11 z1 y13 z1 /SP 8,0 y14 z1 y15 z1] x32
 [y2 z0 y16 z1] x35
-[v5 l1 y11 z0 y13 z0 v18 l0 v19 l0 v20 l0 y14 z0 v13 l0 y6 z1 /SP 1,0 y2 z1 v6 k1800 v7 k1800] x36
+[v5 l1 y11 z0 y13 z0 v18 l0 y14 z0 y15 z0 v13 l0 y6 z1 /SP 1,0 y2 z1 v6 k1800 v7 k1800] x36
 [y6 z0 y7 z1 /SP 2,0] x37
 [y7 z0 y6 z1 /SP 1,0] x38
 [y6 z0 y8 z1 /SP 3,0] x39
@@ -424,12 +398,12 @@ y0
 [y6 z0 y8 z1 /SP 3,0] x55
 [v5 l.8 y8 z0 y6 z1 /SP 1,0] x56
 [y6 z0 y7 z1 /SP 2,0] x57
-[y7 z0 y6 z1 /SP 1,0 v16 l1] x58
+[y7 z0 y6 z1 /SP 1,0] x58
 [y6 z0 y8 z1 /SP 3,0 y2 z0 y16 z1] x59
 [v5 l1 y8 z0 y10 z0 v13 l0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y2 z1 v6 k2600 v7 k2400] x60
 [v5 l.8 /SP 7,0 y11 z1 y13 z1 /SP 8,0 y14 z1 y15 z1] x64
 [y2 z0 y16 z1] x67
-[v5 l1 y11 z0 y13 z0 v18 l0 v19 l0 v20 l0 y14 z0 v13 l0 y6 z1 /SP 1,0 y12 z1 /SP 9,0 y2 z1 v6 k1800 v7 k1800] x68
+[v5 l1 y11 z0 y13 z0 v18 l0 y14 z0 y15 z0 v13 l0 y6 z1 /SP 1,0 y12 z1 /SP 9,0 y2 z1 v6 k1800 v7 k1800] x68
 [y6 z0 y7 z1 /SP 2,0] x69
 [y7 z0 y6 z1 /SP 1,0] x70
 [y6 z0 y8 z1 /SP 3,0] x71
@@ -440,13 +414,13 @@ y0
 [v5 l1 y8 z0 y11 z1 /SP 7,0 y13 z1 y14 z1 /SP 8,0 y2 z1 v6 k2800 v7 k2600] x76
 [v5 l.8 /SP 7,0 y11 z1 y13 z1 /SP 8,0 y14 z1 y15 z1] x80
 [y16 z1] x83
-[v5 l1 y11 z0 y13 z0 v18 l0 v19 l0 v20 l0 y14 z0 v13 l0 y6 z1 /SP 1,0 y15 z1] x84
+[v5 l1 y11 z0 y13 z0 v18 l0 v19 l0 v20 l0 y14 z0 y15 z0 v13 l0 y6 z1 /SP 1,0] x84
 [y6 z0 y7 z1 /SP 2,0] x85
-[y7 z0 y6 z1 /SP 1,0 y15 z1] x86
+[y7 z0 y6 z1 /SP 1,0] x86
 [y6 z0 y8 z1 /SP 3,0] x87
-[v5 l.8 y8 z0 y6 z1 /SP 1,0 y15 z1] x88
+[v5 l.8 y8 z0 y6 z1 /SP 1,0] x88
 [y6 z0 y7 z1 /SP 2,0] x89
-[y7 z0 y6 z1 /SP 1,0 y15 z1] x90
+[y7 z0 y6 z1 /SP 1,0] x90
 [y1 z0 y2 z0 y4 z0 y6 z0 y7 z0 y8 z0 y13 z0 v18 l0 v19 l0 v20 l0 v13 l0 v11 l0 v21 l1 v22 l1 v23 l1] x91
 [Z0 +4 ce 99] x92
 

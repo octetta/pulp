@@ -1,218 +1,238 @@
-## POCKET CALCULATOR (instrumental cover) for PULP/SKRED
-#  134 BPM, bright major electronic, 88 bars (~2:38). Instrumental only.
-#  Self-contained: drums are built-in waves 82-99.
-#     [pocket_calculator.sk] /ls      then:   play     (stop:  stop)
+## KRAFTWERK - POCKET CALCULATOR (TASCHENRECHNER)
+#  Full Arrangement Cover for PULP / SKRED. 126 BPM, A major, 88 bars (~2:47).
+#  Written & Produced by Ralf Hütter, Florian Schneider, Karl Bartos (1981).
+#  From the seminal electronic album 'Computer World' (Computerwelt).
+#  Self-contained: 100% synthesized analog electronic percussion (pitch-drop sine kick,
+#  bitcrushed noise snap snare, micro-tick synthetic hats), Casio VL-80 calculator bleeps,
+#  Minimoog octave motorik bass, and authentic A major melodies.
+#  All patterns strictly pinned to exact bar boundaries (x15, x31, x63).
+#  Load:   [pocket-calc.sk] /ls
+#  Start:  play        Stop:  stop
 #
-#  Inspired by Kraftwerk’s 1981 classic.
-#  Key elements:
-#    - Steady motorik 4/4 pulse
-#    - Deep sequenced bass
-#    - Bright square/saw lead for the main riff
-#    - Distinct high “little melody” (the calculator motif)
-#    - Sparse, precise arrangement with clear breathing room
+#  VOICE MAP (all labeled via [name] vt):
+#    v0  electronic sine kick (w0 pitch drop) + v5 transient click (w5)
+#    v1  noise snap snare (w5 bitcrushed bc4) + v4 analog tone body (w1)
+#    v2  synthetic micro-tick hat (w5)  v3  electronic open hat sizzle (w5)
+#    v6  Minimoog motorik bass saw (w1) + v7 sub pulse oct (w2)
+#    v8  Kraftwerk lead synth (w2 pulse) + v9 detuned saw partner (w1)
+#    v13 Casio VL-80 calculator bleep (w1 pure square)
 #
-#  VOICE MAP
-#    v0 kick   v1 snare   v2 closed hat   v3 open hat   v5 crash
-#    v6 deep bass (centre) + v7 subtle detuned partner
-#    v8 main lead (bright square)
-#    v13 little melody / calculator motif (high, pure)
-#    v16 soft noise / texture
-#    v24 pad LFO   v26-v27 pad prototype   v28-v35 pad pool
-#  DELAY BUSES
-#    1  short clean slap on lead
-#    2  longer wash on pad / melody
-#  PATTERNS
-#    0 conductor   1 kick   2 snare   3 hats
-#    6 bass        8 main lead   9 little melody
-#    11 pad        13 fill       14 pump
+#  DELAY BUSES:
+#    Bus 1: Clean slapback echo for Casio calculator bleeps (16th note, 126 BPM)
+#    Bus 2: Stereo tape echo for Kraftwerk lead synth (dotted eighth, 126 BPM)
 # ======================================================================
 
-[POCKET CALCULATOR] puts
-M 134 16
+[KRAFTWERK - POCKET CALCULATOR] puts
+M 126 16
 
-## DELAY BUSES (clean and restrained)
-DS 1 134 .25
-DL 1 - - 3 0 0 7
-DD 1 9 4
-DS 2 134 .75
-DL 2 - - 6 1 1 9
-DD 2 7 3
+## DELAY BUSES
+# Bus 1: Clean slapback echo for Casio VL-80 bleeps (16th note)
+DS 1 126 .25
+DL 1 - - 4 0 0 8
+DD 1 7 2
+DP 1 1
+
+# Bus 2: Stereo tape echo for Kraftwerk lead synth (dotted eighth)
+DS 2 126 .75
+DL 2 - - 8 2 3 11
+DD 2 6 3
+DP 2 1
 
 ## VOICES
-v0 w82 f440 a5 p0                                # kick – solid but not huge
-v1 w83 f440 a5 p0                                # snare – crisp
-v2 w84 f440 a-5 p.15                             # closed hat
-v3 w85 f440 a-4 p-.15                            # open hat
-v5 w94 f440 a2 p.1                               # crash (used sparingly)
+# Drums: 100% Pure Kraftwerk Synthesized Analog Percussion
+# Electronic Kick: Pure sine wave with fast pitch drop (Minimoog style)
+v0 w0 a8 p0 t.001,.14,0,.04 g0 n62 g.03 n33 [kraftwerk electronic kick] vt
+v0 >5
+v5 w5 a-5 p0 t.001,.012,0,.005 k3500 q1.5 [kick click] vt
+v0 G5 H5
 
-# deep sequenced bass
-v6 w15 a-2 p0 t.002,.18,0,.05 j1 k900 q2.8
+# Electronic Snare: Tight white noise snap with bitcrusher + analog tone body
+v1 w5 a7 p0 t.001,.11,0,.03 j1 k2400 q3.5 bc4 r2 ds.15 [kraftwerk noise snare] vt
+v1 >4
+v4 w1 a-2 p0 t.001,.09,0,.02 n57 [snare body tone] vt
+v1 G4 H4
+
+# Micro-tick Hats: Pristine electronic click
+v2 w5 a-5 p.25 t.001,.025,0,.005 k6500 q4.0 [electronic hat tick] vt
+v3 w5 a-4 p-.25 t.001,.14,0,.04 k5500 q3.0 [electronic open sizzle] vt
+
+# Minimoog Motorik Bass: Saw wave driven into resonant ladder filter + sub pulse
+v6 w1 a4 p0 t.001,.14,.25,.06 j1 k1200 q2.6 r1 ds.15 [minimoog bass saw] vt
 v6 >7
-v7 w16 a-8 N0,5 p.35
+v7 w2 a1 N-12,0 p0 r0 [minimoog sub pulse] vt
 v6 G7 H7
 
-# main lead – bright, slightly phase-distorted square
-v8 w16 a-7 p0 t.003,.22,.15,.08 j1 k3200 q1.1 c4,.18 r1 ds.18
+# Ralf Hütter Lead Synth: Warm analog pulse/saw lead
+v8 w2 a-1 p0 t.004,.32,.45,.12 j1 k2200 q1.6 r2 ds.25 [kraftwerk lead synth] vt
+v8 >9
+v9 w1 a-5 N0,6 p.35 r0 [kraftwerk lead detune] vt
+v8 G9 H9
 
-# “little melody” – pure high tone (the calculator voice)
-v13 w0 a-6 p.2 t.001,.25,0,.12 j1 k4800 q.8 r2 ds.15
-
-# soft texture / noise bed
-v16 w5 f800 a-14 p0 t.01,.4,0,.3 j2 k1800 q.6
-
-# warm pad (very restrained)
-v24 w0 f.22 a0 t0,0,1,0 m1
-v26 w15 a-14 p-.4 t1.6,.5,.7,1.8 j1 k1600 q.5 c4,.1 C24,.1 G27 H27
-v27 w15 a-16 p.4 N0,4 t1.6,.5,.7,1.8 j1 k1600 q.5 c4,.1 C24,.1
-/pg 0,26,2,0
-/pp 0,0,28,4,0
-v24 l1
+# Casio VL-Tone / VL-80 Handheld Calculator: Pure square wave bleeps
+v13 w1 a-3 p0 t.001,.08,0,.02 j0 k4500 q.7 r1 ds.20 [casio vl-80 beep] vt
 
 ## EVENTS
 [O DQ] /ceb 4 99
 /cer 1
 
 ## STREAMS
-# stream 1: main bass sequence (one bar, looping)
-( 36 36 36 43 36 36 41 43 ) /SS 1
-# stream 2: bass velocities
-( 1 .7 .85 .75 1 .7 .85 .75 ) /SS 2
+# Stream 1: Motorik Bass in A major (8 eighth notes: A1 A1 A2 A1  A1 A1 A2 A1)
+( 33 33 45 33  33 33 45 33 ) /SS 1
 
-# stream 3: main lead riff (two bars)
-( 60 60 62 60 58 60 62 63 60 60 62 60 58 55 58 60 ) /SS 3
-# stream 4: lead velocities
-( 1 .8 .9 .75 1 .8 .9 .8 1 .8 .9 .75 1 .8 .85 .9 ) /SS 4
+# Stream 2: Motorik Bass in D major (D1 D1 D2 D1  D1 D1 D2 D1)
+( 38 38 50 38  38 38 50 38 ) /SS 2
 
-# stream 5: “little melody” (the calculator motif – distinctive & memorable)
-( 72 74 72 69 72 74 76 74 72 69 67 69 72 74 72 69 ) /SS 5
-
-# stream 6: higher variation of little melody
-( 76 77 76 74 72 74 76 77 76 74 72 69 72 74 72 69 ) /SS 6
+# Stream 3: Motorik Bass in E major (E1 E1 E2 E1  E1 E1 E2 E1)
+( 40 40 52 40  40 40 52 40 ) /SS 3
 
 ## PATTERNS
 
 y1
-[kick] yt
-[v0 l1] x0
-[v0 l.9] x4
-[v0 l1] x8
-[v0 l.9] x12
+[electronic kick 4-on-the-floor] yt
+[v0 l.5] x0,4,8,12
 [=127,0] x15
 
 y2
-[snare] yt
-[v1 l1] x4
-[v1 l1] x12
+[noise snap snare on 2 and 4] yt
+[v1 l.8] x4,12
 [=127,0] x15
 
 y3
-[hats – precise 8ths] yt
-[v2 l.35] x0
-[v2 l.25] x2
-[v2 l.35] x4
-[v2 l.25] x6
-[v2 l.35] x8
-[v2 l.25] x10
-[v2 l.35] x12
-[v3 l.65 v2 l0] x14
+[closed micro-tick hats 8ths] yt
+[v2 l.3] x0,2,4,6,8,10,12,14
+[=127,0] x15
+
+y4
+[open hat accent on beat 4-and] yt
+[v3 l.7] x14
+[=127,0] x15
 
 y6
-[bass] yt
-[v6 n&1 l&2] x0
-[v6 n&1 l&2] x2
-[v6 n&1 l&2] x4
-[v6 n&1 l&2] x6
-[v6 n&1 l&2] x8
-[v6 n&1 l&2] x10
-[v6 n&1 l&2] x12
-[v6 n&1 l&2] x14
+[motorik bass 1 bar] yt
+[v6 n&1 l.8] x0,2,4,6,8,10,12,14
 [=127,0] x15
 
-y8
-[main lead] yt
-[v8 n&3 l&4] x0
-[v8 n&3 l&4] x2
-[v8 n&3 l&4] x4
-[v8 n&3 l&4] x6
-[v8 n&3 l&4] x8
-[v8 n&3 l&4] x10
-[v8 n&3 l&4] x12
-[v8 n&3 l&4] x14
-[v8 n&3 l&4] x16
-[v8 n&3 l&4] x18
-[v8 n&3 l&4] x20
-[v8 n&3 l&4] x22
-[v8 n&3 l&4] x24
-[v8 n&3 l&4] x26
-[v8 n&3 l&4] x28
-[v8 n&3 l&4] x30
+y7
+[casio intro bleeps 2 bars] yt
+# Casio VL-80 calculator key clicks
+[v13 n69 l1.0] x0,4
+[v13 n73 l1.0] x8,12
+[v13 n76 l1.0] x16,20
+[v13 n81 l1.5] x24
 [=127,0] x31
 
+y8
+[theme a part 1 - 4 bars] yt
+# 'I am the operator of my pocket calculator'
+[v8 n64 l1.8] x0,4,8,12
+[v8 n66 l1.8] x16
+[v8 n64 l1.8] x20
+[v8 n62 l1.8] x24
+[v8 n61 l2.5] x28
+[v8 n62 l1.8] x32
+[v8 n64 l1.8] x36,40,44
+[v8 n64 l3.5] x48
+[=127,0] x63
+
 y9
-[little melody – calculator] yt
-[v13 n&5 l.9] x0
-[v13 n&5 l.85] x2
-[v13 n&5 l.9] x4
-[v13 n&5 l.85] x6
-[v13 n&5 l.9] x8
-[v13 n&5 l.85] x10
-[v13 n&5 l.9] x12
-[v13 n&5 l.85] x14
-[=127,0] x15
+[theme a part 2 - 4 bars] yt
+# 'By pressing down a special key, it plays a little melody'
+[v8 n64 l1.8] x0,4,8,12
+[v8 n66 l1.8] x16
+[v8 n64 l1.8] x20
+[v8 n62 l1.8] x24
+[v8 n61 l2.5] x28
+[v8 n59 l1.8] x32
+[v8 n61 l1.8] x36
+[v8 n62 l1.8] x40
+[v8 n61 l1.8] x44
+[v8 n59 l1.8] x48
+[v8 n57 l3.5] x52
+[=127,0] x63
 
 y10
-[little melody variation] yt
-[v13 n&6 l.9] x0
-[v13 n&6 l.85] x2
-[v13 n&6 l.9] x4
-[v13 n&6 l.85] x6
-[v13 n&6 l.9] x8
-[v13 n&6 l.85] x10
-[v13 n&6 l.9] x12
-[v13 n&6 l.85] x14
-[=127,0] x15
+[casio little melody part 1 - 4 bars] yt
+# Iconic Casio VL-80 bleep solo
+[v13 n73 l1.2] x0
+[v13 n76 l1.2] x4
+[v13 n81 l1.5] x8
+[v13 n80 l1.2] x16
+[v13 n78 l1.2] x20
+[v13 n76 l1.5] x24
+[v13 n74 l1.2] x32
+[v13 n73 l1.2] x36
+[v13 n71 l1.2] x40
+[v13 n69 l2.5] x44
+[v13 n71 l1.2] x48
+[v13 n73 l1.2] x52
+[v13 n69 l3.5] x56
+[=127,0] x63
 
 y11
-[pad – very soft] yt
-[pn 0,101,48,.7 pn 0,102,52,.7 pn 0,103,55,.7] x0
-[pr 0,101 pr 0,102 pr 0,103] x31
+[casio little melody part 2 - 4 bars] yt
+# Second half of Casio solo
+[v13 n73 l1.2] x0
+[v13 n76 l1.2] x4
+[v13 n81 l1.5] x8
+[v13 n83 l1.2] x16
+[v13 n81 l1.2] x20
+[v13 n80 l1.5] x24
+[v13 n78 l1.2] x32
+[v13 n76 l1.2] x36
+[v13 n74 l1.2] x40
+[v13 n73 l2.5] x44
+[v13 n71 l1.2] x48
+[v13 n64 l1.2] x52
+[v13 n69 l3.5] x56
+[=127,0] x63
+
+y12
+[theme b modulation lead 4 bars] yt
+# 'He's the operator of his pocket calculator' (over D and E)
+[v8 n66 l1.8] x0,4,8,12
+[v8 n69 l1.8] x16
+[v8 n67 l1.8] x20
+[v8 n66 l1.8] x24
+[v8 n64 l2.5] x28
+[v8 n66 l1.8] x32
+[v8 n67 l1.8] x36
+[v8 n69 l1.8] x40
+[v8 n71 l3.5] x48
+[=127,0] x63
 
 y13
-[short fill] yt
-[v1 l0.3] x0
-[v1 l0.4] x2
-[v1 l0.5] x4
-[v1 l0.6 z*2] x6
-[v1 l0.7 z*2] x8
-[v1 l0.8 z*4] x10
-[v1 l0.9 z*4] x12
-[v1 l1 z*8] x14
-[-] x16
+[electronic snare roll pickup 1 bar] yt
+[v1 l.4] x0,4,8,10,12,14
+[=127,0] x15
 
 y14
-[subtle pump] yt
-[v28 a-16 v29 a-18 v30 a-16 v31 a-18 v8 a-14 v13 a-12] x0
-[v28 a-11 v29 a-13 v30 a-11 v31 a-13 v8 a-10 v13 a-8] x1
-[v28 a-7 v29 a-9 v30 a-7 v31 a-9 v8 a-6 v13 a-4] x2
-[v28 a-4 v29 a-6 v30 a-4 v31 a-6 v8 a-3 v13 a-1] x3
+[calculator counting bleeps 4 bars] yt
+# '1... 2... 3... 4...'
+[v13 n69 l1.0] x0
+[v13 n71 l1.0] x16
+[v13 n73 l1.0] x32
+[v13 n76 l1.5] x48
+[=127,0] x63
 
-## CONDUCTOR
+## CONDUCTOR (pattern 0, one step per bar, 88 bars)
 y0
 [conductor] yt
 %16
 
-# 0-7  pure pulse + bass
-[y6 z1 /SP 1,0 /SP 2,0] x0
+# Bars 0-3: Intro - Casio VL-80 bleeps solo (4 bars)
+[y7 z1] x0
 [=126,1] x1
-[y1 z1 y3 z1] x2
+[=126,2] x2
 [=126,3] x3
-[y2 z1] x4
+
+# Bars 4-7: Synthetic tick hats enter, snare roll pickup at bar 7 (4 bars)
+[y3 z1] x4
 [=126,5] x5
 [=126,6] x6
-[=126,7] x7
+[y13 z1] x7
 
-# 8-23  main lead enters
-[v5 l.8 /SP 3,0 /SP 4,0 y8 z1] x8
+# Bars 8-15: Full Groove Drops! Motorik bass + electronic kick + noise snare (8 bars)
+[y7 z0 y1 z1 y2 z1 y4 z1 /SC 1 1 /SP 1,0 y6 z1] x8
 [=126,9] x9
 [=126,10] x10
 [=126,11] x11
@@ -220,53 +240,64 @@ y0
 [=126,13] x13
 [=126,14] x14
 [=126,15] x15
-[=126,16] x16
+
+# Bars 16-23: Theme A Part 1 ('I am the operator of my pocket calculator') (8 bars)
+[y8 z1] x16
 [=126,17] x17
 [=126,18] x18
 [=126,19] x19
 [=126,20] x20
 [=126,21] x21
 [=126,22] x22
-[y2 z0 y13 z1] x23
+[=126,23] x23
 
-# 24-39  little melody appears
-[v5 l.8 /SP 5,0 y9 z1 y14 z1] x24
+# Bars 24-31: Theme A Part 2 ('By pressing down a special key...') (8 bars)
+[y8 z0 y9 z1] x24
 [=126,25] x25
 [=126,26] x26
 [=126,27] x27
 [=126,28] x28
 [=126,29] x29
 [=126,30] x30
-[=126,31] x31
-[=126,32] x32
+# Bar 31: Snare roll pickup into Casio Solo
+[y13 z1] x31
+
+# Bars 32-39: Casio VL-80 Solo Part 1 ('Little melody') (8 bars)
+[y9 z0 y10 z1] x32
 [=126,33] x33
 [=126,34] x34
 [=126,35] x35
 [=126,36] x36
 [=126,37] x37
 [=126,38] x38
-[y2 z0 y13 z1] x39
+[=126,39] x39
 
-# 40-55  variation + pad
-[v5 l.8 y9 z0 /SP 6,0 y10 z1 y11 z1] x40
+# Bars 40-47: Casio VL-80 Solo Part 2 (8 bars)
+[y10 z0 y11 z1] x40
 [=126,41] x41
 [=126,42] x42
 [=126,43] x43
 [=126,44] x44
 [=126,45] x45
 [=126,46] x46
-[=126,47] x47
-[=126,48] x48
+# Bar 47: Snare roll pickup into Theme B modulation
+[y13 z1] x47
+
+# Bars 48-51: Theme B over D major ('He's the operator...') (4 bars)
+[y11 z0 /SC 1 2 /SP 1,0 y12 z1] x48
 [=126,49] x49
 [=126,50] x50
 [=126,51] x51
-[=126,52] x52
+
+# Bars 52-55: Theme B over E major tension (4 bars)
+[/SC 1 3 /SP 1,0] x52
 [=126,53] x53
 [=126,54] x54
-[y2 z0 y13 z1] x55
+# Bar 55: Snare roll pickup resolving back to A major
+[y13 z1] x55
 
-# 56-71  full return
-[v5 l1 y10 z0 /SP 5,0 y9 z1 y8 z1] x56
+# Bars 56-63: Full Climax! Resolution to A major, Lead Theme A returns (8 bars)
+[/SC 1 1 /SP 1,0 y12 z0 y8 z1] x56
 [=126,57] x57
 [=126,58] x58
 [=126,59] x59
@@ -274,31 +305,40 @@ y0
 [=126,61] x61
 [=126,62] x62
 [=126,63] x63
-[=126,64] x64
+
+# Bars 64-71: Casio Little Melody Reprise with Lead Counterpoint (8 bars)
+[y8 z0 y10 z1] x64
 [=126,65] x65
 [=126,66] x66
 [=126,67] x67
-[=126,68] x68
+[y10 z0 y11 z1] x68
 [=126,69] x69
 [=126,70] x70
-[y2 z0 y13 z1] x71
+[=126,71] x71
 
-# 72-87  strip back + end
-[v5 l.7 y9 z0 y8 z0 y11 z0 y14 z0] x72
+# Bars 72-79: Breakdown - Snare and lead drop out, pure motorik bass & tick hats (8 bars)
+[y11 z0 y2 z0 y4 z0 y14 z1] x72
 [=126,73] x73
 [=126,74] x74
-[y3 z%2] x75
+[=126,75] x75
 [=126,76] x76
-[y1 z0 y2 z0] x77
+[=126,77] x77
 [=126,78] x78
-[y6 z0] x79
-[=126,80] x80
-[v5 l1] x81
+[=126,79] x79
+
+# Bars 80-86: Outro Vamp - Kick stops, lone motorik bass & Casio counting bleeps (7 bars)
+[y1 z0] x80
+[=126,81] x81
 [=126,82] x82
 [=126,83] x83
-[Z0 +6 ce 99] x84
+[=126,84] x84
+[=126,85] x85
+[=126,86] x86
 
-## MACROS
+# Bar 87: Hard cold stop on beat 1, final Casio VL-80 bleep into silence
+[y3 z0 y6 z0 y14 z0 v13 n81 l1.5 Z0 +4 ce 99] x87
+
+## MACROS (play / stop)
 [use 'play' to start the song, 'stop' to stop it] puts
 [play] : Z0 Z! y0 z1 ;
 [stop] : Z0 O DQ ;

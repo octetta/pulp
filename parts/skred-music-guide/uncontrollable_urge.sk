@@ -53,10 +53,10 @@ v2 w84 f440 a-3 p.25 [closed hat] vt
 v3 w85 f440 a-2 p-.25 [open hat] vt
 v5 w94 f440 a4 p.2 [crash cymbal] vt
 
-# bass: plucky saw plus detuned square partner on the right
-v6 w15 a-1 p0 t.002,.14,.25,.06 j1 k1300 q1.8 r2 ds.08 [bass saw] vt
+# bass: fat punk P-bass saw (centre) + heavy sub-bass square an octave down (N-12)
+v6 w15 a3 p0 t.002,.22,.40,.08 j1,2 k1800 q2.4 r2 ds.06 [bass saw] vt
 v6 >7
-v7 w16 a-6 N0,8 p.4 [bass square] vt
+v7 w16 a0 N-12,5 p.25 [bass sub square] vt
 v6 G7 H7
 
 # guitar power chord from ONE note: v8 root, v9 fifth, v10 octave, bright and spread
@@ -323,11 +323,11 @@ y28
 [=127,0] x15
 
 y29
-[minimoog chorus squeals] yt
-[v15 n76 l.8] x2
-[v15 n79 l.8] x6
-[v15 n81 l.85] x10
-[v15 n88 l.9 =127,0] x14
+[minimoog chorus accents 4 bars] yt
+[v15 n81 l.55] x14
+[v15 n76 l.55] x30
+[v15 n81 l.60] x46
+[v15 n88 l.65 =127,0] x62
 
 ## CONDUCTOR (pattern 0, one step per bar, 136 bars)
 y0

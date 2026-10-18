@@ -41,21 +41,6 @@
 [YAZOO - DONT GO] puts
 M 128 16
 
-## INLINE K-SYNTH RISER (one-shot wave 301)
-[
-/ riser: exponential sweep + highpass noise, zero DC
-N: 131072
-T: !N
-E: (e(T*(4.6%N)))%100
-R: r T
-L: 0.35 f R
-H: R-L
-F: 900*(e(T*(2.7%N)))*((p 2)%(p 0))
-P: +\F
-S: s P
-W: w E*((S*.35)+(H*.6))
-] k!
-k>w301,44100,1
 
 ## DELAY BUSES
 # Bus 1: Arp & Lead dotted-eighth ping-pong echo
@@ -98,10 +83,10 @@ v18 w90 f480 a6 p-.3 [hi simmons tom] vt
 v19 w91 f380 a6 p0 [mid simmons tom] vt
 v20 w92 f280 a6 p.3 [lo simmons tom] vt
 
-# Vince Clarke 16th Bass: snappy saw (centre) + detuned square (right), Character 2 drive
-v6 w15 a-1 p0 t.001,.15,0,.04 j1,2 k520 q5 g.015 r2 ds.08 [vince clarke bass saw] vt
+# Vince Clarke Pro-One Bass: snappy saw (centre) + sub-square (right), punchy resonant filter envelope
+v6 w15 a2 p0 t.001,.18,0,.05 k340 q6.0 ft.001,.11,0,.04 fd2400 j1,2 r2 ds.08 [vince bass saw] vt
 v6 >7
-v7 w16 a-5 N0,8 p.4 r0 [vince bass square] vt
+v7 w16 a-2 N-12,5 p.35 r0 [vince bass sub square] vt
 v6 G7 H7
 
 # The Iconic Synth Brass Hook (centre saw + detuned left/right stereo pair, delay Bus 4)
@@ -130,9 +115,6 @@ v13 G14 H14
 # Alison Moyet Vocal Laugh / Cry FX (resonant formant pitch sweep)
 v21 w15 a6 p0 t.01,.60,0,.25 j1,2 k1600 q4 c2,.35 g.04 [alison laugh cry fx] vt
 
-# Riser: stretched K-synth one-shot
-v16 w301 f140 a8 p0 t.005,.01,1,.4 r4 ds.3 [ksynth build riser] vt
-
 # Sub boom: audible sub drop + slowed kick
 v38 w0 a0 p0 t.002,.90,0,.40 j1 k240 q.7 r3 ds.3 [sub boom sine] vt
 v40 w82 f110 a5 p0 [slowed kick drop] vt
@@ -143,11 +125,11 @@ v40 w82 f110 a5 p0 [slowed kick drop] vt
 
 ## STREAMS (Note arrays converted via n>d with '-' rests)
 # Stream 1: Vince Clarke 16th Bassline in Bb minor (2 bars / 32 sixteenths)
-# Notice '-' rests providing the authentic syncopated bounce!
-[Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Ab1 - Ab1 -  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Db2 - Eb2 -] n>d /SS 1
+# Driving 16th-note chug with syncopated turnaround bounce
+[Bb1 Bb1 Bb1 Bb1  Bb1 Bb1 Bb1 Bb1  Bb1 Bb1 Bb1 Bb1  Ab1 - Ab1 -  Bb1 Bb1 Bb1 Bb1  Bb1 Bb1 Bb1 Bb1  Bb1 Bb1 Bb1 Bb1  Db2 - Eb2 -] n>d /SS 1
 
 # Stream 2: Chorus Bassline Roots (Gb -> Ab -> Bbm -> Db, 2 bars / 32 sixteenths)
-[Gb1 Gb1 Gb2 Gb1  Gb1 Gb1 Gb2 Gb1  Ab1 Ab1 Ab2 Ab1  Ab1 Ab1 Ab2 Ab1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Db2 Db2 Db3 Db2  Db2 Db2 Db3 Db2] n>d /SS 2
+[Gb1 Gb1 Gb1 Gb1  Gb1 Gb1 Gb1 Gb1  Ab1 Ab1 Ab1 Ab1  Ab1 Ab1 Ab1 Ab1  Bb1 Bb1 Bb1 Bb1  Bb1 Bb1 Bb1 Bb1  Db2 Db2 Db2 Db2  Db2 - Eb2 -] n>d /SS 2
 
 # Stream 3: The Famous Brass Hook (2 bars / 32 steps in Bb minor)
 # Bar 1 has F4, Bar 2 leaps up to high F5!
@@ -217,17 +199,21 @@ y15
 
 y4
 [vince clarke 16th bassline] yt
-[v6 n&1 l1] x0,1,2,3,4,5,6,7
-[v6 n&1 l1] x8,9,10,11,12,13,14,15
-[v6 n&1 l1] x16,17,18,19,20,21,22,23
-[v6 n&1 l1] x24,25,26,27,28,29,30,31
+[v6 n&1 l1] x0,4,8,12,16,20,24,28
+[v6 n&1 l.85] x1,2,3,5,6,7
+[v6 n&1 l.85] x9,10,11,13,14,15
+[v6 n&1 l.85] x17,18,19,21,22,23
+[v6 n&1 l.85] x25,26,27,29,30
+[v6 n&1 l1 =127,0] x31
 
 y8
 [chorus bass roots] yt
-[v6 n&2 l1] x0,1,2,3,4,5,6,7
-[v6 n&2 l1] x8,9,10,11,12,13,14,15
-[v6 n&2 l1] x16,17,18,19,20,21,22,23
-[v6 n&2 l1] x24,25,26,27,28,29,30,31
+[v6 n&2 l1] x0,4,8,12,16,20,24,28
+[v6 n&2 l.85] x1,2,3,5,6,7
+[v6 n&2 l.85] x9,10,11,13,14,15
+[v6 n&2 l.85] x17,18,19,21,22,23
+[v6 n&2 l.85] x25,26,27,29,30
+[v6 n&2 l1 =127,0] x31
 
 y5
 [the iconic synth brass hook] yt
@@ -339,7 +325,7 @@ y0
 [v17 l.8 y7 z1 /SP 5,0 y11 z1 y3 z1 y18 z0 v6 k520 v7 k520] x16
 [y18 z1 y3 z0] x20
 [v17 l.6 /SP 5,0 y7 z1] x24
-[v16 l1 y16 z1] x28
+[y13 z1 y16 z1] x28
 [y7 z0 v13 l0 y11 z0 v8 l0 y13 z1] x31
 [v17 l1 y4 z0 y8 z1 /SP 2,0 y9 z1 y10 z1 /SP 4,0 y14 z1 y16 z0 v6 k2600 v7 k2400] x32
 [v17 l.8 /SP 2,0 y8 z1 /SP 4,0 y10 z1] x36
@@ -352,7 +338,7 @@ y0
 [v17 l.7 y5 z0 v8 l0 y6 z1 /SP 6,0 y7 z1 /SP 5,0 y11 z1 y18 z0 y3 z1 v6 k520 v7 k520] x56
 [y18 z1 y3 z0] x60
 [v17 l.6 /SP 5,0 y7 z1 y16 z1] x64
-[v16 l1] x68
+[y13 z1] x68
 [y7 z0 v13 l0 y11 z0 v8 l0 y13 z1] x71
 [v17 l1 y4 z0 y8 z1 /SP 2,0 y9 z1 y10 z1 /SP 4,0 y14 z1 y16 z0 v6 k2800 v7 k2600] x72
 [v17 l.8 /SP 2,0 y8 z1 /SP 4,0 y10 z1] x76

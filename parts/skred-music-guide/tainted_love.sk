@@ -507,7 +507,7 @@ y0
 [y4 z1 y13 z1] x23
 
 # Bars 24-25: Chorus 1 Part 1 ('Once I ran to you...') - G major lift
-[v17 l1 y5 z0 y6 z0 y7 z0 y24 z0 y8 z1 y14 z1 y25 z1] x24
+[v17 l1 y5 z0 y6 z0 y7 z0 y24 z0 y8 z1 y25 z1] x24
 [=126,25] x25
 # Bars 26-27: Chorus 1 Part 2 ('Now I'll run from you...') - Bb major
 [y8 z0 y9 z1] x26
@@ -533,7 +533,7 @@ y0
 [y13 z1] x39
 
 # Bars 40-43: Verse 2 Phrase 1 ('Now I know I've got to run away...')
-[v17 l1 y14 z0 y28 z0 y29 z1] x40
+[v17 l1 y28 z0 y29 z1] x40
 [=126,41] x41
 [=126,42] x42
 [=126,43] x43
@@ -555,7 +555,7 @@ y0
 [y4 z1 y13 z1] x55
 
 # Bars 56-57: Chorus 2 Part 1 ('Once I ran to you...') - G major
-[v17 l1 y5 z0 y6 z0 y7 z0 y32 z0 y8 z1 y14 z1 y25 z1] x56
+[v17 l1 y5 z0 y6 z0 y7 z0 y32 z0 y8 z1 y25 z1] x56
 [=126,57] x57
 # Bars 58-59: Chorus 2 Part 2 ('Now I'll run from you...') - Bb major
 [y8 z0 y9 z1] x58
@@ -575,7 +575,7 @@ y0
 
 # Bars 68-75: Bridge Breakdown ('Don't touch me please, I cannot stand the way you tease...')
 # Minimalist electronic soul breakdown - stark, intimate, tense
-[y2 z0 y4 z0 y14 z0 y27 z0 y7 z0 y33 z1] x68
+[y2 z0 y4 z0 y27 z0 y7 z0 y33 z1] x68
 [=126,69] x69
 [=126,70] x70
 [=126,71] x71
@@ -584,7 +584,7 @@ y0
 [=126,74] x74
 [=126,75] x75
 # Bars 76-79: Tension mounts, octave comp returns, snare roll builds
-[y7 z1 y14 z1] x76
+[y7 z1] x76
 [=126,77] x77
 [y2 z1] x78
 # Bar 79: Snare roll pickup into Final Chorus Climax!
@@ -610,7 +610,7 @@ y0
 [y12 z0 y5 z1 y6 z1 y7 z1] x91
 
 # Bars 92-99: Outro Vamp ('Touch me baby, tainted love! Don't touch me please...')
-[v17 l1 y27 z0 y34 z1 y14 z1] x92
+[v17 l1 y27 z0 y34 z1] x92
 [=126,93] x93
 [=126,94] x94
 [=126,95] x95
@@ -625,7 +625,7 @@ y0
 [=126,103] x103
 
 # Bar 104: Hard cold stop on beat 1, solo synth stab echoes on Bus 1 into silence
-[v17 l1 y1 z0 y2 z0 y3 z0 y5 z0 y6 z0 y7 z0 y14 z0 Z0 +4 ce 99] x104
+[v17 l1 y1 z0 y2 z0 y3 z0 y5 z0 y6 z0 y7 z0 Z0 +4 ce 99] x104
 
 ## EVENTS
 [O DQ] /ceb 4 99

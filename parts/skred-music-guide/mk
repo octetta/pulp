@@ -6,7 +6,8 @@ whip_it.sk
 i_feel_love.sk
 sweet_dreams.sk
 uncontrollable_urge.sk
-tainted_love.sk'
+tainted_love.sk
+pocket-calc.sk'
 for i in $a
 do
 b=$(basename $i .sk)

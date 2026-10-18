@@ -27,13 +27,13 @@ v3 w85 f440 a-2 p .3                                 # open hat
 v4 w89 f440 a2 r1 p .1 ds.2                          # clap
 
 # Synth bass (dual detuned saws with resonant filter envelope)
-v6 w0 a0 f110 t.001,.22,0,.10 k750 q6 ft.001,.18,0,.08 fd1800 p-.15
-v7 w0 a0 f110 t.001,.22,0,.10 k750 q6 ft.001,.18,0,.08 fd1800 p .15 N-12,8
+v6 w15 a0 f110 t.001,.22,0,.10 k750 q6 ft.001,.18,0,.08 fd1800 p-.15
+v7 w15 a0 f110 t.001,.22,0,.10 k750 q6 ft.001,.18,0,.08 fd1800 p .15 N-12,8
 
 # Synth chord stabs (sawtooth pad, warm filter, bus 1 send)
-v11 w0 a-4 f440 t.002,.35,0,.15 k2200 q3 r1 ds.3 p-.25
-v12 w0 a-4 f440 t.002,.35,0,.15 k2200 q3 r1 ds.3 p 0
-v13 w0 a-4 f440 t.002,.35,0,.15 k2200 q3 r1 ds.3 p .25
+v11 w15 a-4 f440 t.002,.35,0,.15 k2200 q3 r1 ds.3 p-.25
+v12 w15 a-4 f440 t.002,.35,0,.15 k2200 q3 r1 ds.3 p 0
+v13 w15 a-4 f440 t.002,.35,0,.15 k2200 q3 r1 ds.3 p .25
 
 # Delay Bus 1: 16th slapback / bounce
 DS 1 124 .25

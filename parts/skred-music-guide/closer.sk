@@ -122,6 +122,12 @@ v19 w15 f187 a0 t.001,.25,0,.15 m1 [ring mod carrier] vt
 # Bitcrushed industrial noise burst
 v20 w5 a-4 p-.4 t.001,.18,0,.10 j2 k1600 q1.2 bc6 [bitcrushed noise burst] vt
 
+# Chorus Vocal Lead: Trent Reznor singing synth (resonant saw + partner)
+v21 w15 a-6 p0 t.01,.30,.4,.25 j1 k2400 q2.0 c4,.25 r1 ds.3 [chorus vocal lead] vt
+v21 >22
+v22 w16 a-9 N0,7 p.4 r0 [chorus vocal partner] vt
+v21 G22 H22
+
 # Sub boom: audible sub drop + slowed kick
 v38 w0 a0 p0 t.002,.90,0,.40 j1 k240 q.7 r3 ds.3 [sub boom sine] vt
 v40 w82 f110 a5 p0 [slowed kick drop] vt
@@ -214,16 +220,16 @@ y6
 [v6 g0 n46 l.95] x24
 [=127,0] x31
 
-# Pattern 7: Post-Chorus Ascending Hook (E -> F -> G -> Ab over C minor)
+# Pattern 7: Post-Chorus Ascending Hook (Eb -> F -> G -> Ab over C minor)
 y7
 [post-chorus ascending hook] yt
-[v11 g0 n64 l.9] x0
+[v11 g0 n63 l.9] x0
 [v11 g.03 n65 l.9] x4
 [v11 g.03 n67 l.95] x8
 [v11 g.03 n68 l1] x12
 [v11 g.03 n67 l.95] x16
 [v11 g.03 n65 l.9] x20
-[v11 g.03 n64 l.9] x24
+[v11 g.03 n63 l.9] x24
 [v11 g.04 n60 l.85] x28
 [v11 l0] x30
 [=127,0] x31
@@ -249,22 +255,46 @@ y9
 # Pattern 10: The Outro Piano (The Downward Spiral Descending Motif, 4 bars / 64 steps)
 y10
 [the downward spiral outro piano] yt
-[v13 n70 l.85] x0
-[v13 n69 l.80] x8
-[v13 n68 l.85] x16
-[v13 n67 l.80] x24
-[v13 n66 l.85] x32
-[v13 n65 l.80] x40
-[v13 n63 l.85] x48
-[v13 n62 l.80] x54
-[v13 n60 l.90] x56
-[v13 l0] x63
+[v13 n69 l.85] x0,4
+[v13 n68 l.85] x8
+[v13 n67 l.85] x12
+[v13 n66 l.85] x16
+[v13 n65 l.85] x20
+[v13 n63 l.85] x24,28
+[v13 n62 l.85] x32
+[v13 n65 l.85] x36
+[v13 n62 l.85] x40
+[v13 n60 l.95] x44
+[v13 l0] x60
+[=127,0] x63
 
 # Pattern 11: Dark Verse Atmosphere Pad (Cm drone)
 y11
 [verse dark pad] yt
 [pn 0,109,48,.8 pn 0,110,55,.8 pn 0,111,58,.8] x0
 [pr 0,109 pr 0,110 pr 0,111] x31
+
+# Pattern 12: Chorus Vocal Lead ("I wanna fuck you like an animal...")
+y12
+[chorus vocal lead] yt
+[v21 n60 l.85] x0,2,4,6,8
+[v21 n63 l.85] x10
+[v21 n62 l.85] x12
+[v21 n60 l.95] x14,16
+[v21 n60 l.85] x18,20,22,24,26
+[v21 n65 l.85] x28
+[v21 n63 l.85] x30
+[v21 n60 l.95] x32,34
+[v21 n60 l.85] x38,40,42,44,46
+[v21 n63 l.85] x48
+[v21 n62 l.85] x50
+[v21 n60 l.95] x52,54
+[v21 n63 l.85] x56
+[v21 n62 l.85] x58
+[v21 n60 l.85] x60
+[v21 n58 l.85] x61
+[v21 n60 l1] x62
+[=127,0] x63
 
 # Pattern 13: Snare Ratchet Roll (one-shot with stop marker '-')
 y13
@@ -324,14 +354,14 @@ y0
 [v17 l.7 y3 z0 y18 z1 y16 z1] x40
 [v16 l1] x44
 [y1 z0 y2 z0 y13 z1] x47
-[v17 l1 y1 z1 y2 z1 y18 z1 y4 z0 y6 z1 y8 z1 y14 z1 y16 z0 v6 k3200 v7 k3000] x48
-[y6 z0 y4 z1 y9 z1] x52
-[v17 l.8 y4 z0 y9 z0 v8 l0 y6 z1 y8 z1] x56
-[y6 z0 y4 z1 y9 z1] x60
+[v17 l1 y1 z1 y2 z1 y18 z1 y4 z0 y6 z1 y8 z1 y12 z1 y14 z1 y16 z0 v6 k3200 v7 k3000] x48
+[y6 z0 y4 z1 y9 z1 y12 z0 v21 l0] x52
+[v17 l.8 y4 z0 y9 z0 v8 l0 y6 z1 y8 z1 y12 z1] x56
+[y6 z0 y4 z1 y9 z1 y12 z0 v21 l0] x60
 [y2 z0 y13 z1] x63
 [v17 l1 y2 z1 y7 z1] x64
 [v16 l1] x70
-[DF 1 1 y1 z0 y2 z0 y18 z0 y4 z0 y6 z0 y7 z0 y8 z0 y9 z0 y14 z0 v11 l0 v8 l0 v6 l0 v7 l0] x71
+[DF 1 1 y1 z0 y2 z0 y18 z0 y7 z0 v11 l0 v8 l0 v6 l0 v7 l0 v21 l0] x71
 [DF 1 0 y1 z1 y10 z1 y15 z1 v11 l0 v8 l0 v6 l0 v7 l0] x72
 [v20 l.5] x76
 [y15 z1] x80

@@ -88,16 +88,28 @@ v15 G16 H16
 /cer 1
 
 ## STREAMS (all pitch material lives here, edit to correct notes)
-# stream 1: verse bass drone, one bar of eighths on A2
-[A2 A2 A2 A2 A2 A2 A2 A2] n>d /SS 1
+# stream 1: verse bass (A - G - E driving punk riff, 2 bars / 16 eighths)
+[A2 A2 A2 A2 A2 A2 A2 A2  A2 A2 A2 A2 G2 G2 E2 E2] n>d /SS 1
 # stream 2: bass velocities, light accent on each beat
 ( 1 .75 .9 .75 1 .75 .9 .75 ) /SS 2
-# stream 3: chorus bass, 4 bars of eighths: E2 | D2 | A2 | A2
-[E2 E2 E2 E2 E2 E2 E2 E2  D2 D2 D2 D2 D2 D2 D2 D2  A2 A2 A2 A2 A2 A2 A2 A2  A2 A2 A2 A2 A2 A2 A2 A2] n>d /SS 3
-# stream 4: chorus guitar roots, 4 bars of eighths: E3 | D3 | A3 | A3
-[E3 E3 E3 E3 E3 E3 E3 E3  D3 D3 D3 D3 D3 D3 D3 D3  A3 A3 A3 A3 A3 A3 A3 A3  A3 A3 A3 A3 A3 A3 A3 A3] n>d /SS 4
+# stream 3: authentic DEVO chorus bass (16 bars: D-C-G, D-C-F, D-C-F-G, G-G-A-A)
+[
+D2 D2 D2 D2 D2 D2 D2 D2  C2 C2 C2 C2 C2 C2 C2 C2  G2 G2 G2 G2 G2 G2 G2 G2  G2 G2 G2 G2 G2 G2 G2 G2
+D2 D2 D2 D2 D2 D2 D2 D2  C2 C2 C2 C2 C2 C2 C2 C2  F2 F2 F2 F2 F2 F2 F2 F2  F2 F2 F2 F2 F2 F2 F2 F2
+D2 D2 D2 D2 D2 D2 D2 D2  C2 C2 C2 C2 C2 C2 C2 C2  F2 F2 F2 F2 F2 F2 F2 F2  G2 G2 G2 G2 G2 G2 G2 G2
+G2 G2 G2 G2 G2 G2 G2 G2  G2 G2 G2 G2 G2 G2 G2 G2  A2 A2 A2 A2 A2 A2 A2 A2  A2 A2 A2 A2 A2 A2 A2 A2
+] n>d /SS 3
+# stream 4: authentic DEVO chorus guitar power chords (16 bars)
+[
+D3 D3 D3 D3 D3 D3 D3 D3  C3 C3 C3 C3 C3 C3 C3 C3  G3 G3 G3 G3 G3 G3 G3 G3  G3 G3 G3 G3 G3 G3 G3 G3
+D3 D3 D3 D3 D3 D3 D3 D3  C3 C3 C3 C3 C3 C3 C3 C3  F3 F3 F3 F3 F3 F3 F3 F3  F3 F3 F3 F3 F3 F3 F3 F3
+D3 D3 D3 D3 D3 D3 D3 D3  C3 C3 C3 C3 C3 C3 C3 C3  F3 F3 F3 F3 F3 F3 F3 F3  G3 G3 G3 G3 G3 G3 G3 G3
+G3 G3 G3 G3 G3 G3 G3 G3  G3 G3 G3 G3 G3 G3 G3 G3  A3 A3 A3 A3 A3 A3 A3 A3  A3 A3 A3 A3 A3 A3 A3 A3
+] n>d /SS 4
 # stream 5: guitar chug velocities, accent on each beat
 ( 1 .45 .7 .45 1 .45 .7 .45 ) /SS 5
+# stream 6: verse guitar chug (A - G - E punk rhythm, 2 bars / 16 eighths)
+[A3 A3 A3 A3 A3 A3 A3 A3  A3 A3 A3 A3 G3 G3 E3 E3] n>d /SS 6
 
 # stream 7: 'YEAH!' manic vocal shouts (2 bars / 32 steps)
 [
@@ -126,13 +138,28 @@ A4 - A4 - B4 - C#5 - B4 - A4 - - - - -
 - - - - - - - - - - - - - - - -
 ] n>d /SS 8
 
-# stream 9: chorus vocal hook ('It's driving me insane! ... Got an uncontrollable urge!')
-# 4 bars / 64 sixteenth steps, loops across the chorus
+# stream 9: authentic DEVO chorus vocal hook (16 bars / 256 steps)
+# Bars 1-4: D -> C -> G: "I've got an uncontrollable urge! (He's got an uncontrollable urge!)"
+# Bars 5-8: D -> C -> F: "I've got an uncontrollable urge! (He's got an uncontrollable urge!)"
+# Bars 9-12: D -> C -> F -> G: "It's got style, it's got class / So strong, I can't let it pass!"
+# Bars 13-16: G -> A: "Gotta tell you all about it! / Gotta scream and shout it!"
 [
-E5 - E5 - E5 - E5 - C#5 - - - - - - -
-D5 - D5 - D5 - C#5 - A4 - - - - - - -
-A4 - - - A4 - - - - - - - - - - -
-A4 - A4 - A4 - A4 - - - - - - - - -
+D5 - D5 - D5 - D5 - D5 - C5 - - - - -
+- - - - - - - - - - - - - - - -
+B4 - B4 - B4 - B4 - B4 - A4 - - - - -
+- - - - - - - - - - - - - - - -
+D5 - D5 - D5 - D5 - D5 - C5 - - - - -
+- - - - - - - - - - - - - - - -
+A4 - A4 - A4 - A4 - A4 - G4 - - - - -
+- - - - - - - - - - - - - - - -
+D5 - - - D5 - - - C5 - - - C5 - - -
+- - - - - - - - - - - - - - - -
+F5 - - - F5 - - - - - - - - - - -
+G5 - - - G5 - - - A5 - - - - - - -
+B4 - B4 - B4 - B4 - B4 - A4 - - - - -
+- - - - - - - - - - - - - - - -
+C#5 - C#5 - C#5 - C#5 - B4 - A4 - - - -
+- - - - - - - - - - - - - - - -
 ] n>d /SS 9
 
 # stream 10: outro frantic vocal hook ('Uncontrollable urge! Out of control!')
@@ -169,12 +196,13 @@ y4
 [=127,0] x15
 
 y5
-[verse bass drone] yt
+[verse bass A-G-E, 2 bars] yt
 [v6 n&1 l&2] x0,2,4,6,8,10,12,14
-[=127,0] x15
+[v6 n&1 l&2] x16,18,20,22,24,26,28,30
+[=127,0] x31
 
 y8
-[chorus bass E D A A, 4 bars] yt
+[authentic devo chorus bass, 4 bars] yt
 [v6 n&3 l&2] x0,2,4,6,8,10,12,14
 [v6 n&3 l&2] x16,18,20,22,24,26,28,30
 [v6 n&3 l&2] x32,34,36,38,40,42,44,46
@@ -182,7 +210,7 @@ y8
 [=127,0] x63
 
 y9
-[chorus guitar power chords, 4 bars] yt
+[authentic devo chorus guitar power chords, 4 bars] yt
 [v8 n&4 l&5] x0,2,4,6,8,10,12,14
 [v8 n&4 l&5] x16,18,20,22,24,26,28,30
 [v8 n&4 l&5] x32,34,36,38,40,42,44,46
@@ -190,9 +218,10 @@ y9
 [=127,0] x63
 
 y10
-[verse guitar chug on A] yt
-[v8 n57 l&5] x0,2,4,6,8,10,12,14
-[=127,0] x15
+[verse guitar chug A-G-E, 2 bars] yt
+[v8 n&6 l&5] x0,2,4,6,8,10,12,14
+[v8 n&6 l&5] x16,18,20,22,24,26,28,30
+[=127,0] x31
 
 y11
 [FM stab on beat 1] yt

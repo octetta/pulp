@@ -153,11 +153,25 @@ v40 w82 f110 a5 p0 [slowed kick drop] vt
 # Bar 1 has F4, Bar 2 leaps up to high F5!
 [Db5 - Db5 - C5 - C5 - Bb4 F4 - F4 - Ab4 Bb4 Ab4  Db5 - Db5 - C5 - C5 - Bb4 F5 - F5 - Ab4 Bb4 Ab4] n>d /SS 3
 
-# Stream 4: Vocal Lead Chorus Hook ('Baby don't go, baby don't go...', 2 bars / 32 steps)
-[Db5 C5 Bb4 - Db5 C5 Bb4 - F5 - Eb5 Db5 C5 Bb4 - -  Db5 C5 Bb4 - Db5 C5 Bb4 - F5 - Ab5 Gb5 F5 Eb5 - -] n>d /SS 4
+# Stream 4: Authentic Vocal Lead Chorus Hook ('Can't stop now, don't you know?...', 4 bars / 64 steps)
+[
+F5 - F5 - Eb5 - Db5 - C5 - Bb4 - - - - -
+- - Bb4 - C5 - Db5 - Eb5 - F5 - Eb5 - Db5 - - -
+F5 - - - Db5 - - - - - - - Bb4 - - -
+- - - - - - - - - - - - - - - -
+] n>d /SS 4
 
-# Stream 5: Vocal Lead Verse 1 ('Came in from the city, walked into the door...', 4 bars / 64 steps)
-[Bb4 Bb4 Bb4 Bb4 Ab4 F4 - - F4 Ab4 Bb4 - - - - -  Bb4 Bb4 Bb4 Bb4 Ab4 F4 - - F4 Ab4 Bb4 - - - - -  Db5 Db5 Db5 Db5 C5 Ab4 - - Ab4 C5 Db5 - - - - -  Eb5 Eb5 Eb5 Eb5 Db5 Bb4 - - F5 - - - - - - -] n>d /SS 5
+# Stream 5: Authentic Vocal Lead Verse 1 ('Came in from the city, walked into the door...', 8 bars / 128 steps)
+[
+F4 - Bb4 - Db5 - C5 - Bb4 - - - - - - -
+F4 - Bb4 - Db5 - C5 - Bb4 - - - - - - -
+F4 - F4 - Ab4 - Bb4 - C5 - Db5 - C5 - Bb4 - - -
+Db5 - Db5 - Eb5 - F5 - - - - - - - - - - -
+F4 - Bb4 - Db5 - C5 - Bb4 - - - - - - -
+F4 - Bb4 - Db5 - C5 - Bb4 - - - - - - -
+F4 - F4 - Ab4 - Bb4 - C5 - Db5 - C5 - Bb4 - - -
+Eb5 - - - F5 - - - - - - - - - - - - - -
+] n>d /SS 5
 
 # Stream 6: Vince Clarke 16th Arpeggio (4 bars / 64 steps)
 [Bb3 Bb3 Bb3 - C4 Bb3 Bb3 Db4 Bb3 Eb4 Bb3 Bb3 F4 Bb3 Eb4 Db4  Bb3 Bb3 C4 Bb3 Db4 Bb3 Bb3 Eb4 Bb3 F4 Bb3 Bb3 Eb4 Bb3 Db4 Eb4  Ab3 - Ab3 Ab3 Bb3 Ab3 Ab3 C4 Ab3 Db4 Ab3 Ab3 Eb4 Ab3 Db4 C4  Gb3 - Gb3 Gb3 Ab3 Gb3 Gb3 Bb3 Gb3 C4 Gb3 Gb3 Db4 Gb3 C4 Bb3] n>d /SS 6
@@ -243,6 +257,15 @@ y7
 [v13 n&5 l.9] x40,41,42,43,44,45,46,47
 [v13 n&5 l.9] x48,49,50,51,52,53,54,55
 [v13 n&5 l.9] x56,57,58,59,60,61,62,63
+[v13 n&5 l.9] x64,65,66,67,68,69,70,71
+[v13 n&5 l.9] x72,73,74,75,76,77,78,79
+[v13 n&5 l.9] x80,81,82,83,84,85,86,87
+[v13 n&5 l.9] x88,89,90,91,92,93,94,95
+[v13 n&5 l.9] x96,97,98,99,100,101,102,103
+[v13 n&5 l.9] x104,105,106,107,108,109,110,111
+[v13 n&5 l.9] x112,113,114,115,116,117,118,119
+[v13 n&5 l.9] x120,121,122,123,124,125,126
+[v13 n&5 l.9 =127,0] x127
 
 y10
 [vocal lead chorus hook] yt
@@ -250,6 +273,11 @@ y10
 [v13 n&4 l.95] x8,9,10,11,12,13,14,15
 [v13 n&4 l.95] x16,17,18,19,20,21,22,23
 [v13 n&4 l.95] x24,25,26,27,28,29,30,31
+[v13 n&4 l.95] x32,33,34,35,36,37,38,39
+[v13 n&4 l.95] x40,41,42,43,44,45,46,47
+[v13 n&4 l.95] x48,49,50,51,52,53,54,55
+[v13 n&4 l.95] x56,57,58,59,60,61,62
+[v13 n&4 l.95 =127,0] x63
 
 y11
 [verse brass offbeat stabs] yt

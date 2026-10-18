@@ -201,21 +201,36 @@ y7
 [=127,0] x31
 
 y8
-[chorus vocal melody - sweet dreams] yt
-[v8 n60 l.9] x0
-[v8 n63 l.9] x4
-[v8 n67 l1] x8
-[v8 n67 l.9] x16
-[v8 n65 l.85] x20
-[v8 n63 l.85] x24
-[v8 n62 l.85] x28
-[v8 n60 l.9] x32
-[v8 n63 l.9] x36
-[v8 n67 l1] x40
-[v8 n68 l.95] x48
-[v8 n67 l.85] x52
-[v8 n65 l.85] x56
-[v8 n63 l.85] x60
+[chorus vocal melody - sweet dreams 4 bars] yt
+# Bar 1: 'Sweet dreams are made of this'
+[v8 n60 l.9] x0     # C4 ('Sweet...')
+[v8 n63 l.9] x4     # Eb4 ('...dreams...')
+[v8 n67 l1] x8      # G4 ('...are')
+[v8 n65 l.85] x10   # F4 ('...made')
+[v8 n63 l.85] x12   # Eb4 ('...of')
+[v8 n60 l1] x14     # C4 ('...this')
+# Bar 2: 'Who am I to disagree?'
+[v8 n60 l.9] x16    # C4 ('Who...')
+[v8 n63 l.9] x20    # Eb4 ('...am I...')
+[v8 n68 l.95] x24   # Ab4 ('...to')
+[v8 n67 l.85] x26   # G4 ('...dis-')
+[v8 n65 l.85] x28   # F4 ('...a-')
+[v8 n60 l1] x30     # C4 ('...gree')
+# Bar 3: 'Travel the world and the seven seas'
+[v8 n60 l.85] x32   # C4 ('Tra-')
+[v8 n63 l.85] x34   # Eb4 ('-vel')
+[v8 n65 l.85] x36   # F4 ('the')
+[v8 n67 l1] x38     # G4 ('world')
+[v8 n67 l.85] x42   # G4 ('and the')
+[v8 n65 l.85] x44   # F4 ('se-ven')
+[v8 n63 l.9] x46    # Eb4 ('seas')
+# Bar 4: 'Everybody is looking for something'
+[v8 n63 l.85] x48   # Eb4 ('E-ve-ry')
+[v8 n65 l.85] x50   # F4 ('-bo-dy')
+[v8 n67 l1] x52     # G4 ('look-ing')
+[v8 n65 l.85] x56   # F4 ('for')
+[v8 n63 l.85] x58   # Eb4 ('some-')
+[v8 n60 l1.1] x60   # C4 ('-thing')
 [=127,0] x63
 
 y10
@@ -335,9 +350,9 @@ y0
 [v17 l1 y12 z1 v6 k1200 v7 k1200] x40
 [v17 l.7 v6 k1800 v7 k1800] x44
 [y12 z0 v8 l0 y13 z1] x47
-[v17 l1 y9 z1 v6 k3200 v7 k3200] x48
+[v17 l1 y8 z1 v6 k3200 v7 k3200] x48
 [v17 l.8] x52
-[y9 z0 v11 l0 y13 z1] x55
+[y8 z0 v8 l0 y13 z1] x55
 [v17 l1 DF 1 1 y1 z0 y2 z0 y18 z0 y6 z0 y7 z0 y15 z0 v6 l0 v7 l0 v13 l0] x56
 [v8 l0 v11 l0] x57
 [y11 z1] x58
@@ -345,9 +360,9 @@ y0
 [y13 z1] x63
 [DF 1 0 v17 l1 y1 z1 y2 z1 y18 z1 y6 z1 /SP 1,0 y7 z1 /SP 2,0 y15 z1 y8 z1 v6 k3600 v7 k3600] x64
 [v17 l.7] x68
-[v17 l.8 y9 z1] x72
+[v17 l.8] x72
 [v17 l.7] x76
-[y8 z0 y9 z0 v8 l0 v11 l0 y13 z1] x79
+[y8 z0 v8 l0 y13 z1] x79
 [v17 l1 y10 z1 v6 k2200 v7 k2200] x80
 [v17 l.7] x84
 [y10 z0 v8 l0 y13 z1] x87

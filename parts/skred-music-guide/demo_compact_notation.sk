@@ -12,7 +12,7 @@
 # ======================================================================
 
 [COMPACT PATTERN NOTATION DEMO] puts
-[Commands: 'play' (both sections), 'play_verbose' (bars 0-7), 'play_compact' (bars 8-15), 'stop'] puts
+[Commands: 'play' (both sections), 'pv' (bars 0-7), 'pc' (bars 8-15), 'stop'] puts
 
 M 124 16
 
@@ -242,11 +242,11 @@ y0
 # 'play' plays full 16-bar comparison
 [play] : Z0 Z! y0 z1 ;
 
-# 'play_verbose' plays Section A (Bars 0-7)
-[play_verbose] : Z0 Z! /SP 1 0 y0 0 xG y0 z1 ;
+# 'pv' plays Section A (Bars 0-7, verbose)
+[pv] : Z0 Z! /SP 1 0 y0 0 zg y0 z1 ;
 
-# 'play_compact' plays Section B (Bars 8-15)
-[play_compact] : Z0 Z! /SP 1 0 y0 8 xG y0 z1 ;
+# 'pc' plays Section B (Bars 8-15, compact)
+[pc] : Z0 Z! /SP 1 0 y0 8 zg y0 z1 ;
 
 # 'stop' stops all patterns and voices
 [stop] : Z0 O DQ ;

@@ -183,46 +183,46 @@ static int word_exec_GS_lt(const skode_word_t *self, skode_t *ctx, ands_t *s, do
 static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
-  int x = 0;
-  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
-  (void)x_valid;
-  (void)voice;
-  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      if (argc) {
-        if (isnan(arg[0]) || !x_valid || x < 0) {
+  (void)self; (void)atom; (void)voice;
+  if (argc) {
+    const char *source = ands_string(ctx->parse);
+    event_program_t program;
+    int source_only = source[0] == '\0' || source[0] == '-';
+    char hint[16] = "";
+    skode_compile_result_t result = source_only ?
+      SKODE_COMPILE_OK :
+      skode_compile_program_describe(source, &program, hint, sizeof(hint));
+    if (result == SKODE_COMPILE_OK) {
+      for (int i = 0; i < argc; i++) {
+        int x = 0;
+        int x_valid = skode_double_to_int(arg[i], &x);
+        if (isnan(arg[i]) || !x_valid || x < 0) {
           ctx->step++;
           x = ctx->step;
         } else {
           ctx->step = x;
         }
-        if (x >= 0 && 1) {
-          const char *source = ands_string(ctx->parse);
-          event_program_t program;
-          int source_only = source[0] == '\0' || source[0] == '-';
-          char hint[16] = "";
-          skode_compile_result_t result = source_only ?
-            SKODE_COMPILE_OK :
-            skode_compile_program_describe(source, &program, hint, sizeof(hint));
-          if (result == SKODE_COMPILE_OK) {
-            seq_step_set(ctx->pattern, ctx->step, source,
-              source_only ? NULL : &program);
-          } else if (result == SKODE_COMPILE_IMMEDIATE_ONLY) {
-            if (hint[0])
-              ctx->printf(ctx,
-                "# '%s' is immediate-only and cannot be compiled into a pattern step\n"
-                "# use 'ce N' in the step and bind N with '/ceb 4 N'\n", hint);
-            else
-              ctx->printf(ctx,
-                "# step contains an immediate-only word (e.g. a string bracket or "
-                "word like >u, e>, /ceb)\n"
-                "# use 'ce N' in the step and bind N with '/ceb 4 N'\n");
-          } else {
-            ctx->printf(ctx, "# step could not be compiled (%d): [%s]\n",
-              result, source);
-          }
+        if (x >= 0) {
+          seq_step_set(ctx->pattern, ctx->step, source,
+            source_only ? NULL : &program);
         }
       }
-      return 0;
+    } else if (result == SKODE_COMPILE_IMMEDIATE_ONLY) {
+      if (hint[0])
+        ctx->printf(ctx,
+          "# '%s' is immediate-only and cannot be compiled into a pattern step\n"
+          "# use 'ce N' in the step and bind N with '/ceb 4 N'\n", hint);
+      else
+        ctx->printf(ctx,
+          "# step contains an immediate-only word (e.g. a string bracket or "
+          "word like >u, e>, /ceb)\n"
+          "# use 'ce N' in the step and bind N with '/ceb 4 N'\n");
+    } else {
+      ctx->printf(ctx, "# step could not be compiled (%d): [%s]\n",
+        result, source);
+    }
+  }
+  return 0;
 }
 
 static int word_exec__slashm_(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {

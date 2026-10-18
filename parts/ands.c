@@ -75,7 +75,7 @@ static int ands_var_parse(char **ptr, char *end) {
   return digits ? value : -1;
 }
 
-#define ARG_MAX (8)
+#define ARG_MAX (128)
 #define ATOM_MAX (4)
 #define ATOM_NIL (0x2d2d2d2d)
 #define VAR_MAX (ANDS_VAR_MAX)

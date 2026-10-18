@@ -3490,6 +3490,24 @@ static void test_x_opcode_escape(void) {
   expect_int(test, skode_compile_program("EXEC 256", &program), -1, "EXEC 256 out of range rejected");
 }
 
+static void test_multistep_assignment(void) {
+  const char *test = "multi-step pattern assignment";
+  skode_t ctx = new_ctx();
+  consume(test, &ctx, "y20");
+  consume(test, &ctx, "[v1 l.8] x0,4,8,12");
+  expect_int(test, strcmp(seq_step_get(20, 0), "v1 l.8"), 0, "step 0 has program");
+  expect_int(test, strcmp(seq_step_get(20, 1), ""), 0, "step 1 is empty");
+  expect_int(test, strcmp(seq_step_get(20, 4), "v1 l.8"), 0, "step 4 has program");
+  expect_int(test, strcmp(seq_step_get(20, 8), "v1 l.8"), 0, "step 8 has program");
+  expect_int(test, strcmp(seq_step_get(20, 12), "v1 l.8"), 0, "step 12 has program");
+
+  // Multi-step hold / rest syntax
+  consume(test, &ctx, "[-] x1,2,3");
+  expect_int(test, strcmp(seq_step_get(20, 1), "-"), 0, "step 1 has rest");
+  expect_int(test, strcmp(seq_step_get(20, 2), "-"), 0, "step 2 has rest");
+  expect_int(test, strcmp(seq_step_get(20, 3), "-"), 0, "step 3 has rest");
+}
+
 int main(int argc, char **argv) {
   synth_init(8);
   wave_table_init(0);
@@ -3562,6 +3580,7 @@ int main(int argc, char **argv) {
   test_909_load_rejects_too_small_wave_table();
   test_multichannel_capture_waves();
   test_x_opcode_escape();
+  test_multistep_assignment();
 
   synth_free();
 

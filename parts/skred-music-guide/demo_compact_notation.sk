@@ -1,0 +1,252 @@
+# ======================================================================
+#  COMPACT PATTERN NOTATION DEMO (.sk)
+#  Side-by-side comparison of Classic Verbose vs. Compact Multi-Step notation
+#  Tempo: 124 BPM, 4/4, D minor
+#
+#  This file illustrates how multi-step assignment `x#,#,#,#` dramatically
+#  cleans up and compresses pattern step definitions and conductor tracks.
+#
+#  PART 1 (Patterns 1-7):   Classic Verbose Notation (one hit per step line)
+#  PART 2 (Patterns 11-17): Compact Multi-Step Notation (x#,#,#,# lists)
+#  CONDUCTOR (Pattern 0):   Bars 0-7 = Verbose, Bars 8-15 = Compact
+# ======================================================================
+
+[COMPACT PATTERN NOTATION DEMO] puts
+[Commands: 'play' (both sections), 'play_verbose' (bars 0-7), 'play_compact' (bars 8-15), 'stop'] puts
+
+M 124 16
+
+# ======================================================================
+# VOICES & INSTRUMENTS
+# Built-in sample drums (82=kick, 83=snare, 84=chh, 85=ohh, 89=clap)
+# ======================================================================
+v0 w82 f440 a6 p 0                                   # kick
+v1 w83 f440 a7 r1 p 0 ds.15                          # snare (sends to delay bus 1)
+v2 w84 f440 a-4 p-.3                                 # closed hat
+v3 w85 f440 a-2 p .3                                 # open hat
+v4 w89 f440 a2 r1 p .1 ds.2                          # clap
+
+# Synth bass (dual detuned saws with resonant filter envelope)
+v6 w0 a0 f110 t.001,.22,0,.10 k750 q6 ft.001,.18,0,.08 fd1800 p-.15
+v7 w0 a0 f110 t.001,.22,0,.10 k750 q6 ft.001,.18,0,.08 fd1800 p .15 N-12,8
+
+# Synth chord stabs (sawtooth pad, warm filter, bus 1 send)
+v11 w0 a-4 f440 t.002,.35,0,.15 k2200 q3 r1 ds.3 p-.25
+v12 w0 a-4 f440 t.002,.35,0,.15 k2200 q3 r1 ds.3 p 0
+v13 w0 a-4 f440 t.002,.35,0,.15 k2200 q3 r1 ds.3 p .25
+
+# Delay Bus 1: 16th slapback / bounce
+DS 1 124 .25
+DL 1 - - 6 0 0 8
+DD 1 5 3
+
+# Streams: 8th-note D minor bass ostinato (D2, D2, F2, D2, G2, D2, F2, E2)
+[D2 D2 F2 D2  G2 D2 F2 E2] n>d /SS 1
+
+
+# ======================================================================
+# ======================================================================
+# PART 1: CLASSIC VERBOSE NOTATION (Patterns 1 - 7)
+# Every repetitive hit requires its own separate line in the file.
+# Total pattern step lines for this section: ~44 lines
+# ======================================================================
+# ======================================================================
+
+# Pattern 1: Kick drum 4-on-the-floor
+y1
+[verbose kick 4-on-floor] yt
+[v0 l.9] x0
+[v0 l.9] x4
+[v0 l.9] x8
+[v0 l.9] x12
+[=127,0] x15
+
+# Pattern 2: Snare & clap on beats 2 and 4
+y2
+[verbose snare on 2 and 4] yt
+[v1 l.8 v4 l.75] x4
+[v1 l.8 v4 l.75] x12
+[=127,0] x15
+
+# Pattern 3: Closed hi-hat straight 8ths
+y3
+[verbose closed hat 8ths] yt
+[v2 l.5] x0
+[v2 l.5] x2
+[v2 l.5] x4
+[v2 l.5] x6
+[v2 l.5] x8
+[v2 l.5] x10
+[v2 l.5] x12
+[v2 l.5] x14
+[=127,0] x15
+
+# Pattern 4: Open hi-hat offbeats
+y4
+[verbose open hat offbeats] yt
+[v3 l.7] x6
+[v3 l.7] x14
+[=127,0] x15
+
+# Pattern 5: Driving 8th-note bass ostinato (reads stream 1 into $0)
+y5
+[verbose 8th bass ostinato] yt
+[=0,&1 v6 n$0 l.8 v7 n$0 l.8] x0
+[=0,&1 v6 n$0 l.8 v7 n$0 l.8] x2
+[=0,&1 v6 n$0 l.8 v7 n$0 l.8] x4
+[=0,&1 v6 n$0 l.8 v7 n$0 l.8] x6
+[=0,&1 v6 n$0 l.8 v7 n$0 l.8] x8
+[=0,&1 v6 n$0 l.8 v7 n$0 l.8] x10
+[=0,&1 v6 n$0 l.8 v7 n$0 l.8] x12
+[=0,&1 v6 n$0 l.8 v7 n$0 l.8] x14
+[=127,0] x15
+
+# Pattern 6: Offbeat synth chord stabs (Dm -> F -> Gm -> Dm)
+y6
+[verbose chord stabs] yt
+[v11 n62 v12 n65 v13 n69 l.45] x2
+[v11 n65 v12 n69 v13 n72 l.45] x6
+[v11 n67 v12 n70 v13 n74 l.45] x10
+[v11 n62 v12 n65 v13 n69 l.45] x14
+[=127,0] x15
+
+# Pattern 7: Snare build with ratchets
+y7
+[verbose snare roll build] yt
+[v1 l.6] x0
+[v1 l.6] x1
+[v1 l.6] x2
+[v1 l.6] x3
+[v1 l.6] x4
+[v1 l.6] x5
+[v1 l.6] x6
+[v1 l.6] x7
+[v1 l.75 z*2] x8
+[v1 l.75 z*2] x9
+[v1 l.75 z*2] x10
+[v1 l.75 z*2] x11
+[v1 l.85 z*4] x12
+[v1 l.85 z*4] x13
+[v1 l.95 z*4] x14
+[v1 l1.0 z*8] x15
+
+
+# ======================================================================
+# ======================================================================
+# PART 2: COMPACT MULTI-STEP NOTATION (Patterns 11 - 17)
+# Identical musical sound and timing, declared compactly using x#,#,#,#.
+# Total pattern step lines for this section: ~10 lines (77% reduction!)
+# ======================================================================
+# ======================================================================
+
+# Pattern 11: Kick drum 4-on-the-floor
+y11
+[compact kick 4-on-floor] yt
+[v0 l.9] x0,4,8,12
+[=127,0] x15
+
+# Pattern 12: Snare & clap on beats 2 and 4
+y12
+[compact snare on 2 and 4] yt
+[v1 l.8 v4 l.75] x4,12
+[=127,0] x15
+
+# Pattern 13: Closed hi-hat straight 8ths
+y13
+[compact closed hat 8ths] yt
+[v2 l.5] x0,2,4,6,8,10,12,14
+[=127,0] x15
+
+# Pattern 14: Open hi-hat offbeats
+y14
+[compact open hat offbeats] yt
+[v3 l.7] x6,14
+[=127,0] x15
+
+# Pattern 15: Driving 8th-note bass ostinato (reads stream 1 into $0)
+y15
+[compact 8th bass ostinato] yt
+[=0,&1 v6 n$0 l.8 v7 n$0 l.8] x0,2,4,6,8,10,12,14
+[=127,0] x15
+
+# Pattern 16: Offbeat synth chord stabs (Dm -> F -> Gm -> Dm)
+y16
+[compact chord stabs] yt
+[v11 n62 v12 n65 v13 n69 l.45] x2,14
+[v11 n65 v12 n69 v13 n72 l.45] x6
+[v11 n67 v12 n70 v13 n74 l.45] x10
+[=127,0] x15
+
+# Pattern 17: Snare build with ratchets
+y17
+[compact snare roll build] yt
+[v1 l.6] x0,1,2,3,4,5,6,7
+[v1 l.75 z*2] x8,9,10,11
+[v1 l.85 z*4] x12,13
+[v1 l.95 z*4] x14
+[v1 l1.0 z*8] x15
+
+
+# ======================================================================
+# ======================================================================
+# CONDUCTOR (Pattern 0, 16 bars total)
+#
+# Bars 0-7:  Arranges VERBOSE Patterns 1-7
+#            (Showcases verbose conductor holds [=126, b] xb)
+#
+# Bars 8-15: Arranges COMPACT Patterns 11-17
+#            (Showcases compact conductor holds [-] xb,b,b)
+# ======================================================================
+# ======================================================================
+
+y0
+[conductor] yt
+%16
+
+# ----------------------------------------------------------------------
+# SECTION A (Bars 0-7): Verbose Conductor
+# ----------------------------------------------------------------------
+# Bar 0: Drums + Bass groove start
+[y1 z1 y3 z1 y4 z1 y5 z1] x0
+[=126,1] x1
+[=126,2] x2
+[=126,3] x3
+
+# Bar 4: Add snare & chords
+[y2 z1 y6 z1] x4
+[=126,5] x5
+[=126,6] x6
+
+# Bar 7: Drop groove for snare build turnaround
+[y1 z0 y2 z0 y3 z0 y4 z0 y5 z0 y6 z0 y7 z1] x7
+
+# ----------------------------------------------------------------------
+# SECTION B (Bars 8-15): Compact Conductor
+# Same arrangement using compact multi-step holds!
+# ----------------------------------------------------------------------
+# Bar 8: Drums + Bass groove start (compact patterns 11, 13, 14, 15)
+[y7 z0 y11 z1 y13 z1 y14 z1 y15 z1] x8
+[-] x9,10,11
+
+# Bar 12: Add snare & chords (compact patterns 12, 16)
+[y12 z1 y16 z1] x12
+[-] x13,14
+
+# Bar 15: Drop groove for snare build turnaround (compact pattern 17)
+[y11 z0 y12 z0 y13 z0 y14 z0 y15 z0 y16 z0 y17 z1] x15
+
+
+# ======================================================================
+# CLI CONTROL MACROS
+# ======================================================================
+# 'play' plays full 16-bar comparison
+[play] : Z0 Z! y0 z1 ;
+
+# 'play_verbose' plays Section A (Bars 0-7)
+[play_verbose] : Z0 Z! /SP 1 0 y0 0 xG y0 z1 ;
+
+# 'play_compact' plays Section B (Bars 8-15)
+[play_compact] : Z0 Z! /SP 1 0 y0 8 xG y0 z1 ;
+
+# 'stop' stops all patterns and voices
+[stop] : Z0 O DQ ;

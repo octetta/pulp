@@ -3,7 +3,7 @@
 #  Written by Mark Mothersbaugh & Gerald Casale (1978, Q: Are We Not Men? A: We Are Devo!).
 #  Self-contained: drums from built-in waves 82-99.
 #  Uses n>d to convert note name strings to MIDI streams.
-#     [devo_uncontrollable_urge.sk] /ls      then:   play     (stop:  stop)
+#     [uncontrollable_urge.sk] /ls      then:   play     (stop:  stop)
 #
 #  VOICE MAP (all labeled via [name] vt):
 #    v0  kick motorik (w82)  v1  snare 70s crack (w83)

@@ -6,7 +6,7 @@
 #    3. Multi-step pattern assignment (x#,#,#,#) for compact drum grooves & sweeps
 #    4. 4-character safe macro definitions ([play], [stop]) free of shadowing
 #
-#  Load:   [closer_compact.sk] /ls
+#  Load:   [closer.sk] /ls
 #  Start:  play        Stop:  stop
 #
 #  VOICE MAP (all labeled via [name] vt):

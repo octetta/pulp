@@ -3,7 +3,7 @@
 #  Written & Produced by Annie Lennox & Dave Stewart (1983).
 #  Self-contained: drums from built-in waves 82-99, inline K-synth riser.
 #  Uses n>d to convert note name strings to MIDI note streams.
-#  Load:   [sweet_dreams_full.sk] /ls
+#  Load:   [sweet_dreams.sk] /ls
 #  Start:  play        Stop:  stop
 #
 #  VOICE MAP (all labeled via [name] vt):

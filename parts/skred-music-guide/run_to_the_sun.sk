@@ -1,67 +1,71 @@
 ## ERASURE - RUN TO THE SUN (1994)
-#  133 BPM, C Major, 144 bars (~4:20). Vince Clarke & Andy Bell (produced by Martyn Ware).
-#  From the critically acclaimed 1994 album 'I Say I Say I Say'.
+#  131 BPM, C Major / Bb modal chorus, 147 bars (~4:30).
+#  Vince Clarke & Andy Bell (produced by Martyn Ware).
+#  From the critically acclaimed 1994 UK #1 album 'I Say I Say I Say'.
 #
-#  Authentic Vince Clarke Synth-Pop Production Features:
-#    1. Rock-solid 16th-note Roland System 100M / Minimoog bouncing bassline (C, F, E, Dm, G, Bb, Am, Cm)
-#    2. Vince's signature Roland Jupiter-8 / Oberheim 16th arpeggios through dotted-8th ping-pong stereo delay
-#    3. Andy Bell's soaring, soulful vocal melodies with true sustained phrasing and analog portamento
-#    4. The iconic Middle-8 easter egg quoting the opening measures of 'A Little Respect'
-#    5. Rich sustained analog chord beds using DWGS strings (w15), Solina (w79), and ESQ-1 choir formants (w61)
-#    6. Zero-hanging note architecture with explicit l0 note-off releases and smooth legato
-#    7. Full voice labeling via [name] vt for effortless debugging
-#    8. Headroom-managed master mix hierarchy (punchy kicks & snares, zero limiter distortion)
+#  Authentic Production Architecture:
+#    1. Syncopated Vince Clarke Roland System 100M / Minimoog bass groove (steps 0, 2, 3, 5, 6, 10, 12, 14)
+#    2. Roland Jupiter-8 / Oberheim 16th arpeggios through dotted-8th ping-pong stereo delay (DP 1 1)
+#    3. High Vince Clarke synth bleeps (C5 G4 C5 G4 intro) & 16th octave bounce counterpoint
+#    4. Pre-Chorus & Bridge plucked synth guitar hook (Dm-Am-Cm-G and Em-Bm-Dm)
+#    5. 3-note descending synth flute / ocarina fills (A-G-F, E-D-C, G-F-Eb, D-C-Bb)
+#    6. Punchy Oberheim synth brass stabs (w22) & counter-melodies across the chorus
+#    7. Andy Bell's soaring vocal lead with sustained phrasing (s=0.75), analog glide (g.04), and explicit l0 releases
+#    8. Rich sustained chord beds (w15 root, w79 Solina strings, w61 ESQ-1 vocal choir)
+#    9. 16th-note ascending synthesizer scale sweep risers into chorus drops
+#   10. Headroom-managed master mix hierarchy with zero limiter clipping
 #
 #  Load:   [run_to_the_sun.sk] /ls
 #  Play:   play
 #  Stop:   stop
 #
 #  VOICE MAP:
-#    v0  punchy analog kick (w82) + v5 sine sub body (w0 f440)
-#    v1  backbeat snare body (w83) + v4 crisp handclap (w86)
+#    v0  punchy analog kick (w82) + v5 sub body (w0 f440)
+#    v1  backbeat snare (w83) + v4 handclap layer (w86)
 #    v2  closed hi-hat 16ths (w84)  v3 open hi-hat sizzle (w85)
 #    v6  Vince Clarke 16th bass saw (w15, centre) + v7 sub sine octave partner (w0 N-12)
 #    v8  Jupiter-8 16th arpeggio centre (w15 saw) + v9 stereo partner (w20 clavi, p.35)
-#    v10 high bell sparkle arpeggio (w29 dwg-bell, p-.55) + v11 partner (w51 esq1-bell, p.55)
+#    v10 synth flute / ocarina solo fills (w29 dwg-bell, p-.45)
+#    v12 Vince Clarke octave synth hook & risers (w16 square, p.30)
 #    v13 Andy Bell soaring vocal lead (w15 saw, centre) + v14 detuned partner (w16, right)
-#    v15 call-and-response counter lead (w22 dwg-brass)
+#    v15 DWGS / Oberheim synth brass stabs & fills (w22 dwg-brass, p-.30)
 #    v16 accent cowbell (w96)
 #    v17 crash cymbal downbeats (w94)
 #    v18 chord bed root (w15) + v19 chord third (w79 solina, p-.55) + v20 chord fifth (w61 choir, p.55)
-#    v21 Middle-8 acoustic pluck synth ('A Little Respect' tribute hook, w25 aguitar)
+#    v21 pre-chorus & bridge plucked synth guitar (w25 aguitar, p-.25)
 #    v22 ESQ-1 vocal choir pad (w61 voice1) + v23 partner (w62 voice2)
 #    v24 pad lfo  v26,v27 pad prototype  v28-v35 warm poly pad pool
 #
 #  DELAY BUSES:
-#    Bus 1: Vince arpeggios & bells dotted-eighth echo (DS 1 133 .75, DP 1 1)
-#    Bus 2: Bass slapback sixteenth (DS 2 133 .25)
-#    Bus 3: Snare & Clap ambient chamber reverb (DS 3 133 .5)
-#    Bus 4: Vocal lead & choir hall wash (DS 4 133 .75, DP 4 1)
+#    Bus 1: Signature Vince arpeggio dotted-eighth ping-pong echo (DS 1 131 .75, DP 1 1)
+#    Bus 2: Bass slapback sixteenth (DS 2 131 .25)
+#    Bus 3: Snare & Clap chamber wash (DS 3 131 .5)
+#    Bus 4: Vocal lead & choir hall wash (DS 4 131 .75, DP 4 1)
 # ======================================================================
 
 [ERASURE - RUN TO THE SUN (1994)] puts
 [use 'play' to start, 'stop' to stop] puts
-M 133 16
+M 131 16
 
 ## DELAY BUSES
-# Bus 1: Signature Vince Clarke dotted-eighth ping-pong echo on arpeggios & bells
-DS 1 133 .75
+# Bus 1: Signature Vince Clarke dotted-eighth ping-pong echo on arpeggios
+DS 1 131 .75
 DL 1 - - 8 3 4 11
 DD 1 7 3
 DP 1 1
 
 # Bus 2: Bass slapback 16th (thickens without mud)
-DS 2 133 .25
+DS 2 131 .25
 DL 2 - - 4 0 0 7
 DD 2 6 4
 
 # Bus 3: Snare & Clap chamber wash
-DS 3 133 .5
+DS 3 131 .5
 DL 3 - - 6 0 0 9
 DD 3 5 3
 
 # Bus 4: Vocal lead & choir wide ping-pong hall wash
-DS 4 133 .75
+DS 4 131 .75
 DL 4 - - 11 3 8 10
 DD 4 8 2
 DP 4 1
@@ -90,17 +94,17 @@ v6 >7
 v7  w0 a-4 N-12,0 p0 r0 [bass sub sine partner] vt
 v6 G7 H7
 
-# Roland Jupiter-8 16th Arpeggio (Warm filtered saw + clavi bite, NOT raw square)
+# Roland Jupiter-8 16th Arpeggio (Warm filtered saw + clavi bite)
 v8  w15 a-6 p-.35 t.003,.18,0,.05 j1 k1600 q1.5 r1 ds.40 [jupiter arp saw] vt
 v8 >9
 v9  w20 a-8 N0,9 p.35 t.003,.18,0,.05 j1 k2000 q1.2 r1 ds.40 [jupiter arp clavi partner] vt
 v8 G9 H9
 
-# High Crystalline Bell Arpeggio (DWGS Bell + ESQ-1 Bell)
-v10 w29 a-8 p-.55 t.001,.30,0,.10 j1 k4500 q1.0 r1 ds.40 [dwg crystal bell left] vt
-v10 >11
-v11 w51 a-10 N0,7 p.55 t.001,.30,0,.10 j1 k4500 q1.0 r1 ds.40 [esq1 bell right] vt
-v10 G11 H11
+# Flute / Ocarina Synth Lead Fills
+v10 w29 a-7 p-.45 t.005,.35,0,.10 j1 k3800 q1.2 r1 ds.35 [synth flute fill] vt
+
+# Vince Clarke Octave Synth Hook & Risers (Punchy filtered square)
+v12 w16 a-6 p.30 t.003,.20,0,.06 j1 k2600 q1.8 r1 ds.30 [vince octave synth hook] vt
 
 # Andy Bell Soaring Vocal Lead: SUSTAINED, smooth portamento, hall reverb
 v13 w15 a-5 p0 t.012,.20,.75,.22 j1,2 k3400 q1.4 c4,.15 g.04 r4 ds.35 [andy bell soaring lead] vt
@@ -108,18 +112,18 @@ v13 >14
 v14 w16 a-8 N0,10 p.40 t.012,.20,.75,.22 j1 k3200 q1.2 r4 ds.35 [vocal partner] vt
 v13 G14 H14
 
-# Call-and-Response Counter Synth Brass
-v15 w22 a-7 p-.35 t.005,.30,0,.10 j1 k3200 q2.0 r1 ds.25 [dwg counter brass] vt
+# Oberheim / DWGS Synth Brass Stabs & Fills
+v15 w22 a-6 p-.30 t.005,.28,0,.10 j1 k2800 q1.8 r1 ds.30 [synth brass stabs] vt
 
-# Warm Sustained Analog Chord Bed: 100% sustained across each bar!
+# Pre-Chorus & Bridge Plucked Synth Guitar Hook
+v21 w25 a-5 p-.25 t.002,.25,0,.06 j1 k3400 q1.5 r1 ds.30 [pre-chorus pluck hook] vt
+
+# Warm Sustained Analog Chord Bed: Held across bars
 v18 w15 a-9 p0 t.03,.25,.80,.25 j1 k1800 q.8 r4 ds.25 [chord bed root] vt
 v18 >19
 v18 >20
 v19 w79 a-11 N0,6 p-.55 t.03,.25,.80,.25 j1 k2200 q.8 r4 ds.25 [chord bed string third] vt
 v20 w61 a-12 N0,-6 p.55 t.03,.25,.80,.25 j1 k2400 q.8 r4 ds.25 [chord bed choir fifth] vt
-
-# Middle-8 'A Little Respect' Tribute Hook Synth
-v21 w25 a-5 p0 t.002,.25,0,.06 j1 k3600 q1.4 r1 ds.30 [little respect tribute hook] vt
 
 # Ensoniq ESQ-1 Vocal Choir Pad (w61 voice1 & w62 voice2)
 v22 w61 a-9 p-.3 t.04,.5,.75,.3 j1 k2800 q1.2 r4 ds.40 [esq1 vocal choir left] vt
@@ -141,51 +145,8 @@ v24 l1
 [play] : Z0 y0 z1 ;
 [stop] : Z0 O DQ ;
 
-## STREAMS
-# Stream 1: Verse Bassline 1 (C - F - E - F, 64 notes)
-[C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  E1 E1 E2 E1  E1 E1 E2 E1  E1 E1 E2 E1  E1 E1 E2 E1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1] n>d /SS 1
-
-# Stream 2: Verse Bassline 2 (Dm - F - G - G, 64 notes)
-[D1 D1 D2 D1  D1 D1 D2 D1  D1 D1 D2 D1  D1 D1 D2 D1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1] n>d /SS 2
-
-# Stream 3: Pre-Chorus Bassline (Dm - Am - Cm - G, 128 notes)
-[D1 D1 D2 D1  D1 D1 D2 D1  D1 D1 D2 D1  D1 D1 D2 D1  D1 D1 D2 D1  D1 D1 D2 D1  D1 D1 D2 D1  D1 D1 D2 D1  A1 A1 A2 A1  A1 A1 A2 A1  A1 A1 A2 A1  A1 A1 A2 A1  A1 A1 A2 A1  A1 A1 A2 A1  A1 A1 A2 A1  A1 A1 A2 A1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1] n>d /SS 3
-
-# Stream 4: Chorus Bassline Part 1 (C - Bb - F - C, 64 notes)
-[C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1] n>d /SS 4
-
-# Stream 5: Chorus Bassline Part 2 (F - C - G - G, 64 notes)
-[F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1] n>d /SS 5
-
-# Stream 6: Intro / Interlude Bassline (C - F, 32 notes)
-[C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1] n>d /SS 6
-
-# Stream 7: Middle 8 Bassline (C - G - F - G, 128 notes)
-[C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  C1 C1 C2 C1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  F1 F1 F2 F1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1  G1 G1 G2 G1] n>d /SS 7
-
-# Stream 8: Jupiter Arpeggio Verse Part 1 (C - F - E - F, 64 notes)
-[C4 G4 E4 C5  G4 C5 E4 G4  C4 G4 E4 C5  G4 C5 E4 G4  F4 C5 A4 F5  C5 F5 A4 C5  F4 C5 A4 F5  C5 F5 A4 C5  E4 B4 G#4 E5  B4 E5 G#4 B4  E4 B4 G#4 E5  B4 E5 G#4 B4  F4 C5 A4 F5  C5 F5 A4 C5  F4 C5 A4 F5  C5 F5 A4 C5] n>d /SS 8
-
-# Stream 9: Jupiter Arpeggio Verse Part 2 (Dm - F - G - G, 64 notes)
-[D4 A4 F4 D5  A4 D5 F4 A4  D4 A4 F4 D5  A4 D5 F4 A4  F4 C5 A4 F5  C5 F5 A4 C5  F4 C5 A4 F5  C5 F5 A4 C5  G4 D5 B4 G5  D5 G5 B4 D5  G4 D5 B4 G5  D5 G5 B4 D5  G4 D5 B4 G5  D5 G5 B4 D5  G4 D5 B4 G5  D5 G5 B4 D5] n>d /SS 9
-
-# Stream 10: Jupiter Arpeggio Chorus Part 1 (C - Bb - F - C, 64 notes)
-[C4 G4 E4 C5  G4 C5 E4 G4  C4 G4 E4 C5  G4 C5 E4 G4  Bb4 F5 D5 Bb5  F5 Bb5 D5 F5  Bb4 F5 D5 Bb5  F5 Bb5 D5 F5  F4 C5 A4 F5  C5 F5 A4 C5  F4 C5 A4 F5  C5 F5 A4 C5  C4 G4 E4 C5  G4 C5 E4 G4  C4 G4 E4 C5  G4 C5 E4 G4] n>d /SS 10
-
-# Stream 11: Jupiter Arpeggio Chorus Part 2 (F - C - G - G, 64 notes)
-[F4 C5 A4 F5  C5 F5 A4 C5  F4 C5 A4 F5  C5 F5 A4 C5  C4 G4 E4 C5  G4 C5 E4 G4  C4 G4 E4 C5  G4 C5 E4 G4  G4 D5 B4 G5  D5 G5 B4 D5  G4 D5 B4 G5  D5 G5 B4 D5  G4 D5 B4 G5  D5 G5 B4 D5  G4 D5 B4 G5  D5 G5 B4 D5] n>d /SS 11
-
-# Stream 12: Jupiter Arpeggio Pre-Chorus (Dm - Am - Cm - G, 128 notes)
-[D4 A4 F4 D5  A4 D5 F4 A4  D4 A4 F4 D5  A4 D5 F4 A4  D4 A4 F4 D5  A4 D5 F4 A4  D4 A4 F4 D5  A4 D5 F4 A4  A4 E5 C5 A5  E5 A5 C5 E5  A4 E5 C5 A5  E5 A5 C5 E5  A4 E5 C5 A5  E5 A5 C5 E5  A4 E5 C5 A5  E5 A5 C5 E5  C4 G4 Eb4 C5  G4 C5 Eb4 G4  C4 G4 Eb4 C5  G4 C5 Eb4 G4  C4 G4 Eb4 C5  G4 C5 Eb4 G4  C4 G4 Eb4 C5  G4 C5 Eb4 G4  G4 D5 B4 G5  D5 G5 B4 D5  G4 D5 B4 G5  D5 G5 B4 D5  G4 D5 B4 G5  D5 G5 B4 D5  G4 D5 B4 G5  D5 G5 B4 D5] n>d /SS 12
-
-# Stream 18: Middle 8 'A Little Respect' Tribute Hook (128 steps)
-[G4 - - C5  - G4 - C5  - G4 - C5  - - - -  G4 - - C5  - G4 - C5  - G4 - C5  - - - -  G4 - - B4  - G4 - B4  - G4 - B4  - - - -  G4 - - B4  - G4 - B4  - G4 - B4  - - - -  F4 - - A4  - F4 - A4  - F4 - A4  - - - -  F4 - - A4  - F4 - A4  - F4 - A4  - - - -  G4 - - B4  - G4 - B4  - G4 - B4  - - - -  B4 - - C5  - - - D5  - - - E5  - - - -] n>d /SS 18
-
-# Stream 19: Vince Clarke Signature Synth Riff (32 steps)
-[C5 G4 E4 G4  C5 D5 E5 C5  F5 C5 A4 C5  F5 G5 A5 F5  G5 D5 B4 D5  G5 A5 B5 G5  C6 - - -  - - - -] n>d /SS 19
-
 ## PATTERNS
-# Pattern 1: Four-on-the-floor Kick
+# Pattern 1: Four-on-the-floor Kick (with alternating bar 2 ghost kick at step 14)
 y1
 [kick 4-on-floor] yt
 [v0 l1] x0,4,8,12
@@ -211,7 +172,7 @@ y4
 [v3 l.75] x2,6,10,14
 [=127,0] x15
 
-# Pattern 5: Snare Roll Build
+# Pattern 5: Snare Roll Build (1 bar = 16 steps)
 y5
 [snare roll build] yt
 [v1 l.4] x0,2,4,6
@@ -220,1311 +181,669 @@ y5
 [v1 l1.0 z*4] x15
 [=127,0] x15
 
-# Pattern 6: Verse Bassline 1 (4 bars, 64 steps: C - F - E - F)
+# Pattern 6: Verse Bassline Part 1 (4 bars, 64 steps: C - F - E - F)
 y6
 [verse bassline 1] yt
-[v6 n&1 l1] x0
-[v6 n&1 l1] x1
-[v6 n&1 l1] x2
-[v6 n&1 l1] x3
-[v6 n&1 l1] x4
-[v6 n&1 l1] x5
-[v6 n&1 l1] x6
-[v6 n&1 l1] x7
-[v6 n&1 l1] x8
-[v6 n&1 l1] x9
-[v6 n&1 l1] x10
-[v6 n&1 l1] x11
-[v6 n&1 l1] x12
-[v6 n&1 l1] x13
-[v6 n&1 l1] x14
-[v6 n&1 l1] x15
-[v6 n&1 l1] x16
-[v6 n&1 l1] x17
-[v6 n&1 l1] x18
-[v6 n&1 l1] x19
-[v6 n&1 l1] x20
-[v6 n&1 l1] x21
-[v6 n&1 l1] x22
-[v6 n&1 l1] x23
-[v6 n&1 l1] x24
-[v6 n&1 l1] x25
-[v6 n&1 l1] x26
-[v6 n&1 l1] x27
-[v6 n&1 l1] x28
-[v6 n&1 l1] x29
-[v6 n&1 l1] x30
-[v6 n&1 l1] x31
-[v6 n&1 l1] x32
-[v6 n&1 l1] x33
-[v6 n&1 l1] x34
-[v6 n&1 l1] x35
-[v6 n&1 l1] x36
-[v6 n&1 l1] x37
-[v6 n&1 l1] x38
-[v6 n&1 l1] x39
-[v6 n&1 l1] x40
-[v6 n&1 l1] x41
-[v6 n&1 l1] x42
-[v6 n&1 l1] x43
-[v6 n&1 l1] x44
-[v6 n&1 l1] x45
-[v6 n&1 l1] x46
-[v6 n&1 l1] x47
-[v6 n&1 l1] x48
-[v6 n&1 l1] x49
-[v6 n&1 l1] x50
-[v6 n&1 l1] x51
-[v6 n&1 l1] x52
-[v6 n&1 l1] x53
-[v6 n&1 l1] x54
-[v6 n&1 l1] x55
-[v6 n&1 l1] x56
-[v6 n&1 l1] x57
-[v6 n&1 l1] x58
-[v6 n&1 l1] x59
-[v6 n&1 l1] x60
-[v6 n&1 l1] x61
-[v6 n&1 l1] x62
-[v6 n&1 l1] x63
+[v6 n36 l1] x0
+[v6 n36 l1] x2
+[v6 n36 l1] x3
+[v6 n36 l1] x5
+[v6 n36 l1] x6
+[v6 n36 l1] x10
+[v6 n36 l1] x12
+[v6 n36 l1] x14
+[v6 n29 l1] x16
+[v6 n29 l1] x18
+[v6 n29 l1] x19
+[v6 n29 l1] x21
+[v6 n29 l1] x22
+[v6 n29 l1] x26
+[v6 n29 l1] x28
+[v6 n29 l1] x30
+[v6 n40 l1] x32
+[v6 n40 l1] x34
+[v6 n40 l1] x35
+[v6 n40 l1] x37
+[v6 n40 l1] x38
+[v6 n40 l1] x42
+[v6 n40 l1] x44
+[v6 n40 l1] x46
+[v6 n41 l1] x48
+[v6 n41 l1] x50
+[v6 n41 l1] x51
+[v6 n41 l1] x53
+[v6 n41 l1] x54
+[v6 n41 l1] x58
+[v6 n41 l1] x60
+[v6 n41 l1] x62
 [=127,0] x63
 
-# Pattern 7: Verse Bassline 2 (4 bars, 64 steps: Dm - F - G - G)
+# Pattern 7: Verse Bassline Part 2 (4 bars, 64 steps: Dm - F - G - G with turnaround)
 y7
 [verse bassline 2] yt
-[v6 n&2 l1] x0
-[v6 n&2 l1] x1
-[v6 n&2 l1] x2
-[v6 n&2 l1] x3
-[v6 n&2 l1] x4
-[v6 n&2 l1] x5
-[v6 n&2 l1] x6
-[v6 n&2 l1] x7
-[v6 n&2 l1] x8
-[v6 n&2 l1] x9
-[v6 n&2 l1] x10
-[v6 n&2 l1] x11
-[v6 n&2 l1] x12
-[v6 n&2 l1] x13
-[v6 n&2 l1] x14
-[v6 n&2 l1] x15
-[v6 n&2 l1] x16
-[v6 n&2 l1] x17
-[v6 n&2 l1] x18
-[v6 n&2 l1] x19
-[v6 n&2 l1] x20
-[v6 n&2 l1] x21
-[v6 n&2 l1] x22
-[v6 n&2 l1] x23
-[v6 n&2 l1] x24
-[v6 n&2 l1] x25
-[v6 n&2 l1] x26
-[v6 n&2 l1] x27
-[v6 n&2 l1] x28
-[v6 n&2 l1] x29
-[v6 n&2 l1] x30
-[v6 n&2 l1] x31
-[v6 n&2 l1] x32
-[v6 n&2 l1] x33
-[v6 n&2 l1] x34
-[v6 n&2 l1] x35
-[v6 n&2 l1] x36
-[v6 n&2 l1] x37
-[v6 n&2 l1] x38
-[v6 n&2 l1] x39
-[v6 n&2 l1] x40
-[v6 n&2 l1] x41
-[v6 n&2 l1] x42
-[v6 n&2 l1] x43
-[v6 n&2 l1] x44
-[v6 n&2 l1] x45
-[v6 n&2 l1] x46
-[v6 n&2 l1] x47
-[v6 n&2 l1] x48
-[v6 n&2 l1] x49
-[v6 n&2 l1] x50
-[v6 n&2 l1] x51
-[v6 n&2 l1] x52
-[v6 n&2 l1] x53
-[v6 n&2 l1] x54
-[v6 n&2 l1] x55
-[v6 n&2 l1] x56
-[v6 n&2 l1] x57
-[v6 n&2 l1] x58
-[v6 n&2 l1] x59
-[v6 n&2 l1] x60
-[v6 n&2 l1] x61
-[v6 n&2 l1] x62
-[v6 n&2 l1] x63
+[v6 n38 l1] x0
+[v6 n38 l1] x2
+[v6 n38 l1] x3
+[v6 n38 l1] x5
+[v6 n38 l1] x6
+[v6 n38 l1] x10
+[v6 n38 l1] x12
+[v6 n38 l1] x14
+[v6 n29 l1] x16
+[v6 n29 l1] x18
+[v6 n29 l1] x19
+[v6 n29 l1] x21
+[v6 n29 l1] x22
+[v6 n29 l1] x26
+[v6 n29 l1] x28
+[v6 n29 l1] x30
+[v6 n31 l1] x32
+[v6 n31 l1] x34
+[v6 n31 l1] x35
+[v6 n31 l1] x37
+[v6 n31 l1] x38
+[v6 n31 l1] x42
+[v6 n31 l1] x44
+[v6 n31 l1] x46
+[v6 n31 l1] x48
+[v6 n31 l1] x50
+[v6 n31 l1] x51
+[v6 n31 l1] x53
+[v6 n31 l1] x54
+[v6 n35 l1] x58
+[v6 n36 l1] x59
+[v6 n38 l1] x60
+[v6 n43 l1] x62
 [=127,0] x63
 
-# Pattern 8: Pre-Chorus Bassline (8 bars, 128 steps: Dm - Am - Cm - G)
+# Pattern 8: Pre-Chorus Bassline (8 bars, 128 steps: Dm-Dm-Am-Am-Cm-Cm-G-G)
 y8
 [pre-chorus bassline] yt
-[v6 n&3 l1] x0
-[v6 n&3 l1] x1
-[v6 n&3 l1] x2
-[v6 n&3 l1] x3
-[v6 n&3 l1] x4
-[v6 n&3 l1] x5
-[v6 n&3 l1] x6
-[v6 n&3 l1] x7
-[v6 n&3 l1] x8
-[v6 n&3 l1] x9
-[v6 n&3 l1] x10
-[v6 n&3 l1] x11
-[v6 n&3 l1] x12
-[v6 n&3 l1] x13
-[v6 n&3 l1] x14
-[v6 n&3 l1] x15
-[v6 n&3 l1] x16
-[v6 n&3 l1] x17
-[v6 n&3 l1] x18
-[v6 n&3 l1] x19
-[v6 n&3 l1] x20
-[v6 n&3 l1] x21
-[v6 n&3 l1] x22
-[v6 n&3 l1] x23
-[v6 n&3 l1] x24
-[v6 n&3 l1] x25
-[v6 n&3 l1] x26
-[v6 n&3 l1] x27
-[v6 n&3 l1] x28
-[v6 n&3 l1] x29
-[v6 n&3 l1] x30
-[v6 n&3 l1] x31
-[v6 n&3 l1] x32
-[v6 n&3 l1] x33
-[v6 n&3 l1] x34
-[v6 n&3 l1] x35
-[v6 n&3 l1] x36
-[v6 n&3 l1] x37
-[v6 n&3 l1] x38
-[v6 n&3 l1] x39
-[v6 n&3 l1] x40
-[v6 n&3 l1] x41
-[v6 n&3 l1] x42
-[v6 n&3 l1] x43
-[v6 n&3 l1] x44
-[v6 n&3 l1] x45
-[v6 n&3 l1] x46
-[v6 n&3 l1] x47
-[v6 n&3 l1] x48
-[v6 n&3 l1] x49
-[v6 n&3 l1] x50
-[v6 n&3 l1] x51
-[v6 n&3 l1] x52
-[v6 n&3 l1] x53
-[v6 n&3 l1] x54
-[v6 n&3 l1] x55
-[v6 n&3 l1] x56
-[v6 n&3 l1] x57
-[v6 n&3 l1] x58
-[v6 n&3 l1] x59
-[v6 n&3 l1] x60
-[v6 n&3 l1] x61
-[v6 n&3 l1] x62
-[v6 n&3 l1] x63
-[v6 n&3 l1] x64
-[v6 n&3 l1] x65
-[v6 n&3 l1] x66
-[v6 n&3 l1] x67
-[v6 n&3 l1] x68
-[v6 n&3 l1] x69
-[v6 n&3 l1] x70
-[v6 n&3 l1] x71
-[v6 n&3 l1] x72
-[v6 n&3 l1] x73
-[v6 n&3 l1] x74
-[v6 n&3 l1] x75
-[v6 n&3 l1] x76
-[v6 n&3 l1] x77
-[v6 n&3 l1] x78
-[v6 n&3 l1] x79
-[v6 n&3 l1] x80
-[v6 n&3 l1] x81
-[v6 n&3 l1] x82
-[v6 n&3 l1] x83
-[v6 n&3 l1] x84
-[v6 n&3 l1] x85
-[v6 n&3 l1] x86
-[v6 n&3 l1] x87
-[v6 n&3 l1] x88
-[v6 n&3 l1] x89
-[v6 n&3 l1] x90
-[v6 n&3 l1] x91
-[v6 n&3 l1] x92
-[v6 n&3 l1] x93
-[v6 n&3 l1] x94
-[v6 n&3 l1] x95
-[v6 n&3 l1] x96
-[v6 n&3 l1] x97
-[v6 n&3 l1] x98
-[v6 n&3 l1] x99
-[v6 n&3 l1] x100
-[v6 n&3 l1] x101
-[v6 n&3 l1] x102
-[v6 n&3 l1] x103
-[v6 n&3 l1] x104
-[v6 n&3 l1] x105
-[v6 n&3 l1] x106
-[v6 n&3 l1] x107
-[v6 n&3 l1] x108
-[v6 n&3 l1] x109
-[v6 n&3 l1] x110
-[v6 n&3 l1] x111
-[v6 n&3 l1] x112
-[v6 n&3 l1] x113
-[v6 n&3 l1] x114
-[v6 n&3 l1] x115
-[v6 n&3 l1] x116
-[v6 n&3 l1] x117
-[v6 n&3 l1] x118
-[v6 n&3 l1] x119
-[v6 n&3 l1] x120
-[v6 n&3 l1] x121
-[v6 n&3 l1] x122
-[v6 n&3 l1] x123
-[v6 n&3 l1] x124
-[v6 n&3 l1] x125
-[v6 n&3 l1] x126
-[v6 n&3 l1] x127
+[v6 n38 l1] x0
+[v6 n38 l1] x2
+[v6 n38 l1] x3
+[v6 n38 l1] x5
+[v6 n38 l1] x6
+[v6 n38 l1] x10
+[v6 n38 l1] x12
+[v6 n38 l1] x14
+[v6 n38 l1] x16
+[v6 n38 l1] x18
+[v6 n38 l1] x19
+[v6 n38 l1] x21
+[v6 n38 l1] x22
+[v6 n38 l1] x26
+[v6 n38 l1] x28
+[v6 n38 l1] x30
+[v6 n33 l1] x32
+[v6 n33 l1] x34
+[v6 n33 l1] x35
+[v6 n33 l1] x37
+[v6 n33 l1] x38
+[v6 n33 l1] x42
+[v6 n33 l1] x44
+[v6 n33 l1] x46
+[v6 n33 l1] x48
+[v6 n33 l1] x50
+[v6 n33 l1] x51
+[v6 n33 l1] x53
+[v6 n33 l1] x54
+[v6 n33 l1] x58
+[v6 n33 l1] x60
+[v6 n33 l1] x62
+[v6 n36 l1] x64
+[v6 n36 l1] x66
+[v6 n36 l1] x67
+[v6 n36 l1] x69
+[v6 n36 l1] x70
+[v6 n36 l1] x74
+[v6 n36 l1] x76
+[v6 n36 l1] x78
+[v6 n36 l1] x80
+[v6 n36 l1] x82
+[v6 n36 l1] x83
+[v6 n36 l1] x85
+[v6 n36 l1] x86
+[v6 n36 l1] x90
+[v6 n36 l1] x92
+[v6 n36 l1] x94
+[v6 n31 l1] x96
+[v6 n31 l1] x98
+[v6 n31 l1] x99
+[v6 n31 l1] x101
+[v6 n31 l1] x102
+[v6 n31 l1] x106
+[v6 n31 l1] x108
+[v6 n31 l1] x110
+[v6 n31 l1] x112
+[v6 n31 l1] x114
+[v6 n31 l1] x115
+[v6 n31 l1] x117
+[v6 n31 l1] x118
+[v6 n31 l1] x122
+[v6 n31 l1] x124
+[v6 n31 l1] x126
 [=127,0] x127
 
-# Pattern 9: Chorus Bassline Part 1 (4 bars, 64 steps: C - Bb - F - C)
+# Pattern 9: Chorus Bassline (8 bars, 128 steps: Bb-Bb-F-F-C-C-G-G)
 y9
-[chorus bassline 1] yt
-[v6 n&4 l1] x0
-[v6 n&4 l1] x1
-[v6 n&4 l1] x2
-[v6 n&4 l1] x3
-[v6 n&4 l1] x4
-[v6 n&4 l1] x5
-[v6 n&4 l1] x6
-[v6 n&4 l1] x7
-[v6 n&4 l1] x8
-[v6 n&4 l1] x9
-[v6 n&4 l1] x10
-[v6 n&4 l1] x11
-[v6 n&4 l1] x12
-[v6 n&4 l1] x13
-[v6 n&4 l1] x14
-[v6 n&4 l1] x15
-[v6 n&4 l1] x16
-[v6 n&4 l1] x17
-[v6 n&4 l1] x18
-[v6 n&4 l1] x19
-[v6 n&4 l1] x20
-[v6 n&4 l1] x21
-[v6 n&4 l1] x22
-[v6 n&4 l1] x23
-[v6 n&4 l1] x24
-[v6 n&4 l1] x25
-[v6 n&4 l1] x26
-[v6 n&4 l1] x27
-[v6 n&4 l1] x28
-[v6 n&4 l1] x29
-[v6 n&4 l1] x30
-[v6 n&4 l1] x31
-[v6 n&4 l1] x32
-[v6 n&4 l1] x33
-[v6 n&4 l1] x34
-[v6 n&4 l1] x35
-[v6 n&4 l1] x36
-[v6 n&4 l1] x37
-[v6 n&4 l1] x38
-[v6 n&4 l1] x39
-[v6 n&4 l1] x40
-[v6 n&4 l1] x41
-[v6 n&4 l1] x42
-[v6 n&4 l1] x43
-[v6 n&4 l1] x44
-[v6 n&4 l1] x45
-[v6 n&4 l1] x46
-[v6 n&4 l1] x47
-[v6 n&4 l1] x48
-[v6 n&4 l1] x49
-[v6 n&4 l1] x50
-[v6 n&4 l1] x51
-[v6 n&4 l1] x52
-[v6 n&4 l1] x53
-[v6 n&4 l1] x54
-[v6 n&4 l1] x55
-[v6 n&4 l1] x56
-[v6 n&4 l1] x57
-[v6 n&4 l1] x58
-[v6 n&4 l1] x59
-[v6 n&4 l1] x60
-[v6 n&4 l1] x61
-[v6 n&4 l1] x62
-[v6 n&4 l1] x63
-[=127,0] x63
+[chorus bassline] yt
+[v6 n34 l1] x0
+[v6 n34 l1] x2
+[v6 n34 l1] x3
+[v6 n34 l1] x5
+[v6 n34 l1] x6
+[v6 n34 l1] x10
+[v6 n34 l1] x12
+[v6 n34 l1] x14
+[v6 n34 l1] x16
+[v6 n34 l1] x18
+[v6 n34 l1] x19
+[v6 n34 l1] x21
+[v6 n34 l1] x22
+[v6 n34 l1] x26
+[v6 n34 l1] x28
+[v6 n34 l1] x30
+[v6 n29 l1] x32
+[v6 n29 l1] x34
+[v6 n29 l1] x35
+[v6 n29 l1] x37
+[v6 n29 l1] x38
+[v6 n29 l1] x42
+[v6 n29 l1] x44
+[v6 n29 l1] x46
+[v6 n29 l1] x48
+[v6 n29 l1] x50
+[v6 n29 l1] x51
+[v6 n29 l1] x53
+[v6 n29 l1] x54
+[v6 n29 l1] x58
+[v6 n29 l1] x60
+[v6 n29 l1] x62
+[v6 n36 l1] x64
+[v6 n36 l1] x66
+[v6 n36 l1] x67
+[v6 n36 l1] x69
+[v6 n36 l1] x70
+[v6 n36 l1] x74
+[v6 n36 l1] x76
+[v6 n36 l1] x78
+[v6 n36 l1] x80
+[v6 n36 l1] x82
+[v6 n36 l1] x83
+[v6 n36 l1] x85
+[v6 n36 l1] x86
+[v6 n36 l1] x90
+[v6 n36 l1] x92
+[v6 n36 l1] x94
+[v6 n31 l1] x96
+[v6 n31 l1] x98
+[v6 n31 l1] x99
+[v6 n31 l1] x101
+[v6 n31 l1] x102
+[v6 n31 l1] x106
+[v6 n31 l1] x108
+[v6 n31 l1] x110
+[v6 n31 l1] x112
+[v6 n31 l1] x114
+[v6 n31 l1] x115
+[v6 n31 l1] x117
+[v6 n31 l1] x118
+[v6 n31 l1] x122
+[v6 n31 l1] x124
+[v6 n31 l1] x126
+[=127,0] x127
 
-# Pattern 10: Chorus Bassline Part 2 (4 bars, 64 steps: F - C - G - G)
+# Pattern 10: Bridge Bassline (6 bars, 96 steps: Em-Em-Bm-Bm-Dm-Dm)
 y10
-[chorus bassline 2] yt
-[v6 n&5 l1] x0
-[v6 n&5 l1] x1
-[v6 n&5 l1] x2
-[v6 n&5 l1] x3
-[v6 n&5 l1] x4
-[v6 n&5 l1] x5
-[v6 n&5 l1] x6
-[v6 n&5 l1] x7
-[v6 n&5 l1] x8
-[v6 n&5 l1] x9
-[v6 n&5 l1] x10
-[v6 n&5 l1] x11
-[v6 n&5 l1] x12
-[v6 n&5 l1] x13
-[v6 n&5 l1] x14
-[v6 n&5 l1] x15
-[v6 n&5 l1] x16
-[v6 n&5 l1] x17
-[v6 n&5 l1] x18
-[v6 n&5 l1] x19
-[v6 n&5 l1] x20
-[v6 n&5 l1] x21
-[v6 n&5 l1] x22
-[v6 n&5 l1] x23
-[v6 n&5 l1] x24
-[v6 n&5 l1] x25
-[v6 n&5 l1] x26
-[v6 n&5 l1] x27
-[v6 n&5 l1] x28
-[v6 n&5 l1] x29
-[v6 n&5 l1] x30
-[v6 n&5 l1] x31
-[v6 n&5 l1] x32
-[v6 n&5 l1] x33
-[v6 n&5 l1] x34
-[v6 n&5 l1] x35
-[v6 n&5 l1] x36
-[v6 n&5 l1] x37
-[v6 n&5 l1] x38
-[v6 n&5 l1] x39
-[v6 n&5 l1] x40
-[v6 n&5 l1] x41
-[v6 n&5 l1] x42
-[v6 n&5 l1] x43
-[v6 n&5 l1] x44
-[v6 n&5 l1] x45
-[v6 n&5 l1] x46
-[v6 n&5 l1] x47
-[v6 n&5 l1] x48
-[v6 n&5 l1] x49
-[v6 n&5 l1] x50
-[v6 n&5 l1] x51
-[v6 n&5 l1] x52
-[v6 n&5 l1] x53
-[v6 n&5 l1] x54
-[v6 n&5 l1] x55
-[v6 n&5 l1] x56
-[v6 n&5 l1] x57
-[v6 n&5 l1] x58
-[v6 n&5 l1] x59
-[v6 n&5 l1] x60
-[v6 n&5 l1] x61
-[v6 n&5 l1] x62
-[v6 n&5 l1] x63
-[=127,0] x63
+[bridge bassline] yt
+[v6 n40 l1] x0
+[v6 n40 l1] x2
+[v6 n40 l1] x3
+[v6 n40 l1] x5
+[v6 n40 l1] x6
+[v6 n40 l1] x10
+[v6 n40 l1] x12
+[v6 n40 l1] x14
+[v6 n40 l1] x16
+[v6 n40 l1] x18
+[v6 n40 l1] x19
+[v6 n40 l1] x21
+[v6 n40 l1] x22
+[v6 n40 l1] x26
+[v6 n40 l1] x28
+[v6 n40 l1] x30
+[v6 n35 l1] x32
+[v6 n35 l1] x34
+[v6 n35 l1] x35
+[v6 n35 l1] x37
+[v6 n35 l1] x38
+[v6 n35 l1] x42
+[v6 n35 l1] x44
+[v6 n35 l1] x46
+[v6 n35 l1] x48
+[v6 n35 l1] x50
+[v6 n35 l1] x51
+[v6 n35 l1] x53
+[v6 n35 l1] x54
+[v6 n35 l1] x58
+[v6 n35 l1] x60
+[v6 n35 l1] x62
+[v6 n38 l1] x64
+[v6 n38 l1] x66
+[v6 n38 l1] x67
+[v6 n38 l1] x69
+[v6 n38 l1] x70
+[v6 n38 l1] x74
+[v6 n38 l1] x76
+[v6 n38 l1] x78
+[v6 n38 l1] x80
+[v6 n38 l1] x82
+[v6 n38 l1] x83
+[v6 n38 l1] x85
+[v6 n38 l1] x86
+[v6 n38 l1] x90
+[v6 n38 l1] x92
+[v6 n38 l1] x94
+[=127,0] x95
 
 # Pattern 11: Intro / Interlude Bassline (2 bars, 32 steps: C - F)
 y11
 [intro interlude bass] yt
-[v6 n&6 l1] x0
-[v6 n&6 l1] x1
-[v6 n&6 l1] x2
-[v6 n&6 l1] x3
-[v6 n&6 l1] x4
-[v6 n&6 l1] x5
-[v6 n&6 l1] x6
-[v6 n&6 l1] x7
-[v6 n&6 l1] x8
-[v6 n&6 l1] x9
-[v6 n&6 l1] x10
-[v6 n&6 l1] x11
-[v6 n&6 l1] x12
-[v6 n&6 l1] x13
-[v6 n&6 l1] x14
-[v6 n&6 l1] x15
-[v6 n&6 l1] x16
-[v6 n&6 l1] x17
-[v6 n&6 l1] x18
-[v6 n&6 l1] x19
-[v6 n&6 l1] x20
-[v6 n&6 l1] x21
-[v6 n&6 l1] x22
-[v6 n&6 l1] x23
-[v6 n&6 l1] x24
-[v6 n&6 l1] x25
-[v6 n&6 l1] x26
-[v6 n&6 l1] x27
-[v6 n&6 l1] x28
-[v6 n&6 l1] x29
-[v6 n&6 l1] x30
-[v6 n&6 l1] x31
+[v6 n36 l1] x0
+[v6 n36 l1] x2
+[v6 n36 l1] x3
+[v6 n36 l1] x5
+[v6 n36 l1] x6
+[v6 n36 l1] x10
+[v6 n36 l1] x12
+[v6 n36 l1] x14
+[v6 n29 l1] x16
+[v6 n29 l1] x18
+[v6 n29 l1] x19
+[v6 n29 l1] x21
+[v6 n29 l1] x22
+[v6 n29 l1] x26
+[v6 n29 l1] x28
+[v6 n29 l1] x30
 [=127,0] x31
 
-# Pattern 12: Middle 8 Bassline (8 bars, 128 steps: C - G - F - G)
+# Pattern 12: Chant Driving C Pedal Bassline (1 bar, 16 steps)
 y12
-[middle 8 bassline] yt
-[v6 n&7 l1] x0
-[v6 n&7 l1] x1
-[v6 n&7 l1] x2
-[v6 n&7 l1] x3
-[v6 n&7 l1] x4
-[v6 n&7 l1] x5
-[v6 n&7 l1] x6
-[v6 n&7 l1] x7
-[v6 n&7 l1] x8
-[v6 n&7 l1] x9
-[v6 n&7 l1] x10
-[v6 n&7 l1] x11
-[v6 n&7 l1] x12
-[v6 n&7 l1] x13
-[v6 n&7 l1] x14
-[v6 n&7 l1] x15
-[v6 n&7 l1] x16
-[v6 n&7 l1] x17
-[v6 n&7 l1] x18
-[v6 n&7 l1] x19
-[v6 n&7 l1] x20
-[v6 n&7 l1] x21
-[v6 n&7 l1] x22
-[v6 n&7 l1] x23
-[v6 n&7 l1] x24
-[v6 n&7 l1] x25
-[v6 n&7 l1] x26
-[v6 n&7 l1] x27
-[v6 n&7 l1] x28
-[v6 n&7 l1] x29
-[v6 n&7 l1] x30
-[v6 n&7 l1] x31
-[v6 n&7 l1] x32
-[v6 n&7 l1] x33
-[v6 n&7 l1] x34
-[v6 n&7 l1] x35
-[v6 n&7 l1] x36
-[v6 n&7 l1] x37
-[v6 n&7 l1] x38
-[v6 n&7 l1] x39
-[v6 n&7 l1] x40
-[v6 n&7 l1] x41
-[v6 n&7 l1] x42
-[v6 n&7 l1] x43
-[v6 n&7 l1] x44
-[v6 n&7 l1] x45
-[v6 n&7 l1] x46
-[v6 n&7 l1] x47
-[v6 n&7 l1] x48
-[v6 n&7 l1] x49
-[v6 n&7 l1] x50
-[v6 n&7 l1] x51
-[v6 n&7 l1] x52
-[v6 n&7 l1] x53
-[v6 n&7 l1] x54
-[v6 n&7 l1] x55
-[v6 n&7 l1] x56
-[v6 n&7 l1] x57
-[v6 n&7 l1] x58
-[v6 n&7 l1] x59
-[v6 n&7 l1] x60
-[v6 n&7 l1] x61
-[v6 n&7 l1] x62
-[v6 n&7 l1] x63
-[v6 n&7 l1] x64
-[v6 n&7 l1] x65
-[v6 n&7 l1] x66
-[v6 n&7 l1] x67
-[v6 n&7 l1] x68
-[v6 n&7 l1] x69
-[v6 n&7 l1] x70
-[v6 n&7 l1] x71
-[v6 n&7 l1] x72
-[v6 n&7 l1] x73
-[v6 n&7 l1] x74
-[v6 n&7 l1] x75
-[v6 n&7 l1] x76
-[v6 n&7 l1] x77
-[v6 n&7 l1] x78
-[v6 n&7 l1] x79
-[v6 n&7 l1] x80
-[v6 n&7 l1] x81
-[v6 n&7 l1] x82
-[v6 n&7 l1] x83
-[v6 n&7 l1] x84
-[v6 n&7 l1] x85
-[v6 n&7 l1] x86
-[v6 n&7 l1] x87
-[v6 n&7 l1] x88
-[v6 n&7 l1] x89
-[v6 n&7 l1] x90
-[v6 n&7 l1] x91
-[v6 n&7 l1] x92
-[v6 n&7 l1] x93
-[v6 n&7 l1] x94
-[v6 n&7 l1] x95
-[v6 n&7 l1] x96
-[v6 n&7 l1] x97
-[v6 n&7 l1] x98
-[v6 n&7 l1] x99
-[v6 n&7 l1] x100
-[v6 n&7 l1] x101
-[v6 n&7 l1] x102
-[v6 n&7 l1] x103
-[v6 n&7 l1] x104
-[v6 n&7 l1] x105
-[v6 n&7 l1] x106
-[v6 n&7 l1] x107
-[v6 n&7 l1] x108
-[v6 n&7 l1] x109
-[v6 n&7 l1] x110
-[v6 n&7 l1] x111
-[v6 n&7 l1] x112
-[v6 n&7 l1] x113
-[v6 n&7 l1] x114
-[v6 n&7 l1] x115
-[v6 n&7 l1] x116
-[v6 n&7 l1] x117
-[v6 n&7 l1] x118
-[v6 n&7 l1] x119
-[v6 n&7 l1] x120
-[v6 n&7 l1] x121
-[v6 n&7 l1] x122
-[v6 n&7 l1] x123
-[v6 n&7 l1] x124
-[v6 n&7 l1] x125
-[v6 n&7 l1] x126
-[v6 n&7 l1] x127
-[=127,0] x127
+[chant c pedal bass] yt
+[v6 n36 l1] x0
+[v6 n36 l1] x2
+[v6 n36 l1] x3
+[v6 n36 l1] x5
+[v6 n36 l1] x6
+[v6 n36 l1] x10
+[v6 n36 l1] x12
+[v6 n36 l1] x14
+[=127,0] x15
 
-# Pattern 13: Jupiter-8 Arpeggio Verse Part 1 (4 bars, 64 steps)
+# Pattern 13: Intro & Verse Arpeggio Riff (2 bars, 32 steps)
 y13
-[jupiter arp verse 1] yt
-[v8 n&8 l.85] x0
-[v8 n&8 l.85] x1
-[v8 n&8 l.85] x2
-[v8 n&8 l.85] x3
-[v8 n&8 l.85] x4
-[v8 n&8 l.85] x5
-[v8 n&8 l.85] x6
-[v8 n&8 l.85] x7
-[v8 n&8 l.85] x8
-[v8 n&8 l.85] x9
-[v8 n&8 l.85] x10
-[v8 n&8 l.85] x11
-[v8 n&8 l.85] x12
-[v8 n&8 l.85] x13
-[v8 n&8 l.85] x14
-[v8 n&8 l.85] x15
-[v8 n&8 l.85] x16
-[v8 n&8 l.85] x17
-[v8 n&8 l.85] x18
-[v8 n&8 l.85] x19
-[v8 n&8 l.85] x20
-[v8 n&8 l.85] x21
-[v8 n&8 l.85] x22
-[v8 n&8 l.85] x23
-[v8 n&8 l.85] x24
-[v8 n&8 l.85] x25
-[v8 n&8 l.85] x26
-[v8 n&8 l.85] x27
-[v8 n&8 l.85] x28
-[v8 n&8 l.85] x29
-[v8 n&8 l.85] x30
-[v8 n&8 l.85] x31
-[v8 n&8 l.85] x32
-[v8 n&8 l.85] x33
-[v8 n&8 l.85] x34
-[v8 n&8 l.85] x35
-[v8 n&8 l.85] x36
-[v8 n&8 l.85] x37
-[v8 n&8 l.85] x38
-[v8 n&8 l.85] x39
-[v8 n&8 l.85] x40
-[v8 n&8 l.85] x41
-[v8 n&8 l.85] x42
-[v8 n&8 l.85] x43
-[v8 n&8 l.85] x44
-[v8 n&8 l.85] x45
-[v8 n&8 l.85] x46
-[v8 n&8 l.85] x47
-[v8 n&8 l.85] x48
-[v8 n&8 l.85] x49
-[v8 n&8 l.85] x50
-[v8 n&8 l.85] x51
-[v8 n&8 l.85] x52
-[v8 n&8 l.85] x53
-[v8 n&8 l.85] x54
-[v8 n&8 l.85] x55
-[v8 n&8 l.85] x56
-[v8 n&8 l.85] x57
-[v8 n&8 l.85] x58
-[v8 n&8 l.85] x59
-[v8 n&8 l.85] x60
-[v8 n&8 l.85] x61
-[v8 n&8 l.85] x62
-[v8 n&8 l.85] x63
-[=127,0] x63
-
-# Pattern 14: Jupiter-8 Arpeggio Verse Part 2 (4 bars, 64 steps)
-y14
-[jupiter arp verse 2] yt
-[v8 n&9 l.85] x0
-[v8 n&9 l.85] x1
-[v8 n&9 l.85] x2
-[v8 n&9 l.85] x3
-[v8 n&9 l.85] x4
-[v8 n&9 l.85] x5
-[v8 n&9 l.85] x6
-[v8 n&9 l.85] x7
-[v8 n&9 l.85] x8
-[v8 n&9 l.85] x9
-[v8 n&9 l.85] x10
-[v8 n&9 l.85] x11
-[v8 n&9 l.85] x12
-[v8 n&9 l.85] x13
-[v8 n&9 l.85] x14
-[v8 n&9 l.85] x15
-[v8 n&9 l.85] x16
-[v8 n&9 l.85] x17
-[v8 n&9 l.85] x18
-[v8 n&9 l.85] x19
-[v8 n&9 l.85] x20
-[v8 n&9 l.85] x21
-[v8 n&9 l.85] x22
-[v8 n&9 l.85] x23
-[v8 n&9 l.85] x24
-[v8 n&9 l.85] x25
-[v8 n&9 l.85] x26
-[v8 n&9 l.85] x27
-[v8 n&9 l.85] x28
-[v8 n&9 l.85] x29
-[v8 n&9 l.85] x30
-[v8 n&9 l.85] x31
-[v8 n&9 l.85] x32
-[v8 n&9 l.85] x33
-[v8 n&9 l.85] x34
-[v8 n&9 l.85] x35
-[v8 n&9 l.85] x36
-[v8 n&9 l.85] x37
-[v8 n&9 l.85] x38
-[v8 n&9 l.85] x39
-[v8 n&9 l.85] x40
-[v8 n&9 l.85] x41
-[v8 n&9 l.85] x42
-[v8 n&9 l.85] x43
-[v8 n&9 l.85] x44
-[v8 n&9 l.85] x45
-[v8 n&9 l.85] x46
-[v8 n&9 l.85] x47
-[v8 n&9 l.85] x48
-[v8 n&9 l.85] x49
-[v8 n&9 l.85] x50
-[v8 n&9 l.85] x51
-[v8 n&9 l.85] x52
-[v8 n&9 l.85] x53
-[v8 n&9 l.85] x54
-[v8 n&9 l.85] x55
-[v8 n&9 l.85] x56
-[v8 n&9 l.85] x57
-[v8 n&9 l.85] x58
-[v8 n&9 l.85] x59
-[v8 n&9 l.85] x60
-[v8 n&9 l.85] x61
-[v8 n&9 l.85] x62
-[v8 n&9 l.85] x63
-[=127,0] x63
-
-# Pattern 15: Jupiter-8 Arpeggio Chorus Part 1 (4 bars, 64 steps)
-y15
-[jupiter arp chorus 1] yt
-[v8 n&10 l.90] x0
-[v8 n&10 l.90] x1
-[v8 n&10 l.90] x2
-[v8 n&10 l.90] x3
-[v8 n&10 l.90] x4
-[v8 n&10 l.90] x5
-[v8 n&10 l.90] x6
-[v8 n&10 l.90] x7
-[v8 n&10 l.90] x8
-[v8 n&10 l.90] x9
-[v8 n&10 l.90] x10
-[v8 n&10 l.90] x11
-[v8 n&10 l.90] x12
-[v8 n&10 l.90] x13
-[v8 n&10 l.90] x14
-[v8 n&10 l.90] x15
-[v8 n&10 l.90] x16
-[v8 n&10 l.90] x17
-[v8 n&10 l.90] x18
-[v8 n&10 l.90] x19
-[v8 n&10 l.90] x20
-[v8 n&10 l.90] x21
-[v8 n&10 l.90] x22
-[v8 n&10 l.90] x23
-[v8 n&10 l.90] x24
-[v8 n&10 l.90] x25
-[v8 n&10 l.90] x26
-[v8 n&10 l.90] x27
-[v8 n&10 l.90] x28
-[v8 n&10 l.90] x29
-[v8 n&10 l.90] x30
-[v8 n&10 l.90] x31
-[v8 n&10 l.90] x32
-[v8 n&10 l.90] x33
-[v8 n&10 l.90] x34
-[v8 n&10 l.90] x35
-[v8 n&10 l.90] x36
-[v8 n&10 l.90] x37
-[v8 n&10 l.90] x38
-[v8 n&10 l.90] x39
-[v8 n&10 l.90] x40
-[v8 n&10 l.90] x41
-[v8 n&10 l.90] x42
-[v8 n&10 l.90] x43
-[v8 n&10 l.90] x44
-[v8 n&10 l.90] x45
-[v8 n&10 l.90] x46
-[v8 n&10 l.90] x47
-[v8 n&10 l.90] x48
-[v8 n&10 l.90] x49
-[v8 n&10 l.90] x50
-[v8 n&10 l.90] x51
-[v8 n&10 l.90] x52
-[v8 n&10 l.90] x53
-[v8 n&10 l.90] x54
-[v8 n&10 l.90] x55
-[v8 n&10 l.90] x56
-[v8 n&10 l.90] x57
-[v8 n&10 l.90] x58
-[v8 n&10 l.90] x59
-[v8 n&10 l.90] x60
-[v8 n&10 l.90] x61
-[v8 n&10 l.90] x62
-[v8 n&10 l.90] x63
-[=127,0] x63
-
-# Pattern 16: Jupiter-8 Arpeggio Chorus Part 2 (4 bars, 64 steps)
-y16
-[jupiter arp chorus 2] yt
-[v8 n&11 l.90] x0
-[v8 n&11 l.90] x1
-[v8 n&11 l.90] x2
-[v8 n&11 l.90] x3
-[v8 n&11 l.90] x4
-[v8 n&11 l.90] x5
-[v8 n&11 l.90] x6
-[v8 n&11 l.90] x7
-[v8 n&11 l.90] x8
-[v8 n&11 l.90] x9
-[v8 n&11 l.90] x10
-[v8 n&11 l.90] x11
-[v8 n&11 l.90] x12
-[v8 n&11 l.90] x13
-[v8 n&11 l.90] x14
-[v8 n&11 l.90] x15
-[v8 n&11 l.90] x16
-[v8 n&11 l.90] x17
-[v8 n&11 l.90] x18
-[v8 n&11 l.90] x19
-[v8 n&11 l.90] x20
-[v8 n&11 l.90] x21
-[v8 n&11 l.90] x22
-[v8 n&11 l.90] x23
-[v8 n&11 l.90] x24
-[v8 n&11 l.90] x25
-[v8 n&11 l.90] x26
-[v8 n&11 l.90] x27
-[v8 n&11 l.90] x28
-[v8 n&11 l.90] x29
-[v8 n&11 l.90] x30
-[v8 n&11 l.90] x31
-[v8 n&11 l.90] x32
-[v8 n&11 l.90] x33
-[v8 n&11 l.90] x34
-[v8 n&11 l.90] x35
-[v8 n&11 l.90] x36
-[v8 n&11 l.90] x37
-[v8 n&11 l.90] x38
-[v8 n&11 l.90] x39
-[v8 n&11 l.90] x40
-[v8 n&11 l.90] x41
-[v8 n&11 l.90] x42
-[v8 n&11 l.90] x43
-[v8 n&11 l.90] x44
-[v8 n&11 l.90] x45
-[v8 n&11 l.90] x46
-[v8 n&11 l.90] x47
-[v8 n&11 l.90] x48
-[v8 n&11 l.90] x49
-[v8 n&11 l.90] x50
-[v8 n&11 l.90] x51
-[v8 n&11 l.90] x52
-[v8 n&11 l.90] x53
-[v8 n&11 l.90] x54
-[v8 n&11 l.90] x55
-[v8 n&11 l.90] x56
-[v8 n&11 l.90] x57
-[v8 n&11 l.90] x58
-[v8 n&11 l.90] x59
-[v8 n&11 l.90] x60
-[v8 n&11 l.90] x61
-[v8 n&11 l.90] x62
-[v8 n&11 l.90] x63
-[=127,0] x63
-
-# Pattern 17: Jupiter-8 Arpeggio Pre-Chorus (8 bars, 128 steps)
-y17
-[jupiter arp pre-chorus] yt
-[v8 n&12 l.90] x0
-[v8 n&12 l.90] x1
-[v8 n&12 l.90] x2
-[v8 n&12 l.90] x3
-[v8 n&12 l.90] x4
-[v8 n&12 l.90] x5
-[v8 n&12 l.90] x6
-[v8 n&12 l.90] x7
-[v8 n&12 l.90] x8
-[v8 n&12 l.90] x9
-[v8 n&12 l.90] x10
-[v8 n&12 l.90] x11
-[v8 n&12 l.90] x12
-[v8 n&12 l.90] x13
-[v8 n&12 l.90] x14
-[v8 n&12 l.90] x15
-[v8 n&12 l.90] x16
-[v8 n&12 l.90] x17
-[v8 n&12 l.90] x18
-[v8 n&12 l.90] x19
-[v8 n&12 l.90] x20
-[v8 n&12 l.90] x21
-[v8 n&12 l.90] x22
-[v8 n&12 l.90] x23
-[v8 n&12 l.90] x24
-[v8 n&12 l.90] x25
-[v8 n&12 l.90] x26
-[v8 n&12 l.90] x27
-[v8 n&12 l.90] x28
-[v8 n&12 l.90] x29
-[v8 n&12 l.90] x30
-[v8 n&12 l.90] x31
-[v8 n&12 l.90] x32
-[v8 n&12 l.90] x33
-[v8 n&12 l.90] x34
-[v8 n&12 l.90] x35
-[v8 n&12 l.90] x36
-[v8 n&12 l.90] x37
-[v8 n&12 l.90] x38
-[v8 n&12 l.90] x39
-[v8 n&12 l.90] x40
-[v8 n&12 l.90] x41
-[v8 n&12 l.90] x42
-[v8 n&12 l.90] x43
-[v8 n&12 l.90] x44
-[v8 n&12 l.90] x45
-[v8 n&12 l.90] x46
-[v8 n&12 l.90] x47
-[v8 n&12 l.90] x48
-[v8 n&12 l.90] x49
-[v8 n&12 l.90] x50
-[v8 n&12 l.90] x51
-[v8 n&12 l.90] x52
-[v8 n&12 l.90] x53
-[v8 n&12 l.90] x54
-[v8 n&12 l.90] x55
-[v8 n&12 l.90] x56
-[v8 n&12 l.90] x57
-[v8 n&12 l.90] x58
-[v8 n&12 l.90] x59
-[v8 n&12 l.90] x60
-[v8 n&12 l.90] x61
-[v8 n&12 l.90] x62
-[v8 n&12 l.90] x63
-[v8 n&12 l.90] x64
-[v8 n&12 l.90] x65
-[v8 n&12 l.90] x66
-[v8 n&12 l.90] x67
-[v8 n&12 l.90] x68
-[v8 n&12 l.90] x69
-[v8 n&12 l.90] x70
-[v8 n&12 l.90] x71
-[v8 n&12 l.90] x72
-[v8 n&12 l.90] x73
-[v8 n&12 l.90] x74
-[v8 n&12 l.90] x75
-[v8 n&12 l.90] x76
-[v8 n&12 l.90] x77
-[v8 n&12 l.90] x78
-[v8 n&12 l.90] x79
-[v8 n&12 l.90] x80
-[v8 n&12 l.90] x81
-[v8 n&12 l.90] x82
-[v8 n&12 l.90] x83
-[v8 n&12 l.90] x84
-[v8 n&12 l.90] x85
-[v8 n&12 l.90] x86
-[v8 n&12 l.90] x87
-[v8 n&12 l.90] x88
-[v8 n&12 l.90] x89
-[v8 n&12 l.90] x90
-[v8 n&12 l.90] x91
-[v8 n&12 l.90] x92
-[v8 n&12 l.90] x93
-[v8 n&12 l.90] x94
-[v8 n&12 l.90] x95
-[v8 n&12 l.90] x96
-[v8 n&12 l.90] x97
-[v8 n&12 l.90] x98
-[v8 n&12 l.90] x99
-[v8 n&12 l.90] x100
-[v8 n&12 l.90] x101
-[v8 n&12 l.90] x102
-[v8 n&12 l.90] x103
-[v8 n&12 l.90] x104
-[v8 n&12 l.90] x105
-[v8 n&12 l.90] x106
-[v8 n&12 l.90] x107
-[v8 n&12 l.90] x108
-[v8 n&12 l.90] x109
-[v8 n&12 l.90] x110
-[v8 n&12 l.90] x111
-[v8 n&12 l.90] x112
-[v8 n&12 l.90] x113
-[v8 n&12 l.90] x114
-[v8 n&12 l.90] x115
-[v8 n&12 l.90] x116
-[v8 n&12 l.90] x117
-[v8 n&12 l.90] x118
-[v8 n&12 l.90] x119
-[v8 n&12 l.90] x120
-[v8 n&12 l.90] x121
-[v8 n&12 l.90] x122
-[v8 n&12 l.90] x123
-[v8 n&12 l.90] x124
-[v8 n&12 l.90] x125
-[v8 n&12 l.90] x126
-[v8 n&12 l.90] x127
-[=127,0] x127
-
-# Pattern 18: Andy Bell Vocal Lead - Verse Part 1 (4 bars, 64 steps)
-y18
-[vocal lead verse 1] yt
-[v13 n67 l1] x0
-[v13 n67 l1] x2
-[v13 n67 l1] x4
-[v13 n67 l1] x5
-[v13 n64 l1] x6
-[v13 n62 l1] x8
-[v13 n60 l1] x10
-[v13 l0] x14
-[v13 n69 l1] x18
-[v13 n69 l1] x20
-[v13 n67 l1] x22
-[v13 n65 l1] x24
-[v13 n64 l1] x26
-[v13 l0] x30
-[v13 n64 l1] x32
-[v13 n64 l1] x34
-[v13 n64 l1] x36
-[v13 n64 l1] x38
-[v13 n62 l1] x40
-[v13 n60 l1] x42
-[v13 n62 l1] x44
-[v13 n64 l1] x48
-[v13 n62 l1] x50
-[v13 n60 l1] x52
-[v13 l0] x58
-[=127,0] x63
-
-# Pattern 19: Andy Bell Vocal Lead - Verse Part 2 (4 bars, 64 steps)
-y19
-[vocal lead verse 2] yt
-[v13 n62 l1] x0
-[v13 n62 l1] x2
-[v13 n62 l1] x4
-[v13 n60 l1] x6
-[v13 n59 l1] x8
-[v13 n57 l1] x10
-[v13 l0] x14
-[v13 n69 l1] x18
-[v13 n69 l1] x20
-[v13 n67 l1] x22
-[v13 n65 l1] x24
-[v13 n67 l1] x26
-[v13 l0] x30
-[v13 n67 l1] x32
-[v13 n67 l1] x34
-[v13 n67 l1] x36
-[v13 n67 l1] x38
-[v13 n65 l1] x40
-[v13 n64 l1] x42
-[v13 n62 l1] x44
-[v13 n60 l1] x48
-[v13 l0] x58
-[=127,0] x63
-
-# Pattern 20: Andy Bell Vocal Lead - Pre-Chorus (8 bars, 128 steps)
-y20
-[vocal lead pre-chorus] yt
-[v13 n69 l1] x8
-[v13 n69 l1] x10
-[v13 n69 l1] x12
-[v13 n67 l1] x14
-[v13 n65 l1] x16
-[v13 n65 l1] x18
-[v13 l0] x26
-[v13 n72 l1] x40
-[v13 n72 l1] x42
-[v13 n72 l1] x44
-[v13 n71 l1] x46
-[v13 n69 l1] x48
-[v13 l0] x58
-[v13 n75 l1] x72
-[v13 n75 l1] x74
-[v13 n75 l1] x76
-[v13 n74 l1] x78
-[v13 n72 l1] x80
-[v13 l0] x90
-[v13 n71 l1] x104
-[v13 n71 l1] x106
-[v13 n72 l1] x108
-[v13 n74 l1] x110
-[v13 l0] x122
-[=127,0] x127
-
-# Pattern 21: Andy Bell Vocal Lead - Chorus Part 1 (4 bars, 64 steps)
-y21
-[vocal lead chorus 1] yt
-[v13 n67 l1] x0
-[v13 n72 l1] x4
-[v13 n71 l1] x8
-[v13 n72 l1] x9
-[v13 n76 l1] x10
-[v13 l0] x15
-[v13 n74 l1] x16
-[v13 n74 l1] x18
-[v13 n72 l1] x20
-[v13 n70 l1] x21
-[v13 n69 l1] x22
-[v13 l0] x30
-[v13 n72 l1] x32
-[v13 n72 l1] x34
-[v13 n69 l1] x36
-[v13 n65 l1] x38
-[v13 n67 l1] x40
-[v13 n69 l1] x42
-[v13 l0] x46
-[v13 n67 l1] x48
-[v13 n67 l1] x50
-[v13 n64 l1] x52
-[v13 n62 l1] x54
-[v13 n60 l1] x56
-[v13 l0] x62
-[=127,0] x63
-
-# Pattern 22: Andy Bell Vocal Lead - Chorus Part 2 (4 bars, 64 steps)
-y22
-[vocal lead chorus 2] yt
-[v13 n74 l1] x0
-[v13 n72 l1] x2
-[v13 n74 l1] x4
-[v13 n76 l1] x6
-[v13 l0] x12
-[v13 n72 l1] x16
-[v13 n72 l1] x18
-[v13 n71 l1] x20
-[v13 n72 l1] x22
-[v13 n76 l1] x24
-[v13 l0] x30
-[v13 n74 l1] x32
-[v13 n74 l1] x34
-[v13 n72 l1] x36
-[v13 n74 l1] x38
-[v13 n76 l1] x40
-[v13 l0] x46
-[v13 n76 l1] x48
-[v13 n74 l1] x50
-[v13 n72 l1] x52
-[v13 n74 l1] x54
-[v13 n72 l1] x56
-[v13 l0] x62
-[=127,0] x63
-
-# Pattern 23: Middle 8 'A Little Respect' Tribute Hook (8 bars, 128 steps)
-y23
-[middle 8 tribute hook] yt
-[v21 n&18 l1] x0
-[v21 n&18 l1] x1
-[v21 n&18 l1] x2
-[v21 n&18 l1] x3
-[v21 n&18 l1] x4
-[v21 n&18 l1] x5
-[v21 n&18 l1] x6
-[v21 n&18 l1] x7
-[v21 n&18 l1] x8
-[v21 n&18 l1] x9
-[v21 n&18 l1] x10
-[v21 n&18 l1] x11
-[v21 n&18 l1] x12
-[v21 n&18 l1] x13
-[v21 n&18 l1] x14
-[v21 n&18 l1] x15
-[v21 n&18 l1] x16
-[v21 n&18 l1] x17
-[v21 n&18 l1] x18
-[v21 n&18 l1] x19
-[v21 n&18 l1] x20
-[v21 n&18 l1] x21
-[v21 n&18 l1] x22
-[v21 n&18 l1] x23
-[v21 n&18 l1] x24
-[v21 n&18 l1] x25
-[v21 n&18 l1] x26
-[v21 n&18 l1] x27
-[v21 n&18 l1] x28
-[v21 n&18 l1] x29
-[v21 n&18 l1] x30
-[v21 n&18 l1] x31
-[v21 n&18 l1] x32
-[v21 n&18 l1] x33
-[v21 n&18 l1] x34
-[v21 n&18 l1] x35
-[v21 n&18 l1] x36
-[v21 n&18 l1] x37
-[v21 n&18 l1] x38
-[v21 n&18 l1] x39
-[v21 n&18 l1] x40
-[v21 n&18 l1] x41
-[v21 n&18 l1] x42
-[v21 n&18 l1] x43
-[v21 n&18 l1] x44
-[v21 n&18 l1] x45
-[v21 n&18 l1] x46
-[v21 n&18 l1] x47
-[v21 n&18 l1] x48
-[v21 n&18 l1] x49
-[v21 n&18 l1] x50
-[v21 n&18 l1] x51
-[v21 n&18 l1] x52
-[v21 n&18 l1] x53
-[v21 n&18 l1] x54
-[v21 n&18 l1] x55
-[v21 n&18 l1] x56
-[v21 n&18 l1] x57
-[v21 n&18 l1] x58
-[v21 n&18 l1] x59
-[v21 n&18 l1] x60
-[v21 n&18 l1] x61
-[v21 n&18 l1] x62
-[v21 n&18 l1] x63
-[v21 n&18 l1] x64
-[v21 n&18 l1] x65
-[v21 n&18 l1] x66
-[v21 n&18 l1] x67
-[v21 n&18 l1] x68
-[v21 n&18 l1] x69
-[v21 n&18 l1] x70
-[v21 n&18 l1] x71
-[v21 n&18 l1] x72
-[v21 n&18 l1] x73
-[v21 n&18 l1] x74
-[v21 n&18 l1] x75
-[v21 n&18 l1] x76
-[v21 n&18 l1] x77
-[v21 n&18 l1] x78
-[v21 n&18 l1] x79
-[v21 n&18 l1] x80
-[v21 n&18 l1] x81
-[v21 n&18 l1] x82
-[v21 n&18 l1] x83
-[v21 n&18 l1] x84
-[v21 n&18 l1] x85
-[v21 n&18 l1] x86
-[v21 n&18 l1] x87
-[v21 n&18 l1] x88
-[v21 n&18 l1] x89
-[v21 n&18 l1] x90
-[v21 n&18 l1] x91
-[v21 n&18 l1] x92
-[v21 n&18 l1] x93
-[v21 n&18 l1] x94
-[v21 n&18 l1] x95
-[v21 n&18 l1] x96
-[v21 n&18 l1] x97
-[v21 n&18 l1] x98
-[v21 n&18 l1] x99
-[v21 n&18 l1] x100
-[v21 n&18 l1] x101
-[v21 n&18 l1] x102
-[v21 n&18 l1] x103
-[v21 n&18 l1] x104
-[v21 n&18 l1] x105
-[v21 n&18 l1] x106
-[v21 n&18 l1] x107
-[v21 n&18 l1] x108
-[v21 n&18 l1] x109
-[v21 n&18 l1] x110
-[v21 n&18 l1] x111
-[v21 n&18 l1] x112
-[v21 n&18 l1] x113
-[v21 n&18 l1] x114
-[v21 n&18 l1] x115
-[v21 n&18 l1] x116
-[v21 n&18 l1] x117
-[v21 n&18 l1] x118
-[v21 n&18 l1] x119
-[v21 n&18 l1] x120
-[v21 n&18 l1] x121
-[v21 n&18 l1] x122
-[v21 n&18 l1] x123
-[v21 n&18 l1] x124
-[v21 n&18 l1] x125
-[v21 n&18 l1] x126
-[v21 n&18 l1] x127
-[=127,0] x127
-
-# Pattern 24: Vince Clarke Signature Synth Riff (2 bars, 32 steps)
-y24
-[vince signature synth riff] yt
-[v15 n&19 l1] x0
-[v15 n&19 l1] x1
-[v15 n&19 l1] x2
-[v15 n&19 l1] x3
-[v15 n&19 l1] x4
-[v15 n&19 l1] x5
-[v15 n&19 l1] x6
-[v15 n&19 l1] x7
-[v15 n&19 l1] x8
-[v15 n&19 l1] x9
-[v15 n&19 l1] x10
-[v15 n&19 l1] x11
-[v15 n&19 l1] x12
-[v15 n&19 l1] x13
-[v15 n&19 l1] x14
-[v15 n&19 l1] x15
-[v15 n&19 l1] x16
-[v15 n&19 l1] x17
-[v15 n&19 l1] x18
-[v15 n&19 l1] x19
-[v15 n&19 l1] x20
-[v15 n&19 l1] x21
-[v15 n&19 l1] x22
-[v15 n&19 l1] x23
-[v15 n&19 l1] x24
-[v15 n&19 l1] x25
-[v15 n&19 l1] x26
-[v15 n&19 l1] x27
-[v15 n&19 l1] x28
-[v15 n&19 l1] x29
-[v15 n&19 l1] x30
-[v15 n&19 l1] x31
+[jupiter intro verse arp] yt
+[v8 n67 l.8] x0
+[v8 n60 l.8] x2
+[v8 n70 l.8] x3
+[v8 n60 l.8] x5
+[v8 n67 l.8] x6
+[v8 n65 l.8] x10
+[v8 n60 l.8] x12
+[v8 n60 l.8] x14
+[v8 n67 l.8] x16
+[v8 n60 l.8] x18
+[v8 n70 l.8] x19
+[v8 n60 l.8] x21
+[v8 n67 l.8] x22
+[v8 n65 l.8] x26
+[v8 n60 l.8] x28
+[v8 n79 l.8] x30
 [=127,0] x31
 
-# Pattern 25: Verse 1 Analog Chords (4 bars, 64 steps, sustained)
+# Pattern 14: Chorus Rapid 16th Arpeggio (8 bars, 128 steps: Bb - F - C - G)
+y14
+[jupiter chorus arp] yt
+[v8 n82 l.85] x0
+[v8 n77 l.85] x1
+[v8 n74 l.85] x2
+[v8 n77 l.85] x3
+[v8 n82 l.85] x4
+[v8 n77 l.85] x5
+[v8 n74 l.85] x6
+[v8 n77 l.85] x7
+[v8 n82 l.85] x8
+[v8 n77 l.85] x9
+[v8 n74 l.85] x10
+[v8 n77 l.85] x11
+[v8 n82 l.85] x12
+[v8 n77 l.85] x13
+[v8 n74 l.85] x14
+[v8 n77 l.85] x15
+[v8 n82 l.85] x16
+[v8 n77 l.85] x17
+[v8 n74 l.85] x18
+[v8 n77 l.85] x19
+[v8 n82 l.85] x20
+[v8 n77 l.85] x21
+[v8 n74 l.85] x22
+[v8 n77 l.85] x23
+[v8 n82 l.85] x24
+[v8 n77 l.85] x25
+[v8 n74 l.85] x26
+[v8 n77 l.85] x27
+[v8 n82 l.85] x28
+[v8 n77 l.85] x29
+[v8 n74 l.85] x30
+[v8 n77 l.85] x31
+[v8 n81 l.85] x32
+[v8 n77 l.85] x33
+[v8 n72 l.85] x34
+[v8 n77 l.85] x35
+[v8 n81 l.85] x36
+[v8 n77 l.85] x37
+[v8 n72 l.85] x38
+[v8 n77 l.85] x39
+[v8 n81 l.85] x40
+[v8 n77 l.85] x41
+[v8 n72 l.85] x42
+[v8 n77 l.85] x43
+[v8 n81 l.85] x44
+[v8 n77 l.85] x45
+[v8 n72 l.85] x46
+[v8 n77 l.85] x47
+[v8 n81 l.85] x48
+[v8 n77 l.85] x49
+[v8 n72 l.85] x50
+[v8 n77 l.85] x51
+[v8 n81 l.85] x52
+[v8 n77 l.85] x53
+[v8 n72 l.85] x54
+[v8 n77 l.85] x55
+[v8 n81 l.85] x56
+[v8 n77 l.85] x57
+[v8 n72 l.85] x58
+[v8 n77 l.85] x59
+[v8 n81 l.85] x60
+[v8 n77 l.85] x61
+[v8 n72 l.85] x62
+[v8 n77 l.85] x63
+[v8 n79 l.85] x64
+[v8 n76 l.85] x65
+[v8 n72 l.85] x66
+[v8 n76 l.85] x67
+[v8 n79 l.85] x68
+[v8 n76 l.85] x69
+[v8 n72 l.85] x70
+[v8 n76 l.85] x71
+[v8 n79 l.85] x72
+[v8 n76 l.85] x73
+[v8 n72 l.85] x74
+[v8 n76 l.85] x75
+[v8 n79 l.85] x76
+[v8 n76 l.85] x77
+[v8 n72 l.85] x78
+[v8 n76 l.85] x79
+[v8 n79 l.85] x80
+[v8 n76 l.85] x81
+[v8 n72 l.85] x82
+[v8 n76 l.85] x83
+[v8 n79 l.85] x84
+[v8 n76 l.85] x85
+[v8 n72 l.85] x86
+[v8 n76 l.85] x87
+[v8 n79 l.85] x88
+[v8 n76 l.85] x89
+[v8 n72 l.85] x90
+[v8 n76 l.85] x91
+[v8 n79 l.85] x92
+[v8 n76 l.85] x93
+[v8 n72 l.85] x94
+[v8 n76 l.85] x95
+[v8 n79 l.85] x96
+[v8 n74 l.85] x97
+[v8 n71 l.85] x98
+[v8 n74 l.85] x99
+[v8 n79 l.85] x100
+[v8 n74 l.85] x101
+[v8 n71 l.85] x102
+[v8 n74 l.85] x103
+[v8 n79 l.85] x104
+[v8 n74 l.85] x105
+[v8 n71 l.85] x106
+[v8 n74 l.85] x107
+[v8 n79 l.85] x108
+[v8 n74 l.85] x109
+[v8 n71 l.85] x110
+[v8 n74 l.85] x111
+[v8 n79 l.85] x112
+[v8 n74 l.85] x113
+[v8 n71 l.85] x114
+[v8 n74 l.85] x115
+[v8 n79 l.85] x116
+[v8 n74 l.85] x117
+[v8 n71 l.85] x118
+[v8 n74 l.85] x119
+[v8 n79 l.85] x120
+[v8 n74 l.85] x121
+[v8 n71 l.85] x122
+[v8 n74 l.85] x123
+[v8 n79 l.85] x124
+[v8 n74 l.85] x125
+[v8 n71 l.85] x126
+[v8 n74 l.85] x127
+[=127,0] x127
+
+# Pattern 15: Breakdown & Chant Syncopated Arpeggio (2 bars, 32 steps)
+y15
+[breakdown chant arp] yt
+[v8 n64 l.8] x0,1,3,4,6
+[v8 n65 l.8] x7,9,10,12
+[v8 n64 l.8] x16,17,19,20,22
+[v8 n65 l.8] x23,25,26,28
+[=127,0] x31
+
+# Pattern 16: Intro High Synth Motif (1 bar, 16 steps)
+y16
+[intro high synth bleep] yt
+[v12 n72 l.7] x9
+[v12 n67 l.7] x10
+[v12 n72 l.7] x11
+[v12 n67 l.7] x12
+[=127,0] x15
+
+# Pattern 17: Verse Octave Bounce Synth (8 bars, 128 steps)
+y17
+[verse octave synth] yt
+[v12 n60 l.8] x0,2,3,5,7
+[v12 n72 l.8] x9,11
+[v12 n53 l.8] x16,18,19,21,23
+[v12 n65 l.8] x25,27
+[v12 n64 l.8] x32,34,35,37,39
+[v12 n76 l.8] x41,43
+[v12 n53 l.8] x48,50,51,53,55
+[v12 n65 l.8] x57,59
+[v12 n62 l.8] x64,66,67,69,71
+[v12 n74 l.8] x73,75
+[v12 n53 l.8] x80,82,83,85,87
+[v12 n65 l.8] x89,91
+[v12 n55 l.8] x96,98,99,101,103
+[v12 n67 l.8] x105,107
+[v12 n55 l.8] x112,114,115,117,119
+[v12 n67 l.8] x121,123
+[=127,0] x127
+
+# Pattern 18: Pre-Chorus Octave Synth (8 bars, 128 steps)
+y18
+[pre-chorus octave synth] yt
+[v12 n62 l.8] x0,3,5,7,16,19,21,23
+[v12 n74 l.8] x9,11,25,27
+[v12 n57 l.8] x32,35,37,39,48,51,53,55
+[v12 n69 l.8] x41,43,57,59
+[v12 n60 l.8] x64,67,69,71,80,83,85,87
+[v12 n72 l.8] x73,75,89,91
+[v12 n55 l.8] x96,99,101,103,112,115,117,119
+[v12 n67 l.8] x105,107,121,123
+[=127,0] x127
+
+# Pattern 19: Ascending 16th Synth Scale Riser (1 bar, 16 steps)
+y19
+[ascending synth riser] yt
+[v12 n55 l1] x0
+[v12 n59 l1] x1
+[v12 n62 l1] x2
+[v12 n65 l1] x3
+[v12 n67 l1] x4
+[v12 n71 l1] x5
+[v12 n74 l1] x6
+[v12 n77 l1] x7
+[v12 n79 l1] x8
+[v12 n83 l1] x9
+[v12 n86 l1] x10
+[v12 n89 l1] x11
+[v12 n91 l1] x12
+[v12 n95 l1] x13
+[v12 n98 l1] x14
+[v12 n101 l1] x15
+[=127,0] x15
+
+# Pattern 20: Pre-Chorus Plucked Synth Hook (8 bars, 128 steps: Dm-Am-Cm-G)
+y20
+[pre-chorus pluck hook] yt
+[v21 n50 l.8] x15
+[v21 n53 l.8] x15
+[v21 n57 l.8] x16
+[v21 n50 l.8] x21
+[v21 n53 l.8] x22
+[v21 n55 l.8] x22
+[v21 n50 l.8] x27
+[v21 n53 l.8] x28
+[v21 n45 l.8] x47
+[v21 n48 l.8] x47
+[v21 n52 l.8] x48
+[v21 n45 l.8] x53
+[v21 n48 l.8] x54
+[v21 n50 l.8] x54
+[v21 n45 l.8] x59
+[v21 n48 l.8] x60
+[v21 n48 l.8] x79
+[v21 n51 l.8] x79
+[v21 n55 l.8] x80
+[v21 n48 l.8] x85
+[v21 n51 l.8] x86
+[v21 n53 l.8] x86
+[v21 n48 l.8] x91
+[v21 n51 l.8] x92
+[v21 n43 l.8] x111
+[v21 n46 l.8] x111
+[v21 n50 l.8] x112
+[v21 n43 l.8] x117
+[v21 n46 l.8] x118
+[v21 n48 l.8] x118
+[v21 n43 l.8] x123
+[v21 n46 l.8] x124
+[=127,0] x127
+
+# Pattern 21: Bridge Plucked Synth Hook (6 bars, 96 steps: Em-Bm-Dm)
+y21
+[bridge pluck hook] yt
+[v21 n52 l.8] x15
+[v21 n55 l.8] x15
+[v21 n59 l.8] x16
+[v21 n52 l.8] x21
+[v21 n55 l.8] x22
+[v21 n57 l.8] x22
+[v21 n52 l.8] x27
+[v21 n55 l.8] x28
+[v21 n47 l.8] x47
+[v21 n50 l.8] x47
+[v21 n54 l.8] x48
+[v21 n47 l.8] x53
+[v21 n50 l.8] x54
+[v21 n52 l.8] x54
+[v21 n47 l.8] x59
+[v21 n50 l.8] x60
+[v21 n50 l.8] x79
+[v21 n53 l.8] x79
+[v21 n57 l.8] x80
+[v21 n50 l.8] x85
+[v21 n53 l.8] x86
+[v21 n55 l.8] x86
+[v21 n50 l.8] x91
+[v21 n53 l.8] x92
+[=127,0] x95
+
+# Pattern 22: Pre-Chorus Synth Flute Fills (8 bars, 128 steps)
+y22
+[pre-chorus flute fills] yt
+[v10 n81 l.7] x16
+[v10 n79 l.7] x22
+[v10 n77 l.7] x28
+[v10 n76 l.7] x48
+[v10 n74 l.7] x54
+[v10 n72 l.7] x60
+[v10 n79 l.7] x80
+[v10 n77 l.7] x86
+[v10 n75 l.7] x92
+[v10 n74 l.7] x112
+[v10 n72 l.7] x118
+[v10 n70 l.7] x124
+[=127,0] x127
+
+# Pattern 23: Bridge Synth Flute Fills (6 bars, 96 steps)
+y23
+[bridge flute fills] yt
+[v10 n83 l.7] x16
+[v10 n81 l.7] x22
+[v10 n79 l.7] x28
+[v10 n78 l.7] x48
+[v10 n76 l.7] x54
+[v10 n74 l.7] x60
+[v10 n81 l.7] x80
+[v10 n79 l.7] x86
+[v10 n77 l.7] x92
+[=127,0] x95
+
+# Pattern 24: Chorus Synth Brass Stabs (8 bars, 128 steps)
+y24
+[chorus brass stabs] yt
+[v15 n65 l.8] x2
+[v15 n64 l.8] x4
+[v15 n65 l.8] x6
+[v15 n65 l.8] x24,26
+[v15 n67 l.8] x30
+[v15 n65 l.8] x34
+[v15 n64 l.8] x36
+[v15 n67 l.8] x38
+[v15 n65 l.8] x42
+[v15 n65 l.8] x54,62
+[v15 n64 l.8] x66
+[v15 n62 l.8] x68
+[v15 n64 l.8] x70
+[v15 n65 l.8] x86
+[v15 n64 l.8] x90
+[v15 n60 l.8] x92
+[v15 n55 l.8] x94
+[=127,0] x127
+
+# Pattern 25: Chorus Synth Brass Counter-Line (8 bars, 128 steps)
 y25
-[verse 1 analog chords] yt
+[chorus brass counter-line] yt
+[v15 n62 l.8] x16,18,22,26
+[v15 n60 l.8] x30
+[v15 n60 l.8] x54,56
+[v15 n62 l.8] x58
+[v15 n64 l.8] x62
+[v15 n64 l.8] x78
+[v15 n65 l.8] x86
+[v15 n64 l.8] x90
+[v15 n62 l.8] x94
+[=127,0] x127
+
+# Pattern 26: Verse Sustained Chords (8 bars, 128 steps: C-F-E-F-Dm-F-G-G)
+y26
+[verse sustained chords] yt
 [v18 n48 v19 n52 v20 n55 v18 l1] x0
 [v18 l0] x15
 [v18 n53 v19 n57 v20 n60 v18 l1] x16
@@ -1533,50 +852,19 @@ y25
 [v18 l0] x47
 [v18 n53 v19 n57 v20 n60 v18 l1] x48
 [v18 l0] x63
-[=127,0] x63
+[v18 n50 v19 n53 v20 n57 v18 l1] x64
+[v18 l0] x79
+[v18 n53 v19 n57 v20 n60 v18 l1] x80
+[v18 l0] x95
+[v18 n55 v19 n59 v20 n62 v18 l1] x96
+[v18 l0] x111
+[v18 n55 v19 n59 v20 n62 v18 l1] x112
+[v18 l0] x127
+[=127,0] x127
 
-# Pattern 26: Verse 2 Analog Chords (4 bars, 64 steps, sustained)
-y26
-[verse 2 analog chords] yt
-[v18 n50 v19 n53 v20 n57 v18 l1] x0
-[v18 l0] x15
-[v18 n53 v19 n57 v20 n60 v18 l1] x16
-[v18 l0] x31
-[v18 n55 v19 n59 v20 n62 v18 l1] x32
-[v18 l0] x47
-[v18 n55 v19 n59 v20 n62 v18 l1] x48
-[v18 l0] x63
-[=127,0] x63
-
-# Pattern 27: Chorus 1 Analog Chords (4 bars, 64 steps, sustained)
+# Pattern 27: Pre-Chorus Sustained Chords (8 bars, 128 steps: Dm-Dm-Am-Am-Cm-Cm-G-G)
 y27
-[chorus 1 analog chords] yt
-[v18 n48 v19 n52 v20 n55 v18 l1] x0
-[v18 l0] x15
-[v18 n46 v19 n50 v20 n53 v18 l1] x16
-[v18 l0] x31
-[v18 n53 v19 n57 v20 n60 v18 l1] x32
-[v18 l0] x47
-[v18 n48 v19 n52 v20 n55 v18 l1] x48
-[v18 l0] x63
-[=127,0] x63
-
-# Pattern 28: Chorus 2 Analog Chords (4 bars, 64 steps, sustained)
-y28
-[chorus 2 analog chords] yt
-[v18 n53 v19 n57 v20 n60 v18 l1] x0
-[v18 l0] x15
-[v18 n48 v19 n52 v20 n55 v18 l1] x16
-[v18 l0] x31
-[v18 n55 v19 n59 v20 n62 v18 l1] x32
-[v18 l0] x47
-[v18 n55 v19 n59 v20 n62 v18 l1] x48
-[v18 l0] x63
-[=127,0] x63
-
-# Pattern 29: Pre-Chorus Chords (8 bars, 128 steps, sustained)
-y29
-[pre-chorus chords] yt
+[pre-chorus sustained chords] yt
 [v18 n50 v19 n53 v20 n57 v18 l1] x0
 [v18 l0] x31
 [v18 n45 v19 n48 v20 n52 v18 l1] x32
@@ -1587,136 +875,315 @@ y29
 [v18 l0] x127
 [=127,0] x127
 
-# Pattern 30: High Bell Sparkles (4 bars, 64 steps)
-y30
-[high bell sparkles] yt
-[v10 n72 l.7] x0,16,32,48
-[v10 n76 l.6] x4,20,36,52
-[v10 n79 l.6] x8,24,40,56
-[v10 n84 l.7] x12,28,44,60
-[=127,0] x63
+# Pattern 28: Chorus Sustained Chords (8 bars, 128 steps: Bb-Bb-F-F-C-C-G-G)
+y28
+[chorus sustained chords] yt
+[v18 n46 v19 n50 v20 n53 v18 l1] x0
+[v18 l0] x31
+[v18 n53 v19 n57 v20 n60 v18 l1] x32
+[v18 l0] x63
+[v18 n48 v19 n52 v20 n55 v18 l1] x64
+[v18 l0] x95
+[v18 n55 v19 n59 v20 n62 v18 l1] x96
+[v18 l0] x127
+[=127,0] x127
 
-# Pattern 31: ESQ-1 Vocal Choir Pad (4 bars, 64 steps, sustained)
-y31
+# Pattern 29: Bridge Sustained Chords (6 bars, 96 steps: Em-Em-Bm-Bm-Dm-Dm)
+y29
+[bridge sustained chords] yt
+[v18 n52 v19 n55 v20 n59 v18 l1] x0
+[v18 l0] x31
+[v18 n47 v19 n50 v20 n54 v18 l1] x32
+[v18 l0] x63
+[v18 n50 v19 n53 v20 n57 v18 l1] x64
+[v18 l0] x95
+[=127,0] x95
+
+# Pattern 30: ESQ-1 Vocal Choir Sustains (8 bars, 128 steps)
+y30
 [esq1 vocal choir pad] yt
 [v22 n60 l.8] x0
-[v22 l0] x15
-[v22 n65 l.8] x16
 [v22 l0] x31
-[v22 n64 l.8] x32
-[v22 l0] x47
-[v22 n65 l.8] x48
+[v22 n65 l.8] x32
 [v22 l0] x63
-[=127,0] x63
+[v22 n67 l.8] x64
+[v22 l0] x95
+[v22 n71 l.8] x96
+[v22 l0] x127
+[=127,0] x127
 
-## CONDUCTOR ARRANGEMENT (Pattern 0, %16 = 1 step per bar)
+# Pattern 31: Andy Bell Vocal Lead - Verse 1 (16 bars, 256 steps)
+y31
+[andy bell vocal verse 1] yt
+[v13 n67 l1] x0,2,4,5
+[v13 n64 l1] x6
+[v13 n62 l1] x8
+[v13 n60 l1] x10
+[v13 l0] x14
+[v13 n69 l1] x18,20
+[v13 n67 l1] x22
+[v13 n65 l1] x24
+[v13 n64 l1] x26
+[v13 l0] x30
+[v13 n64 l1] x32,34,36
+[v13 n68 l1] x38
+[v13 n71 l1] x40
+[v13 n68 l1] x42
+[v13 n64 l1] x44
+[v13 n65 l1] x48
+[v13 n64 l1] x50
+[v13 n60 l1] x52
+[v13 l0] x58
+[v13 n62 l1] x64,66,68
+[v13 n60 l1] x70
+[v13 n59 l1] x72
+[v13 n57 l1] x74
+[v13 l0] x78
+[v13 n69 l1] x82,84
+[v13 n67 l1] x86
+[v13 n65 l1] x88
+[v13 n67 l1] x90
+[v13 l0] x94
+[v13 n67 l1] x96,98,100,102
+[v13 n65 l1] x104
+[v13 n64 l1] x106
+[v13 n62 l1] x108
+[v13 n60 l1] x112
+[v13 l0] x122
+[v13 n67 l1] x128,130,132,133
+[v13 n64 l1] x134
+[v13 n62 l1] x136
+[v13 n60 l1] x138
+[v13 l0] x142
+[v13 n69 l1] x146,148
+[v13 n67 l1] x150
+[v13 n65 l1] x152
+[v13 n64 l1] x154
+[v13 l0] x158
+[v13 n64 l1] x160,162,164
+[v13 n68 l1] x166
+[v13 n71 l1] x168
+[v13 n68 l1] x170
+[v13 n64 l1] x172
+[v13 n65 l1] x176
+[v13 n64 l1] x178
+[v13 n60 l1] x180
+[v13 l0] x186
+[v13 n62 l1] x192,194,196
+[v13 n60 l1] x198
+[v13 n59 l1] x200
+[v13 n57 l1] x202
+[v13 l0] x206
+[v13 n69 l1] x210,212
+[v13 n67 l1] x214
+[v13 n65 l1] x216
+[v13 n67 l1] x218
+[v13 l0] x222
+[v13 n67 l1] x224,226,228,230
+[v13 n65 l1] x232
+[v13 n64 l1] x234
+[v13 n62 l1] x236
+[v13 n60 l1] x240
+[v13 l0] x250
+[=127,0] x255
+
+# Pattern 32: Andy Bell Vocal Lead - Pre-Chorus (8 bars, 128 steps)
+y32
+[andy bell vocal pre-chorus] yt
+[v13 n69 l1] x8,10,12
+[v13 n67 l1] x14
+[v13 n65 l1] x16
+[v13 n65 l1] x18
+[v13 l0] x26
+[v13 n72 l1] x40,42,44
+[v13 n71 l1] x46
+[v13 n69 l1] x48
+[v13 l0] x58
+[v13 n75 l1] x72,74,76
+[v13 n74 l1] x78
+[v13 n72 l1] x80
+[v13 l0] x90
+[v13 n71 l1] x104,106
+[v13 n72 l1] x108
+[v13 n74 l1] x110
+[v13 l0] x122
+[=127,0] x127
+
+# Pattern 33: Andy Bell Vocal Lead - Chorus Part 1 (8 bars, 128 steps)
+y33
+[andy bell vocal chorus 1] yt
+[v13 n65 l1] x0
+[v13 n74 l1] x4
+[v13 n72 l1] x8
+[v13 n74 l1] x10
+[v13 n70 l1] x12
+[v13 l0] x26
+[v13 n72 l1] x32
+[v13 n69 l1] x36
+[v13 n65 l1] x40
+[v13 n67 l1] x42
+[v13 n69 l1] x44
+[v13 l0] x58
+[v13 n67 l1] x64,66
+[v13 n76 l1] x68
+[v13 n74 l1] x70
+[v13 n72 l1] x72
+[v13 n74 l1] x74
+[v13 n76 l1] x76
+[v13 l0] x90
+[v13 n74 l1] x96,98
+[v13 n71 l1] x100
+[v13 n72 l1] x102
+[v13 n74 l1] x104
+[v13 n67 l1] x106
+[v13 l0] x116
+[v13 n79 l1] x118
+[v13 n77 l1] x120
+[v13 n76 l1] x122
+[v13 n74 l1] x124
+[v13 l0] x126
+[=127,0] x127
+
+# Pattern 34: Andy Bell Vocal Lead - Chorus Part 2 (8 bars, 128 steps)
+y34
+[andy bell vocal chorus 2] yt
+[v13 n65 l1] x0
+[v13 n74 l1] x4
+[v13 n72 l1] x8
+[v13 n74 l1] x10
+[v13 n70 l1] x12
+[v13 l0] x26
+[v13 n72 l1] x32
+[v13 n69 l1] x36
+[v13 n65 l1] x40
+[v13 n67 l1] x42
+[v13 n69 l1] x44
+[v13 l0] x58
+[v13 n67 l1] x64,66
+[v13 n76 l1] x68
+[v13 n74 l1] x70
+[v13 n72 l1] x72
+[v13 n74 l1] x74
+[v13 n76 l1] x76
+[v13 l0] x90
+[v13 n74 l1] x96,98
+[v13 n79 l1] x100
+[v13 n77 l1] x102
+[v13 n76 l1] x104
+[v13 n74 l1] x106
+[v13 n72 l1] x108
+[v13 l0] x116
+[v13 n74 l1] x118
+[v13 l0] x126
+[=127,0] x127
+
+# Pattern 35: Andy Bell Vocal Lead - Special Bridge (6 bars, 96 steps)
+y35
+[andy bell vocal bridge] yt
+[v13 n76 l1] x8,10,12
+[v13 n74 l1] x14
+[v13 n71 l1] x16
+[v13 l0] x26
+[v13 n74 l1] x40,42
+[v13 n73 l1] x44
+[v13 n71 l1] x46
+[v13 l0] x58
+[v13 n77 l1] x72,74
+[v13 n76 l1] x76
+[v13 n74 l1] x78
+[v13 l0] x90
+[=127,0] x95
+
+## CONDUCTOR ARRANGEMENT (Pattern 0, %16 = 1 step per bar, 147 bars)
 y0 %16
-[conductor 144 bars] yt
-# Bar 0: Intro start (Choir pad, bell sparkles)
-[v17 l1 y30 z1 y31 z1] x0
+[conductor 147 bars] yt
+# Bar 0: Hi-hat count-in
+[v2 l1] x0
 [=127,0] x1
-# Bar 4: Kick drops in, Jupiter arpeggio starts
-[v17 l.8 y1 z1 y3 z1 /SP 6,0 /SP 11,0 y11 z1] x4
-[=127,0] x5
-# Bar 7: Pre-verse snare fill
-[y5 z1 y11 z0] x7
-# Bar 8: Verse 1A start (Kick, snare, hats, bass 1, jupiter arp 1, vocal lead 1A, chords 1)
-[v17 l1 y1 z1 y2 z1 y3 z1 /SP 1,0 /SP 8,0 y6 z1 y13 z1 y18 z1 y25 z1] x8
-# Bar 12: Verse 1A repeat 4 bars
-[/SP 1,0 /SP 8,0] x12
-# Bar 15: Clean 1A stop before 1B
-[y6 z0 y13 z0 y18 z0 y25 z0] x15
-# Bar 16: Verse 1B (Bass 2, jupiter arp 2, vocal lead 1B, chords 2)
-[/SP 2,0 /SP 9,0 y7 z1 y14 z1 y19 z1 y26 z1] x16
-# Bar 20: Verse 1B repeat 4 bars
-[/SP 2,0 /SP 9,0] x20
-# Bar 23: Pre-chorus snare fill and 1B clear
-[y5 z1 y7 z0 y14 z0 y19 z0 y26 z0] x23
-# Bar 24: Pre-Chorus 1 (Bass 3, pre-chorus arp, vocal lead pre-chorus, pre-chorus chords)
-[v17 l1 /SP 3,0 /SP 12,0 y8 z1 y17 z1 y20 z1 y29 z1] x24
-# Bar 31: Snare roll build into Chorus and clear Pre-Chorus
-[y5 z1 y8 z0 y17 z0 y20 z0 y29 z0] x31
-# Bar 32: Chorus 1A (Full energy, open hats, chorus bass 1, chorus vocal 1, chorus chords 1)
-[v17 l1 y4 z1 /SP 4,0 /SP 10,0 y9 z1 y15 z1 y21 z1 y27 z1] x32
-# Bar 36: Chorus 1A second half
-[/SP 4,0 /SP 10,0] x36
-# Bar 39: Clear Chorus 1A before 1B
-[y9 z0 y15 z0 y21 z0 y27 z0] x39
-# Bar 40: Chorus 1B (Chorus bass 2, chorus vocal 2, chorus chords 2)
-[/SP 5,0 /SP 11,0 y10 z1 y16 z1 y22 z1 y28 z1] x40
-# Bar 44: Chorus 1B second half
-[/SP 5,0 /SP 11,0] x44
-# Bar 47: Snare fill into Turnaround and clear Chorus 1B
-[y5 z1 y4 z0 y10 z0 y16 z0 y22 z0 y28 z0] x47
-# Bar 48: Turnaround (Vince Clarke signature synth riff)
-[v17 l1 /SP 6,0 /SP 19,0 y11 z1 y24 z1] x48
-# Bar 50: Turnaround repeat
-[/SP 6,0 /SP 19,0] x50
-# Bar 51: Pre-verse 2 snare roll and clear turnaround
-[y5 z1 y11 z0 y24 z0] x51
-# Bar 52: Verse 2A (Bass 1, jupiter arp 1, vocal lead 1A, chords 1)
-[v17 l1 /SP 1,0 /SP 8,0 y6 z1 y13 z1 y18 z1 y25 z1] x52
-# Bar 56: Verse 2A repeat
-[/SP 1,0 /SP 8,0] x56
-# Bar 59: Clear 2A before 2B
-[y6 z0 y13 z0 y18 z0 y25 z0] x59
-# Bar 60: Verse 2B (Bass 2, jupiter arp 2, vocal lead 1B, chords 2)
-[/SP 2,0 /SP 9,0 y7 z1 y14 z1 y19 z1 y26 z1] x60
-# Bar 64: Verse 2B repeat
-[/SP 2,0 /SP 9,0] x64
-# Bar 67: Snare roll into Pre-Chorus 2 and clear 2B
-[y5 z1 y7 z0 y14 z0 y19 z0 y26 z0] x67
-# Bar 68: Pre-Chorus 2 (Bass 3, pre-chorus arp, vocal lead pre-chorus, pre-chorus chords)
-[v17 l1 /SP 3,0 /SP 12,0 y8 z1 y17 z1 y20 z1 y29 z1] x68
-# Bar 75: Snare roll build into Chorus 2 and clear Pre-Chorus
-[y5 z1 y8 z0 y17 z0 y20 z0 y29 z0] x75
-# Bar 76: Chorus 2A (Full energy, open hats, chorus bass 1, chorus vocal 1, chorus chords 1)
-[v17 l1 y4 z1 /SP 4,0 /SP 10,0 y9 z1 y15 z1 y21 z1 y27 z1] x76
-# Bar 80: Chorus 2A second half
-[/SP 4,0 /SP 10,0] x80
-# Bar 83: Clear 2A before 2B
-[y9 z0 y15 z0 y21 z0 y27 z0] x83
-# Bar 84: Chorus 2B (Chorus bass 2, chorus vocal 2, chorus chords 2)
-[/SP 5,0 /SP 11,0 y10 z1 y16 z1 y22 z1 y28 z1] x84
-# Bar 88: Chorus 2B second half
-[/SP 5,0 /SP 11,0] x88
-# Bar 91: Snare fill into Middle 8 and clear Chorus 2B
-[y5 z1 y4 z0 y10 z0 y16 z0 y22 z0 y28 z0] x91
-# Bar 92: Middle 8 'A Little Respect' Tribute Hook (Tribute synth, bass 7, ESQ-1 choir)
-[v17 l1 /SP 7,0 /SP 18,0 y12 z1 y23 z1 y31 z1] x92
-# Bar 100: Middle 8 Part 2 (Adding Jupiter arpeggio and rising energy)
-[/SP 7,0 /SP 18,0 /SP 12,0 y17 z1] x100
-# Bar 107: Big snare roll build into Solo Breakdown and clear Middle 8
-[y5 z1 y12 z0 y23 z0 y31 z0 y17 z0] x107
-# Bar 108: Solo / Modulation Breakdown (Drums out, sweeping Jupiter arpeggio, bells)
-[v17 l1 y1 z0 y2 z0 y3 z0 /SP 10,0 y15 z1 y30 z1] x108
-# Bar 112: Kick returns, build rising
-[y1 z1 /SP 11,0 y16 z1] x112
-# Bar 115: Snare roll build into Final Chorus and clear breakdown
-[y5 z1 y15 z0 y16 z0 y30 z0] x115
-# Bar 116: Final Chorus 3A (Full climax! All layers firing, open hats, vocal lead, choir)
-[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 /SP 4,0 /SP 10,0 y9 z1 y15 z1 y21 z1 y27 z1 y31 z1] x116
-# Bar 120: Chorus 3A second half
-[/SP 4,0 /SP 10,0] x120
-# Bar 123: Clear 3A before 3B
-[y9 z0 y15 z0 y21 z0 y27 z0] x123
-# Bar 124: Final Chorus 3B (Final vocal hook, counter brass)
-[/SP 5,0 /SP 11,0 y10 z1 y16 z1 y22 z1 y28 z1] x124
-# Bar 128: Final Chorus 3B second half
-[/SP 5,0 /SP 11,0] x128
-# Bar 131: Outro transition fill and clear Chorus 3B
-[y5 z1 y4 z0 y10 z0 y16 z0 y22 z0 y28 z0 y31 z0] x131
-# Bar 132: Outro (Vince Clarke signature synth riff, sparkling bells, fading vocal)
-[v17 l1 /SP 6,0 /SP 19,0 y11 z1 y24 z1 y30 z1] x132
-# Bar 136: Kick drops out, bells and delay wash
-[y1 z0 y2 z0 y3 z0 /SP 6,0 /SP 19,0] x136
-# Bar 139: Clear outro patterns before freeze
-[y11 z0 y24 z0 y30 z0] x139
-# Bar 140: Final crash, delay freeze captures ambient tail
-[v17 l1 DF 1 1 DF 4 1] x140
-# Bar 142: Release delay freeze, allow natural decay
-[DF 1 0 DF 4 0] x142
-# Bar 143: Conductor end, clean stop and silence
-[Z0 +8 ce 99] x143
-[=127,0] x143
+# Bar 1: Intro starts (Bass, Arpeggio, 16th hats, High Synth bleep)
+[v17 l1 y3 z1 y6 z1 y13 z1 y16 z1] x1
+# Bar 5: Kick drops in
+[v17 l.8 y1 z1] x5
+# Bar 9: Snare and clap enter
+[y2 z1] x9
+# Bar 15: Prep for Verse 1
+[y13 z0 y16 z0] x15
+# Bar 16: Snare fill into Verse 1
+[y5 z1 y6 z0] x16
+# Bar 17: Verse 1A (Bass 1, octave synth, vocal lead, sustained chords)
+[v17 l1 y1 z1 y2 z1 y3 z1 y6 z1 y17 z1 y26 z1 y31 z1] x17
+# Bar 24: Turnaround in Verse 1A
+[y6 z0] x24
+# Bar 25: Verse 1B (Bass 2)
+[y7 z1] x25
+# Bar 32: Snare fill into Pre-Chorus and clear Verse layers
+[y5 z1 y7 z0 y17 z0 y26 z0 y31 z0] x32
+# Bar 33: Pre-Chorus 1 (Bass 8, pre-chorus octave synth, pluck hook, flute fills, pre-chorus vocal, chords)
+[v17 l1 y8 z1 y18 z1 y20 z1 y22 z1 y27 z1 y32 z1] x33
+# Bar 40: Ascending synth riser & snare build into Chorus 1
+[y5 z1 y19 z1 y8 z0 y18 z0 y20 z0 y22 z0 y27 z0 y32 z0] x40
+# Bar 41: Chorus 1 (Chorus bass, rapid arpeggios, brass stabs, counter-line, vocal chorus 1, chorus chords)
+[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y9 z1 y14 z1 y24 z1 y25 z1 y28 z1 y33 z1] x41
+# Bar 48: Snare fill and clear Chorus 1
+[y5 z1 y4 z0 y9 z0 y14 z0 y24 z0 y25 z0 y28 z0 y33 z0] x48
+# Bar 49: Interlude (C-F bass, intro arpeggio, high bleep)
+[v17 l1 y11 z1 y13 z1 y16 z1] x49
+# Bar 52: Snare fill and clear interlude
+[y5 z1 y11 z0 y13 z0 y16 z0] x52
+# Bar 53: Verse 2A (Bass 1, octave synth, vocal lead, sustained chords)
+[v17 l1 y6 z1 y17 z1 y26 z1 y31 z1] x53
+[y6 z0] x60
+# Bar 61: Verse 2B (Bass 2)
+[y7 z1] x61
+# Bar 68: Snare fill into Pre-Chorus 2 and clear Verse layers
+[y5 z1 y7 z0 y17 z0 y26 z0 y31 z0] x68
+# Bar 69: Pre-Chorus 2 (Bass 8, pluck hook, flute fills, vocal, chords)
+[v17 l1 y8 z1 y18 z1 y20 z1 y22 z1 y27 z1 y32 z1] x69
+# Bar 76: Ascending synth riser & snare roll build into Double Chorus
+[y5 z1 y19 z1 y8 z0 y18 z0 y20 z0 y22 z0 y27 z0 y32 z0] x76
+# Bar 77: Chorus 2 Part 1 (Chorus bass, rapid arps, brass stabs, vocal chorus 1, chords)
+[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y9 z1 y14 z1 y24 z1 y25 z1 y28 z1 y33 z1] x77
+# Bar 84: Clear Chorus 2 Part 1 vocal before Part 2
+[y33 z0] x84
+# Bar 85: Chorus 2 Part 2 (Crash cymbal hit, vocal chorus 2, choir pad)
+[v17 l1 y34 z1 y30 z1] x85
+# Bar 92: Snare fill into Breakdown and clear Chorus layers
+[y5 z1 y4 z0 y9 z0 y14 z0 y24 z0 y25 z0 y28 z0 y30 z0 y34 z0] x92
+# Bar 93: Breakdown (Bass out, syncopated arpeggio groove)
+[v17 l.8 y1 z1 y2 z1 y3 z1 y15 z1] x93
+# Bar 96: Prep for Chant
+[y15 z0] x96
+# Bar 97: Chant Build starts (Driving C pedal bass, breakdown arp, vocal chant)
+[v17 l1 y12 z1 y15 z1 y24 z1] x97
+# Bar 108: Prep for Special Bridge
+[y12 z0 y15 z0 y24 z0] x108
+# Bar 109: Special Bridge (Em-Bm-Dm: bridge bass, bridge pluck hook, bridge flute fills, bridge chords, bridge vocal)
+[v17 l1 y10 z1 y21 z1 y23 z1 y29 z1 y35 z1] x109
+# Bar 114: Prep for Final Climax Build and clear bridge layers
+[y10 z0 y21 z0 y23 z0 y29 z0 y35 z0] x114
+# Bar 115: Snare roll build begins
+[y5 z1] x115
+# Bar 116: Ascending synth scale riser sweeps into final climax drop
+[y19 z1 y5 z1] x116
+# Bar 117: Outro Climax Part 1 (Crash downbeat, all layers firing, open hats, choir)
+[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y9 z1 y14 z1 y24 z1 y25 z1 y28 z1 y30 z1 y33 z1] x117
+# Bar 124: Switch vocal to Part 2
+[y33 z0 y34 z1] x124
+# Bar 125: Outro Climax Part 2 (Crash cymbal accent)
+[v17 l1] x125
+# Bar 132: Switch vocal to Part 1
+[y34 z0 y33 z1] x132
+# Bar 133: Outro Climax Part 3 (Crash cymbal accent)
+[v17 l1] x133
+# Bar 140: Switch vocal to Part 2
+[y33 z0 y34 z1] x140
+# Bar 141: Outro Climax Part 4
+[v17 l1] x141
+# Bar 145: Final crash, delay freeze captures ambient tail
+[v17 l1 DF 1 1 DF 4 1] x145
+# Bar 146: Release delay freeze
+[DF 1 0 DF 4 0] x146
+# Bar 147: Conductor end, clean stop and silence
+[Z0 +8 ce 99] x147
+[=127,0] x147
 

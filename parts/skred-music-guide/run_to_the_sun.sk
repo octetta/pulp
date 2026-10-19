@@ -3,17 +3,16 @@
 #  Vince Clarke & Andy Bell (produced by Martyn Ware).
 #  From the critically acclaimed 1994 UK #1 album 'I Say I Say I Say'.
 #
-#  Authentic Production Architecture:
-#    1. Syncopated Vince Clarke Roland System 100M / Minimoog bass groove (steps 0, 2, 3, 5, 6, 10, 12, 14)
-#    2. Roland Jupiter-8 / Oberheim 16th arpeggios through dotted-8th ping-pong stereo delay (DP 1 1)
-#    3. High Vince Clarke synth bleeps (C5 G4 C5 G4 intro) & 16th octave bounce counterpoint
-#    4. Pre-Chorus & Bridge plucked synth guitar hook (Dm-Am-Cm-G and Em-Bm-Dm)
-#    5. 3-note descending synth flute / ocarina fills (A-G-F, E-D-C, G-F-Eb, D-C-Bb)
-#    6. Punchy Oberheim synth brass stabs (w22) & counter-melodies across the chorus
-#    7. Andy Bell's soaring vocal lead with sustained phrasing (s=0.75), analog glide (g.04), and explicit l0 releases
-#    8. Rich sustained chord beds (w15 root, w79 Solina strings, w61 ESQ-1 vocal choir)
-#    9. 16th-note ascending synthesizer scale sweep risers into chorus drops
-#   10. Headroom-managed master mix hierarchy with zero limiter clipping
+#  Harmonic & Structural Features:
+#    1. 8-bar synchronized Verse architecture (C - F - E - F - Dm - F - G - G)
+#    2. Vince Clarke bouncing bass groove (steps 0, 2, 3, 5, 6, 10, 12, 14 + turnaround)
+#    3. Harmonized Pre-Chorus (Dm - Am - Cm - Gm) with authentic minor-chord cadences
+#    4. 8-bar Modal Chorus (Bb - Bb - F - F - C - C - G - G) with matched pads & choir
+#    5. Self-stopping one-shot snare rolls and 16th-note ascending scale risers
+#    6. Dedicated C Major Chant build brass motif (E4-D4-C4-E4)
+#    7. Special Bridge in Em - Bm - Dm with authentic pluck and flute fills
+#    8. Andy Bell soaring vocal lead with sustained phrasing (s=0.75) and explicit l0 releases
+#    9. Zero-drift conductor alignment on strict 8-bar boundaries throughout the outro
 #
 #  Load:   [run_to_the_sun.sk] /ls
 #  Play:   play
@@ -40,7 +39,7 @@
 #    Bus 1: Signature Vince arpeggio dotted-eighth ping-pong echo (DS 1 131 .75, DP 1 1)
 #    Bus 2: Bass slapback sixteenth (DS 2 131 .25)
 #    Bus 3: Snare & Clap chamber wash (DS 3 131 .5)
-#    Bus 4: Vocal lead & choir hall wash (DS 4 131 .75, DP 4 1)
+#    Bus 4: Vocal lead & choir wide ping-pong hall wash (DS 4 131 .75, DP 4 1)
 # ======================================================================
 
 [ERASURE - RUN TO THE SUN (1994)] puts
@@ -54,7 +53,7 @@ DL 1 - - 8 3 4 11
 DD 1 7 3
 DP 1 1
 
-# Bus 2: Bass slapback 16th (thickens without mud)
+# Bus 2: Bass slapback 16th
 DS 2 131 .25
 DL 2 - - 4 0 0 7
 DD 2 6 4
@@ -88,7 +87,6 @@ v16 w96 f440 a-4 p-.35 [accent cowbell] vt
 v17 w94 f440 a4 p.2 [crash cymbal] vt
 
 # Minimoog / Roland System 100M Bouncing 16th Bassline
-# Heavy saw (centre) + pure sine sub octave (N-12), warm 24dB ladder drive
 v6  w15 a-2 p0 t.002,.22,0,.06 j1,2 k580 q2.5 g.015 r2 ds.10 [vince 16th bass saw] vt
 v6 >7
 v7  w0 a-4 N-12,0 p0 r0 [bass sub sine partner] vt
@@ -125,7 +123,7 @@ v18 >20
 v19 w79 a-11 N0,6 p-.55 t.03,.25,.80,.25 j1 k2200 q.8 r4 ds.25 [chord bed string third] vt
 v20 w61 a-12 N0,-6 p.55 t.03,.25,.80,.25 j1 k2400 q.8 r4 ds.25 [chord bed choir fifth] vt
 
-# Ensoniq ESQ-1 Vocal Choir Pad (w61 voice1 & w62 voice2)
+# Ensoniq ESQ-1 Vocal Choir Pad
 v22 w61 a-9 p-.3 t.04,.5,.75,.3 j1 k2800 q1.2 r4 ds.40 [esq1 vocal choir left] vt
 v22 >23
 v23 w62 a-11 N0,6 p.3 r4 ds.40 [esq1 vocal choir right] vt
@@ -146,7 +144,7 @@ v24 l1
 [stop] : Z0 O DQ ;
 
 ## PATTERNS
-# Pattern 1: Four-on-the-floor Kick (with alternating bar 2 ghost kick at step 14)
+# Pattern 1: Four-on-the-floor Kick
 y1
 [kick 4-on-floor] yt
 [v0 l1] x0,4,8,12
@@ -172,18 +170,18 @@ y4
 [v3 l.75] x2,6,10,14
 [=127,0] x15
 
-# Pattern 5: Snare Roll Build (1 bar = 16 steps)
+# Pattern 5: Snare Roll Build (1 bar = 16 steps, SELF-STOPPING)
 y5
 [snare roll build] yt
 [v1 l.4] x0,2,4,6
 [v1 l.6] x8,10,12,13
 [v1 l.8 z*2] x14
-[v1 l1.0 z*4] x15
+[v1 l1.0 z*4 y5 z0] x15
 [=127,0] x15
 
-# Pattern 6: Verse Bassline Part 1 (4 bars, 64 steps: C - F - E - F)
+# Pattern 6: Verse Bassline (8 bars, 128 steps: C - F - E - F - Dm - F - G - G)
 y6
-[verse bassline 1] yt
+[verse bassline 8 bars] yt
 [v6 n36 l1] x0
 [v6 n36 l1] x2
 [v6 n36 l1] x3
@@ -216,48 +214,43 @@ y6
 [v6 n41 l1] x58
 [v6 n41 l1] x60
 [v6 n41 l1] x62
-[=127,0] x63
+[v6 n38 l1] x64
+[v6 n38 l1] x66
+[v6 n38 l1] x67
+[v6 n38 l1] x69
+[v6 n38 l1] x70
+[v6 n38 l1] x74
+[v6 n38 l1] x76
+[v6 n38 l1] x78
+[v6 n29 l1] x80
+[v6 n29 l1] x82
+[v6 n29 l1] x83
+[v6 n29 l1] x85
+[v6 n29 l1] x86
+[v6 n29 l1] x90
+[v6 n29 l1] x92
+[v6 n29 l1] x94
+[v6 n31 l1] x96
+[v6 n31 l1] x98
+[v6 n31 l1] x99
+[v6 n31 l1] x101
+[v6 n31 l1] x102
+[v6 n31 l1] x106
+[v6 n31 l1] x108
+[v6 n31 l1] x110
+[v6 n31 l1] x112
+[v6 n31 l1] x114
+[v6 n31 l1] x115
+[v6 n31 l1] x117
+[v6 n31 l1] x118
+[v6 n35 l1] x122
+[v6 n36 l1] x123
+[v6 n38 l1] x124
+[v6 n43 l1] x126
+[=127,0] x127
 
-# Pattern 7: Verse Bassline Part 2 (4 bars, 64 steps: Dm - F - G - G with turnaround)
+# Pattern 7: Pre-Chorus Bassline (8 bars, 128 steps: Dm-Dm-Am-Am-Cm-Cm-Gm-Gm)
 y7
-[verse bassline 2] yt
-[v6 n38 l1] x0
-[v6 n38 l1] x2
-[v6 n38 l1] x3
-[v6 n38 l1] x5
-[v6 n38 l1] x6
-[v6 n38 l1] x10
-[v6 n38 l1] x12
-[v6 n38 l1] x14
-[v6 n29 l1] x16
-[v6 n29 l1] x18
-[v6 n29 l1] x19
-[v6 n29 l1] x21
-[v6 n29 l1] x22
-[v6 n29 l1] x26
-[v6 n29 l1] x28
-[v6 n29 l1] x30
-[v6 n31 l1] x32
-[v6 n31 l1] x34
-[v6 n31 l1] x35
-[v6 n31 l1] x37
-[v6 n31 l1] x38
-[v6 n31 l1] x42
-[v6 n31 l1] x44
-[v6 n31 l1] x46
-[v6 n31 l1] x48
-[v6 n31 l1] x50
-[v6 n31 l1] x51
-[v6 n31 l1] x53
-[v6 n31 l1] x54
-[v6 n35 l1] x58
-[v6 n36 l1] x59
-[v6 n38 l1] x60
-[v6 n43 l1] x62
-[=127,0] x63
-
-# Pattern 8: Pre-Chorus Bassline (8 bars, 128 steps: Dm-Dm-Am-Am-Cm-Cm-G-G)
-y8
 [pre-chorus bassline] yt
 [v6 n38 l1] x0
 [v6 n38 l1] x2
@@ -325,8 +318,8 @@ y8
 [v6 n31 l1] x126
 [=127,0] x127
 
-# Pattern 9: Chorus Bassline (8 bars, 128 steps: Bb-Bb-F-F-C-C-G-G)
-y9
+# Pattern 8: Chorus Bassline (8 bars, 128 steps: Bb-Bb-F-F-C-C-G-G)
+y8
 [chorus bassline] yt
 [v6 n34 l1] x0
 [v6 n34 l1] x2
@@ -394,8 +387,8 @@ y9
 [v6 n31 l1] x126
 [=127,0] x127
 
-# Pattern 10: Bridge Bassline (6 bars, 96 steps: Em-Em-Bm-Bm-Dm-Dm)
-y10
+# Pattern 9: Bridge Bassline (6 bars, 96 steps: Em-Em-Bm-Bm-Dm-Dm)
+y9
 [bridge bassline] yt
 [v6 n40 l1] x0
 [v6 n40 l1] x2
@@ -447,8 +440,8 @@ y10
 [v6 n38 l1] x94
 [=127,0] x95
 
-# Pattern 11: Intro / Interlude Bassline (2 bars, 32 steps: C - F)
-y11
+# Pattern 10: Intro / Interlude Bassline (2 bars, 32 steps: C - F)
+y10
 [intro interlude bass] yt
 [v6 n36 l1] x0
 [v6 n36 l1] x2
@@ -468,8 +461,8 @@ y11
 [v6 n29 l1] x30
 [=127,0] x31
 
-# Pattern 12: Chant Driving C Pedal Bassline (1 bar, 16 steps)
-y12
+# Pattern 11: Chant Driving C Pedal Bassline (1 bar, 16 steps)
+y11
 [chant c pedal bass] yt
 [v6 n36 l1] x0
 [v6 n36 l1] x2
@@ -481,8 +474,8 @@ y12
 [v6 n36 l1] x14
 [=127,0] x15
 
-# Pattern 13: Intro & Verse Arpeggio Riff (2 bars, 32 steps)
-y13
+# Pattern 12: Intro & Verse Arpeggio Riff (2 bars, 32 steps)
+y12
 [jupiter intro verse arp] yt
 [v8 n67 l.8] x0
 [v8 n60 l.8] x2
@@ -502,8 +495,8 @@ y13
 [v8 n79 l.8] x30
 [=127,0] x31
 
-# Pattern 14: Chorus Rapid 16th Arpeggio (8 bars, 128 steps: Bb - F - C - G)
-y14
+# Pattern 13: Chorus Rapid 16th Arpeggio (8 bars, 128 steps: Bb - F - C - G)
+y13
 [jupiter chorus arp] yt
 [v8 n82 l.85] x0
 [v8 n77 l.85] x1
@@ -635,8 +628,8 @@ y14
 [v8 n74 l.85] x127
 [=127,0] x127
 
-# Pattern 15: Breakdown & Chant Syncopated Arpeggio (2 bars, 32 steps)
-y15
+# Pattern 14: Breakdown & Chant Syncopated Arpeggio (2 bars, 32 steps)
+y14
 [breakdown chant arp] yt
 [v8 n64 l.8] x0,1,3,4,6
 [v8 n65 l.8] x7,9,10,12
@@ -644,8 +637,8 @@ y15
 [v8 n65 l.8] x23,25,26,28
 [=127,0] x31
 
-# Pattern 16: Intro High Synth Motif (1 bar, 16 steps)
-y16
+# Pattern 15: Intro High Synth Motif (1 bar, 16 steps)
+y15
 [intro high synth bleep] yt
 [v12 n72 l.7] x9
 [v12 n67 l.7] x10
@@ -653,8 +646,8 @@ y16
 [v12 n67 l.7] x12
 [=127,0] x15
 
-# Pattern 17: Verse Octave Bounce Synth (8 bars, 128 steps)
-y17
+# Pattern 16: Verse Octave Bounce Synth (8 bars, 128 steps: C-F-E-F-Dm-F-G-G)
+y16
 [verse octave synth] yt
 [v12 n60 l.8] x0,2,3,5,7
 [v12 n72 l.8] x9,11
@@ -674,8 +667,8 @@ y17
 [v12 n67 l.8] x121,123
 [=127,0] x127
 
-# Pattern 18: Pre-Chorus Octave Synth (8 bars, 128 steps)
-y18
+# Pattern 17: Pre-Chorus Octave Synth (8 bars, 128 steps: Dm-Am-Cm-Gm)
+y17
 [pre-chorus octave synth] yt
 [v12 n62 l.8] x0,3,5,7,16,19,21,23
 [v12 n74 l.8] x9,11,25,27
@@ -687,8 +680,8 @@ y18
 [v12 n67 l.8] x105,107,121,123
 [=127,0] x127
 
-# Pattern 19: Ascending 16th Synth Scale Riser (1 bar, 16 steps)
-y19
+# Pattern 18: Ascending 16th Synth Scale Riser (1 bar, 16 steps, SELF-STOPPING)
+y18
 [ascending synth riser] yt
 [v12 n55 l1] x0
 [v12 n59 l1] x1
@@ -705,11 +698,11 @@ y19
 [v12 n91 l1] x12
 [v12 n95 l1] x13
 [v12 n98 l1] x14
-[v12 n101 l1] x15
+[v12 n101 l1 y18 z0] x15
 [=127,0] x15
 
-# Pattern 20: Pre-Chorus Plucked Synth Hook (8 bars, 128 steps: Dm-Am-Cm-G)
-y20
+# Pattern 19: Pre-Chorus Plucked Synth Hook (8 bars, 128 steps: Dm-Am-Cm-Gm)
+y19
 [pre-chorus pluck hook] yt
 [v21 n50 l.8] x15
 [v21 n53 l.8] x15
@@ -745,8 +738,8 @@ y20
 [v21 n46 l.8] x124
 [=127,0] x127
 
-# Pattern 21: Bridge Plucked Synth Hook (6 bars, 96 steps: Em-Bm-Dm)
-y21
+# Pattern 20: Bridge Plucked Synth Hook (6 bars, 96 steps: Em-Bm-Dm)
+y20
 [bridge pluck hook] yt
 [v21 n52 l.8] x15
 [v21 n55 l.8] x15
@@ -774,8 +767,8 @@ y21
 [v21 n53 l.8] x92
 [=127,0] x95
 
-# Pattern 22: Pre-Chorus Synth Flute Fills (8 bars, 128 steps)
-y22
+# Pattern 21: Pre-Chorus Synth Flute Fills (8 bars, 128 steps)
+y21
 [pre-chorus flute fills] yt
 [v10 n81 l.7] x16
 [v10 n79 l.7] x22
@@ -791,8 +784,8 @@ y22
 [v10 n70 l.7] x124
 [=127,0] x127
 
-# Pattern 23: Bridge Synth Flute Fills (6 bars, 96 steps)
-y23
+# Pattern 22: Bridge Synth Flute Fills (6 bars, 96 steps)
+y22
 [bridge flute fills] yt
 [v10 n83 l.7] x16
 [v10 n81 l.7] x22
@@ -805,8 +798,8 @@ y23
 [v10 n77 l.7] x92
 [=127,0] x95
 
-# Pattern 24: Chorus Synth Brass Stabs (8 bars, 128 steps)
-y24
+# Pattern 23: Chorus Synth Brass Stabs (8 bars, 128 steps)
+y23
 [chorus brass stabs] yt
 [v15 n65 l.8] x2
 [v15 n64 l.8] x4
@@ -827,8 +820,8 @@ y24
 [v15 n55 l.8] x94
 [=127,0] x127
 
-# Pattern 25: Chorus Synth Brass Counter-Line (8 bars, 128 steps)
-y25
+# Pattern 24: Chorus Synth Brass Counter-Line (8 bars, 128 steps)
+y24
 [chorus brass counter-line] yt
 [v15 n62 l.8] x16,18,22,26
 [v15 n60 l.8] x30
@@ -840,6 +833,18 @@ y25
 [v15 n64 l.8] x90
 [v15 n62 l.8] x94
 [=127,0] x127
+
+# Pattern 25: Chant C Major Brass Motif (3 bars, 48 steps, looped during chant)
+y25
+[chant c brass motif] yt
+[v15 n64 l.8] x6
+[v15 n62 l.8] x10
+[v15 n60 l.8] x12
+[v15 n64 l.8] x14
+[v15 n64 l.8] x26
+[v15 n62 l.8] x30
+[v15 n60 l.8] x32
+[=127,0] x47
 
 # Pattern 26: Verse Sustained Chords (8 bars, 128 steps: C-F-E-F-Dm-F-G-G)
 y26
@@ -862,7 +867,7 @@ y26
 [v18 l0] x127
 [=127,0] x127
 
-# Pattern 27: Pre-Chorus Sustained Chords (8 bars, 128 steps: Dm-Dm-Am-Am-Cm-Cm-G-G)
+# Pattern 27: Pre-Chorus Sustained Chords (8 bars, 128 steps: Dm-Dm-Am-Am-Cm-Cm-Gm-Gm)
 y27
 [pre-chorus sustained chords] yt
 [v18 n50 v19 n53 v20 n57 v18 l1] x0
@@ -871,7 +876,7 @@ y27
 [v18 l0] x63
 [v18 n48 v19 n51 v20 n55 v18 l1] x64
 [v18 l0] x95
-[v18 n55 v19 n59 v20 n62 v18 l1] x96
+[v18 n43 v19 n46 v20 n50 v18 l1] x96
 [v18 l0] x127
 [=127,0] x127
 
@@ -899,16 +904,16 @@ y29
 [v18 l0] x95
 [=127,0] x95
 
-# Pattern 30: ESQ-1 Vocal Choir Sustains (8 bars, 128 steps)
+# Pattern 30: ESQ-1 Vocal Choir Pad (8 bars, 128 steps: Bb - F - C - G)
 y30
 [esq1 vocal choir pad] yt
-[v22 n60 l.8] x0
+[v22 n62 l.8] x0
 [v22 l0] x31
-[v22 n65 l.8] x32
+[v22 n60 l.8] x32
 [v22 l0] x63
-[v22 n67 l.8] x64
+[v22 n64 l.8] x64
 [v22 l0] x95
-[v22 n71 l.8] x96
+[v22 n62 l.8] x96
 [v22 l0] x127
 [=127,0] x127
 
@@ -1003,7 +1008,7 @@ y32
 [v13 n74 l1] x78
 [v13 n72 l1] x80
 [v13 l0] x90
-[v13 n71 l1] x104,106
+[v13 n70 l1] x104,106
 [v13 n72 l1] x108
 [v13 n74 l1] x110
 [v13 l0] x122
@@ -1100,85 +1105,76 @@ y0 %16
 # Bar 0: Hi-hat count-in
 [v2 l1] x0
 [=127,0] x1
-# Bar 1: Intro starts (Bass, Arpeggio, 16th hats, High Synth bleep)
-[v17 l1 y3 z1 y6 z1 y13 z1 y16 z1] x1
+# Bar 1: Intro starts (Intro Bass, Intro Arpeggio, 16th hats, High Synth bleep)
+[v17 l1 y3 z1 y10 z1 y12 z1 y15 z1] x1
 # Bar 5: Kick drops in
 [v17 l.8 y1 z1] x5
 # Bar 9: Snare and clap enter
 [y2 z1] x9
-# Bar 15: Prep for Verse 1
-[y13 z0 y16 z0] x15
-# Bar 16: Snare fill into Verse 1
-[y5 z1 y6 z0] x16
-# Bar 17: Verse 1A (Bass 1, octave synth, vocal lead, sustained chords)
-[v17 l1 y1 z1 y2 z1 y3 z1 y6 z1 y17 z1 y26 z1 y31 z1] x17
-# Bar 24: Turnaround in Verse 1A
-[y6 z0] x24
-# Bar 25: Verse 1B (Bass 2)
-[y7 z1] x25
-# Bar 32: Snare fill into Pre-Chorus and clear Verse layers
-[y5 z1 y7 z0 y17 z0 y26 z0 y31 z0] x32
-# Bar 33: Pre-Chorus 1 (Bass 8, pre-chorus octave synth, pluck hook, flute fills, pre-chorus vocal, chords)
-[v17 l1 y8 z1 y18 z1 y20 z1 y22 z1 y27 z1 y32 z1] x33
-# Bar 40: Ascending synth riser & snare build into Chorus 1
-[y5 z1 y19 z1 y8 z0 y18 z0 y20 z0 y22 z0 y27 z0 y32 z0] x40
-# Bar 41: Chorus 1 (Chorus bass, rapid arpeggios, brass stabs, counter-line, vocal chorus 1, chorus chords)
-[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y9 z1 y14 z1 y24 z1 y25 z1 y28 z1 y33 z1] x41
+# Bar 16: Snare fill into Verse 1 and clear intro parts
+[y5 z1 y10 z0 y12 z0 y15 z0] x16
+# Bar 17: Verse 1 starts (All 8-bar parts synchronized)
+[v17 l1 y1 z1 y2 z1 y3 z1 y6 z1 y16 z1 y26 z1 y31 z1] x17
+# Bar 32: Snare fill into Pre-Chorus and clear Verse parts
+[y5 z1 y6 z0 y16 z0 y26 z0 y31 z0] x32
+# Bar 33: Pre-Chorus 1 (Bass 7, octave synth 17, pluck 19, flute 21, chords 27, vocal 32)
+[v17 l1 y7 z1 y17 z1 y19 z1 y21 z1 y27 z1 y32 z1] x33
+# Bar 40: Ascending synth riser & snare build into Chorus 1 and clear Pre-Chorus
+[y5 z1 y18 z1 y7 z0 y17 z0 y19 z0 y21 z0 y27 z0 y32 z0] x40
+# Bar 41: Chorus 1 (Chorus bass 8, rapid arp 13, brass stabs 23, counter 24, chords 28, vocal 33)
+[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y8 z1 y13 z1 y23 z1 y24 z1 y28 z1 y33 z1] x41
 # Bar 48: Snare fill and clear Chorus 1
-[y5 z1 y4 z0 y9 z0 y14 z0 y24 z0 y25 z0 y28 z0 y33 z0] x48
-# Bar 49: Interlude (C-F bass, intro arpeggio, high bleep)
-[v17 l1 y11 z1 y13 z1 y16 z1] x49
+[y5 z1 y4 z0 y8 z0 y13 z0 y23 z0 y24 z0 y28 z0 y33 z0] x48
+# Bar 49: Interlude (C-F bass 10, intro arpeggio 12, high bleep 15)
+[v17 l1 y10 z1 y12 z1 y15 z1] x49
 # Bar 52: Snare fill and clear interlude
-[y5 z1 y11 z0 y13 z0 y16 z0] x52
-# Bar 53: Verse 2A (Bass 1, octave synth, vocal lead, sustained chords)
-[v17 l1 y6 z1 y17 z1 y26 z1 y31 z1] x53
-[y6 z0] x60
-# Bar 61: Verse 2B (Bass 2)
-[y7 z1] x61
-# Bar 68: Snare fill into Pre-Chorus 2 and clear Verse layers
-[y5 z1 y7 z0 y17 z0 y26 z0 y31 z0] x68
-# Bar 69: Pre-Chorus 2 (Bass 8, pluck hook, flute fills, vocal, chords)
-[v17 l1 y8 z1 y18 z1 y20 z1 y22 z1 y27 z1 y32 z1] x69
+[y5 z1 y10 z0 y12 z0 y15 z0] x52
+# Bar 53: Verse 2 (Synchronized 8-bar bass 6, octave synth 16, chords 26, vocal 31)
+[v17 l1 y6 z1 y16 z1 y26 z1 y31 z1] x53
+# Bar 68: Snare fill into Pre-Chorus 2 and clear Verse parts
+[y5 z1 y6 z0 y16 z0 y26 z0 y31 z0] x68
+# Bar 69: Pre-Chorus 2 (Bass 7, octave synth 17, pluck 19, flute 21, chords 27, vocal 32)
+[v17 l1 y7 z1 y17 z1 y19 z1 y21 z1 y27 z1 y32 z1] x69
 # Bar 76: Ascending synth riser & snare roll build into Double Chorus
-[y5 z1 y19 z1 y8 z0 y18 z0 y20 z0 y22 z0 y27 z0 y32 z0] x76
-# Bar 77: Chorus 2 Part 1 (Chorus bass, rapid arps, brass stabs, vocal chorus 1, chords)
-[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y9 z1 y14 z1 y24 z1 y25 z1 y28 z1 y33 z1] x77
-# Bar 84: Clear Chorus 2 Part 1 vocal before Part 2
+[y5 z1 y18 z1 y7 z0 y17 z0 y19 z0 y21 z0 y27 z0 y32 z0] x76
+# Bar 77: Chorus 2 Part 1 (Chorus bass 8, rapid arp 13, brass 23/24, chords 28, vocal 33)
+[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y8 z1 y13 z1 y23 z1 y24 z1 y28 z1 y33 z1] x77
+# Bar 84: Clear Chorus 2 Part 1 vocal before Part 2 downbeat
 [y33 z0] x84
-# Bar 85: Chorus 2 Part 2 (Crash cymbal hit, vocal chorus 2, choir pad)
+# Bar 85: Chorus 2 Part 2 (Crash downbeat, vocal chorus 34, choir pad 30)
 [v17 l1 y34 z1 y30 z1] x85
-# Bar 92: Snare fill into Breakdown and clear Chorus layers
-[y5 z1 y4 z0 y9 z0 y14 z0 y24 z0 y25 z0 y28 z0 y30 z0 y34 z0] x92
-# Bar 93: Breakdown (Bass out, syncopated arpeggio groove)
-[v17 l.8 y1 z1 y2 z1 y3 z1 y15 z1] x93
+# Bar 92: Snare fill into Breakdown and clear Chorus parts
+[y5 z1 y4 z0 y8 z0 y13 z0 y23 z0 y24 z0 y28 z0 y30 z0 y34 z0] x92
+# Bar 93: Breakdown (Bass out, syncopated arpeggio groove 14)
+[v17 l.8 y1 z1 y2 z1 y3 z1 y14 z1] x93
 # Bar 96: Prep for Chant
-[y15 z0] x96
-# Bar 97: Chant Build starts (Driving C pedal bass, breakdown arp, vocal chant)
-[v17 l1 y12 z1 y15 z1 y24 z1] x97
-# Bar 108: Prep for Special Bridge
-[y12 z0 y15 z0 y24 z0] x108
-# Bar 109: Special Bridge (Em-Bm-Dm: bridge bass, bridge pluck hook, bridge flute fills, bridge chords, bridge vocal)
-[v17 l1 y10 z1 y21 z1 y23 z1 y29 z1 y35 z1] x109
-# Bar 114: Prep for Final Climax Build and clear bridge layers
-[y10 z0 y21 z0 y23 z0 y29 z0 y35 z0] x114
+[y14 z0] x96
+# Bar 97: Chant Build starts (Driving C pedal bass 11, arpeggio 14, C brass motif 25)
+[v17 l1 y11 z1 y14 z1 y25 z1] x97
+# Bar 108: Prep for Special Bridge and clear chant layers
+[y11 z0 y14 z0 y25 z0] x108
+# Bar 109: Special Bridge (Bridge bass 9, pluck 20, flute 22, chords 29, vocal 35)
+[v17 l1 y9 z1 y20 z1 y22 z1 y29 z1 y35 z1] x109
+# Bar 114: Clear bridge layers before climax riser
+[y9 z0 y20 z0 y22 z0 y29 z0 y35 z0] x114
 # Bar 115: Snare roll build begins
 [y5 z1] x115
 # Bar 116: Ascending synth scale riser sweeps into final climax drop
-[y19 z1 y5 z1] x116
+[y18 z1 y5 z1] x116
 # Bar 117: Outro Climax Part 1 (Crash downbeat, all layers firing, open hats, choir)
-[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y9 z1 y14 z1 y24 z1 y25 z1 y28 z1 y30 z1 y33 z1] x117
-# Bar 124: Switch vocal to Part 2
-[y33 z0 y34 z1] x124
-# Bar 125: Outro Climax Part 2 (Crash cymbal accent)
-[v17 l1] x125
-# Bar 132: Switch vocal to Part 1
-[y34 z0 y33 z1] x132
-# Bar 133: Outro Climax Part 3 (Crash cymbal accent)
-[v17 l1] x133
-# Bar 140: Switch vocal to Part 2
-[y33 z0 y34 z1] x140
-# Bar 141: Outro Climax Part 4
-[v17 l1] x141
+[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y8 z1 y13 z1 y23 z1 y24 z1 y28 z1 y30 z1 y33 z1] x117
+# Bar 124: Clear vocal Part 1 before Bar 125 downbeat
+[y33 z0] x124
+# Bar 125: Outro Climax Part 2 (Crash downbeat, vocal Part 2 starts cleanly on step 0)
+[v17 l1 y34 z1] x125
+# Bar 132: Clear vocal Part 2 before Bar 133 downbeat
+[y34 z0] x132
+# Bar 133: Outro Climax Part 3 (Crash downbeat, vocal Part 1 starts cleanly on step 0)
+[v17 l1 y33 z1] x133
+# Bar 140: Clear vocal Part 1 before Bar 141 downbeat
+[y33 z0] x140
+# Bar 141: Outro Climax Part 4 (Vocal Part 2 starts cleanly on step 0)
+[v17 l1 y34 z1] x141
 # Bar 145: Final crash, delay freeze captures ambient tail
 [v17 l1 DF 1 1 DF 4 1] x145
 # Bar 146: Release delay freeze

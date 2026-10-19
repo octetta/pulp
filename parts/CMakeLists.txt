@@ -207,6 +207,17 @@ add_custom_target(generate_drum_sources ALL DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}
 add_dependencies(api generate_drum_sources)
 add_dependencies(api_shared generate_drum_sources)
 
+file(GLOB DWG_KS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/waves/dwg/*.ks")
+add_custom_command(
+  OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/dwg_sources.h"
+  COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_dwg_sources.py"
+  DEPENDS ${DWG_KS_FILES} "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_dwg_sources.py"
+  COMMENT "Generating dwg_sources.h from waves/dwg/*.ks..."
+)
+add_custom_target(generate_dwg_sources ALL DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/dwg_sources.h")
+add_dependencies(api generate_dwg_sources)
+add_dependencies(api_shared generate_dwg_sources)
+
 file(GLOB ESQ1_KS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/waves/esq1/*.ks")
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/esq1_sources.h"

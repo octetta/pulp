@@ -382,6 +382,128 @@ static void test_runtime_esq1_wavetable_initialization(void) {
   wave_free();
   synth_free();
 }
+
+static void test_runtime_dwg_wavetable_initialization(void) {
+  const char *test = "runtime DWG wavetable initialization";
+  synth_init(8);
+  wave_table_init(0);
+
+  struct {
+    int slot;
+    const char *name;
+  } expected_dwg[] = {
+    { 15, "dwg-strings" },
+    { 16, "dwg-clarinet" },
+    { 17, "dwg-apiano" },
+    { 18, "dwg-epiano" },
+    { 19, "dwg-epiano-hard" },
+    { 20, "dwg-clavi" },
+    { 21, "dwg-organ" },
+    { 22, "dwg-brass" },
+    { 23, "dwg-sax" },
+    { 24, "dwg-violin" },
+    { 25, "dwg-aguitar" },
+    { 26, "dwg-dguitar" },
+    { 27, "dwg-ebass" },
+    { 28, "dwg-dbass" },
+    { 29, "dwg-bell" },
+    { 30, "dwg-whistle" },
+    { 0, NULL }
+  };
+
+  for (int i = 0; expected_dwg[i].slot != 0; i++) {
+    int w = expected_dwg[i].slot;
+    const char *name = expected_dwg[i].name;
+    if (!sw.data[w]) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "dwg slot %d (%s) data is null", w, name);
+      fail(test, msg);
+      continue;
+    }
+    if (strcmp(sw.name[w], name) != 0) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "dwg slot %d name expected '%s', got '%s'", w, name, sw.name[w]);
+      fail(test, msg);
+    }
+    if (sw.size[w] != 4096) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "dwg slot %d size expected 4096, got %d", w, sw.size[w]);
+      fail(test, msg);
+    }
+    if (sw.rate[w] != 44100.0f) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "dwg slot %d sample rate expected 44100, got %.1f", w, sw.rate[w]);
+      fail(test, msg);
+    }
+    if (sw.one_shot[w] != 0) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "dwg slot %d one_shot expected 0, got %d", w, sw.one_shot[w]);
+      fail(test, msg);
+    }
+    if (!sw.readonly[w]) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "dwg slot %d is not marked readonly", w);
+      fail(test, msg);
+    }
+    if (!sw.is_heap[w]) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "dwg slot %d is not marked heap", w);
+      fail(test, msg);
+    }
+
+    // Check that samples are non-zero
+    double energy = 0.0;
+    for (int s = 0; s < sw.size[w]; s++) {
+      energy += sw.data[w][s] * sw.data[w][s];
+    }
+    if (energy <= 1e-6) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "dwg slot %d has no audio energy", w);
+      fail(test, msg);
+    }
+  }
+
+  // Test slot 49: centered krg2 (phase-rotated slot 16 dwg-clarinet)
+  int centered = 49;
+  if (!sw.data[centered]) {
+    fail(test, "centered krg2 (slot 49) data is null");
+  } else {
+    if (strcmp(sw.name[centered], "centered krg2") != 0) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "slot 49 name expected 'centered krg2', got '%s'", sw.name[centered]);
+      fail(test, msg);
+    }
+    if (sw.size[centered] != 4096) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "slot 49 size expected 4096, got %d", sw.size[centered]);
+      fail(test, msg);
+    }
+    if (sw.rate[centered] != 44100.0f) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "slot 49 rate expected 44100, got %.1f", sw.rate[centered]);
+      fail(test, msg);
+    }
+    if (sw.one_shot[centered] != 0 || !sw.readonly[centered] || !sw.is_heap[centered]) {
+      fail(test, "slot 49 flags incorrect");
+    }
+
+    // Verify 3/4 cycle phase shift relative to slot 16 (offset = 3072)
+    int src = 16;
+    for (int off = 0; off < 4096; off++) {
+      float expected_val = sw.data[src][(off + 3072) % 4096];
+      if (fabsf(sw.data[centered][off] - expected_val) > 1e-6f) {
+        char msg[128];
+        snprintf(msg, sizeof(msg), "slot 49 mismatch at offset %d: got %f, expected %f",
+                 off, sw.data[centered][off], expected_val);
+        fail(test, msg);
+        break;
+      }
+    }
+  }
+
+  wave_free();
+  synth_free();
+}
 #endif
 
 int main(void) {
@@ -391,6 +513,7 @@ int main(void) {
   test_skode_context_isolation();
   test_skode_wave_round_trip();
   test_ksynth_sample_rate_binding_and_scaling();
+  test_runtime_dwg_wavetable_initialization();
   test_runtime_esq1_wavetable_initialization();
   test_runtime_drum_wavetable_initialization();
 #endif

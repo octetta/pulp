@@ -9,6 +9,7 @@
 #define SIZE_SINE (4096)
 #include "dwg.h"
 #include "vendor/ksynth/ksynth.h"
+#include "dwg_sources.h"
 #include "esq1_sources.h"
 #include "drums_sources.h"
 
@@ -83,6 +84,36 @@ static void synth_eval_and_register_ks_wave(int w, const char *name, const char 
   ks_destroy(ctx);
 }
 
+static void synth_init_ksynth_dwg(void) {
+  for (int idx = 0; DWG_PATCH_SOURCES[idx].slot != 0; idx++) {
+    const dwg_patch_source_t *p = &DWG_PATCH_SOURCES[idx];
+    synth_eval_and_register_ks_wave(p->slot, p->name, p->ks_code, 0);
+  }
+}
+
+static void synth_init_centered_krg2(void) {
+  int src = WAVE_TABLE_KRG2;
+  int dst = WAVE_TABLE_KRG2_CENTERED;
+  if (sw.data[src] && sw.size[src] > 0) {
+    int sz = sw.size[src];
+    float *buf = (float *)malloc(sz * sizeof(float));
+    if (buf) {
+      for (int off = 0; off < sz; off++) {
+        buf[off] = sw.data[src][(off + sz * 3 / 4) % sz];
+      }
+      strncpy(sw.name[dst], "centered krg2", WAVE_NAME_MAX);
+      sw.data[dst] = buf;
+      sw.size[dst] = sz;
+      sw.rate[dst] = sw.rate[src];
+      sw.is_heap[dst] = 1;
+      sw.readonly[dst] = 1;
+      sw.one_shot[dst] = 0;
+      sw.loop_start[dst] = 0;
+      sw.loop_end[dst] = sz - 1;
+    }
+  }
+}
+
 static void synth_init_ksynth_esq1(void) {
   for (int idx = 0; ESQ1_PATCH_SOURCES[idx].slot != 0; idx++) {
     const esq1_patch_source_t *p = &ESQ1_PATCH_SOURCES[idx];
@@ -113,13 +144,14 @@ void wave_table_init(int flag) {
   audio_rng_init(&white_noise, 1);
   for (int w = WAVE_TABLE_SINE; w <= WAVE_TABLE_KRG2_CENTERED; w++) {
     if (wave_invalid(w)) continue;
+    if (w >= WAVE_TABLE_KRG1 && w <= WAVE_TABLE_KRG16) continue;
+    if (w == WAVE_TABLE_KRG2_CENTERED) continue;
     int size = SIZE_SINE;
     char *name = "?";
     switch (w) {
       case WAVE_TABLE_SINE:  name = "sine"; break;
       case WAVE_TABLE_COSINE: name = "cosine"; break;
       case WAVE_TABLE_CENTERED_PULSE: name = "centered pulse"; break;
-      case WAVE_TABLE_KRG2_CENTERED: name = "centered krg2"; break;
       case WAVE_TABLE_SQR:   name = "square"; break;
       case WAVE_TABLE_SAW_DOWN: name = "saw-down"; break;
       case WAVE_TABLE_SAW_UP: name = "saw-up"; break;
@@ -134,22 +166,6 @@ void wave_table_init(int flag) {
       case WAVE_TABLE_CAP_6: name = "input-3-right"; break;
       case WAVE_TABLE_CAP_7: name = "input-4-left"; break;
       case WAVE_TABLE_CAP_8: name = "input-4-right"; break;
-      case WAVE_TABLE_KRG1:  name = "dwg-strings"; break;
-      case WAVE_TABLE_KRG2:  name = "dwg-clarinet"; break;
-      case WAVE_TABLE_KRG3:  name = "dwg-apiano"; break;
-      case WAVE_TABLE_KRG4:  name = "dwg-epiano"; break;
-      case WAVE_TABLE_KRG5:  name = "dwg-epiano-hard"; break;
-      case WAVE_TABLE_KRG6:  name = "dwg-clavi"; break;
-      case WAVE_TABLE_KRG7:  name = "dwg-organ"; break;
-      case WAVE_TABLE_KRG8:  name = "dwg-brass"; break;
-      case WAVE_TABLE_KRG9:  name = "dwg-sax"; break;
-      case WAVE_TABLE_KRG10: name = "dwg-violin"; break;
-      case WAVE_TABLE_KRG11: name = "dwg-aguitar"; break;
-      case WAVE_TABLE_KRG12: name = "dwg-dguitar"; break;
-      case WAVE_TABLE_KRG13: name = "dwg-ebass"; break;
-      case WAVE_TABLE_KRG14: name = "dwg-dbass"; break;
-      case WAVE_TABLE_KRG15: name = "dwg-bell"; break;
-      case WAVE_TABLE_KRG16: name = "dwg-whistle"; break;
       case WAVE_TABLE_KRG17: name = "krg-17"; size = 2048; break;
       case WAVE_TABLE_KRG18: name = "krg-18"; size = 2048; break;
       case WAVE_TABLE_KRG19: name = "krg-19"; size = 2048; break;
@@ -192,29 +208,12 @@ void wave_table_init(int flag) {
         case WAVE_TABLE_SINE: f = sine; break;
         case WAVE_TABLE_COSINE: f = -cosf(2.0f * (float) M_PI * phase); break;
         case WAVE_TABLE_CENTERED_PULSE: f = (phase > 0.25f && phase < 0.75f) ? 1.0f : -1.0f; break;
-        case WAVE_TABLE_KRG2_CENTERED: f = W02[(off + size * 3 / 4) % size]; break;
         case WAVE_TABLE_SQR: f = (phase < 0.5) ? 1.0f : -1.0f; break;
         case WAVE_TABLE_SAW_DOWN: f = 2.0f * phase - 1.0f; break;
         case WAVE_TABLE_SAW_UP: f = 1.0f - 2.0f * phase; break;
         case WAVE_TABLE_TRI: f = (phase < 0.5f) ? (4.0f * phase - 1.0f) : (3.0f - 4.0f * phase); break;
         case WAVE_TABLE_NOISE: f = audio_rng_float(&white_noise); break;
         case WAVE_TABLE_NOISE_ALT: f = audio_rng_float(&white_noise); break;
-        case WAVE_TABLE_KRG1:  f = W01[off]; break;
-        case WAVE_TABLE_KRG2:  f = W02[off]; break;
-        case WAVE_TABLE_KRG3:  f = W03[off]; break;
-        case WAVE_TABLE_KRG4:  f = W04[off]; break;
-        case WAVE_TABLE_KRG5:  f = W05[off]; break;
-        case WAVE_TABLE_KRG6:  f = W06[off]; break;
-        case WAVE_TABLE_KRG7:  f = W07[off]; break;
-        case WAVE_TABLE_KRG8:  f = W08[off]; break;
-        case WAVE_TABLE_KRG9:  f = W09[off]; break;
-        case WAVE_TABLE_KRG10: f = W10[off]; break;
-        case WAVE_TABLE_KRG11: f = W11[off]; break;
-        case WAVE_TABLE_KRG12: f = W12[off]; break;
-        case WAVE_TABLE_KRG13: f = W13[off]; break;
-        case WAVE_TABLE_KRG14: f = W14[off]; break;
-        case WAVE_TABLE_KRG15: f = W15[off]; break;
-        case WAVE_TABLE_KRG16: f = W16[off]; break;
         case WAVE_TABLE_KRG17: f = W17[off]; break;
         case WAVE_TABLE_KRG18: f = W18[off]; break;
         case WAVE_TABLE_KRG19: f = W19[off]; break;
@@ -238,6 +237,8 @@ void wave_table_init(int flag) {
     }
   }
 
+  synth_init_ksynth_dwg();
+  synth_init_centered_krg2();
   synth_init_ksynth_esq1();
   synth_init_ksynth_drums();
 }

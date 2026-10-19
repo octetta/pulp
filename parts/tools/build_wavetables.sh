@@ -42,4 +42,4 @@ function build_bank() {
 }
 
 build_bank "$PARTS_DIR/waves/esq1" "$PARTS_DIR/esq1_waves.h" "WAVE_ESQ1" 4096 "ESQ1_WAVES"
-build_bank "$PARTS_DIR/waves/drums" "$PARTS_DIR/drums_waves.h" "WAVE_DRUM" 0 "DRUM_WAVES"
+python3 "$DIR/build_drum_sources.py"

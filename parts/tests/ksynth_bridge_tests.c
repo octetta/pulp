@@ -202,6 +202,89 @@ static void test_ksynth_sample_rate_binding_and_scaling(void) {
   wave_free();
   synth_free();
 }
+
+static void test_runtime_drum_wavetable_initialization(void) {
+  const char *test = "runtime drum wavetable initialization";
+  synth_init(8);
+  wave_table_init(0);
+
+  const struct {
+    int slot;
+    const char *name;
+    int expected_min_samples;
+  } expected_drums[] = {
+    { 82, "kick", 10000 },
+    { 83, "snare", 10000 },
+    { 84, "chh", 5000 },
+    { 85, "ohh", 20000 },
+    { 86, "clap", 5000 },
+    { 87, "rim", 2000 },
+    { 88, "tomlo", 20000 },
+    { 89, "tommid", 20000 },
+    { 90, "tomhi", 15000 },
+    { 91, "lotom", 20000 },
+    { 92, "midtom", 15000 },
+    { 93, "hitom", 15000 },
+    { 94, "crash", 50000 },
+    { 95, "cymbal", 40000 },
+    { 96, "cowbell", 30000 },
+    { 97, "clave", 3000 },
+    { 98, "maracas", 2500 },
+    { 99, "trigger", 20000 },
+    { 0, NULL, 0 }
+  };
+
+  for (int i = 0; expected_drums[i].slot != 0; i++) {
+    int w = expected_drums[i].slot;
+    const char *name = expected_drums[i].name;
+    if (!sw.data[w]) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "drum slot %d (%s) data is null", w, name);
+      fail(test, msg);
+      continue;
+    }
+    if (strcmp(sw.name[w], name) != 0) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "drum slot %d name expected '%s', got '%s'", w, name, sw.name[w]);
+      fail(test, msg);
+    }
+    if (sw.size[w] < expected_drums[i].expected_min_samples) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "drum slot %d size %d less than expected %d",
+               w, sw.size[w], expected_drums[i].expected_min_samples);
+      fail(test, msg);
+    }
+    if (sw.rate[w] != 44100.0f) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "drum slot %d sample rate expected 44100, got %.1f", w, sw.rate[w]);
+      fail(test, msg);
+    }
+    if (!sw.one_shot[w]) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "drum slot %d is not marked one_shot", w);
+      fail(test, msg);
+    }
+    if (!sw.readonly[w]) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "drum slot %d is not marked readonly", w);
+      fail(test, msg);
+    }
+
+    // Check that samples are non-zero
+    double energy = 0.0;
+    for (int s = 0; s < sw.size[w]; s++) {
+      energy += sw.data[w][s] * sw.data[w][s];
+    }
+    if (energy <= 1e-6) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "drum slot %d has no audio energy", w);
+      fail(test, msg);
+    }
+  }
+
+  wave_free();
+  synth_free();
+}
 #endif
 
 int main(void) {
@@ -211,6 +294,7 @@ int main(void) {
   test_skode_context_isolation();
   test_skode_wave_round_trip();
   test_ksynth_sample_rate_binding_and_scaling();
+  test_runtime_drum_wavetable_initialization();
 #endif
 
   if (failures) {

@@ -196,6 +196,17 @@ add_custom_command(
 add_custom_target(generate_docs ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md")
 add_dependencies(api generate_docs)
 
+file(GLOB DRUM_KS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/waves/drums/*.ks")
+add_custom_command(
+  OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/drums_sources.h"
+  COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_drum_sources.py"
+  DEPENDS ${DRUM_KS_FILES} "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_drum_sources.py"
+  COMMENT "Generating drums_sources.h from waves/drums/*.ks..."
+)
+add_custom_target(generate_drum_sources ALL DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/drums_sources.h")
+add_dependencies(api generate_drum_sources)
+add_dependencies(api_shared generate_drum_sources)
+
 install(FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/api.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/polyphony.h"

@@ -9,7 +9,80 @@
 #define SIZE_SINE (4096)
 #include "dwg.h"
 #include "esq1_waves.h"
-#include "drums_waves.h"
+#include "vendor/ksynth/ksynth.h"
+#include "drums_sources.h"
+
+static void synth_init_ksynth_drums(void) {
+  for (int idx = 0; DRUM_PATCH_SOURCES[idx].slot != 0; idx++) {
+    const drum_patch_source_t *p = &DRUM_PATCH_SOURCES[idx];
+    int w = p->slot;
+    if (wave_invalid(w)) continue;
+
+    // Reset PRNG seed to 1 so noise generation in ksynth ('r') is 100% deterministic
+    srand(1);
+
+    ks_ctx *ctx = ks_create(16 * 1024 * 1024, 1000000000, 44100.0);
+    if (!ctx) continue;
+
+    K result = NULL;
+    const char *text = p->ks_code;
+    size_t text_len = strlen(text);
+    size_t pos = 0;
+
+    while (pos < text_len) {
+      char line[1024];
+      size_t start = pos;
+      while (pos < text_len && text[pos] != '\n' && text[pos] != '\r') pos++;
+      size_t len = pos - start;
+      while (pos < text_len && (text[pos] == '\n' || text[pos] == '\r')) pos++;
+      if (len == 0) continue;
+      if (len >= sizeof(line)) len = sizeof(line) - 1;
+      memcpy(line, text + start, len);
+      line[len] = '\0';
+      result = ks_eval(ctx, line, len);
+      if (ctx->last_status != KS_OK) {
+        result = NULL;
+        break;
+      }
+    }
+
+    if (result && result->n > 0) {
+      int size = result->n;
+      float *buf = (float *)malloc(size * sizeof(float));
+      if (buf) {
+        for (int s = 0; s < size; s++) {
+          buf[s] = (float)result->f[s];
+        }
+
+        strncpy(sw.name[w], p->name, WAVE_NAME_MAX);
+        sw.data[w] = buf;
+        sw.size[w] = size;
+        sw.rate[w] = 44100.0f;
+        sw.is_heap[w] = 1;
+        sw.readonly[w] = 1;
+
+        K k_o = k_get(ctx, 'O');
+        int one_shot = (k_o && k_o->n == 1 && k_o->f[0] > 0) ? 1 : 0;
+        sw.one_shot[w] = one_shot;
+
+        K k_s = k_get(ctx, 'S');
+        if (k_s && k_s->n == 1) sw.rate[w] = (float)k_s->f[0];
+
+        K k_l = k_get(ctx, 'L');
+        sw.loop_start[w] = (k_l && k_l->n == 1) ? (int)k_l->f[0] : 0;
+
+        K k_e = k_get(ctx, 'E');
+        sw.loop_end[w] = (k_e && k_e->n == 1) ? (int)k_e->f[0] : (one_shot ? 0 : size - 1);
+        if (one_shot) {
+          sw.loop_start[w] = 0;
+          sw.loop_end[w] = 0;
+        }
+      }
+    }
+
+    ks_destroy(ctx);
+  }
+}
 
 void wave_table_init(int flag) {
   (void)flag;
@@ -152,7 +225,7 @@ void wave_table_init(int flag) {
     }
   }
 
-  const static_wave_meta_t **lists[] = { ESQ1_WAVES, DRUM_WAVES, NULL };
+  const static_wave_meta_t **lists[] = { ESQ1_WAVES, NULL };
   for (int lst = 0; lists[lst] != NULL; lst++) {
     const static_wave_meta_t **list = lists[lst];
     for (int i = 0; list[i] != NULL; i++) {
@@ -172,6 +245,8 @@ void wave_table_init(int flag) {
       sw.readonly[w] = 1;
     }
   }
+
+  synth_init_ksynth_drums();
 }
 
 

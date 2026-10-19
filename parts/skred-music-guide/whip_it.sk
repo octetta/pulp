@@ -71,20 +71,20 @@ DP 4 1
 
 ## VOICES
 # Motorik drums (Alan Myers style)
-v0 w82 f440 a7 p0 [kick motorik] vt
-v1 w83 f440 a8 p0 r3 ds.25 [snare 80s] vt
-v2 w84 f440 a-3 p.25 [closed hat] vt
-v3 w85 f440 a-2 p-.25 [open hat] vt
-v4 w86 f440 a6 p0 [electronic clap] vt
-v5 w94 f440 a4 p.2 [crash cymbal] vt
+v0 w82 f440 a5 p0 [kick motorik] vt
+v1 w83 f440 a5 p0 r3 ds.20 [snare 80s] vt
+v2 w84 f440 a-5 p.25 [closed hat] vt
+v3 w85 f440 a-4 p-.25 [open hat] vt
+v4 w86 f440 a4 p0 [electronic clap] vt
+v5 w94 f440 a2 p.2 [crash cymbal] vt
 
 # Moog bass + guitar trio: v6 (centre saw), v7 (right square), v8 (left guitar chug)
 # Linked via G and H so v7 and v8 track v6 note and gate automatically!
-v6 w15 a1 p0 t.001,.22,.18,.16 j1,2 k2000 q3.0 r2 ds.08 [moog bass saw] vt
+v6 w15 a-2 p0 t.001,.15,0,.04 j1,2 k1800 q3.5 r2 ds.08 [moog bass saw] vt
 v6 >7
-v7 w16 a-3 N0,7 p.4 r0 [moog bass square] vt
+v7 w16 a-6 N0,7 p.4 r0 [moog bass square] vt
 v6 >8
-v8 w16 a-4 N0,0 p-.35 t.001,.18,.15,.14 j1 k3200 q1 c4,.15 [guitar chug] vt
+v8 w16 a-6 N0,0 p-.35 t.001,.15,0,.03 j1 k3200 q1 c4,.15 [guitar chug] vt
 v6 G7 H7 G8 H8
 
 # DEVO Solo Lead: bright saw/pulse pair with phase distortion c4, delay Bus 1
@@ -104,13 +104,13 @@ v13 G14 H14
 # THE WHIP CRACK: Snare played at a slower rate (w83 at f175)
 # Layered with sharp rim crack (w87) and noise lash tail (w5)
 # ====================================================================
-v21 w83 f175 a9 p0 r1 ds.35 [whip slowed snare] vt
-v22 w87 f350 a7 p-.1 [whip rim crack] vt
-v23 w5 f1400 a-3 p.2 t.001,.09,0,.03 j2 k2800 q2 [whip noise lash] vt
+v21 w83 f175 a6 p0 r1 ds.25 [whip slowed snare] vt
+v22 w87 f350 a5 p-.1 [whip rim crack] vt
+v23 w5 f1400 a-5 p.2 t.001,.09,0,.03 j2 k2800 q2 [whip noise lash] vt
 
 # Chorus Synth Stabs: punchy analog chord trio (centre/left/right), delay Bus 4
 # Envelope has s=0 (decay to 0) so stabs decay naturally to 0 and never hang or drone!
-v18 w15 a-6 p-.35 t.002,.20,0,.06 j1 k2800 q2 r4 ds.25 [chorus synth stab left] vt
+v18 w15 a-8 p-.35 t.002,.20,0,.06 j1 k2800 q2 r4 ds.25 [chorus synth stab left] vt
 v18 >19
 v18 >20
 v19 w15 a-8 p.35 N0,7 t.002,.20,0,.06 j1 k2800 q2 r4 ds.25 [chorus synth stab right] vt
@@ -185,26 +185,33 @@ E5 - - - E5 - - - D5 - - - E5 - - -
 ## PATTERNS
 
 y1
-[kick four on the floor] yt
-[v0 l1] x0,4,8,12
+[kick motorik] yt
+[v0 l1] x0,8
+[v0 l.9] x4
+[v0 l.95] x12
 [=127,0] x15
 
 y2
-[snare and clap on 2 & 4] yt
-[v1 l1 v4 l.95] x4,12
+[snare+clap on 2 & 4] yt
+[v1 l1 v4 l.9] x4,12
+[v1 l.25] x14
 [=127,0] x15
 
 y3
-[hats 16ths alan myers metronome] yt
-[v2 l.50] x0,2,4,6,8,10,12,14
-[v2 l.35] x1,3,5,7,9,11,13,15
+[hats 8ths + open sizzle] yt
+[v2 l.5] x0,4,8,12
+[v2 l.3] x2,10
+[v3 l.75 v2 l0] x6
+[v3 l.85 v2 l0] x14
 [=127,0] x15
 
 y4
-[hats 16ths accent] yt
-[v2 l.55] x0,4,8,12
-[v2 l.40] x2,6,10,14
-[v2 l.30] x1,3,5,7,9,11,13,15
+[hats 16ths groove] yt
+[v2 l.25] x1,3,5,7,9,11,13,15
+[v2 l.45] x0,8
+[v2 l.5] x4,12
+[v3 l.75 v2 l0] x2,10
+[v3 l.85 v2 l0] x6,14
 [=127,0] x15
 
 y6

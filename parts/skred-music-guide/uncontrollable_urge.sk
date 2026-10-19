@@ -47,24 +47,24 @@ DL 2 - - 4 0 0 8
 DD 2 6 3
 
 ## VOICES
-v0 w82 f440 a6 p0 [kick motorik] vt
-v1 w83 f440 a7 p0 r3 ds.18 [snare 70s crack] vt
-v2 w84 f440 a-3 p.25 [closed hat] vt
-v3 w85 f440 a-2 p-.25 [open hat] vt
-v5 w94 f440 a4 p.2 [crash cymbal] vt
+v0 w82 f440 a5 p0 [kick motorik] vt
+v1 w83 f440 a5 p0 r3 ds.18 [snare 70s crack] vt
+v2 w84 f440 a-5 p.25 [closed hat] vt
+v3 w85 f440 a-4 p-.25 [open hat] vt
+v5 w94 f440 a3 p.2 [crash cymbal] vt
 
-# bass: fat punk P-bass saw (centre) + heavy sub-bass square an octave down (N-12)
-v6 w15 a3 p0 t.002,.22,.40,.08 j1,2 k1800 q2.4 r2 ds.06 [bass saw] vt
+# bass: fat punk P-bass saw (centre) + sub-bass square an octave down (N-12)
+v6 w15 a-2 p0 t.002,.14,.25,.06 j1 k1400 q2.0 r2 ds.06 [bass saw] vt
 v6 >7
-v7 w16 a0 N-12,5 p.25 [bass sub square] vt
+v7 w16 a-6 N-12,0 p.25 [bass sub square] vt
 v6 G7 H7
 
 # guitar power chord from ONE note: v8 root, v9 fifth, v10 octave, bright and spread
-v8 w15 a-8 p-.25 t.002,.09,.15,.05 j1 k3800 q.7 c4,.15 [guitar root] vt
+v8 w15 a-7 p-.25 t.002,.09,.15,.05 j1 k3800 q.7 c4,.15 [guitar root] vt
 v8 >9
 v8 >10
-v9 N7 a-10 p.3 [guitar fifth] vt
-v10 N12 a-12 p-.5 [guitar octave] vt
+v9 N7 a-9 p.3 [guitar fifth] vt
+v10 N12 a-11 p-.5 [guitar octave] vt
 v8 G9,10 H9,10
 
 # metal FM stab (copied from hammer_the_signal.sk), modulator tracks pitch
@@ -192,36 +192,45 @@ y3
 y4
 [intro bass riff: tonic on 1, three pickups on the last 3 eighths] yt
 [v6 n45 l1] x0
+[v6 l0] x2
 [v6 n43 l.9] x10,12,14
-[=127,0] x15
+[v6 l0 =127,0] x15
 
 y5
 [verse bass A-G-E, 2 bars] yt
 [v6 n&1 l&2] x0,2,4,6,8,10,12,14
+[v6 l0] x1,3,5,7,9,11,13,15
 [v6 n&1 l&2] x16,18,20,22,24,26,28,30
-[=127,0] x31
+[v6 l0 =127,0] x17,19,21,23,25,27,29,31
 
 y8
 [authentic devo chorus bass, 4 bars] yt
 [v6 n&3 l&2] x0,2,4,6,8,10,12,14
+[v6 l0] x1,3,5,7,9,11,13,15
 [v6 n&3 l&2] x16,18,20,22,24,26,28,30
+[v6 l0] x17,19,21,23,25,27,29,31
 [v6 n&3 l&2] x32,34,36,38,40,42,44,46
+[v6 l0] x33,35,37,39,41,43,45,47
 [v6 n&3 l&2] x48,50,52,54,56,58,60,62
-[=127,0] x63
+[v6 l0 =127,0] x49,51,53,55,57,59,61,63
 
 y9
 [authentic devo chorus guitar power chords, 4 bars] yt
 [v8 n&4 l&5] x0,2,4,6,8,10,12,14
+[v8 l0] x1,3,5,7,9,11,13,15
 [v8 n&4 l&5] x16,18,20,22,24,26,28,30
+[v8 l0] x17,19,21,23,25,27,29,31
 [v8 n&4 l&5] x32,34,36,38,40,42,44,46
+[v8 l0] x33,35,37,39,41,43,45,47
 [v8 n&4 l&5] x48,50,52,54,56,58,60,62
-[=127,0] x63
+[v8 l0 =127,0] x49,51,53,55,57,59,61,63
 
 y10
 [verse guitar chug A-G-E, 2 bars] yt
 [v8 n&6 l&5] x0,2,4,6,8,10,12,14
+[v8 l0] x1,3,5,7,9,11,13,15
 [v8 n&6 l&5] x16,18,20,22,24,26,28,30
-[=127,0] x31
+[v8 l0 =127,0] x17,19,21,23,25,27,29,31
 
 y11
 [FM stab on beat 1] yt
@@ -338,39 +347,39 @@ y0
 [y1 z1 y2 z1 y3 z1] x2
 [y10 z1] x4
 [y11 z1] x6
-[y11 z0 y1 z0 y2 z0 y13 z1] x7
+[y11 z0 y1 z0 y2 z0 y13 z1 v6 l0 v8 l0] x7
 [v5 l1 y4 z0 y8 z0 y9 z0 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 y21 z1 /SP 1,0 /SP 2,0 /SP 7,0] x8
-[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1] x10
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1 v6 l0 v8 l0] x10
 [y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y21 z1 y11 z0 /SP 1,0 /SP 2,0 /SP 7,0] x12
-[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1] x14
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1 v6 l0 v8 l0] x14
 [y11 z0 y13 z1] x15
 [v5 l1 y4 z0 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 y28 z1 y22 z1 /SP 1,0 /SP 2,0 /SP 8,0] x16
-[y2 z0 y28 z0 y22 z0 y13 z1] x31
+[y2 z0 y28 z0 y22 z0 y13 z1 v6 l0 v8 l0] x31
 [v5 l1 y5 z0 y10 z0 y2 z1 y8 z1 y9 z1 y29 z1 y23 z1 /SP 3,0 /SP 4,0 /SP 9,0] x32
-[y2 z0 y29 z0 y23 z0 y13 z1] x47
+[y2 z0 y29 z0 y23 z0 y13 z1 v6 l0 v8 l0] x47
 [v5 l1 y8 z0 y9 z0 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 y21 z1 /SP 1,0 /SP 2,0 /SP 7,0] x48
-[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1] x50
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1 v6 l0 v8 l0] x50
 [y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y21 z1 y11 z0 /SP 1,0 /SP 2,0 /SP 7,0] x52
-[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1] x54
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1 v6 l0 v8 l0] x54
 [y11 z0 y13 z1] x55
 [v5 l1 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 y28 z1 y22 z1 /SP 1,0 /SP 2,0 /SP 8,0] x56
-[y2 z0 y28 z0 y22 z0 y13 z1] x71
+[y2 z0 y28 z0 y22 z0 y13 z1 v6 l0 v8 l0] x71
 [v5 l1 y5 z0 y10 z0 y2 z1 y8 z1 y9 z1 y29 z1 y23 z1 /SP 3,0 /SP 4,0 /SP 9,0] x72
-[y2 z0 y29 z0 y23 z0 y13 z1] x87
+[y2 z0 y29 z0 y23 z0 y13 z1 v6 l0 v8 l0] x87
 [v5 l1 y8 z0 y9 z0 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 y21 z1 /SP 1,0 /SP 2,0 /SP 7,0] x88
-[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1] x90
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1 v6 l0 v8 l0] x90
 [y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y21 z1 y11 z0 /SP 1,0 /SP 2,0 /SP 7,0] x92
-[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1] x94
+[y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 y21 z0 y11 z1 v6 l0 v8 l0] x94
 [y11 z0 y13 z1] x95
 [v5 l1 y5 z0 y10 z0 y2 z1 y8 z1 y9 z1 y29 z1 y23 z1 /SP 3,0 /SP 4,0 /SP 9,0] x96
 [v5 l1] x104
-[y2 z0 y29 z0 y23 z0 y13 z1] x111
+[y2 z0 y29 z0 y23 z0 y13 z1 v6 l0 v8 l0] x111
 [v5 l1 y8 z0 y9 z0 y5 z1 y10 z1 y1 z1 y2 z1 y3 z1 y11 z0 y24 z1 /SP 1,0 /SP 2,0 /SP 10,0] x112
 [v5 l1 y11 z1] x120
 [y11 z0] x127
 [v5 l1] x128
-[y2 z0 y13 z1] x135
-[v5 l1 Z0 +4 ce 99] x136
+[y2 z0 y13 z1 v6 l0 v8 l0] x135
+[v5 l1 y5 z0 y10 z0 y1 z0 y2 z0 y3 z0 v6 l0 v8 l0 Z0 +4 ce 99] x136
 
 
 ## MACROS (play / stop)

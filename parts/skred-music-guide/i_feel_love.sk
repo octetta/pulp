@@ -68,42 +68,41 @@ DP 4 1
 
 ## VOICES
 # Drums: four-on-the-floor kick + sub boom
-v0 w82 f440 a7 p0 [kick electronic] vt
-v5 w0 a-2 p0 t.001,.22,0,.06 j1 k160 q.7 [kick sub punch] vt
+v0 w82 f440 a5 p0 [kick electronic] vt
+v5 w0 a-4 p0 t.001,.22,0,.06 j1 k160 q.7 [kick sub punch] vt
 
 # Crisp disco snare, claps, hats, crash
-v1 w83 f440 a7 p0 r3 ds.25 [snare 80s gated] vt
-v2 w84 f440 a-3 p.25 [closed hat] vt
-v3 w85 f440 a-2 p-.25 [open hat] vt
-v4 w86 f440 a7 p0 [electronic clap] vt
-v17 w94 f440 a4 p.2 [crash cymbal] vt
+v1 w83 f440 a5 p0 r3 ds.20 [snare 80s gated] vt
+v2 w84 f440 a-5 p.25 [closed hat] vt
+v3 w85 f440 a-4 p-.25 [open hat] vt
+v4 w86 f440 a4 p0 [electronic clap] vt
+v17 w94 f440 a3 p.2 [crash cymbal] vt
 
 # Simmons Electronic Toms (hi, mid, lo)
-v18 w90 f480 a6 p-.3 [hi simmons tom] vt
-v19 w91 f380 a6 p0 [mid simmons tom] vt
-v20 w92 f280 a6 p.3 [lo simmons tom] vt
+v18 w90 f480 a4 p-.3 [hi simmons tom] vt
+v19 w91 f380 a4 p0 [mid simmons tom] vt
+v20 w92 f280 a4 p.3 [lo simmons tom] vt
 
 # The Iconic Moog Modular Bassline: punchy resonant saw (centre) + sub-bass square (octave below)
-# Sends ds.25 to Bus 1 for the famous galloping 16th tape-echo bounce!
-v6 w15 a4 p0 t.001,.12,0,.04 ft.001,.09,0,.03 fd2200 k400 q5.0 j1,2 r1 ds.25 [moog bass saw] vt
+# Level balanced cleanly to prevent bus distortion while preserving room-shaking weight
+v6 w15 a-2 p0 t.001,.12,0,.04 ft.001,.09,0,.03 fd2200 k400 q5.0 j1,2 r1 ds.20 [moog bass saw] vt
 v6 >7
-v7 w1 a2 N-12,0 p0 r0 [moog bass sub pound] vt
+v7 w1 a-6 N-12,0 p0 r0 [moog bass sub pound] vt
 v6 G7 H7
 
-# Donna Summer Vocal Lead (Verse): sultry, floating chest voice with smooth glide
-# Warm middle register with natural breathy sustain
-v8 w15 a-2 p0 t.04,1.8,0,.40 j1 k2000 q1.2 g.08 c4,.15 r2 ds.35 [donna vocal lead] vt
+# Donna Summer Vocal Lead (Verse): ethereal, floating singing synth with smooth glide
+v8 w15 a-6 p0 t.05,1.5,0,.35 j1 k2400 q1.2 g.08 c4,.15 r2 ds.35 [donna vocal lead] vt
 v8 >9
 v8 >10
-v9 w15 a-5 N0,6 p-.45 r0 [donna vocal left] vt
-v10 w16 a-6 N0,-6 p.45 r0 [donna vocal right] vt
+v9 w15 a-8 N0,6 p-.45 r0 [donna vocal left] vt
+v10 w16 a-9 N0,-6 p.45 r0 [donna vocal right] vt
 v8 G9,10 H9,10
 
 # Donna Summer Chorus Falsetto Hook ('I feel love, I feel love...')
 # Silky attack and long decay with 80ms portamento glide
-v11 w15 a-1 p0 t.04,1.6,0,.35 j1 k2200 q1.2 g.08 c4,.20 r2 ds.35 [donna chorus hook] vt
+v11 w15 a-5 p0 t.05,1.4,0,.30 j1 k2500 q1.2 g.08 c4,.20 r2 ds.35 [donna chorus hook] vt
 v11 >12
-v12 w16 a-4 N0,5 p.45 r0 [donna chorus partner] vt
+v12 w16 a-8 N0,5 p.45 r0 [donna chorus partner] vt
 v11 G12 H12
 
 # High Sparkle Arpeggio: delicate shimmering background texture (quiet & ambient)
@@ -187,41 +186,39 @@ y6
 
 y8
 [donna summer verse vocal] yt
-# 'Ooh, it's so good, it's so good... heaven knows' (sultry middle register)
-[v8 n67 l3.0] x0
-[v8 n63 l2.5] x8
-[v8 n65 l2.5] x12
-[v8 n67 l3.0] x16
-[v8 n63 l2.5] x24
-[v8 n60 l2.5] x28
-[v8 n70 l3.0] x32
-[v8 n67 l2.5] x40
-[v8 n63 l2.5] x44
-[v8 n72 l3.5] x48
-[v8 n70 l2.5] x54
-[v8 n67 l2.5] x58
-[v8 n65 l2.5] x62
+[v8 n79 l.9] x0
+[v8 n75 l.85] x8
+[v8 n77 l.9] x12
+[v8 n79 l.9] x16
+[v8 n75 l.85] x24
+[v8 n72 l.9] x28
+[v8 n82 l.9] x32
+[v8 n79 l.85] x40
+[v8 n75 l.9] x44
+[v8 n84 l.95] x48
+[v8 n82 l.85] x54
+[v8 n79 l.9] x58
+[v8 n77 l.85] x62
 [=127,0] x63
 
 y10
 [donna summer chorus hook] yt
-# 'Ooh, I feel love, I feel love, I feel love...' (sensuous alto hook)
-[v11 n60 l2.5] x0
-[v11 n63 l2.0] x6
-[v11 n67 l3.0] x8
-[v11 n65 l2.5] x12
-[v11 n60 l2.5] x16
-[v11 n63 l2.0] x22
-[v11 n67 l3.0] x24
-[v11 n60 l2.5] x28
-[v11 n63 l2.5] x32
-[v11 n67 l2.0] x38
-[v11 n70 l3.0] x40
-[v11 n67 l2.5] x44
-[v11 n65 l2.5] x48
-[v11 n72 l3.5] x52
-[v11 n70 l2.5] x56
-[v11 n67 l3.0] x60
+[v11 n72 l.9] x0
+[v11 n75 l.85] x6
+[v11 n79 l.95] x8
+[v11 n77 l.9] x12
+[v11 n72 l.9] x16
+[v11 n75 l.85] x22
+[v11 n79 l.95] x24
+[v11 n72 l.9] x28
+[v11 n75 l.9] x32
+[v11 n79 l.85] x38
+[v11 n82 l.95] x40
+[v11 n79 l.9] x44
+[v11 n77 l.9] x48
+[v11 n84 l.95] x52
+[v11 n82 l.9] x56
+[v11 n79 l.85] x60
 [=127,0] x63
 
 y9

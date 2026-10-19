@@ -285,6 +285,103 @@ static void test_runtime_drum_wavetable_initialization(void) {
   wave_free();
   synth_free();
 }
+
+static void test_runtime_esq1_wavetable_initialization(void) {
+  const char *test = "runtime esq1 wavetable initialization";
+  synth_init(8);
+  wave_table_init(0);
+
+  const struct {
+    int slot;
+    const char *name;
+    int is_oneshot;
+  } expected_esq1[] = {
+    { 50, "saw", 0 },
+    { 51, "bell", 0 },
+    { 52, "sine", 0 },
+    { 53, "square", 0 },
+    { 54, "pulse", 0 },
+    { 55, "noise1", 0 },
+    { 56, "noise2", 0 },
+    { 57, "noise3", 0 },
+    { 58, "bass", 0 },
+    { 59, "piano", 0 },
+    { 60, "elpno", 0 },
+    { 61, "voice1", 0 },
+    { 62, "voice2", 0 },
+    { 63, "kick", 1 },
+    { 64, "reed", 0 },
+    { 65, "organ", 0 },
+    { 66, "synth1", 0 },
+    { 67, "synth2", 0 },
+    { 68, "synth3", 0 },
+    { 69, "formt1", 0 },
+    { 70, "formt2", 0 },
+    { 71, "formt3", 0 },
+    { 72, "formt4", 0 },
+    { 73, "formt5", 0 },
+    { 74, "pulse2", 0 },
+    { 75, "sqr2", 0 },
+    { 76, "4octs", 0 },
+    { 77, "prime", 0 },
+    { 78, "brass", 0 },
+    { 79, "string", 0 },
+    { 80, "octave", 0 },
+    { 81, "oct5th", 0 },
+    { 0, NULL, 0 }
+  };
+
+  for (int i = 0; expected_esq1[i].slot != 0; i++) {
+    int w = expected_esq1[i].slot;
+    const char *name = expected_esq1[i].name;
+    if (!sw.data[w]) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "esq1 slot %d (%s) data is null", w, name);
+      fail(test, msg);
+      continue;
+    }
+    if (strcmp(sw.name[w], name) != 0) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "esq1 slot %d name expected '%s', got '%s'", w, name, sw.name[w]);
+      fail(test, msg);
+    }
+    if (sw.size[w] != 4096) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "esq1 slot %d size expected 4096, got %d", w, sw.size[w]);
+      fail(test, msg);
+    }
+    if (sw.rate[w] != 44100.0f) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "esq1 slot %d sample rate expected 44100, got %.1f", w, sw.rate[w]);
+      fail(test, msg);
+    }
+    if (sw.one_shot[w] != expected_esq1[i].is_oneshot) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "esq1 slot %d one_shot expected %d, got %d",
+               w, expected_esq1[i].is_oneshot, sw.one_shot[w]);
+      fail(test, msg);
+    }
+    if (!sw.readonly[w]) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "esq1 slot %d is not marked readonly", w);
+      fail(test, msg);
+    }
+
+    // Check that samples are non-zero
+    double energy = 0.0;
+    for (int s = 0; s < sw.size[w]; s++) {
+      energy += sw.data[w][s] * sw.data[w][s];
+    }
+    if (energy <= 1e-6) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "esq1 slot %d has no audio energy", w);
+      fail(test, msg);
+    }
+  }
+
+  wave_free();
+  synth_free();
+}
 #endif
 
 int main(void) {
@@ -294,6 +391,7 @@ int main(void) {
   test_skode_context_isolation();
   test_skode_wave_round_trip();
   test_ksynth_sample_rate_binding_and_scaling();
+  test_runtime_esq1_wavetable_initialization();
   test_runtime_drum_wavetable_initialization();
 #endif
 

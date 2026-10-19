@@ -207,6 +207,17 @@ add_custom_target(generate_drum_sources ALL DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}
 add_dependencies(api generate_drum_sources)
 add_dependencies(api_shared generate_drum_sources)
 
+file(GLOB ESQ1_KS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/waves/esq1/*.ks")
+add_custom_command(
+  OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/esq1_sources.h"
+  COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_esq1_sources.py"
+  DEPENDS ${ESQ1_KS_FILES} "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_esq1_sources.py"
+  COMMENT "Generating esq1_sources.h from waves/esq1/*.ks..."
+)
+add_custom_target(generate_esq1_sources ALL DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/esq1_sources.h")
+add_dependencies(api generate_esq1_sources)
+add_dependencies(api_shared generate_esq1_sources)
+
 install(FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/api.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/polyphony.h"

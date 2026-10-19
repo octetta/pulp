@@ -268,26 +268,100 @@ One of the most dangerous misconceptions in Skode is assuming `l<val>` specifies
        ```
      - **Transition and Break Clears**: In conductor break bars and song section transitions, always send explicit `l0` to all active lead and bass voices (e.g. `[y6 z0 v6 l0 v8 l0] x31`) to kill any lingering decay tails.
 
-## 3. Waves worth knowing
+## 3. Built-in Wavetables and Runtime Synthesis
 
-Verified by `W` listing and by ear-free measurement:
+Pulp/Skred provides a vast built-in library of single-cycle wavetables and one-shot drum instruments. Rather than storing large static float tables in C headers (which bloated earlier binaries to over 4.5 MB), **all drum samples (82–99), Ensoniq ESQ-1 wavetables (50–81), and Korg DW-8000 DWGS wavetables (15–30, 49) are generated at startup from embedded K-synth source code**. This shrunk the binary size by more than 50% (`libapi.so` from 4.5 MB to 2.2 MB; `mini-skred` from 4.3 MB to 2.0 MB) while preserving bit-for-bit synthesis fidelity.
 
-- **W15** analog-style saw, **W16** analog-style square. Prefer these over the
-  older `W1`/`W2`/`W3` shapes for synth parts.
-- **W0** sine. **W5** noise (cycle, so it is periodic, not true noise; it has DC).
-- **Built-in drum one-shots (play them at `f440`):**
+To inspect active wavetables at the REPL, type `W` (or `W<slot>` for detailed stats).
 
-| Wave | Sound | Wave | Sound |
-|---|---|---|---|
-| 82 | kick | 90 / 93 | hi tom |
-| 83 | snare | 91 / 92 | lo / mid tom |
-| 84 | closed hat | 94 | crash |
-| 85 | open hat | 95 | cymbal |
-| 86 | clap | 96 | cowbell |
-| 87 | rim | 97 | clave |
-| 88 / 89 | lo / mid tom | 98 / 99 | maracas / trigger |
+### 3a. Geometric / Basic Waveforms (Slots 0–6, 47–48)
+- **`w0`**: Pure sine (`SIZE_SINE = 4096`). Clean fundamental, zero harmonics, zero DC. Essential for subs, electronic kicks, pure bells, and FM carriers.
+- **`w1`**: Naive pulse / square.
+- **`w2` / `w3`**: Naive saw down / saw up.
+- **`w4`**: Triangle wave.
+- **`w5`**: Periodic white noise cycle (deterministic PRNG buffer).
+- **`w6`**: Alternate periodic noise.
+- **`w47`**: Inverted cosine wave.
+- **`w48`**: Centered pulse wave (50% duty cycle, high from phase 0.25 to 0.75).
 
-You do not need to load drum sample files. Use these directly.
+> [!TIP]
+> Avoid naive waveforms `w1`–`w3` for high-register leads and basslines, as they alias at audio rate. Prefer the band-limited DWGS waveforms (`w15`, `w16`) or ESQ-1 waveforms (`w50`, `w53`).
+
+### 3b. Korg DW-8000 (DWGS) Wavetables (Slots 15–30, 49)
+Synthesized via additive Fourier synthesis with up to 32 harmonics (`P: ~4096; A: <harmonics>; W: w P $ A`). Band-limited to prevent nyquist aliasing:
+
+| Slot | Waveform Name | Character & Sound Design Applications |
+|---|---|---|
+| **`w15`** | `dwg-strings` | Band-limited 32-harmonic sawtooth ($1/h$). Standard analog saw; rich, warm, and alias-free. Default choice for leads, pads, and resonant basses. |
+| **`w16`** | `dwg-clarinet` | Band-limited odd-harmonic square wave ($1/h$). Hollow, woody clarinet/square tone; ideal for Minimoog bass partners, hollow leads, and chiptune vibes. |
+| **`w17`** | `dwg-apiano` | Acoustic piano partials measured directly from Korg ROM (prominent peaks at $h_2, h_8, h_{10}$). Excellent for bright house/dance piano chords. |
+| **`w18`** | `dwg-epiano` | Electric piano with steep rolloff after $h_5$ and ghost partials at $h_{13}, h_{15}$. Warm Rhodes-like keys. |
+| **`w19`** | `dwg-epiano-hard` | Hard-struck electric piano with a sharp spike at $h_{13}$. Tine-heavy DX7-style bell hits. |
+| **`w20`** | `dwg-clavi` | Hohner D6 Clavinet. Sharp, funky, percussive bite with strong odd partials. |
+| **`w21`** | `dwg-organ` | Tonewheel drawbar organ. Warm 60s/70s Hammond-style harmonic blend. |
+| **`w22`** | `dwg-brass` | Multi-harmonic analog brass section. Stately, triumphant filter stabs. |
+| **`w23`** | `dwg-sax` | Reed / saxophone partials with rich mid-range growl. |
+| **`w24`** | `dwg-violin` | Bowed string waveform with subtle high-harmonic sheen. |
+| **`w25`** | `dwg-aguitar` | Acoustic steel-string guitar transient harmonic spectrum. |
+| **`w26`** | `dwg-dguitar` | Saturated, overdriven electric guitar spectrum. Aggressive industrial chugs. |
+| **`w27`** | `dwg-ebass` | Round electric bass guitar tone (fingerstyle/slap). |
+| **`w28`** | `dwg-dbass` | Punchy digital synth slap bass. |
+| **`w29`** | `dwg-bell` | Crystalline digital bell; bright, inharmonic metallic top end. |
+| **`w30`** | `dwg-whistle` | Pure fundamental sine whistle ($h_1$ only). |
+| **`w49`** | `centered krg2` | $3/4$-cycle phase-rotated `dwg-clarinet` ($+3072$ sample offset). Provides a symmetrical, centered pulse response ideal for phase distortion (`c`) and FM modulation. |
+
+### 3c. Ensoniq ESQ-1 Digital Wavetables (Slots 50–81)
+The Ensoniq ESQ-1 (1986) was legendary for combining gritty 8-bit digital wavetables with analog filters. Pulp embeds all 32 authentic ESQ-1 wavetables:
+
+| Slot | Waveform | Sound & Arrangement Utility |
+|---|---|---|
+| **`w50`** | `saw` | Authentic Ensoniq digital sawtooth. Grittier edge than `w15`. |
+| **`w51`** | `bell` | Metallic FM bell with distinct high-frequency ringing partials. |
+| **`w52`** | `sine` | 8-bit quantized sine wave; subtle digital character. |
+| **`w53`** | `square` | Digital square wave. Punchy and aggressive. |
+| **`w54`** | `pulse` | Narrow asymmetrical pulse. Crisp, reedy, cutting tone. |
+| **`w55`–`w57`** | `noise1`–`noise3` | Pitched digital noise tables; great for industrial percussion, chiffs, and breath transients. |
+| **`w58`** | `bass` | Signature ESQ-1 digital synth bass with thick sub-harmonics. |
+| **`w59`** | `piano` | 80s digital piano single-cycle. Punchy compressed attack. |
+| **`w60`** | `elpno` | Ensoniq digital electric piano. Classic lo-fi 80s ballad keys. |
+| **`w61`** | `voice1` | Vintage choir / vocal formant table. Haunting "Aah" vocal pad. |
+| **`w62`** | `voice2` | Breathy female vocal formant table ("Ooh" / "Mmm"). |
+| **`w63`** | `kick` | Aggressive digital drum transient wave. |
+| **`w64`** | `reed` | Piercing woodwind / oboe reed partials. |
+| **`w65`** | `organ` | Vintage digital combo organ. |
+| **`w66`–`w68`** | `synth1`–`synth3` | Complex digital wavetable shapes; rich evolving harmonic spectra. |
+| **`w69`–`w73`** | `formt1`–`formt5` | Pure vocal vowel formants (A, E, I, O, U). Run through lowpass filters (`j1 k2400`) for talking synths and Kraftwerk vocoder vocal emulations. |
+| **`w74`–`w75`** | `pulse2`, `sqr2` | Alternate phase/width pulse and square variants. |
+| **`w76`** | `4octs` | 4-octave stacked single-cycle ($f, 2f, 4f, 8f$). Massive wall-of-sound leads from a single voice. |
+| **`w77`** | `prime` | Prime-number harmonic series. Abrasive, alien industrial textures. |
+| **`w78`** | `brass` | Digital hybrid brass wavetable. |
+| **`w79`** | `string` | Solina/Ensoniq digital string machine wave. |
+| **`w80`** | `octave` | Fundamental plus octave ($f + 2f$). Instant doubled synth bass. |
+| **`w81`** | `oct5th` | Power chord wavetable (Fundamental + Octave + 5th). Allows 1 voice to play hard-rock/EBM fifth stabs without polyphony. |
+
+### 3d. Built-in Electronic Drum One-Shots (Slots 82–99)
+High-precision 44.1 kHz one-shot drum models synthesized using K-synth physical/FM scripts. Standard playback frequency is `f440` (or lowered with `f` for pitched/sub tuning):
+
+| Slot | Instrument | Typical Usage & Pitch Adjustments |
+|---|---|---|
+| **`w82`** | Kick | Solid 300 ms electro kick. Tune down with `f220` or `f110` for booming 808 sub drops. |
+| **`w83`** | Snare | Crisp 280 ms backbeat snare with body tone and noise sizzle. Slow to `f175` for industrial whip cracks. |
+| **`w84`** | Closed Hat (CHH) | Tight 200 ms metallic hi-hat tick. |
+| **`w85`** | Open Hat (OHH) | 750 ms sizzling open hat. Pair with `w84` on offbeats. |
+| **`w86`** | Hand Clap | Snappy multi-clap burst with 200 ms room reverb tail. |
+| **`w87`** | Rimshot | 60 ms high-tension snare rim click. |
+| **`w88`** | Low Tom (tomlo) | Deep resonant tom (700 ms). |
+| **`w89`** | Mid Tom (tommid) | Tuned mid-range tom (600 ms). |
+| **`w90`** | High Tom (tomhi) | Punchy high tom (500 ms). |
+| **`w91`–`w93`** | Alt Toms | Alternate tom variations (`lotom`, `midtom`, `hitom`). |
+| **`w94`** | Crash Cymbal | 1500 ms wide stereo splash crash. Ideal for section downbeats. |
+| **`w95`** | Ride Cymbal | 1200 ms metallic ride ping with long decay. |
+| **`w96`** | Cowbell | Iconic dual-tone 808 cowbell (900 ms). |
+| **`w97`** | Clave | High-pitched wooden clave block (100 ms). |
+| **`w98`** | Maracas | Short high-frequency shaker stroke (80 ms). |
+| **`w99`** | Trigger Pulse | 650 ms analog trigger pulse click. |
+
+You do not need to load external sample files. Use these directly in `w<slot>`.
 
 ---
 

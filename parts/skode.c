@@ -1946,7 +1946,13 @@ float record_frame_mono(int frame) {
     /* @doc(command./rg)
     name: /rg
     category: recording
-    summary: start multitrack file recording
+    summary: start multitrack file recording (optional channels: 2 for stereo, 10 for multitrack)
+    @enddoc */
+
+    /* @doc(command./rw)
+    name: /rw
+    category: recording
+    summary: start stereo (2-channel) file recording
     @enddoc */
 
     /* @doc(command./rs)

@@ -25,9 +25,10 @@ Do not write a song blind. The engine will tell you what is wrong; ask it.
    printf '[song.sk] /ls\nwait 300\n/q\n' | mini-skred -n 2>&1 | grep -v ALSA
    ```
    Read every line of output. Compile failures are reported per step.
-4. **Render to WAV.** `/rg <max-seconds>` records a multitrack float WAV
-   (10 channels; channels 0-1 are the master). Start recording, then start the song.
-   Stop with `/rs` or let it hit the max.
+4. **Render to WAV.**
+   - **Stereo WAV (`/rw`)**: `[song.wav] /rw <max-seconds>` records a flattened 2-channel stereo WAV (master mix only). This is immediately compatible with standard MP3 encoders (`lame song.wav song.mp3` or `ffmpeg -i song.wav song.mp3`).
+   - **Multitrack WAV (`/rg`)**: `[song.wav] /rg <max-seconds>` records all 10 channels (channels 0-1 master bus, channels 2-9 stems 1-4). You can also request stereo explicitly with `[song.wav] /rg 0,2`.
+   - Start recording, then start the song. Stop with `/rs` or let it hit the duration limit.
 5. **The null device runs faster than real time** (roughly 10x here), and the
    sequencer follows the audio sample clock, so the recording is correct anyway.
    `wait N` is *wall-clock* milliseconds, so size it as `song_seconds * 110`.

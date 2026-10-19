@@ -36,6 +36,8 @@ typedef struct {
   atomic_int_t terminal_state;
   uint64_t frame_limit;
   uint64_t frames_submitted;
+  int write_channels;
+  float *drain_scratch;
 } recorder_t;
 
 static recorder_t recorder;
@@ -71,8 +73,20 @@ static void recorder_drain(void) {
       break;
     }
     ma_uint64 written = 0;
-    ma_result result = ma_encoder_write_pcm_frames(
-      &recorder.encoder, src, count, &written);
+    ma_result result;
+    if (recorder.write_channels == AUDIO_CHANNELS && recorder.drain_scratch) {
+      const float *in = (const float *)src;
+      float *out = recorder.drain_scratch;
+      for (ma_uint32 f = 0; f < count; f++) {
+        out[f * AUDIO_CHANNELS + 0] = in[f * RECORD_CHANNELS + 0];
+        out[f * AUDIO_CHANNELS + 1] = in[f * RECORD_CHANNELS + 1];
+      }
+      result = ma_encoder_write_pcm_frames(
+        &recorder.encoder, out, count, &written);
+    } else {
+      result = ma_encoder_write_pcm_frames(
+        &recorder.encoder, src, count, &written);
+    }
     if (result != MA_SUCCESS || written != count) {
       ma_pcm_rb_commit_read(&recorder.ring, count);
       recorder_request_stop(RECORDER_ERROR);
@@ -133,6 +147,16 @@ int recorder_init(int max_block_frames, int sample_rate) {
     return -1;
   }
 
+  recorder.drain_scratch = (float *)calloc(
+    (size_t)RECORDER_WRITE_CHUNK_FRAMES * AUDIO_CHANNELS, sizeof(float));
+  if (!recorder.drain_scratch) {
+    ma_event_uninit(&recorder.wake);
+    ma_pcm_rb_uninit(&recorder.ring);
+    free(recorder.scratch);
+    recorder.scratch = NULL;
+    return -1;
+  }
+
   recorder.bus.frames = recorder.scratch;
   recorder.bus.channels = RECORD_CHANNELS;
   recorder.scratch_frames = max_block_frames;
@@ -149,10 +173,11 @@ void recorder_uninit(void) {
   ma_event_uninit(&recorder.wake);
   ma_pcm_rb_uninit(&recorder.ring);
   free(recorder.scratch);
+  free(recorder.drain_scratch);
   memset(&recorder, 0, sizeof(recorder));
 }
 
-int recorder_start(const char *filename, double max_seconds) {
+int recorder_start_channels(const char *filename, double max_seconds, int channels) {
   if (!recorder.initialized || !filename || filename[0] == '\0') return -1;
   int state = atomic_load_int(&recorder.state);
   if (state != RECORDER_STOPPED && state != RECORDER_ERROR) return -1;
@@ -170,8 +195,11 @@ int recorder_start(const char *filename, double max_seconds) {
   }
   atomic_store_int(&recorder.terminal_state, RECORDER_STOPPED);
 
+  int write_channels = (channels == AUDIO_CHANNELS) ? AUDIO_CHANNELS : RECORD_CHANNELS;
+  recorder.write_channels = write_channels;
+
   ma_encoder_config config = ma_encoder_config_init(
-    ma_encoding_format_wav, ma_format_f32, RECORD_CHANNELS,
+    ma_encoding_format_wav, ma_format_f32, (ma_uint32)write_channels,
     (ma_uint32)recorder.sample_rate);
   if (ma_encoder_init_file(filename, &config, &recorder.encoder) != MA_SUCCESS) {
     atomic_store_int(&recorder.state, RECORDER_ERROR);
@@ -188,6 +216,14 @@ int recorder_start(const char *filename, double max_seconds) {
   recorder.thread_started = 1;
   atomic_store_int(&recorder.state, RECORDER_RECORDING);
   return 0;
+}
+
+int recorder_start(const char *filename, double max_seconds) {
+  return recorder_start_channels(filename, max_seconds, 0);
+}
+
+int recorder_channels(void) {
+  return recorder.write_channels ? recorder.write_channels : RECORD_CHANNELS;
 }
 
 int recorder_stop(void) {

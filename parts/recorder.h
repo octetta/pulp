@@ -16,6 +16,8 @@ enum {
 int recorder_init(int max_block_frames, int sample_rate);
 void recorder_uninit(void);
 int recorder_start(const char *filename, double max_seconds);
+int recorder_start_channels(const char *filename, double max_seconds, int channels);
+int recorder_channels(void);
 int recorder_stop(void);
 int recorder_state(void);
 uint64_t recorder_frames_written(void);

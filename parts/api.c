@@ -2254,6 +2254,10 @@ int skred_record_start(const char *filename, double max_seconds) {
   return recorder_start(filename, max_seconds);
 }
 
+int skred_record_start_channels(const char *filename, double max_seconds, int channels) {
+  return recorder_start_channels(filename, max_seconds, channels);
+}
+
 int skred_record_stop(void) {
   return recorder_stop();
 }

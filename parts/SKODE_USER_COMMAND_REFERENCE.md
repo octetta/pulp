@@ -946,9 +946,10 @@ immediately on the control thread.
 | `/wex wave` | Dynamic wave index `200` through `999` | Expands storage for a dynamic wavetable slot. |
 | `a>r seconds[,source[,voice]]`, `^r ...` | Duration, source mode, optional source voice | Records source `0` dry mono, `1` one selected voice, or `2` the audible stereo master. Source defaults to `0`; source `1` requires the voice argument. |
 | `[filename] >r` | File name | Normalizes the completed temporary recording and writes it as a mono or stereo WAV at the main sample rate. |
-| `[filename] /rg [max-seconds]` | Output filename and optional limit | Starts multitrack WAV recording. Requires `RECORD`. |
-| `/rs` | None | Stops multitrack recording. Requires `RECORD`. |
-| `/r?` | None | Displays multitrack recorder status. Requires `RECORD`. |
+| `[filename] /rg [max-seconds[,channels]]` | Output filename and optional limit | Starts multitrack (10-channel default) or stereo (2-channel) WAV recording. Requires `RECORD`. |
+| `[filename] /rw [max-seconds]` | Output filename and optional limit | Starts flattened stereo (2-channel) WAV recording. Ideal for MP3 conversion. Requires `RECORD`. |
+| `/rs` | None | Stops recording and finalizes WAV file header. Requires `RECORD`. |
+| `/r?` | None | Displays recorder status (state, channels, frames written/dropped). Requires `RECORD`. |
 | `r track` | `0` none, `1` through `4` stem | Routes the selected voice into a multitrack stem. Requires `RECORD` or `SCOPE`. |
 | `[name] rt track` | String plus track number | Names record/scope stem tracks 1 through 4. |
 | `rv track,dB` | Track number plus dB | Sets the final stem level for record/scope tracks 1 through 4. Defaults to `-20 dB`. |
@@ -1020,6 +1021,33 @@ route the selected voice into a stem; `r0` removes that extra route. `m1`
 removes the voice from the master but preserves its dry stem route, allowing
 isolated stem recording or monitoring. To stop automatically after five
 seconds, use `[take.wav]/rg5`.
+
+### Stereo WAV Recording & MP3 Conversion (`/rw`)
+
+While `/rg` produces a 10-channel multitrack WAV, `/rw` writes a flattened,
+standard 2-channel stereo WAV containing only the master bus (channels 0 and 1):
+
+```text
+[song.wav] /rw
+play
+# ... when song ends ...
+/rs
+```
+
+Because the output is a standard 2-channel stereo file, it can immediately be
+converted to an MP3 with standard audio utilities:
+
+```sh
+# Using lame:
+lame song.wav song.mp3
+
+# Using ffmpeg:
+ffmpeg -i song.wav -b:a 320k song.mp3
+```
+
+Alternatively, `/rg` accepts an optional second channels parameter:
+`[song.wav] /rg 0,2` starts an unlimited-duration 2-channel stereo recording,
+and `[song.wav] /rg 60,2` records a 60-second 2-channel stereo file.
 
 ### Shared-Memory Scope Walkthrough
 

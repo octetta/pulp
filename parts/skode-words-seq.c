@@ -515,16 +515,52 @@ static int word_exec__slashrg(const skode_word_t *self, skode_t *ctx, ands_t *s,
       {
         const char *filename = ands_string(ctx->parse);
         double max_seconds = argc ? arg[0] : 0.0;
+        int channels = 0;
+        if (argc > 1) {
+          skode_double_to_int(arg[1], &channels);
+        }
         if (!filename || filename[0] == '\0') {
           ctx->printf(ctx, "# /rg requires [filename]\n");
         } else if (!isfinite(max_seconds) || max_seconds < 0.0) {
           ctx->printf(ctx, "# /rg duration must be >= 0\n");
-        } else if (recorder_start(filename, max_seconds) == 0) {
+        } else if (channels != 0 && channels != 2 && channels != RECORD_CHANNELS) {
+          ctx->printf(ctx, "# /rg channels must be 2 (stereo) or %d (multitrack)\n", RECORD_CHANNELS);
+        } else if (recorder_start_channels(filename, max_seconds, channels) == 0) {
+          const char *mode = (channels == 2) ? "stereo" : "multitrack";
           if (max_seconds > 0.0) {
-            ctx->printf(ctx, "# recording [%s] max=%g seconds\n",
+            ctx->printf(ctx, "# recording [%s] (%s) max=%g seconds\n",
+                        filename, mode, max_seconds);
+          } else {
+            ctx->printf(ctx, "# recording [%s] (%s)\n", filename, mode);
+          }
+        } else {
+          ctx->printf(ctx, "# recording start failed [%s]\n", filename);
+        }
+      }
+      return 0;
+}
+
+static int word_exec__slashrw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      {
+        const char *filename = ands_string(ctx->parse);
+        double max_seconds = argc ? arg[0] : 0.0;
+        if (!filename || filename[0] == '\0') {
+          ctx->printf(ctx, "# /rw requires [filename]\n");
+        } else if (!isfinite(max_seconds) || max_seconds < 0.0) {
+          ctx->printf(ctx, "# /rw duration must be >= 0\n");
+        } else if (recorder_start_channels(filename, max_seconds, 2) == 0) {
+          if (max_seconds > 0.0) {
+            ctx->printf(ctx, "# recording [%s] (stereo) max=%g seconds\n",
                         filename, max_seconds);
           } else {
-            ctx->printf(ctx, "# recording [%s]\n", filename);
+            ctx->printf(ctx, "# recording [%s] (stereo)\n", filename);
           }
         } else {
           ctx->printf(ctx, "# recording start failed [%s]\n", filename);
@@ -565,8 +601,9 @@ static int word_exec__slashr_q(const skode_word_t *self, skode_t *ctx, ands_t *s
           case RECORDER_STOPPING: state = "stopping"; break;
           case RECORDER_ERROR: state = "error"; break;
         }
-        ctx->printf(ctx, "# recorder state=%s frames=%llu dropped=%llu\n",
+        ctx->printf(ctx, "# recorder state=%s channels=%d frames=%llu dropped=%llu\n",
                     state,
+                    recorder_channels(),
                     (unsigned long long)recorder_frames_written(),
                     (unsigned long long)recorder_dropped_frames());
       }
@@ -831,6 +868,7 @@ static skode_word_t word__qce_bang = { WID("?ce!"), .execute = word_exec__qce_ba
 static skode_word_t word__qq = { WID("?q"), .execute = word_exec__qq, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word__qo = { WID("?o"), .execute = word_exec__qo, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
 static skode_word_t word__slashrg = { WID("/rg"), .execute = word_exec__slashrg, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
+static skode_word_t word__slashrw = { WID("/rw"), .execute = word_exec__slashrw, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
 static skode_word_t word__slashrs = { WID("/rs"), .execute = word_exec__slashrs, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
 static skode_word_t word__slashr_q = { WID("/r?"), .execute = word_exec__slashr_q, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
 static skode_word_t word__slashr = { WID("/r"), .execute = word_exec__slashr, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
@@ -881,6 +919,7 @@ void skode_register_words_seq(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word__qq);
   skode_dict_register(vocab, &word__qo);
   skode_dict_register(vocab, &word__slashrg);
+  skode_dict_register(vocab, &word__slashrw);
   skode_dict_register(vocab, &word__slashrs);
   skode_dict_register(vocab, &word__slashr_q);
   skode_dict_register(vocab, &word__slashr);

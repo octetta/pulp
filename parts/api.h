@@ -42,8 +42,9 @@ int skred_command_ctx(char* cmd, struct skode_s *ctx);
 // Safely tear down resources
 void skred_stop(void);
 
-// RECORD feature: writes master plus four stereo stems to a 10-channel WAV.
+// RECORD feature: writes master plus four stereo stems to a 10-channel WAV (or stereo 2-channel WAV).
 int skred_record_start(const char *filename, double max_seconds);
+int skred_record_start_channels(const char *filename, double max_seconds, int channels);
 int skred_record_stop(void);
 int skred_record_state(void);
 uint64_t skred_record_frames_written(void);

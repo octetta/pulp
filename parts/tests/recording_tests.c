@@ -435,8 +435,80 @@ static void test_skode_recording_commands(void) {
     }
   }
 
+  snprintf(command, sizeof(command), "[%s]/rw", filename);
+  if (skode_consume(command, &ctx) != 0 ||
+      recorder_state() != RECORDER_RECORDING ||
+      recorder_channels() != 2) {
+    fail(test, "[filename]/rw did not start stereo recording");
+  }
+  skode_consume(stop, &ctx);
+
+  snprintf(command, sizeof(command), "[%s]/rg0,2", filename);
+  if (skode_consume(command, &ctx) != 0 ||
+      recorder_state() != RECORDER_RECORDING ||
+      recorder_channels() != 2) {
+    fail(test, "[filename]/rg0,2 did not start stereo recording");
+  }
+  skode_consume(stop, &ctx);
+
   recorder_uninit();
   unlink(filename);
+}
+
+static void test_stereo_recording(void) {
+  const char *test = "stereo recording";
+  char filename[128];
+  snprintf(filename, sizeof(filename), "/tmp/pulp-recording-stereo-%ld.wav",
+           (long)getpid());
+
+  if (recorder_init(64, MAIN_SAMPLE_RATE) != 0 ||
+      recorder_start_channels(filename, 0.0, 2) != 0) {
+    fail(test, "recorder_start_channels stereo failed");
+    recorder_uninit();
+    return;
+  }
+
+  synth_record_bus_t *bus = recorder_begin_block(32);
+  if (!bus) {
+    fail(test, "recorder_begin_block failed");
+  } else {
+    for (int frame = 0; frame < 32; frame++) {
+      bus->frames[frame * RECORD_CHANNELS + 0] = 0.5f;
+      bus->frames[frame * RECORD_CHANNELS + 1] = -0.5f;
+      for (int ch = 2; ch < RECORD_CHANNELS; ch++) {
+        bus->frames[frame * RECORD_CHANNELS + ch] = 0.9f;
+      }
+    }
+    recorder_end_block(32);
+  }
+
+  if (recorder_stop() != 0) {
+    fail(test, "recorder_stop failed");
+  }
+  recorder_uninit();
+
+  FILE *file = fopen(filename, "rb");
+  if (!file) {
+    fail(test, "recorded WAV was not created");
+    return;
+  }
+  unsigned char header[44];
+  size_t size = fread(header, 1, sizeof(header), file);
+  fclose(file);
+  unlink(filename);
+
+  if (size != sizeof(header) ||
+      memcmp(header, "RIFF", 4) != 0 ||
+      memcmp(header + 8, "WAVE", 4) != 0) {
+    fail(test, "invalid WAV header");
+    return;
+  }
+  if (read_u16_le(header + 22) != 2) {
+    fail(test, "WAV channel count is not 2 (stereo)");
+  }
+  if (read_u32_le(header + 24) != (uint32_t)MAIN_SAMPLE_RATE) {
+    fail(test, "WAV sample rate mismatch");
+  }
 }
 
 int main(void) {
@@ -446,6 +518,7 @@ int main(void) {
   test_sub_block_record_offsets();
   test_ring_writer();
   test_duration_limit_and_restart();
+  test_stereo_recording();
   test_skode_recording_commands();
 
   if (failures) {

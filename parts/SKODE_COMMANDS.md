@@ -526,9 +526,10 @@ vector, so `k>w` arguments supply the desired rate and playback mode.
 | `/w file-number[,wave[,channel]]` | numeric | Load a numbered audio file | `wave_load()` |
 | `<r seconds[,source[,voice]]`, `^r ...` | numeric | Record source `0` dry mono, `1` selected voice, or `2` audible stereo master | `skode_sample_go()` |
 | `[filename] >r` | string | Normalize the completed mono or stereo sample buffer and write the named WAV file | miniaudio encoder API |
-| `[filename] /rg [max-seconds]` | string | Start multitrack recording | `recorder_start()` |
-| `/rs` | none | Stop multitrack recording | `recorder_stop()` |
-| `/r?` | none | Show multitrack recorder status | recorder status functions |
+| `[filename] /rg [max-seconds[,channels]]` | string and numeric | Start multitrack recording (channels: 10 multitrack default, 2 stereo) | `recorder_start_channels()` |
+| `[filename] /rw [max-seconds]` | string and numeric | Start flattened stereo (2-channel) WAV recording | `recorder_start_channels()` |
+| `/rs` | none | Stop recording (finalizes file header) | `recorder_stop()` |
+| `/r?` | none | Show recorder status (state, channels, frames, dropped) | recorder status functions |
 | `[name] /sg [channel-mask[,buffer-seconds]]` | string and numeric | Start shared-memory audio publication | `scope_ipc_start()` |
 | `/ss` | none | Stop and unlink shared-memory publication | `scope_ipc_stop()` |
 | `/s?` | none | Show shared-memory publication status | scope IPC status functions |
@@ -615,7 +616,7 @@ features are enabled. Important command features include:
 | `MIDI` | `/mL`, `/m?`, `/mi`, `/miV`, `/mic`, `/mo`, `/moV`, `/moc`, `MO`, `d>MO`, `/mv`, `/mvd`, `/mp`, `/mpd`, `/mR`, `/mC`, `/mb`, `/mb?`, `/mbd`, `/mbC` |
 | `PANMOD` | `P` |
 | `PD` | `c`, `C`, `ct`, `cd` |
-| `RECORD` | `r`, `rt`, `rv`, `?r`, `/rg`, `/rs`, `/r?` |
+| `RECORD` | `r`, `rt`, `rv`, `?r`, `/rg`, `/rw`, `/rs`, `/r?` |
 | `SCOPE` | `r`, `rt`, `rv`, `?r`, `/sg`, `/ss`, `/s?` |
 | `TRACKS` | `r`, `rt`, `rv`, `?r`, `ds`, `DL`, `DL?` |
 | `SAH` | `h` |

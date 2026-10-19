@@ -235,6 +235,38 @@ Offline Python loops calculating filter cutoff sweeps or modulation tables can b
    [=127,0] x63
    ```
 
+### 2k. Velocity vs. Duration (`l1` vs `l0`), Envelopes, and Deferred Releases (`+# vN l0`)
+
+One of the most dangerous misconceptions in Skode is assuming `l<val>` specifies note length or duration. **`l` is VELOCITY, NOT note duration!**
+
+1. **How `l` Works**:
+   - In Skode, `l` compiles to `SKODE_OP_VELOCITY`.
+   - `l1` triggers a note at standard full velocity (1.0). Fractional values (`l.85`, `l.5`) trigger with reduced dynamic velocity.
+   - Writing `l2.5` or `l3.0` does NOT cause a note to hold for 2.5 beats — it overdrives the voice gain by 250% to 300%, blowing out the internal synth gain staging and slamming into the master bus limiter!
+   - `l0` is the dedicated **note-off release** trigger. When `l0` is issued to a voice, its amplitude envelope enters the release phase (`r` in `t a,d,s,r`).
+
+2. **The Fast-Sequence Drone Hazard (`sustain > 0` without `l0`)**:
+   - In `t a,d,s,r` (attack, decay, sustain, release), once the decay time elapses, the voice envelope **holds at the `sustain` level indefinitely** until an explicit `l0` (or `NAN` rest) is received.
+   - If a voice has `s > 0` (e.g. `t.001,.15,.25,.04`) and plays rapid sixteenth or eighth notes without `l0`, every new note hits its sustain plateau and continues sounding. Within a bar or two, all overlapping notes blur into an unintelligible, muddy drone that drowns out the mix.
+   - **Remedies for Fast Sequences**:
+     - **Percussive Envelopes (`s=0`)**: For driving basslines, arpeggios, and rhythmic stabs, set `sustain=0` (e.g. `t.001,.14,0,.04`). The envelope naturally decays to complete silence within the decay window before the next note hits.
+     - **Interleaved `l0` Releases**: When sequences need held notes or distinct gate lengths, interleave explicit `l0` commands on intermediate steps:
+       ```forth
+       # 8th-note motorik bass with staccato releases on odd 16th steps:
+       y6
+       [motorik bass with releases] yt
+       [v6 l0] x1,3,5,7,9,11,13,15
+       [v6 n&1 l1] x0,2,4,6,8,10,12,14
+       [=127,0] x15
+       ```
+     - **Beat-Relative Deferred Releases (`+# vN l0`)**:
+       Skode supports beat-relative scheduling with `+#` (`+0.5` is an eighth note, `+0.25` is a sixteenth note). Inside a step or macro, you can schedule an automated note-off:
+       ```forth
+       # Trigger note on beat 0, release 0.35 beats later:
+       [v6 n45 l1 +0.35 v6 l0] x0
+       ```
+     - **Transition and Break Clears**: In conductor break bars and song section transitions, always send explicit `l0` to all active lead and bass voices (e.g. `[y6 z0 v6 l0 v8 l0] x31`) to kill any lingering decay tails.
+
 ## 3. Waves worth knowing
 
 Verified by `W` listing and by ear-free measurement:
@@ -335,6 +367,34 @@ k>w301,44100,1
 About 3 s of audio played at `f187` lasts about 7 s (about 4 bars at 134 BPM). The
 rising envelope plus the noise-minus-lowpass high-pass gave zero DC. Multi-line
 `[ ... ] k!` works inline in a `.sk` file.
+
+> [!WARNING]
+> **Avoid Inappropriate Sound Re-use (The "Hammer Riser" Trap)**:
+> The specialized rising industrial noise sweep / pitch riser designed for `hammer_the_signal.sk` is an extreme, aggressive special effect tailored to industrial techno-pop. Do NOT blindly copy it into other demos or covers (such as Yazoo, Soft Cell, Eurythmics, or Kraftwerk). Using screeching noise sweeps or spastic `fd2400` filter envelopes on every 16th note ruins vintage synth-pop grooves and makes arrangements sound mechanical and exhausting. Craft sounds authentic to the genre.
+
+**Kraftwerk synthesized electronic percussion (pure analog, no acoustic samples).**
+Acoustic rock drum samples (`w82`..`w85`) sound cheap and out-of-place for electronic synth-pop pioneers like Kraftwerk. Synthesize crisp, authentic analog electronic drums:
+```forth
+# Electronic Kick: Pure sine wave with fast pitch drop + subtle transient click
+v0 w0 a5 p0 t.001,.14,0,.03 g0 n60 g.025 n36 [kraftwerk electronic kick] vt
+v0 >4
+v4 w5 a-6 p0 t.001,.012,0,.005 k4000 q2.0 [kick click transient] vt
+v0 G4 H4
+
+# Electronic Snare: Tight white noise snap with bitcrusher + analog tone body
+v1 w5 a5 p0 t.001,.09,0,.02 j1 k2600 q3.5 bc4 r2 ds.15 [kraftwerk noise snap snare] vt
+v1 >15
+v15 w1 a-3 p0 t.001,.07,0,.02 n55 [snare body tone] vt
+v1 G15 H15
+
+# Micro-tick Hats: Pristine electronic click (very short decay, high resonance)
+v2 w5 a-5 p.15 t.001,.02,0,.005 k6800 q4.0 [electronic micro-tick hat] vt
+v3 w5 a-4 p-.15 t.001,.12,0,.04 k5500 q3.0 [electronic open sizzle] vt
+
+# Transition Noise Wash (lush white-noise burst on section downbeats)
+v5 w5 a-4 p.1 t.01,.7,0,.2 j2 k3200 q.8 [electronic noise wash] vt
+```
+Pair this with Kraftwerk's signature 4/4 syncopated groove: do not use a rigid flat 4-on-the-floor; include the anticipatory 16th-note push on step 10 (`x0,4,8,10,12` with step 10 slightly quieter at `l.85`).
 
 **Delay moves that paid off (from the delay doc, verified in the song).**
 - *Freeze as a capture loop.* `DF 1 1` as the breakdown begins holds the hook's echo
@@ -604,13 +664,14 @@ y4
 9. **Iterate with the listener.** Ask which note is late or missing, then change one note name in the stream.
 10. **Showcase Repertoire in `parts/skred-music-guide/`**:
     - **`hammer_the_signal.sk`** (134 BPM, E minor): Original industrial techno-pop demo demonstrating 32-op limits, delay freeze drone capture, and polymeter clangs.
-    - **`whip_it.sk`** (158 BPM, E Mixolydian): DEVO's 1980 new wave classic. Demonstrates the whip crack via slowed snare (`w83 f175`), motorik Alan Myers drum feel, Moog bass/guitar chug trio linked via `>7 >8 G7 H7 G8 H8`, call-and-response vocal lead synth with safe `s=0` decay envelopes, and full `[name] vt` voice labeling.
-    - **`dont_go.sk`** (128 BPM, B-flat minor): Yazoo's 1982 synthpop masterpiece by Vince Clarke & Alison Moyet. Demonstrates the authentic B-flat minor key, the signature opening staccato synth brass hook with octaves (`Db5 - C5 - Bb4 - F4` and leap to `F5`), relentless 16th-note bouncing bassline with rests, 16th Vince Clarke arpeggio feeding dotted-eighth echo Bus 1, and Alison's vocal laugh/cry formant pitch glides.
+    - **`whip_it.sk`** (158 BPM, E Mixolydian): DEVO's 1980 new wave classic. Demonstrates the whip crack via slowed snare (`w83 f175`), authentic Alan Myers 8th-note drum feel with open-hat sizzles on 6 and 14, Moog bass/guitar chug trio linked via `>7 >8 G7 H7 G8 H8`, call-and-response vocal lead synth with safe `s=0` decay envelopes, and full `[name] vt` voice labeling.
+    - **`dont_go.sk`** (128 BPM, B-flat minor): Yazoo's 1982 synthpop masterpiece by Vince Clarke & Alison Moyet. Demonstrates the authentic B-flat minor key, the signature opening staccato synth brass hook with octaves (`Db5 - C5 - Bb4 - F4` and leap to `F5`), relentless Vince Clarke 16th bouncing octave bassline (`Bb1 Bb1 Bb2 Bb1`) with smooth resonant filter, 16th Vince Clarke arpeggio feeding dotted-eighth echo Bus 1, and Alison's vocal laugh/cry formant pitch glides.
     - **`closer.sk`** (90 BPM, C minor): Nine Inch Nails' 1994 industrial tour-de-force by Trent Reznor. Features the "Nightclubbing" heartbeat kick (`w82` + sub glide `w0`), rubbery Minimoog bassline with octave snaps and chromatic slides, the ascending chromatic tension hook (`E -> F -> G -> Ab`), singing vocal lead synth lines, crushing chorus synth brass and sidechain pumping, delay freeze drone capture (`DF 1 1`), and the haunting Downward Spiral outro piano solo through ping-pong hall delay.
-    - **`i_feel_love.sk`** (128 BPM, C modal): Donna Summer & Giorgio Moroder's 1977 electronic disco foundation. Features the iconic machine-gun Moog modular 16th-note bouncing bassline (`C -> Eb -> F -> G`), 16th-note slapback / ping-pong tape delay recreation on Bus 1, Donna Summer singing leads ("Ooh, it's so good...", "I feel love..."), cascading high sparkle arpeggios, 1970s Solina/ARP disco strings, Moroder white noise wind sweeps, and the legendary delay freeze breakdown (`DF 1 1`).
+    - **`i_feel_love.sk`** (128 BPM, C modal): Donna Summer & Giorgio Moroder's 1977 electronic disco foundation. Features the iconic machine-gun Moog modular 16th-note bouncing bassline (`C -> Eb -> F -> G`) with clean mix headroom, 16th-note slapback / ping-pong tape delay recreation on Bus 1, Donna Summer floating falsetto singing leads ("Ooh, it's so good...", "I feel love..."), cascading high sparkle arpeggios, 1970s Solina/ARP disco strings, Moroder white noise wind sweeps, and the legendary delay freeze breakdown (`DF 1 1`).
     - **`sweet_dreams.sk`** (125 BPM, C minor): Eurythmics' 1983 synth-pop classic by Annie Lennox & Dave Stewart. Features the iconic 2-bar Roland SH-101 / Juno bass riff (`C -> Eb -> Ab -> G`), left-panned plucky counter-riff, Dave Stewart's milk bottle crack & sub boom impact on bar 2 downbeats, expressive Annie Lennox singing vocal leads (Chorus: "Sweet dreams are made of this...", Verse: "Some of them want to use you...", Bridge: "Hold your head up..."), screaming analog portamento synth solo, and warm synth pad chords with zero-hanging envelopes.
-    - **`uncontrollable_urge.sk`** (184 BPM, key of A): DEVO's 1978 punk-funk opening blast from *Q: Are We Not Men? A: We Are Devo!*. Features Alan Myers' motorik drums, Gerald Casale's iconic initial bass pickup riff (`A2` on beat 1, three `G2` pickups on 10, 12, 14), 8-bar layered intro build, start-stop breaks with echoing FM metallic stabs and manic "YEAH! YEAH!" vocal shouts, Mark Mothersbaugh's verse vocal lead melodies, high-register Minimoog synth bleeps and chorus squeals, V - IV - I chorus power chords (`E5 -> D5 -> A5`), and Bob Mothersbaugh's staccato power chord trio.
-    - **`tainted_love.sk`** (144 BPM, G minor): Soft Cell's 1981 synth-pop defining anthem, produced by Mike Thorne. Features the iconic Synare S3X "bink-bink" double hit feeding a Delta Labs DL4 16th ping-pong delay line (Bus 1), Dave Ball's punchy Korg Synthe-Bass ostinato (`Gm -> Bb | Eb -> F`), Mike Thorne's New England Digital Synclavier II digital brass stabs and crystalline bell arpeggios, Marc Almond's impassioned theatrical vocal delivery with zero-hanging envelopes, dramatic D-dominant pre-chorus turnarounds, and zero synthetic noise risers.
+    - **`uncontrollable_urge.sk`** (184 BPM, key of A): DEVO's 1978 punk-funk opening blast from *Q: Are We Not Men? A: We Are Devo!*. Features Alan Myers' motorik drums, Gerald Casale's iconic initial bass pickup riff (`A2` on beat 1, three `G2` pickups on 10, 12, 14), interleaved `l0` voice releases on odd 16th steps, 8-bar layered intro build, start-stop breaks with echoing FM metallic stabs and manic "YEAH! YEAH!" vocal shouts, Mark Mothersbaugh's verse vocal lead melodies, high-register Minimoog synth bleeps and chorus squeals, V - IV - I chorus power chords (`E5 -> D5 -> A5`), and Bob Mothersbaugh's staccato power chord trio.
+    - **`tainted_love.sk`** (144 BPM, G minor): Soft Cell's 1981 synth-pop defining anthem, produced by Mike Thorne. Features the iconic Synare S3X analog drum synth double hit feeding a Delta Labs DL4 16th ping-pong delay line (Bus 1), Dave Ball's punchy Korg Synthe-Bass ostinato (`Gm -> Bb | Eb -> F`), warm analog saw/pulse du-du hook (`k2400 q2.2`), Mike Thorne's New England Digital Synclavier II digital brass stabs and crystalline bell arpeggios, Marc Almond's impassioned theatrical vocal delivery with zero-hanging envelopes, dramatic D-dominant pre-chorus turnarounds, and zero synthetic noise risers.
+    - **`pocket-calc.sk`** (126 BPM, C modal / pop): Kraftwerk's 1981 *Computer World* electronic masterpiece. Features 100% synthesized analog electronic drums (pitch-drop sine kick with step-10 syncopated push `x0,4,8,10,12`, bitcrushed noise-snap snare `w5 bc4`, micro-tick synthetic hats, transition noise wash), Minimoog motorik bassline with octave sub and interleaved `l0` releases, Casio VL-80 handheld calculator "little melody" (`w0` pure tone), vintage polyphonic string pad (`v24` LFO + `v26-v35` pool), and subtle 4-on-the-floor sidechain pumping.
 
 
 **Step grid cheat sheet** (with `M 125 16`, one pattern step is one sixteenth note):
@@ -655,6 +716,26 @@ it, you still have options.
 
 ---
 
+### 7c. Master Bus Headroom & Mix Balance Hierarchy (Avoiding Limiter Distortion)
+
+Skred features an integrated master bus soft limiter. When multiple voices are summed together, stacking positive dB gains (`a8`, `a7`, `a4`) easily exceeds 0 dBFS, forcing the master limiter into severe non-linear saturation, flat-topped clipping distortion, and unmusical pumping.
+
+**Standard Mix Hierarchy for Skode Songs:**
+| Instrument Group | Typical Base Level (`a`) | Notes / Design Guidelines |
+|---|---|---|
+| **Kick Drum** | `a5` | Punchy transient anchor. Keep centered (`p0`). |
+| **Snare / Clap** | `a5` | Snappy backbeat anchor. Centered (`p0`). |
+| **Hi-Hats / Cymbals** | `a-5` to `a-4` | Delicate high end; sits cleanly above the mids without harshness. |
+| **Bass (Primary Saw/Pulse)** | `a-2` | Resonant core bass. Centered (`p0`). |
+| **Sub-Bass Layer** | `a-6` | Octave-below support. Centered (`p0`). Keep below primary to avoid mud. |
+| **Lead Synths & Vocals** | `a-5` to `a-6` | Sits right in the pocket. Detuned stereo partners at `a-8` to `a-10`. |
+| **Pads & Harmonic Beds** | `a-8` to `a-14` | Atmospheric glue. Wide stereo spread. |
+| **Sidechain Pump Patterns** | `-14 dB` on step 0 to `0 dB` on step 3 | Pump patterns (`y14`) should **duck** below nominal levels and return to nominal (`a-6`/`a-5`), NEVER boost into positive gain overdriving the master bus. |
+
+Following this hierarchy ensures that even when every track element is playing simultaneously at the song's climax (Drop 2), the summed master signal remains punchy, dynamic, and crystal-clear with zero limiter distortion.
+
+---
+
 ## 8. Mistakes to avoid (checklist)
 
 - Using uppercase `J`/`K`/`Q` (old names). Filter commands are lowercase `j k q`, and bitcrush is `bc`.
@@ -680,6 +761,13 @@ it, you still have options.
 - Naming macros after built-in Forth words (shadows built-in commands; pay attention to Skred's `# WARNING: macro [...] shadows built-in word` console warning).
 - Reading a stream multiple times in the same step (`[v6 k&6 v7 k&6]`) when voices need identical values (advances stream pointer twice; cache via `[=0,&6 v6 k$0 v7 k$0]`).
 - Exceeding 8 arguments in multi-step assignments `x#,#,#...` (engine limit is `ARG_MAX 8`).
+- Treating `l` as note duration instead of velocity (`l2.5` overdrives the gain stage by 250%; `l0` is note-off release).
+- Setting `sustain > 0` on rapid 16th/8th sequences without explicit `l0` releases (causes notes to drone together into a muddy wall of sound).
+- Stacking multiple positive dB gains (`a8`, `a7`, `a4`) that slam the master limiter into distortion.
+- Using acoustic rock sample drums (`w82`..`w85`) for electronic synth-pop pioneers like Kraftwerk (synthesize electronic percussion instead).
+- Blindly pasting the `hammer_the_signal` ksynth riser into other song genres where it clashes and sounds mechanical.
+- Assuming a 4/4 drum beat is always flat four-on-the-floor when the genre requires syncopated anticipatory kicks (e.g. Kraftwerk's step-10 push).
+- Hallucinating or transposing vocal melodies in cover songs instead of verifying against original recordings and tabs.
 
 ---
 

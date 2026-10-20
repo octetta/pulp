@@ -25,7 +25,7 @@
 #    v6  Vince Clarke 16th bass saw (w15, centre) + v7 sub sine octave partner (w0 N-12)
 #    v8  Jupiter-8 16th arpeggio centre (w15 saw) + v9 stereo partner (w20 clavi, p.35)
 #    v10 synth flute / ocarina solo fills (w29 dwg-bell, p-.45)
-#    v12 Vince Clarke octave synth hook & risers (w16 square, p.30)
+#    v12 Vince Clarke octave synth hook & risers (w16 square, a-10, p0)
 #    v13 Andy Bell soaring vocal lead (w15 saw, centre) + v14 detuned partner (w16, right)
 #    v15 DWGS / Oberheim synth brass stabs & fills (w22 dwg-brass, p-.30)
 #    v16 accent cowbell (w96)
@@ -49,7 +49,7 @@ M 131 16
 ## DELAY BUSES
 # Bus 1: Signature Vince Clarke dotted-eighth ping-pong echo on arpeggios
 DS 1 131 .75
-DL 1 - - 8 3 4 11
+DL 1 - - 8 0 0 11
 DD 1 7 3
 DP 1 1
 
@@ -65,7 +65,7 @@ DD 3 5 3
 
 # Bus 4: Vocal lead & choir wide ping-pong hall wash
 DS 4 131 .75
-DL 4 - - 11 3 8 10
+DL 4 - - 11 0 0 10
 DD 4 8 2
 DP 4 1
 
@@ -102,7 +102,7 @@ v8 G9 H9
 v10 w29 a-7 p-.45 t.005,.35,0,.10 j1 k3800 q1.2 r1 ds.35 [synth flute fill] vt
 
 # Vince Clarke Octave Synth Hook & Risers (Punchy filtered square)
-v12 w16 a-6 p.30 t.003,.20,0,.06 j1 k2600 q1.8 r1 ds.30 [vince octave synth hook] vt
+v12 w16 a-10 p0 t.003,.20,0,.06 j1 k2600 q1.8 r1 ds.30 [vince octave synth hook] vt
 
 # Andy Bell Soaring Vocal Lead: SUSTAINED, smooth portamento, hall reverb
 v13 w15 a-5 p0 t.012,.20,.75,.22 j1,2 k3400 q1.4 c4,.15 g.04 r4 ds.35 [andy bell soaring lead] vt
@@ -140,7 +140,7 @@ v24 l1
 ## CONTROL EVENTS & MACROS
 [O DQ] /ceb 4 99
 /cer 1
-[play] : Z0 y0 z1 ;
+[play] : Z0 Z! y0 z1 ;
 [stop] : Z0 O DQ ;
 
 ## STREAMS (Continuous 16th Arpeggios, Scale Risers & Dynamic DSP Sweeps)
@@ -583,12 +583,10 @@ y17
 [v12 n67 l.8] x105,107,121,123
 [=127,0] x127
 
-# Pattern 18: Ascending 16th Synth Scale Riser (1 bar = 16 steps, SELF-STOPPING)
+# Pattern 18: Ascending 16th Synth Scale Riser (1 bar = 16 steps, stopped by conductor)
 y18
 [ascending synth riser] yt
-[v12 n&12 l1] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14
-[v12 n&12 l1 y18 z0 =127,0] x15
-[=127,0] x15
+[v12 n&12 l1] x0
 
 # Pattern 19: Pre-Chorus Plucked Synth Hook (8 bars, 128 steps: Dm-Am-Cm-Gm)
 y19
@@ -988,86 +986,84 @@ y35
 [v13 l0] x90
 [=127,0] x95
 
-## CONDUCTOR ARRANGEMENT (Pattern 0, %16 = 1 step per bar, 147 bars)
+## CONDUCTOR ARRANGEMENT (Pattern 0, %16 = 1 step per bar, 146 bars)
 y0 %16
-[conductor 147 bars] yt
-# Bar 0: Hi-hat count-in
-[v2 l1] x0
-# Bar 1: Intro starts (Intro Bass, Intro Arpeggio, 16th hats, High Synth bleep)
-[v17 l1 y3 z1 y10 z1 y12 z1 y15 z1] x1
-# Bar 5: Kick drops in
-[v17 l.8 y1 z1] x5
-# Bar 9: Snare and clap enter
-[y2 z1] x9
-# Bar 16: Snare fill into Verse 1 and clear intro parts
-[y5 z1 y10 z0 y12 z0 y15 z0] x16
-# Bar 17: Verse 1 starts (All 8-bar parts synchronized)
-[v17 l1 y1 z1 y2 z1 y3 z1 y6 z1 y16 z1 y26 z1 y31 z1] x17
-# Bar 32: Snare fill into Pre-Chorus and clear Verse parts
-[y5 z1 y6 z0 y16 z0 y26 z0 y31 z0] x32
-# Bar 33: Pre-Chorus 1 (Bass 7, octave synth 17, pluck 19, flute 21, chords 27, vocal 32)
-[v17 l1 y7 z1 y17 z1 y19 z1 y21 z1 y27 z1 y32 z1] x33
-# Bar 40: Ascending synth riser & snare build into Chorus 1 and clear Pre-Chorus
-[y5 z1 /SP 12,0 y18 z1 /SP 8,0 /SP 9,0 /SP 10,0 /SP 11,0 y7 z0 y17 z0 y19 z0 y21 z0 y27 z0 y32 z0] x40
-# Bar 41: Chorus 1 (Chorus bass 8, rapid arp 13, brass stabs 23, counter 24, chords 28, vocal 33)
-[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y8 z1 y13 z1 y23 z1 y24 z1 y28 z1 y33 z1] x41
-# Bar 48: Snare fill and clear Chorus 1
-[y5 z1 y4 z0 y8 z0 y13 z0 y23 z0 y24 z0 y28 z0 y33 z0] x48
-# Bar 49: Interlude (C-F bass 10, intro arpeggio 12, high bleep 15)
-[v17 l1 y10 z1 y12 z1 y15 z1] x49
-# Bar 52: Snare fill and clear interlude
-[y5 z1 y10 z0 y12 z0 y15 z0] x52
-# Bar 53: Verse 2 (Synchronized 8-bar bass 6, octave synth 16, chords 26, vocal 31)
-[v17 l1 y6 z1 y16 z1 y26 z1 y31 z1] x53
-# Bar 68: Snare fill into Pre-Chorus 2 and clear Verse parts
-[y5 z1 y6 z0 y16 z0 y26 z0 y31 z0] x68
-# Bar 69: Pre-Chorus 2 (Bass 7, octave synth 17, pluck 19, flute 21, chords 27, vocal 32)
-[v17 l1 y7 z1 y17 z1 y19 z1 y21 z1 y27 z1 y32 z1] x69
-# Bar 76: Ascending synth riser & snare roll build into Double Chorus
-[y5 z1 /SP 12,0 y18 z1 /SP 8,0 /SP 9,0 /SP 10,0 /SP 11,0 y7 z0 y17 z0 y19 z0 y21 z0 y27 z0 y32 z0] x76
-# Bar 77: Chorus 2 Part 1 (Chorus bass 8, rapid arp 13, brass 23/24, chords 28, vocal 33)
-[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y8 z1 y13 z1 y23 z1 y24 z1 y28 z1 y33 z1] x77
-# Bar 84: Clear Chorus 2 Part 1 vocal before Part 2 downbeat
-[y33 z0] x84
-# Bar 85: Chorus 2 Part 2 (Crash downbeat, vocal chorus 34, choir pad 30)
-[v17 l1 y34 z1 y30 z1] x85
-# Bar 92: Snare fill into Breakdown and clear Chorus parts
-[y5 z1 y4 z0 y8 z0 y13 z0 y23 z0 y24 z0 y28 z0 y30 z0 y34 z0] x92
-# Bar 93: Breakdown (Bass out, syncopated arpeggio groove 14)
-[v17 l.8 y1 z1 y2 z1 y3 z1 y14 z1] x93
-# Bar 96: Prep for Chant
-[y14 z0] x96
-# Bar 97: Chant Build starts (Driving C pedal bass 11, arpeggio 14, C brass motif 25)
-[v17 l1 y11 z1 y14 z1 y25 z1] x97
-# Bar 108: Prep for Special Bridge and clear chant layers
-[y11 z0 y14 z0 y25 z0] x108
-# Bar 109: Special Bridge (Bridge bass 9, pluck 20, flute 22, chords 29, vocal 35)
-[v17 l1 y9 z1 y20 z1 y22 z1 y29 z1 y35 z1] x109
-# Bar 114: Clear bridge layers before climax riser
-[y9 z0 y20 z0 y22 z0 y29 z0 y35 z0] x114
-# Bar 115: Snare roll build begins
-[y5 z1] x115
-# Bar 116: Ascending synth scale riser sweeps into final climax drop
-[y5 z1 /SP 12,0 y18 z1 /SP 8,0 /SP 9,0 /SP 10,0 /SP 11,0] x116
-# Bar 117: Outro Climax Part 1 (Crash downbeat, all layers firing, open hats, choir)
-[v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y8 z1 y13 z1 y23 z1 y24 z1 y28 z1 y30 z1 y33 z1] x117
-# Bar 124: Clear vocal Part 1 before Bar 125 downbeat
-[y33 z0] x124
-# Bar 125: Outro Climax Part 2 (Crash downbeat, vocal Part 2 starts cleanly on step 0)
-[v17 l1 y34 z1] x125
-# Bar 132: Clear vocal Part 2 before Bar 133 downbeat
-[y34 z0] x132
-# Bar 133: Outro Climax Part 3 (Crash downbeat, vocal Part 1 starts cleanly on step 0)
-[v17 l1 y33 z1] x133
-# Bar 140: Clear vocal Part 1 before Bar 141 downbeat
-[y33 z0] x140
-# Bar 141: Outro Climax Part 4 (Vocal Part 2 starts cleanly on step 0)
-[v17 l1 y34 z1] x141
-# Bar 145: Final crash, delay freeze captures ambient tail
-[v17 l1 DF 1 1 DF 4 1] x145
-# Bar 146: Release delay freeze
-[DF 1 0 DF 4 0] x146
-# Bar 147: Conductor end, clean stop and silence
-[Z0 +8 ce 99] x147
-[=127,0] x147
+[conductor 146 bars] yt
+# Bar 0: Intro starts (Intro Bass, Intro Arpeggio, 16th hats, High Synth bleep)
+[v17 l1 y3 z1 y10 z1 y12 z1 y15 z1] x0
+# Bar 4: Kick drops in
+[v17 l.8 y1 z1] x4
+# Bar 8: Snare and clap enter
+[y2 z1] x8
+# Bar 15: Snare fill into Verse 1 and clear intro parts
+[y5 z1 y10 z0 y12 z0 y15 z0] x15
+# Bar 16: Verse 1 starts (All 8-bar parts synchronized)
+[v17 l1 y1 z1 y2 z1 y3 z1 y6 z1 y16 z1 y26 z1 y31 z1] x16
+# Bar 31: Snare fill into Pre-Chorus and clear Verse parts
+[y5 z1 y6 z0 y16 z0 y26 z0 y31 z0] x31
+# Bar 32: Pre-Chorus 1 (Bass 7, octave synth 17, pluck 19, flute 21, chords 27, vocal 32)
+[v17 l1 y7 z1 y17 z1 y19 z1 y21 z1 y27 z1 y32 z1] x32
+# Bar 39: Ascending synth riser & snare build into Chorus 1 and clear Pre-Chorus
+[y5 z1 /SP 12,0 y18 z1 /SP 8,0 /SP 9,0 /SP 10,0 /SP 11,0 y7 z0 y17 z0 y19 z0 y21 z0 y27 z0 y32 z0] x39
+# Bar 40: Chorus 1 (Chorus bass 8, rapid arp 13, brass stabs 23, counter 24, chords 28, vocal 33)
+[y18 z0 v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y8 z1 y13 z1 y23 z1 y24 z1 y28 z1 y33 z1] x40
+# Bar 47: Snare fill and clear Chorus 1
+[y5 z1 y4 z0 y8 z0 y13 z0 y23 z0 y24 z0 y28 z0 y33 z0] x47
+# Bar 48: Interlude (C-F bass 10, intro arpeggio 12, high bleep 15)
+[v17 l1 y10 z1 y12 z1 y15 z1] x48
+# Bar 51: Snare fill and clear interlude
+[y5 z1 y10 z0 y12 z0 y15 z0] x51
+# Bar 52: Verse 2 (Synchronized 8-bar bass 6, octave synth 16, chords 26, vocal 31)
+[v17 l1 y6 z1 y16 z1 y26 z1 y31 z1] x52
+# Bar 67: Snare fill into Pre-Chorus 2 and clear Verse parts
+[y5 z1 y6 z0 y16 z0 y26 z0 y31 z0] x67
+# Bar 68: Pre-Chorus 2 (Bass 7, octave synth 17, pluck 19, flute 21, chords 27, vocal 32)
+[v17 l1 y7 z1 y17 z1 y19 z1 y21 z1 y27 z1 y32 z1] x68
+# Bar 75: Ascending synth riser & snare roll build into Double Chorus
+[y5 z1 /SP 12,0 y18 z1 /SP 8,0 /SP 9,0 /SP 10,0 /SP 11,0 y7 z0 y17 z0 y19 z0 y21 z0 y27 z0 y32 z0] x75
+# Bar 76: Chorus 2 Part 1 (Chorus bass 8, rapid arp 13, brass 23/24, chords 28, vocal 33)
+[y18 z0 v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y8 z1 y13 z1 y23 z1 y24 z1 y28 z1 y33 z1] x76
+# Bar 83: Clear Chorus 2 Part 1 vocal before Part 2 downbeat
+[y33 z0] x83
+# Bar 84: Chorus 2 Part 2 (Crash downbeat, vocal chorus 34, choir pad 30)
+[v17 l1 y34 z1 y30 z1] x84
+# Bar 91: Snare fill into Breakdown and clear Chorus parts
+[y5 z1 y4 z0 y8 z0 y13 z0 y23 z0 y24 z0 y28 z0 y30 z0 y34 z0] x91
+# Bar 92: Breakdown (Bass out, syncopated arpeggio groove 14)
+[v17 l.8 y1 z1 y2 z1 y3 z1 y14 z1] x92
+# Bar 95: Prep for Chant
+[y14 z0] x95
+# Bar 96: Chant Build starts (Driving C pedal bass 11, arpeggio 14, C brass motif 25)
+[v17 l1 y11 z1 y14 z1 y25 z1] x96
+# Bar 107: Prep for Special Bridge and clear chant layers
+[y11 z0 y14 z0 y25 z0] x107
+# Bar 108: Special Bridge (Bridge bass 9, pluck 20, flute 22, chords 29, vocal 35)
+[v17 l1 y9 z1 y20 z1 y22 z1 y29 z1 y35 z1] x108
+# Bar 113: Clear bridge layers before climax riser
+[y9 z0 y20 z0 y22 z0 y29 z0 y35 z0] x113
+# Bar 114: Snare roll build begins
+[y5 z1] x114
+# Bar 115: Ascending synth scale riser sweeps into final climax drop
+[y5 z1 /SP 12,0 y18 z1 /SP 8,0 /SP 9,0 /SP 10,0 /SP 11,0] x115
+# Bar 116: Outro Climax Part 1 (Crash downbeat, all layers firing, open hats, choir)
+[y18 z0 v17 l1 y1 z1 y2 z1 y3 z1 y4 z1 y8 z1 y13 z1 y23 z1 y24 z1 y28 z1 y30 z1 y33 z1] x116
+# Bar 123: Clear vocal Part 1 before Bar 124 downbeat
+[y33 z0] x123
+# Bar 124: Outro Climax Part 2 (Crash downbeat, vocal Part 2 starts cleanly on step 0)
+[v17 l1 y34 z1] x124
+# Bar 131: Clear vocal Part 2 before Bar 132 downbeat
+[y34 z0] x131
+# Bar 132: Outro Climax Part 3 (Crash downbeat, vocal Part 1 starts cleanly on step 0)
+[v17 l1 y33 z1] x132
+# Bar 139: Clear vocal Part 1 before Bar 140 downbeat
+[y33 z0] x139
+# Bar 140: Outro Climax Part 4 (Vocal Part 2 starts cleanly on step 0)
+[v17 l1 y34 z1] x140
+# Bar 144: Final crash, delay freeze captures ambient tail
+[v17 l1 DF 1 1 DF 4 1] x144
+# Bar 145: Release delay freeze
+[DF 1 0 DF 4 0] x145
+# Bar 146: Conductor end, clean stop and silence
+[Z0 +8 ce 99] x146
+[=127,0] x146
 

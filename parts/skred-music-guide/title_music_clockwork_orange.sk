@@ -1,0 +1,375 @@
+# ==============================================================================
+# Title Music from A Clockwork Orange (1971) - Wendy Carlos & Rachel Elkind
+# Based on Music for the Funeral of Queen Mary (1695, Z. 860) by Henry Purcell
+# Duration: 2:21 (141 seconds) | Tempo: 60 BPM (M 60 16) | Key: C minor / C Major
+#
+# Load:   [title_music_clockwork_orange.sk] /ls
+# Start:  play        Stop:  stop
+# ==============================================================================
+# Wendy Carlos & Henry Purcell Historical & Sonic Architecture:
+#   1. Exact Baroque Score (Henry Purcell, Z. 860, 1695):
+#      Authentic 4-part brass chorale (flat trumpets and sackbuts) across 15 bars:
+#      Bar 1: C Major (solemn Picardy third opening)
+#      Bar 2: F minor (characteristic English Baroque weeping slide trill)
+#      Bar 3: C Major | Bar 4: C minor
+#      Bar 5: Ab Major suspension | Bar 6: G Major (Dominant V)
+#      Bar 7: G minor | Bar 8: C minor -> D Major secondary dominant
+#      Bar 9: G minor | Bar 10: Eb Major relative major
+#      Bar 11: F minor -> Bb Major | Bar 12: Eb Major
+#      Bar 13: C minor | Bar 14: ii-dim -> G Major authentic cadence
+#      Bar 15: C Major grand Picardy third cadence resolution.
+#   2. Moog Wavetable Architecture:
+#      Moog DWGS band-limited sawtooth (w15) for warm analog brass leads,
+#      and Moog DWGS square/pulse (w16) for resonant sub-bass.
+#   3. Percussion Section:
+#      - Timpani: Layered built-in drum wavetable mallet (w82 f260 a5)
+#        and deep sub-sine body (w0 a2) playing the authentic Purcell cadence.
+#      - Funeral Side Snare: Built-in drum wavetable (w83 f440 a6)
+#        playing crisp military march rolls and cadence flams.
+#   4. Rachel Elkind Vocoder / Resonant Formant Choir:
+#      In Statement 2, upper-octave synthesizer choir voices (w15 through
+#      resonant formants ~950 Hz, 750 Hz, 550 Hz) double the chorale.
+#   5. Unified Instrument Command `i` & Sentinels:
+#      Uses Skode unified note/articulation command `i` with Note-On,
+#      Sustained Ties (.), Rests (-), and Legato Slurs (~Note).
+#   6. Structure & Timing:
+#      Intro (0:00 - 0:16) -> Statement 1 (0:16 - 1:16) ->
+#      Statement 2 (1:16 - 2:16) -> Coda & Cathedral Decay (2:16 - 2:21).
+# ==============================================================================
+
+M 60 16
+
+# ------------------------------------------------------------------------------
+# 1. CATHEDRAL ACOUSTIC DELAY BUS
+# ------------------------------------------------------------------------------
+DS 1 60 0.50
+DL 1 - - 8 0 0 10
+DD 1 8 2
+
+# Auto-cleanup when song ends
+[O DQ] /ceb 4 99
+/cer 1
+
+# ------------------------------------------------------------------------------
+# 2. VOICE ARCHITECTURE: PERCUSSION
+# ------------------------------------------------------------------------------
+
+# Voice 0: Timpani Mallet Strike
+# Built-in drum wavetable w82 tuned to 260 Hz for authoritative high-impact attack
+v0
+w82 f260 a5 p0 r1 ds.25
+[timpani mallet] vt
+
+# Voice 5: Timpani Sub-Bass Resonant Body
+# Tuned pure sine wave (w0) providing the resonant 65 Hz / 49 Hz acoustic decay
+v5
+w0 a2 p0 r1 ds.25
+.005 .40 0 .30 t
+[timpani sub] vt
+
+# Voice 1: Military Funeral Side Snare
+# Built-in drum wavetable w83 tuned for crisp muffled military march rolls
+v1
+w83 f440 a6 p0 r1 ds.20
+[funeral snare] vt
+
+# ------------------------------------------------------------------------------
+# 3. VOICE ARCHITECTURE: MOOG BRASS QUARTET
+# ------------------------------------------------------------------------------
+
+# Voice 10: Soprano Trumpet 1 (Lead Melody)
+# Moog-ish band-limited saw (w15) with 24dB ladder filter bite and portamento
+v10
+w15 a-7 p-0.2 k2800 q1.8 g0.035 r1 ds.30
+.010 .25 .70 .22 t
+[moog trumpet lead] vt
+
+# Voice 11: Alto Trumpet 2 (Counter-Melody)
+# Moog-ish band-limited saw (w15) with rich warm counterpoint
+v11
+w15 a-8 p0.2 k2400 q1.6 g0.035 r1 ds.30
+.012 .28 .65 .22 t
+[moog trumpet alto] vt
+
+# Voice 12: Tenor Trombone (Harmonic Core)
+# Moog-ish band-limited saw (w15) filling out the solemn Baroque chords
+v12
+w15 a-8 p-0.3 k1900 q1.5 g0.040 r1 ds.30
+.015 .30 .65 .25 t
+[moog trombone tenor] vt
+
+# Voice 13: Bass Trombone / Serpent (Walking Bass Foundation)
+# Deep resonant Moog low-end brass
+v13
+w15 a-6 p0.3 k1300 q2.0 g0.040 r1 ds.30
+.015 .32 .70 .28 t
+[moog brass bass] vt
+
+# Voice 14: Sub Serpent Bass (Sub-Octave Doubling)
+# Moog-ish band-limited square/pulse (w16) providing thick analog weight
+v14
+w16 a-8 p0 k500 q1.2 g0.040 r1 ds.20
+.015 .32 .70 .28 t
+[sub serpent bass] vt
+
+# ------------------------------------------------------------------------------
+# 4. VOICE ARCHITECTURE: RACHEL ELKIND VOCODER CHOIR
+# ------------------------------------------------------------------------------
+
+# Voice 16: Vocoder Soprano (Ah Formant ~950 Hz, w15 Moog saw carrier)
+v16
+w15 a-11 p-0.15 k950 q3.5 g0.045 r1 ds.40
+.035 .35 .75 .30 t
+[vocoder soprano ah] vt
+
+# Voice 17: Vocoder Alto (Oh Formant ~750 Hz, w15 Moog saw carrier)
+v17
+w15 a-11 p0.15 k750 q3.2 g0.045 r1 ds.40
+.035 .35 .75 .30 t
+[vocoder alto oh] vt
+
+# Voice 18: Vocoder Tenor (Ah/Mmm Formant ~550 Hz, w15 Moog saw carrier)
+v18
+w15 a-12 p0 k550 q3.0 g0.045 r1 ds.40
+.035 .35 .75 .30 t
+[vocoder tenor] vt
+
+# ------------------------------------------------------------------------------
+# 5. VOICE ARCHITECTURE: OPENING GLISSANDI
+# ------------------------------------------------------------------------------
+
+# Voice 20: High Descending Glissando (C6 down to C4, w15 Moog saw)
+v20
+w15 a-18 p-0.3 k1600 q1.5 g0.15 r1 ds.45
+.20 .60 .60 .50 t
+[intro gliss high] vt
+
+# Voice 21: Mid Descending Glissando (D5 down to G3, w16 Moog square)
+v21
+w16 a-19 p0.3 k1200 q1.5 g0.15 r1 ds.45
+.20 .60 .60 .50 t
+[intro gliss mid] vt
+
+# Voice 22: Low Doom Glissando (C4 down to C2, w15 Moog saw)
+v22
+w15 a-18 p0 k800 q1.8 g0.18 r1 ds.45
+.20 .60 .60 .50 t
+[intro gliss low] vt
+
+# ==============================================================================
+# 6. STREAM DEFINITIONS
+# ==============================================================================
+
+# --- INTRO GLISSANDI STREAMS (3 Descending Melting Slides) ---
+[ C6 . . . . . . . ~G5 . . . . . . . ~C5 . . . . . . . ~G4 . . . . . . . ~Eb4 . . . . . . . ~C4 . . . . . - - - - - - - - - - - - - - - - ] n>d /SS 30
+[ D5 . . . . . . . ~Bb4 . . . . . . . ~F4 . . . . . . . ~D4 . . . . . . . ~Bb3 . . . . . . . ~G3 . . . . . - - - - - - - - - - - - - - - - ] n>d /SS 31
+[ C4 . . . . . . . ~G3 . . . . . . . ~C3 . . . . . . . ~G2 . . . . . . . ~Eb2 . . . . . . . ~C2 . . . . . - - - - - - - - - - - - - - - - ] n>d /SS 32
+
+# --- AUTHENTIC PURCELL 4-PART BRASS CHORALE (15 Bars = 240 Sixteenths) ---
+[ G4 . . . . . . . . . . . . . . . Ab4 . . . . . . . Bb4 Ab4 Bb4 Ab4 Bb4 Ab4 G4 Ab4 G4 . . . . . . . . . . . . . . . G4 . . . . . . . . . . . . . . . C5 . . . . . . . C5 . . . . . ~D5 . B4 . . . . . . . . . . . . . . . D5 . . . . . . . . . . . . . . . C5 . . . . . . . A4 . . . . . . . Bb4 . . . . . . . . . . . . . . . Bb4 . . . . . . . . . . . . . . . Ab4 . . . . . . . F4 . . . . . . . G4 . . . . . . . . . . . . . . . C5 . . . . . . . . . . . . . . . C5 . . . . . . . B4 . . . . . . . C5 . . . . . . . . . . . . . . . ] n>d /SS 1
+[ E4 . . . . . . . . . . . . . . . F4 . . . . . . . . . . . . . . . E4 . . . . . . . . . . . . . . . Eb4 . . . . . . . . . . . . . . . Eb4 . . . . . . . F4 . . . . . . . G4 . . . . . . . . . . . . . . . Bb4 . . . . . . . . . . . . . . . A4 . . . . . . . F#4 . . . . . . . G4 . . . . . . . . . . . . . . . G4 . . . . . . . . . . . . . . . F4 . . . . . . . D4 . . . . . . . Eb4 . . . . . . . . . . . . . . . G4 . . . . . . . . . . . . . . . Ab4 . . . . . . . G4 . . . . . . . E4 . . . . . . . . . . . . . . . ] n>d /SS 2
+[ C4 . . . . . . . . . . . . . . . C4 . . . . . . . . . . . . . . . C4 . . . . . . . . . . . . . . . C4 . . . . . . . . . . . . . . . C4 . . . . . . . . . . . . . . . D4 . . . . . . . . . . . . . . . G4 . . . . . . . . . . . . . . . Eb4 . . . . . . . D4 . . . . . . . D4 . . . . . . . . . . . . . . . Eb4 . . . . . . . . . . . . . . . C4 . . . . . . . Bb3 . . . . . . . Bb3 . . . . . . . . . . . . . . . Eb4 . . . . . . . . . . . . . . . D4 . . . . . . . D4 . . . . . . . C4 . . . . . . . . . . . . . . . ] n>d /SS 3
+[ C3 . . . . . . . . . . . . . . . F3 . . . . . . . . . . . . . . . C3 . . . . . . . . . . . . . . . C3 . . . . . . . . . . . . . . . Ab3 . . . . . . . . . . . . . . . G3 . . . . . . . . . . . . . . . G3 . . . . . . . . . . . . . . . C4 . . . . . . . D4 . . . . . . . G3 . . . . . . . . . . . . . . . Eb3 . . . . . . . . . . . . . . . Ab3 . . . . . . . Bb3 . . . . . . . Eb3 . . . . . . . . . . . . . . . C3 . . . . . . . . . . . . . . . F3 . . . . . . . G3 . . . . . . . C3 . . . . . . . . . . . . . . . ] n>d /SS 4
+
+# --- SUB SERPENT (OCTAVE LOWER BASS, 240 Sixteenths) ---
+[ C2 . . . . . . . . . . . . . . . F2 . . . . . . . . . . . . . . . C2 . . . . . . . . . . . . . . . C2 . . . . . . . . . . . . . . . Ab2 . . . . . . . . . . . . . . . G2 . . . . . . . . . . . . . . . G2 . . . . . . . . . . . . . . . C3 . . . . . . . D3 . . . . . . . G2 . . . . . . . . . . . . . . . Eb2 . . . . . . . . . . . . . . . Ab2 . . . . . . . Bb2 . . . . . . . Eb2 . . . . . . . . . . . . . . . C2 . . . . . . . . . . . . . . . F2 . . . . . . . G2 . . . . . . . C2 . . . . . . . . . . . . . . . ] n>d /SS 11
+
+# --- RACHEL ELKIND VOCODER CHOIR (UPPER OCTAVE DOUBLINGS, 240 Sixteenths) ---
+[ G5 . . . . . . . . . . . . . . . Ab5 . . . . . . . Bb5 Ab5 Bb5 Ab5 Bb5 Ab5 G5 Ab5 G5 . . . . . . . . . . . . . . . G5 . . . . . . . . . . . . . . . C6 . . . . . . . C6 . . . . . ~D6 . B5 . . . . . . . . . . . . . . . D6 . . . . . . . . . . . . . . . C6 . . . . . . . A5 . . . . . . . Bb5 . . . . . . . . . . . . . . . Bb5 . . . . . . . . . . . . . . . Ab5 . . . . . . . F5 . . . . . . . G5 . . . . . . . . . . . . . . . C6 . . . . . . . . . . . . . . . C6 . . . . . . . B5 . . . . . . . C6 . . . . . . . . . . . . . . . ] n>d /SS 21
+[ E5 . . . . . . . . . . . . . . . F5 . . . . . . . . . . . . . . . E5 . . . . . . . . . . . . . . . Eb5 . . . . . . . . . . . . . . . Eb5 . . . . . . . F5 . . . . . . . G5 . . . . . . . . . . . . . . . Bb5 . . . . . . . . . . . . . . . A5 . . . . . . . F#5 . . . . . . . G5 . . . . . . . . . . . . . . . G5 . . . . . . . . . . . . . . . F5 . . . . . . . D5 . . . . . . . Eb5 . . . . . . . . . . . . . . . G5 . . . . . . . . . . . . . . . Ab5 . . . . . . . G5 . . . . . . . E5 . . . . . . . . . . . . . . . ] n>d /SS 22
+[ C5 . . . . . . . . . . . . . . . C5 . . . . . . . . . . . . . . . C5 . . . . . . . . . . . . . . . C5 . . . . . . . . . . . . . . . C5 . . . . . . . . . . . . . . . D5 . . . . . . . . . . . . . . . G5 . . . . . . . . . . . . . . . Eb5 . . . . . . . D5 . . . . . . . D5 . . . . . . . . . . . . . . . Eb5 . . . . . . . . . . . . . . . C5 . . . . . . . Bb4 . . . . . . . Bb4 . . . . . . . . . . . . . . . Eb5 . . . . . . . . . . . . . . . D5 . . . . . . . D5 . . . . . . . C5 . . . . . . . . . . . . . . . ] n>d /SS 23
+
+# ==============================================================================
+# 7. PATTERN DEFINITIONS
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# PATTERN y1: Intro Glissandi & Solitary Timpani (0:00 - 0:16)
+# ------------------------------------------------------------------------------
+y1
+[intro glissandi & solitary timpani] yt
+[v20 i&30 v21 i&31 v22 i&32] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v20 i&30 v21 i&31 v22 i&32] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[v20 i&30 v21 i&31 v22 i&32] x32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+# Solitary Timpani strike echoing into cathedral reverb (at ~0:12)
+[v5 n36 l1 v0 l1] x48
+[=127,0] x63
+
+# ------------------------------------------------------------------------------
+# PATTERN y10: Authentic Brass Quartet (15 Bars = 240 Steps)
+# ------------------------------------------------------------------------------
+y10
+[brass quartet 15 bars] yt
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223
+[v10 i&1 v11 i&2 v12 i&3 v13 i&4] x224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239
+[=127,0] x239
+
+# ------------------------------------------------------------------------------
+# PATTERN y20: Timpani Funeral Cadence (15 Bars = 240 Steps)
+# ------------------------------------------------------------------------------
+y20
+[timpani funeral cadence] yt
+# Bar 1: C
+[v5 n36 l1 v0 l1] x0
+# Bar 2: C -> C -> C -> G
+[v5 n36 l0.85 v0 l0.85] x24
+[v5 n36 l0.90 v0 l0.90] x26
+[v5 n36 l0.95 v0 l0.95] x28
+[v5 n31 l1.00 v0 l1.00] x30
+# Bar 3: C
+[v5 n36 l1 v0 l1] x32
+# Bar 4: G -> G -> G -> D
+[v5 n31 l0.85 v0 l0.85] x56
+[v5 n31 l0.90 v0 l0.90] x58
+[v5 n31 l0.95 v0 l0.95] x60
+[v5 n26 l1.00 v0 l1.00] x62
+# Bar 5: Ab
+[v5 n32 l1 v0 l1] x64
+# Bar 6: D -> G -> G -> F
+[v5 n26 l0.85 v0 l0.85] x88
+[v5 n31 l0.90 v0 l0.90] x90
+[v5 n31 l0.95 v0 l0.95] x92
+[v5 n29 l1.00 v0 l1.00] x94
+# Bar 7: Eb
+[v5 n39 l1 v0 l1] x96
+# Bar 8: Bb -> Eb -> Eb -> D
+[v5 n34 l0.85 v0 l0.85] x120
+[v5 n39 l0.90 v0 l0.90] x122
+[v5 n39 l0.95 v0 l0.95] x124
+[v5 n38 l1.00 v0 l1.00] x126
+# Bar 9: G
+[v5 n31 l1 v0 l1] x128
+# Bar 10: Eb
+[v5 n39 l1 v0 l1] x144
+# Bar 11: Ab -> Bb
+[v5 n32 l0.90 v0 l0.90] x160
+[v5 n34 l0.90 v0 l0.90] x168
+# Bar 12: Eb
+[v5 n39 l1 v0 l1] x176
+# Bar 13: C
+[v5 n36 l1 v0 l1] x192
+# Bar 14: F -> G
+[v5 n29 l0.90 v0 l0.90] x208
+[v5 n31 l1.00 v0 l1.00] x216
+# Bar 15: Grand Picardy C
+[v5 n36 l1 v0 l1] x224
+[=127,0] x239
+
+# ------------------------------------------------------------------------------
+# PATTERN y30: Rachel Elkind Vocoder Choir (15 Bars = 240 Steps)
+# ------------------------------------------------------------------------------
+y30
+[vocoder choir 15 bars] yt
+[v16 i&21 v17 i&22 v18 i&23] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v16 i&21 v17 i&22 v18 i&23] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[v16 i&21 v17 i&22 v18 i&23] x32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+[v16 i&21 v17 i&22 v18 i&23] x48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63
+[v16 i&21 v17 i&22 v18 i&23] x64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79
+[v16 i&21 v17 i&22 v18 i&23] x80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95
+[v16 i&21 v17 i&22 v18 i&23] x96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111
+[v16 i&21 v17 i&22 v18 i&23] x112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127
+[v16 i&21 v17 i&22 v18 i&23] x128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143
+[v16 i&21 v17 i&22 v18 i&23] x144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159
+[v16 i&21 v17 i&22 v18 i&23] x160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175
+[v16 i&21 v17 i&22 v18 i&23] x176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191
+[v16 i&21 v17 i&22 v18 i&23] x192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207
+[v16 i&21 v17 i&22 v18 i&23] x208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223
+[v16 i&21 v17 i&22 v18 i&23] x224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239
+[=127,0] x239
+
+# ------------------------------------------------------------------------------
+# PATTERN y40: Sub Serpent Bass (15 Bars = 240 Steps)
+# ------------------------------------------------------------------------------
+y40
+[sub serpent bass 15 bars] yt
+[v14 i&11] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v14 i&11] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[v14 i&11] x32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+[v14 i&11] x48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63
+[v14 i&11] x64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79
+[v14 i&11] x80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95
+[v14 i&11] x96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111
+[v14 i&11] x112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127
+[v14 i&11] x128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143
+[v14 i&11] x144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159
+[v14 i&11] x160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175
+[v14 i&11] x176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191
+[v14 i&11] x192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207
+[v14 i&11] x208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223
+[v14 i&11] x224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239
+[=127,0] x239
+
+# ------------------------------------------------------------------------------
+# PATTERN y50: Military Funeral Side Snare (15 Bars = 240 Steps)
+# ------------------------------------------------------------------------------
+y50
+[military funeral snare 15 bars] yt
+# Cadence rolls and downbeat accents
+# Bar 2 roll into Cadence 1
+[v1 l0.45] x21,22,23
+# Bar 4 roll into Cadence 2
+[v1 l0.45] x53,54,55
+# Bar 6 roll into Cadence 3
+[v1 l0.45] x85,86,87
+# Bar 8 roll into Cadence 4
+[v1 l0.45] x117,118,119
+# Bar 14 grand roll into Picardy Third
+[v1 l0.50] x220,221,222,223
+# Downbeat march accents across bars
+[v1 l0.85] x0,16,32,48,64,80,96,112,128,144,160,176,192,208,224
+# Subtle funeral ghost backbeats
+[v1 l0.35] x8,24,40,56,72,88,104,120,136,152,168,184,200,216
+[=127,0] x239
+
+# ------------------------------------------------------------------------------
+# PATTERN y6: Coda & Cathedral Decay (64 steps = 16 seconds)
+# ------------------------------------------------------------------------------
+y6
+[coda & cathedral decay] yt
+# Final Picardy Third / Major Resolution Sustained in Majestic Voicing
+[v10 i72 v11 i64 v12 i60 v13 i48 v14 i36 v16 i84 v17 i76 v18 i72 v5 n36 l1 v0 l1 v1 l0.85] x0
+# Release voices into cathedral reverb tail at step 24 (6 seconds)
+[v10 l0 v11 l0 v12 l0 v13 l0 v14 l0 v16 l0 v17 l0 v18 l0 v5 l0 v0 l0 v1 l0] x24
+[=127,0] x63
+
+# ==============================================================================
+# 8. CONDUCTOR PATTERN y0 (35 Bars @ 60 BPM = 140s / 2:21 Runtime)
+# ==============================================================================
+y0
+[conductor] yt
+%16
+
+# Bar 0 (0:00 - 0:16): Opening Glissandi & Solitary Timpani
+[y1 z1] x0
+
+# Bar 4 (0:16 - 1:16): Statement 1 (Authentic Purcell Brass Quartet + Timpani, 15 bars)
+[y1 z0 y10 z1 y20 z1] x4
+
+# Bar 19 (1:16 - 2:16): Statement 2 (Tutti with Snare, Sub Bass & Vocoder Choir, 15 bars)
+[y30 z1 y40 z1 y50 z1] x19
+
+# Bar 34 (2:16 - 2:21): Coda & Cathedral Decay
+[y10 z0 y20 z0 y30 z0 y40 z0 y50 z0 y6 z1] x34
+
+# Bar 35 (2:21): Complete - stop conductor and trigger auto-cleanup event 99
+[y6 z0 Z0 +4 ce 99] x35
+
+# ==============================================================================
+# 9. CLI CONTROL MACROS (play / stop)
+# ==============================================================================
+[use 'play' to start the song, 'stop' to stop it] puts
+[play] : Z0 Z! y0 z1 ;
+[stop] : Z0 O DQ ;

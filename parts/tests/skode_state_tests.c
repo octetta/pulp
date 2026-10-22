@@ -1870,6 +1870,7 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"l1", SKODE_OP_VELOCITY},
     {"m1", SKODE_OP_MUTE},
     {"n60", SKODE_OP_MIDI_NOTE},
+    {"i60", SKODE_OP_INST_NOTE},
     {"N-12,5", SKODE_OP_MIDI_DETUNE},
     {"p.25", SKODE_OP_PAN},
     {"P1,.5,0", SKODE_OP_PAN_MOD},
@@ -3508,6 +3509,39 @@ static void test_multistep_assignment(void) {
   expect_int(test, strcmp(seq_step_get(20, 3), "-"), 0, "step 3 has rest");
 }
 
+static void test_inst_note_and_stream_ties(void) {
+  const char *test = "instrument note i and stream ties";
+  skode_t ctx = new_ctx();
+  consume(test, &ctx, "[ C3 . . - ~E3 . - - ] n>d /SS 2");
+
+  expect_int(test, global_stream[2].len, 8, "stream 2 length is 8");
+  expect_float(test, (float)global_stream[2].data[0], 48.0f, 1e-4f, "step 0 is C3 (48)");
+  expect_int(test, ands_is_tie(global_stream[2].data[1]), 1, "step 1 is tie (.)");
+  expect_int(test, ands_is_tie(global_stream[2].data[2]), 1, "step 2 is tie (.)");
+  expect_int(test, ands_is_rest(global_stream[2].data[3]), 1, "step 3 is rest (-)");
+  expect_float(test, (float)global_stream[2].data[4], -52.0f, 1e-4f, "step 4 is slurred E3 (-52)");
+  expect_int(test, ands_is_tie(global_stream[2].data[5]), 1, "step 5 is tie (.)");
+  expect_int(test, ands_is_rest(global_stream[2].data[6]), 1, "step 6 is rest (-)");
+  expect_int(test, ands_is_rest(global_stream[2].data[7]), 1, "step 7 is rest (-)");
+
+  consume(test, &ctx, "v0 w1 a-6");
+  expect_int(test, skode_inst_note(0, 48.0f, 0.8f, 0.0f), 0, "inst_note 48 Note-On succeeds");
+  expect_float(test, sv.last_midi_note[0], 48.0f, 1e-4f, "voice 0 note is 48");
+
+  expect_int(test, skode_inst_note(0, skode_double_to_float_note(ANDS_SENTINEL_TIE), 1.0f, 0.0f), 0, "inst_note tie succeeds");
+  expect_float(test, sv.last_midi_note[0], 48.0f, 1e-4f, "voice 0 note still 48 after tie");
+
+  expect_int(test, skode_inst_note(0, -52.0f, 1.0f, 0.0f), 0, "inst_note slur -52 succeeds");
+  expect_float(test, sv.last_midi_note[0], 52.0f, 1e-4f, "voice 0 note is 52 after slur");
+
+  expect_int(test, skode_inst_note(0, NAN, 1.0f, 0.0f), 0, "inst_note rest succeeds");
+
+  event_program_t program;
+  expect_int(test, skode_compile_program("v0 i60", &program), 0, "compile v0 i60 succeeds");
+  expect_int(test, program.count, 2, "v0 i60 produces 2 opcodes");
+  expect_int(test, program.op[1].opcode.code, SKODE_OP_INST_NOTE, "opcode 1 is SKODE_OP_INST_NOTE");
+}
+
 int main(int argc, char **argv) {
   synth_init(8);
   wave_table_init(0);
@@ -3581,6 +3615,7 @@ int main(int argc, char **argv) {
   test_multichannel_capture_waves();
   test_x_opcode_escape();
   test_multistep_assignment();
+  test_inst_note_and_stream_ties();
 
   synth_free();
 

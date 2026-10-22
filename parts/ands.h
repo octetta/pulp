@@ -2,6 +2,46 @@
 #define _ANDS_H_
 
 #include <stdint.h>
+#include <math.h>
+
+static inline double ands_sentinel_tie(void) {
+  union { uint64_t u; double d; } val;
+  val.u = 0x7FF8000000000001ULL;
+  return val.d;
+}
+#define ANDS_SENTINEL_TIE (ands_sentinel_tie())
+#define ANDS_SENTINEL_REST (NAN)
+
+static inline int ands_is_tie(double d) {
+  if (!isnan(d)) return 0;
+  union { uint64_t u; double d; } val;
+  val.d = d;
+  return (val.u & 0x7FFFFFFFFFFFFFFFULL) == 0x7FF8000000000001ULL;
+}
+
+static inline int ands_is_rest(double d) {
+  return isnan(d) && !ands_is_tie(d);
+}
+
+static inline float skode_double_to_float_note(double d) {
+  if (ands_is_tie(d)) {
+    union { uint32_t u; float f; } val;
+    val.u = 0x7FC00001;
+    return val.f;
+  }
+  return (float)d;
+}
+
+static inline int skode_float_is_tie(float f) {
+  if (!isnan(f)) return 0;
+  union { uint32_t u; float f; } val;
+  val.f = f;
+  return (val.u & 0x7FFFFFFF) == 0x7FC00001;
+}
+
+static inline int skode_float_is_rest(float f) {
+  return isnan(f) && !skode_float_is_tie(f);
+}
 
 enum {
   START = 0, // 0

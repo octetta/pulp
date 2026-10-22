@@ -87,6 +87,7 @@ their named build option is enabled.
 | `ab` | `val` | `SKODE_OP_AMP_BEND` | `amp_bend_set()`; amplitude bend normalized value (`-1.0` to `1.0`) | base |
 | `abp` | `range [, offset]` | `SKODE_OP_AMP_BEND_PARAM` | `amp_bend_param_set()`; amplitude bend range (dB) and optional offset | base |
 | `n` | `note [, cents]` | `SKODE_OP_MIDI_NOTE` | `skode_midi_note()` then `freq_midi()` | base |
+| `i` | `note [, velocity [, cents]]` | `SKODE_OP_INST_NOTE` | Unified instrument note: handles Note-On (with attack), Rest `-` (release), Tie `.` (sustain without re-attack), and Slur `~note` (legato pitch change without re-attack) | base |
 | `p` | `pan` | `SKODE_OP_PAN` | `pan_set()` | base |
 | `l` | `velocity` | `SKODE_OP_VELOCITY` | `skode_envelope_velocity()` and linked voices | base |
 | `___l` | `velocity` | `SKODE_OP_ENVELOPE_VELOCITY` | `envelope_velocity()` without link propagation | internal |

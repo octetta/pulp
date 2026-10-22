@@ -128,20 +128,40 @@ v13 w15 f440 n69,0 a-6 G14,-,-,-,-,- H14,-,-,-,-,- ds0.3 j1 2 k3000 q1.8 c4,0.2 
 ```
 This makes diagnosing arrangement bugs, envelope releases, and voice routing dramatically simpler.
 
-### 2e. Defining note streams with `n>d` and rest syntax
+### 2e. Defining note streams with `n>d`, unified `i`, and articulation syntax (Notes, Ties, Rests, Slurs)
 
-Instead of writing raw numeric MIDI arrays by hand, use `[ ... ] n>d`:
+Instead of writing raw numeric MIDI arrays by hand or wrestling with disconnected `n` and `l` commands, use `[ ... ] n>d` paired with the unified instrument command `i`:
 ```
-[Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Bb1 Bb1 Bb2 Bb1  Ab1 - Ab1 -] n>d /SS 1
+[Bb1 . . -  ~Db2 . - -  Bb1 Bb1 Bb2 Bb1  Ab1 - Ab1 -] n>d /SS 1
 ```
-- **Note names**: `C`, `D`, `E`, `F`, `G`, `A`, `B`.
-- **Accidentals**: `#` or `+` for sharps, `b` or `-` for flats (e.g. `Bb1`, `F#2`, `Eb4`).
-- **Octaves**: Direct digit after the note name (`0` through `9`).
-- **Rests**: `-`, `.`, `~`, or `R` emit `NAN` into the data stream.
-- **Step Sequencer Integration**: In a pattern step, read the stream with `[v6 n&1 l1] x0`. When `n&1` encounters a rest (`NAN`), the engine:
-  1. Sets `voice_is_rest = 1` for that voice.
-  2. Calls `voice_release(...)` to cleanly release the amplitude envelope.
-  3. Suppresses any subsequent `l` (gate) in the same step, guaranteeing the rest stays completely silent without re-triggering.
+
+#### Articulation Tokens in `n>d`
+- **Note-On** (e.g. `C3`, `Bb1`, `F#4`): Plays pitch and triggers the envelope attack.
+- **Tie / Sustain** (`.` or `_`): Holds the current pitch and keeps the envelope sustaining across the step without re-triggering the attack transient.
+- **Rest / Note-Off** (`-` or `R`): Chokes the voice and triggers the envelope release phase (zero velocity).
+- **Slur / Legato** (`~Note` or `/Note`, e.g. `~Db2`): Transitions pitch to the new note (with portamento glide if `g` is active) **without** re-triggering the attack envelope.
+
+#### Equivalent Numeric Arrays `( ... ) /SS`
+In direct numeric arrays, the number parser maps the same articulation:
+- **$0 \le n \le 127$**: Note-On (attack).
+- **Negative numbers** (e.g. `-49`): Slur / legato to note `fabs(n)` (no re-attack).
+- **`.` or `_`**: Tie / sustain.
+- **`-`**: Rest / note-off.
+```
+( 46 . . -  -49 . - -  46 46 58 46  44 - 44 - ) /SS 1
+```
+
+#### Pattern Usage with Unified `i`
+In a pattern step, read the stream with `[v0 i&1]`:
+```
+y4
+# Clean 16-step execution without separate l1 triggers:
+[v0 i&1] x0,1,2,3,4,5,6,7
+[v0 i&1] x8,9,10,11,12,13,14,15
+```
+- `i` handles both pitch and gate atomically.
+- You do not need to write `l1` on every step! This completely avoids the bug where a hardcoded `l1` forces a re-attack on tied or slurred steps.
+- You can optionally supply velocity: `[v0 i&1, 0.8]` (fixed velocity) or `[v0 i&1, &2]` (velocity stream).
 
 ### 2f. The Anti-Hanging Pattern (Preventing Stuck Notes)
 
@@ -747,7 +767,8 @@ y4
     - **`uncontrollable_urge.sk`** (184 BPM, key of A): DEVO's 1978 punk-funk opening blast from *Q: Are We Not Men? A: We Are Devo!*. Features Alan Myers' motorik drums, Gerald Casale's iconic initial bass pickup riff (`A2` on beat 1, three `G2` pickups on 10, 12, 14), interleaved `l0` voice releases on odd 16th steps, 8-bar layered intro build, start-stop breaks with echoing FM metallic stabs and manic "YEAH! YEAH!" vocal shouts, Mark Mothersbaugh's verse vocal lead melodies, high-register Minimoog synth bleeps and chorus squeals, V - IV - I chorus power chords (`E5 -> D5 -> A5`), and Bob Mothersbaugh's staccato power chord trio.
     - **`tainted_love.sk`** (144 BPM, G minor): Soft Cell's 1981 synth-pop defining anthem, produced by Mike Thorne. Features the iconic Synare S3X analog drum synth double hit feeding a Delta Labs DL4 16th ping-pong delay line (Bus 1), Dave Ball's punchy Korg Synthe-Bass ostinato (`Gm -> Bb | Eb -> F`), warm analog saw/pulse du-du hook (`k2400 q2.2`), Mike Thorne's New England Digital Synclavier II digital brass stabs and crystalline bell arpeggios, Marc Almond's impassioned theatrical vocal delivery with zero-hanging envelopes, dramatic D-dominant pre-chorus turnarounds, and zero synthetic noise risers.
     - **`pocket-calc.sk`** (126 BPM, C modal / pop): Kraftwerk's 1981 *Computer World* electronic masterpiece. Features 100% synthesized analog electronic drums (pitch-drop sine kick with step-10 syncopated push `x0,4,8,10,12`, bitcrushed noise-snap snare `w5 bc4`, micro-tick synthetic hats, transition noise wash), Minimoog motorik bassline with octave sub and interleaved `l0` releases, Casio VL-80 handheld calculator "little melody" (`w0` pure tone), vintage polyphonic string pad (`v24` LFO + `v26-v35` pool), and subtle 4-on-the-floor sidechain pumping.
-    - **`run_to_the_sun.sk`** (133 BPM, C Major): Erasure's 1994 uplifting synth-pop triumph by Vince Clarke and Andy Bell (produced by Martyn Ware, from *I Say I Say I Say*). A masterclass in Vince Clarke production: 16th-note Roland System 100M / Minimoog octave-bouncing basslines (C, F, E, Dm, G, Bb, Am, Cm), signature Roland Jupiter-8 16th-note arpeggios through dotted-eighth echo (Bus 1), Andy Bell's soaring vocal melodies transcribed into detuned analog synth leads with zero-hanging `s=0` decay envelopes, rich DWGS strings (`w15`) and Ensoniq ESQ-1 vocal choir formants (`w61`), the iconic Middle-8 easter egg quoting the opening measures of 'A Little Respect', sparkling bell arpeggios (`w29` + `w51`), call-and-response synth brass (`w22`), and a crystal-clear master mix with headroom to spare (Peak 0.98, RMS -16 dBFS).
+    - **`title_music_clockwork_orange.sk`** (60 BPM, C minor): Wendy Carlos & Rachel Elkind's iconic 1971 electronic realization of Henry Purcell's *Music for the Funeral of Queen Mary* (1695, Z. 860) for Stanley Kubrick's *A Clockwork Orange* (2:21 runtime). Demonstrates the unified instrument note command `i` with stream sentinels (Notes, Ties `.`, Rests `-`, Slurs `~Note`), the 3 cascading descending "melting" Moog glissandi opening (0:00–0:16), solitary reverberant Timpani strike, 4-part polyphonic Moog Brass chorale (Trumpet 1, Trumpet 2, Tenor Trombone, Bass Trombone/Serpent) in authentic Purcell Baroque counterpoint, processional Timpani funeral cadence (`w82 f180` mallet + `w0 f65` sub) and military side snare (`w83 f440`), Rachel Elkind Vocoder / Spectrum Follower Choir (vocal formant filtering) entering in Statement 2 (1:20), sub-bass serpent doubling, and vast cathedral acoustic space (`DS 1`, `DL 1`, `DD 1`).
+    - **`demo_instrument_stream.sk`** (120 BPM): Reference demonstration of Skode's unified instrument note command `i` and stream sentinels (`.`, `-`, `~Note`), contrasting re-articulated notes against sustained ties and portamento legato slurs without envelope re-attack clicks.
 
 
 **Step grid cheat sheet** (with `M 125 16`, one pattern step is one sixteenth note):

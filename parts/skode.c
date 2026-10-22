@@ -593,10 +593,10 @@ void skode_double_dump(skode_t *ctx, double *data, int data_len) {
     for (int i = 0; i < data_len; i++) {
       if (i < DOT_NUM) {
         show_dots = 0;
-        if (isnan(data[i])) ctx->printf(ctx, "- "); else ctx->printf(ctx, "%.8g ", data[i]);
+        if (ands_is_tie(data[i])) ctx->printf(ctx, ". "); else if (isnan(data[i])) ctx->printf(ctx, "- "); else ctx->printf(ctx, "%.8g ", data[i]);
       } else if (i >= (data_len - DOT_NUM)) {
         show_dots = 0;
-        if (isnan(data[i])) ctx->printf(ctx, "- "); else ctx->printf(ctx, "%.8g ", data[i]);
+        if (ands_is_tie(data[i])) ctx->printf(ctx, ". "); else if (isnan(data[i])) ctx->printf(ctx, "- "); else ctx->printf(ctx, "%.8g ", data[i]);
       } else {
         show_dots = 1;
       }
@@ -1347,6 +1347,12 @@ float record_frame_mono(int frame) {
     name: n
     category: voice
     summary: midi-freq note-number (cents)
+    @enddoc */
+
+    /* @doc(command.i)
+    name: i
+    category: voice
+    summary: instrument note-number (velocity) (cents) - smart articulation for note, rest (-), tie (.), slur (~note)
     @enddoc */
     /* @doc(command.N)
     name: N

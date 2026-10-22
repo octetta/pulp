@@ -27,6 +27,14 @@ static int word_exec_n_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
     while (*p && (isspace((unsigned char)*p) || *p == ',')) p++;
     if (!*p) break;
     
+    int is_slur = 0;
+    if ((*p == '~' || *p == '/' || *p == '\\') &&
+        toupper((unsigned char)*(p + 1)) >= 'A' &&
+        toupper((unsigned char)*(p + 1)) <= 'G') {
+      is_slur = 1;
+      p++;
+    }
+
     char c = toupper((unsigned char)*p);
     if (c >= 'A' && c <= 'G') {
       int note_idx = 0;
@@ -52,11 +60,27 @@ static int word_exec_n_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       }
       octave *= sign;
       
-      notes[note_count++] = (octave + 1) * 12 + note_idx;
-    } else if (*p == '-' || *p == '.' || *p == '~' || c == 'R') {
-      notes[note_count++] = NAN;
+      double note_num = (octave + 1) * 12 + note_idx;
+      notes[note_count++] = is_slur ? -note_num : note_num;
+    } else if (*p == '.' || *p == '_') {
+      notes[note_count++] = ANDS_SENTINEL_TIE;
       p++;
       while (*p && !isspace((unsigned char)*p) && *p != ',') p++;
+    } else if (*p == '-' || *p == '~' || c == 'R') {
+      if (*p == '-' && isdigit((unsigned char)*(p + 1))) {
+        char *endp = NULL;
+        double val = strtod(p, &endp);
+        if (endp && endp > p) {
+          notes[note_count++] = val;
+          p = endp;
+        } else {
+          p++;
+        }
+      } else {
+        notes[note_count++] = ANDS_SENTINEL_REST;
+        p++;
+        while (*p && !isspace((unsigned char)*p) && *p != ',') p++;
+      }
     } else if (isdigit((unsigned char)*p)) {
       char *endp = NULL;
       double val = strtod(p, &endp);

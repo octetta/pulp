@@ -49,13 +49,16 @@
 #define IS_CHUNK_END(c) (c == ';' || c == '\n' || c == '\r' || c == 0x04) // 0x04 ASCII EOT / end of xmit
 #define IS_DEFER(c) (c == '+' || c == '~')
 #define IS_ATOM(c) (isalpha(c) || strchr("!%^*_=:\"'<>?/\\|`", c))
-#define IS_NUMBER_EX(c) (isxdigit(c) || strchr("-.eExX", c))
+#define IS_NUMBER_EX(c) (isxdigit(c) || strchr("-.eExX_", c))
 
 static double ands_strtod(char *s) {
-  double d = NAN;
-  if (s[1] == '\0' && (s[0] == '-' || s[0] == 'e' || s[0] == '.')) return d;
-  d = strtod(s, NULL);
-  return d;
+  if (s[1] == '\0') {
+    if (s[0] == '-' || s[0] == 'e') return ANDS_SENTINEL_REST;
+    if (s[0] == '.' || s[0] == '_') return ANDS_SENTINEL_TIE;
+  }
+  if (strcmp(s, "--") == 0 || strcmp(s, "---") == 0) return ANDS_SENTINEL_REST;
+  if (strcmp(s, "..") == 0 || strcmp(s, "...") == 0 || strcmp(s, "__") == 0) return ANDS_SENTINEL_TIE;
+  return strtod(s, NULL);
 }
 
 static double ands_defer_time_clamp(double d) {

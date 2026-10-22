@@ -489,7 +489,7 @@ static int word_exec_stream_show(const skode_word_t *self, skode_t *ctx, ands_t 
       if (stream->len > 0) {
         ctx->printf(ctx, "( ");
         for (int i = 0; i < stream->len; i++) {
-          if (isnan(stream->data[i])) ctx->printf(ctx, "- "); else ctx->printf(ctx, "%g ", stream->data[i]);
+          if (ands_is_tie(stream->data[i])) ctx->printf(ctx, ". "); else if (isnan(stream->data[i])) ctx->printf(ctx, "- "); else ctx->printf(ctx, "%g ", stream->data[i]);
         }
         ctx->printf(ctx, ") /SS %d ", stream_idx);
         if (stream->mode != 0) {
@@ -625,9 +625,20 @@ static int word_exec_n(const skode_word_t *self, skode_t *ctx, ands_t *s,
     double *arg, int argc) {
   (void)self; (void)s;
   if (argc) {
-    float note = (float)arg[0];
+    float note = skode_double_to_float_note(arg[0]);
     float cents = argc > 1 ? (float)arg[1] : 0.0f;
     skode_midi_note(ctx->voice, note, cents);
+  }
+  return 0;
+}
+static int word_exec_i(const skode_word_t *self, skode_t *ctx, ands_t *s,
+    double *arg, int argc) {
+  (void)self; (void)s;
+  if (argc) {
+    float note = skode_double_to_float_note(arg[0]);
+    float vel = argc > 1 ? (float)arg[1] : 1.0f;
+    float cents = argc > 2 ? (float)arg[2] : 0.0f;
+    skode_inst_note(ctx->voice, note, vel, cents);
   }
   return 0;
 }
@@ -787,6 +798,10 @@ static skode_word_t word_table[] = {
     .min_args = 1, .max_args = 2, .default_mask = 1,
     .safety = WORD_REAL_TIME_SAFE, .category = "voice",
     .summary = "midi-freq note-number (cents)" },
+  { WID("i"), .execute = word_exec_i, .opcode_id = SKODE_OP_INST_NOTE,
+    .min_args = 1, .max_args = 3, .default_mask = 1,
+    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
+    .summary = "instrument note-number (velocity) (cents)" },
   { WID("p"), .execute = word_exec_p, .opcode_id = SKODE_OP_PAN,
     .min_args = 1, .max_args = 1,
     .safety = WORD_REAL_TIME_SAFE, .category = "voice",

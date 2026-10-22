@@ -85,6 +85,7 @@ int skode_opcode_supported(skode_opcode_t opcode) {
     case SKODE_OP_AMP:
     case SKODE_OP_FREQ:
     case SKODE_OP_MIDI_NOTE:
+    case SKODE_OP_INST_NOTE:
     case SKODE_OP_PAN:
     case SKODE_OP_VELOCITY:
     case SKODE_OP_ENVELOPE_VELOCITY:
@@ -205,6 +206,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       opcode->argc > SEQ_OPCODE_ARG_MAX || opcode->var_mask != 0) return -1;
   uint8_t default_mask =
     opcode->code == SKODE_OP_MIDI_NOTE ||
+    opcode->code == SKODE_OP_INST_NOTE ||
     opcode->code == SKODE_OP_MIDI_DETUNE ? 1U :
     opcode->code == SKODE_OP_DELAY_PARAMS ? 0x7eU : 0U;
   if (((uint8_t)opcode->mode & ~default_mask) != 0) return -1;
@@ -429,6 +431,14 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       if (opcode->argc != 1 && opcode->argc != 2) return -1;
       return skode_midi_note(voice, opcode->arg[0],
         opcode->argc == 2 ? opcode->arg[1] : 0);
+    case SKODE_OP_INST_NOTE:
+      if (opcode->argc < 1 || opcode->argc > 3) return -1;
+      {
+        float note = opcode->arg[0];
+        float vel = opcode->argc > 1 ? opcode->arg[1] : 1.0f;
+        float cents = opcode->argc > 2 ? opcode->arg[2] : 0.0f;
+        return skode_inst_note(voice, note, vel, cents);
+      }
     case SKODE_OP_MIDI_DETUNE:
       if (opcode->argc < 1 || opcode->argc > 2) return -1;
       if (!isnan(opcode->arg[0]))

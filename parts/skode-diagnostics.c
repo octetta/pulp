@@ -150,7 +150,9 @@ void global_status_show(skode_t *ctx, int full) {
     if (global_stream[i].len > 0) {
       ctx->printf(ctx, "( ");
       for (int j = 0; j < global_stream[i].len; j++) {
-        if (isnan(global_stream[i].data[j])) {
+        if (ands_is_tie(global_stream[i].data[j])) {
+          ctx->printf(ctx, ". ");
+        } else if (isnan(global_stream[i].data[j])) {
           ctx->printf(ctx, "- ");
         } else {
           ctx->printf(ctx, "%g ", global_stream[i].data[j]);
@@ -295,6 +297,8 @@ void opcode_arg_show(skode_t *ctx, const opcode_event_t *opcode,
     ctx->printf(ctx, " &%d", (int)opcode->arg[n]);
   } else if (opcode->var_mask & (1U << n)) {
     ctx->printf(ctx, " $%d", (int)opcode->arg[n]);
+  } else if (skode_float_is_tie(opcode->arg[n])) {
+    ctx->printf(ctx, " .");
   } else if (isnan(opcode->arg[n]) &&
       ((uint8_t)opcode->mode & (1U << n))) {
     ctx->printf(ctx, " -");

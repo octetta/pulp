@@ -1,0 +1,103 @@
+# ==============================================================================
+# DEMO: Stream Articulation with Unified Instrument Command `i`
+# ==============================================================================
+# This demo showcases Skode's unified instrument note command `i` and stream
+# articulation sentinels:
+#
+#   1. Note-On   (`C3`, `Eb2`): Pitch change with fresh envelope attack.
+#   2. Tie / Hold (`.` or `_`): Sustains current pitch across step boundaries
+#                               without re-triggering the envelope attack.
+#   3. Rest      (`-` or `R`):  Chokes the voice and triggers envelope release.
+#   4. Slur      (`~Note` or `/Note`): Legato transition -- moves pitch smoothly
+#                               (with portamento glide) without re-attacking.
+#
+# Why `i` replaces `n&1 l1`:
+#   Previously, writing `[v0 n&1 l1]` meant `l1` unconditionally fired on every
+#   step, causing unwanted envelope clicks on tied notes and making slurred/legato
+#   transitions impossible. `i` handles pitch, gate, and articulation atomically.
+# ==============================================================================
+
+M 120 16
+
+# ------------------------------------------------------------------------------
+# 1. VOICE CONFIGURATION
+# ------------------------------------------------------------------------------
+
+# Voice 0: Warm Analog Bass
+# Notice: Non-zero sustain (.65) allows Ties to hold, glide (g.03) enables Slurs
+v0
+w1                 # Sawtooth wave
+a-6                # Level: -6 dB
+k900               # Lowpass filter cutoff: 900 Hz
+q2.0               # Filter resonance
+g0.035             # Portamento glide time: 35ms (smooth legato slur)
+.008 .20 .65 .15 t # ADSR: 8ms attack, 200ms decay, 65% sustain, 150ms release
+[analog bass] vt
+
+# Voice 1: Expressive Lead Synth
+v1
+w2                 # Square wave
+a-9                # Level: -9 dB
+k2400              # Cutoff: 2400 Hz
+q1.5               # Resonance
+g0.040             # Portamento glide: 40ms
+.015 .25 .60 .20 t # ADSR: 15ms attack, 250ms decay, 60% sustain, 200ms release
+[expressive lead] vt
+
+# Voice 2: Kick Drum
+v2
+w82 f440 a5 p0 [kick] vt
+
+# Voice 3: Snare Drum
+v3
+w83 f440 a4 p0 [snare] vt
+
+# ------------------------------------------------------------------------------
+# 2. STREAM DEFINITIONS (Note, Tie, Slur, Rest)
+# ------------------------------------------------------------------------------
+
+# Bass Stream 1 (16 steps):
+#   Steps 0-2:  C2 held for 3 steps (dotted eighth) via Ties `.`
+#   Step 3:     16th Rest `-`
+#   Steps 4-5:  Legato Slur `~Eb2` held for 2 steps (smooth glide, no re-attack!)
+#   Steps 6-7:  Two 16th Rests `- -`
+#   Steps 8-11: Legato Slur `~G2` held for 4 full steps (quarter note sustain)
+#   Steps 12-13: Freshly attacked C2 held for 2 steps (re-articulated!)
+#   Steps 14-15: Two 16th Rests `- -`
+[ C2 . . -  ~Eb2 . - -  ~G2 . . .  C2 . - - ] n>d /SS 1
+
+# Equivalent Numeric Stream (showing negative numbers for slurs):
+#   ( 36 . . -  -39 . - -  -43 . . .  36 . - - ) /SS 1
+
+# Lead Melody Stream 2 (16 steps):
+#   Steps 0-3:   G4 held for 4 steps (quarter note)
+#   Steps 4-7:   Legato Slur `~Bb4` held for 4 steps (glides up, no re-attack!)
+#   Steps 8-10:  Legato Slur `~C5` held for 3 steps
+#   Step 11:     Rest `-`
+#   Steps 12-13: Re-attacked G4 held for 2 steps
+#   Steps 14-15: Two 16th Rests `- -`
+[ G4 . . .  ~Bb4 . . .  ~C5 . . -  G4 . - - ] n>d /SS 2
+
+# ------------------------------------------------------------------------------
+# 3. PATTERN DEFINITIONS
+# ------------------------------------------------------------------------------
+
+y0
+# Main Groove:
+# Bassline reads Stream 1 using unified `i&1` across all 16 steps:
+[v0 i&1] x0,1,2,3,4,5,6,7
+[v0 i&1] x8,9,10,11,12,13,14,15
+
+# Lead reads Stream 2 using unified `i&2` across all 16 steps:
+[v1 i&2] x0,1,2,3,4,5,6,7
+[v1 i&2] x8,9,10,11,12,13,14,15
+
+# Drums: Four-on-the-floor kick, backbeat snare
+[v2 l1] x0,4,8,12
+[v3 l1] x4,12
+[groove pattern] yt
+
+# ------------------------------------------------------------------------------
+# 4. PLAYBACK
+# ------------------------------------------------------------------------------
+y0 z1

@@ -36,7 +36,7 @@ const char *skode_opcode_name(uint8_t opcode) {
     "FREQ_FEEDBACK", "FREQ_BEND", "FREQ_BEND_PARAM",
     "AMP_BEND", "AMP_BEND_PARAM", "PATTERN_MODULO", "RATCHET",
     "DELAY_DAMPING", "DELAY_FREEZE", "DELAY_PINGPONG", "DELAY_TIME",
-    "DELAY_SYNC", "DELAY_GRIT", "TEMPO",
+    "DELAY_SYNC", "DELAY_GRIT", "TEMPO", "INST_NOTE",
   };
   if (opcode >= sizeof(names) / sizeof(names[0])) return NULL;
   return names[opcode];
@@ -77,7 +77,7 @@ int skode_program_push_ex(event_program_t *program, skode_opcode_t code,
         op->opcode.arg[i] = (float)variable;
       }
     } else {
-      op->opcode.arg[i] = (float)arg[i];
+      op->opcode.arg[i] = skode_double_to_float_note(arg[i]);
       if (!isfinite(op->opcode.arg[i]) &&
           !(isnan(op->opcode.arg[i]) && (default_mask & (1U << i)))) {
         return -1;
@@ -644,20 +644,51 @@ static uint8_t voice_is_rest[VOICE_MAX];
 
 int skode_midi_note(int voice, float note, float cents) {
   if (!event_voice_valid(voice)) return -1;
-  if (isnan(note) || note < 0.0f) {
+  if (skode_float_is_tie(note)) {
+    return 0;
+  }
+  if (isnan(note) || (note < 0.0f && note < -127.0f)) {
     voice_is_rest[voice] = 1;
     skode_linked_velocity(voice, 0.0f, SAMPLE_COUNT_GET());
     return 0;
   }
   voice_is_rest[voice] = 0;
-  int result = freq_midi(voice, note, cents);
-  if (sv.link_midi_0[voice] >= 0) freq_midi(sv.link_midi_0[voice], note, cents);
-  if (sv.link_midi_1[voice] >= 0) freq_midi(sv.link_midi_1[voice], note, cents);
-  if (sv.link_midi_2[voice] >= 0) freq_midi(sv.link_midi_2[voice], note, cents);
-  if (sv.link_midi_3[voice] >= 0) freq_midi(sv.link_midi_3[voice], note, cents);
-  if (sv.link_midi_4[voice] >= 0) freq_midi(sv.link_midi_4[voice], note, cents);
-  if (sv.link_midi_5[voice] >= 0) freq_midi(sv.link_midi_5[voice], note, cents);
+  float pitch = note < 0.0f ? -note : note;
+  int result = freq_midi(voice, pitch, cents);
+  if (sv.link_midi_0[voice] >= 0) freq_midi(sv.link_midi_0[voice], pitch, cents);
+  if (sv.link_midi_1[voice] >= 0) freq_midi(sv.link_midi_1[voice], pitch, cents);
+  if (sv.link_midi_2[voice] >= 0) freq_midi(sv.link_midi_2[voice], pitch, cents);
+  if (sv.link_midi_3[voice] >= 0) freq_midi(sv.link_midi_3[voice], pitch, cents);
+  if (sv.link_midi_4[voice] >= 0) freq_midi(sv.link_midi_4[voice], pitch, cents);
+  if (sv.link_midi_5[voice] >= 0) freq_midi(sv.link_midi_5[voice], pitch, cents);
   return result;
+}
+
+int skode_inst_note(int voice, float note, float velocity, float cents) {
+  if (!event_voice_valid(voice)) return -1;
+  if (skode_float_is_tie(note)) {
+    return 0;
+  }
+  if (isnan(note) || note < -127.0f) {
+    voice_is_rest[voice] = 1;
+    skode_linked_velocity(voice, 0.0f, SAMPLE_COUNT_GET());
+    return 0;
+  }
+  voice_is_rest[voice] = 0;
+  float pitch = note < 0.0f ? -note : note;
+  freq_midi(voice, pitch, cents);
+  if (sv.link_midi_0[voice] >= 0) freq_midi(sv.link_midi_0[voice], pitch, cents);
+  if (sv.link_midi_1[voice] >= 0) freq_midi(sv.link_midi_1[voice], pitch, cents);
+  if (sv.link_midi_2[voice] >= 0) freq_midi(sv.link_midi_2[voice], pitch, cents);
+  if (sv.link_midi_3[voice] >= 0) freq_midi(sv.link_midi_3[voice], pitch, cents);
+  if (sv.link_midi_4[voice] >= 0) freq_midi(sv.link_midi_4[voice], pitch, cents);
+  if (sv.link_midi_5[voice] >= 0) freq_midi(sv.link_midi_5[voice], pitch, cents);
+
+  if (note >= 0.0f) {
+    float vel = velocity > 0.0f ? velocity : 1.0f;
+    skode_linked_velocity(voice, vel, SAMPLE_COUNT_GET());
+  }
+  return 0;
 }
 
 int skode_linked_velocity(int voice, float velocity, uint64_t sample) {
@@ -687,12 +718,12 @@ static int execute_opcode(const event_t *event, int voice) {
     if (opcode->stream_mask & (1U << i)) {
       int stream_idx = (int)opcode->arg[i];
       if (stream_idx >= 0 && stream_idx < ANDS_VAR_MAX) {
-        resolved.arg[i] = (float)skode_stream_pull(NULL, stream_idx);
+        resolved.arg[i] = skode_double_to_float_note(skode_stream_pull(NULL, stream_idx));
       }
     } else if (opcode->var_mask & (1U << i)) {
       int variable = (int)opcode->arg[i];
       if (variable < 0 || variable >= ANDS_VAR_MAX) return -1;
-      resolved.arg[i] = (float)global_var[variable];
+      resolved.arg[i] = skode_double_to_float_note(global_var[variable]);
     }
     if (!isfinite(resolved.arg[i]) &&
         !(isnan(resolved.arg[i]) &&

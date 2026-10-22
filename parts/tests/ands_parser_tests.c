@@ -418,10 +418,28 @@ static void test_macro_management_api(void) {
   ands_macro_clear(NULL);
 }
 
+static void test_tie_and_rest_sentinels(void) {
+  const char *test = "tie and rest sentinels";
+  recorder_t r;
+  char input[] = "( 60 . _ - -52 ) d*";
+  run_parse(test, input, &r);
+
+  expect_len(test, &r, 3);
+  expect_event(test, &r, 0, GOT_ARRAY, "----");
+  if (!near_double(r.events[0].args[0], 60)) fail(test, "expected 60 at arg 0");
+  if (!ands_is_tie(r.events[0].args[1])) fail(test, "expected tie at arg 1 (.)");
+  if (!ands_is_tie(r.events[0].args[2])) fail(test, "expected tie at arg 2 (_)");
+  if (!ands_is_rest(r.events[0].args[3])) fail(test, "expected rest at arg 3 (-)");
+  if (!near_double(r.events[0].args[4], -52)) fail(test, "expected -52 at arg 4");
+  expect_event(test, &r, 1, FUNCTION, "d*--");
+  expect_event(test, &r, 2, CHUNK_END, "----");
+}
+
 int main(void) {
   test_compact_commands();
   test_strings_and_arrays();
   test_variables_and_nan_defaults();
+  test_tie_and_rest_sentinels();
   test_comments_and_chunks();
   test_defer();
   test_variable_provenance();

@@ -1,0 +1,395 @@
+# ======================================================================
+#  ELECTRIC SUN (Vince Clarke & Diplo Collaboration Tribute)
+#  122 BPM, E minor / G Major, Global Festival Synth-Pop Anthem
+# ======================================================================
+
+[ELECTRIC SUN - VINCE CLARKE & DIPLO GLOBAL ANTHEM] puts
+V -7.6
+M 122 16
+
+# ----------------------------------------------------------------------
+# DELAY BUSES (tempo synced to 122 BPM)
+# ----------------------------------------------------------------------
+# Bus 1: Dotted-eighth stereo lead echo (Global anthem space)
+DS 1 122 .75
+DL 1 - - 8 3 3 11
+DD 1 7 3
+
+# Bus 2: 16th ping-pong arpeggiator & marimba echo (Vince Clarke signature)
+DS 2 122 .25
+DL 2 - - 6 0 0 9
+DD 2 5 4
+DP 2 1
+
+# Bus 3: Eighth note slapback
+DS 3 122 .5
+DL 3 - - 7 0 0 10
+DD 3 6 4
+
+# Bus 4: Warm festival hall wash
+DS 4 122 1.0
+DL 4 - - 11 4 8 10
+DD 4 8 2
+DP 4 1
+
+# ----------------------------------------------------------------------
+# VOICES
+# ----------------------------------------------------------------------
+# DRUMS: Diplo Festival Kit (Heavy Punch Kick, Snappy Claps, Tropical Perc)
+v0 w82 f440 a5.5 p0                          # festival punch kick
+v1 w83 f440 a6.0 r2 p0 ds.25                 # crisp snare
+v2 w84 f440 a-3.5 p.2                        # 16th shaker / closed hat
+v3 w85 f440 a-1.5 p-.2                       # sizzling offbeat open hat
+v4 w86 f440 a5.5 r2 p0 ds.3                  # layered festival clap
+v5 w0 a-2.5 p0 t.002,.30,0,.10 j1 k160 q.7   # sub kick weight (pitch drop)
+v21 w94 f440 a3.5 p.2                        # crash cymbal
+v22 w96 f520 a3.5 p-.25 r2 ds.3              # Diplo tropical woodblock / perc tick
+v23 w87 f440 a4.5 p.25                       # crisp rimshot / snap
+
+# RISER (inline K-synth festival noise sweep)
+[
+/ global festival riser
+N: 131072
+T: !N
+E: (e(T*(4.5%N)))%100
+R: r T
+L: 0.35 f R
+H: R-L
+F: 850*(e(T*(2.8%N)))*((p 2)%(p 0))
+P: +\F
+S: s P
+W: w E*((S*.35)+(H*.65))
+] k!
+k>w301,44100,1
+v16 w301 f180 a7.5 p0 t.005,.01,1,.3 r4 ds.3  # noise riser
+
+# BASS 1: Vince Clarke Rubbery Pro-One/SH-101 Bouncing Bass
+# Snappy filter decay + octave pulse + phase distortion
+v6 w15 a-2 p0 t.002,.14,0,.04 j1,1 k750 q3.5 ft.001,.12,0,.03 fd2600 c4,.3 r1 ds.3
+v6 >7
+v7 w16 a-4 N12,8 p0 r1 ds.3
+v6 G7 H7
+
+# BASS 2: Diplo Deep Sub Bass Reinforcer (Chorus & Drop)
+v8 w0 a-1.5 p0 t.002,.25,.2,.08 j1 k240 q1.5
+
+# ARPEGGIATOR: Vince Clarke Crystalline Juno-60 16th Arp
+v17 w15 a-8 p0 t.002,.10,0,.03 j1 k4200 q2.2 r2 ds.4
+
+# TROPICAL PERC / PLUCK: Diplo Kalimba / Marimba Chime
+v18 w1 f700 a-6 p.3 t.001,.14,0,.03 bc6 r2 ds.3
+
+# LEAD: The Global Anthem Hook (Pitched Chop & Soaring Saw Trio)
+v13 w15 a-7.5 p0 t.004,.24,.4,.12 j1,1 k4800 q1.5 c4,.3 ct.001,.2,0,.1 cd.4 r1 ds.35
+v13 >14
+v13 >15
+v14 w15 a-9.5 p-.55 N0,9 r0
+v15 w16 a-9.5 p.55 N0,-9 r0
+v13 G14,15 H14,15
+
+# ANALOG PADS: Vince Clarke Warm Juno-60 Strings (Poly Pool)
+v24 w0 f.32 a0 t0,0,1,0 m1
+v26 w15 a-9.5 p-.5 t1.0,.4,.7,1.2 j1 k2400 q.8 c4,.2 C24,.2 G27 H27
+v27 w15 a-11.5 p.5 N0,8 t1.0,.4,.7,1.2 j1 k2400 q.8 c4,.2 C24,.2
+/pg 0,26,2,0
+/pp 0,0,28,5,0
+v24 l1
+
+# ----------------------------------------------------------------------
+# STREAMS (Notes via n>d)
+# ----------------------------------------------------------------------
+
+# Stream 1: Vince Clarke Syncopated Rubbery Bassline (2 bars / 32 steps: Em -> C)
+# Em: E1 . E1 .  E1 - G1 A1  - B1 - A1  G1 - E1 -
+# C:  C1 . C1 .  C1 - E1 G1  - A1 - G1  E1 - D1 -
+[
+  E1 . E1 .  E1 - G1 A1  - B1 - A1  G1 - E1 -
+  C1 . C1 .  C1 - E1 G1  - A1 - G1  E1 - D1 -
+] n>d /SS 1
+
+# Stream 2: Chorus Driving Festival Bassline (4 bars / 64 steps: Em -> C -> G -> D)
+[
+  E1 - E1 E2  - E1 - E2  E1 - E1 G1  - A1 B1 -
+  C1 - C1 C2  - C1 - C2  C1 - C1 E1  - G1 A1 -
+  G1 - G1 G2  - G1 - G2  G1 - G1 B1  - C2 D2 -
+  D1 - D1 D2  - D1 - D2  D1 - D1 F#1 - G1 A1 -
+] n>d /SS 2
+
+# Stream 7: Vince Clarke Shimmering 16th Arp (4 bars: Em -> C -> G -> D)
+[
+  E3 G3 B3 E4  G3 B3 E4 G4  B3 E4 G4 B4  G4 E4 B3 G3
+  C3 E3 G3 C4  E3 G3 C4 E4  G3 C4 E4 G4  E4 C4 G3 E3
+  G3 B3 D4 G4  B3 D4 G4 B4  D4 G4 B4 D5  B4 G4 D4 B3
+  D3 F#3 A3 D4 F#3 A3 D4 F#4 A3 D4 F#4 A4 F#4 D4 A3 F#3
+] n>d /SS 7
+
+# Stream 13: The Global Anthem Hook - Memory Bank (4 bars / 64 steps)
+# Pure euphoric festival melody that makes the whole world dance!
+[
+  B4 - - B4  D5 - E5 -  D5 - B4 -  A4 - G4 -
+  E4 - - -   - - - -    G4 - - -   - - - -
+  B4 - - B4  D5 - E5 -  G5 - F#5 - E5 - D5 -
+  E5 - - -   - - - -    - - - -    - - - -
+] n>d /SS 13
+/SC 4 13
+
+# Stream 14: High Climax Anthem Hook - Memory Bank (4 bars / 64 steps)
+[
+  B5 - - B5  D6 - E6 -  D6 - B5 -  A5 - G5 -
+  E5 - - -   - - - -    G5 - - -   - - - -
+  B5 - - B5  D6 - E6 -  G6 - F#6 - E6 - D6 -
+  E6 - - -   - - - -    - - - -    - - - -
+] n>d /SS 14
+
+# Stream 5: Diplo Tropical Kalimba Chime Hook (2 bars / 32 steps)
+[
+  B4 - D5 -  E5 - G5 -  E5 - D5 B4  - - - -
+  B4 - D5 -  E5 - A5 -  G5 - E5 D5  B4 - - -
+] n>d /SS 5
+
+# ----------------------------------------------------------------------
+# PATTERNS
+# ----------------------------------------------------------------------
+
+# Pattern 1: Four-on-the-Floor Festival Kick + Sub Drop (Beats 0, 4, 8, 12)
+y1
+[kick] yt
+[v0 l1 v5 g0 n48 g.07 n24 l1] x0,4,8,12
+[=127,0] x15
+
+# Pattern 2: Snare & Layered Festival Clap (Beats 4, 12)
+y2
+[snare+clap] yt
+[v1 l1 v4 l1] x4,12
+[v1 l.35] x10,14
+[v23 l.6] x15
+[=127,0] x15
+
+# Pattern 3: Swung 16th Hats + Offbeat Open Hats
+y3
+[hats] yt
+[v2 l.35] x0,1,3,4,5,7,8,9,11,12,13,15
+[v3 l.85 v2 l0] x2,6,10,14
+[=127,0] x15
+
+# Pattern 4: Vince Clarke Bouncing Bassline (2 bars, 32 steps)
+y4
+[vince bass] yt
+[v6 i&1] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v6 i&1] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[=127,0] x31
+
+# Pattern 5: Chorus Driving Festival Bassline (4 bars, 64 steps)
+y5
+[chorus bass] yt
+[v6 i&2 v8 i&2, .8] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v6 i&2 v8 i&2, .8] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[v6 i&2 v8 i&2, .8] x32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+[v6 i&2 v8 i&2, .8] x48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63
+[=127,0] x63
+
+# Pattern 6: Vince Clarke Crystalline 16th Arp (4 bars, 64 steps)
+y6
+[shimmer arp] yt
+[v17 i&7, .85] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v17 i&7, .85] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[v17 i&7, .85] x32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+[v17 i&7, .85] x48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63
+[=127,0] x63
+
+# Pattern 7: Diplo Tropical Kalimba & Percussion (2 bars, 32 steps)
+y7
+[tropical perc] yt
+[v18 i&5, .9] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v18 i&5, .9] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[=127,0] x31
+
+# Pattern 8: Diplo Tropical Woodblock Syncopation
+y8
+[woodblock] yt
+[v22 l.85] x2,4,7,10,12
+[v22 l.6] x15
+[=127,0] x15
+
+# Pattern 9: The Global Anthem Hook (4 bars, 64 steps)
+y9
+[anthem hook] yt
+[v13 i&4, .95] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v13 i&4, .95] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[v13 i&4, .95] x32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+[v13 i&4, .95] x48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63
+[=127,0] x63
+
+# Pattern 11: Polyphonic Juno-60 Strings (4 bars, 64 steps: Em -> C -> G -> D)
+y11
+[juno strings] yt
+[pn 0,101,52,.75 pn 0,102,55,.75 pn 0,103,59,.75] x0       # Em
+[pr 0,101 pr 0,102 pr 0,103] x15
+[pn 0,104,48,.75 pn 0,105,52,.75 pn 0,106,55,.75] x16      # C
+[pr 0,104 pr 0,105 pr 0,106] x31
+[pn 0,107,47,.75 pn 0,108,50,.75 pn 0,109,55,.75] x32      # G
+[pr 0,107 pr 0,108 pr 0,109] x47
+[pn 0,110,50,.75 pn 0,111,54,.75 pn 0,112,57,.75] x48      # D
+[pr 0,110 pr 0,111 pr 0,112] x63
+[=127,0] x63
+
+# Pattern 13: Diplo Festival Build Snare Ratchet Roll (1 bar, 16 steps)
+y13
+[snare roll] yt
+[v1 l0.3 v4 l.7] x0,4,8,12
+[v1 l0.5] x2,6,10,14
+[v1 l0.7 z*2] x8,10
+[v1 l0.85 z*4] x12,13,14
+[v1 l1.0 z*8] x15
+[-] x16
+
+# Pattern 14: Sidechain Pump (drives pad & bass breathing on festival kick)
+y14
+[pump] yt
+%4
+[v28 a-22 v29 a-24 v30 a-22 v31 a-24 v32 a-22 v33 a-24 v34 a-22 v35 a-24 v36 a-22 v37 a-24 v6 a-16] x0
+[v28 a-16 v29 a-18 v30 a-16 v31 a-18 v32 a-16 v33 a-18 v34 a-16 v35 a-18 v36 a-16 v37 a-18 v6 a-8] x1
+[v28 a-11 v29 a-13 v30 a-11 v31 a-13 v32 a-11 v33 a-13 v34 a-11 v35 a-13 v36 a-11 v37 a-13 v6 a-4] x2
+[v28 a-9 v29 a-11 v30 a-9 v31 a-11 v32 a-9 v33 a-11 v34 a-9 v35 a-11 v36 a-9 v37 a-11 v6 a-2] x3
+
+# Pattern 16: Bass Filter Brightening Sweep Lane (over 4 bars, 64 steps)
+y16
+[filter sweep] yt
+[v6 k600 v7 k600] x0
+[v6 k900 v7 k900] x16
+[v6 k1500 v7 k1500] x32
+[v6 k2400 v7 k2400] x48
+[=127,0] x63
+
+# ----------------------------------------------------------------------
+# CONDUCTOR (Pattern 0: 1 step per bar, 80 bars)
+# ----------------------------------------------------------------------
+y0
+[conductor] yt
+%16
+
+# --- INTRO: Vince Clarke Melodic Sparkle (Bars 0-7: 8 bars) ---
+# Bar 0: Vince Clarke rubbery bass enters with Diplo tropical woodblock
+[/SP 1 0 y4 z1 y8 z1 v3 a-99] x0
+[=126,1] x1
+# Bar 2: Closed 16th hats fade in over the groove
+[y3 z1] x2
+[=126,3] x3
+# Bar 4: Crystalline Juno-60 arpeggio ripples in, open hats join
+[v3 a-1.5 /SP 7 0 y6 z1 /SP 5 0 y7 z1] x4
+[=126,5] x5
+[=126,6] x6
+# Bar 7: Festival noise sweep rises into Drop 1
+[v16 l1] x7
+
+# --- DROP 1 / VERSE 1: Full Global Groove (Bars 8-23: 16 bars) ---
+# Bar 8: Four-on-the-floor KICK slams in! Full drums + bass + arp + pump
+[v21 l1 y1 z1 y2 z1 y3 z1 y4 z1 y6 z1 y7 z1 y8 z1 y14 z1] x8
+[=126,9] x9
+[=126,10] x10
+[=126,11] x11
+# Bar 12: Tropical kalimba hook echoes over the beat
+[/SP 5 0 y7 z1] x12
+[=126,13] x13
+[=126,14] x14
+[=126,15] x15
+# Bar 16: Juno-60 Strings wash in with bass filter sweep (y16)
+[y11 z1 y16 z1] x16
+[=126,17] x17
+[=126,18] x18
+[=126,19] x19
+[=126,20] x20
+[=126,21] x21
+[=126,22] x22
+# Bar 23: Diplo festival snare roll build
+[y1 z0 y2 z0 y7 z0 y8 z0 y16 z0 y13 z1] x23
+
+# --- PRE-DROP: Festival Build & Tension (Bars 24-31: 8 bars) ---
+# Bar 24: Strings swell, bass transitions to 4-bar driving festival progression
+[v21 l1 y1 z1 y3 z1 /SP 2 0 y5 z1 y6 z1 y11 z1 y14 z1] x24
+[=126,25] x25
+[=126,26] x26
+[=126,27] x27
+[y7 z1 y8 z1] x28
+[=126,29] x29
+[y1 z0 y3 z0 y5 z0 y6 z0 y7 z0 y8 z0 y11 z0 y14 z0 y13 z1 v16 l1] x30
+# Bar 31: 1 beat of dramatic drop-out silence before the world drops!
+[y13 z0] x31
+
+# --- CHORUS 1: GLOBAL HIT EXPLOSION (Bars 32-47: 16 bars) ---
+# Bar 32: THE WHOLE WORLD DANCES! Full stadium drop!
+# Driving festival bass + 4-on-floor kick + Anthem hook + Arps + Strings
+[v21 l1 /SC 4 13 y1 z1 y2 z1 y3 z1 y5 z1 y6 z1 y7 z1 y9 z1 y8 z1 y11 z1 y14 z1] x32
+[=126,33] x33
+[=126,34] x34
+[=126,35] x35
+[=126,36] x36
+[=126,37] x37
+[=126,38] x38
+[=126,39] x39
+# Bar 40: High anthem variation (/SC 4 14) takes the festival higher
+[/SC 4 14 /SP 4 0] x40
+[=126,41] x41
+[=126,42] x42
+[=126,43] x43
+[=126,44] x44
+[=126,45] x45
+[=126,46] x46
+[y1 z0 y2 z0 y5 z0 y6 z0 y7 z0 y8 z0 y9 z0 y11 z0 y13 z1] x47
+
+# --- BREAKDOWN: Tropical Synthpop Bounce (Bars 48-55: 8 bars) ---
+# Bar 48: Kick drops out! Rubbery bass + tropical kalimba + cowbell + open hats
+[v21 l1 /SP 1 0 y4 z1 y3 z1 y6 z1 y7 z1 y8 z1 v6 k750 v7 k750] x48
+[=126,49] x49
+[=126,50] x50
+[=126,51] x51
+# Bar 52: 4-on-the-floor kick drops back in on the bounce
+[y1 z1] x52
+[=126,53] x53
+[=126,54] x54
+# Bar 55: Building snare ratchet roll + noise sweep into Drop 2
+[y4 z0 y6 z0 y7 z0 y8 z0 y13 z1 v16 l1] x55
+
+# --- CHORUS 2 & CLIMAX: MAXIMUM WORLDWIDE ENERGY (Bars 56-71: 16 bars) ---
+# Bar 56: EVERYTHING HITS AT PEAK EUPHORIA!
+[v21 l1 /SC 4 13 y1 z1 y2 z1 y3 z1 y5 z1 y6 z1 y7 z1 y9 z1 y8 z1 y11 z1 y14 z1] x56
+[=126,57] x57
+[=126,58] x58
+[=126,59] x59
+[=126,60] x60
+[=126,61] x61
+[=126,62] x62
+[=126,63] x63
+# Bar 64: High anthem lead variation for the final 8-bar stadium climax
+[/SC 4 14 /SP 4 0] x64
+[=126,65] x65
+[=126,66] x66
+[=126,67] x67
+[=126,68] x68
+[=126,69] x69
+[=126,70] x70
+[=126,71] x71
+
+# --- OUTRO: Sunset Fadeout (Bars 72-80: 8 bars) ---
+# Bar 72: Strip down to rubbery bass + tropical perc + open hats + shimmer arp
+[v21 l1 y5 z0 y7 z0 y8 z0 y9 z0 y11 z0 y14 z0 /SP 1 0 y4 z1 y1 z1 y3 z1] x72
+[=126,73] x73
+[=126,74] x74
+[=126,75] x75
+# Bar 76: Solitary rubbery bass fading into delay
+[y1 z0 y3 z0] x76
+[=126,77] x77
+[=126,78] x78
+[DF 1 1] x79
+# Bar 80: Final festival crash + woodblock + auto-stop
+[v0 l1 v4 l1 v21 l1 y4 z0 Z0 +8 ce 99] x80
+
+# ----------------------------------------------------------------------
+# RESPONDERS & MACROS
+# ----------------------------------------------------------------------
+[O DQ] /ceb 4 99
+/cer 1
+
+[use 'play' to start the song, 'stop' to stop it] puts
+[play] : ?ce! /cer 1 Z0 Z! y0 z1 ;
+[stop] : /cer 0 Z0 O DQ ?ce! ;

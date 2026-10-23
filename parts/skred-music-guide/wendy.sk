@@ -1,0 +1,164 @@
+# ==============================================================================
+# TITLE MUSIC FROM A CLOCKWORK ORANGE  –  GROK v4 (clean)
+# Wendy Carlos / Rachel Elkind after Henry Purcell
+# 60 BPM · C minor → Picardy C · ~2:25
+#
+# Fixes:
+#   • Delay buses use the exact official syntax (no modulation chaos)
+#   • Patterns and conductor follow the working structure from the guide
+#   • Long sustain on brass so chords are audible
+#   • Processional drone drums present throughout the chorale
+#   • Streams sized to match pattern length (no desync)
+# ==============================================================================
+
+[CLOCKWORK ORANGE GROK v4] puts
+M 60 16
+
+# ------------------------------------------------------------------------------
+# DELAY BUSES – exact official style (no pitch modulation)
+# ------------------------------------------------------------------------------
+DS 1 60 0.70
+DL 1 - - 12 0 0 12
+DD 1 9 3
+
+DS 2 60 0.55
+DL 2 - - 9 0 0 10
+DD 2 7 3
+DP 2 1
+
+[O DQ] /ceb 4 99
+/cer 1
+
+# ------------------------------------------------------------------------------
+# VOICES
+# ------------------------------------------------------------------------------
+
+# Processional drums
+v0  w82 f200 a6  p0 r1 ds.30                 [timpani mallet] vt
+v5  w0  a0  p0 r1 ds.35 t.01,.65,.55,.70 j1 k80 q.7  [timpani drone] vt
+v1  w83 f400 a4  p0 r1 ds.25                 [funeral snare] vt
+v21 w94 f440 a2  p0                          [crash] vt
+
+# Brass – long sustain so you can hear the harmony
+v10 w15 a-5 p-.2  k2800 q2.0 g.04 r1 ds.40 t.02,.30,.80,.40  [trumpet 1] vt
+v11 w15 a-6 p.2   k2400 q1.8 g.04 r1 ds.35 t.02,.32,.78,.40  [trumpet 2] vt
+v12 w15 a-4 p-.15 k1500 q2.4 g.05 r2 ds.40 t.025,.35,.80,.45 [trombone] vt
+v13 w15 a-3 p0    k900  q2.8 g.05 r3 ds.45 t.03,.40,.82,.50  [bass trombone] vt
+v14 w16 a-7 p0    k400  q1.3 g.05 r3 ds.25 t.03,.40,.82,.50  [serpent sub] vt
+
+# Formant choir (Statement 2)
+v16 w61 a-6 p-.3  k1700 q1.4 r4 ds.50 t.05,.75,.50,.60  [choir aah] vt
+v17 w62 a-7 p.3   k1400 q1.2 r4 ds.45 t.05,.75,.50,.60  [choir ooh] vt
+
+# Opening glissandi
+v20 w0 a-2 p0   t.02,.02,1,1.4 j1 k700  q1.3 g1.1  [gliss 1] vt
+v21 w0 a-3 p-.4 t.02,.02,1,1.4 j1 k1100 q1.1 g1.2  [gliss 2] vt
+v22 w0 a-4 p.4  t.02,.02,1,1.4 j1 k500  q1.5 g1.3  [gliss 3] vt
+
+# ------------------------------------------------------------------------------
+# STREAMS (64 tokens = 4 bars of 16ths – patterns will loop them)
+# ------------------------------------------------------------------------------
+
+# Trumpet 1
+[ C5 . . . . . . .  F5 . . . . . . .  
+  C5 . . . . . . .  C5 . . . . . . .  
+  Ab4 . . . . . . .  G4 . . . . . . .  
+  G4 . . . . . . .  C5 . . . D5 . . . ] n>d /SS 1
+
+# Trumpet 2
+[ E4 . . . . . . .  F4 . . . . . . .  
+  E4 . . . . . . .  Eb4 . . . . . . .  
+  Eb4 . . . F4 . . .  G4 . . . . . . .  
+  Bb4 . . . . . . .  A4 . . . F#4 . . . ] n>d /SS 2
+
+# Trombone
+[ C4 . . . . . . .  C4 . . . . . . .  
+  C4 . . . . . . .  C4 . . . . . . .  
+  C4 . . . . . . .  D4 . . . . . . .  
+  G4 . . . . . . .  Eb4 . . . D4 . . . ] n>d /SS 3
+
+# Bass + serpent
+[ C3 . . . . . . .  F2 . . . . . . .  
+  C3 . . . . . . .  C3 . . . . . . .  
+  Ab2 . . . . . . .  G2 . . . . . . .  
+  G2 . . . . . . .  C3 . . . D3 . . . ] n>d /SS 4
+
+# Choir
+[ G5 . . . . . . .  Ab5 . . . . . . .  
+  G5 . . . . . . .  G5 . . . . . . .  
+  C6 . . . . . . .  C6 . . . ~D6 . . .  
+  B5 . . . . . . .  D6 . . . . . . . ] n>d /SS 5
+
+# ------------------------------------------------------------------------------
+# PATTERNS
+# ------------------------------------------------------------------------------
+
+y1
+[intro glissandi + solitary timpani] yt
+[v20 g0 n84 g1.1 n48 l1] x0
+[v21 g0 n79 g1.2 n43 l1] x6
+[v22 g0 n72 g1.3 n36 l1] x12
+[v5 n36 l1 v0 l1] x48
+[=127,0] x63
+
+y10
+[brass chorale] yt
+# 4 bars (64 steps). Streams are 64 tokens. Pattern loops cleanly.
+[v10 i&1,0.95 v11 i&2,0.90 v12 i&3,0.92 v13 i&4,1.0 v14 i&4,0.9] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v10 i&1,0.95 v11 i&2,0.90 v12 i&3,0.92 v13 i&4,1.0 v14 i&4,0.9] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[v10 i&1,0.95 v11 i&2,0.90 v12 i&3,0.92 v13 i&4,1.0 v14 i&4,0.9] x32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+[v10 i&1,0.95 v11 i&2,0.90 v12 i&3,0.92 v13 i&4,1.0 v14 i&4,0.9] x48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63
+[=127,0] x63
+
+y20
+[processional drums] yt
+# Steady drone pulse every bar
+[v5 n36 l0.95 v0 l0.85] x0,16,32,48
+# Secondary hits
+[v5 n31 l0.75 v0 l0.65] x8,40
+# Funeral snare
+[v1 l0.70] x0,16,32,48
+[v1 l0.30] x8,24,40,56
+[=127,0] x63
+
+y30
+[formant choir] yt
+[v16 i&5,0.80 v17 i&5,0.75] x0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+[v16 i&5,0.80 v17 i&5,0.75] x16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+[v16 i&5,0.80 v17 i&5,0.75] x32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47
+[v16 i&5,0.80 v17 i&5,0.75] x48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63
+[=127,0] x63
+
+y6
+[coda] yt
+[v10 i72,1.0 v11 i64,0.95 v12 i60,0.95 v13 i48,1.0 v14 i36,0.9
+ v16 i84,0.85 v17 i76,0.80
+ v5 n36 l1 v0 l1 v21 l0.85] x0
+[v10 l0 v11 l0 v12 l0 v13 l0 v14 l0 v16 l0 v17 l0 v5 l0 v0 l0] x32
+[=127,0] x63
+
+# ------------------------------------------------------------------------------
+# CONDUCTOR  (one step = one bar)
+# ------------------------------------------------------------------------------
+y0
+[conductor] yt
+%16
+
+# Bars 0-3 : opening
+[y1 z1] x0
+
+# Bars 4-11 : Statement 1 (brass + drums) – 8 bars
+[y1 z0 y10 z1 y20 z1 /SP 1 0 /SP 2 0 /SP 3 0 /SP 4 0] x4
+
+# Bars 12-19 : Statement 2 (add choir) – 8 bars
+[y30 z1 /SP 5 0] x12
+
+# Bar 20 : coda
+[y10 z0 y20 z0 y30 z0 y6 z1] x20
+
+# Bar 22 : end
+[y6 z0 Z0 +6 ce 99] x22
+
+[use 'play' to start, 'stop' to stop] puts
+[play] : Z0 Z! y0 z1 ;
+[stop] : Z0 O DQ ;

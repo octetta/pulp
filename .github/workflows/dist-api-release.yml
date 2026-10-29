@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   metadata:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
@@ -39,7 +39,7 @@ jobs:
 
   linux:
     needs: metadata
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       VERSION: ${{ needs.metadata.outputs.version }}
     steps:
@@ -81,7 +81,7 @@ jobs:
 
   linux-armhf:
     needs: metadata
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       VERSION: ${{ needs.metadata.outputs.version }}
     steps:
@@ -91,22 +91,23 @@ jobs:
         run: |
           sudo dpkg --add-architecture armhf
           sudo dpkg --add-architecture arm64
+          distro="$(. /etc/os-release && echo "${UBUNTU_CODENAME:-noble}")"
           if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
             sudo sed -i 's/^Types: deb/Types: deb\nArchitectures: amd64/g' /etc/apt/sources.list.d/ubuntu.sources
-            cat << 'APT' | sudo tee /etc/apt/sources.list.d/ports.sources
+            cat << APT | sudo tee /etc/apt/sources.list.d/ports.sources
           Types: deb
           URIs: http://ports.ubuntu.com/ubuntu-ports
-          Suites: noble noble-updates noble-backports noble-security
+          Suites: ${distro} ${distro}-updates ${distro}-backports ${distro}-security
           Components: main universe restricted multiverse
           Architectures: armhf arm64
           APT
           else
             sudo sed -i 's/^deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
-            cat << 'APT' | sudo tee /etc/apt/sources.list.d/ports.list
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports jammy main restricted universe multiverse
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted universe multiverse
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports jammy-backports main restricted universe multiverse
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports jammy-security main restricted universe multiverse
+            cat << APT | sudo tee /etc/apt/sources.list.d/ports.list
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports ${distro} main restricted universe multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports ${distro}-updates main restricted universe multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports ${distro}-backports main restricted universe multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports ${distro}-security main restricted universe multiverse
           APT
           fi
           sudo apt-get update
@@ -142,7 +143,7 @@ jobs:
 
   linux-aarch64:
     needs: metadata
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       VERSION: ${{ needs.metadata.outputs.version }}
     steps:
@@ -152,22 +153,23 @@ jobs:
         run: |
           sudo dpkg --add-architecture armhf
           sudo dpkg --add-architecture arm64
+          distro="$(. /etc/os-release && echo "${UBUNTU_CODENAME:-noble}")"
           if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
             sudo sed -i 's/^Types: deb/Types: deb\nArchitectures: amd64/g' /etc/apt/sources.list.d/ubuntu.sources
-            cat << 'APT' | sudo tee /etc/apt/sources.list.d/ports.sources
+            cat << APT | sudo tee /etc/apt/sources.list.d/ports.sources
           Types: deb
           URIs: http://ports.ubuntu.com/ubuntu-ports
-          Suites: noble noble-updates noble-backports noble-security
+          Suites: ${distro} ${distro}-updates ${distro}-backports ${distro}-security
           Components: main universe restricted multiverse
           Architectures: armhf arm64
           APT
           else
             sudo sed -i 's/^deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
-            cat << 'APT' | sudo tee /etc/apt/sources.list.d/ports.list
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports jammy main restricted universe multiverse
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted universe multiverse
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports jammy-backports main restricted universe multiverse
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports jammy-security main restricted universe multiverse
+            cat << APT | sudo tee /etc/apt/sources.list.d/ports.list
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports ${distro} main restricted universe multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports ${distro}-updates main restricted universe multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports ${distro}-backports main restricted universe multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports ${distro}-security main restricted universe multiverse
           APT
           fi
           sudo apt-get update
@@ -237,7 +239,7 @@ jobs:
 
   windows:
     needs: metadata
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       VERSION: ${{ needs.metadata.outputs.version }}
     steps:
@@ -275,7 +277,7 @@ jobs:
 
   wasm:
     needs: metadata
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       VERSION: ${{ needs.metadata.outputs.version }}
     steps:
@@ -321,7 +323,7 @@ jobs:
       - macos
       - windows
       - wasm
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     env:

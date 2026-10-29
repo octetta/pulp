@@ -199,6 +199,7 @@ typedef struct ands_s {
     // Callback
     int (*fn)(struct ands_s *s, int info);
     void *user;
+    ands_stream_pull_fn stream_pull;
     
     // Trace
     int trace;
@@ -825,9 +826,38 @@ int ands_consume(ands_t *s, char *line) {
                     s->state = START;
                 } else if (IS_NUMBER_EX(*ptr)) {
                     buffer_push(&s->num, *ptr);
+                } else if (IS_VARIABLE(*ptr)) {
+                    if (s->num.len > 0) {
+                        if (s->data && s->data_len < s->data_cap)
+                            s->data[s->data_len++] = ands_strtod(buffer_str(&s->num));
+                        buffer_clear(&s->num);
+                    }
+                    ptr++;
+                    if (ptr < end && isdigit((unsigned char)*ptr)) {
+                        int variable = ands_var_parse(&ptr, end);
+                        double val = ands_get_local(s, variable);
+                        if (s->data && s->data_len < s->data_cap)
+                            s->data[s->data_len++] = val;
+                        ptr--;
+                    }
+                } else if (IS_STREAM(*ptr)) {
+                    if (s->num.len > 0) {
+                        if (s->data && s->data_len < s->data_cap)
+                            s->data[s->data_len++] = ands_strtod(buffer_str(&s->num));
+                        buffer_clear(&s->num);
+                    }
+                    ptr++;
+                    if (ptr < end && (isdigit((unsigned char)*ptr) || isalpha((unsigned char)*ptr))) {
+                        int stream = ands_var_parse(&ptr, end);
+                        double val = ands_stream_pull(s, stream);
+                        if (s->data && s->data_len < s->data_cap)
+                            s->data[s->data_len++] = val;
+                        ptr--;
+                    }
                 } else if (IS_SEPARATOR(*ptr)) {
                     if (s->num.len > 0) {
-                        if (s->data_len < (s->data_cap-1)) s->data[s->data_len++] = ands_strtod(buffer_str(&s->num));
+                        if (s->data && s->data_len < s->data_cap)
+                            s->data[s->data_len++] = ands_strtod(buffer_str(&s->num));
                         buffer_clear(&s->num);
                     }
                 }
@@ -935,6 +965,19 @@ int ands_consume(ands_t *s, char *line) {
                         int variable = ands_var_parse(&ptr, end);
                         s->defer_num = ands_defer_time_clamp(ands_get_local(s, variable));
                         s->defer_var = variable;
+                        ptr--;
+                    } else {
+                        s->defer_num = 0.0;
+                        s->defer_var = -1;
+                    }
+                    buffer_clear(&s->num);
+                    s->state = GET_DEFER_STRING;
+                } else if (IS_STREAM(*ptr)) {
+                    ptr++;
+                    if (ptr < end && (isdigit((unsigned char)*ptr) || isalpha((unsigned char)*ptr))) {
+                        int stream = ands_var_parse(&ptr, end);
+                        s->defer_num = ands_defer_time_clamp(ands_stream_pull(s, stream));
+                        s->defer_var = stream | ANDS_STREAM_FLAG;
                         ptr--;
                     } else {
                         s->defer_num = 0.0;
@@ -1225,6 +1268,19 @@ void ands_use_local(ands_t *s) { (void)s; }
 void ands_use_global(ands_t *s) {
     if (s && s->global_save) s->global_var = s->global_save;
 }
+
+void ands_set_stream_pull(ands_t *s, ands_stream_pull_fn fn) {
+    if (s) s->stream_pull = fn;
+}
+
+double ands_stream_pull(ands_t *s, int n) {
+    if (s && s->stream_pull) return s->stream_pull(s->user, n);
+    return 0.0;
+}
+
+void ands_stream_set(ands_t *s, int n, double *data, int len) { (void)s; (void)n; (void)data; (void)len; }
+void ands_stream_mode(ands_t *s, int n, int mode) { (void)s; (void)n; (void)mode; }
+void ands_stream_pos(ands_t *s, int n, int pos) { (void)s; (void)n; (void)pos; }
 
 void ands_return_clear(ands_t *s) {
     if (!s) return;

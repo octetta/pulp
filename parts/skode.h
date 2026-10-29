@@ -210,6 +210,7 @@ int skode_inst_note(int voice, float note, float velocity, float cents);
 int skode_linked_velocity(int voice, float velocity, uint64_t sample);
 void skode_envelope_velocity(int voice, float x, uint64_t now);
 extern double global_var[ANDS_VAR_MAX];
+double skode_stream_pull(void *ctx, int n);
 void show_threads(skode_t *w);
 void system_show(skode_t *w);
 int audio_show(skode_t *w);

@@ -240,6 +240,47 @@ static void test_variable_provenance(void) {
     fail(test, "defer argument lost variable provenance");
 }
 
+static void test_stream_defer(void) {
+  const char *test = "stream defer";
+  recorder_t r;
+  char input[] = "+&3 v0; ~&5 v1;";
+  run_parse(test, input, &r);
+
+  expect_event(test, &r, 1, DEFER, "----");
+  if (r.events[1].defer_var != (3 | ANDS_STREAM_FLAG))
+    fail(test, "first defer lost stream provenance");
+  expect_event(test, &r, 3, DEFER, "----");
+  if (r.events[3].defer_var != (5 | ANDS_STREAM_FLAG))
+    fail(test, "second defer lost stream provenance");
+}
+
+static double dummy_stream_pull(void *user, int n) {
+  (void)user;
+  if (n == 1) return 20.5;
+  return 0.0;
+}
+
+static void test_arrays_with_variables_and_streams(void) {
+  const char *test = "arrays with variables and streams";
+  recorder_t r;
+  memset(&r, 0, sizeof(r));
+  ands_t *s = ands_new(record_cb, &r);
+  ands_set_local(s, 0, 10.5);
+  ands_set_stream_pull(s, dummy_stream_pull);
+  char input[] = "($0 &1 42) vt; ($0 &0)";
+  ands_consume(s, input);
+  ands_free(s);
+
+  expect_event(test, &r, 0, GOT_ARRAY, "----");
+  expect_arg(test, &r, 0, 0, 10.5);
+  expect_arg(test, &r, 0, 1, 20.5);
+  expect_arg(test, &r, 0, 2, 42.0);
+
+  expect_event(test, &r, 3, GOT_ARRAY, "----");
+  expect_arg(test, &r, 3, 0, 10.5);
+  expect_arg(test, &r, 3, 1, 0.0);
+}
+
 static void test_macros_basic(void) {
   const char *test = "macros basic";
   recorder_t r;
@@ -443,6 +484,8 @@ int main(void) {
   test_comments_and_chunks();
   test_defer();
   test_variable_provenance();
+  test_stream_defer();
+  test_arrays_with_variables_and_streams();
   test_macros_basic();
   test_return_references();
   test_return_sigil_is_not_an_atom();

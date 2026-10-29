@@ -139,6 +139,8 @@ void ands_stream_set(ands_t *s, int n, double *data, int len);
 void ands_stream_mode(ands_t *s, int n, int mode);
 void ands_stream_pos(ands_t *s, int n, int pos);
 double ands_stream_pull(ands_t *s, int n);
+typedef double (*ands_stream_pull_fn)(void *user, int n);
+void ands_set_stream_pull(ands_t *s, ands_stream_pull_fn fn);
 
 /*
  * Return-value registers (@0..@9), read from skode text via the GET_RETURN

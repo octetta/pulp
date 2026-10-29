@@ -135,8 +135,13 @@ static int skode_compile_callback(ands_t *s, int info) {
     if (delay_var >= 0) {
       program_op_t *delay_op =
         &compile->program->op[compile->program->count - 1];
-      delay_op->opcode.var_mask = 1;
-      delay_op->opcode.arg[0] = (float)delay_var;
+      if (delay_var & ANDS_STREAM_FLAG) {
+        delay_op->opcode.stream_mask = 1;
+        delay_op->opcode.arg[0] = (float)(delay_var & ~ANDS_STREAM_FLAG);
+      } else {
+        delay_op->opcode.var_mask = 1;
+        delay_op->opcode.arg[0] = (float)delay_var;
+      }
     }
     event_program_t nested = {0};
     compile->result = compile_program_inner(ands_defer_string(s), &nested,
@@ -407,6 +412,8 @@ static skode_compile_result_t compile_program_inner(const char *text,
   };
   ands_t *parser = ands_new(skode_compile_callback, &compile);
   if (!parser) return SKODE_COMPILE_INVALID;
+  ands_set_global(parser, global_var);
+  ands_set_stream_pull(parser, skode_stream_pull);
   int result = ands_consume(parser, input);
   ands_free(parser);
   if (result != 0) return SKODE_COMPILE_INVALID;

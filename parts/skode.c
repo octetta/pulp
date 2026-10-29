@@ -2308,6 +2308,14 @@ int skode_defer(ands_t *s, int info) {
   skode_t *ctx = (skode_t*)ands_user(s);
   char mode = ands_defer_mode(s);
   double delay = ands_defer_num(s);
+  int defer_var = ands_defer_var(s);
+  if (defer_var >= 0) {
+    if (defer_var & ANDS_STREAM_FLAG) {
+      delay = skode_stream_pull(ctx, defer_var & ~ANDS_STREAM_FLAG);
+    } else {
+      delay = ands_get_local(s, defer_var);
+    }
+  }
   if (!isfinite(delay)) return 0;
   if (delay <= 0.0) ctx->defer_last = 0.0;
   if (ctx->defer_sample_time == 0) {
@@ -2492,6 +2500,7 @@ void skode_consume_macro(skode_t *ctx, const char *line) {
   ctx->parse = ands_new(skode_callback, (void *)ctx);
   if (ctx->parse) {
     ands_set_global(ctx->parse, global_var);
+    ands_set_stream_pull(ctx->parse, skode_stream_pull);
     ands_consume(ctx->parse, (char *)line);
     ands_free(ctx->parse);
   }
@@ -2510,6 +2519,7 @@ int skode_consume(char *line, skode_t *ctx) {
     ctx->parse = ands_new(skode_callback, (void *)ctx);
     if (!ctx->parse) return -1;
     ands_set_global(ctx->parse, global_var);
+    ands_set_stream_pull(ctx->parse, skode_stream_pull);
   }
   skode_log_reset(ctx);
   skode_ctx[skode_hash(ctx)] = ctx;

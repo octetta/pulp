@@ -2081,6 +2081,24 @@ float record_frame_mono(int frame) {
     summary: format parser string with numeric args
     @enddoc */
 
+    /* @doc(command.map!)
+    name: map!
+    category: macros
+    summary: map command template over range start end [step]
+    @enddoc */
+/* @doc
+`map!` format and execute a command template across a range of numbers.
+Format specifiers `%d`, `%i`, `%0Nd`, `%g`, `%f`, and `@0` in the current
+parser string are substituted with the value for each step.
+Upper iteration limit is 256.
+Usage:
+  [v%d t .01 .25 0 0] map! 1 5 ;
+  [v%d a 0.8] 2 4 map! ;
+  [v%d f 350] map! 5 3 ;
+  [v%d f 520] map! 4 ;
+  [v0 p %g] map! -1.0 1.0 0.5 ;
+@enddoc */
+
     /* @doc(command.<e)
     name: <e
     category: macros

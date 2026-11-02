@@ -670,6 +670,150 @@ static int word_exec_s_pct(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       }
 }
 
+#define SKODE_MAP_MAX_ITERATIONS 256
+
+void skode_format_map_value(char *dst, size_t dst_size, const char *fmt, double val) {
+  size_t used = 0;
+  if (!dst || dst_size == 0) return;
+  dst[0] = '\0';
+  if (!fmt) return;
+
+  for (const char *p = fmt; *p && used + 1 < dst_size; p++) {
+    if (*p == '%') {
+      if (p[1] == '%') {
+        dst[used++] = '%';
+        dst[used] = '\0';
+        p++;
+      } else if (p[1] == '0' && isdigit((unsigned char)p[2]) && (p[3] == 'd' || p[3] == 'i')) {
+        int width = p[2] - '0';
+        char num[32];
+        char fspec[8];
+        snprintf(fspec, sizeof(fspec), "%%0%dd", width);
+        int n = snprintf(num, sizeof(num), fspec, (int)round(val));
+        if (n > 0) {
+          size_t copy = (size_t)n;
+          if (copy > dst_size - used - 1) copy = dst_size - used - 1;
+          memcpy(dst + used, num, copy);
+          used += copy;
+          dst[used] = '\0';
+        }
+        p += 3;
+      } else if (p[1] == 'd' || p[1] == 'i') {
+        char num[32];
+        int n = snprintf(num, sizeof(num), "%d", (int)round(val));
+        if (n > 0) {
+          size_t copy = (size_t)n;
+          if (copy > dst_size - used - 1) copy = dst_size - used - 1;
+          memcpy(dst + used, num, copy);
+          used += copy;
+          dst[used] = '\0';
+        }
+        p++;
+      } else if (p[1] == 'g') {
+        char num[32];
+        int n = snprintf(num, sizeof(num), "%.8g", val);
+        if (n > 0) {
+          size_t copy = (size_t)n;
+          if (copy > dst_size - used - 1) copy = dst_size - used - 1;
+          memcpy(dst + used, num, copy);
+          used += copy;
+          dst[used] = '\0';
+        }
+        p++;
+      } else if (p[1] == 'f') {
+        char num[32];
+        int n = snprintf(num, sizeof(num), "%.4f", val);
+        if (n > 0) {
+          size_t copy = (size_t)n;
+          if (copy > dst_size - used - 1) copy = dst_size - used - 1;
+          memcpy(dst + used, num, copy);
+          used += copy;
+          dst[used] = '\0';
+        }
+        p++;
+      } else {
+        dst[used++] = *p;
+        dst[used] = '\0';
+      }
+    } else if (*p == '@' && p[1] == '0') {
+      char num[32];
+      int n = snprintf(num, sizeof(num), "%.8g", val);
+      if (n > 0) {
+        size_t copy = (size_t)n;
+        if (copy > dst_size - used - 1) copy = dst_size - used - 1;
+        memcpy(dst + used, num, copy);
+        used += copy;
+        dst[used] = '\0';
+      }
+      p++;
+    } else {
+      dst[used++] = *p;
+      dst[used] = '\0';
+    }
+  }
+}
+
+static int word_exec_map_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)s;
+  const char *template = ands_string(ctx->parse);
+  if (!ctx || argc < 1) return 0;
+  if (!template || template[0] == '\0') return 0;
+
+  double start = 0.0;
+  double end = 0.0;
+  double step = 1.0;
+
+  if (argc == 1) {
+    if (arg[0] > 0.0) {
+      start = 0.0;
+      end = arg[0] - 1.0;
+      step = 1.0;
+    } else {
+      start = 0.0;
+      end = arg[0];
+      step = (start <= end) ? 1.0 : -1.0;
+    }
+  } else {
+    start = arg[0];
+    end = arg[1];
+    if (argc >= 3) {
+      step = arg[2];
+    } else {
+      step = (start <= end) ? 1.0 : -1.0;
+    }
+  }
+
+  if (fabs(step) < 1e-12) {
+    step = (start <= end) ? 1.0 : -1.0;
+  }
+
+  double span = end - start;
+  if ((step > 0.0 && span < 0.0) || (step < 0.0 && span > 0.0)) {
+    return 0;
+  }
+
+  int num_steps = (int)floor((fabs(span) + fabs(step) * 1e-6) / fabs(step)) + 1;
+  if (num_steps <= 0) return 0;
+  if (num_steps > SKODE_MAP_MAX_ITERATIONS) num_steps = SKODE_MAP_MAX_ITERATIONS;
+
+  extern void skode_consume_macro(skode_t *ctx, const char *line);
+
+  char template_copy[2048];
+  snprintf(template_copy, sizeof(template_copy), "%s", template);
+
+  for (int i = 0; i < num_steps; i++) {
+    double val = start + (double)i * step;
+    if (i == num_steps - 1 && fabs(val - end) < fabs(step) * 0.01) {
+      val = end;
+    }
+    char cmd[2048];
+    skode_format_map_value(cmd, sizeof(cmd), template_copy, val);
+    skode_consume_macro(ctx, cmd);
+  }
+
+  return 0;
+}
+
 static int word_exec__lte(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -976,6 +1120,7 @@ static skode_word_t word__slashm_bang = { WID("/m!"), .execute = word_exec__slas
 static skode_word_t word__lts = { WID("<s"), .execute = word_exec__lts, .safety = WORD_IMMEDIATE_ONLY , .category = "macros" };
 static skode_word_t word_s_gt = { WID("s>"), .execute = word_exec_s_gt, .safety = WORD_IMMEDIATE_ONLY , .category = "macros" };
 static skode_word_t word_s_pct = { WID("s%"), .execute = word_exec_s_pct, .safety = WORD_IMMEDIATE_ONLY , .category = "macros" };
+static skode_word_t word_map_bang = { WID("map!"), .execute = word_exec_map_bang, .safety = WORD_IMMEDIATE_ONLY , .category = "macros" };
 static skode_word_t word__lte = { WID("<e"), .execute = word_exec__lte, .safety = WORD_IMMEDIATE_ONLY , .category = "macros" };
 static skode_word_t word_e_gt = { WID("e>"), .execute = word_exec_e_gt, .safety = WORD_IMMEDIATE_ONLY , .category = "macros" };
 static skode_word_t word_e_bang = { WID("e!"), .execute = word_exec_e_bang, .safety = WORD_IMMEDIATE_ONLY , .category = "macros" };
@@ -1019,6 +1164,7 @@ void skode_register_words_data(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word__lts);
   skode_dict_register(vocab, &word_s_gt);
   skode_dict_register(vocab, &word_s_pct);
+  skode_dict_register(vocab, &word_map_bang);
   skode_dict_register(vocab, &word__lte);
   skode_dict_register(vocab, &word_e_gt);
   skode_dict_register(vocab, &word_e_bang);

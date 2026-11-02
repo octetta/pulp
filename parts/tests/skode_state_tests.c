@@ -2833,6 +2833,77 @@ static void test_control_composition_primitives(void) {
                "data read return feeds amp");
 }
 
+static void test_map_bang_command(void) {
+  const char *test = "map! command";
+  skode_t ctx = new_ctx();
+  ctx.log_enable = 1;
+
+  for (int v = 0; v < 8; v++) {
+    envelope_set(v, 0.5f, 0.5f, 0.5f, 0.5f);
+  }
+
+  // 1. Prefix map! integer range 1..5 with ADSR
+  consume(test, &ctx, "[v%d t .01 .25 0 0] map! 1 5 ;");
+
+  // Voices 1..5 should have new envelope
+  for (int v = 1; v <= 5; v++) {
+    expect_float(test, sv.amp_envelope[v].a, 0.01f, 0.0001f, "map! adsr attack");
+    expect_float(test, sv.amp_envelope[v].d, 0.25f, 0.0001f, "map! adsr decay");
+    expect_float(test, sv.amp_envelope[v].s, 0.0f, 0.0001f, "map! adsr sustain");
+    expect_float(test, sv.amp_envelope[v].r, 0.0f, 0.0001f, "map! adsr release");
+  }
+
+  // Voices 0 and 6 should be untouched
+  expect_float(test, sv.amp_envelope[0].a, 0.5f, 0.0001f, "map! untouched voice 0");
+  expect_float(test, sv.amp_envelope[6].a, 0.5f, 0.0001f, "map! untouched voice 6");
+
+  // 2. Postfix map! with custom values
+  consume(test, &ctx, "[v%d a 0.8] 2 4 map! ;");
+  expect_float(test, sv.user_amp[2], 0.8f, 0.0001f, "postfix map! amp 2");
+  expect_float(test, sv.user_amp[3], 0.8f, 0.0001f, "postfix map! amp 3");
+  expect_float(test, sv.user_amp[4], 0.8f, 0.0001f, "postfix map! amp 4");
+
+  // 3. Descending range
+  consume(test, &ctx, "[v%d f 350] map! 5 3 ;");
+  expect_float(test, sv.freq[5], 350.0f, 0.0001f, "descending map! 5");
+  expect_float(test, sv.freq[4], 350.0f, 0.0001f, "descending map! 4");
+  expect_float(test, sv.freq[3], 350.0f, 0.0001f, "descending map! 3");
+
+  // 4. Single-argument count (0 .. N-1)
+  consume(test, &ctx, "[v%d f 520] map! 3 ;");
+  expect_float(test, sv.freq[0], 520.0f, 0.0001f, "single arg map! 0");
+  expect_float(test, sv.freq[1], 520.0f, 0.0001f, "single arg map! 1");
+  expect_float(test, sv.freq[2], 520.0f, 0.0001f, "single arg map! 2");
+
+  // 5. Float range with %g and step
+  consume(test, &ctx, "[v0 p %g] map! -1.0 1.0 0.5 ;");
+  expect_float(test, sv.pan[0], 1.0f, 0.0001f, "float step map! final pan");
+
+  // 6. Zero padding %02d and @0 format in command execution
+  consume(test, &ctx, "[v%02d f 440] map! 1 2 ;");
+  expect_float(test, sv.freq[1], 440.0f, 0.0001f, "map! %02d voice 1");
+  expect_float(test, sv.freq[2], 440.0f, 0.0001f, "map! %02d voice 2");
+
+  consume(test, &ctx, "[v@0 f 880] map! 1 2 ;");
+  expect_float(test, sv.freq[1], 880.0f, 0.0001f, "map! @0 voice 1");
+  expect_float(test, sv.freq[2], 880.0f, 0.0001f, "map! @0 voice 2");
+
+  // 7. Max 256 iterations limit
+  consume(test, &ctx, "[v0 f %d] map! 0 1000 ;");
+  expect_float(test, sv.freq[0], 255.0f, 0.0001f, "map! capped at 256 iterations");
+
+  // 8. Unit tests for skode_format_map_value
+  char buf[64];
+  skode_format_map_value(buf, sizeof(buf), "slot-%02d", 5);
+  if (strcmp(buf, "slot-05") != 0) fail(test, "map format %02d");
+  skode_format_map_value(buf, sizeof(buf), "slot-%03d", 5);
+  if (strcmp(buf, "slot-005") != 0) fail(test, "map format %03d");
+  skode_format_map_value(buf, sizeof(buf), "pan=%g", 0.5);
+  if (strcmp(buf, "pan=0.5") != 0) fail(test, "map format %g");
+  skode_format_map_value(buf, sizeof(buf), "idx=@0", 9);
+  if (strcmp(buf, "idx=9") != 0) fail(test, "map format @0");
+}
+
 static void test_dictionary_core_words(void) {
   const char *test = "dictionary core words";
   skode_t ctx = new_ctx();
@@ -3602,6 +3673,7 @@ int main(int argc, char **argv) {
   test_vfs_zip_loads_skode_and_wave_assets();
   test_session_zip_round_trip();
   test_control_composition_primitives();
+  test_map_bang_command();
   test_dictionary_core_words();
   test_tempo_and_pattern_reset_limits();
   test_sample_accurate_sequence_boundaries();

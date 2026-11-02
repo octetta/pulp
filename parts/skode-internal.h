@@ -303,6 +303,7 @@ float record_frame_mono(int frame);
 
 void skode_double_dump(skode_t *ctx, double *data, int data_len);
 void skode_format_string_args(char *dst, size_t dst_size, const char *src, double *arg, int argc);
+void skode_format_map_value(char *dst, size_t dst_size, const char *fmt, double val);
 char *skode_extra_ptr(int index);
 
 float *mw_get(char *name, int *frames_out, wav_t *w, int ch);

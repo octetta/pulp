@@ -96,6 +96,7 @@ typedef enum {
   SKRED_VOICE_EDGE_PAN_MOD = 4,
   SKRED_VOICE_EDGE_PHASE_MOD = 5,
   SKRED_VOICE_EDGE_RING_MOD = 6,
+  SKRED_VOICE_EDGE_HARD_SYNC = 7,
 } skred_voice_edge_type_t;
 
 void skred_poly_reset(void);

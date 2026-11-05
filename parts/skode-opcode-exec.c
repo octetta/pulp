@@ -482,7 +482,12 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return opcode->argc == 4 ? envelope_set(voice, opcode->arg[0],
         opcode->arg[1], opcode->arg[2], opcode->arg[3]) : -1;
     case SKODE_OP_TRIGGER:
-      if (opcode->argc != 0) return -1;
+      if (opcode->argc > 0) {
+        /* T v1,v2,..: configure hard-sync targets (replaces list; T-1 clears) */
+        skode_opcode_links(opcode, &sv.link_sync_0[voice], &sv.link_sync_1[voice], &sv.link_sync_2[voice], &sv.link_sync_3[voice], &sv.link_sync_4[voice], &sv.link_sync_5[voice]);
+        osc_hard_sync_sanitize(voice);
+        return 0;
+      }
       envelope_velocity(voice, 1);
       if (sv.link_velo_0[voice] >= 0) envelope_velocity(sv.link_velo_0[voice], 1);
       if (sv.link_velo_1[voice] >= 0) envelope_velocity(sv.link_velo_1[voice], 1);

@@ -50,6 +50,7 @@ void osc_set_freq(skred_engine_t *engine, int v, float f);
 float osc_next(skred_engine_t *engine, int voice, float phase_inc);
 void osc_set_wave_table_index(skred_engine_t *engine, int voice, int wave);
 void osc_trigger(skred_engine_t *engine, int voice);
+void osc_hard_sync_sanitize(int voice);
 
 int volume_set(float v);
 float volume_get(void);

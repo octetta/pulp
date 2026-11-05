@@ -301,7 +301,7 @@ static int skode_compile_callback(ands_t *s, int info) {
     case SKODE_ATOM('t', '-', '-', '-'):
       opcode = SKODE_OP_ENVELOPE; min_argc = max_argc = 4; break;
     case SKODE_ATOM('T', '-', '-', '-'):
-      opcode = SKODE_OP_TRIGGER; min_argc = max_argc = 0; break;
+      opcode = SKODE_OP_TRIGGER; min_argc = 0; max_argc = 6; break;
     case SKODE_ATOM('w', '-', '-', '-'):
       opcode = SKODE_OP_WAVE; min_argc = 1; max_argc = 3; break;
     case SKODE_ATOM('>', '-', '-', '-'):

@@ -160,6 +160,48 @@ void osc_reclassify(skred_engine_t *engine, int voice) {
         : OSC_PLAYBACK_GENERAL;
 }
 
+/*
+ * Hard sync: when voice `master` wraps its oscillator, every voice listed in
+ * its link_sync_0..5 slots has its phase put back where a fresh note-on would
+ * start it (same rules as osc_trigger, minus the envelope/loop bookkeeping).
+ * The voice mix loop is single-threaded, so writing the slave's phase here is
+ * safe.  A slave rendered earlier in the same sample than its master simply
+ * picks the reset up one sample later.
+ */
+static inline double osc_sync_start_phase(int v) {
+    if (sv.one_shot[v]) {
+        return sv.direction[v] == 1 ? (double)sv.wave_range_end_f[v] - 1e-6
+                                    : (double)sv.wave_range_start_f[v];
+    }
+    if (sv.direction[v] == 1)
+        return sv.loop_active[v] ? (double)sv.loop_end[v] - 1e-6
+                                 : (double)sv.wave_range_end_f[v] - 1e-6;
+    return sv.loop_active[v] ? (double)sv.loop_start[v]
+                             : (double)sv.wave_range_start_f[v];
+}
+
+static void osc_hard_sync_fire(int master) {
+    const float t[6] = {
+        sv.link_sync_0[master], sv.link_sync_1[master], sv.link_sync_2[master],
+        sv.link_sync_3[master], sv.link_sync_4[master], sv.link_sync_5[master]};
+    for (int i = 0; i < 6; i++) {
+        if (t[i] < 0.0f) continue;
+        int v = (int)t[i];
+        if (v == master || voice_invalid(v) || sv.finished[v] || !sv.table[v]) continue;
+        sv.phase[v] = osc_sync_start_phase(v);
+        sv.pingpong_reverse[v] = sv.direction[v] == 1;
+    }
+}
+
+/* drop self-links so a voice can never sync itself */
+void osc_hard_sync_sanitize(int voice) {
+    if (voice_invalid(voice)) return;
+    float *s[6] = {&sv.link_sync_0[voice], &sv.link_sync_1[voice], &sv.link_sync_2[voice],
+                   &sv.link_sync_3[voice], &sv.link_sync_4[voice], &sv.link_sync_5[voice]};
+    for (int i = 0; i < 6; i++)
+        if ((int)*s[i] == voice) *s[i] = -1;
+}
+
 static inline double osc_cycle_phase_next(int voice, float phase_inc) {
     const double end = (double)sv.table_size[voice];
     double phase = sv.phase[voice] + (double)phase_inc;
@@ -167,12 +209,14 @@ static inline double osc_cycle_phase_next(int voice, float phase_inc) {
     if (phase >= end) {
         phase -= end;
         if (phase >= end) phase = fmod(phase, end);
+        osc_hard_sync_fire(voice);
     } else if (phase < 0.0) {
         phase += end;
         if (phase < 0.0) {
             phase = fmod(phase, end);
             if (phase < 0.0) phase += end;
         }
+        osc_hard_sync_fire(voice);
     }
     return phase;
 }
@@ -272,6 +316,8 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
     const double loop_end = valid_loop ? (double)sv.loop_end_f[voice] : (double)wave_range_end;
     const double loop_length = valid_loop ? (double)sv.loop_length[voice] : (double)(wave_range_end - wave_range_start);
 
+    bool sync_wrap = false;   /* oscillator completed a cycle this sample */
+
     // Wrap phase
     if (!one_shot) {
         if (pingpong && loop_length > 0.0 && (phase >= loop_end || phase < loop_start)) {
@@ -286,8 +332,10 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
             }
         } else if (phase >= loop_end) {
             phase = loop_start + fmod(phase - loop_start, loop_length);
+            sync_wrap = true;
         } else if (phase < loop_start) {
             phase = loop_end - fmod(loop_start - phase, loop_length);
+            sync_wrap = true;
         }
     } else if (pingpong && loop_active &&
                ((!reverse_step && phase >= loop_end) ||
@@ -353,6 +401,7 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
                 crossings : sv.loop_remaining[voice];
             phase -= (double)wraps * loop_length;
             sv.loop_remaining[voice] -= wraps;
+            if (wraps > 0) sync_wrap = true;
             if (wraps < crossings) {
                 sv.loop_active[voice] = 0;
                 sv.loop_stop_requested[voice] = 0;
@@ -365,6 +414,7 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
             }
         } else {
             phase = loop_start + fmod(phase - loop_start, loop_length);
+            sync_wrap = true;
         }
     } else if (reverse_step && phase < loop_start) {
         if (!loop_active) {
@@ -384,6 +434,7 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
                 crossings : sv.loop_remaining[voice];
             phase += (double)wraps * loop_length;
             sv.loop_remaining[voice] -= wraps;
+            if (wraps > 0) sync_wrap = true;
             if (wraps < crossings) {
                 sv.loop_active[voice] = 0;
                 sv.loop_stop_requested[voice] = 0;
@@ -396,9 +447,11 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
             }
         } else {
             phase = loop_end - fmod(loop_start - phase, loop_length);
+            sync_wrap = true;
         }
     }
     
+    if (sync_wrap) osc_hard_sync_fire(voice);
     sv.phase[voice] = phase;
     return osc_sample_at_phase(engine, voice, phase, phase_offset, current_sample,
         table_size, wave_range_start, wave_range_end, one_shot,

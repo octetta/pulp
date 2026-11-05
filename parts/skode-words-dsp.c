@@ -909,6 +909,23 @@ static int word_exec_T(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+      if (argc > 0) {
+        /* T v1,v2,..: configure hard-sync targets (replaces list; T-1 clears) */
+        int links[6] = {-1, -1, -1, -1, -1, -1};
+        for (int i = 0; i < argc && i < 6; i++) {
+          int link;
+          if (skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
+            links[i] = link;
+        }
+        sv.link_sync_0[voice] = links[0];
+        sv.link_sync_1[voice] = links[1];
+        sv.link_sync_2[voice] = links[2];
+        sv.link_sync_3[voice] = links[3];
+        sv.link_sync_4[voice] = links[4];
+        sv.link_sync_5[voice] = links[5];
+        osc_hard_sync_sanitize(voice);
+        return 0;
+      }
       {
         envelope_velocity(voice, 1);
         if (sv.link_velo_0[voice] >= 0) envelope_velocity(sv.link_velo_0[voice], 1);

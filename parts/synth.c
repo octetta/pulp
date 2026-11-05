@@ -298,6 +298,17 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
     m = sv.ring_osc[n];     if (m >= 0 && m < nvoices) voice_active[m] = 1;
   }
 
+  /* A hard-sync master must keep running while any of its targets sounds,
+     even if the master's own note has ended (it is the clock for them). */
+  for (int n = 0; n < nvoices; n++) {
+    const float sync[6] = {sv.link_sync_0[n], sv.link_sync_1[n], sv.link_sync_2[n],
+                           sv.link_sync_3[n], sv.link_sync_4[n], sv.link_sync_5[n]};
+    for (int k = 0; k < 6; k++) {
+      int t = (int)sync[k];
+      if (sync[k] >= 0.0f && t < nvoices && voice_active[t]) { voice_active[n] = 1; break; }
+    }
+  }
+
   for (int n = 0; n < nvoices; n++) {
     if (voice_active[n]) {
       block_active[n / VOICE_ALIGN] = 1;

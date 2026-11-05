@@ -131,6 +131,7 @@ their named build option is enabled.
 | `S` | `voice` | `SKODE_OP_VOICE_RESET` | `wave_reset()`; voice < 0 resets all voices | base |
 | `t` | `attack, decay, sustain, release` | `SKODE_OP_ENVELOPE` | Configures the amplitude envelope for its next trigger | `ADSR` |
 | `T` | none | `SKODE_OP_TRIGGER` | Calls `envelope_velocity(..., 1)` on the voice and velocity links | base |
+| `T` | `voice[, voice ...]` (1-6) | `SKODE_OP_TRIGGER` (argc > 0) | Hard-sync targets: sets `link_sync_0..5`; the master's oscillator wrap resets each target's phase (`osc_hard_sync_fire`). Replaces the list; `T-1` clears it | base |
 | `w` | `wave [, interpolate [, mode]]` | `SKODE_OP_WAVE` | `wave_set()` and optional voice flags; mode `0` is cycle and `1` is one-shot | base |
 | `>` | `destination-voice` | `SKODE_OP_VOICE_COPY` | `voice_copy(current, destination)` | base |
 | `/` | none | `SKODE_OP_WAVE_DEFAULT` | `wave_default()` | base |

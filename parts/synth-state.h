@@ -110,6 +110,14 @@ typedef struct {
     float  * restrict link_velo_3;
     float  * restrict link_velo_4;
     float  * restrict link_velo_5;
+    /* hard-sync targets: when this voice's oscillator wraps, the phase of
+       each listed voice is reset. -1 = unused. Set with T v1,v2,... */
+    float  * restrict link_sync_0;
+    float  * restrict link_sync_1;
+    float  * restrict link_sync_2;
+    float  * restrict link_sync_3;
+    float  * restrict link_sync_4;
+    float  * restrict link_sync_5;
     float  * restrict link_trig;
     uint64_t  * restrict link_trig_samp;
     float  * restrict freq_bend;

@@ -297,6 +297,14 @@ add_test(
   COMMAND audio_command_tests
 )
 
+add_executable(hard_sync_tests tests/hard_sync_tests.c)
+target_link_libraries(hard_sync_tests PRIVATE api)
+
+add_test(
+  NAME synth.hard-sync
+  COMMAND hard_sync_tests
+)
+
 add_executable(midi_tests tests/midi_tests.c)
 target_link_libraries(midi_tests PRIVATE api)
 

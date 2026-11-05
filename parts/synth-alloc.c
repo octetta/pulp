@@ -168,6 +168,12 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(link_velo_3,      float);
     VALLOC(link_velo_4,      float);
     VALLOC(link_velo_5,      float);
+    VALLOC(link_sync_0,      float);
+    VALLOC(link_sync_1,      float);
+    VALLOC(link_sync_2,      float);
+    VALLOC(link_sync_3,      float);
+    VALLOC(link_sync_4,      float);
+    VALLOC(link_sync_5,      float);
     VALLOC(link_trig,        float);
     VALLOC(link_trig_samp,   uint64_t);
     VALLOC(freq_bend,        float);
@@ -292,6 +298,8 @@ void synth_free_voices(void) {
     VFREE(link_velo_1);
     VFREE(link_velo_2);
     VFREE(link_velo_3); VFREE(link_velo_4); VFREE(link_velo_5);
+    VFREE(link_sync_0); VFREE(link_sync_1); VFREE(link_sync_2);
+    VFREE(link_sync_3); VFREE(link_sync_4); VFREE(link_sync_5);
     VFREE(link_trig);
     VFREE(link_trig_samp);
     VFREE(freq_bend);        VFREE(freq_bend_range); VFREE(freq_bend_offset);

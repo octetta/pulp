@@ -89,6 +89,12 @@ static void remap_dependencies(int voice, const poly_group_t *group,
   sv.link_velo_3[voice] = remap_link(sv.link_velo_3[voice], group, dest_base);
   sv.link_velo_4[voice] = remap_link(sv.link_velo_4[voice], group, dest_base);
   sv.link_velo_5[voice] = remap_link(sv.link_velo_5[voice], group, dest_base);
+  sv.link_sync_0[voice] = remap_link(sv.link_sync_0[voice], group, dest_base);
+  sv.link_sync_1[voice] = remap_link(sv.link_sync_1[voice], group, dest_base);
+  sv.link_sync_2[voice] = remap_link(sv.link_sync_2[voice], group, dest_base);
+  sv.link_sync_3[voice] = remap_link(sv.link_sync_3[voice], group, dest_base);
+  sv.link_sync_4[voice] = remap_link(sv.link_sync_4[voice], group, dest_base);
+  sv.link_sync_5[voice] = remap_link(sv.link_sync_5[voice], group, dest_base);
   if (sv.amp_mod_osc[voice] >= 0)
     sv.amp_mod_osc[voice] = remap_voice(sv.amp_mod_osc[voice], group, dest_base);
   if (sv.freq_mod_osc[voice] >= 0)
@@ -659,14 +665,19 @@ static int graph_edges(int voice, graph_edge_t *edge, int max) {
     SKRED_VOICE_EDGE_PHASE_MOD, "phase-mod");
   count = graph_add(edge, count, max, sv.ring_osc[voice],
     SKRED_VOICE_EDGE_RING_MOD, "ring-mod");
+  float sync[] = {sv.link_sync_0[voice], sv.link_sync_1[voice],
+    sv.link_sync_2[voice], sv.link_sync_3[voice], sv.link_sync_4[voice], sv.link_sync_5[voice]};
+  for (int i = 0; i < 6; i++)
+    count = graph_add(edge, count, max, (int)sync[i],
+      SKRED_VOICE_EDGE_HARD_SYNC, "hard-sync");
   return count;
 }
 
 static void graph_ascii_walk(int voice, int level, int depth,
     unsigned char *seen, size_t *used) {
   if (level >= depth) return;
-  graph_edge_t edge[16];
-  int count = graph_edges(voice, edge, 16);
+  graph_edge_t edge[24];
+  int count = graph_edges(voice, edge, 24);
   for (int i = 0; i < count; i++) {
     for (int n = 0; n < level; n++)
       append_text(graph_status, sizeof(graph_status), used, "|  ");
@@ -683,8 +694,8 @@ static void graph_ascii_walk(int voice, int level, int depth,
 static void graph_machine_walk(int voice, int level, int depth,
     unsigned char *seen, size_t *used) {
   if (level >= depth) return;
-  graph_edge_t edge[16];
-  int count = graph_edges(voice, edge, 16);
+  graph_edge_t edge[24];
+  int count = graph_edges(voice, edge, 24);
   for (int i = 0; i < count; i++) {
     append_text(graph_status, sizeof(graph_status), used,
       "edge %d %d %d %s\n", voice, edge[i].to, edge[i].type,

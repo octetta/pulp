@@ -158,6 +158,22 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
             d_to_s_or_nan(sv.link_velo_4[v]),
             d_to_s_or_nan(sv.link_velo_5[v]));
         }
+    /* --- hard-sync targets (suppress if all unset) --- */
+    if (verbose
+        || (int)sv.link_sync_0[v] >= 0
+        || (int)sv.link_sync_1[v] >= 0
+        || (int)sv.link_sync_2[v] >= 0
+        || (int)sv.link_sync_3[v] >= 0
+        || (int)sv.link_sync_4[v] >= 0
+        || (int)sv.link_sync_5[v] >= 0) {
+          APPEND(" T%s,%s,%s,%s,%s,%s",
+            d_to_s_or_nan(sv.link_sync_0[v]),
+            d_to_s_or_nan(sv.link_sync_1[v]),
+            d_to_s_or_nan(sv.link_sync_2[v]),
+            d_to_s_or_nan(sv.link_sync_3[v]),
+            d_to_s_or_nan(sv.link_sync_4[v]),
+            d_to_s_or_nan(sv.link_sync_5[v]));
+        }
     /* --- trigger link (suppress if unset) --- */
     if (verbose || (int)sv.link_trig[v] >= 0)
         APPEND(" L%g", sv.link_trig[v]);
@@ -726,6 +742,12 @@ int voice_copy(int v, int n) {
   sv.link_velo_3[n] = sv.link_velo_3[v];
   sv.link_velo_4[n] = sv.link_velo_4[v];
   sv.link_velo_5[n] = sv.link_velo_5[v];
+  sv.link_sync_0[n] = sv.link_sync_0[v];
+  sv.link_sync_1[n] = sv.link_sync_1[v];
+  sv.link_sync_2[n] = sv.link_sync_2[v];
+  sv.link_sync_3[n] = sv.link_sync_3[v];
+  sv.link_sync_4[n] = sv.link_sync_4[v];
+  sv.link_sync_5[n] = sv.link_sync_5[v];
   sv.link_trig[n] = sv.link_trig[v];
   sv.link_trig_samp[n] = sv.link_trig_samp[v];
   //
@@ -879,6 +901,12 @@ void voice_reset(int i) {
   sv.link_velo_3[i] = -1;
   sv.link_velo_4[i] = -1;
   sv.link_velo_5[i] = -1;
+  sv.link_sync_0[i] = -1;
+  sv.link_sync_1[i] = -1;
+  sv.link_sync_2[i] = -1;
+  sv.link_sync_3[i] = -1;
+  sv.link_sync_4[i] = -1;
+  sv.link_sync_5[i] = -1;
   sv.link_trig[i] = -1;
   sv.link_trig_samp[i] = 0;
   sv.freq_bend[i] = 0.0f;

@@ -902,40 +902,37 @@ static int word_exec_te(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 }
 
 static int word_exec_T(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  uint32_t atom = ands_atom_num(s);
+  (void)self; (void)s; (void)arg;
+  if (argc != 0) return -1;
   int voice = ctx->voice;
-  int x = 0;
-  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
-  (void)x_valid;
-  (void)voice;
-  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      if (argc > 0) {
-        /* T v1,v2,..: configure hard-sync targets (replaces list; T-1 clears) */
-        int links[6] = {-1, -1, -1, -1, -1, -1};
-        for (int i = 0; i < argc && i < 6; i++) {
-          int link;
-          if (skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
-            links[i] = link;
-        }
-        sv.link_sync_0[voice] = links[0];
-        sv.link_sync_1[voice] = links[1];
-        sv.link_sync_2[voice] = links[2];
-        sv.link_sync_3[voice] = links[3];
-        sv.link_sync_4[voice] = links[4];
-        sv.link_sync_5[voice] = links[5];
-        osc_hard_sync_sanitize(voice);
-        return 0;
-      }
-      {
-        envelope_velocity(voice, 1);
-        if (sv.link_velo_0[voice] >= 0) envelope_velocity(sv.link_velo_0[voice], 1);
-        if (sv.link_velo_1[voice] >= 0) envelope_velocity(sv.link_velo_1[voice], 1);
-        if (sv.link_velo_2[voice] >= 0) envelope_velocity(sv.link_velo_2[voice], 1);
-        if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1);
-        if (sv.link_velo_4[voice] >= 0) envelope_velocity(sv.link_velo_4[voice], 1);
-        if (sv.link_velo_5[voice] >= 0) envelope_velocity(sv.link_velo_5[voice], 1);
-      }
-      return 0;
+  envelope_velocity(voice, 1);
+  if (sv.link_velo_0[voice] >= 0) envelope_velocity(sv.link_velo_0[voice], 1);
+  if (sv.link_velo_1[voice] >= 0) envelope_velocity(sv.link_velo_1[voice], 1);
+  if (sv.link_velo_2[voice] >= 0) envelope_velocity(sv.link_velo_2[voice], 1);
+  if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1);
+  if (sv.link_velo_4[voice] >= 0) envelope_velocity(sv.link_velo_4[voice], 1);
+  if (sv.link_velo_5[voice] >= 0) envelope_velocity(sv.link_velo_5[voice], 1);
+  return 0;
+}
+
+static int word_exec_HS(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)s;
+  int voice = ctx->voice;
+  if (argc < 1) return -1;
+  int links[6] = {-1, -1, -1, -1, -1, -1};
+  for (int i = 0; i < argc && i < 6; i++) {
+    int link;
+    if (skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
+      links[i] = link;
+  }
+  sv.link_sync_0[voice] = links[0];
+  sv.link_sync_1[voice] = links[1];
+  sv.link_sync_2[voice] = links[2];
+  sv.link_sync_3[voice] = links[3];
+  sv.link_sync_4[voice] = links[4];
+  sv.link_sync_5[voice] = links[5];
+  osc_hard_sync_sanitize(voice);
+  return 0;
 }
 
 static int word_exec_vc(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
@@ -1578,7 +1575,8 @@ static skode_word_t word_s = { WID("s"), .execute = word_exec_s, .safety = WORD_
 static skode_word_t word_S = { WID("S"), .execute = word_exec_S, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_t = { WID("t"), .execute = word_exec_t, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_te = { WID("te"), .execute = word_exec_te, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_T = { WID("T"), .execute = word_exec_T, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
+static skode_word_t word_T = { WID("T"), .execute = word_exec_T, .opcode_id = SKODE_OP_TRIGGER, .min_args = 0, .max_args = 0, .safety = WORD_REAL_TIME_SAFE, .category = "voice", .summary = "trigger voice at velocity 1" };
+static skode_word_t word_HS = { WID("HS"), .execute = word_exec_HS, .opcode_id = SKODE_OP_LINK_SYNC, .min_args = 1, .max_args = 6, .safety = WORD_REAL_TIME_SAFE, .category = "modulation", .summary = "hard-sync targets: voice[, voice ...]" };
 static skode_word_t word_vc = { WID("vc"), .execute = word_exec_vc, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_V = { WID("V"), .execute = word_exec_V, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 static skode_word_t word_vt = { WID("vt"), .execute = word_exec_vt, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
@@ -1669,6 +1667,7 @@ void skode_register_words_dsp(skode_vocab_t *vocab) {
   skode_dict_register(vocab, &word_t);
   skode_dict_register(vocab, &word_te);
   skode_dict_register(vocab, &word_T);
+  skode_dict_register(vocab, &word_HS);
   skode_dict_register(vocab, &word_vc);
   skode_dict_register(vocab, &word_V);
   skode_dict_register(vocab, &word_vt);

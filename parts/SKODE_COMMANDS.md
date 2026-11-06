@@ -114,6 +114,7 @@ their named build option is enabled.
 | `G` | `voice [, voice ...]` | `SKODE_OP_LINK_MIDI` | Sets up to four `sv.link_midi_*` voices | base |
 | `h` | `ratio [mode]` | `SKODE_OP_SAMPLE_HOLD` | Sets `sv.sample_hold_ratio` and `sv.sample_hold_mode` | `SAH` |
 | `H` | `voice [, voice ...]` | `SKODE_OP_LINK_VELOCITY` | Sets up to four `sv.link_velo_*` voices | base |
+| `HS` | `voice[, voice ...]` (1-6) | `SKODE_OP_LINK_SYNC` | Hard-sync targets: sets `link_sync_0..5`; the master's oscillator wrap resets each target's phase (`osc_hard_sync_fire`) with sub-sample PolyBLEP anti-aliasing. Replaces the list; `HS-1` clears it | base |
 | `L` | `seconds` | `SKODE_OP_TRIGGER_DELAY` | Sets `sv.link_trig` and `sv.link_trig_samp` | base |
 | `J` | `mode [character]` | `SKODE_OP_FILTER_MODE` | Sets filter mode and calls `mmf_set_params()` | `FILT` |
 | `K` | `Hz` | `SKODE_OP_FILTER_FREQ` | `mmf_set_freq()` | `FILT` |
@@ -131,7 +132,6 @@ their named build option is enabled.
 | `S` | `voice` | `SKODE_OP_VOICE_RESET` | `wave_reset()`; voice < 0 resets all voices | base |
 | `t` | `attack, decay, sustain, release` | `SKODE_OP_ENVELOPE` | Configures the amplitude envelope for its next trigger | `ADSR` |
 | `T` | none | `SKODE_OP_TRIGGER` | Calls `envelope_velocity(..., 1)` on the voice and velocity links | base |
-| `T` | `voice[, voice ...]` (1-6) | `SKODE_OP_TRIGGER` (argc > 0) | Hard-sync targets: sets `link_sync_0..5`; the master's oscillator wrap resets each target's phase (`osc_hard_sync_fire`). Replaces the list; `T-1` clears it | base |
 | `w` | `wave [, interpolate [, mode]]` | `SKODE_OP_WAVE` | `wave_set()` and optional voice flags; mode `0` is cycle and `1` is one-shot | base |
 | `>` | `destination-voice` | `SKODE_OP_VOICE_COPY` | `voice_copy(current, destination)` | base |
 | `/` | none | `SKODE_OP_WAVE_DEFAULT` | `wave_default()` | base |

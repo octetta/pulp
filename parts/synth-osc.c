@@ -180,7 +180,40 @@ static inline double osc_sync_start_phase(int v) {
                              : (double)sv.wave_range_start_f[v];
 }
 
-static void osc_hard_sync_fire(int master) {
+static inline float osc_lookup_value(int v, double phase) {
+    if (!sv.table[v] || sv.table_size[v] <= 0) return 0.0f;
+    const bool one_shot = sv.one_shot[v];
+    const float wave_range_start = sv.wave_range_start_f[v];
+    const float wave_range_end = sv.wave_range_end_f[v];
+    const double span = (double)wave_range_end - (double)wave_range_start;
+    double p = phase;
+    if (span > 0.0) {
+        if (p < (double)wave_range_start) {
+            p = (double)wave_range_end - fmod((double)wave_range_start - p, span);
+        } else if (p >= (double)wave_range_end) {
+            p = (double)wave_range_start + fmod(p - (double)wave_range_start, span);
+        }
+    }
+    int idx = (int)p;
+    if (idx >= (int)wave_range_end) idx = (int)wave_range_end - 1;
+    if (idx < (int)wave_range_start) idx = (int)wave_range_start;
+
+    if (sv.interpolate[v]) {
+        float frac = (float)(p - (double)idx);
+        int next_idx = idx + 1;
+        if (next_idx >= (int)wave_range_end)
+            next_idx = one_shot ? (int)wave_range_end - 1 : (int)wave_range_start;
+        float s1 = sv.table[v][idx];
+        float s2 = sv.table[v][next_idx];
+        return s1 + frac * (s2 - s1);
+    }
+    return sv.table[v][idx];
+}
+
+static void osc_hard_sync_fire(int master, double d) {
+    if (d < 0.0) d = 0.0;
+    else if (d >= 1.0) d = 1.0 - 1e-6;
+
     const float t[6] = {
         sv.link_sync_0[master], sv.link_sync_1[master], sv.link_sync_2[master],
         sv.link_sync_3[master], sv.link_sync_4[master], sv.link_sync_5[master]};
@@ -188,7 +221,22 @@ static void osc_hard_sync_fire(int master) {
         if (t[i] < 0.0f) continue;
         int v = (int)t[i];
         if (v == master || voice_invalid(v) || sv.finished[v] || !sv.table[v]) continue;
-        sv.phase[v] = osc_sync_start_phase(v);
+
+        double start = osc_sync_start_phase(v);
+        double sinc = (double)sv.phase_inc[v];
+
+        /* Sub-sample phase before reset at the instant of wrap (elapsed time 1 - d): */
+        double phase_prior = sv.phase[v] + (1.0 - d) * sinc;
+        float y_prior = osc_lookup_value(v, phase_prior);
+        float y_start = osc_lookup_value(v, start);
+        float delta = y_start - y_prior;
+
+        /* PolyBLEP residual: smooths step discontinuity */
+        float blep = (float)(delta * (d - 0.5 * d * d - 0.5));
+
+        /* Sub-sample phase after reset advanced by fraction d to sample end: */
+        sv.phase[v] = start + d * sinc;
+        sv.sync_blep[v] += blep;
         sv.pingpong_reverse[v] = sv.direction[v] == 1;
     }
 }
@@ -209,14 +257,16 @@ static inline double osc_cycle_phase_next(int voice, float phase_inc) {
     if (phase >= end) {
         phase -= end;
         if (phase >= end) phase = fmod(phase, end);
-        osc_hard_sync_fire(voice);
+        double d = (phase_inc > 0.0f) ? (phase / (double)phase_inc) : 0.0;
+        osc_hard_sync_fire(voice, d);
     } else if (phase < 0.0) {
         phase += end;
         if (phase < 0.0) {
             phase = fmod(phase, end);
             if (phase < 0.0) phase += end;
         }
-        osc_hard_sync_fire(voice);
+        double d = (phase_inc < 0.0f) ? ((end - phase) / (double)(-phase_inc)) : 0.0;
+        osc_hard_sync_fire(voice, d);
     }
     return phase;
 }
@@ -284,9 +334,14 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
             return 0.0f;
         }
         sv.phase[voice] = phase;
-        return osc_sample_at_phase(engine, voice, phase, phase_offset, current_sample,
+        float s = osc_sample_at_phase(engine, voice, phase, phase_offset, current_sample,
             sv.table_size[voice], 0.0f, (float)sv.table_size[voice], false,
             0.0f, (float)sv.table_size[voice]);
+        if (sv.sync_blep[voice] != 0.0f) {
+            s += sv.sync_blep[voice];
+            sv.sync_blep[voice] = 0.0f;
+        }
+        return s;
     }
 
     const int table_size = sv.table_size[voice];
@@ -317,6 +372,7 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
     const double loop_length = valid_loop ? (double)sv.loop_length[voice] : (double)(wave_range_end - wave_range_start);
 
     bool sync_wrap = false;   /* oscillator completed a cycle this sample */
+    double wrap_fraction = 0.0;
 
     // Wrap phase
     if (!one_shot) {
@@ -331,11 +387,15 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
                 sv.pingpong_reverse[voice] = 0;
             }
         } else if (phase >= loop_end) {
-            phase = loop_start + fmod(phase - loop_start, loop_length);
+            double excess = phase - loop_end;
+            phase = loop_start + fmod(excess, loop_length);
             sync_wrap = true;
+            wrap_fraction = (fabs(phase_step) > 0.0) ? (fmod(excess, loop_length) / fabs(phase_step)) : 0.0;
         } else if (phase < loop_start) {
-            phase = loop_end - fmod(loop_start - phase, loop_length);
+            double excess = loop_start - phase;
+            phase = loop_end - fmod(excess, loop_length);
             sync_wrap = true;
+            wrap_fraction = (fabs(phase_step) > 0.0) ? (fmod(excess, loop_length) / fabs(phase_step)) : 0.0;
         }
     } else if (pingpong && loop_active &&
                ((!reverse_step && phase >= loop_end) ||
@@ -413,8 +473,10 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
                 }
             }
         } else {
-            phase = loop_start + fmod(phase - loop_start, loop_length);
+            double excess = phase - loop_start;
+            phase = loop_start + fmod(excess, loop_length);
             sync_wrap = true;
+            wrap_fraction = (fabs(phase_step) > 0.0) ? (fmod(excess, loop_length) / fabs(phase_step)) : 0.0;
         }
     } else if (reverse_step && phase < loop_start) {
         if (!loop_active) {
@@ -434,7 +496,10 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
                 crossings : sv.loop_remaining[voice];
             phase += (double)wraps * loop_length;
             sv.loop_remaining[voice] -= wraps;
-            if (wraps > 0) sync_wrap = true;
+            if (wraps > 0) {
+                sync_wrap = true;
+                wrap_fraction = 0.0;
+            }
             if (wraps < crossings) {
                 sv.loop_active[voice] = 0;
                 sv.loop_stop_requested[voice] = 0;
@@ -446,16 +511,23 @@ float osc_next_at(skred_engine_t *engine, int voice, float phase_inc, float phas
                 }
             }
         } else {
-            phase = loop_end - fmod(loop_start - phase, loop_length);
+            double excess = loop_end - phase;
+            phase = loop_end - fmod(excess, loop_length);
             sync_wrap = true;
+            wrap_fraction = (fabs(phase_step) > 0.0) ? (fmod(excess, loop_length) / fabs(phase_step)) : 0.0;
         }
     }
     
-    if (sync_wrap) osc_hard_sync_fire(voice);
+    if (sync_wrap) osc_hard_sync_fire(voice, wrap_fraction);
     sv.phase[voice] = phase;
-    return osc_sample_at_phase(engine, voice, phase, phase_offset, current_sample,
+    float s = osc_sample_at_phase(engine, voice, phase, phase_offset, current_sample,
         table_size, wave_range_start, wave_range_end, one_shot,
         (float)loop_start, (float)loop_end);
+    if (sv.sync_blep[voice] != 0.0f) {
+        s += sv.sync_blep[voice];
+        sv.sync_blep[voice] = 0.0f;
+    }
+    return s;
 }
 
 float osc_next(skred_engine_t *engine, int voice, float phase_inc) {

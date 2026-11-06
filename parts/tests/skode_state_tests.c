@@ -1863,6 +1863,7 @@ static void test_scalar_voice_opcode_inventory(void) {
     {"G1,2", SKODE_OP_LINK_MIDI},
     {"h4", SKODE_OP_SAMPLE_HOLD},
     {"H1,2", SKODE_OP_LINK_VELOCITY},
+    {"HS1,2", SKODE_OP_LINK_SYNC},
     {"L.01", SKODE_OP_TRIGGER_DELAY},
     {"j1", SKODE_OP_FILTER_MODE},
     {"k1200", SKODE_OP_FILTER_FREQ},

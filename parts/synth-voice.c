@@ -166,7 +166,7 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         || (int)sv.link_sync_3[v] >= 0
         || (int)sv.link_sync_4[v] >= 0
         || (int)sv.link_sync_5[v] >= 0) {
-          APPEND(" T%s,%s,%s,%s,%s,%s",
+          APPEND(" HS%s,%s,%s,%s,%s,%s",
             d_to_s_or_nan(sv.link_sync_0[v]),
             d_to_s_or_nan(sv.link_sync_1[v]),
             d_to_s_or_nan(sv.link_sync_2[v]),
@@ -907,6 +907,7 @@ void voice_reset(int i) {
   sv.link_sync_3[i] = -1;
   sv.link_sync_4[i] = -1;
   sv.link_sync_5[i] = -1;
+  sv.sync_blep[i] = 0.0f;
   sv.link_trig[i] = -1;
   sv.link_trig_samp[i] = 0;
   sv.freq_bend[i] = 0.0f;

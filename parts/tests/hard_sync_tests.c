@@ -1,5 +1,5 @@
 /*
- * Hard-sync (T v1,v2,...) tests.
+ * Hard-sync (HS v1,v2,...) tests.
  *
  * The render loop is driven one frame at a time so we can watch the slave's
  * phase right after the master wraps.
@@ -55,41 +55,41 @@ static void test_configuration(void) {
   for (int i = 0; i < 6; i++)
     expect(sync_slot(0, i) == -1, "sync slots start unset");
 
-  cmd("v0 T1,3,5");
+  cmd("v0 HS 1,3,5");
   expect(sync_slot(0, 0) == 1 && sync_slot(0, 1) == 3 && sync_slot(0, 2) == 5,
-         "T1,3,5 installs three targets");
+         "HS 1,3,5 installs three targets");
   expect(sync_slot(0, 3) == -1 && sync_slot(0, 5) == -1, "unused slots stay -1");
 
-  cmd("v0 T2");
+  cmd("v0 HS 2");
   expect(sync_slot(0, 0) == 2 && sync_slot(0, 1) == -1 && sync_slot(0, 2) == -1,
-         "a new T replaces the list instead of accumulating");
+         "a new HS replaces the list instead of accumulating");
 
-  cmd("v0 T0,1");
+  cmd("v0 HS 0,1");
   expect(sync_slot(0, 0) == -1 && sync_slot(0, 1) == 1,
          "self-link is dropped, others kept");
 
-  cmd("v0 T1,2,3,4,5,6");
+  cmd("v0 HS 1,2,3,4,5,6");
   expect(sync_slot(0, 5) == 6, "six targets accepted");
 
-  cmd("v0 T99");
+  cmd("v0 HS 99");
   expect(sync_slot(0, 0) == -1, "out-of-range target is ignored");
 
-  cmd("v0 T1,2");
-  cmd("v0 T-1");
-  expect(sync_slot(0, 0) == -1 && sync_slot(0, 1) == -1, "T-1 clears the list");
+  cmd("v0 HS 1,2");
+  cmd("v0 HS -1");
+  expect(sync_slot(0, 0) == -1 && sync_slot(0, 1) == -1, "HS -1 clears the list");
 
   /* voice copy and reset carry/clear the list */
-  cmd("v0 T1,2");
+  cmd("v0 HS 1,2");
   cmd("v0 >4");
   expect(sync_slot(4, 0) == 1 && sync_slot(4, 1) == 2, "voice copy copies sync targets");
   voice_init();
   expect(sync_slot(0, 0) == -1, "voice reset clears sync targets");
 
-  /* dump re-emits T so a dumped voice can be replayed */
-  cmd("v0 T1,2");
+  /* dump re-emits HS so a dumped voice can be replayed */
+  cmd("v0 HS 1,2");
   char out[2048];
   voice_format(0, out, sizeof(out), 0);
-  expect(strstr(out, " T1,2,") != NULL, "voice dump contains T targets");
+  expect(strstr(out, " HS1,2,") != NULL, "voice dump contains HS targets");
   teardown();
 }
 
@@ -102,6 +102,11 @@ static void test_bare_T_still_retriggers(void) {
   expect(sv.amp_envelope[1].is_active, "bare T still retriggers (backward compatible)");
   for (int i = 0; i < 6; i++)
     expect(sync_slot(1, i) == -1, "bare T does not touch sync targets");
+
+  /* T with args is now invalid and should NOT set sync slots */
+  char buf[64] = "v1 T2";
+  skred_command(buf);
+  expect(sync_slot(1, 0) == -1, "T with parameter no longer configures sync");
   teardown();
 }
 
@@ -134,7 +139,7 @@ static void test_simple_cycle_sync(void) {
   setup();
   cmd("v0 f110 a0 l1");
   cmd("v1 f337 a0 l1");
-  cmd("v0 T1");
+  cmd("v0 HS 1");
   for (int i = 0; i < 200; i++) render1();
   int wraps, synced, free_wraps;
   watch(0, 1, 48000 / 4, &wraps, &synced, &free_wraps);
@@ -142,7 +147,7 @@ static void test_simple_cycle_sync(void) {
   expect(synced >= wraps - 1, "slave phase restarts on every master wrap (simple cycle)");
   teardown();
 
-  /* control: without T the slave is not reset */
+  /* control: without HS the slave is not reset */
   setup();
   cmd("v0 f110 a0 l1");
   cmd("v1 f337 a0 l1");
@@ -156,8 +161,8 @@ static void test_cleared_stops_syncing(void) {
   setup();
   cmd("v0 f110 a0 l1");
   cmd("v1 f337 a0 l1");
-  cmd("v0 T1");
-  cmd("v0 T-1");
+  cmd("v0 HS 1");
+  cmd("v0 HS -1");
   for (int i = 0; i < 200; i++) render1();
   int wraps, synced, free_wraps;
   watch(0, 1, 48000 / 4, &wraps, &synced, &free_wraps);
@@ -171,7 +176,7 @@ static void test_multiple_targets(void) {
   cmd("v1 f337 a0 l1");
   cmd("v2 f521 a0 l1");
   cmd("v3 f760 a0 l1");
-  cmd("v0 T1,2,3");
+  cmd("v0 HS 1,2,3");
   for (int i = 0; i < 200; i++) render1();
   int w1, s1, f1, w2, s2, f2;
   /* watch v1 then check v2/v3 phases sit near start right after a wrap */
@@ -200,7 +205,7 @@ static void test_reverse_master_general_path(void) {
   setup();
   cmd("v0 f110 a0 b1 l1");
   cmd("v1 f337 a0 l1");
-  cmd("v0 T1");
+  cmd("v0 HS 1");
   expect(sv.playback_class[0] != sv.playback_class[1],
          "reversed master takes the general oscillator path");
   for (int i = 0; i < 400; i++) render1();
@@ -233,7 +238,7 @@ static void test_master_stays_alive_for_sound_target(void) {
   for (int i = 0; i < 300; i++) render1();
   expect(sv.phase[0] == before, "control: idle master in a skipped block does not advance");
 
-  cmd("v0 T4");
+  cmd("v0 HS 4");
   for (int i = 0; i < 300; i++) render1();
   expect(sv.phase[0] != before, "sync master keeps running while its target sounds");
 
@@ -252,7 +257,7 @@ static double repeat_error(int use_sync) {
   setup();
   cmd("v0 f100 a0 l1");     /* 100 Hz at 48 kHz = 480 samples per cycle */
   cmd("v1 f337 a0 l1");
-  if (use_sync) cmd("v0 T1");
+  if (use_sync) cmd("v0 HS 1");
   enum { N = 4000, LAG = 480 };
   static float out[N];
   for (int i = 0; i < 2000; i++) render1();
@@ -272,6 +277,28 @@ static void test_output_repeats_at_master_period(void) {
   expect(free_run > 0.5, "control: free-running slave does not repeat at that period");
 }
 
+static void test_realtime_path(void) {
+  skred_start_headless(8, 48000);
+  /* Test 1: Direct opcode execution via skred_execute_opcode (host / CLAP path) */
+  double targets[2] = {1.0, 3.0};
+  int res = skred_execute_opcode(0, SKODE_OP_LINK_SYNC, 2, targets);
+  expect(res == 0, "skred_execute_opcode accepts SKODE_OP_LINK_SYNC in realtime path");
+  expect(sync_slot(0, 0) == 1 && sync_slot(0, 1) == 3, "opcode execution configured sync targets");
+
+  /* Test 2: Clear sync via opcode */
+  double clear_arg[1] = {-1.0};
+  res = skred_execute_opcode(0, SKODE_OP_LINK_SYNC, 1, clear_arg);
+  expect(res == 0, "skred_execute_opcode clears sync targets with -1");
+  expect(sync_slot(0, 0) == -1, "sync targets cleared via realtime opcode");
+
+  /* Test 3: Macro containing HS is promoted to realtime capability */
+  cmd("[synclink] : v$$0 HS $$1 ;");
+  cmd("synclink 0 2");
+  expect(sync_slot(0, 0) == 2, "promoted macro using HS executes and links targets");
+
+  skred_stop();
+}
+
 int main(void) {
   test_configuration();
   test_bare_T_still_retriggers();
@@ -281,6 +308,7 @@ int main(void) {
   test_reverse_master_general_path();
   test_master_stays_alive_for_sound_target();
   test_output_repeats_at_master_period();
+  test_realtime_path();
   if (failures) {
     fprintf(stderr, "%d hard sync test failure(s)\n", failures);
     return 1;

@@ -36,15 +36,15 @@ DP 4 1
 # VOICES
 # ----------------------------------------------------------------------
 # DRUMS (Roland TR-909 Heavyweight Kit)
-v0 w82 f440 a5.5 p0                          # 909 kick punch
-v1 w83 f440 a6.0 r2 p0 ds.25                 # 909 snappy snare
-v2 w84 f440 a-3.5 p.2                        # 909 closed hat
-v3 w85 f440 a-1.5 p-.2                       # 909 open hat (offbeat sizzle)
-v4 w86 f440 a5.5 r2 p0 ds.3                  # 909 backbeat clap
-v5 w0 a-2.5 p0 t.002,.30,0,.10 j1 k160 q.7   # sub kick weight (pitch drop)
-v21 w94 f440 a3.5 p.2                        # crash cymbal
-v22 w96 f440 a3.5 p-.25 r2 ds.3              # 909 cowbell / perc tick
-v23 w87 f440 a4.5 p.25                       # 909 rimshot
+v0 w82 f440 a5.5 p0 [909 kick punch] vt
+v1 w83 f440 a6.0 r2 p0 ds.25 [909 snappy snare] vt
+v2 w84 f440 a-3.5 p.2 [909 closed hat] vt
+v3 w85 f440 a-1.5 p-.2 [909 open hat offbeat] vt
+v4 w86 f440 a5.5 r2 p0 ds.3 [909 backbeat clap] vt
+v5 w0 a-2.5 p0 t.002,.30,0,.10 j1 k160 q.7 [sub kick weight] vt
+v21 w94 f440 a3.5 p.2 [crash cymbal] vt
+v22 w96 f440 a3.5 p-.25 r2 ds.3 [909 cowbell perc tick] vt
+v23 w87 f440 a4.5 p.25 [909 rimshot] vt
 
 # RISER (inline K-synth rave noise sweep)
 [
@@ -61,34 +61,34 @@ S: s P
 W: w E*((S*.35)+(H*.65))
 ] k!
 k>w301,44100,1
-v16 w301 f180 a7.5 p0 t.005,.01,1,.3 r4 ds.3  # noise riser
+v16 w301 f180 a7.5 p0 t.005,.01,1,.3 r4 ds.3 [noise riser sweep] vt
 
 # BASS 1: The Iconic Kevin Saunderson TX81Z / Minimoog Bouncing Bass
 # Punchy resonant low-pass filter with snappy decay & phase-distortion bite
-v6 w15 a-2 p0 t.002,.16,0,.04 j1,1 k680 q3.5 ft.001,.13,0,.03 fd2400 c4,.35
+v6 w15 a-2 p0 t.002,.16,0,.04 j1,1 k680 q3.5 ft.001,.13,0,.03 fd2400 c4,.35 [detroit bouncing bass] vt
 v6 >7
-v7 w16 a-4 N12,8 p0
+v7 w16 a-4 N12,8 p0 [bouncing bass sub pulse] vt
 v6 G7 H7
 
 # BASS 2: Deep Sub Bass Reinforcer (Chorus & Climax)
-v8 w0 a-1.5 p0 t.002,.25,.2,.08 j1 k250 q1.5
+v8 w0 a-1.5 p0 t.002,.25,.2,.08 j1 k250 q1.5 [deep sub bass] vt
 
 # PIANO / DETROIT CHORD STABS (Layered FM + Saws)
-v9 w0 a-5 p-.25 t.002,.22,0,.10 FF2 FB4 F10,2.2 G10 H10 r2 ds.3
-v10 w0 a-5 t.002,.18,0,.10 N19 m1
+v9 w0 a-5 p-.25 t.002,.22,0,.10 FF2 FB4 F10,2.2 G10 H10 r2 ds.3 [detroit chord carrier] vt
+v10 w0 a-5 t.002,.18,0,.10 N19 m1 [detroit chord modulator] vt
 
 # LEAD: The Anthem Hook Trio (Rich Detuned Stereo Saws)
-v13 w15 a-7.5 p0 t.004,.24,.4,.12 j1,1 k4600 q1.5 c4,.3 ct.001,.2,0,.1 cd.4 r1 ds.35
+v13 w15 a-7.5 p0 t.004,.24,.4,.12 j1,1 k4600 q1.5 c4,.3 ct.001,.2,0,.1 cd.4 r1 ds.35 [anthem lead center] vt
 v13 >14
 v13 >15
-v14 w15 a-9.5 p-.55 N0,9 r0
-v15 w16 a-9.5 p.55 N0,-9 r0
+v14 w15 a-9.5 p-.55 N0,9 r0 [anthem lead left] vt
+v15 w16 a-9.5 p.55 N0,-9 r0 [anthem lead right] vt
 v13 G14,15 H14,15
 
 # DETROIT POLYPHONIC STRINGS POOL (Juno / Matrix-12 style)
-v24 w0 f.32 a0 t0,0,1,0 m1
-v26 w15 a-9.5 p-.5 t1.0,.4,.7,1.2 j1 k2400 q.8 c4,.2 C24,.2 G27 H27
-v27 w15 a-11.5 p.5 N0,8 t1.0,.4,.7,1.2 j1 k2400 q.8 c4,.2 C24,.2
+v24 w0 f.32 a0 t0,0,1,0 m1 [strings vibrato lfo] vt
+v26 w15 a-9.5 p-.5 t1.0,.4,.7,1.2 j1 k2400 q.8 c4,.2 C24,.2 G27 H27 [detroit strings left] vt
+v27 w15 a-11.5 p.5 N0,8 t1.0,.4,.7,1.2 j1 k2400 q.8 c4,.2 C24,.2 [detroit strings right] vt
 /pg 0,26,2,0
 /pp 0,0,28,5,0
 v24 l1

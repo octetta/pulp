@@ -44,7 +44,7 @@ k>w301,44100,1
 # DELAY BUSES (track N feeds bus N)
 # ======================================================================
 DS 1 134 .75
-DL 1 - - 8 3 3 11
+DL 1 - - 8 0 3 11
 DD 1 7 3
 DS 2 134 .25
 DL 2 - - 6 0 0 9
@@ -54,60 +54,60 @@ DS 3 134 .5
 DL 3 - - 7 0 0 9
 DD 3 6 5
 DS 4 134 1
-DL 4 - - 11 4 8 10
+DL 4 - - 11 0 8 10
 DD 4 8 2
 DP 4 1
 
 # ======================================================================
 # VOICES
 # ======================================================================
-v0 w82 f440 a6 p 0                          # kick
-v1 w83 f440 a7 r2 p 0 ds.2                    # snare
-v2 w84 f440 a-3 p.25                        # closed hat
-v3 w85 f440 a-2 p-.25                       # open hat
-v4 w86 f440 a7 r2 p 0 ds.3                    # clap
-v5 w0 a-3 p 0 t.002,.30,0,.10 j1 k180 q.7     # sub boom (pitch-dropped by glide)
-v21 w94 f440 a5 p.2                         # crash
-v22 w96 f440 a3 p-.3 r2 p 0 ds.3              # cowbell
-v23 w87 f440 a5 p.3                         # rim
+v0 w82 f440 a6 p 0 [kick] vt
+v1 w83 f440 a7 r2 p 0 ds.2 [snare] vt
+v2 w84 f440 a-3 p.25 [closed hat] vt
+v3 w85 f440 a-2 p-.25 [open hat] vt
+v4 w86 f440 a7 r2 p 0 ds.3 [clap] vt
+v5 w0 a-3 p 0 t.002,.30,0,.10 j1 k180 q.7 [sub boom] vt
+v21 w94 f440 a5 p.2 [crash cymbal] vt
+v22 w96 f440 a3 p-.3 r2 p 0 ds.3 [cowbell] vt
+v23 w87 f440 a5 p.3 [rim tick] vt
 
 # reese bass: two detuned saws, one note drives both (G/H links)
-v6 w15 a-1 p 0 t.002,.17,0,.06 j1 k650 q4 ft.001,.15,0,.05 fd2000
+v6 w15 a-1 p 0 t.002,.17,0,.06 j1 k650 q4 ft.001,.15,0,.05 fd2000 [reese bass saw] vt
 v6 >7
-v7 N0,14
+v7 N0,14 [reese bass partner] vt
 v6 G7 H7
 
 # 303 acid: screamer filter, glide for slides, delay bus 3
-v8 w15 a0 t.002,.20,0,.06 j1,2 k350 q10 ft.001,.18,0,.06 fd2600 g.03 r3 p 0 ds.3
+v8 w15 a0 t.002,.20,0,.06 j1,2 k350 q10 ft.001,.18,0,.06 fd2600 g.03 r3 p 0 ds.3 [303 acid screamer] vt
 
 # industrial clang: ring mod of two inharmonic oscillators, crushed
-v9 w16 f311 a0 t.001,.35,0,.2 bc5 r2 p 0 ds.3 XM10 H10
-v10 w15 f187 a0 t.001,.30,0,.2 m1
+v9 w16 f311 a0 t.001,.35,0,.2 bc5 r2 p 0 ds.3 XM10 H10 [industrial clang carrier] vt
+v10 w15 f187 a0 t.001,.30,0,.2 m1 [industrial clang modulator] vt
 
 # fm clang solo (v18, v19)
-v18 w0 f311 a0 t.001,.35,0,.2 FF2 FB6 F19,2.5 r2 p 0 ds.3 H19
-v19 w0 f187 a0 t.001,.30,0,.2 m1
+v18 w0 f311 a0 t.001,.35,0,.2 FF2 FB6 F19,2.5 r2 p 0 ds.3 H19 [fm clang carrier] vt
+v19 w0 f187 a0 t.001,.30,0,.2 m1 [fm clang modulator] vt
 
 # metal FM stab: phase-mod + operator feedback, modulator tracks pitch (+21 st)
-v11 w0 a0 p-.35 t.001,.45,0,.35 FF2 FB4 F12,2.2 G12 H12
-v12 w0 a0 t.001,.30,0,.30 N21 m1
+v11 w0 a0 p-.35 t.001,.45,0,.35 FF2 FB4 F12,2.2 G12 H12 [metal stab carrier] vt
+v12 w0 a0 t.001,.30,0,.30 N21 m1 [metal stab modulator] vt
 
 # poppy hook: phase-distortion saw trio, detuned and spread
-v13 w15 a-8 p 0 t.004,.25,.4,.14 j1 k5200 q1.4 c4,.35 ct.001,.2,0,.1 cd.5 r1 ds.4
+v13 w15 a-8 p 0 t.004,.25,.4,.14 j1 k5200 q1.4 c4,.35 ct.001,.2,0,.1 cd.5 r1 ds.4 [poppy hook center] vt
 v13 >14
 v13 >15
-v14 N0,10 p-.55 r0
-v15 w16 a-11 N0,-10 p.55 r0
+v14 N0,10 p-.55 r0 [poppy hook left] vt
+v15 w16 a-11 N0,-10 p.55 r0 [poppy hook right] vt
 v13 G14,15 H14,15
 
 # chorus chops: vocal wavetable, crushed, wash bus
-v17 w61 a-2 t.002,.18,.3,.1 j1 k4200 q1 bc8 r4 p 0 ds.45
+v17 w61 a-2 t.002,.18,.3,.1 j1 k4200 q1 bc8 r4 p 0 ds.45 [chorus vocal chops] vt
 # riser: K-synth noise+sweep sample (sk/hammer-riser.ks), stretched to ~7 s by playback rate
-v16 w301 f187 a8 p 0 t.005,.01,1,.4 r4 ds.3
+v16 w301 f187 a8 p 0 t.005,.01,1,.4 r4 ds.3 [noise riser sweep] vt
 # pad: poly pool (POLYPHONY.md): 2-voice prototype (detuned saw pair, L/R), 5 instances -> v28..v37
-v24 w0 f.31 a0 t0,0,1,0 m1
-v26 w15 a-8 p-.5 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2 G27 H27
-v27 w15 a-10 p.5 N0,9 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2
+v24 w0 f.31 a0 t0,0,1,0 m1 [pad vibrato lfo] vt
+v26 w15 a-8 p-.5 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2 G27 H27 [pad prototype left] vt
+v27 w15 a-10 p.5 N0,9 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2 [pad prototype right] vt
 /pg 0,26,2,0
 /pp 0,0,28,5,0
 v24 l1
@@ -461,7 +461,7 @@ y0
 [=126,29] x29
 [=126,30] x30
 [y2 z0 y13 z1 y17 z1] x31
-[v21 l1 DF 1 1 y1 z0 y3 z0 y4 z0 y5 z0 y6 z0 y8 z0 y9 z0 y14 z0 y10 z1 y12 z1] x32
+[v21 l1 DF 1 1 y1 z0 y3 z0 y4 z0 y5 z0 y6 z0 y8 z0 y9 z0 y14 z0 y10 z1] x32
 [v13 l0 v14 l0 v15 l0 v6 l0 v11 l0 v8 l0] x33
 [v28 a-8 v29 a-10 v30 a-8 v31 a-10 v32 a-8 v33 a-10 v34 a-8 v35 a-10 v36 a-8 v37 a-10] x34
 [v13 a-8 v14 a-8 v15 a-11 v11 a0] x35
@@ -469,7 +469,7 @@ y0
 [=126,37] x37
 [=126,38] x38
 [=126,39] x39
-[y1 z1 y3 z1 v16 l0 y10 z0 y12 z0] x40
+[y1 z1 y3 z1 v16 l0 y10 z0] x40
 [=126,41] x41
 [y13 z1 y17 z1] x42
 [y13 z1 y17 z1 v13 k5200 v14 k5200 v15 k5200 y16 z0 /SP 3 0 /SP 4 0 /SP 5 0 /SP 6 0 /SP 7 0] x43

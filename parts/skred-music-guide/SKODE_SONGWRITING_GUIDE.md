@@ -63,6 +63,7 @@ solo renders) and measure from its onset.
 | Sequencer jump is **`zg <step>`** | Schedulable and immediate. Jumps sequence patterns or conductor macro tracks (`y127 zg <step>`) directly to any step during live playback without interrupting audio. |
 | Master volume is **`V <dB>`** (`-40` to `+18 dB`) | Immediate master gain with built-in cubic soft-clipping and smooth gain ramping. Default: `-6 dB`. |
 | Atomic pattern array launch is **`Z>`** | Schedulable array launch opcode for multi-track sequence state changes without timing jitter. |
+| Array-driven step assignment is **`X>`** | Assigns a compiled step program to an arbitrary list of steps in a data array `( s1 s2 ... ) X>`, bypassing the 8-argument scalar limit of `x#,#,...`. |
 | Never trigger `l1` or `n60 l1 B1` in initial voice setup | Instantaneous note-on step responses during setup create audible clicks/pops on load. Let voices initialize silently (`t0,0,1,0`) and fire their first `l` triggers in pattern step 0. |
 | `?M 1` lists the schedulable commands | Check it before assuming a command works inside a step. |
 | `nS<N>` (stream read by name) is immediate-only; `n&<N>` is the schedulable form | Use `&N` in steps. |
@@ -202,21 +203,45 @@ When reading note streams via `n&<S>` inside a looping pattern, **the number of 
 - **NEVER overwrite the final step with `[=127,0] x<last>`**:
   A common technique to extend sparse patterns to their full bar length is pinning the last step (e.g. `[=127,0] x15` or `x31`). **Only do this if the last step is actually empty!** If a pattern already writes an event on step 31 (such as `for step in range(32): emit(f"[v8 n&3 l.95] x{step}")`), writing `[=127,0] x31` immediately overwrites step 31, replacing the stream pull with register zeroing. Because token 31 is never pulled, the stream falls 1 token behind on each loop cycle, causing the entire melody to slip off-beat by one sixteenth step on every single repeat! If step $N$ already has an event, the pattern length is already pinned to $N+1$ steps; never overwrite it.
 
-### 2h. Compact Multi-Step Assignment (`x#,#,#,#`)
+### 2h. Compact Multi-Step Assignment (`x#,#,#,#`) and Array Step Setter (`X>`)
 
-Instead of writing out repeated steps line-by-line, `x` supports assigning up to 8 steps at once using a comma-separated list of step indices:
+Instead of writing out repeated steps line-by-line, Skode provides two mechanisms for bulk step assignment:
+
+#### 1. Comma-Separated List (`x#,#,#...`) for up to 8 Steps
+`x` supports assigning up to 8 steps at once using a comma-separated list of step indices:
 
 ```forth
 # 8th-note closed hi-hats (Pattern 3):
 y3
 [hats 8ths] yt
-[v2 l.5] x0,4,8,12            # Downbeat hits
-[v2 l.3] x2,6,10,14           # Offbeat hits
+[v2 l.5] x0,4,8,12            # Downbeat hits (4 steps)
+[v2 l.3] x2,6,10,14           # Offbeat hits (4 steps)
 [=127,0] x15
 ```
 
-- **Safety & Argument Limit**: The maximum number of arguments per `x` command is 8 (`#define ARG_MAX 8`). Lists up to 8 items fit standard 4-on-the-floor (`x0,4,8,12`), 2 & 4 backbeats (`x4,12`), 8th-note subdivisions (`x0,2,4,6,8,10,12,14`), and bar-hold conductor lines (`x16,18,20,22,24,26,28,30`).
+- **Safety & Argument Limit**: The maximum number of arguments per scalar `x` command is 8 (`#define ARG_MAX 8`). Lists up to 8 items fit standard 4-on-the-floor (`x0,4,8,12`), 2 & 4 backbeats (`x4,12`), 8th-note subdivisions (`x0,2,4,6,8,10,12,14`), and bar-hold conductor lines (`x16,18,20,22,24,26,28,30`).
 - **Memory & Parsing**: The step body is compiled once into an `event_program_t`, and then applied to all specified steps in sequence using `seq_step_set()`. This eliminates redundant compilation overhead.
+- **Caution**: Any items past the 8th argument in a single `x` list (e.g. `x0,1,2,3,4,5,6,7,8,9...`) are silently dropped by the ANDS argument stack parser!
+
+#### 2. Array-Driven Step Setter (`X>` / `step_all_data`) for Arbitrary-Length Lists
+For patterns requiring more than 8 steps—such as dense 16th-note gate masks, 22-step acid lines, or 64-step ostinatos—use the array-driven opcode **`X>`** (canonical name `step_all_data`, mirroring `Z>` for patterns).
+
+`X>` consumes step indices directly from the ANDS data array buffer `( ... )`, which has a capacity of up to 1024 elements:
+
+```forth
+# 22-step acid bass gate mask in a single clean expression:
+y5
+[acid bass] yt
+[v8 g&4 n&3 l&5] ( 0 2 3 5 6 8 10 11 13 14 15 16 18 19 21 22 24 26 27 29 30 31 ) X>
+
+# Or with the data array preceding the step template:
+( 0 2 3 5 6 8 10 11 13 14 15 16 18 19 21 22 24 26 27 29 30 31 ) [v8 g&4 n&3 l&5] X>
+
+# Explicit pattern targeting (clause 1: p X>):
+[v6 i&1] ( 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 ) 7 X>
+```
+
+Like `x`, `X>` compiles the step template string once and sets all target steps under mutex lock. Empty brackets `[] ( 0 2 4 ) X>` or rest brackets `[-] ( 0 2 4 ) X>` clear or insert rests across the given steps.
 
 ### 2i. Macro Rules, Shadow Warnings, and Undefining Macros
 

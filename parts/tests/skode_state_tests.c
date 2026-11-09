@@ -3581,6 +3581,39 @@ static void test_multistep_assignment(void) {
   expect_int(test, strcmp(seq_step_get(20, 3), "-"), 0, "step 3 has rest");
 }
 
+static void test_step_all_data(void) {
+  const char *test = "step assignment via data array (X> / step_all_data)";
+  skode_t ctx = new_ctx();
+  consume(test, &ctx, "y22");
+
+  // Assign 12 steps (exceeding scalar ARG_MAX=8)
+  consume(test, &ctx, "[v8 g&4 n&3] ( 0 2 3 5 6 8 10 11 13 14 15 16 ) X>");
+  expect_int(test, strcmp(seq_step_get(22, 0), "v8 g&4 n&3"), 0, "step 0 has program");
+  expect_int(test, strcmp(seq_step_get(22, 1), ""), 0, "step 1 is empty");
+  expect_int(test, strcmp(seq_step_get(22, 2), "v8 g&4 n&3"), 0, "step 2 has program");
+  expect_int(test, strcmp(seq_step_get(22, 11), "v8 g&4 n&3"), 0, "step 11 has program");
+  expect_int(test, strcmp(seq_step_get(22, 16), "v8 g&4 n&3"), 0, "step 16 has program");
+
+  // Reverse ordering: data array first, then string block
+  consume(test, &ctx, "( 1 4 7 9 ) [v2 l.5] X>");
+  expect_int(test, strcmp(seq_step_get(22, 1), "v2 l.5"), 0, "step 1 has program from array-first");
+  expect_int(test, strcmp(seq_step_get(22, 4), "v2 l.5"), 0, "step 4 has program from array-first");
+  expect_int(test, strcmp(seq_step_get(22, 7), "v2 l.5"), 0, "step 7 has program from array-first");
+  expect_int(test, strcmp(seq_step_get(22, 9), "v2 l.5"), 0, "step 9 has program from array-first");
+
+  // Explicit pattern targeting (clause 1: p X>)
+  consume(test, &ctx, "[v5] ( 0 8 ) 23 X>");
+  expect_int(test, strcmp(seq_step_get(23, 0), "v5"), 0, "pattern 23 step 0 has program");
+  expect_int(test, strcmp(seq_step_get(23, 8), "v5"), 0, "pattern 23 step 8 has program");
+  expect_int(test, strcmp(seq_step_get(23, 1), ""), 0, "pattern 23 step 1 is empty");
+
+  // Canonical name step_all_data
+  consume(test, &ctx, "y24");
+  consume(test, &ctx, "[v9] ( 3 6 ) step_all_data");
+  expect_int(test, strcmp(seq_step_get(24, 3), "v9"), 0, "pattern 24 step 3 has program via step_all_data");
+  expect_int(test, strcmp(seq_step_get(24, 6), "v9"), 0, "pattern 24 step 6 has program via step_all_data");
+}
+
 static void test_inst_note_and_stream_ties(void) {
   const char *test = "instrument note i and stream ties";
   skode_t ctx = new_ctx();
@@ -3688,6 +3721,7 @@ int main(int argc, char **argv) {
   test_multichannel_capture_waves();
   test_x_opcode_escape();
   test_multistep_assignment();
+  test_step_all_data();
   test_inst_note_and_stream_ties();
 
   synth_free();

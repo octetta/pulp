@@ -1,0 +1,33 @@
+@name     step_all_data
+@alias    X>
+@group    seq
+@c_name   skode_clause_step_all_data_0
+@type     immediate
+@arity    0
+@match    ()
+@needs    string data
+@summary  assign step program to steps in data array on active pattern
+@doc
+Assigns the compiled step program from the string buffer to all step indices listed in the active data array for the current active pattern.
+Usage: [v8 g&4 n&3 l&5] ( 0 2 3 5 6 8 10 11 ... ) X>
+   or: ( 0 2 3 5 6 8 10 11 ... ) [v8 g&4 n&3 l&5] X>
+@code
+    return skode_exec_x_data(ctx, s, args, argc);
+@end
+
+@name     step_all_data
+@alias    X>
+@group    seq
+@c_name   skode_clause_step_all_data_1
+@type     immediate
+@arity    1
+@match    (finite)
+@needs    string data
+@summary  assign step program to steps in data array on explicit pattern
+@doc
+Assigns the compiled step program from the string buffer to all step indices listed in the active data array for the specified pattern.
+Usage: [v8 g&4 n&3 l&5] ( 0 2 3 5 ... ) 5 X>
+   or: 5 [v8 g&4 n&3 l&5] ( 0 2 3 5 ... ) X>
+@code
+    return skode_exec_x_data(ctx, s, args, argc);
+@end

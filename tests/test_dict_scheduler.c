@@ -515,7 +515,7 @@ int main(void) {
     init_interceptors();
 
     printf("================================================================\n");
-    printf("pulp/skred v0.82.0 - Opcode Dictionary & Scheduler Test Suite\n");
+    printf("pulp/skred v0.83.0 - Opcode Dictionary & Scheduler Test Suite\n");
     printf("================================================================\n");
 
     test_suite_a();

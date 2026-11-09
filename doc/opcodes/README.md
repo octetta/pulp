@@ -1,6 +1,6 @@
 # Skred / SKODE Opcode Specification DSL (`.def`)
 
-Release: **0.82.0**  
+Release: **0.83.0**  
 Engine: **pulp / skred**
 
 This directory contains the modular opcode definitions that power SKODE's unified command dictionary and real-time execution engine.

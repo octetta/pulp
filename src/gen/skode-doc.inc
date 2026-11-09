@@ -455,6 +455,8 @@
   { "command.rot", "stack_rot.def", 0, "name: rot\ncategory: sys\nsummary: rotate top three stack arguments\n" },
   { "command.stack_swap", "stack_swap.def", 0, "name: stack_swap\ncategory: sys\nsummary: swap top two stack arguments\n" },
   { "command.swap", "stack_swap.def", 0, "name: swap\ncategory: sys\nsummary: swap top two stack arguments\n" },
+  { "command.step_all_data", "step_all_data.def", 0, "name: step_all_data\ncategory: seq\nsummary: assign step program to steps in data array on active pattern\n" },
+  { "command.X>", "step_all_data.def", 0, "name: X>\ncategory: seq\nsummary: assign step program to steps in data array on active pattern\n" },
   { "command.step_append", "step_append.def", 0, "name: step_append\ncategory: seq\nsummary: append bracketed program step to active pattern\n" },
   { "command.xa", "step_append.def", 0, "name: xa\ncategory: seq\nsummary: append bracketed program step to active pattern\n" },
   { "command.step_get", "step_get.def", 0, "name: step_get\ncategory: seq\nsummary: get pattern step source string\n" },

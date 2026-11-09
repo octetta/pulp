@@ -1,6 +1,6 @@
 # Pulp / Skred Command & Opcode Reference
 
-Release: **0.82.0**  
+Release: **0.83.0**  
 Unified Opcode Dictionary and Execution Engine reference for `pulp` and `skred`.
 
 Generated automatically by [`tools/mkopcodes`](file:///home/stewartj/book/pulp/tools/mkopcodes.c) from modular opcode definitions in `doc/opcodes/`.
@@ -9,10 +9,10 @@ Generated automatically by [`tools/mkopcodes`](file:///home/stewartj/book/pulp/t
 
 ## Architecture & System Overview
 
-- **Total Command Words**: 304
-- **Total Dispatch Clauses**: 601
+- **Total Command Words**: 305
+- **Total Dispatch Clauses**: 603
 - **Real-Time Audio Opcode Handlers**: 145 (audio-thread safe, zero allocation, zero string lookup)
-- **Immediate / Control Plane Clauses**: 456 (REPL / parser / file system / diagnostics)
+- **Immediate / Control Plane Clauses**: 458 (REPL / parser / file system / diagnostics)
 
 ### Functional Command Groups
 
@@ -21,7 +21,7 @@ Generated automatically by [`tools/mkopcodes`](file:///home/stewartj/book/pulp/t
 | osc | `osc` | 21 | Oscillators, waveforms, frequency, tuning, detune |
 | filter | `filter` | 7 | Filter cutoff frequency, resonance, modes, wavefolding |
 | env | `env` | 15 | Envelopes, ADSR parameters, curve shaping, segment times |
-| seq | `seq` | 60 | Sequencer patterns, steps, repeats, tempo, control events |
+| seq | `seq` | 61 | Sequencer patterns, steps, repeats, tempo, control events |
 | voice | `voice` | 60 | Voice allocation, polyphony, routing, amplitude, pan |
 | sys | `sys` | 141 | System configuration, MIDI, data buffers, macros, hardware |
 
@@ -1542,6 +1542,7 @@ Usage: T (or trigger)
 | [`repeat_ticks`](#repeat_ticks) | `RR` | 2 | 2..3 | Immediate | repeat scheduled program at beat subdivision interval |
 | [`seq_dequeue`](#seq_dequeue) | `DQ` | 2 | 0..1 | Immediate | clear all scheduled events |
 | [`seq_do_query`](#seq_do_query) | `DO?` | 1 | 0 | Immediate | query deferred execution queue |
+| [`step_all_data`](#step_all_data) | `X>` | 2 | 0..1 | Immediate | assign step program to steps in data array on active pattern |
 | [`step_append`](#step_append) | `xa` | 1 | 0 | Immediate | append bracketed program step to active pattern |
 | [`step_get`](#step_get) | `xg` | 1 | 1 | Immediate | get pattern step source string |
 | [`step_goto`](#step_goto) | `>x` | 1 | 1 | Immediate | jump active pattern to target step |
@@ -3004,6 +3005,44 @@ Usage: DO?
 
 ---
 
+### `step_all_data`
+
+- **Alias**: `X>`
+- **Group**: `seq`
+- **Clause Count**: 2
+
+#### Clause 1: `step_all_data()`
+
+- **Arity**: `0`
+- **Execution Model**: `immediate (control plane)`
+- **Parser State Requirements**: `string`, `data`
+- **Summary**: assign step program to steps in data array on active pattern
+
+**Description & Details**:
+
+```text
+Assigns the compiled step program from the string buffer to all step indices listed in the active data array for the current active pattern.
+Usage: [v8 g&4 n&3 l&5] ( 0 2 3 5 6 8 10 11 ... ) X>
+   or: ( 0 2 3 5 6 8 10 11 ... ) [v8 g&4 n&3 l&5] X>
+```
+
+#### Clause 2: `step_all_data(finite)`
+
+- **Arity**: `1`
+- **Execution Model**: `immediate (control plane)`
+- **Parser State Requirements**: `string`, `data`
+- **Summary**: assign step program to steps in data array on explicit pattern
+
+**Description & Details**:
+
+```text
+Assigns the compiled step program from the string buffer to all step indices listed in the active data array for the specified pattern.
+Usage: [v8 g&4 n&3 l&5] ( 0 2 3 5 ... ) 5 X>
+   or: 5 [v8 g&4 n&3 l&5] ( 0 2 3 5 ... ) X>
+```
+
+---
+
 ### `step_append`
 
 - **Alias**: `xa`
@@ -3657,7 +3696,7 @@ Usage: GS 1
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `235` (`skode_clause_inst_note_c297`)
+- **Discrete Opcode ID**: `235` (`skode_clause_inst_note_c299`)
 - **Summary**: trigger instrument note
 
 **Description & Details**:
@@ -3671,7 +3710,7 @@ Usage: i note
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `236` (`skode_clause_inst_note_c298`)
+- **Discrete Opcode ID**: `236` (`skode_clause_inst_note_c300`)
 - **Summary**: trigger instrument note with velocity
 
 **Description & Details**:
@@ -3685,7 +3724,7 @@ Usage: i note velocity
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `237` (`skode_clause_inst_note_c299`)
+- **Discrete Opcode ID**: `237` (`skode_clause_inst_note_c301`)
 - **Summary**: trigger instrument note with velocity and cents
 
 **Description & Details**:

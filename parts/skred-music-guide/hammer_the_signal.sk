@@ -56,53 +56,53 @@ DP 4 1
 # ======================================================================
 # VOICES
 # ======================================================================
-v0 w82 f440 a6 p 0                          # kick
-v1 w83 f440 a7 r2 p 0 ds.2                    # snare
-v2 w84 f440 a-3 p.25                        # closed hat
-v3 w85 f440 a-2 p-.25                       # open hat
-v4 w86 f440 a7 r2 p 0 ds.3                    # clap
-v5 w0 a-3 p 0 t.002,.30,0,.10 j1 k180 q.7     # sub boom (pitch-dropped by glide)
-v21 w94 f440 a5 p.2                         # crash
-v22 w96 f440 a3 p-.3 r2 p 0 ds.3              # cowbell
-v23 w87 f440 a5 p.3                         # rim
+v0 w82 f440 a6 p 0 [kick] vt
+v1 w83 f440 a7 r2 p 0 ds.2 [snare] vt
+v2 w84 f440 a-3 p.25 [closed hat] vt
+v3 w85 f440 a-2 p-.25 [open hat] vt
+v4 w86 f440 a7 r2 p 0 ds.3 [clap] vt
+v5 w0 a-3 p 0 t.002,.30,0,.10 j1 k180 q.7 [sub boom] vt
+v21 w94 f440 a5 p.2 [crash cymbal] vt
+v22 w96 f440 a3 p-.3 r2 p 0 ds.3 [cowbell] vt
+v23 w87 f440 a5 p.3 [rim tick] vt
 
 # reese bass: two detuned saws, one note drives both (G/H links)
-v6 w15 a-1 p 0 t.002,.17,0,.06 j1 k650 q4 ft.001,.15,0,.05 fd2000
+v6 w15 a-1 p 0 t.002,.17,0,.06 j1 k650 q4 ft.001,.15,0,.05 fd2000 [reese bass saw] vt
 v6 >7
-v7 N0,14
+v7 N0,14 [reese bass partner] vt
 v6 G7 H7
 
 # 303 acid: screamer filter, glide for slides, delay bus 3
-v8 w15 a0 t.002,.20,0,.06 j1,2 k350 q10 ft.001,.18,0,.06 fd2600 g.03 r3 p 0 ds.3
+v8 w15 a0 t.002,.20,0,.06 j1,2 k350 q10 ft.001,.18,0,.06 fd2600 g.03 r3 p 0 ds.3 [303 acid screamer] vt
 
 # industrial clang: ring mod of two inharmonic oscillators, crushed
-v9 w16 f311 a0 t.001,.35,0,.2 bc5 r2 p 0 ds.3 XM10 H10
-v10 w15 f187 a0 t.001,.30,0,.2 m1
+v9 w16 f311 a0 t.001,.35,0,.2 bc5 r2 p 0 ds.3 XM10 H10 [industrial clang carrier] vt
+v10 w15 f187 a0 t.001,.30,0,.2 m1 [industrial clang modulator] vt
 
 # fm clang solo (v18, v19)
-v18 w0 f311 a0 t.001,.35,0,.2 FF2 FB6 F19,2.5 r2 p 0 ds.3 H19
-v19 w0 f187 a0 t.001,.30,0,.2 m1
+v18 w0 f311 a0 t.001,.35,0,.2 FF2 FB6 F19,2.5 r2 p 0 ds.3 H19 [fm clang carrier] vt
+v19 w0 f187 a0 t.001,.30,0,.2 m1 [fm clang modulator] vt
 
 # metal FM stab: phase-mod + operator feedback, modulator tracks pitch (+21 st)
-v11 w0 a0 p-.35 t.001,.45,0,.35 FF2 FB4 F12,2.2 G12 H12
-v12 w0 a0 t.001,.30,0,.30 N21 m1
+v11 w0 a0 p-.35 t.001,.45,0,.35 FF2 FB4 F12,2.2 G12 H12 [metal stab carrier] vt
+v12 w0 a0 t.001,.30,0,.30 N21 m1 [metal stab modulator] vt
 
 # poppy hook: phase-distortion saw trio, detuned and spread
-v13 w15 a-8 p 0 t.004,.25,.4,.14 j1 k5200 q1.4 c4,.35 ct.001,.2,0,.1 cd.5 r1 ds.4
+v13 w15 a-8 p 0 t.004,.25,.4,.14 j1 k5200 q1.4 c4,.35 ct.001,.2,0,.1 cd.5 r1 ds.4 [poppy hook center] vt
 v13 >14
 v13 >15
-v14 N0,10 p-.55 r0
-v15 w16 a-11 N0,-10 p.55 r0
+v14 N0,10 p-.55 r0 [poppy hook left] vt
+v15 w16 a-11 N0,-10 p.55 r0 [poppy hook right] vt
 v13 G14,15 H14,15
 
 # chorus chops: vocal wavetable, crushed, wash bus
-v17 w61 a-2 t.002,.18,.3,.1 j1 k4200 q1 bc8 r4 p 0 ds.45
+v17 w61 a-2 t.002,.18,.3,.1 j1 k4200 q1 bc8 r4 p 0 ds.45 [chorus vocal chops] vt
 # riser: K-synth noise+sweep sample (sk/hammer-riser.ks), stretched to ~7 s by playback rate
-v16 w301 f187 a8 p 0 t.005,.01,1,.4 r4 ds.3
+v16 w301 f187 a8 p 0 t.005,.01,1,.4 r4 ds.3 [noise riser sweep] vt
 # pad: poly pool (POLYPHONY.md): 2-voice prototype (detuned saw pair, L/R), 5 instances -> v28..v37
-v24 w0 f.31 a0 t0,0,1,0 m1
-v26 w15 a-8 p-.5 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2 G27 H27
-v27 w15 a-10 p.5 N0,9 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2
+v24 w0 f.31 a0 t0,0,1,0 m1 [pad vibrato lfo] vt
+v26 w15 a-8 p-.5 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2 G27 H27 [pad prototype left] vt
+v27 w15 a-10 p.5 N0,9 t1.2,.4,.8,1.4 j1 k2400 q.8 c4,.2 C24,.2 [pad prototype right] vt
 /pg 0,26,2,0
 /pp 0,0,28,5,0
 v24 l1
@@ -132,37 +132,20 @@ y9 yc1
 
 y1
 [kick] yt
-[v0 l1 v5 g0 n50 g.07 n28 l1] x0
-[v0 l1 v5 g0 n50 g.07 n28 l1] x4
-[v0 l1 v5 g0 n50 g.07 n28 l1] x8
-[v0 l1 v5 g0 n50 g.07 n28 l1] x12
+[v0 l1 v5 g0 n50 g.07 n28 l1] x0,4,8,12
 [=127,0] x15
 
 y2
 [snare+clap] yt
-[v1 l1 v4 l1] x4
-[v1 l1 v4 l1] x12
+[v1 l1 v4 l1] x4,12
 [v1 l.25] x14
 [v23 l.5] x15
 
 y3
 [hats] yt
-[v2 l0.35] x0
-[v2 l0.2] x1
-[v3 l.85 v2 l0] x2
-[v2 l0.2] x3
-[v2 l0.35] x4
-[v2 l0.2] x5
-[v3 l.85 v2 l0] x6
-[v2 l0.2] x7
-[v2 l0.35] x8
-[v2 l0.2] x9
-[v3 l.85 v2 l0] x10
-[v2 l0.2] x11
-[v2 l0.35] x12
-[v2 l0.2] x13
-[v3 l.85 v2 l0] x14
-[v2 l0.2] x15
+[v2 l0.35] x0,4,8,12
+[v2 l0.2] x1,3,5,7,9,11,13,15
+[v3 l.85 v2 l0] x2,6,10,14
 
 y4
 [reese bass] yt
@@ -190,28 +173,7 @@ y4
 
 y5
 [acid] yt
-[v8 g&4 n&3 l&5] x0
-[v8 g&4 n&3 l&5] x2
-[v8 g&4 n&3 l&5] x3
-[v8 g&4 n&3 l&5] x5
-[v8 g&4 n&3 l&5] x6
-[v8 g&4 n&3 l&5] x8
-[v8 g&4 n&3 l&5] x10
-[v8 g&4 n&3 l&5] x11
-[v8 g&4 n&3 l&5] x13
-[v8 g&4 n&3 l&5] x14
-[v8 g&4 n&3 l&5] x15
-[v8 g&4 n&3 l&5] x16
-[v8 g&4 n&3 l&5] x18
-[v8 g&4 n&3 l&5] x19
-[v8 g&4 n&3 l&5] x21
-[v8 g&4 n&3 l&5] x22
-[v8 g&4 n&3 l&5] x24
-[v8 g&4 n&3 l&5] x26
-[v8 g&4 n&3 l&5] x27
-[v8 g&4 n&3 l&5] x29
-[v8 g&4 n&3 l&5] x30
-[v8 g&4 n&3 l&5] x31
+[v8 g&4 n&3 l&5] x0,2,3,5,6,8,10,11,13,14,15,16,18,19,21,22,24,26,27,29,30,31
 
 y6
 [acid cutoff lane] yt

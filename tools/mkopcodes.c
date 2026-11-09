@@ -766,6 +766,17 @@ static void emit_c_source(const char *out_path) {
     fprintf(f, "    \"osc\", \"filter\", \"env\", \"seq\", \"voice\", \"sys\"\n");
     fprintf(f, "};\n\n");
 
+    fprintf(f, "/* Forward declarations of clause implementations */\n");
+    for (i = 0; i < g_clause_count; i++) {
+        def_clause_t *c = &g_clauses[i];
+        if (c->is_realtime) {
+            fprintf(f, "int %s(int voice, const float *args, int argc);\n", c->c_name);
+        } else {
+            fprintf(f, "int %s(skode_t *ctx, ands_t *s, const double *args, int argc);\n", c->c_name);
+        }
+    }
+    fprintf(f, "\n");
+
     fprintf(f, "/* Pure C clause implementations */\n");
     for (i = 0; i < g_clause_count; i++) {
         def_clause_t *c = &g_clauses[i];

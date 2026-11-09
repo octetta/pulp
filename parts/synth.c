@@ -352,6 +352,9 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
         //clock_gettime(VOICE_CLOCK, &sv.mark_b[n]);
         sv.mark_go[n] = 0;
       }
+      if (!voice_active[n]) {
+        continue;
+      }
       if (sv.finished[n]) {
         //sv.sample[n] = 0.0f; // remove to try the below
         // hold last value to modulator consumers see statle output after one-shot ends

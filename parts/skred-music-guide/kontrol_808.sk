@@ -24,12 +24,12 @@ DP 2 1
 
 # Bus 3: Dotted-eighth metallic echo
 DS 3 136 .75
-DL 3 - - 8 3 3 11
+DL 3 - - 8 0 3 11
 DD 3 7 3
 
 # Bus 4: Heavy industrial hall wash
 DS 4 136 1.0
-DL 4 - - 11 4 8 10
+DL 4 - - 11 0 8 10
 DD 4 8 2
 DP 4 1
 

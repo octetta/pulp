@@ -58,7 +58,12 @@ solo renders) and measure from its onset.
 | `m1` **mutes** a voice, `m0` unmutes | Easy to get backwards. Hidden modulator voices need `m1`. |
 | `ds` (delay send) takes **0-1, or 0-15 which is auto-scaled** (per the delay doc) | Ambiguous near 1, so use decimals (`.2` to `.45` in the song). The send only works for **centred, unmodulated-pan** voices. |
 | A pattern's length is set by its **last non-empty step** | Trailing empty steps do not extend it. Pin the length with a harmless write on the last step, e.g. `[=127,0] x15`. |
-| `y`, `z`, `Z`, `x`, `ce`, `=N,v`, `DF`, `DS`, `G`, `H`, `P`, `C`, `A`, `XM`, `a`, `l`, `n`, `g`, `N` are schedulable | Patterns can start and stop other patterns. That is how the conductor works. |
+| `y`, `z`, `Z`, `zg`, `x`, `ce`, `=N,v`, `DF`, `DS`, `G`, `H`, `HS`, `P`, `C`, `A`, `XM`, `a`, `l`, `n`, `g`, `N` are schedulable | Patterns can start, stop, seek (`zg`), and cross-modulate other patterns and voices in real time. |
+| Hard sync is **`HS voice[,voice...]`** (`HS-1` to disable) | Schedulable in real time. Resets target slave oscillators with sub-sample PolyBLEP anti-aliasing upon master cycle wrap. Composes with ring mod `XM`. |
+| Sequencer jump is **`zg <step>`** | Schedulable and immediate. Jumps sequence patterns or conductor macro tracks (`y127 zg <step>`) directly to any step during live playback without interrupting audio. |
+| Master volume is **`V <dB>`** (`-40` to `+18 dB`) | Immediate master gain with built-in cubic soft-clipping and smooth gain ramping. Default: `-6 dB`. |
+| Atomic pattern array launch is **`Z>`** | Schedulable array launch opcode for multi-track sequence state changes without timing jitter. |
+| Never trigger `l1` or `n60 l1 B1` in initial voice setup | Instantaneous note-on step responses during setup create audible clicks/pops on load. Let voices initialize silently (`t0,0,1,0`) and fire their first `l` triggers in pattern step 0. |
 | `?M 1` lists the schedulable commands | Check it before assuming a command works inside a step. |
 | `nS<N>` (stream read by name) is immediate-only; `n&<N>` is the schedulable form | Use `&N` in steps. |
 | `ft` / `fd` (filter envelope) | I only ever set these at voice setup and trigger them with `l`. I did not test scheduling them. **Another build rejected both at load** (`SKODE_UNKNOWN_FUNCTION`), see section 2c. If you cannot run the engine, leave them out and use a static filter, or ask for a load log. |
@@ -79,6 +84,11 @@ solo renders) and measure from its onset.
   ```
   `puts` forces text to the console when a script loads. `O` sends `l0` to **all**
   voices (kills stuck pads, risers and held notes). `DQ` clears all delay lines.
+- **Graceful silence ramp before teardown / ZIP unmount**: If unmounting a session ZIP or loading a new song into VFS, silence the engine smoothly and purge patterns before releasing storage:
+  ```
+  /cer 0 Z0 O DQ ?ce!; S-1; Y-1; %zu;
+  ```
+  This silences all voice envelopes, stops all pattern timers (`Z0`), releases voices (`S-1`), wipes pattern definitions (`Y-1`), and unmounts the current ZIP (`%zu`) without leaving audio pops or hung voice buffers.
 - `DF` (delay freeze) holds at unity feedback **indefinitely**, so a song that ends
   with a freeze rings forever unless something clears it. That was the noisy tail.
 - `O` is **immediate-only**, so it cannot sit in a pattern step. Bind it as a
@@ -423,6 +433,20 @@ v10 w15 f187 a0 t.001,.30,0,.2 m1              # modulator, muted from the mix
 ```
 Change both `f` values per hit so successive clangs are different, inharmonic pitches.
 
+**Tearing PolyBLEP hard-sync lead (`HS`).**
+When a master voice completes an oscillator cycle (wraps), each linked slave voice phase is reset with sub-sample PolyBLEP anti-aliasing. Moving the slave's frequency or gliding its pitch creates the iconic ripping sync-lead sound without harsh Nyquist aliasing foldover:
+```
+# Voice 10: silent master oscillator running at fundamental pitch (110 Hz)
+v10 w0 f110 a-60 m1
+# Voice 11: resonant slave saw synced to v10 wraps
+v11 w15 f110 a0 t.003,.35,0,.08 j1 k2800 q2 HS10
+# In pattern steps: sweep slave pitch upward for aggressive sync tears
+[v10 n45 v11 n57 l1] x0      # slave at octave (+12st)
+[v11 n64 l1] x2              # slave at fifth (+19st)
+[v11 n72 g.08 l1] x4         # swept glide up to +24st
+```
+The master voice continues running as long as any slave voice is sounding. Composes with `XM` ring mod for extreme metallic edge. To clear hard sync on a voice, use `HS-1`.
+
 **FM metal stab.** Phase modulation with operator feedback; the modulator tracks pitch
 via links and a fixed offset:
 ```
@@ -568,6 +592,13 @@ Cheap, effective industrial tension.
 other patterns (`y4 z1`, `y1 z0`) and fires one-shots (`v21 l1` for a crash). That is
 the whole arrangement in about 70 short lines, and it is easy to re-order.
 Start the other patterns from the conductor, not at load time.
+
+**Dynamic seeking and scrubbing (`zg`).**
+You can jump sequence patterns or conductor macros directly to any row index with `zg <step>`:
+```
+y0 zg 32; y127 zg 32;   # Jump pattern 0 and conductor macro track to step 32
+```
+This is real-time thread safe. The sequencer re-aligns internal pattern step counters immediately without clicks or halting audio output.
 
 **Automation lanes.** Patterns are not just notes. A pattern whose steps write `k`
 (cutoff) and `q` (resonance) is a filter-sweep lane. Because those commands are
@@ -861,6 +892,9 @@ Following this hierarchy ensures that even when every track element is playing s
 - Treating `l` as note duration instead of velocity (`l2.5` overdrives the gain stage by 250%; `l0` is note-off release).
 - Setting `sustain > 0` on rapid 16th/8th sequences without explicit `l0` releases (causes notes to drone together into a muddy wall of sound).
 - Stacking multiple positive dB gains (`a8`, `a7`, `a4`) that slam the master limiter into distortion.
+- Triggering velocity `l1` in initial voice setup blocks (causes instantaneous DC pops/clicks on song load; leave envelopes untriggered until pattern step 0).
+- Expecting hard sync (`HS`) to make sound without the slave voice envelope sounding; the master voice continues running silently to provide the sync clock, but the slave voice must have a note triggered.
+- Assuming pingpong waveforms wrap for hard sync (only forward oscillator cycle wrap triggers PolyBLEP phase resets).
 - Using acoustic rock sample drums (`w82`..`w85`) for electronic synth-pop pioneers like Kraftwerk (synthesize electronic percussion instead).
 - Blindly pasting the `hammer_the_signal` ksynth riser into other song genres where it clashes and sounds mechanical.
 - Assuming a 4/4 drum beat is always flat four-on-the-floor when the genre requires syncopated anticipatory kicks (e.g. Kraftwerk's step-10 push).

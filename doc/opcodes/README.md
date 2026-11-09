@@ -67,6 +67,7 @@ A single `.def` file can define one or more **clauses** for a word. A clause beg
 | `@type` | No | Execution model: `realtime` or `immediate` | Defaults to `realtime` |
 | `@needs` | No | Declares parser state dependencies (`string`, `data`) | Auto-inferred if code accesses `ands_string` or `ands_data` |
 | `@guard` | No | Pre-condition guard expression (e.g. `voice`, `args[0] >= 0`) | None (supports multiple guards per clause) |
+| `@ifdef` | No | Conditionally wraps `@code` with `#ifdef XYZ` ... `#endif` | None (unconditional) |
 | `@arity` | No | Number of arguments accepted by this clause (0 to 8) | Auto-inferred by counting `@match` parameters |
 | `@match` | Yes | Tuple of argument pattern matchers | `()` for arity 0, `(finite, ...)` |
 | `@summary` | No | One-line summary for interactive help | Auto-generated: `"<name> (<alias>)"` |

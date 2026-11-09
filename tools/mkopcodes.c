@@ -76,6 +76,7 @@ typedef struct {
     char summary[STR_MAX];
     char doc[DOC_MAX];
     char code[CODE_MAX];
+    char ifdef[STR_MAX];
     int opcode_id;
     int defined;
 } def_clause_t;
@@ -156,6 +157,7 @@ static void sanitize_c_name(const char *src, char *dst, size_t dst_len) {
 
 static void finalize_clause(def_clause_t *cur, const char *filepath,
                             const char *last_name, const char *last_alias,
+                            const char *last_ifdef,
                             group_id_t last_group, int last_is_realtime,
                             int last_type_explicit, int last_valid) {
     if (cur->name[0] == '\0' && last_valid && last_name[0] != '\0') {
@@ -170,6 +172,10 @@ static void finalize_clause(def_clause_t *cur, const char *filepath,
             cur->is_realtime = last_is_realtime;
             cur->type_explicit = 1;
         }
+    }
+
+    if (cur->ifdef[0] == '\0' && last_valid && last_ifdef && last_ifdef[0] != '\0') {
+        safe_strcpy(cur->ifdef, last_ifdef, sizeof(cur->ifdef));
     }
 
     if (cur->name[0] == '\0') {
@@ -279,6 +285,7 @@ static void parse_def_file(const char *filepath) {
     int in_code = 0;
     char last_name[STR_MAX] = "";
     char last_alias[STR_MAX] = "";
+    char last_ifdef[STR_MAX] = "";
     group_id_t last_group = GRP_OSC;
     int last_is_realtime = 1;
     int last_type_explicit = 0;
@@ -304,10 +311,11 @@ static void parse_def_file(const char *filepath) {
                         fprintf(stderr, "mkopcodes: fatal error: MAX_CLAUSES (%d) exceeded\n", MAX_CLAUSES);
                         exit(1);
                     }
-                    finalize_clause(&cur, filepath, last_name, last_alias, last_group,
+                    finalize_clause(&cur, filepath, last_name, last_alias, last_ifdef, last_group,
                                     last_is_realtime, last_type_explicit, last_valid);
                     safe_strcpy(last_name, cur.name, sizeof(last_name));
                     safe_strcpy(last_alias, cur.alias, sizeof(last_alias));
+                    safe_strcpy(last_ifdef, cur.ifdef, sizeof(last_ifdef));
                     last_group = cur.group;
                     last_is_realtime = cur.is_realtime;
                     last_type_explicit = cur.type_explicit;
@@ -376,6 +384,16 @@ static void parse_def_file(const char *filepath) {
             if (val[0] && cur.guard_count < MAX_GUARDS) {
                 safe_strcpy(cur.guards[cur.guard_count++], val, STR_MAX);
             }
+            cur.defined = 1;
+        } else if (strncmp(trimmed, "@ifdef", 6) == 0) {
+            char *val = trimmed + 6;
+            trim(val);
+            safe_strcpy(cur.ifdef, val, sizeof(cur.ifdef));
+            cur.defined = 1;
+        } else if (strncmp(trimmed, "@if", 3) == 0 && (isspace((unsigned char)trimmed[3]) || trimmed[3] == '\0')) {
+            char *val = trimmed + 3;
+            trim(val);
+            safe_strcpy(cur.ifdef, val, sizeof(cur.ifdef));
             cur.defined = 1;
         } else if (strncmp(trimmed, "@arity", 6) == 0) {
             char *val = trimmed + 6;
@@ -452,10 +470,11 @@ static void parse_def_file(const char *filepath) {
                     fprintf(stderr, "mkopcodes: fatal error: MAX_CLAUSES (%d) exceeded\n", MAX_CLAUSES);
                     exit(1);
                 }
-                finalize_clause(&cur, filepath, last_name, last_alias, last_group,
+                finalize_clause(&cur, filepath, last_name, last_alias, last_ifdef, last_group,
                                 last_is_realtime, last_type_explicit, last_valid);
                 safe_strcpy(last_name, cur.name, sizeof(last_name));
                 safe_strcpy(last_alias, cur.alias, sizeof(last_alias));
+                safe_strcpy(last_ifdef, cur.ifdef, sizeof(last_ifdef));
                 last_group = cur.group;
                 last_is_realtime = cur.is_realtime;
                 last_type_explicit = cur.type_explicit;
@@ -471,7 +490,7 @@ static void parse_def_file(const char *filepath) {
             fprintf(stderr, "mkopcodes: fatal error: MAX_CLAUSES (%d) exceeded\n", MAX_CLAUSES);
             exit(1);
         }
-        finalize_clause(&cur, filepath, last_name, last_alias, last_group,
+        finalize_clause(&cur, filepath, last_name, last_alias, last_ifdef, last_group,
                         last_is_realtime, last_type_explicit, last_valid);
         g_clauses[g_clause_count++] = cur;
     }
@@ -622,6 +641,15 @@ static void build_words(void) {
 
     qsort(g_words, g_word_count, sizeof(def_word_t), compare_words);
     check_clause_shadowing();
+}
+
+static void emit_pp_if(FILE *f, const char *cond) {
+    if (!cond || !cond[0]) return;
+    if (strncmp(cond, "defined", 7) == 0 || strchr(cond, ' ') || strchr(cond, '(') || strchr(cond, '!')) {
+        fprintf(f, "#if %s\n", cond);
+    } else {
+        fprintf(f, "#ifdef %s\n", cond);
+    }
 }
 
 static void emit_header(const char *out_path, int total_rt_opcodes) {
@@ -793,9 +821,19 @@ static void emit_c_source(const char *out_path) {
                     fprintf(f, "    if (!(%s)) return -1;\n", c->guards[g]);
                 }
             }
+            if (c->ifdef[0]) {
+                emit_pp_if(f, c->ifdef);
+            }
             fprintf(f, "%s\n", c->code[0] ? c->code : "    return 0;");
             if (c->code[0] && !strstr(c->code, "return")) {
                 fprintf(f, "    return 0;\n");
+            }
+            if (c->ifdef[0]) {
+                fprintf(f, "#else\n");
+                fprintf(f, "    (void)voice;\n");
+                fprintf(f, "    (void)args;\n");
+                fprintf(f, "    return -1;\n");
+                fprintf(f, "#endif\n");
             }
             fprintf(f, "}\n\n");
 
@@ -819,9 +857,21 @@ static void emit_c_source(const char *out_path) {
                     fprintf(f, "    if (!(%s)) return -1;\n", c->guards[g]);
                 }
             }
+            if (c->ifdef[0]) {
+                emit_pp_if(f, c->ifdef);
+            }
             fprintf(f, "%s\n", c->code[0] ? c->code : "    return 0;");
             if (c->code[0] && !strstr(c->code, "return")) {
                 fprintf(f, "    return 0;\n");
+            }
+            if (c->ifdef[0]) {
+                fprintf(f, "#else\n");
+                fprintf(f, "    (void)ctx;\n");
+                fprintf(f, "    (void)s;\n");
+                fprintf(f, "    (void)args;\n");
+                fprintf(f, "    (void)argc;\n");
+                fprintf(f, "    return -1;\n");
+                fprintf(f, "#endif\n");
             }
             fprintf(f, "}\n\n");
         }
@@ -1398,6 +1448,9 @@ static void emit_markdown(const char *out_path, int total_rt) {
                 fprintf(f, "- **Execution Model**: `%s`\n", cl->is_realtime ? "realtime (audio thread safe)" : "immediate (control plane)");
                 if (cl->is_realtime && cl->opcode_id > 0) {
                     fprintf(f, "- **Discrete Opcode ID**: `%d` (`%s`)\n", cl->opcode_id, cl->c_name);
+                }
+                if (cl->ifdef[0]) {
+                    fprintf(f, "- **Feature Flag (`#ifdef`)**: `%s`\n", cl->ifdef);
                 }
                 if (cl->needs_string || cl->needs_data) {
                     fprintf(f, "- **Parser State Requirements**: %s%s%s\n",

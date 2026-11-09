@@ -579,6 +579,7 @@ four-character atom limit.
 | `?`, `v?` | none | Show selected voice | `voice_show()` |
 | `\` | none | Show selected voice verbosely | `voice_show()` |
 | `??`, `v??` | none | Show active voices | `voice_show_all()` |
+| `???`, `v???` | none | Show active voices and names only | `voice_show_names()` |
 | `?s` | none | Show parser string | `ands_string()` |
 | `?m` | none | Show global ANDS macros | `ands_macro_get()` |
 | `[name] /m` | string | Remove one global ANDS macro | `ands_macro_remove()` |

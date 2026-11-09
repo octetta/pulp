@@ -3647,6 +3647,38 @@ static void test_inst_note_and_stream_ties(void) {
   expect_int(test, program.op[1].opcode.code, SKODE_OP_INST_NOTE, "opcode 1 is SKODE_OP_INST_NOTE");
 }
 
+static void test_voice_show_names(void) {
+  const char *test = "voice show names - ???";
+  skode_t ctx = new_ctx();
+  ctx.log_enable = 1;
+
+  voice_init();
+  reset_log(&ctx);
+
+  /* Set up voice 0 with name Kick, voice 1 with no name, voice 2 inactive and default */
+  consume(test, &ctx, "v0 [Kick] vt");
+  consume(test, &ctx, "v1 a0.5");
+  consume(test, &ctx, "v0");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "???");
+
+  /* Voice 0 is current voice and has [Kick] vt */
+  expect_substr(test, ctx.log, "v0 [Kick] vt # *", "voice 0 name and current marker in ???");
+  /* Voice 1 has no name but is active/configured with a0.5 */
+  expect_substr(test, ctx.log, "v1\n", "voice 1 number without name in ???");
+  /* Voice 1 should NOT have w, f, a, n parameters printed */
+  if (strstr(ctx.log, "v1 w") != NULL || strstr(ctx.log, "f440") != NULL) {
+    fail(test, "??? should not output frequency or waveform parameters");
+  }
+
+  /* Test alias v??? */
+  reset_log(&ctx);
+  consume(test, &ctx, "v???");
+  expect_substr(test, ctx.log, "v0 [Kick] vt # *", "voice 0 name in v???");
+  expect_substr(test, ctx.log, "v1\n", "voice 1 in v???");
+}
+
 int main(int argc, char **argv) {
   synth_init(8);
   wave_table_init(0);
@@ -3723,6 +3755,7 @@ int main(int argc, char **argv) {
   test_multistep_assignment();
   test_step_all_data();
   test_inst_note_and_stream_ties();
+  test_voice_show_names();
 
   synth_free();
 

@@ -1455,6 +1455,28 @@ static int word_exec__q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, 
       voice_show_all(ctx, voice, ctx->verbose); return 0;
 }
 
+static int word_exec_v_q_q_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+  voice_show_names(ctx, voice); return 0;
+}
+
+static int word_exec__q_q_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  uint32_t atom = ands_atom_num(s);
+  int voice = ctx->voice;
+  int x = 0;
+  int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  (void)x_valid;
+  (void)voice;
+  (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
+  voice_show_names(ctx, voice); return 0;
+}
+
 static int word_exec__qr(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -1670,6 +1692,12 @@ int skode_exec_v_q_bs_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
 }
 int skode_exec__q_bs_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
   return word_exec__q_bs_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_v_q_q_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_v_q_q_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec__q_q_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__q_q_q(NULL, ctx, s, (double*)arg, argc);
 }
 int skode_exec__qr(skode_t *ctx, ands_t *s, const double *arg, int argc) {
   return word_exec__qr(NULL, ctx, s, (double*)arg, argc);

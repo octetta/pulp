@@ -1,0 +1,28 @@
+@name     voice_show_names
+@alias    ???
+@group    voice
+@c_name   skode_clause_voice_show_names_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  display active voices with names
+@doc
+Displays active voices and their names.
+Usage: ???
+@code
+    return skode_exec__q_q_q(ctx, s, args, argc);
+@end
+
+@name     voice_show_names
+@alias    ???
+@group    voice
+@c_name   skode_clause_voice_show_names_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  display active voices with names with argument
+@doc
+Displays active voices and their names with argument.
+@code
+    return skode_exec__q_q_q(ctx, s, args, argc);
+@end

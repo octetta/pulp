@@ -9,10 +9,10 @@ Generated automatically by [`tools/mkopcodes`](file:///home/stewartj/book/pulp/t
 
 ## Architecture & System Overview
 
-- **Total Command Words**: 305
-- **Total Dispatch Clauses**: 603
+- **Total Command Words**: 307
+- **Total Dispatch Clauses**: 607
 - **Real-Time Audio Opcode Handlers**: 145 (audio-thread safe, zero allocation, zero string lookup)
-- **Immediate / Control Plane Clauses**: 458 (REPL / parser / file system / diagnostics)
+- **Immediate / Control Plane Clauses**: 462 (REPL / parser / file system / diagnostics)
 
 ### Functional Command Groups
 
@@ -22,7 +22,7 @@ Generated automatically by [`tools/mkopcodes`](file:///home/stewartj/book/pulp/t
 | filter | `filter` | 7 | Filter cutoff frequency, resonance, modes, wavefolding |
 | env | `env` | 15 | Envelopes, ADSR parameters, curve shaping, segment times |
 | seq | `seq` | 61 | Sequencer patterns, steps, repeats, tempo, control events |
-| voice | `voice` | 60 | Voice allocation, polyphony, routing, amplitude, pan |
+| voice | `voice` | 62 | Voice allocation, polyphony, routing, amplitude, pan |
 | sys | `sys` | 141 | System configuration, MIDI, data buffers, macros, hardware |
 
 ---
@@ -3278,6 +3278,7 @@ Usage: stream_id ?S
 | [`poly_release`](#poly_release) | `pr` | 2 | 2..3 | Real-Time | release polyphonic note |
 | [`poly_release_gr`](#poly_release_gr) | `gr` | 2 | 2..3 | Real-Time | release polyphonic note (gr alias) |
 | [`query_all_voices_info`](#query_all_voices_info) | `v??` | 2 | 0..1 | Immediate | query all voices information |
+| [`query_all_voices_names`](#query_all_voices_names) | `v???` | 2 | 0..1 | Immediate | query all voices with names |
 | [`query_voice_info`](#query_voice_info) | `v?` | 2 | 0..1 | Immediate | query voice information |
 | [`rec_auto_trim`](#rec_auto_trim) | `w<>` | 4 | 0..3 | Immediate | auto-detect recording buffer trim points |
 | [`rec_auto_trim_alias`](#rec_auto_trim_alias) | `ra` | 4 | 0..3 | Immediate | auto-detect recording buffer trim points (alias) |
@@ -3305,6 +3306,7 @@ Usage: stream_id ?S
 | [`voice_reset`](#voice_reset) | `S` | 1 | 1 | Real-Time | reset voice state to defaults |
 | [`voice_show`](#voice_show) | `?` | 2 | 0..1 | Immediate | display active voice summary |
 | [`voice_show_all`](#voice_show_all) | `??` | 2 | 0..1 | Immediate | display all voices summary |
+| [`voice_show_names`](#voice_show_names) | `???` | 2 | 0..1 | Immediate | display active voices with names |
 | [`voice_show_verbose`](#voice_show_verbose) | `\\` | 2 | 0..1 | Immediate | display verbose voice parameters |
 | [`voice_text`](#voice_text) | `vt` | 2 | 0..1 | Immediate | set voice label text |
 | [`voice_wave_display`](#voice_wave_display) | `VW` | 4 | 0..3 | Immediate | render ascii waveform for active voice |
@@ -4150,6 +4152,39 @@ Usage: v??
 
 ```text
 Queries all synth voices status with argument.
+```
+
+---
+
+### `query_all_voices_names`
+
+- **Alias**: `v???`
+- **Group**: `voice`
+- **Clause Count**: 2
+
+#### Clause 1: `query_all_voices_names()`
+
+- **Arity**: `0`
+- **Execution Model**: `immediate (control plane)`
+- **Summary**: query all voices with names
+
+**Description & Details**:
+
+```text
+Queries all active synth voices with names.
+Usage: v???
+```
+
+#### Clause 2: `query_all_voices_names(any)`
+
+- **Arity**: `1`
+- **Execution Model**: `immediate (control plane)`
+- **Summary**: query all voices with names with argument
+
+**Description & Details**:
+
+```text
+Queries all active synth voices with names with argument.
 ```
 
 ---
@@ -5131,6 +5166,39 @@ Usage: ??
 
 ```text
 Displays status summary for all synth voices with argument.
+```
+
+---
+
+### `voice_show_names`
+
+- **Alias**: `???`
+- **Group**: `voice`
+- **Clause Count**: 2
+
+#### Clause 1: `voice_show_names()`
+
+- **Arity**: `0`
+- **Execution Model**: `immediate (control plane)`
+- **Summary**: display active voices with names
+
+**Description & Details**:
+
+```text
+Displays active voices and their names.
+Usage: ???
+```
+
+#### Clause 2: `voice_show_names(any)`
+
+- **Arity**: `1`
+- **Execution Model**: `immediate (control plane)`
+- **Summary**: display active voices with names with argument
+
+**Description & Details**:
+
+```text
+Displays active voices and their names with argument.
 ```
 
 ---

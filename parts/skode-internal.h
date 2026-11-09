@@ -253,6 +253,7 @@ int spectro_fit_color_mode(skode_t *ctx, int color_mode, int width, int use_brai
 void wavetable_spectrogram_show(skode_t *ctx, int wave, int width, int height, int loop_start, int loop_end, const char *label);
 void voice_show(skode_t *ctx, int v, char c, int verbose);
 int voice_show_all(skode_t *ctx, int voice, int verbose);
+int voice_show_names(skode_t *ctx, int voice);
 void record_tracks_show(skode_t *ctx);
 void system_show(skode_t *ctx);
 void skode_macros_show(skode_t *ctx, int pasteable);
@@ -483,6 +484,8 @@ int skode_exec__q(skode_t *ctx, ands_t *s, const double *arg, int argc);
 int skode_exec__bs_bs(skode_t *ctx, ands_t *s, const double *arg, int argc);
 int skode_exec_v_q_bs_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
 int skode_exec__q_bs_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_v_q_q_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec__q_q_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
 int skode_exec__qr(skode_t *ctx, ands_t *s, const double *arg, int argc);
 int skode_exec__slash(skode_t *ctx, ands_t *s, const double *arg, int argc);
 

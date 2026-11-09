@@ -1,0 +1,28 @@
+@name     query_all_voices_names
+@alias    v???
+@group    voice
+@c_name   skode_clause_query_all_voices_names_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query all voices with names
+@doc
+Queries all active synth voices with names.
+Usage: v???
+@code
+    return skode_exec_v_q_q_q(ctx, s, args, argc);
+@end
+
+@name     query_all_voices_names
+@alias    v???
+@group    voice
+@c_name   skode_clause_query_all_voices_names_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  query all voices with names with argument
+@doc
+Queries all active synth voices with names with argument.
+@code
+    return skode_exec_v_q_q_q(ctx, s, args, argc);
+@end

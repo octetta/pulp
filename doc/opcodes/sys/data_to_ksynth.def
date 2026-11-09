@@ -1,6 +1,7 @@
 @name     data_to_ksynth
 @alias    d>k
 @group    sys
+@ifdef KSYNTH
 @c_name   skode_clause_data_to_ksynth
 @type     immediate
 @arity    1

@@ -1,6 +1,7 @@
 @name     scope_stop
 @alias    /ss
 @group    sys
+@ifdef SCOPE
 @c_name   skode_clause_scope_stop
 @type     immediate
 @arity    0

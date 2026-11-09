@@ -1,6 +1,7 @@
 @name     midi_input_close
 @alias    /mic
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_input_close
 @type     immediate
 @arity    0

@@ -13,6 +13,7 @@
 #include "esq1_sources.h"
 #include "drums_sources.h"
 
+#ifdef KSYNTH
 static void synth_eval_and_register_ks_wave(int w, const char *name, const char *ks_code, int is_drum) {
   if (wave_invalid(w)) return;
 
@@ -83,6 +84,14 @@ static void synth_eval_and_register_ks_wave(int w, const char *name, const char 
 
   ks_destroy(ctx);
 }
+#else
+static void synth_eval_and_register_ks_wave(int w, const char *name, const char *ks_code, int is_drum) {
+  (void)w;
+  (void)name;
+  (void)ks_code;
+  (void)is_drum;
+}
+#endif
 
 static void synth_init_ksynth_dwg(void) {
   for (int idx = 0; DWG_PATCH_SOURCES[idx].slot != 0; idx++) {

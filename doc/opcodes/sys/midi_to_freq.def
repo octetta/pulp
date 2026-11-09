@@ -1,6 +1,7 @@
 @name     midi_to_freq
 @alias    m>f
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_to_freq
 @type     immediate
 @arity    0

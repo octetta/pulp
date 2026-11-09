@@ -1,6 +1,7 @@
 @name     scope_event
 @alias    /sm
 @group    sys
+@ifdef SCOPE
 @c_name   skode_clause_scope_event
 @type     immediate
 @arity    0

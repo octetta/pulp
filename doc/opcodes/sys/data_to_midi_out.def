@@ -1,6 +1,7 @@
 @name     data_to_midi_out
 @alias    d>MO
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_data_to_midi_out
 @type     immediate
 @arity    0

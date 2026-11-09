@@ -1,6 +1,7 @@
 @name     midi_route_clear
 @alias    /mC
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_route_clear
 @type     immediate
 @arity    0

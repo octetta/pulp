@@ -1,6 +1,7 @@
 @name     ksynth_to_wave
 @alias    k>w
 @group    sys
+@ifdef KSYNTH
 @c_name   skode_clause_ksynth_to_wave_0
 @type     immediate
 @arity    0

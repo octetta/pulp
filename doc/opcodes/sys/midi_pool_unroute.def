@@ -1,6 +1,7 @@
 @name     midi_pool_unroute
 @alias    /mpd
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_pool_unroute
 @type     immediate
 @arity    2

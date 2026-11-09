@@ -1,6 +1,7 @@
 @name     vfs_cd
 @alias    %cd
 @group    sys
+@if !defined(SKRED_NO_VFS)
 @c_name   skode_clause_vfs_cd_0
 @type     immediate
 @arity    0

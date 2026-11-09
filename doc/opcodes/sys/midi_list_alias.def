@@ -1,6 +1,7 @@
 @name     midi_list_ls
 @alias    /mls
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_list_ls
 @type     immediate
 @arity    0

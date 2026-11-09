@@ -1,6 +1,7 @@
 @name     scope_status
 @alias    /s?
 @group    sys
+@ifdef SCOPE
 @c_name   skode_clause_scope_status
 @type     immediate
 @arity    0

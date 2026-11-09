@@ -162,6 +162,7 @@ static int word_exec__slashD(const skode_word_t *self, skode_t *ctx, ands_t *s, 
       return 0;
 }
 
+#ifdef KSYNTH
 static int word_exec__slashks(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -321,6 +322,44 @@ static int word_exec_k_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       }
       return 0;
 }
+#else
+static int word_exec__slashks(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+static int word_exec__slashk(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+static int word_exec_ks(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+static int word_exec_k_bang(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+static int word_exec_kw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+static int word_exec_kw_gt(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+static int word_exec_k_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+static int word_exec_k_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+static int word_exec_k_gtw(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+#endif
 
 static int word_exec__eqd(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
@@ -484,6 +523,7 @@ static int word_exec_r_gtd(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       return 0;
 }
 
+#ifdef KSYNTH
 static int word_exec_d_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);
   int voice = ctx->voice;
@@ -535,6 +575,17 @@ static int word_exec_w_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, do
       }
       return 0;
 }
+#else
+static int word_exec_d_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+
+static int word_exec_w_gtk(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+  (void)self; (void)ctx; (void)s; (void)arg; (void)argc;
+  return -1;
+}
+#endif
 
 static int word_exec_s_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   uint32_t atom = ands_atom_num(s);

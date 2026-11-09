@@ -5941,6 +5941,7 @@ Usage: d* index (or data_scale index)
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: bind data array to KSynth variable
 
 **Description & Details**:
@@ -5962,6 +5963,7 @@ Usage: d>k var
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Parser State Requirements**: `data`
 - **Summary**: send data array as MIDI bytes
 
@@ -6766,6 +6768,7 @@ Displays help with arguments.
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: evaluate inline KSynth expression
 
 **Description & Details**:
@@ -6787,6 +6790,7 @@ Usage: [expression] ks
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: load KSynth script from file
 
 **Description & Details**:
@@ -6800,6 +6804,7 @@ Usage: [file.k] /ks
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: load KSynth script with verbosity
 
 **Description & Details**:
@@ -6821,6 +6826,7 @@ Usage: [file.k] /ks verbose
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: load built-in KSynth instrument slot
 
 **Description & Details**:
@@ -6834,6 +6840,7 @@ Usage: /k slot
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: load built-in KSynth slot with verbosity
 
 **Description & Details**:
@@ -6855,6 +6862,7 @@ Usage: /k slot verbose
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: dump KSynth expression result
 
 **Description & Details**:
@@ -6876,6 +6884,7 @@ Usage: k?
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: evaluate and render KSynth expression
 
 **Description & Details**:
@@ -6897,6 +6906,7 @@ Usage: [expression] k!
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: copy KSynth result vector to data array
 
 **Description & Details**:
@@ -6918,6 +6928,7 @@ Usage: k>d
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: load KSynth result into default wave slot
 
 **Description & Details**:
@@ -6931,6 +6942,7 @@ Usage: k>w
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: load KSynth result into specified wave slot
 
 **Description & Details**:
@@ -6944,6 +6956,7 @@ Usage: k>w slot
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: load KSynth result with sample rate
 
 **Description & Details**:
@@ -6957,6 +6970,7 @@ Usage: k>w slot rate
 
 - **Arity**: `3`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: load KSynth result with one-shot flag
 
 **Description & Details**:
@@ -6970,6 +6984,7 @@ Usage: k>w slot rate one_shot
 
 - **Arity**: `4`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: load KSynth result with offset
 
 **Description & Details**:
@@ -6991,6 +7006,7 @@ Usage: k>w slot rate one_shot offset
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: ksynth wave trigger
 
 **Description & Details**:
@@ -7004,6 +7020,7 @@ Usage: kw
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: ksynth wave trigger with argument
 
 **Description & Details**:
@@ -7025,6 +7042,7 @@ Usage: kw arg
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: export KSynth result to data buffer
 
 **Description & Details**:
@@ -7038,6 +7056,7 @@ Usage: kw>
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: export KSynth result to data buffer
 
 **Description & Details**:
@@ -7302,6 +7321,7 @@ Usage: [template] start end step map!
 
 - **Arity**: `3`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Parser State Requirements**: `string`
 - **Summary**: bind MIDI event to Skode command
 
@@ -7324,6 +7344,7 @@ Usage: [code] /mb type channel data1
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: clear all MIDI Skode bindings
 
 **Description & Details**:
@@ -7345,6 +7366,7 @@ Usage: /mbC
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: query MIDI Skode bindings
 
 **Description & Details**:
@@ -7366,6 +7388,7 @@ Usage: /mb?
 
 - **Arity**: `3`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: remove MIDI Skode binding
 
 **Description & Details**:
@@ -7387,6 +7410,7 @@ Usage: /mbd type channel data1
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: toggle midi debug logging
 
 **Description & Details**:
@@ -7400,6 +7424,7 @@ Usage: /md
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: set midi debug logging
 
 **Description & Details**:
@@ -7421,6 +7446,7 @@ Usage: /md 1
 
 - **Arity**: `3`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: dump MIDI file events
 
 **Description & Details**:
@@ -7442,6 +7468,7 @@ Usage: /mfD slot start limit
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Parser State Requirements**: `string`
 - **Summary**: load MIDI file into slot
 
@@ -7464,6 +7491,7 @@ Usage: [file.mid] /mf slot
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: play MIDI file slot
 
 **Description & Details**:
@@ -7485,6 +7513,7 @@ Usage: /mf> slot
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: seek MIDI file playback position
 
 **Description & Details**:
@@ -7506,6 +7535,7 @@ Usage: /mfP slot tick
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: query MIDI player slots status
 
 **Description & Details**:
@@ -7519,6 +7549,7 @@ Usage: /mf?
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: query single MIDI player slot status
 
 **Description & Details**:
@@ -7540,6 +7571,7 @@ Usage: /mf? slot
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: stop MIDI file playback
 
 **Description & Details**:
@@ -7561,6 +7593,7 @@ Usage: /mf< slot
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: set MIDI file sync mode
 
 **Description & Details**:
@@ -7582,6 +7615,7 @@ Usage: /mfS slot mode
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: open MIDI input port
 
 **Description & Details**:
@@ -7603,6 +7637,7 @@ Usage: /mi port
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: close MIDI input port
 
 **Description & Details**:
@@ -7624,6 +7659,7 @@ Usage: /mic
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Parser State Requirements**: `string`
 - **Summary**: open virtual MIDI input port
 
@@ -7646,6 +7682,7 @@ Usage: [name] /miV
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: list MIDI devices
 
 **Description & Details**:
@@ -7667,6 +7704,7 @@ Usage: /mL (or /mls)
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: list MIDI devices (alias)
 
 **Description & Details**:
@@ -7688,6 +7726,7 @@ Usage: /mls
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: send raw MIDI byte
 
 **Description & Details**:
@@ -7701,6 +7740,7 @@ Usage: MO byte
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: send 2 raw MIDI bytes
 
 **Description & Details**:
@@ -7714,6 +7754,7 @@ Usage: MO byte1,byte2
 
 - **Arity**: `3`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: send 3 raw MIDI bytes
 
 **Description & Details**:
@@ -7735,6 +7776,7 @@ Usage: MO byte1,byte2,byte3
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: open MIDI output port
 
 **Description & Details**:
@@ -7756,6 +7798,7 @@ Usage: /mo port
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: close MIDI output port
 
 **Description & Details**:
@@ -7777,6 +7820,7 @@ Usage: /moc
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Parser State Requirements**: `string`
 - **Summary**: open virtual MIDI output port
 
@@ -7799,6 +7843,7 @@ Usage: [name] /moV
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: route MIDI channel to polyphony pool
 
 **Description & Details**:
@@ -7812,6 +7857,7 @@ Usage: /mp channel pool
 
 - **Arity**: `3`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: route MIDI channel to polyphony pool with pitch bend range
 
 **Description & Details**:
@@ -7833,6 +7879,7 @@ Usage: /mp channel pool bend
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: remove MIDI pool route
 
 **Description & Details**:
@@ -7854,6 +7901,7 @@ Usage: /mpd channel pool
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: query MIDI device status
 
 **Description & Details**:
@@ -7875,6 +7923,7 @@ Usage: /m?
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: clear all MIDI routes
 
 **Description & Details**:
@@ -7896,6 +7945,7 @@ Usage: /mC
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: query active MIDI routes
 
 **Description & Details**:
@@ -7917,6 +7967,7 @@ Usage: /mR
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Parser State Requirements**: `data`
 - **Summary**: convert MIDI note numbers in data array to Hz
 
@@ -7939,6 +7990,7 @@ Usage: m>f (or midi_to_freq)
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: route MIDI channel to voice
 
 **Description & Details**:
@@ -7952,6 +8004,7 @@ Usage: /mv channel voice
 
 - **Arity**: `3`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: route MIDI channel to voice with pitch bend range
 
 **Description & Details**:
@@ -7973,6 +8026,7 @@ Usage: /mv channel voice bend
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SKRED_MIDI_ENABLED`
 - **Summary**: remove MIDI voice route
 
 **Description & Details**:
@@ -8696,6 +8750,7 @@ Usage: ?R
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SCOPE`
 - **Parser State Requirements**: `string`
 - **Summary**: publish scope message event
 
@@ -8718,6 +8773,7 @@ Usage: [string] /sm
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SCOPE`
 - **Parser State Requirements**: `string`
 - **Summary**: start scope IPC streaming
 
@@ -8732,6 +8788,7 @@ Usage: /sg
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SCOPE`
 - **Parser State Requirements**: `string`
 - **Summary**: start scope IPC streaming with channel mask
 
@@ -8746,6 +8803,7 @@ Usage: /sg mask
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SCOPE`
 - **Parser State Requirements**: `string`
 - **Summary**: start scope IPC streaming with channel mask and seconds
 
@@ -8768,6 +8826,7 @@ Usage: /sg mask seconds
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SCOPE`
 - **Summary**: query scope IPC status
 
 **Description & Details**:
@@ -8789,6 +8848,7 @@ Usage: /s?
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `SCOPE`
 - **Summary**: stop scope IPC streaming
 
 **Description & Details**:
@@ -9834,6 +9894,7 @@ Usage: /t 1
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `UDP`
 - **Summary**: emit formatted udp event
 
 **Description & Details**:
@@ -9847,6 +9908,7 @@ Usage: [event %g %g] >u
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `UDP`
 - **Summary**: emit formatted udp event with 1 arg
 
 **Description & Details**:
@@ -9860,6 +9922,7 @@ Usage: [event %g] 123 >u
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `UDP`
 - **Summary**: emit formatted udp event with 2 args
 
 **Description & Details**:
@@ -9873,6 +9936,7 @@ Usage: [event %g %g] 1 2 >u
 
 - **Arity**: `3`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `UDP`
 - **Summary**: emit formatted udp event with 3 args
 
 **Description & Details**:
@@ -9886,6 +9950,7 @@ Usage: [event %g %g %g] 1 2 3 >u
 
 - **Arity**: `4`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `UDP`
 - **Summary**: emit formatted udp event with 4 args
 
 **Description & Details**:
@@ -9906,6 +9971,7 @@ Emits UDP message formatted with 4 arguments.
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `UDP`
 - **Summary**: show udp status
 
 **Description & Details**:
@@ -9919,6 +9985,7 @@ Usage: udp
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `UDP`
 - **Summary**: show udp status with argument
 
 **Description & Details**:
@@ -10125,6 +10192,7 @@ Usage: /v 1
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: print file contents from vfs
 
 **Description & Details**:
@@ -10138,6 +10206,7 @@ Usage: [file.txt] %cat
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: print file contents from vfs with argument
 
 **Description & Details**:
@@ -10158,6 +10227,7 @@ Prints contents of file.
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: change vfs directory
 
 **Description & Details**:
@@ -10171,6 +10241,7 @@ Usage: [subdir] %cd
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: change vfs directory with argument
 
 **Description & Details**:
@@ -10191,6 +10262,7 @@ Changes current working directory.
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: list vfs directory
 
 **Description & Details**:
@@ -10204,6 +10276,7 @@ Usage: %ls
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: list vfs directory filtered by file type
 
 **Description & Details**:
@@ -10217,6 +10290,7 @@ Usage: 1 %ls
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: list vfs directory filtered by file type and index
 
 **Description & Details**:
@@ -10238,6 +10312,7 @@ Usage: 1 0 %ls
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: mount vfs directory or zip
 
 **Description & Details**:
@@ -10251,6 +10326,7 @@ Usage: [bundle.zip] %z
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: mount vfs directory or zip with argument
 
 **Description & Details**:
@@ -10271,6 +10347,7 @@ Mounts zip archive or host directory.
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: print current vfs directory
 
 **Description & Details**:
@@ -10284,6 +10361,7 @@ Usage: %pwd
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: print current vfs directory with argument
 
 **Description & Details**:
@@ -10304,6 +10382,7 @@ Prints the current working directory in VFS.
 
 - **Arity**: `0`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: unmount vfs
 
 **Description & Details**:
@@ -10317,6 +10396,7 @@ Usage: %zu
 
 - **Arity**: `1`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `!defined(SKRED_NO_VFS)`
 - **Summary**: unmount vfs with argument
 
 **Description & Details**:
@@ -10696,6 +10776,7 @@ Usage: [sample.wav] 0 1 /ws
 
 - **Arity**: `2`
 - **Execution Model**: `immediate (control plane)`
+- **Feature Flag (`#ifdef`)**: `KSYNTH`
 - **Summary**: bind wavetable samples to KSynth variable
 
 **Description & Details**:

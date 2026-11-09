@@ -1,6 +1,7 @@
 @name     midi_input
 @alias    /mi
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_input
 @type     immediate
 @arity    1

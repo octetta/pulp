@@ -1,6 +1,7 @@
 @name     udp_info
 @alias    udp
 @group    sys
+@ifdef UDP
 @c_name   skode_clause_udp_info_0
 @type     immediate
 @arity    0

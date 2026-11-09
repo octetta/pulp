@@ -1,6 +1,7 @@
 @name     ksynth_render
 @alias    k!
 @group    sys
+@ifdef KSYNTH
 @c_name   skode_clause_ksynth_render
 @type     immediate
 @arity    0

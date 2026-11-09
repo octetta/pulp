@@ -1,6 +1,7 @@
 @name     ksynth_wave_export
 @alias    kw>
 @group    sys
+@ifdef KSYNTH
 @c_name   skode_clause_ksynth_wave_export_0
 @type     immediate
 @arity    0

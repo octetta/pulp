@@ -3922,6 +3922,7 @@ int skode_clause_rec_to_data_1(skode_t *ctx, ands_t *s, const double *args, int 
 }
 
 int skode_clause_midi_to_freq(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     double *data = ands_data(ctx->parse);
@@ -3933,9 +3934,17 @@ int skode_clause_midi_to_freq(skode_t *ctx, ands_t *s, const double *args, int a
     }
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_scope_start_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SCOPE
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : SKRED_SCOPE_DEFAULT_NAME;
@@ -3950,9 +3959,17 @@ int skode_clause_scope_start_0(skode_t *ctx, ands_t *s, const double *args, int 
     }
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_scope_start_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SCOPE
     if (!ctx) return -1;
     (void)s; (void)argc;
     const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : SKRED_SCOPE_DEFAULT_NAME;
@@ -3972,9 +3989,17 @@ int skode_clause_scope_start_1(skode_t *ctx, ands_t *s, const double *args, int 
     }
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_scope_start_2(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SCOPE
     if (!ctx) return -1;
     (void)s; (void)argc;
     const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : SKRED_SCOPE_DEFAULT_NAME;
@@ -3997,18 +4022,34 @@ int skode_clause_scope_start_2(skode_t *ctx, ands_t *s, const double *args, int 
     }
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_scope_stop(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SCOPE
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     scope_ipc_stop();
     ctx->printf(ctx, "# scope stopped\n");
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_scope_status(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SCOPE
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     skred_scope_status_t status;
@@ -4023,9 +4064,17 @@ int skode_clause_scope_status(skode_t *ctx, ands_t *s, const double *args, int a
     }
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_scope_event(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SCOPE
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     if (ands_string_fresh(ctx->parse)) {
@@ -4039,6 +4088,13 @@ int skode_clause_scope_event(skode_t *ctx, ands_t *s, const double *args, int ar
     }
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_audio_list(skode_t *ctx, ands_t *s, const double *args, int argc) {
@@ -4085,6 +4141,7 @@ int skode_clause_audio_output(skode_t *ctx, ands_t *s, const double *args, int a
 }
 
 int skode_clause_midi_list(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     int result = skred_midi_init("pulp");
@@ -4106,24 +4163,48 @@ int skode_clause_midi_list(skode_t *ctx, ands_t *s, const double *args, int argc
     } else ctx->printf(ctx, "# MIDI init failed (%d)\n", result);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_list_ls(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     return skode_clause_midi_list(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_query(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     ctx->printf(ctx, "# %s\n", skred_midi_status());
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_input(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int port = (int)args[0];
@@ -4132,9 +4213,17 @@ int skode_clause_midi_input(skode_t *ctx, ands_t *s, const double *args, int arg
     if (result != 0) ctx->printf(ctx, "# MIDI open failed (%d)\n", result);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_output(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int port = (int)args[0];
@@ -4143,9 +4232,17 @@ int skode_clause_midi_output(skode_t *ctx, ands_t *s, const double *args, int ar
     if (result != 0) ctx->printf(ctx, "# MIDI open failed (%d)\n", result);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_input_virt(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     const char *name = ands_string(ctx->parse);
@@ -4154,9 +4251,17 @@ int skode_clause_midi_input_virt(skode_t *ctx, ands_t *s, const double *args, in
     if (result != 0) ctx->printf(ctx, "# MIDI virtual open failed (%d)\n", result);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_output_virt(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     const char *name = ands_string(ctx->parse);
@@ -4165,25 +4270,49 @@ int skode_clause_midi_output_virt(skode_t *ctx, ands_t *s, const double *args, i
     if (result != 0) ctx->printf(ctx, "# MIDI virtual open failed (%d)\n", result);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_input_close(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     if (skred_midi_input_close() != 0) ctx->printf(ctx, "# MIDI input close failed\n");
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_output_close(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     if (skred_midi_output_close() != 0) ctx->printf(ctx, "# MIDI output close failed\n");
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_voice_route_2(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int channel = -1;
@@ -4195,9 +4324,17 @@ int skode_clause_midi_voice_route_2(skode_t *ctx, ands_t *s, const double *args,
     else ctx->printf(ctx, "# MIDI route failed\n");
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_voice_route_3(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int channel = -1;
@@ -4210,9 +4347,17 @@ int skode_clause_midi_voice_route_3(skode_t *ctx, ands_t *s, const double *args,
     else ctx->printf(ctx, "# MIDI route failed\n");
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_pool_route_2(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int channel = -1;
@@ -4224,9 +4369,17 @@ int skode_clause_midi_pool_route_2(skode_t *ctx, ands_t *s, const double *args, 
     else ctx->printf(ctx, "# MIDI route failed\n");
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_pool_route_3(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int channel = -1;
@@ -4239,9 +4392,17 @@ int skode_clause_midi_pool_route_3(skode_t *ctx, ands_t *s, const double *args, 
     else ctx->printf(ctx, "# MIDI route failed\n");
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_voice_unroute(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int channel = -1;
@@ -4251,9 +4412,17 @@ int skode_clause_midi_voice_unroute(skode_t *ctx, ands_t *s, const double *args,
                 skred_midi_route_remove(channel, SKRED_MIDI_ROUTE_VOICE, target));
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_pool_unroute(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int channel = -1;
@@ -4263,26 +4432,50 @@ int skode_clause_midi_pool_unroute(skode_t *ctx, ands_t *s, const double *args, 
                 skred_midi_route_remove(channel, SKRED_MIDI_ROUTE_POOL, target));
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_route_query(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     ctx->printf(ctx, "%s", skred_midi_route_status());
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_route_clear(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     skred_midi_route_clear();
     ctx->printf(ctx, "# MIDI routes cleared\n");
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_file_load(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     if (ands_string_len(ctx->parse) > 0) {
@@ -4294,65 +4487,129 @@ int skode_clause_midi_file_load(skode_t *ctx, ands_t *s, const double *args, int
     }
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_file_play(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     midi_player_play((int)args[0]);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_file_sync(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     midi_player_sync((int)args[0], (int)args[1]);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_file_dump(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     midi_player_dump((int)args[0], (int)args[1], (int)args[2], ctx);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_file_status_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     for (int i = 0; i < 4; i++) midi_player_status(i, ctx);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_file_status_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     midi_player_status((int)args[0], ctx);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_file_seek(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     midi_player_seek((int)args[0], args[1]);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_file_stop(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     midi_player_stop((int)args[0]);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_bridge_bind(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int type = (int)args[0];
@@ -4367,9 +4624,17 @@ int skode_clause_midi_bridge_bind(skode_t *ctx, ands_t *s, const double *args, i
     else ctx->printf(ctx, "# usage: [skode-command] /mb type channel data1\n");
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_bridge_unbind(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int type = (int)args[0];
@@ -4381,26 +4646,50 @@ int skode_clause_midi_bridge_unbind(skode_t *ctx, ands_t *s, const double *args,
                 skred_midi_binding_remove(type, channel, data1));
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_bridge_query(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     ctx->printf(ctx, "%s", skred_midi_binding_status());
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_bridge_clear(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     skred_midi_binding_clear();
     ctx->printf(ctx, "# MIDI Skode bindings cleared\n");
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_out_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int byte = (int)args[0];
@@ -4413,9 +4702,17 @@ int skode_clause_midi_out_1(skode_t *ctx, ands_t *s, const double *args, int arg
     if (res != 0) ctx->printf(ctx, "# MIDI output failed (%d)\n", res);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_out_2(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int b1 = (int)args[0], b2 = (int)args[1];
@@ -4429,9 +4726,17 @@ int skode_clause_midi_out_2(skode_t *ctx, ands_t *s, const double *args, int arg
     if (res != 0) ctx->printf(ctx, "# MIDI output failed (%d)\n", res);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_out_3(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)argc;
     int b1 = (int)args[0], b2 = (int)args[1], b3 = (int)args[2];
@@ -4446,9 +4751,17 @@ int skode_clause_midi_out_3(skode_t *ctx, ands_t *s, const double *args, int arg
     if (res != 0) ctx->printf(ctx, "# MIDI output failed (%d)\n", res);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_data_to_midi_out(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     if (!ctx) return -1;
     (void)s; (void)args; (void)argc;
     double *data = ands_data(ctx->parse);
@@ -4477,6 +4790,13 @@ int skode_clause_data_to_midi_out(skode_t *ctx, ands_t *s, const double *args, i
     if (result != 0) ctx->printf(ctx, "# MIDI output failed (%d)\n", result);
     return 0;
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_poly_group_3(skode_t *ctx, ands_t *s, const double *args, int argc) {
@@ -4650,98 +4970,250 @@ int skode_clause_query_string_2(skode_t *ctx, ands_t *s, const double *args, int
 }
 
 int skode_clause_ksynth_load_file_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_ksynth_load_name(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_load_file_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_ksynth_load_name(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_load_slot_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_ksynth_load(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_load_slot_2(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_ksynth_load(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_eval(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_ks(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_render(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_k_bang(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_wave_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_kw(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_wave_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_kw(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_wave_export_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_kw_gt(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_wave_export_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_kw_gt(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_query(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_k_q(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_to_data(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_k_gtd(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_to_wave_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_k_gtw(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_to_wave_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_k_gtw(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_to_wave_2(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_k_gtw(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_to_wave_3(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_k_gtw(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_ksynth_to_wave_4(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_k_gtw(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_data_to_ksynth(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_d_gtk(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_wave_to_ksynth(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef KSYNTH
     return skode_exec_w_gtk(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_notes_to_data(skode_t *ctx, ands_t *s, const double *args, int argc) {
@@ -4855,13 +5327,29 @@ int skode_clause_map_exec_3(skode_t *ctx, ands_t *s, const double *args, int arg
 }
 
 int skode_clause_midi_debug_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     return skode_exec_slashmd(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_midi_debug_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef SKRED_MIDI_ENABLED
     return skode_exec_slashmd(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_sleep_wait_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
@@ -5035,13 +5523,29 @@ int skode_clause_timestamp_logger_1(skode_t *ctx, ands_t *s, const double *args,
 }
 
 int skode_clause_udp_info_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef UDP
     return skode_exec_udp(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_udp_info_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef UDP
     return skode_exec_udp(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_string_puts_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
@@ -5290,93 +5794,237 @@ int skode_clause_wave_load_file_3(skode_t *ctx, ands_t *s, const double *args, i
 }
 
 int skode_clause_vfs_mount_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctz(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_mount_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctz(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_unmount_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctzu(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_unmount_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctzu(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_pwd_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctpwd(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_pwd_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctpwd(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_cat_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctcat(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_cat_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctcat(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_cd_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctcd(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_cd_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctcd(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_ls_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctls(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_ls_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctls(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_vfs_ls_2(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#if !defined(SKRED_NO_VFS)
     return skode_exec_pctls(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_udp_emit_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef UDP
     return skode_exec_gt_u(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_udp_emit_1(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef UDP
     return skode_exec_gt_u(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_udp_emit_2(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef UDP
     return skode_exec_gt_u(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_udp_emit_3(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef UDP
     return skode_exec_gt_u(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_udp_emit_4(skode_t *ctx, ands_t *s, const double *args, int argc) {
+#ifdef UDP
     return skode_exec_gt_u(ctx, s, args, argc);
 
+#else
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return -1;
+#endif
 }
 
 int skode_clause_query_time_0(skode_t *ctx, ands_t *s, const double *args, int argc) {

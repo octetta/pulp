@@ -1,6 +1,7 @@
 @name     midi_file_load
 @alias    /mf
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_file_load
 @type     immediate
 @arity    1

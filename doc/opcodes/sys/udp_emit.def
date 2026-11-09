@@ -1,6 +1,7 @@
 @name     udp_emit
 @alias    >u
 @group    sys
+@ifdef UDP
 @c_name   skode_clause_udp_emit_0
 @type     immediate
 @arity    0

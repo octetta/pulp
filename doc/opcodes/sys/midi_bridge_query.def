@@ -1,6 +1,7 @@
 @name     midi_bridge_query
 @alias    /mb?
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_bridge_query
 @type     immediate
 @arity    0

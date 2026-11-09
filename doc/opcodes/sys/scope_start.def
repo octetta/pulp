@@ -1,6 +1,7 @@
 @name     scope_start
 @alias    /sg
 @group    sys
+@ifdef SCOPE
 @c_name   skode_clause_scope_start_0
 @type     immediate
 @arity    0

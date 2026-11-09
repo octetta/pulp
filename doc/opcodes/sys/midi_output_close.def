@@ -1,6 +1,7 @@
 @name     midi_output_close
 @alias    /moc
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_output_close
 @type     immediate
 @arity    0

@@ -1,6 +1,7 @@
 @name     midi_file_dump
 @alias    /mfD
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_file_dump
 @type     immediate
 @arity    3

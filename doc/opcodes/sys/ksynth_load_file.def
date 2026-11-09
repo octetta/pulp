@@ -1,6 +1,7 @@
 @name     ksynth_load_file
 @alias    /ks
 @group    sys
+@ifdef KSYNTH
 @c_name   skode_clause_ksynth_load_file_0
 @type     immediate
 @arity    0

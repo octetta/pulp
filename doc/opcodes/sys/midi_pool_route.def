@@ -1,6 +1,7 @@
 @name     midi_pool_route
 @alias    /mp
 @group    sys
+@ifdef SKRED_MIDI_ENABLED
 @c_name   skode_clause_midi_pool_route_2
 @type     immediate
 @arity    2

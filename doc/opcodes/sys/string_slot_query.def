@@ -1,0 +1,29 @@
+@name     string_slot_query
+@alias    s?
+@group    sys
+@c_name   skode_clause_string_slot_query_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query all string memory slots
+@doc
+Prints contents of all non-empty string memory slots (0..15).
+Usage: s?
+@code
+    return skode_exec_s_q(ctx, s, args, argc);
+@end
+
+@name     string_slot_query
+@alias    s?
+@group    sys
+@c_name   skode_clause_string_slot_query_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  query single string memory slot
+@doc
+Prints contents of specified string memory slot.
+Usage: s? slot
+@code
+    return skode_exec_s_q(ctx, s, args, argc);
+@end

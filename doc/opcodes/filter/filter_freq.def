@@ -1,0 +1,31 @@
+@name     filter_freq
+@alias    k
+@group    filter
+@c_name   skode_clause_filter_freq_set
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set voice filter cutoff frequency in Hz
+@doc
+Sets the multimode filter cutoff frequency in Hz for the selected voice.
+Usage: k hz
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return mmf_set_freq(&skred_global_engine, voice, args[0]);
+@end
+
+@name     filter_freq
+@alias    k
+@group    filter
+@c_name   skode_clause_filter_freq_reset
+@type     realtime
+@arity    1
+@match    (nan)
+@summary  reset voice filter cutoff frequency to open (default)
+@doc
+Resets filter cutoff to fully open (20 kHz) when passed a NaN sentinel.
+Usage: k -
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return mmf_set_freq(&skred_global_engine, voice, 20000.0f);
+@end

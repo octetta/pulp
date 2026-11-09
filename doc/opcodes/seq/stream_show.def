@@ -1,0 +1,31 @@
+@name     stream_show
+@alias    ?S
+@group    seq
+@type     immediate
+@arity    0
+@match    ()
+@summary  show stream state and data
+@doc
+Displays stream contents and modes.
+Usage: ?S [stream_id]
+@code
+    (void)s; (void)args; (void)argc;
+    skode_stream_show_helper(ctx, -1);
+    return 0;
+@end
+
+@name     stream_show
+@alias    ?S
+@group    seq
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  show specific stream state and data
+@doc
+Displays specified stream contents.
+Usage: stream_id ?S
+@code
+    (void)s;
+    skode_stream_show_helper(ctx, (int)args[0]);
+    return 0;
+@end

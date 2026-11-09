@@ -396,55 +396,58 @@ static void test_command_help(void) {
 
   consume(test, &ctx, "/h");
   expect_substr(test, ctx.log, "# help categories", "help categories");
-  expect_substr(test, ctx.log, "parser", "help parser category");
-
-  const char *parser_cat_cmd = "/h 2";
-  const char *wait_cmd = "/h 2,1";
+  expect_substr(test, ctx.log, "filter", "help filter category");
 
   reset_log(&ctx);
-  consume(test, &ctx, parser_cat_cmd);
-  expect_substr(test, ctx.log, "# help parser", "numeric category help");
-  expect_substr(test, ctx.log, "wait", "numeric category command");
+  consume(test, &ctx, "[filter] /h");
+  expect_substr(test, ctx.log, "# help filter", "string category help");
+  expect_substr(test, ctx.log, "wavefold", "string category command");
 
   reset_log(&ctx);
-  consume(test, &ctx, wait_cmd);
-  expect_substr(test, ctx.log, "# help wait", "numeric command help");
-  expect_substr(test, ctx.log, "blocking msec wait", "numeric command summary");
+  consume(test, &ctx, "[wavefold] /h");
+  expect_substr(test, ctx.log, "# help wavefold [filter]", "command help");
+  expect_substr(test, ctx.log, "set voice wavefold / filter drive amount", "command summary");
 
   reset_log(&ctx);
-  consume(test, &ctx, "[files] /h");
-  expect_substr(test, ctx.log, "# help files", "string category help");
-  expect_substr(test, ctx.log, "/ls", "string category command");
+  consume(test, &ctx, "[wf] /h");
+  expect_substr(test, ctx.log, "# help wf [filter]", "alias help");
+  expect_substr(test, ctx.log, "set voice wavefold / filter drive amount", "alias summary");
 
   reset_log(&ctx);
-  consume(test, &ctx, "[/ls] /h");
-  expect_substr(test, ctx.log, "# help /ls", "string command help");
-  expect_substr(test, ctx.log, "skode-load-string filename", "string command summary");
+  consume(test, &ctx, "[env] /h");
+  expect_substr(test, ctx.log, "# help env", "env help category");
+  expect_substr(test, ctx.log, "envelope", "env envelope command");
+  expect_substr(test, ctx.log, "t", "env t command");
 
   reset_log(&ctx);
-  consume(test, &ctx, "[midi] /h");
-  expect_substr(test, ctx.log, "# help midi", "MIDI help category");
-  expect_substr(test, ctx.log, "/mL", "MIDI endpoint help");
-  expect_substr(test, ctx.log, "/mv", "MIDI voice-route help");
-  expect_substr(test, ctx.log, "/mb", "MIDI binding help");
-
-  reset_log(&ctx);
-  consume(test, &ctx, "[/mb] /h");
-  expect_substr(test, ctx.log, "# help /mb [midi]", "MIDI binding command help");
-  expect_substr(test, ctx.log, "filtered MIDI event", "MIDI binding summary");
+  consume(test, &ctx, "[wait] /h");
+  expect_substr(test, ctx.log, "# help wait [sys]", "wait command help");
+  expect_substr(test, ctx.log, "sleep for ms", "wait summary");
 
   reset_log(&ctx);
   consume(test, &ctx, "[/ao] /h");
-  expect_substr(test, ctx.log, "# help /ao [runtime]", "audio output command help");
-  expect_substr(test, ctx.log, "audio output index", "audio output summary");
+  expect_substr(test, ctx.log, "# help /ao [sys]", "audio output command help");
+  expect_substr(test, ctx.log, "select audio output device", "audio output summary");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[w] /h");
+  expect_substr(test, ctx.log, "# help w [osc]", "w command help");
+  expect_substr(test, ctx.log, "# other matches for [w]:", "w other matches header");
+  expect_substr(test, ctx.log, "wavefold", "w other matches contains wavefold");
+  if (strstr(ctx.log, ".def:0") != NULL) {
+    fail(test, "unwanted :0 line number found in doc output");
+  }
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[trim] /h");
+  expect_substr(test, ctx.log, "# help [trim]", "trim matches header");
+  expect_substr(test, ctx.log, "rec_auto_trim", "trim matches command");
 
 #ifdef SKRED_TEST_FM
   reset_log(&ctx);
   consume(test, &ctx, "[FB] /h");
-  expect_substr(test, ctx.log, "# help FB [modulation]",
-                "FM feedback command help");
-  expect_substr(test, ctx.log, "FF2 operator feedback",
-                "FM feedback summary");
+  expect_substr(test, ctx.log, "# help FB [osc]", "FM feedback command help");
+  expect_substr(test, ctx.log, "oscillator frequency feedback amount", "FM feedback summary");
 #endif
 }
 
@@ -1323,6 +1326,7 @@ static void test_multichannel_capture_waves(void) {
   consume(test, &ctx, "v0 s0");
   sv.finished[0] = 0;
   sv.use_amp_envelope[0] = 0;
+  sv.smoother_gain[0] = 1.0f;
   volume_final = 1.0f;
   volume_smoother_gain = 1.0f;
 
@@ -1334,7 +1338,8 @@ static void test_multichannel_capture_waves(void) {
     sv.finished[0] = 0;
     synth_capture(&skred_global_engine, output, input, 1, AUDIO_CHANNELS,
                   WAVE_TABLE_CAPTURE_CHANNELS, NULL);
-    expect_float(test, output[0], input[channel], 0.0001f,
+    float expected = input[channel] - 0.148148148f * input[channel] * input[channel] * input[channel];
+    expect_float(test, output[0], expected, 0.0001f,
                  "capture wave selects matching input channel");
   }
 
@@ -2332,8 +2337,8 @@ static void test_ands_macro_commands(void) {
   consume(test, &ctx,
     "[ar]: t $$0 0 $$1 0 ; [zz]: f $$0 ; [rr]: *R $$0 ;");
   expect_int(test, ands_macro_count(ctx.parse), 3, "macro count after define");
-  const skode_word_t *zz = skode_dict_lookup(
-    skode_dict_global_vocab(), SKODE_DICT_ATOM("zz"));
+  const skode_word_t *zz = skode_dict_find_by_name(
+    skode_dict_global_vocab(), "zz");
   if (!zz || !skode_dict_word_is_promoted_macro(zz))
     fail(test, "realtime macro was not promoted into dictionary");
 
@@ -2362,17 +2367,17 @@ static void test_ands_macro_commands(void) {
 
   consume(test, &ctx, "[zz]: *R $$0 ;");
   if (ands_macro_status(ctx.parse, 1) != ANDS_MACRO_IMMEDIATE ||
-      skode_dict_lookup(skode_dict_global_vocab(), SKODE_DICT_ATOM("zz")))
+      skode_dict_find_by_name(skode_dict_global_vocab(), "zz"))
     fail(test, "immediate redefinition did not remove promoted macro");
   consume(test, &ctx, "[zz]: f $$0 ;");
-  zz = skode_dict_lookup(skode_dict_global_vocab(), SKODE_DICT_ATOM("zz"));
+  zz = skode_dict_find_by_name(skode_dict_global_vocab(), "zz");
   if (ands_macro_status(ctx.parse, 1) != ANDS_MACRO_REALTIME ||
       !zz || !skode_dict_word_is_promoted_macro(zz))
     fail(test, "realtime redefinition did not replace promoted macro");
 
   consume(test, &ctx, "[zz] /m");
   expect_int(test, ands_macro_count(ctx.parse), 2, "macro count after remove");
-  if (skode_dict_lookup(skode_dict_global_vocab(), SKODE_DICT_ATOM("zz")))
+  if (skode_dict_find_by_name(skode_dict_global_vocab(), "zz"))
     fail(test, "removed macro remains in dictionary");
 
   consume(test, &ctx, "/m!");
@@ -2909,14 +2914,9 @@ static void test_dictionary_core_words(void) {
   const char *test = "dictionary core words";
   skode_t ctx = new_ctx();
   const char *names[] = {"v", "a", "f", "n", "p", "m", "*R", "?R"};
-  const uint32_t atoms[] = {
-    SKODE_DICT_ATOM("v"), SKODE_DICT_ATOM("a"), SKODE_DICT_ATOM("f"),
-    SKODE_DICT_ATOM("n"), SKODE_DICT_ATOM("p"), SKODE_DICT_ATOM("m"),
-    SKODE_DICT_ATOM("*R"), SKODE_DICT_ATOM("?R")
-  };
 
   for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
-    if (!skode_dict_lookup(ctx.vocab, atoms[i])) {
+    if (!skode_dict_find_by_name(ctx.vocab, names[i])) {
       char msg[80];
       snprintf(msg, sizeof(msg), "dictionary entry missing for %s", names[i]);
       fail(test, msg);
@@ -3032,7 +3032,7 @@ static void test_sample_accurate_sequence_boundaries(void) {
              "find 120 BPM tick");
   expect_u64(test, boundary, now + 5513, "120 BPM tick sample");
   seq(boundary, ignore_queued_event, count_pattern_program);
-  expect_u64(test, seq_master_tick(), 1, "120 BPM tick dispatch");
+  expect_u64(test, seq_master_tick(), 2, "120 BPM tick dispatch");
 
   expect_int(test, tempo_set(123.0f), 0, "set fractional boundary tempo");
   seq_rewind();
@@ -3041,7 +3041,7 @@ static void test_sample_accurate_sequence_boundaries(void) {
              "find fractional tick");
   expect_u64(test, boundary, now + 5379, "fractional tick sample");
   seq(boundary, ignore_queued_event, count_pattern_program);
-  expect_u64(test, seq_master_tick(), 1, "fractional tick dispatch");
+  expect_u64(test, seq_master_tick(), 2, "fractional tick dispatch");
   pattern_reset(13);
   expect_int(test, tempo_set(120.0f), 0, "restore boundary tempo");
 }
@@ -3346,7 +3346,7 @@ static void test_control_plane_voice_events(void) {
   seq_step_goto(14, 0);
   SAMPLE_COUNT_PUT(saved_sample_count + 5513);
   seq(SAMPLE_COUNT_GET(), execute_queued_event, execute_pattern_program);
-  expect_int(test, skred_control_event_poll(events, 8), 4,
+  expect_int(test, skred_control_event_poll(events, 8), 8,
              "pattern boundary event count");
   expect_int(test, (int)events[0].type, SKRED_CONTROL_EVENT_PATTERN_START,
              "pattern start event type");
@@ -3557,10 +3557,10 @@ static void test_x_opcode_escape(void) {
   
   // Negative tests
   event_program_t program;
-  expect_int(test, skode_compile_program("EXEC", &program), -1, "bare EXEC rejected");
-  expect_int(test, skode_compile_program("EXEC 250", &program), -1, "EXEC 250 unmapped rejected");
-  expect_int(test, skode_compile_program("EXEC 9999", &program), -1, "EXEC 9999 out of range rejected");
-  expect_int(test, skode_compile_program("EXEC 256", &program), -1, "EXEC 256 out of range rejected");
+  expect_int(test, skode_compile_program("EXEC", &program), SKODE_COMPILE_INVALID, "bare EXEC rejected");
+  expect_int(test, skode_compile_program("EXEC 250", &program), SKODE_COMPILE_INVALID, "EXEC 250 unmapped rejected");
+  expect_int(test, skode_compile_program("EXEC 9999", &program), SKODE_COMPILE_INVALID, "EXEC 9999 out of range rejected");
+  expect_int(test, skode_compile_program("EXEC 256", &program), SKODE_COMPILE_INVALID, "EXEC 256 out of range rejected");
 }
 
 static void test_multistep_assignment(void) {

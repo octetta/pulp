@@ -56,7 +56,7 @@ void midi_player_load(int slot, const char *filename) {
     fseek(f, 0, SEEK_SET);
     
     uint8_t *data = malloc(size);
-    if (fread(data, 1, size, f) != size) { 
+    if (size <= 0 || fread(data, 1, (size_t)size, f) != (size_t)size) { 
     // Calculate max polyphony per channel
     int active[16][128] = {0};
     int current_poly[16] = {0};

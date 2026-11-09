@@ -1,0 +1,17 @@
+@name     voice_copy
+@alias    >
+@group    voice
+@c_name   skode_clause_voice_copy
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  copy voice state to target voice
+@doc
+Copies all parameters from the active voice into target voice.
+Usage: > dest_voice (or voice_copy dest_voice)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    int dest = (int)args[0];
+    if (dest < 0 || dest >= synth_config.voice_max) return -1;
+    return voice_copy(voice, dest);
+@end

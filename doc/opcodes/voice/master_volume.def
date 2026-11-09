@@ -1,0 +1,28 @@
+@name     master_volume
+@alias    V
+@group    voice
+@c_name   skode_clause_master_volume_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set master output volume
+@doc
+Sets master output volume in dB.
+Usage: V -6
+@code
+    return skode_exec_V(ctx, s, args, argc);
+@end
+
+@name     master_volume
+@alias    V
+@group    voice
+@c_name   skode_clause_master_volume_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  master volume no-op
+@doc
+Master volume no-op.
+@code
+    return skode_exec_V(ctx, s, args, argc);
+@end

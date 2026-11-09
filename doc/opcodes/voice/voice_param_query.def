@@ -1,0 +1,29 @@
+@name     voice_param_query
+@alias    v*
+@group    voice
+@c_name   skode_clause_voice_param_query_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  query voice parameter value
+@doc
+Queries voice parameter (0=wave_index, 1=amplitude, 2=frequency) and pushes to stack.
+Usage: v* param
+@code
+    return skode_exec_v_star(ctx, s, args, argc);
+@end
+
+@name     voice_param_query
+@alias    v*
+@group    voice
+@c_name   skode_clause_voice_param_query_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  copy voice parameter value into variable
+@doc
+Copies voice parameter (0=wave, 1=amp, 2=freq) into variable register $var.
+Usage: v* param var
+@code
+    return skode_exec_v_star(ctx, s, args, argc);
+@end

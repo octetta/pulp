@@ -1,0 +1,28 @@
+@name     filter_freq_alt
+@alias    K
+@group    filter
+@c_name   skode_clause_filter_freq_alt_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set multimode filter cutoff hz
+@doc
+Sets cutoff frequency for active voice filter in Hz.
+Usage: K 800
+@code
+    return skode_exec_K(ctx, s, args, argc);
+@end
+
+@name     filter_freq_alt
+@alias    K
+@group    filter
+@c_name   skode_clause_filter_freq_alt_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  filter cutoff hz no-op
+@doc
+Filter cutoff frequency no-op.
+@code
+    return skode_exec_K(ctx, s, args, argc);
+@end

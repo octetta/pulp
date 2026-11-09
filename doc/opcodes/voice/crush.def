@@ -1,0 +1,24 @@
+@name     crush
+@alias    bc
+@group    voice
+@c_name   skode_clause_crush
+@type     realtime
+@arity    0..2
+@match    (finite, finite)
+@summary  voice waveform bit-crush and quantization
+@doc
+Sets waveform bit-crush bit depth (0..24) and optional quantization curve (0=linear, 1=mu-law/companded, 2=MOS 6581 SID DAC non-linear).
+Passing 0 or no arguments disables quantization.
+Usage: bc [bits[, curve]] (or crush [bits[, curve]])
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    if (argc == 0) {
+        wave_quant(voice, 0);
+        return 0;
+    }
+    int bits = (int)args[0];
+    int curve = sv.quantize[voice] / 100;
+    if (argc > 1 && isfinite(args[1])) curve = (int)args[1];
+    wave_quant(voice, (curve * 100) + (bits % 100));
+    return 0;
+@end

@@ -1,0 +1,15 @@
+@name     stream_pos
+@alias    /SP
+@group    seq
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set stream read position
+@doc
+Sets current read position in stream array.
+Usage: /SP stream_idx pos
+@code
+    (void)voice;
+    skode_stream_pos(NULL, (int)args[0], (int)args[1]);
+    return 0;
+@end

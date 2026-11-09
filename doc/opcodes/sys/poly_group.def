@@ -1,0 +1,39 @@
+@name     poly_group
+@alias    /pg
+@group    sys
+@c_name   skode_clause_poly_group_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  configure polyphony group
+@doc
+Defines voice expansion group (group, source voice, width).
+Usage: /pg group source width
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int group = (int)args[0], source = (int)args[1], width = (int)args[2];
+    if (skred_poly_group_set(group, source, width, 0) != 0)
+        ctx->printf(ctx, "# usage: /pg group,source,width[,root-offset]\n");
+    return 0;
+@end
+
+@name     poly_group
+@alias    /pg
+@group    sys
+@c_name   skode_clause_poly_group_4
+@type     immediate
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  configure polyphony group with root offset
+@doc
+Defines voice expansion group with root voice offset.
+Usage: /pg group source width root
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int group = (int)args[0], source = (int)args[1], width = (int)args[2], root = (int)args[3];
+    if (skred_poly_group_set(group, source, width, root) != 0)
+        ctx->printf(ctx, "# usage: /pg group,source,width[,root-offset]\n");
+    return 0;
+@end

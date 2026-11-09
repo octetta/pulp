@@ -1,0 +1,31 @@
+@name     freq
+@alias    f
+@group    osc
+@c_name   skode_clause_freq_set
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set voice oscillator frequency in Hz
+@doc
+Sets the oscillator base frequency in Hertz for the active voice.
+Usage: f hz (or freq hz)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return freq_set(voice, args[0]);
+@end
+
+@name     freq
+@alias    f
+@group    osc
+@c_name   skode_clause_freq_reset
+@type     realtime
+@arity    1
+@match    (nan)
+@summary  reset voice oscillator frequency to 440 Hz
+@doc
+Resets the oscillator base frequency to default concert A (440 Hz).
+Usage: f - (or freq -)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return freq_set(voice, 440.0f);
+@end

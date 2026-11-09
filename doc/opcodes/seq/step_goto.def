@@ -1,0 +1,17 @@
+@name     step_goto
+@alias    >x
+@group    seq
+@c_name   skode_clause_step_goto
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  jump active pattern to target step
+@doc
+Sets active pattern playhead to step position.
+Usage: >x step (or step_goto step)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    seq_step_goto(ctx->pattern, (int)args[0]);
+    return 0;
+@end

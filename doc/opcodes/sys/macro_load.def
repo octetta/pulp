@@ -1,0 +1,21 @@
+@name     macro_load
+@alias    <e
+@group    sys
+@c_name   skode_clause_macro_load
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load external macro into string buffer
+@doc
+Loads external macro slot string into the active parser string buffer.
+Usage: <e slot (or macro_load slot)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int slot = (int)args[0];
+    char macro[STRING_BUF_LEN] = "";
+    if (skode_extra_copy(slot, macro, sizeof(macro)) == 0) {
+        ands_string_from_external(ctx->parse, macro, strlen(macro));
+    }
+    return 0;
+@end

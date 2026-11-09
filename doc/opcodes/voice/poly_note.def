@@ -1,0 +1,33 @@
+@name     poly_note
+@alias    pn
+@group    voice
+@c_name   skode_clause_poly_note_4
+@type     realtime
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  trigger polyphonic note
+@doc
+Triggers note on pool (pool, key, note number, velocity).
+Usage: pn pool,key,note,velocity
+@code
+    (void)voice;
+    int pool = (int)args[0], key = (int)args[1];
+    return skred_poly_note(pool, key, args[2], args[3], 0);
+@end
+
+@name     poly_note
+@alias    pn
+@group    voice
+@c_name   skode_clause_poly_note_5
+@type     realtime
+@arity    5
+@match    (finite, finite, finite, finite, finite)
+@summary  trigger polyphonic note with cents
+@doc
+Triggers note on pool with fine detuning in cents.
+Usage: pn pool,key,note,velocity,cents
+@code
+    (void)voice;
+    int pool = (int)args[0], key = (int)args[1];
+    return skred_poly_note(pool, key, args[2], args[3], args[4]);
+@end

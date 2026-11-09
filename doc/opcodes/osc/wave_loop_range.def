@@ -1,0 +1,29 @@
+@name     wave_loop_range
+@alias    VL
+@group    osc
+@c_name   skode_clause_wave_loop_range_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  reset waveform loop points
+@doc
+Resets loop points to entire sample range.
+Usage: VL (or wave_loop_range)
+@code
+    return skode_exec_VL(ctx, s, args, argc);
+@end
+
+@name     wave_loop_range
+@alias    VL
+@group    osc
+@c_name   skode_clause_wave_loop_range_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  set waveform loop points
+@doc
+Sets start and end loop boundary points.
+Usage: VL start end (or wave_loop_range start end)
+@code
+    return skode_exec_VL(ctx, s, args, argc);
+@end

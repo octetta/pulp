@@ -1,0 +1,75 @@
+@name     voice
+@alias    v
+@group    voice
+@c_name   skode_clause_voice_select
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  select active voice index for subsequent commands
+@doc
+Selects which synthesizer voice is targeted by subsequent voice parameters.
+Usage: v 0 (selects voice 0)
+@code
+    (void)s;
+    int x;
+    if (argc && skode_double_to_int(args[0], &x) && ctx) {
+        voice_set(x, &ctx->voice);
+    }
+    return 0;
+@end
+
+@name     voice
+@alias    v
+@group    voice
+@c_name   skode_clause_voice_select_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  voice selection no-op with 0 args
+@doc
+Voice selection no-op when no args provided on stack.
+@code
+    (void)ctx;
+    (void)s;
+    (void)args;
+    (void)argc;
+    return 0;
+@end
+
+@name     voice
+@alias    v
+@group    voice
+@c_name   skode_clause_voice_select_2
+@type     immediate
+@arity    2
+@match    (finite, any)
+@summary  select active voice index with 2 stack args
+@doc
+Selects active voice index ignoring extra stack arguments.
+@code
+    (void)s;
+    int x;
+    if (argc && skode_double_to_int(args[0], &x) && ctx) {
+        voice_set(x, &ctx->voice);
+    }
+    return 0;
+@end
+
+@name     voice
+@alias    v
+@group    voice
+@c_name   skode_clause_voice_select_3
+@type     immediate
+@arity    3
+@match    (finite, any, any)
+@summary  select active voice index with 3 stack args
+@doc
+Selects active voice index ignoring extra stack arguments.
+@code
+    (void)s;
+    int x;
+    if (argc && skode_double_to_int(args[0], &x) && ctx) {
+        voice_set(x, &ctx->voice);
+    }
+    return 0;
+@end

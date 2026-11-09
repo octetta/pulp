@@ -1,0 +1,37 @@
+@name     ring_mod
+@alias    XM
+@group    voice
+@c_name   skode_clause_ring_mod_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  ring modulation source
+@doc
+Sets ring modulation source voice with 100% amount. Pass -1 to disable.
+Usage: XM source (or ring_mod source)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    int src = (int)args[0];
+    sv.ring_osc[voice] = (src >= 0 && src < synth_config.voice_max) ? src : -1;
+    sv.ring_amount[voice] = (src >= 0 && src < synth_config.voice_max) ? 1.0f : 0.0f;
+    return 0;
+@end
+
+@name     ring_mod
+@alias    XM
+@group    voice
+@c_name   skode_clause_ring_mod_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  ring modulation source and amount
+@doc
+Sets ring modulation source voice and mix amount (0.0 to 1.0).
+Usage: XM source amount (or ring_mod source amount)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    int src = (int)args[0];
+    sv.ring_osc[voice] = (src >= 0 && src < synth_config.voice_max) ? src : -1;
+    sv.ring_amount[voice] = args[1];
+    return 0;
+@end

@@ -1,0 +1,44 @@
+@name     opcode_queue_query
+@alias    ?o
+@group    seq
+@c_name   skode_clause_opcode_queue_query_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query opcode queue entries
+@doc
+Displays detailed opcode queue state and timing.
+Usage: ?o
+@code
+    return skode_exec_qo(ctx, s, args, argc);
+@end
+
+@name     opcode_queue_query
+@alias    ?o
+@group    seq
+@c_name   skode_clause_opcode_queue_query_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  query opcode pattern entries
+@doc
+Displays pattern opcode entries.
+Usage: ?o pattern
+@code
+    return skode_exec_qo(ctx, s, args, argc);
+@end
+
+@name     opcode_queue_query
+@alias    ?o
+@group    seq
+@c_name   skode_clause_opcode_queue_query_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  query opcode pattern and step entries
+@doc
+Displays pattern and step opcode entries.
+Usage: ?o pattern, step
+@code
+    return skode_exec_qo(ctx, s, args, argc);
+@end

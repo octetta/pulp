@@ -1,0 +1,15 @@
+@name     query_wave_spectrogram
+@alias    ?ws
+@group    osc
+@c_name   skode_clause_query_wave_spectrogram
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  display wavetable spectrogram (?ws alias)
+@doc
+Displays ASCII spectrogram visualization for wavetable index (?ws alias).
+Usage: ?ws wave
+@code
+    if (!ctx) return -1;
+    return skode_clause_wave_spectrogram(ctx, s, args, argc);
+@end

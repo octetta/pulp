@@ -1,0 +1,14 @@
+@name     step_get
+@alias    xg
+@group    seq
+@c_name   skode_clause_step_get
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  get pattern step source string
+@doc
+Loads source program string from pattern step into parser string buffer.
+Usage: xg step
+@code
+    return skode_exec_xg(ctx, s, args, argc);
+@end

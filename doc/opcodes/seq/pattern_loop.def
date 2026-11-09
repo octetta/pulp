@@ -1,0 +1,25 @@
+@name     pattern_loop
+@alias    /zl
+@group    seq
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  pattern step loop counter and branch
+@doc
+Loops pattern step execution using a variable counter until limit is reached.
+Usage: /zl var_id limit dest_step
+@code
+    (void)voice;
+    int var_id = (int)args[0];
+    int limit = (int)args[1];
+    int dest_step = (int)args[2];
+    if (var_id >= 0 && var_id < ANDS_VAR_MAX) {
+        if (global_var[var_id] < limit - 1) {
+            global_var[var_id] += 1.0;
+            seq_step_goto(seq_current_pattern >= 0 ? seq_current_pattern : 0, dest_step);
+        } else {
+            global_var[var_id] = 0.0;
+        }
+    }
+    return 0;
+@end

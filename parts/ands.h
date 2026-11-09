@@ -82,7 +82,7 @@ typedef uint32_t atom_t;
 
 #define ANDS_VAR_MAX (128)
 #define ANDS_STREAM_FLAG (0x10000)
-#define ANDS_MACRO_NAME_LEN (5)
+#define ANDS_MACRO_NAME_LEN (32)
 #define ANDS_MACRO_BODY_LEN (2048)
 #define ANDS_RETURN_MAX (10)  /* @0 .. @9 */
 
@@ -90,6 +90,7 @@ ands_t *ands_new(int (*fn)(ands_t *s, int info), void *user);
 void ands_free(ands_t *s);
 int ands_consume(ands_t *s, char *line);
 int ands_macro_count(ands_t *s);
+int ands_macro_find(ands_t *s, const char *name);
 int ands_macro_get(ands_t *s, int index, char *name, int name_len,
                    char *body, int body_len, int *arg_count);
 int ands_last_macro_index(ands_t *s);
@@ -99,6 +100,7 @@ int ands_macro_remove(ands_t *s, const char *name);
 void ands_macro_clear(ands_t *s);
 uint32_t ands_atom_num(ands_t *s);
 char *ands_atom_string(ands_t *s);
+const char *ands_atom_name(ands_t *s);
 int ands_arg_len(ands_t *s);
 double *ands_arg(ands_t *s);
 int ands_arg_var(ands_t *s, int n);

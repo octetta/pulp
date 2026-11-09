@@ -1,0 +1,14 @@
+@name     macro_list_query
+@alias    ?m
+@group    sys
+@c_name   skode_clause_macro_list_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  list all defined user macros
+@doc
+Prints list of all defined user macros with RT capability status.
+Usage: ?m
+@code
+    return skode_exec_qm(ctx, s, args, argc);
+@end

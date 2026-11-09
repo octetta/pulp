@@ -1,0 +1,16 @@
+@name     repeat_kill_all
+@alias    R!!
+@group    seq
+@c_name   skode_clause_repeat_kill_all
+@type     immediate
+@arity    0
+@match    ()
+@summary  kill all scheduled sequencer events
+@doc
+Clears the entire deferred and repeated event queue.
+Usage: R!! (or repeat_kill_all)
+@code
+    (void)ctx; (void)s; (void)args; (void)argc;
+    seq_kill_all();
+    return 0;
+@end

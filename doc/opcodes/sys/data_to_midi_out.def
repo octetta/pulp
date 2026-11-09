@@ -1,0 +1,40 @@
+@name     data_to_midi_out
+@alias    d>MO
+@group    sys
+@c_name   skode_clause_data_to_midi_out
+@type     immediate
+@arity    0
+@match    ()
+@summary  send data array as MIDI bytes
+@doc
+Transmits contents of active data buffer as raw SysEx or MIDI bytes.
+Usage: d>MO
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    double *data = ands_data(ctx->parse);
+    int data_len = ands_data_len(ctx->parse);
+    if (!data || data_len <= 0 || data_len > 65536) {
+        ctx->printf(ctx, "# d>MO requires 1..65536 data bytes\n");
+        return 0;
+    }
+    uint8_t *bytes = (uint8_t*)malloc((size_t)data_len);
+    if (!bytes) {
+        ctx->printf(ctx, "# d>MO allocation failed\n");
+        return 0;
+    }
+    int valid = 1;
+    for (int i = 0; i < data_len; i++) {
+        int byte;
+        if (!skode_double_to_int(data[i], &byte) || byte < 0 || byte > 255 ||
+            data[i] != (double)byte) {
+            valid = 0;
+            break;
+        }
+        bytes[i] = (uint8_t)byte;
+    }
+    int result = valid ? skred_midi_send_raw(bytes, data_len) : -2;
+    free(bytes);
+    if (result != 0) ctx->printf(ctx, "# MIDI output failed (%d)\n", result);
+    return 0;
+@end

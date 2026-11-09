@@ -1,0 +1,15 @@
+@name     pattern_state_set
+@alias    /z
+@group    seq
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set pattern state by explicit index
+@doc
+Sets pattern playback state for explicit pattern index (pattern, state).
+Usage: /z pattern state
+@code
+    (void)voice;
+    seq_state_set((int)args[0], (int)args[1]);
+    return 0;
+@end

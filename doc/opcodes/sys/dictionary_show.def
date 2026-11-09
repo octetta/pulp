@@ -1,0 +1,31 @@
+@name     dictionary_show
+@alias    ?M
+@group    sys
+@type     immediate
+@arity    0
+@match    ()
+@summary  show all dictionary words
+@doc
+Displays all dictionary words and categories.
+Usage: ?M [mode]
+@code
+    (void)s; (void)args; (void)argc;
+    skode_dict_show_words(ctx, 0);
+    return 0;
+@end
+
+@name     dictionary_show
+@alias    ?M
+@group    sys
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  show dictionary words by filter mode
+@doc
+Displays dictionary words filtered by mode (1=real-time, 2=immediate).
+Usage: mode ?M
+@code
+    (void)s;
+    skode_dict_show_words(ctx, (int)args[0]);
+    return 0;
+@end

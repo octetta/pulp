@@ -1,0 +1,39 @@
+@name     filter_mode
+@alias    j
+@group    filter
+@c_name   skode_clause_filter_mode_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set multimode filter type (0:off, 1:lp, 2:bp, 3:hp, 4:notch)
+@doc
+Sets filter mode type for active voice.
+Usage: j mode (or filter_mode mode)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    int mode = (int)args[0];
+    int character = sv.filter_mode[voice] / 10;
+    sv.filter_mode[voice] = (character * 10) + (mode % 10);
+    mmf_set_params(&skred_global_engine, voice, sv.filter_freq[voice], sv.filter_res[voice]);
+    return 0;
+@end
+
+@name     filter_mode
+@alias    j
+@group    filter
+@c_name   skode_clause_filter_mode_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set multimode filter type and character
+@doc
+Sets filter mode type (0..4) and character model.
+Usage: j mode char (or filter_mode mode char)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    int mode = (int)args[0];
+    int character = (int)args[1];
+    sv.filter_mode[voice] = (character * 10) + (mode % 10);
+    mmf_set_params(&skred_global_engine, voice, sv.filter_freq[voice], sv.filter_res[voice]);
+    return 0;
+@end

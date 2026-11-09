@@ -1,0 +1,59 @@
+@name     voice_wave_display
+@alias    VW
+@group    voice
+@c_name   skode_clause_voice_wave_display_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  render ascii waveform for active voice
+@doc
+Renders ASCII waveform preview for active voice.
+Usage: VW
+@code
+    return skode_exec_VW(ctx, s, args, argc);
+@end
+
+@name     voice_wave_display
+@alias    VW
+@group    voice
+@c_name   skode_clause_voice_wave_display_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  render ascii waveform for specified voice
+@doc
+Renders ASCII waveform preview for specified voice index.
+Usage: VW 0
+@code
+    return skode_exec_VW(ctx, s, args, argc);
+@end
+
+@name     voice_wave_display
+@alias    VW
+@group    voice
+@c_name   skode_clause_voice_wave_display_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  render ascii waveform with dimensions
+@doc
+Renders ASCII waveform preview with specified width and height.
+Usage: VW width height
+@code
+    return skode_exec_VW(ctx, s, args, argc);
+@end
+
+@name     voice_wave_display
+@alias    VW
+@group    voice
+@c_name   skode_clause_voice_wave_display_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  render ascii waveform for voice with dimensions
+@doc
+Renders ASCII waveform preview for voice with width and height.
+Usage: VW voice width height
+@code
+    return skode_exec_VW(ctx, s, args, argc);
+@end

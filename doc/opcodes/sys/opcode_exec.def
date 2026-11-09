@@ -1,0 +1,65 @@
+@name     opcode_exec
+@alias    EXEC
+@group    sys
+@type     immediate
+@summary  numeric opcode escape
+@doc
+Directly executes a numeric opcode for CLAP host automation bridging.
+Usage: EXEC opcode_id [args...]
+@match    (finite)
+@code
+    (void)s;
+    opcode_event_t op = { .code = (uint16_t)args[0], .argc = 0 };
+    return skode_execute_voice_opcode(&op, ctx->voice);
+@end
+
+@name     opcode_exec
+@alias    EXEC
+@group    sys
+@type     immediate
+@match    (finite, any)
+@code
+    (void)s;
+    opcode_event_t op = { .code = (uint16_t)args[0], .argc = 1 };
+    op.arg[0] = (float)args[1];
+    return skode_execute_voice_opcode(&op, ctx->voice);
+@end
+
+@name     opcode_exec
+@alias    EXEC
+@group    sys
+@type     immediate
+@match    (finite, any, any)
+@code
+    (void)s;
+    opcode_event_t op = { .code = (uint16_t)args[0], .argc = 2 };
+    op.arg[0] = (float)args[1];
+    op.arg[1] = (float)args[2];
+    return skode_execute_voice_opcode(&op, ctx->voice);
+@end
+
+@name     opcode_exec
+@alias    EXEC
+@group    sys
+@type     immediate
+@match    (finite, any, any, any)
+@code
+    (void)s;
+    opcode_event_t op = { .code = (uint16_t)args[0], .argc = 3 };
+    op.arg[0] = (float)args[1];
+    op.arg[1] = (float)args[2];
+    op.arg[2] = (float)args[3];
+    return skode_execute_voice_opcode(&op, ctx->voice);
+@end
+
+@name     opcode_exec
+@alias    EXEC
+@group    sys
+@type     immediate
+@match    (finite, any, any, any, any)
+@code
+    (void)s;
+    opcode_event_t op = { .code = (uint16_t)args[0], .argc = 4 };
+    for (int i = 0; i < 4; i++) op.arg[i] = (float)args[i + 1];
+    return skode_execute_voice_opcode(&op, ctx->voice);
+@end

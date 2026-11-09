@@ -252,17 +252,11 @@ int skode_double_to_int(double value, int *out) {
 
 
 static const skode_doc_entry_t skode_doc_entries[] = {
-#define KIT_DOC_BEGIN(symbol, key, file, line) { key, file, line, ""
-#define KIT_DOC_LINE(symbol, text) text
-#define KIT_DOC_END(symbol) },
 #if defined(__has_include)
 #if __has_include("skode-doc.inc")
 #include "skode-doc.inc"
 #endif
 #endif
-#undef KIT_DOC_BEGIN
-#undef KIT_DOC_LINE
-#undef KIT_DOC_END
   { NULL, NULL, 0, NULL }
 };
 
@@ -404,7 +398,13 @@ static void skode_help_show_doc(skode_t *ctx, const skode_doc_entry_t *doc) {
       }
     }
   }
-  if (doc->file) ctx->printf(ctx, "#   %s:%d\n", doc->file, doc->line);
+  if (doc->file && doc->file[0]) {
+    if (doc->line > 0) {
+      ctx->printf(ctx, "#   %s:%d\n", doc->file, doc->line);
+    } else {
+      ctx->printf(ctx, "#   %s\n", doc->file);
+    }
+  }
 }
 
 
@@ -463,40 +463,154 @@ static void skode_help_show_category(skode_t *ctx, int category_number) {
   }
 }
 
+#define SKODE_HELP_MATCH_MAX 512
+
 static void skode_help_lookup_string(skode_t *ctx, const char *query) {
-  const skode_doc_entry_t *category_match = NULL;
   if (!query || !query[0]) {
     skode_help_show_categories(ctx);
     return;
   }
-  for (int i = 0; skode_doc_entries[i].key; i++) {
-    char name[SKODE_HELP_FIELD_MAX] = "";
-    char category[SKODE_HELP_FIELD_MAX] = "";
-    if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
-    skode_help_field(&skode_doc_entries[i], "name", name, sizeof(name));
-    skode_help_field(&skode_doc_entries[i], "category", category, sizeof(category));
-    if (strcmp(skode_doc_entries[i].key, query) == 0 ||
-        (name[0] && strcmp(name, query) == 0)) {
-      skode_help_show_doc(ctx, &skode_doc_entries[i]);
+
+  /* 1. Check if query is an exact category name */
+  char categories[SKODE_HELP_CATEGORY_MAX][SKODE_HELP_FIELD_MAX];
+  int cat_count = skode_help_categories(categories, SKODE_HELP_CATEGORY_MAX);
+  for (int i = 0; i < cat_count; i++) {
+    if (strcmp(categories[i], query) == 0) {
+      skode_help_show_category(ctx, i + 1);
       return;
     }
-    if (!category_match && category[0] && strcmp(category, query) == 0) {
-      category_match = &skode_doc_entries[i];
+  }
+
+  /* 2. Collect matching command entries */
+  const skode_doc_entry_t *exact_matches[SKODE_HELP_MATCH_MAX];
+  const skode_doc_entry_t *prefix_matches[SKODE_HELP_MATCH_MAX];
+  const skode_doc_entry_t *sub_matches[SKODE_HELP_MATCH_MAX];
+  int exact_count = 0;
+  int prefix_count = 0;
+  int sub_count = 0;
+  size_t qlen = strlen(query);
+
+  for (int i = 0; skode_doc_entries[i].key; i++) {
+    char name[SKODE_HELP_FIELD_MAX] = "";
+    if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
+    skode_help_field(&skode_doc_entries[i], "name", name, sizeof(name));
+    const char *disp_name = name[0] ? name : skode_doc_entries[i].key;
+    const char *cmd_key = skode_doc_entries[i].key;
+    if (strncmp(cmd_key, "command.", 8) == 0) cmd_key += 8;
+
+    /* Exact match */
+    if (strcmp(disp_name, query) == 0 || strcmp(cmd_key, query) == 0) {
+      if (exact_count < SKODE_HELP_MATCH_MAX)
+        exact_matches[exact_count++] = &skode_doc_entries[i];
+    }
+    /* Prefix match (also handles leading '/' or '-' like /w or -wave) */
+    else if (strncmp(disp_name, query, qlen) == 0 ||
+             strncmp(cmd_key, query, qlen) == 0 ||
+             ((disp_name[0] == '/' || disp_name[0] == '-') && strncmp(disp_name + 1, query, qlen) == 0) ||
+             ((cmd_key[0] == '/' || cmd_key[0] == '-') && strncmp(cmd_key + 1, query, qlen) == 0)) {
+      if (prefix_count < SKODE_HELP_MATCH_MAX)
+        prefix_matches[prefix_count++] = &skode_doc_entries[i];
+    }
+    /* Substring match */
+    else if (strstr(disp_name, query) != NULL || strstr(cmd_key, query) != NULL) {
+      if (sub_count < SKODE_HELP_MATCH_MAX)
+        sub_matches[sub_count++] = &skode_doc_entries[i];
     }
   }
-  if (category_match) {
-    char categories[SKODE_HELP_CATEGORY_MAX][SKODE_HELP_FIELD_MAX];
-    char category[SKODE_HELP_FIELD_MAX] = "";
-    int count = skode_help_categories(categories, SKODE_HELP_CATEGORY_MAX);
-    skode_help_field(category_match, "category", category, sizeof(category));
-    for (int i = 0; i < count; i++) {
-      if (strcmp(categories[i], category) == 0) {
-        skode_help_show_category(ctx, i + 1);
-        return;
+
+  /* 3. If no name matches found, try summary search */
+  if (exact_count == 0 && prefix_count == 0 && sub_count == 0) {
+    for (int i = 0; skode_doc_entries[i].key; i++) {
+      char summary[SKODE_HELP_FIELD_MAX] = "";
+      if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
+      skode_help_field(&skode_doc_entries[i], "summary", summary, sizeof(summary));
+      if (summary[0] && strstr(summary, query) != NULL) {
+        if (sub_count < SKODE_HELP_MATCH_MAX)
+          sub_matches[sub_count++] = &skode_doc_entries[i];
       }
     }
   }
-  ctx->printf(ctx, "# help [%s] not found\n", query);
+
+  /* If we have exact or prefix matches, ignore the general substring noise */
+  if (exact_count > 0 || prefix_count > 0) {
+    sub_count = 0;
+  }
+
+  int total_matches = exact_count + prefix_count + sub_count;
+  if (total_matches == 0) {
+    ctx->printf(ctx, "# help [%s] not found\n", query);
+    return;
+  }
+
+  /* Case A: Exactly one match (which may be exact or prefix or substring) */
+  if (total_matches == 1) {
+    const skode_doc_entry_t *doc = exact_count ? exact_matches[0]
+                                 : (prefix_count ? prefix_matches[0] : sub_matches[0]);
+    skode_help_show_doc(ctx, doc);
+    return;
+  }
+
+  /* Case B: One or more exact matches, plus additional prefix/sub matches */
+  if (exact_count > 0) {
+    for (int i = 0; i < exact_count; i++) {
+      skode_help_show_doc(ctx, exact_matches[i]);
+    }
+    if (prefix_count > 0 || sub_count > 0) {
+      ctx->printf(ctx, "# other matches for [%s]:\n", query);
+      for (int i = 0; i < prefix_count; i++) {
+        char name[SKODE_HELP_FIELD_MAX] = "";
+        char category[SKODE_HELP_FIELD_MAX] = "";
+        char summary[SKODE_HELP_FIELD_MAX] = "";
+        skode_help_field(prefix_matches[i], "name", name, sizeof(name));
+        skode_help_field(prefix_matches[i], "category", category, sizeof(category));
+        skode_help_field(prefix_matches[i], "summary", summary, sizeof(summary));
+        ctx->printf(ctx, "#   %s", name[0] ? name : prefix_matches[i]->key);
+        if (category[0]) ctx->printf(ctx, " [%s]", category);
+        if (summary[0]) ctx->printf(ctx, " - %s", summary);
+        ctx->puts(ctx, "");
+      }
+      for (int i = 0; i < sub_count; i++) {
+        char name[SKODE_HELP_FIELD_MAX] = "";
+        char category[SKODE_HELP_FIELD_MAX] = "";
+        char summary[SKODE_HELP_FIELD_MAX] = "";
+        skode_help_field(sub_matches[i], "name", name, sizeof(name));
+        skode_help_field(sub_matches[i], "category", category, sizeof(category));
+        skode_help_field(sub_matches[i], "summary", summary, sizeof(summary));
+        ctx->printf(ctx, "#   %s", name[0] ? name : sub_matches[i]->key);
+        if (category[0]) ctx->printf(ctx, " [%s]", category);
+        if (summary[0]) ctx->printf(ctx, " - %s", summary);
+        ctx->puts(ctx, "");
+      }
+    }
+    return;
+  }
+
+  /* Case C: Multiple matches, but no exact match */
+  ctx->printf(ctx, "# help [%s] (%d matches):\n", query, total_matches);
+  for (int i = 0; i < prefix_count; i++) {
+    char name[SKODE_HELP_FIELD_MAX] = "";
+    char category[SKODE_HELP_FIELD_MAX] = "";
+    char summary[SKODE_HELP_FIELD_MAX] = "";
+    skode_help_field(prefix_matches[i], "name", name, sizeof(name));
+    skode_help_field(prefix_matches[i], "category", category, sizeof(category));
+    skode_help_field(prefix_matches[i], "summary", summary, sizeof(summary));
+    ctx->printf(ctx, "#   %s", name[0] ? name : prefix_matches[i]->key);
+    if (category[0]) ctx->printf(ctx, " [%s]", category);
+    if (summary[0]) ctx->printf(ctx, " - %s", summary);
+    ctx->puts(ctx, "");
+  }
+  for (int i = 0; i < sub_count; i++) {
+    char name[SKODE_HELP_FIELD_MAX] = "";
+    char category[SKODE_HELP_FIELD_MAX] = "";
+    char summary[SKODE_HELP_FIELD_MAX] = "";
+    skode_help_field(sub_matches[i], "name", name, sizeof(name));
+    skode_help_field(sub_matches[i], "category", category, sizeof(category));
+    skode_help_field(sub_matches[i], "summary", summary, sizeof(summary));
+    ctx->printf(ctx, "#   %s", name[0] ? name : sub_matches[i]->key);
+    if (category[0]) ctx->printf(ctx, " [%s]", category);
+    if (summary[0]) ctx->printf(ctx, " - %s", summary);
+    ctx->puts(ctx, "");
+  }
 }
 
 void skode_help(skode_t *ctx, double *arg, int argc) {
@@ -2284,9 +2398,9 @@ void skode_register_immediate_words(skode_vocab_t *vocab) {
   skode_register_words_seq(vocab);
   skode_register_words_data(vocab);
   skode_register_words_system(vocab);
-  skode_register_words_misc(vocab);
 }
 int skode_function(ands_t *s, int info) {
+  (void)info;
   uint32_t atom = ands_atom_num(s);
   int argc = ands_arg_len(s);
   skode_t *ctx = (skode_t*)ands_user(s);
@@ -2296,9 +2410,10 @@ int skode_function(ands_t *s, int info) {
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
   (void)x_valid;
   (void)voice;
+  const char *name = ands_atom_name(s);
   if (ctx->trace) {
     ctx->printf(ctx, "# SKODE_FUNCTION ");
-    ctx->printf(ctx, "%s", ands_atom_string(s));
+    ctx->printf(ctx, "%s", name && name[0] ? name : ands_atom_string(s));
     if (argc) {
       for (int i=0; i<argc; i++) ctx->printf(ctx, " %g", arg[i]);
     }
@@ -2313,12 +2428,8 @@ int skode_function(ands_t *s, int info) {
   int dict_result;
   if (skode_execute_word(ctx, s, atom, arg, argc, &dict_result))
     return dict_result;
-  switch (atom) {
-  default:
-    ctx->printf(ctx, "# SKODE_UNKNOWN_FUNCTION %d [%x] :: %d", info, atom, argc);
-    return -1;
-}
-  return 0;
+  ctx->printf(ctx, "# SKODE_UNKNOWN_FUNCTION %s\n", name && name[0] ? name : "?");
+  return -1;
 }
 
 int skode_defer(ands_t *s, int info) {
@@ -2625,8 +2736,7 @@ void skode_free(skode_t *ctx) {
   #endif
 }
 
-/* Dictionary command documentation remains here so kit_tool includes it in
-   the generated command reference alongside the legacy switch commands. */
+/* Interactive and API command documentation */
 /* @doc(command.*R)
 name: *R
 category: parser

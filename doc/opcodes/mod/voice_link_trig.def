@@ -1,0 +1,41 @@
+@name     voice_link_trig
+@alias    L
+@group    mod
+@c_name   skode_clause_voice_link_trig_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set voice link trigger duration
+@doc
+Sets trigger re-arm time in seconds for linked voice events.
+Usage: L 0.25
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    if (args[0] <= 0.0f) {
+        sv.link_trig[voice] = -1.0f;
+        sv.link_trig_samp[voice] = 0;
+    } else {
+        long double samples = (long double)args[0] * MAIN_SAMPLE_RATE;
+        sv.link_trig[voice] = args[0];
+        sv.link_trig_samp[voice] = samples >= (long double)UINT64_MAX ?
+            UINT64_MAX : (uint64_t)samples;
+    }
+    return 0;
+@end
+
+@name     voice_link_trig
+@alias    L
+@group    mod
+@c_name   skode_clause_voice_link_trig_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  voice link trigger duration reset
+@doc
+Resets trigger re-arm time.
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_trig[voice] = -1.0f;
+    sv.link_trig_samp[voice] = 0;
+    return 0;
+@end

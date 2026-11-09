@@ -1,0 +1,50 @@
+@name     macro_exec
+@alias    e!
+@group    sys
+@c_name   skode_clause_macro_exec_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  execute bracketed string immediately
+@doc
+Executes the currently bracketed program string.
+Usage: [program] e! (or [program] macro_exec)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    const char *str = ands_string(ctx->parse);
+    if (str && str[0] != '\0') {
+        extern void skode_consume_macro(skode_t *ctx, const char *line);
+        skode_consume_macro(ctx, str);
+    }
+    return 0;
+@end
+
+@name     macro_exec
+@alias    e!
+@group    sys
+@c_name   skode_clause_macro_exec_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  execute numbered external macro slot
+@doc
+Executes the code stored in external macro slot N.
+Usage: e! slot (or macro_exec slot)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int slot = (int)args[0];
+    char macro[STRING_BUF_LEN] = "";
+    if (skode_extra_copy(slot, macro, sizeof(macro)) == 0 && macro[0] != '\0') {
+        event_program_t program;
+        if (skode_compile_program_ex(macro, &program, ctx->vocab) == SKODE_COMPILE_OK) {
+            uint64_t now = SAMPLE_COUNT_GET();
+            skode_queue_program(&program, ctx->voice, now, 0);
+        } else {
+            extern void skode_consume_macro(skode_t *ctx, const char *line);
+            skode_consume_macro(ctx, macro);
+        }
+    }
+    return 0;
+@end

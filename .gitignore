@@ -16,3 +16,6 @@ tmp/*
 mini-skred
 .ai-scratch/
 dist/
+tools/mkopcodes
+Testing/
+parts/Testing/

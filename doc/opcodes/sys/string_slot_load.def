@@ -1,0 +1,14 @@
+@name     string_slot_load
+@alias    <s
+@group    sys
+@c_name   skode_clause_string_slot_load
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load string from memory slot into parser buffer
+@doc
+Loads string from slot (0..15) into the active parser string buffer.
+Usage: <s slot
+@code
+    return skode_exec_lts(ctx, s, args, argc);
+@end

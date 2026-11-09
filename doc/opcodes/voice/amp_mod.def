@@ -1,0 +1,64 @@
+@name     amp_mod
+@alias    A
+@group    voice
+@c_name   skode_clause_amp_mod_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  disable amplitude modulation
+@doc
+Disables amplitude modulation on active voice.
+Usage: A (or amp_mod)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return amp_mod_set(voice, -1, 0, 0);
+@end
+
+@name     amp_mod
+@alias    A
+@group    voice
+@c_name   skode_clause_amp_mod_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  amplitude modulation source or disable
+@doc
+Disables amplitude modulation if source < 0, or sets source voice with 0 depth.
+Usage: A source
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    int src = (int)args[0];
+    return (src < 0) ? amp_mod_set(voice, -1, 0, 0) : amp_mod_set(voice, src, 0, 0);
+@end
+
+@name     amp_mod
+@alias    A
+@group    voice
+@c_name   skode_clause_amp_mod_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  amplitude modulation source and depth
+@doc
+Sets amplitude modulation source voice and depth.
+Usage: A source depth
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return amp_mod_set(voice, (int)args[0], args[1], 0);
+@end
+
+@name     amp_mod
+@alias    A
+@group    voice
+@c_name   skode_clause_amp_mod_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  amplitude modulation source, depth and scale
+@doc
+Sets amplitude modulation source voice, depth and scale factor.
+Usage: A source depth scale
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return amp_mod_set(voice, (int)args[0], args[1], args[2]);
+@end

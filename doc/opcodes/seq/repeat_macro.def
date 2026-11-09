@@ -1,0 +1,17 @@
+@name     repeat_macro
+@alias    eR
+@group    seq
+@c_name   skode_clause_repeat_macro
+@type     immediate
+@arity    1
+@match    (any)
+@summary  repeat user macro at seconds interval
+@doc
+Repeats user macro at seconds interval.
+Usage: macro_id count interval eR
+@code
+    if (!ctx) return -1;
+    (void)s;
+    skode_repeat_macro(ctx, args, argc, 0);
+    return 0;
+@end

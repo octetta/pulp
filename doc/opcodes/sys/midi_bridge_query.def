@@ -1,0 +1,17 @@
+@name     midi_bridge_query
+@alias    /mb?
+@group    sys
+@c_name   skode_clause_midi_bridge_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query MIDI Skode bindings
+@doc
+Prints all active MIDI-to-Skode command bindings.
+Usage: /mb?
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    ctx->printf(ctx, "%s", skred_midi_binding_status());
+    return 0;
+@end

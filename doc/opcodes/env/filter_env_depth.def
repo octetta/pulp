@@ -1,0 +1,16 @@
+@name     filter_env_depth
+@alias    kd
+@group    env
+@c_name   skode_clause_filter_env_depth
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  filter cutoff envelope depth
+@doc
+Sets filter cutoff envelope modulation depth in octaves.
+Usage: kd depth (or filter_env_depth depth)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.filter_env_depth[voice] = args[0];
+    return 0;
+@end

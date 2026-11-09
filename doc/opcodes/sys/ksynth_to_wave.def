@@ -1,0 +1,74 @@
+@name     ksynth_to_wave
+@alias    k>w
+@group    sys
+@c_name   skode_clause_ksynth_to_wave_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  load KSynth result into default wave slot
+@doc
+Loads active KSynth result into default sample wavetable slot.
+Usage: k>w
+@code
+    return skode_exec_k_gtw(ctx, s, args, argc);
+@end
+
+@name     ksynth_to_wave
+@alias    k>w
+@group    sys
+@c_name   skode_clause_ksynth_to_wave_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load KSynth result into specified wave slot
+@doc
+Loads active KSynth result into wavetable slot.
+Usage: k>w slot
+@code
+    return skode_exec_k_gtw(ctx, s, args, argc);
+@end
+
+@name     ksynth_to_wave
+@alias    k>w
+@group    sys
+@c_name   skode_clause_ksynth_to_wave_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  load KSynth result with sample rate
+@doc
+Loads active KSynth result into wavetable slot with playback sample rate.
+Usage: k>w slot rate
+@code
+    return skode_exec_k_gtw(ctx, s, args, argc);
+@end
+
+@name     ksynth_to_wave
+@alias    k>w
+@group    sys
+@c_name   skode_clause_ksynth_to_wave_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  load KSynth result with one-shot flag
+@doc
+Loads active KSynth result with slot, rate, and one-shot playback flag.
+Usage: k>w slot rate one_shot
+@code
+    return skode_exec_k_gtw(ctx, s, args, argc);
+@end
+
+@name     ksynth_to_wave
+@alias    k>w
+@group    sys
+@c_name   skode_clause_ksynth_to_wave_4
+@type     immediate
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  load KSynth result with offset
+@doc
+Loads active KSynth result with slot, rate, one-shot flag, and loop offset.
+Usage: k>w slot rate one_shot offset
+@code
+    return skode_exec_k_gtw(ctx, s, args, argc);
+@end

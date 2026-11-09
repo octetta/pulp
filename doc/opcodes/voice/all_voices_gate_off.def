@@ -1,0 +1,28 @@
+@name     all_voices_gate_off
+@alias    O
+@group    voice
+@c_name   skode_clause_all_voices_gate_off_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  turn gate off for all voices
+@doc
+Turns gate off for all synthesizer voices.
+Usage: O
+@code
+    return skode_exec_O(ctx, s, args, argc);
+@end
+
+@name     all_voices_gate_off
+@alias    O
+@group    voice
+@c_name   skode_clause_all_voices_gate_off_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  turn gate off for all voices with argument
+@doc
+Turns gate off for all voices.
+@code
+    return skode_exec_O(ctx, s, args, argc);
+@end

@@ -1,0 +1,64 @@
+@name     freq_mod
+@alias    F
+@group    osc
+@c_name   skode_clause_freq_mod_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  disable frequency modulation
+@doc
+Disables frequency modulation on active voice.
+Usage: F (or freq_mod)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return freq_mod_set(voice, -1, 0, 0);
+@end
+
+@name     freq_mod
+@alias    F
+@group    osc
+@c_name   skode_clause_freq_mod_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  frequency modulation disable or source
+@doc
+Disables frequency modulation if arg < 0, or sets source with depth 0.
+Usage: F source
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    int src = (int)args[0];
+    return (src < 0) ? freq_mod_set(voice, -1, 0, 0) : freq_mod_set(voice, src, 0, 0);
+@end
+
+@name     freq_mod
+@alias    F
+@group    osc
+@c_name   skode_clause_freq_mod_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  frequency modulation source and depth
+@doc
+Sets FM source voice and depth.
+Usage: F source depth
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return freq_mod_set(voice, (int)args[0], args[1], 0);
+@end
+
+@name     freq_mod
+@alias    F
+@group    osc
+@c_name   skode_clause_freq_mod_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  frequency modulation source, depth and scale
+@doc
+Sets FM source voice, depth and scale parameter.
+Usage: F source depth scale
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return freq_mod_set(voice, (int)args[0], args[1], args[2]);
+@end

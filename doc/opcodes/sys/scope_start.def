@@ -1,0 +1,93 @@
+@name     scope_start
+@alias    /sg
+@group    sys
+@c_name   skode_clause_scope_start_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  start scope IPC streaming
+@doc
+Starts scope IPC streaming using default channel mask and buffer duration.
+Usage: /sg
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : SKRED_SCOPE_DEFAULT_NAME;
+    if (!name || name[0] == '\0') name = SKRED_SCOPE_DEFAULT_NAME;
+    if (scope_ipc_start(name, SKRED_SCOPE_ALL_CHANNELS, SKRED_SCOPE_DEFAULT_SECONDS) == 0) {
+        skred_scope_status_t status;
+        scope_ipc_status(&status);
+        ctx->printf(ctx, "# scope [%s] channels=%u mask=%u capacity=%u frames\n",
+                    status.name, status.channel_count, status.channel_mask, status.capacity_frames);
+    } else {
+        ctx->printf(ctx, "# scope start failed [%s]\n", name);
+    }
+    return 0;
+@end
+
+@name     scope_start
+@alias    /sg
+@group    sys
+@c_name   skode_clause_scope_start_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  start scope IPC streaming with channel mask
+@doc
+Starts scope IPC streaming with specified channel mask.
+Usage: /sg mask
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : SKRED_SCOPE_DEFAULT_NAME;
+    if (!name || name[0] == '\0') name = SKRED_SCOPE_DEFAULT_NAME;
+    int mask = (int)args[0];
+    if (mask <= 0 || (uint32_t)mask > SKRED_SCOPE_ALL_CHANNELS) {
+        ctx->printf(ctx, "# /sg channel mask must be 1..%u\n", SKRED_SCOPE_ALL_CHANNELS);
+        return 0;
+    }
+    if (scope_ipc_start(name, (uint32_t)mask, SKRED_SCOPE_DEFAULT_SECONDS) == 0) {
+        skred_scope_status_t status;
+        scope_ipc_status(&status);
+        ctx->printf(ctx, "# scope [%s] channels=%u mask=%u capacity=%u frames\n",
+                    status.name, status.channel_count, status.channel_mask, status.capacity_frames);
+    } else {
+        ctx->printf(ctx, "# scope start failed [%s]\n", name);
+    }
+    return 0;
+@end
+
+@name     scope_start
+@alias    /sg
+@group    sys
+@c_name   skode_clause_scope_start_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  start scope IPC streaming with channel mask and seconds
+@doc
+Starts scope IPC streaming with specified channel mask and buffer duration.
+Usage: /sg mask seconds
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    const char *name = ands_string_fresh(ctx->parse) ? ands_string(ctx->parse) : SKRED_SCOPE_DEFAULT_NAME;
+    if (!name || name[0] == '\0') name = SKRED_SCOPE_DEFAULT_NAME;
+    int mask = (int)args[0];
+    double buffer_seconds = args[1];
+    if (mask <= 0 || (uint32_t)mask > SKRED_SCOPE_ALL_CHANNELS) {
+        ctx->printf(ctx, "# /sg channel mask must be 1..%u\n", SKRED_SCOPE_ALL_CHANNELS);
+        return 0;
+    }
+    if (!isfinite(buffer_seconds) || buffer_seconds <= 0.0) {
+        ctx->printf(ctx, "# /sg buffer seconds must be > 0\n");
+    } else if (scope_ipc_start(name, (uint32_t)mask, buffer_seconds) == 0) {
+        skred_scope_status_t status;
+        scope_ipc_status(&status);
+        ctx->printf(ctx, "# scope [%s] channels=%u mask=%u capacity=%u frames\n",
+                    status.name, status.channel_count, status.channel_mask, status.capacity_frames);
+    } else {
+        ctx->printf(ctx, "# scope start failed [%s]\n", name);
+    }
+    return 0;
+@end

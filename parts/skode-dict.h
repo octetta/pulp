@@ -1,6 +1,8 @@
 #ifndef _SKODE_DICT_H_
 #define _SKODE_DICT_H_
 
+#define SKODE_LEGACY_WORD_T_DEFINED 1
+
 /*
  * Forth-style command dictionary for skode.
  *
@@ -9,7 +11,7 @@
  * skode currently has two independent ATOM4-keyed switch statements that
  * must be kept in sync by hand:
  *
- *   1. skode_function()          in skode.c.kit   -- interactive execution
+ *   1. skode_function()          in skode.c       -- interactive execution
  *   2. skode_compile_callback()  in skode-event.c  -- compiles a command into
  *                                                     an opcode_event_t for
  *                                                     scheduling/patterns
@@ -39,11 +41,11 @@
 #include <stdint.h>
 
 /*
- * SKODE_DICT_ATOM(s) / WID(s) -- typing a word's identity once, not twice
+ * SKODE_DICT_ATOM(s) -- compile-time 4-char atom packing
  * ---------------------------------------------------------------------
  * ATOM4('v---') exists because GCC multichar literals are genuine integer
  * constants, cheap to write inline in a `case` label -- and that's still
- * the right tool for the two legacy switch statements in skode.c.kit/
+ * the right tool for the two legacy switch statements in skode.c/
  * skode-event.c, unchanged by anything here. It's a worse fit for
  * skode_word_t's struct initializers: every word_table[] entry needs
  * BOTH the packed atom (`'v---'`, hand-padded with dashes) AND the
@@ -88,28 +90,6 @@
     ((uint32_t)(uint8_t)(s "----")[1] << 16) | \
     ((uint32_t)(uint8_t)(s "----")[2] << 8)  | \
     ((uint32_t)(uint8_t)(s "----")[3]) )
-
-/*
- * WID(s) -- "Word ID": expands to `.atom = ..., .name = s`, designated-
- * initializer clauses in the exact fields skode_word_t declares them as,
- * so a word_table[] entry reads as
- *   { WID("v"), .execute = word_exec_v, .opcode_id = SKODE_OP_VOICE,
- *     .min_args = 1, .max_args = 1, .safety = WORD_REAL_TIME_SAFE,
- *     .category = "voice", .summary = "voice-select voice" }
- * -- the string is typed exactly once, every other field is named rather
- * than positional (no more counting commas to know which field a bare
- * value lands in, no risk of two adjacent fields silently swapping), and
- * every field not mentioned (.compile, .default_mask, .next, .shadow,
- * .data) zero-initializes automatically -- C99 guarantees this for
- * designated initializers exactly like it already does for the trailing
- * fields of an ordinary positional one, just without requiring every
- * entry to spell out the same three trailing NULLs by hand. Verified: a
- * standalone test with this exact macro shape, mixed with designated
- * initializers for the remaining fields, produces identical values to
- * the original positional form and correctly zero-initializes every
- * omitted field, clean under -Wall -Wextra.
- */
-#define WID(s) .atom = SKODE_DICT_ATOM(s), .name = s
 
 #include "ands.h"
 #include "seq.h"    /* opcode_event_t, event_program_t */
@@ -241,6 +221,9 @@ typedef struct skode_word {
                                   shared player functions in skode-dict.c
                                   recover it via self->data. */
 } skode_word_t;
+#ifndef SKODE_LEGACY_WORD_T_DEFINED
+#define SKODE_LEGACY_WORD_T_DEFINED 1
+#endif
 
 /* Initializes the dictionary and registers all built-in words. Safe to call
    more than once (idempotent). Call this from skode_init() / once at
@@ -403,7 +386,7 @@ void skode_dict_install_example_mute_logger(skode_vocab_t *vocab);
    `vocab` specifically (use skode_dict_lookup() for the two-level search
    order most callers actually want). Always returns the currently-visible
    (most recently overridden) registration within `vocab`. */
-const skode_word_t *skode_dict_find(skode_vocab_t *vocab, uint32_t atom);
+const skode_word_t *skode_vocab_find(skode_vocab_t *vocab, uint32_t atom);
 
 /*
  * Dispatch used from skode_function(): looks the atom up via
@@ -567,4 +550,3 @@ const char *skode_help_category_for_word(const char *name);
 
 int skode_help_categories(char categories[][96], int max_categories);
 
-int skode_is_legacy_realtime_opcode(uint32_t atom);

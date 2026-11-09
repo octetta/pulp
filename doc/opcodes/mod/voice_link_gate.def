@@ -1,0 +1,106 @@
+@name     voice_link_gate
+@alias    G
+@group    mod
+@c_name   skode_clause_voice_link_gate_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  link gate to target voice
+@doc
+Links gate of active voice to follow target voice.
+Usage: G 0
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_midi_1[voice] = -1.0f;
+    sv.link_midi_2[voice] = -1.0f;
+    sv.link_midi_3[voice] = -1.0f;
+    sv.link_midi_4[voice] = -1.0f;
+    sv.link_midi_5[voice] = -1.0f;
+    return 0;
+@end
+
+@name     voice_link_gate
+@alias    G
+@group    mod
+@c_name   skode_clause_voice_link_gate_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  voice link gate clear
+@doc
+Clears gate links for active voice.
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_midi_0[voice] = -1.0f;
+    sv.link_midi_1[voice] = -1.0f;
+    sv.link_midi_2[voice] = -1.0f;
+    sv.link_midi_3[voice] = -1.0f;
+    sv.link_midi_4[voice] = -1.0f;
+    sv.link_midi_5[voice] = -1.0f;
+    return 0;
+@end
+
+@name     voice_link_gate
+@alias    G
+@group    mod
+@c_name   skode_clause_voice_link_gate_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  link gate to 2 target voices
+@doc
+Links gate to two target voices.
+Usage: G v1 v2
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_midi_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_midi_2[voice] = -1.0f;
+    sv.link_midi_3[voice] = -1.0f;
+    sv.link_midi_4[voice] = -1.0f;
+    sv.link_midi_5[voice] = -1.0f;
+    return 0;
+@end
+
+@name     voice_link_gate
+@alias    G
+@group    mod
+@c_name   skode_clause_voice_link_gate_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  link gate to 3 target voices
+@doc
+Links gate to 3 target voices.
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_midi_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_midi_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
+    sv.link_midi_3[voice] = -1.0f;
+    sv.link_midi_4[voice] = -1.0f;
+    sv.link_midi_5[voice] = -1.0f;
+    return 0;
+@end
+
+@name     voice_link_gate
+@alias    G
+@group    mod
+@c_name   skode_clause_voice_link_gate_4
+@type     realtime
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  link gate to 4 target voices
+@doc
+Links gate to 4 target voices.
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_midi_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_midi_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
+    sv.link_midi_3[voice] = (args[3] >= 0 && args[3] < synth_config.voice_max) ? args[3] : -1.0f;
+    sv.link_midi_4[voice] = -1.0f;
+    sv.link_midi_5[voice] = -1.0f;
+    return 0;
+@end

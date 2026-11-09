@@ -1,0 +1,15 @@
+@name     freq_bend
+@alias    fb
+@group    osc
+@c_name   skode_clause_freq_bend
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  frequency bend (-1..1)
+@doc
+Sets oscillator frequency bend.
+Usage: fb amount (or freq_bend amount)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return freq_bend_set(voice, args[0]);
+@end

@@ -1,0 +1,59 @@
+@name     record_rewind
+@alias    <r
+@group    seq
+@c_name   skode_clause_record_rewind_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query audio recording state
+@doc
+Prints audio recording state, capacity, and remaining frames.
+Usage: <r
+@code
+    return skode_exec_ltr(ctx, s, args, argc);
+@end
+
+@name     record_rewind
+@alias    <r
+@group    seq
+@c_name   skode_clause_record_rewind_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  record audio for duration
+@doc
+Records dry mix audio for duration in seconds.
+Usage: <r seconds
+@code
+    return skode_exec_ltr(ctx, s, args, argc);
+@end
+
+@name     record_rewind
+@alias    <r
+@group    seq
+@c_name   skode_clause_record_rewind_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  record audio with source
+@doc
+Records audio with source selection (0=dry, 1=voice, 2=master).
+Usage: <r seconds source
+@code
+    return skode_exec_ltr(ctx, s, args, argc);
+@end
+
+@name     record_rewind
+@alias    <r
+@group    seq
+@c_name   skode_clause_record_rewind_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  record audio from voice
+@doc
+Records audio from voice (source=1).
+Usage: <r seconds,1,voice
+@code
+    return skode_exec_ltr(ctx, s, args, argc);
+@end

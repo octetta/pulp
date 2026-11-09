@@ -1,0 +1,49 @@
+@name     delay_pingpong
+@alias    DP
+@group    mod
+@c_name   skode_clause_delay_pingpong_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  get or toggle delay pingpong
+@doc
+Sets or toggles delay line pingpong panning mode.
+Usage: DP
+@code
+    return skode_exec_DP(ctx, s, args, argc);
+@end
+
+@name     delay_pingpong
+@alias    DP
+@group    mod
+@c_name   skode_clause_delay_pingpong_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set delay pingpong bus
+@doc
+Sets delay pingpong bus.
+Usage: DP bus
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int on = delay_pingpong_get(&skred_global_engine, bus);
+    return delay_pingpong_set(&skred_global_engine, bus, !on);
+@end
+
+@name     delay_pingpong
+@alias    DP
+@group    mod
+@c_name   skode_clause_delay_pingpong_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set delay pingpong bus and state
+@doc
+Sets delay pingpong bus and state (1=pingpong on, 0=off).
+Usage: DP bus state
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    return delay_pingpong_set(&skred_global_engine, bus, (int)args[1]);
+@end

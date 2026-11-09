@@ -284,7 +284,8 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
   int current_active_voices = 0;
   uint8_t voice_active[VOICE_MAX] = {0};
   for (int n = 0; n < nvoices; n++) {
-    if (sv.amp_envelope[n].is_active || sv.mark_go[n] || (!sv.finished[n] && sv.one_shot[n])) {
+    if (sv.amp_envelope[n].is_active || sv.mark_go[n] ||
+        (!sv.finished[n] && (sv.one_shot[n] || !sv.use_amp_envelope[n]))) {
       voice_active[n] = 1;
     }
   }

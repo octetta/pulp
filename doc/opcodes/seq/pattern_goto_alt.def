@@ -1,0 +1,16 @@
+@name     pattern_goto_alt
+@alias    -j
+@group    seq
+@c_name   skode_clause_pattern_goto_alt
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  jump active pattern playback step (-j alias)
+@doc
+Sets the next playback step position for the active pattern (-j alias).
+Usage: -j step
+@code
+    (void)voice;
+    (void)args;
+    return 0;
+@end

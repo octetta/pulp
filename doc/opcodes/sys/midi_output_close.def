@@ -1,0 +1,17 @@
+@name     midi_output_close
+@alias    /moc
+@group    sys
+@c_name   skode_clause_midi_output_close
+@type     immediate
+@arity    0
+@match    ()
+@summary  close MIDI output port
+@doc
+Closes active MIDI output port.
+Usage: /moc
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    if (skred_midi_output_close() != 0) ctx->printf(ctx, "# MIDI output close failed\n");
+    return 0;
+@end

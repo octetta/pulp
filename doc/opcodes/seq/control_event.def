@@ -1,0 +1,73 @@
+@name     control_event
+@alias    ce
+@group    seq
+@c_name   skode_clause_control_event_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  emit control event with 1 argument
+@doc
+Emits control event.
+Usage: ce id (or control_event id)
+@code
+    opcode_event_t op = { .code = SKODE_OP_CONTROL_EVENT, .argc = 1 };
+    op.arg[0] = args[0];
+    return skode_emit_control_event_opcode(&op, voice, -1, -1, -1);
+@end
+
+@name     control_event
+@alias    ce
+@group    seq
+@c_name   skode_clause_control_event_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  emit control event with 2 arguments
+@doc
+Emits control event with parameter.
+Usage: ce id p1
+@code
+    opcode_event_t op = { .code = SKODE_OP_CONTROL_EVENT, .argc = 2 };
+    op.arg[0] = args[0];
+    op.arg[1] = args[1];
+    return skode_emit_control_event_opcode(&op, voice, -1, -1, -1);
+@end
+
+@name     control_event
+@alias    ce
+@group    seq
+@c_name   skode_clause_control_event_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  emit control event with 3 arguments
+@doc
+Emits control event with 2 parameters.
+Usage: ce id p1 p2
+@code
+    opcode_event_t op = { .code = SKODE_OP_CONTROL_EVENT, .argc = 3 };
+    op.arg[0] = args[0];
+    op.arg[1] = args[1];
+    op.arg[2] = args[2];
+    return skode_emit_control_event_opcode(&op, voice, -1, -1, -1);
+@end
+
+@name     control_event
+@alias    ce
+@group    seq
+@c_name   skode_clause_control_event_4
+@type     realtime
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  emit control event with 4 arguments
+@doc
+Emits control event with 3 parameters.
+Usage: ce id p1 p2 p3
+@code
+    opcode_event_t op = { .code = SKODE_OP_CONTROL_EVENT, .argc = 4 };
+    op.arg[0] = args[0];
+    op.arg[1] = args[1];
+    op.arg[2] = args[2];
+    op.arg[3] = args[3];
+    return skode_emit_control_event_opcode(&op, voice, -1, -1, -1);
+@end

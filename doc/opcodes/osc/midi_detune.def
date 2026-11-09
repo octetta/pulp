@@ -1,0 +1,69 @@
+@name     midi_detune
+@alias    N
+@group    osc
+@c_name   skode_clause_midi_detune_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  voice MIDI transposition in semitones
+@doc
+Sets voice transposition offset in semitones.
+Usage: N semitones (or midi_detune semitones)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.midi_transpose[voice] = args[0];
+    return 0;
+@end
+
+@name     midi_detune
+@alias    N
+@group    osc
+@c_name   skode_clause_midi_detune_nan
+@type     realtime
+@arity    1
+@match    (nan)
+@summary  reset voice MIDI transposition
+@doc
+Resets voice transposition offset.
+Usage: N -
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.midi_transpose[voice] = 0.0f;
+    sv.midi_cents[voice] = 0.0f;
+    return 0;
+@end
+
+@name     midi_detune
+@alias    N
+@group    osc
+@c_name   skode_clause_midi_detune_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  voice MIDI transposition and fine detune in cents
+@doc
+Sets voice transposition offset in semitones and fine detune in cents.
+Usage: N semitones cents
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.midi_transpose[voice] = args[0];
+    sv.midi_cents[voice] = args[1];
+    return 0;
+@end
+
+@name     midi_detune
+@alias    N
+@group    osc
+@c_name   skode_clause_midi_detune_nan_cents
+@type     realtime
+@arity    2
+@match    (nan, finite)
+@summary  voice MIDI default transposition and fine detune in cents
+@doc
+Keeps default note transposition while setting fine detune in cents.
+Usage: N - cents
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.midi_cents[voice] = args[1];
+    return 0;
+@end

@@ -1,0 +1,31 @@
+@name     mute
+@alias    m
+@group    voice
+@c_name   skode_clause_mute_set
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  mute or unmute voice audio output (0 = unmute, 1 = mute)
+@doc
+Controls audio muting for the selected voice.
+Usage: m 1 (mute) or m 0 (unmute)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return wave_mute(voice, (int)args[0]);
+@end
+
+@name     mute
+@alias    m
+@group    voice
+@c_name   skode_clause_mute_toggle
+@type     realtime
+@arity    0
+@match    ()
+@summary  toggle voice mute state
+@doc
+Toggles the audio muting state of the selected voice.
+Usage: m (or mute)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return wave_mute(voice, -1);
+@end

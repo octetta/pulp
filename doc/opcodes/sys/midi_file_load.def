@@ -1,0 +1,23 @@
+@name     midi_file_load
+@alias    /mf
+@group    sys
+@c_name   skode_clause_midi_file_load
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load MIDI file into slot
+@doc
+Loads a standard MIDI file (.mid) from bracket string into player slot (0..3).
+Usage: [file.mid] /mf slot
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    if (ands_string_len(ctx->parse) > 0) {
+        int slot = (int)args[0];
+        midi_player_load(slot, ands_string(ctx->parse));
+        if (ctx->printf) ctx->printf(ctx, "# Loaded MIDI file into slot %d\n", slot);
+    } else {
+        if (ctx->printf) ctx->printf(ctx, "# usage: [filename.mid] /mf slot\n");
+    }
+    return 0;
+@end

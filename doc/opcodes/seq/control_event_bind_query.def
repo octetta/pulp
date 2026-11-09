@@ -1,0 +1,14 @@
+@name     control_event_bind_query
+@alias    /ce?
+@group    seq
+@c_name   skode_clause_control_event_bind_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query control event bindings
+@doc
+Prints installed control event bindings table.
+Usage: /ce?
+@code
+    return skode_exec_slashce_q(ctx, s, args, argc);
+@end

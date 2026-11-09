@@ -1,0 +1,31 @@
+@name     bpm
+@alias    M
+@group    seq
+@c_name   skode_clause_tempo_bpm
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set sequencer tempo in beats per minute
+@doc
+Sets the master sequencer tempo in BPM.
+Usage: M bpm (or bpm bpm)
+@code
+    tempo_set_subdivision_locked(args[0], 16.0f, 1);
+    return 0;
+@end
+
+@name     bpm
+@alias    M
+@group    seq
+@c_name   skode_clause_tempo_bpm_sub
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set sequencer tempo in BPM with step subdivision
+@doc
+Sets the sequencer tempo in BPM and step subdivision (e.g. 16 for 16th notes).
+Usage: M bpm sub (or bpm bpm sub)
+@code
+    tempo_set_subdivision_locked(args[0], args[1] > 0.0f ? args[1] : 16.0f, 1);
+    return 0;
+@end

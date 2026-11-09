@@ -14,7 +14,7 @@ Build or unpack a distribution under `dist/`:
 ```sh
 cd parts
 make native-libs     # default feature set
-make maxed-libs      # MAXED_KIT_OPTS feature set
+make maxed-libs      # maxed feature set
 make dist-api        # archive the maxed package
 make dist-api-windows # cross-build and zip the Windows maxed package
 ```

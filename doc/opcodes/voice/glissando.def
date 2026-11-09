@@ -1,0 +1,24 @@
+@name     glissando
+@alias    g
+@group    voice
+@c_name   skode_clause_glissando
+@type     realtime
+@arity    1..2
+@match    (finite, finite)
+@summary  voice glissando portamento rate and optional mode
+@doc
+Sets pitch slide / portamento time in seconds. Pass 0 to disable.
+Optional second argument sets glide mode (0=constant time, 1=constant rate, 2=exponential).
+Usage: g time[, mode] (or glissando time[, mode])
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    if (args[0] <= 0.0f) {
+        sv.glissando_enable[voice] = 0;
+        sv.glissando_time[voice] = 0.0f;
+    } else {
+        sv.glissando_enable[voice] = 1;
+        sv.glissando_time[voice] = args[0];
+        sv.glissando_mode[voice] = (argc > 1) ? (int)args[1] : 0;
+    }
+    return 0;
+@end

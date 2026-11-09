@@ -1,0 +1,14 @@
+@name     pattern_queue
+@alias    zq
+@group    seq
+@c_name   skode_clause_pattern_queue
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  queue pattern start or stop at boundary
+@doc
+Queues active pattern state change at next bar boundary.
+Usage: zq mode (or pattern_queue mode)
+@code
+    return skode_exec_zq(ctx, s, args, argc);
+@end

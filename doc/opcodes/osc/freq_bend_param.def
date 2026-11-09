@@ -1,0 +1,31 @@
+@name     freq_bend_param
+@alias    fbp
+@group    osc
+@c_name   skode_clause_freq_bend_param_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  frequency bend range in semitones
+@doc
+Sets frequency bend range in semitones with default offset 0.
+Usage: fbp range (or freq_bend_param range)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return freq_bend_param_set(voice, args[0], 0.0f);
+@end
+
+@name     freq_bend_param
+@alias    fbp
+@group    osc
+@c_name   skode_clause_freq_bend_param_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  frequency bend range and offset
+@doc
+Sets frequency bend range in semitones and fine offset.
+Usage: fbp range offset (or freq_bend_param range offset)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return freq_bend_param_set(voice, args[0], args[1]);
+@end

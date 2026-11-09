@@ -1,0 +1,28 @@
+@name     voice_show_verbose
+@alias    \\
+@group    voice
+@c_name   skode_clause_voice_show_verbose_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  display verbose voice parameters
+@doc
+Displays active voice detailed parameters and settings.
+Usage: \
+@code
+    return skode_exec__bs_bs(ctx, s, args, argc);
+@end
+
+@name     voice_show_verbose
+@alias    \\
+@group    voice
+@c_name   skode_clause_voice_show_verbose_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  display verbose voice parameters with argument
+@doc
+Displays active voice detailed parameters with argument.
+@code
+    return skode_exec__bs_bs(ctx, s, args, argc);
+@end

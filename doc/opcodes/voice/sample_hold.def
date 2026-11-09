@@ -1,0 +1,50 @@
+@name     sample_hold
+@alias    h
+@group    voice
+@c_name   skode_clause_sample_hold_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set sample and hold ratio
+@doc
+Sets sample and hold decimation ratio for voice.
+Usage: h 4
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.sample_hold_ratio[voice] = args[0];
+    return 0;
+@end
+
+@name     sample_hold
+@alias    h
+@group    voice
+@c_name   skode_clause_sample_hold_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  sample and hold no-op
+@doc
+Sample and hold no-op.
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.sample_hold_ratio[voice] = 0.0f;
+    return 0;
+@end
+
+@name     sample_hold
+@alias    h
+@group    voice
+@c_name   skode_clause_sample_hold_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set sample and hold ratio and mode
+@doc
+Sets sample and hold decimation ratio and quantization mode.
+Usage: h 4 1
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.sample_hold_ratio[voice] = args[0];
+    sv.sample_hold_mode[voice] = (int)args[1];
+    return 0;
+@end

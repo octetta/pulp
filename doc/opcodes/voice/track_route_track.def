@@ -1,0 +1,28 @@
+@name     track_route_track
+@alias    rt
+@group    voice
+@c_name   skode_clause_track_route_track_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  route active voice to track
+@doc
+Routes active voice to specified track.
+Usage: rt 2
+@code
+    return skode_exec_rt(ctx, s, args, argc);
+@end
+
+@name     track_route_track
+@alias    rt
+@group    voice
+@c_name   skode_clause_track_route_track_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  track route track no-op
+@doc
+Track route track no-op.
+@code
+    return skode_exec_rt(ctx, s, args, argc);
+@end

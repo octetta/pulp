@@ -1,0 +1,25 @@
+@name     pattern_text
+@alias    yt
+@group    seq
+@type     immediate
+@needs    string
+
+@c_name   skode_clause_pattern_text_0
+@match    ()
+@summary  set pattern text label from active string
+@doc
+Configures text label for the active pattern from the preceding parser string.
+Usage: [label] yt
+@code
+    return skode_exec_yt(ctx, s, args, argc);
+@end
+
+@c_name   skode_clause_pattern_text_1
+@match    (finite)
+@summary  set pattern text label (optional argument)
+@doc
+Configures text label for the active pattern with an optional numeric parameter.
+Usage: [label] yt num
+@code
+    return skode_exec_yt(ctx, s, args, argc);
+@end

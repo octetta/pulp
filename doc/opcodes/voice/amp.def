@@ -1,0 +1,31 @@
+@name     amp
+@alias    a
+@group    voice
+@c_name   skode_clause_amp_set
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set voice output amplitude / gain
+@doc
+Sets the output level (0.0 .. 1.0+) for the selected voice.
+Usage: a level (or amp level)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return amp_set(voice, args[0]);
+@end
+
+@name     amp
+@alias    a
+@group    voice
+@c_name   skode_clause_amp_reset
+@type     realtime
+@arity    1
+@match    (nan)
+@summary  reset voice output amplitude to default 0.5
+@doc
+Resets the voice output level to 0.5 default.
+Usage: a - (or amp -)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return amp_set(voice, 0.5f);
+@end

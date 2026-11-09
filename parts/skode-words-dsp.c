@@ -1441,8 +1441,7 @@ static int word_exec_v_q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s,
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-
-  return 0;
+  voice_show_all(ctx, voice, ctx->verbose); return 0;
 }
 
 static int word_exec__q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
@@ -1504,41 +1503,6 @@ static int word_exec__slashwex(const skode_word_t *self, skode_t *ctx, ands_t *s
 }
 
 
-// Word declarations
-__attribute__((unused)) static skode_word_t word_ab = { WID("ab"), .execute = word_exec_ab, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-__attribute__((unused)) static skode_word_t word_abp = { WID("abp"), .execute = word_exec_abp, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_A = { WID("A"), .execute = word_exec_A, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_b = { WID("b"), .execute = word_exec_b, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_B = { WID("B"), .execute = word_exec_B, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_BC = { WID("BC"), .execute = word_exec_BC, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_c = { WID("c"), .execute = word_exec_c, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_C = { WID("C"), .execute = word_exec_C, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_ct = { WID("ct"), .execute = word_exec_ct, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_cte = { WID("cte"), .execute = word_exec_cte, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_cd = { WID("cd"), .execute = word_exec_cd, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-__attribute__((unused)) static skode_word_t word_fb = { WID("fb"), .execute = word_exec_fb, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-__attribute__((unused)) static skode_word_t word_fbp = { WID("fbp"), .execute = word_exec_fbp, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_ft = { WID("ft"), .execute = word_exec_ft, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_kt = { WID("kt"), .execute = word_exec_ft, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_fte = { WID("fte"), .execute = word_exec_fte, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_kte = { WID("kte"), .execute = word_exec_fte, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_fd = { WID("fd"), .execute = word_exec_fd, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_kd = { WID("kd"), .execute = word_exec_fd, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_F = { WID("F"), .execute = word_exec_F, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_FF = { WID("FF"), .execute = word_exec_FF, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_FB = { WID("FB"), .execute = word_exec_FB, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_g = { WID("g"), .execute = word_exec_g, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_G = { WID("G"), .execute = word_exec_G, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_h = { WID("h"), .execute = word_exec_h, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_H = { WID("H"), .execute = word_exec_H, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_L = { WID("L"), .execute = word_exec_L, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_J = { WID("J"), .execute = word_exec_J, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_j = { WID("j"), .execute = word_exec_J, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_K = { WID("K"), .execute = word_exec_K, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_k = { WID("k"), .execute = word_exec_K, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word____l = { WID("___l"), .execute = word_exec____l, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_l = { WID("l"), .execute = word_exec_l, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_O = { WID("O"), .execute = word_exec_O, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
 /* 'on' and 'off' are gate-on / gate-off aliases for l1 / l0 */
 static int word_exec_on(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
   (void)self; (void)s; (void)arg; (void)argc;
@@ -1550,154 +1514,170 @@ static int word_exec_off(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   skode_linked_velocity(ctx->voice, 0.0, SAMPLE_COUNT_GET());
   return 0;
 }
-static skode_word_t word_on  = { WID("on"),  .execute = word_exec_on,  .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_off = { WID("off"), .execute = word_exec_off, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_M = { WID("M"), .opcode_id = SKODE_OP_TEMPO, .execute = word_exec_M, .safety = WORD_REAL_TIME_SAFE, .max_args = 2, .category = "voice" };
-static skode_word_t word_N = { WID("N"), .execute = word_exec_N, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_ds = { WID("ds"), .execute = word_exec_ds, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_DG = { WID("DG"), .execute = word_exec_DG, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_DL = { WID("DL"), .execute = word_exec_DL, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_DL_q = { WID("DL?"), .execute = word_exec_DL_q, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_DD = { WID("DD"), .execute = word_exec_DD, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_DF = { WID("DF"), .execute = word_exec_DF, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_DP = { WID("DP"), .execute = word_exec_DP, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_DT = { WID("DT"), .execute = word_exec_DT, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_DS = { WID("DS"), .execute = word_exec_DS, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_GS = { WID("GS"), .execute = word_exec_GS, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_P = { WID("P"), .execute = word_exec_P, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_bc = { WID("bc"), .execute = word_exec_q, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_Q = { WID("Q"), .execute = word_exec_Q, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_q = { WID("q"), .execute = word_exec_Q, .safety = WORD_IMMEDIATE_ONLY , .category = "filter" };
-static skode_word_t word_r = { WID("r"), .execute = word_exec_r, .safety = WORD_IMMEDIATE_ONLY , .category = "routing" };
-static skode_word_t word_rt = { WID("rt"), .execute = word_exec_rt, .safety = WORD_IMMEDIATE_ONLY , .category = "routing" };
-static skode_word_t word_rv = { WID("rv"), .execute = word_exec_rv, .safety = WORD_IMMEDIATE_ONLY , .category = "routing" };
-static skode_word_t word_s = { WID("s"), .execute = word_exec_s, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_S = { WID("S"), .execute = word_exec_S, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_t = { WID("t"), .execute = word_exec_t, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_te = { WID("te"), .execute = word_exec_te, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_T = { WID("T"), .execute = word_exec_T, .opcode_id = SKODE_OP_TRIGGER, .min_args = 0, .max_args = 0, .safety = WORD_REAL_TIME_SAFE, .category = "voice", .summary = "trigger voice at velocity 1" };
-static skode_word_t word_HS = { WID("HS"), .execute = word_exec_HS, .opcode_id = SKODE_OP_LINK_SYNC, .min_args = 1, .max_args = 6, .safety = WORD_REAL_TIME_SAFE, .category = "modulation", .summary = "hard-sync targets: voice[, voice ...]" };
-static skode_word_t word_vc = { WID("vc"), .execute = word_exec_vc, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_V = { WID("V"), .execute = word_exec_V, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_vt = { WID("vt"), .execute = word_exec_vt, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_WL = { WID("WL"), .execute = word_exec_WL, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_VS = { WID("VS"), .execute = word_exec_VS, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_VL = { WID("VL"), .execute = word_exec_VL, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_VW = { WID("VW"), .execute = word_exec_VW, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_w = { WID("w"), .execute = word_exec_w, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_w_gtd = { WID("w>d"), .execute = word_exec_w_gtd, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_w_gtr = { WID("w>r"), .execute = word_exec_w_gtr, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_w_gtw = { WID("w>w"), .execute = word_exec_w_gtw, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_w_bang = { WID("w!"), .execute = word_exec_w_bang, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_r_bang = { WID("r!"), .execute = word_exec_w_bang, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_w_star = { WID("w*"), .execute = word_exec_w_star, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_r_star = { WID("r*"), .execute = word_exec_w_star, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_w_gt = { WID("w>"), .execute = word_exec_w_gt, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_rs = { WID("rs"), .execute = word_exec_w_gt, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_w_lt = { WID("w<"), .execute = word_exec_w_lt, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_re = { WID("re"), .execute = word_exec_w_lt, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_w_lt_gt = { WID("w<>"), .execute = word_exec_w_lt_gt, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_ra = { WID("ra"), .execute = word_exec_w_lt_gt, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_W = { WID("W"), .execute = word_exec_W, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word_XM = { WID("XM"), .execute = word_exec_XM, .safety = WORD_IMMEDIATE_ONLY , .category = "modulation" };
-static skode_word_t word_v_q = { WID("v?"), .execute = word_exec_v_q, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word__q = { WID("?"), .execute = word_exec__q, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word__bs_bs = { WID("\\"), .execute = word_exec__bs_bs, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word_v_q_bs_q = { WID("v?\?"), .execute = word_exec_v_q_bs_q, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word__q_bs_q = { WID("?\?"), .execute = word_exec__q_bs_q, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word__qr = { WID("?r"), .execute = word_exec__qr, .safety = WORD_IMMEDIATE_ONLY , .category = "routing" };
-static skode_word_t word__gt = { WID(">"), .execute = word_exec__gt, .safety = WORD_IMMEDIATE_ONLY , .category = "voice" };
-static skode_word_t word__slash = { WID("/"), .execute = word_exec__slash, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
-static skode_word_t word__slashwex = { WID("/wex"), .execute = word_exec__slashwex, .safety = WORD_IMMEDIATE_ONLY , .category = "wave" };
+
+int skode_exec_ds(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_ds(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_DG(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_DG(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_DL(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_DL(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_DL_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_DL_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_DD(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_DD(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_DF(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_DF(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_DP(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_DP(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_DT(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_DT(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_DS(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_DS(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_GS(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_GS(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_cte(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_cte(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_ft(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_ft(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_fte(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_fte(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_fd(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_fd(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_G(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_G(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_h(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_h(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_H(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_H(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_L(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_L(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_J(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_J(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_K(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_K(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec____l(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec____l(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_O(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_O(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_on(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_on(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_off(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_off(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_bc(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_Q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_Q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_r(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_r(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_rt(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_rt(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_rv(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_rv(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_te(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_te(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_vc(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_vc(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_V(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_V(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_vt(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_vt(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_WL(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_WL(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_VL(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_VL(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_VS(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_VS(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_VW(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_VW(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_w_gtd(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_w_gtd(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_w_gtr(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_w_gtr(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_w_gtw(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_w_gtw(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_w_bang(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_w_bang(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_w_star(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_w_star(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_w_gt(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_w_gt(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_w_lt(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_w_lt(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_w_lt_gt(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_w_lt_gt(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_W(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_W(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashwex(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashwex(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_v_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_v_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec__q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec__bs_bs(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__bs_bs(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_v_q_bs_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_v_q_bs_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec__q_bs_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__q_bs_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec__qr(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__qr(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec__slash(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slash(NULL, ctx, s, (double*)arg, argc);
+}
 
 void skode_register_words_dsp(skode_vocab_t *vocab) {
-  skode_dict_register(vocab, &word_A);
-  skode_dict_register(vocab, &word_b);
-  skode_dict_register(vocab, &word_B);
-  skode_dict_register(vocab, &word_BC);
-  skode_dict_register(vocab, &word_c);
-  skode_dict_register(vocab, &word_C);
-  skode_dict_register(vocab, &word_ct);
-  skode_dict_register(vocab, &word_cte);
-  skode_dict_register(vocab, &word_cd);
-  skode_dict_register(vocab, &word_ft);
-  skode_dict_register(vocab, &word_kt);
-  skode_dict_register(vocab, &word_fte);
-  skode_dict_register(vocab, &word_kte);
-  skode_dict_register(vocab, &word_fd);
-  skode_dict_register(vocab, &word_kd);
-  skode_dict_register(vocab, &word_F);
-  skode_dict_register(vocab, &word_FF);
-  skode_dict_register(vocab, &word_FB);
-  skode_dict_register(vocab, &word_g);
-  skode_dict_register(vocab, &word_G);
-  skode_dict_register(vocab, &word_h);
-  skode_dict_register(vocab, &word_H);
-  skode_dict_register(vocab, &word_L);
-  skode_dict_register(vocab, &word_J);
-  skode_dict_register(vocab, &word_j);
-  skode_dict_register(vocab, &word_K);
-  skode_dict_register(vocab, &word_k);
-  skode_dict_register(vocab, &word____l);
-  skode_dict_register(vocab, &word_l);
-  skode_dict_register(vocab, &word_O);
-  skode_dict_register(vocab, &word_on);
-  skode_dict_register(vocab, &word_off);
-  skode_dict_register(vocab, &word_M);
-  skode_dict_register(vocab, &word_N);
-  skode_dict_register(vocab, &word_ds);
-  skode_dict_register(vocab, &word_DG);
-  skode_dict_register(vocab, &word_DL);
-  skode_dict_register(vocab, &word_DL_q);
-  skode_dict_register(vocab, &word_DD);
-  skode_dict_register(vocab, &word_DF);
-  skode_dict_register(vocab, &word_DP);
-  skode_dict_register(vocab, &word_DT);
-  skode_dict_register(vocab, &word_DS);
-  skode_dict_register(vocab, &word_GS);
-  skode_dict_register(vocab, &word_P);
-  skode_dict_register(vocab, &word_bc);
-  skode_dict_register(vocab, &word_Q);
-  skode_dict_register(vocab, &word_q);
-  skode_dict_register(vocab, &word_r);
-  skode_dict_register(vocab, &word_rt);
-  skode_dict_register(vocab, &word_rv);
-  skode_dict_register(vocab, &word_s);
-  skode_dict_register(vocab, &word_S);
-  skode_dict_register(vocab, &word_t);
-  skode_dict_register(vocab, &word_te);
-  skode_dict_register(vocab, &word_T);
-  skode_dict_register(vocab, &word_HS);
-  skode_dict_register(vocab, &word_vc);
-  skode_dict_register(vocab, &word_V);
-  skode_dict_register(vocab, &word_vt);
-  skode_dict_register(vocab, &word_WL);
-  skode_dict_register(vocab, &word_VS);
-  skode_dict_register(vocab, &word_VL);
-  skode_dict_register(vocab, &word_VW);
-  skode_dict_register(vocab, &word_w);
-  skode_dict_register(vocab, &word_w_gtd);
-  skode_dict_register(vocab, &word_w_gtr);
-  skode_dict_register(vocab, &word_w_gtw);
-  skode_dict_register(vocab, &word_w_bang);
-  skode_dict_register(vocab, &word_r_bang);
-  skode_dict_register(vocab, &word_w_star);
-  skode_dict_register(vocab, &word_r_star);
-  skode_dict_register(vocab, &word_w_gt);
-  skode_dict_register(vocab, &word_rs);
-  skode_dict_register(vocab, &word_w_lt);
-  skode_dict_register(vocab, &word_re);
-  skode_dict_register(vocab, &word_w_lt_gt);
-  skode_dict_register(vocab, &word_ra);
-  skode_dict_register(vocab, &word_W);
-  skode_dict_register(vocab, &word_XM);
-  skode_dict_register(vocab, &word_v_q);
-  skode_dict_register(vocab, &word__q);
-  skode_dict_register(vocab, &word__bs_bs);
-  skode_dict_register(vocab, &word_v_q_bs_q);
-  skode_dict_register(vocab, &word__q_bs_q);
-  skode_dict_register(vocab, &word__qr);
-  skode_dict_register(vocab, &word__gt);
-  skode_dict_register(vocab, &word__slash);
-  skode_dict_register(vocab, &word__slashwex);
+  (void)vocab;
 }

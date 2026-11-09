@@ -1,0 +1,29 @@
+@name     delay_query
+@alias    DL?
+@group    mod
+@c_name   skode_clause_delay_query_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query delay status
+@doc
+Prints delay line status summary.
+Usage: DL?
+@code
+    return skode_exec_DL_q(ctx, s, args, argc);
+@end
+
+@name     delay_query
+@alias    DL?
+@group    mod
+@c_name   skode_clause_delay_query_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  query delay bus status
+@doc
+Prints delay bus status.
+Usage: DL? 1
+@code
+    return skode_exec_DL_q(ctx, s, args, argc);
+@end

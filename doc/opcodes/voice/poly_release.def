@@ -1,0 +1,33 @@
+@name     poly_release
+@alias    pr
+@group    voice
+@c_name   skode_clause_poly_release_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  release polyphonic note
+@doc
+Releases active note on pool by key index.
+Usage: pr pool key
+@code
+    (void)voice;
+    int pool = (int)args[0], key = (int)args[1];
+    return skred_poly_release(pool, key, 0);
+@end
+
+@name     poly_release
+@alias    pr
+@group    voice
+@c_name   skode_clause_poly_release_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  release polyphonic note with release velocity
+@doc
+Releases active note on pool with custom note-off velocity.
+Usage: pr pool key velocity
+@code
+    (void)voice;
+    int pool = (int)args[0], key = (int)args[1];
+    return skred_poly_release(pool, key, args[2]);
+@end

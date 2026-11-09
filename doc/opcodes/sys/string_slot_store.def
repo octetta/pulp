@@ -1,0 +1,14 @@
+@name     string_slot_store
+@alias    s>
+@group    sys
+@c_name   skode_clause_string_slot_store
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  save string from parser buffer into memory slot
+@doc
+Stores string from active parser buffer into slot (0..15).
+Usage: [string] s> slot
+@code
+    return skode_exec_s_gt(ctx, s, args, argc);
+@end

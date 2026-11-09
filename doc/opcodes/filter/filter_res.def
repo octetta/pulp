@@ -1,0 +1,31 @@
+@name     filter_res
+@alias    q
+@group    filter
+@c_name   skode_clause_filter_res_set
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set multimode filter resonance (0.0 to 1.0+)
+@doc
+Sets the filter resonance / Q parameter for the active voice.
+Usage: q res (or filter_res res)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return mmf_set_res(&skred_global_engine, voice, args[0]);
+@end
+
+@name     filter_res
+@alias    q
+@group    filter
+@c_name   skode_clause_filter_res_reset
+@type     realtime
+@arity    1
+@match    (nan)
+@summary  reset filter resonance to zero (flat)
+@doc
+Resets filter resonance to 0.0 default.
+Usage: q - (or filter_res -)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return mmf_set_res(&skred_global_engine, voice, 0.0f);
+@end

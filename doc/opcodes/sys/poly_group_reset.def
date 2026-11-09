@@ -1,0 +1,19 @@
+@name     poly_group_reset
+@alias    /pg!
+@group    sys
+@c_name   skode_clause_poly_group_reset
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  refresh polyphony group
+@doc
+Refreshes polyphony group configuration and clones parameters.
+Usage: /pg! group
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int group = (int)args[0];
+    if (skred_poly_group_refresh(group) != 0)
+        ctx->printf(ctx, "# usage: /pg! group\n");
+    return 0;
+@end

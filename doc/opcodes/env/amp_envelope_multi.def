@@ -1,0 +1,28 @@
+@name     amp_envelope_multi
+@alias    te
+@group    env
+@c_name   skode_clause_amp_envelope_multi_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  configure multistage amp envelope from data buffer
+@doc
+Configures multistage amplitude envelope from data buffer.
+Usage: (0 0 100 1 50 .5) te
+@code
+    return skode_exec_te(ctx, s, args, argc);
+@end
+
+@name     amp_envelope_multi
+@alias    te
+@group    env
+@c_name   skode_clause_amp_envelope_multi_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  configure multistage amp envelope with argument
+@doc
+Configures multistage amplitude envelope with argument.
+@code
+    return skode_exec_te(ctx, s, args, argc);
+@end

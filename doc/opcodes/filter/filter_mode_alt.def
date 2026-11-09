@@ -1,0 +1,43 @@
+@name     filter_mode_alt
+@alias    J
+@group    filter
+@c_name   skode_clause_filter_mode_alt_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set multimode filter response type
+@doc
+Sets filter mode (0=off, 1=lp, 2=hp, 3=bp, 4=notch, etc.).
+Usage: J 1
+@code
+    return skode_exec_J(ctx, s, args, argc);
+@end
+
+@name     filter_mode_alt
+@alias    J
+@group    filter
+@c_name   skode_clause_filter_mode_alt_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  filter mode no-op
+@doc
+Filter mode no-op.
+@code
+    return skode_exec_J(ctx, s, args, argc);
+@end
+
+@name     filter_mode_alt
+@alias    J
+@group    filter
+@c_name   skode_clause_filter_mode_alt_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  set filter mode and character
+@doc
+Sets filter mode and character model.
+Usage: J 1 2
+@code
+    return skode_exec_J(ctx, s, args, argc);
+@end

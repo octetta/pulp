@@ -102,9 +102,9 @@ enum {
 };
 
 typedef uint16_t skode_opcode_t;
-typedef uint8_t skode_realtime_opcode_t;
+typedef uint16_t skode_realtime_opcode_t;
 
-#define SKODE_OPCODE_REALTIME_MAX 255
+#define SKODE_OPCODE_REALTIME_MAX 65535
 
 static inline int skode_opcode_is_realtime(skode_opcode_t code) {
   return code <= SKODE_OPCODE_REALTIME_MAX;
@@ -189,7 +189,8 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice);
 int skode_emit_control_event_opcode(const opcode_event_t *opcode, int voice,
   int pattern, int step, int tag);
 int skode_opcode_supported(skode_opcode_t opcode);
-const char *skode_opcode_name(uint8_t opcode);
+const char *skode_opcode_name(uint16_t opcode);
+const char *skode_discrete_opcode_name(uint16_t opcode);
 int skode_execute_program(const event_program_t *program, int voice,
   uint64_t now, int tag);
 int skode_execute_program_state(const event_program_t *program, int *voice,

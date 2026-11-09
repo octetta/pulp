@@ -1,0 +1,29 @@
+@name     midi_debug
+@alias    /md
+@group    sys
+@c_name   skode_clause_midi_debug_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  toggle midi debug logging
+@doc
+Toggles MIDI debug logging.
+Usage: /md
+@code
+    return skode_exec_slashmd(ctx, s, args, argc);
+@end
+
+@name     midi_debug
+@alias    /md
+@group    sys
+@c_name   skode_clause_midi_debug_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set midi debug logging
+@doc
+Sets MIDI debug logging (0=off, 1=on).
+Usage: /md 1
+@code
+    return skode_exec_slashmd(ctx, s, args, argc);
+@end

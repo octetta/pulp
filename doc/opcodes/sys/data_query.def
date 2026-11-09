@@ -1,0 +1,19 @@
+@name     data_query
+@alias    ?d
+@group    sys
+@c_name   skode_clause_data_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  dump data array contents
+@doc
+Prints values stored in the internal data array.
+Usage: ?d (or data_query)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    double *data = ands_data(ctx->parse);
+    int data_len = ands_data_len(ctx->parse);
+    skode_double_dump(ctx, data, data_len);
+    return 0;
+@end

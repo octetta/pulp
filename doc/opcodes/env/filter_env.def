@@ -1,0 +1,17 @@
+@name     filter_env
+@alias    kt
+@group    env
+@c_name   skode_clause_filter_env
+@type     realtime
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  filter cutoff envelope parameters (ADSR)
+@doc
+Configures filter cutoff envelope (attack, decay, sustain, release).
+Usage: kt a d s r (or filter_env a d s r)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    envelope_configure_e(&sv.filter_envelope[voice], args[0], args[1], args[2], args[3]);
+    sv.use_filter_envelope[voice] = !(args[0] == 0 && args[1] == 0 && args[2] == 1 && args[3] == 0);
+    return 0;
+@end

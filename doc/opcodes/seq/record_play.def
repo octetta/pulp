@@ -1,0 +1,14 @@
+@name     record_play
+@alias    >r
+@group    seq
+@c_name   skode_clause_record_play
+@type     immediate
+@arity    0
+@match    ()
+@summary  play recorded audio buffer
+@doc
+Plays recorded audio buffer through output.
+Usage: >r
+@code
+    return skode_exec_gtr(ctx, s, args, argc);
+@end

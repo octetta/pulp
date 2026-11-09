@@ -1,0 +1,33 @@
+@name     midi_list
+@alias    /mL
+@group    sys
+@c_name   skode_clause_midi_list
+@type     immediate
+@arity    0
+@match    ()
+@summary  list MIDI devices
+@doc
+Enumerates available MIDI input and output ports.
+Usage: /mL (or /mls)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    int result = skred_midi_init("pulp");
+    if (result == 0) {
+        ctx->printf(ctx, "# MIDI inputs\n");
+        int count = skred_midi_input_count();
+        for (int i = 0; i < count; i++) {
+            char name[128] = {0};
+            if (skred_midi_input_name(i, name, sizeof(name)) == 0)
+                ctx->printf(ctx, "#   %d %s\n", i, name);
+        }
+        ctx->printf(ctx, "# MIDI outputs\n");
+        count = skred_midi_output_count();
+        for (int i = 0; i < count; i++) {
+            char name[128] = {0};
+            if (skred_midi_output_name(i, name, sizeof(name)) == 0)
+                ctx->printf(ctx, "#   %d %s\n", i, name);
+        }
+    } else ctx->printf(ctx, "# MIDI init failed (%d)\n", result);
+    return 0;
+@end

@@ -237,8 +237,8 @@ void do_pattern(uint64_t now,
     uint64_t target_tick = (uint64_t)(seq_tick_origin +
       ((double)(now - seq_sample_origin) / samples_per_step));
     if (target_tick > master_tick &&
-        target_tick - master_tick > SEQ_MAX_CATCHUP_TICKS)
-      master_tick = target_tick - SEQ_MAX_CATCHUP_TICKS;
+        target_tick - master_tick >= SEQ_MAX_CATCHUP_TICKS)
+      master_tick = target_tick - (SEQ_MAX_CATCHUP_TICKS - 1);
     while (master_tick <= target_tick) {
       for (int p = 0; p < PATTERNS_MAX; p++) {
         if (seq_pending_state[p] > 0) {
@@ -701,6 +701,18 @@ void seq_state_all(int state) {
   seq_edit_lock();
   for (int p = 0; p < PATTERNS_MAX; p++) {
     seq_state_set_locked(p, state);
+  }
+  seq_edit_unlock();
+}
+
+void seq_state_multi(int state, const int *patterns, int count) {
+  if (!patterns || count <= 0) return;
+  seq_edit_lock();
+  for (int i = 0; i < count; i++) {
+    int p = patterns[i];
+    if (p >= 0 && p < PATTERNS_MAX) {
+      seq_state_set_locked(p, state);
+    }
   }
   seq_edit_unlock();
 }

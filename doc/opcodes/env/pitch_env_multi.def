@@ -1,0 +1,23 @@
+@name     pitch_env_multi
+@alias    pte
+@group    env
+@c_name   skode_clause_pitch_env_multi
+@type     immediate
+@arity    0
+@match    ()
+@summary  configure multistage pitch envelope
+@doc
+Loads multistage pitch envelope breakpoints from active data buffer.
+Usage: pte
+@code
+    if (!ctx) return -1;
+    (void)args; (void)argc;
+    int voice = ctx->voice;
+    double *data = s ? ands_data(s) : NULL;
+    int len = s ? ands_data_len(s) : 0;
+    if (len > 0) {
+        envelope_configure_multistage_e(&sv.freq_envelope[voice], data, len);
+        sv.use_freq_envelope[voice] = 1;
+    }
+    return 0;
+@end

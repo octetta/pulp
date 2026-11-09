@@ -1,0 +1,28 @@
+@name     filter_res_alt
+@alias    Q
+@group    filter
+@c_name   skode_clause_filter_res_alt_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set multimode filter resonance
+@doc
+Sets filter resonance / Q parameter for active voice.
+Usage: Q 0.5
+@code
+    return skode_exec_Q(ctx, s, args, argc);
+@end
+
+@name     filter_res_alt
+@alias    Q
+@group    filter
+@c_name   skode_clause_filter_res_alt_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  filter resonance no-op
+@doc
+Filter resonance no-op.
+@code
+    return skode_exec_Q(ctx, s, args, argc);
+@end

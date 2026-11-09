@@ -1,0 +1,14 @@
+@name     record_pause
+@alias    ^r
+@group    seq
+@c_name   skode_clause_record_pause
+@type     immediate
+@arity    0
+@match    ()
+@summary  pause recorded audio playback
+@doc
+Pauses playback of recorded audio buffer.
+Usage: ^r
+@code
+    return skode_exec_hatr(ctx, s, args, argc);
+@end

@@ -315,14 +315,22 @@ int skode_load_buffer(skode_t *ctx, const char *text, size_t text_len,
       }
       
       r = skode_consume(chunk, loader);
-      free(chunk);
       
-      if (loader->log_len > 0) ctx->printf(ctx, "%s", loader->log);
+      if (loader->log_len > 0) {
+        if (strstr(loader->log, "contains an immediate-only word") ||
+            strstr(loader->log, "could not be compiled")) {
+          r = -1;
+        }
+        ctx->printf(ctx, "%s", loader->log);
+      }
       if (r != 0) {
-        ctx->printf(ctx, "# error in patch %s:%d status=%d\n",
-          label ? label : "(unknown)", line_no, r);
+        ctx->printf(ctx, "# load aborted at %s:%d\n",
+          label ? label : "(unknown)", line_no);
+        free(chunk);
+        r = -1;
         break;
       }
+      free(chunk);
       
       for (size_t i = start; i < pos; i++) {
           if (text[i] == '\n') line_no++;

@@ -1,0 +1,47 @@
+@name     repeat_ticks
+@alias    RR
+@group    seq
+@c_name   skode_clause_repeat_ticks_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  repeat scheduled program at beat subdivision interval
+@doc
+Repeats bracketed program N times at musical beat subdivision interval.
+Usage: [program] count beats RR
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int count = (int)args[0];
+    if (count > 0 && count <= QUEUE_SIZE && isfinite(args[1]) && args[1] >= 0.0) {
+        event_program_t program;
+        if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program)) return 0;
+        double seconds = tempo_step_seconds_get() * 4.0f * args[1];
+        skode_queue_repeated(&program, ctx->voice, count, seconds, 0);
+    }
+    return 0;
+@end
+
+@name     repeat_ticks
+@alias    RR
+@group    seq
+@c_name   skode_clause_repeat_ticks_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  repeat scheduled program at beat subdivision interval with tag
+@doc
+Repeats bracketed program N times at musical beat subdivision interval with event tag.
+Usage: [program] count beats tag RR
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int count = (int)args[0];
+    if (count > 0 && count <= QUEUE_SIZE && isfinite(args[1]) && args[1] >= 0.0) {
+        event_program_t program;
+        if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program)) return 0;
+        double seconds = tempo_step_seconds_get() * 4.0f * args[1];
+        skode_queue_repeated(&program, ctx->voice, count, seconds, (int)args[2]);
+    }
+    return 0;
+@end

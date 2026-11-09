@@ -1,0 +1,29 @@
+@name     control_event_bind_fire
+@alias    /ce!
+@group    seq
+@c_name   skode_clause_control_event_bind_clear
+@type     immediate
+@arity    0
+@match    ()
+@summary  clear all control event bindings
+@doc
+Clears all installed control event bindings.
+Usage: /ce!
+@code
+    return skode_exec_slashce_bang(ctx, s, args, argc);
+@end
+
+@name     control_event_bind_fire
+@alias    /ce!
+@group    seq
+@c_name   skode_clause_control_event_bind_remove
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  remove control event binding
+@doc
+Removes control event binding matching type and id.
+Usage: /ce! type id
+@code
+    return skode_exec_slashce_bang(ctx, s, args, argc);
+@end

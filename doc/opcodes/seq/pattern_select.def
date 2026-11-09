@@ -1,0 +1,28 @@
+@name     pattern_select
+@alias    y
+@group    seq
+@c_name   skode_clause_pattern_select
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  select active pattern
+@doc
+Sets active pattern index in context.
+Usage: y pattern (or pattern_select pattern)
+@code
+    return skode_exec_y(ctx, s, args, argc);
+@end
+
+@name     pattern_select
+@alias    y
+@group    seq
+@c_name   skode_clause_pattern_select_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  pattern select no-op with 0 args
+@doc
+Pattern select no-op when no args provided on stack.
+@code
+    return skode_exec_y(ctx, s, args, argc);
+@end

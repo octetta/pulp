@@ -1,0 +1,29 @@
+@name     control_event_remove
+@alias    /cer
+@group    seq
+@c_name   skode_clause_control_event_responder_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query control event responder status
+@doc
+Queries control event responder enabled status.
+Usage: /cer
+@code
+    return skode_exec_slashcer(ctx, s, args, argc);
+@end
+
+@name     control_event_remove
+@alias    /cer
+@group    seq
+@c_name   skode_clause_control_event_responder_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set control event responder enabled
+@doc
+Enables or disables control event responder.
+Usage: /cer 0|1
+@code
+    return skode_exec_slashcer(ctx, s, args, argc);
+@end

@@ -1,0 +1,16 @@
+@name     midi_list_ls
+@alias    /mls
+@group    sys
+@c_name   skode_clause_midi_list_ls
+@type     immediate
+@arity    0
+@match    ()
+@summary  list MIDI devices (alias)
+@doc
+Enumerates available MIDI input and output ports.
+Usage: /mls
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    return skode_clause_midi_list(ctx, s, args, argc);
+@end

@@ -1,0 +1,15 @@
+@name     stop
+@group    sys
+@c_name   skode_clause_sys_stop
+@type     immediate
+@arity    0
+@match    ()
+@summary  stop audio playback and halt sequencer
+@doc
+Stops playback, halts all sequencer patterns, and mutes sounding voices.
+Usage: stop
+@code
+    (void)ctx; (void)s; (void)args; (void)argc;
+    seq_state_all(SEQ_STOPPED);
+    return 0;
+@end

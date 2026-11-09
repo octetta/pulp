@@ -1,0 +1,14 @@
+@name     pattern_step_query
+@alias    ys?
+@group    seq
+@c_name   skode_clause_pattern_step_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query pattern step details
+@doc
+Prints step count and details for active pattern.
+Usage: ys?
+@code
+    return skode_exec_ys_q(ctx, s, args, argc);
+@end

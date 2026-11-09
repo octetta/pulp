@@ -1,0 +1,28 @@
+@name     wave_export_wav
+@alias    w>w
+@group    voice
+@c_name   skode_clause_wave_export_wav_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  export wavetable slot to WAV file
+@doc
+Exports samples from wavetable slot to WAV file named in string buffer.
+Usage: [export.wav] 0 w>w
+@code
+    return skode_exec_w_gtw(ctx, s, args, argc);
+@end
+
+@name     wave_export_wav
+@alias    w>w
+@group    voice
+@c_name   skode_clause_wave_export_wav_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  wave export wav no-op
+@doc
+Wave export wav no-op.
+@code
+    return skode_exec_w_gtw(ctx, s, args, argc);
+@end

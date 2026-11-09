@@ -1,0 +1,23 @@
+@name     midi_to_freq
+@alias    m>f
+@group    sys
+@c_name   skode_clause_midi_to_freq
+@type     immediate
+@arity    0
+@match    ()
+@summary  convert MIDI note numbers in data array to Hz
+@doc
+Converts all values in the active data array from MIDI notes to frequencies in Hz.
+Usage: m>f (or midi_to_freq)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    double *data = ands_data(ctx->parse);
+    int len = ands_data_len(ctx->parse);
+    if (data) {
+        for (int i = 0; i < len; i++) {
+            data[i] = pow(2.0, (data[i] - 69.0) / 12.0) * 440.0;
+        }
+    }
+    return 0;
+@end

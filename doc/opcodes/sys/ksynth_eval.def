@@ -1,0 +1,14 @@
+@name     ksynth_eval
+@alias    ks
+@group    sys
+@c_name   skode_clause_ksynth_eval
+@type     immediate
+@arity    0
+@match    ()
+@summary  evaluate inline KSynth expression
+@doc
+Evaluates inline KSynth expression string.
+Usage: [expression] ks
+@code
+    return skode_exec_ks(ctx, s, args, argc);
+@end

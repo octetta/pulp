@@ -1,0 +1,64 @@
+@name     pan_mod
+@alias    P
+@group    voice
+@c_name   skode_clause_pan_mod_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  disable pan modulation
+@doc
+Disables stereo pan modulation on active voice.
+Usage: P (or pan_mod)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return pan_mod_set(voice, -1, 0, 0);
+@end
+
+@name     pan_mod
+@alias    P
+@group    voice
+@c_name   skode_clause_pan_mod_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  pan modulation source or disable
+@doc
+Disables pan modulation if source < 0, or sets source voice with 0 depth.
+Usage: P source
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    int src = (int)args[0];
+    return (src < 0) ? pan_mod_set(voice, -1, 0, 0) : pan_mod_set(voice, src, 0, 0);
+@end
+
+@name     pan_mod
+@alias    P
+@group    voice
+@c_name   skode_clause_pan_mod_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  pan modulation source and depth
+@doc
+Sets pan modulation source voice and depth.
+Usage: P source depth
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return pan_mod_set(voice, (int)args[0], args[1], 0);
+@end
+
+@name     pan_mod
+@alias    P
+@group    voice
+@c_name   skode_clause_pan_mod_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  pan modulation source, depth and scale
+@doc
+Sets pan modulation source voice, depth and scale.
+Usage: P source depth scale
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return pan_mod_set(voice, (int)args[0], args[1], args[2]);
+@end

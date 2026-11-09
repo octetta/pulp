@@ -1,0 +1,42 @@
+@name     filter_env_time
+@alias    ft
+@group    env
+@c_name   skode_clause_filter_env_time_4
+@type     immediate
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  set filter envelope adzr times
+@doc
+Sets filter envelope attack, decay, sustain, release times.
+Usage: ft 10 50 1 100
+@code
+    return skode_exec_ft(ctx, s, args, argc);
+@end
+
+@name     filter_env_time
+@alias    ft
+@group    env
+@c_name   skode_clause_filter_env_time_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  filter envelope time no-op
+@doc
+Filter envelope time no-op.
+@code
+    return skode_exec_ft(ctx, s, args, argc);
+@end
+
+@name     filter_env_time
+@alias    ft
+@group    env
+@c_name   skode_clause_filter_env_time_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  filter envelope time with single argument
+@doc
+Filter envelope time with single argument.
+@code
+    return skode_exec_ft(ctx, s, args, argc);
+@end

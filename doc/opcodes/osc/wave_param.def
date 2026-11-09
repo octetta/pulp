@@ -1,0 +1,34 @@
+@name     wave_param
+@alias    W*
+@group    osc
+@c_name   skode_clause_wave_param
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  query wavetable slot metadata parameter
+@doc
+Reads wavetable slot metadata parameter (0:size, 1:rate, 2:seconds, 3:loop start, 4:loop end, 5:one-shot, 6:direction).
+Usage: W* wave param (or wave_param wave param)
+@code
+    if (!ctx) return -1;
+    int wave = (int)args[0];
+    int param = (int)args[1];
+    if (skode_wave_valid(wave)) {
+        double val = 0.0;
+        switch (param) {
+            case 0: val = sw.size[wave]; break;
+            case 1: val = sw.rate[wave]; break;
+            case 2: val = sw.rate[wave] > 0.0f ? (float)sw.size[wave] / sw.rate[wave] : 0.0; break;
+            case 3: val = sw.loop_start[wave]; break;
+            case 4: val = sw.loop_end[wave]; break;
+            case 5: val = sw.one_shot[wave]; break;
+            case 6: val = sw.direction[wave]; break;
+            default: val = 0.0; break;
+        }
+        ctx->printf(ctx, "# W* %d %d -> %g\n", wave, param, val);
+        ands_arg_clear(s);
+        ands_arg_push(s, val);
+        return 1;
+    }
+    return 0;
+@end

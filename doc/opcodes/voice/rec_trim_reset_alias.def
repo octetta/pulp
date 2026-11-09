@@ -1,0 +1,28 @@
+@name     rec_trim_reset_alias
+@alias    r*
+@group    voice
+@c_name   skode_clause_rec_trim_reset_alias_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  reset recording buffer trim points (alias)
+@doc
+Resets recording buffer start offset and end trim to 0.
+Usage: r*
+@code
+    return skode_exec_w_star(ctx, s, args, argc);
+@end
+
+@name     rec_trim_reset_alias
+@alias    r*
+@group    voice
+@c_name   skode_clause_rec_trim_reset_alias_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  reset recording buffer trim points with argument (alias)
+@doc
+Resets recording buffer trim points.
+@code
+    return skode_exec_w_star(ctx, s, args, argc);
+@end

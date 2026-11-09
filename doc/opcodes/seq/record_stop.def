@@ -1,0 +1,14 @@
+@name     record_stop
+@alias    /rs
+@group    seq
+@c_name   skode_clause_record_stop
+@type     immediate
+@arity    0
+@match    ()
+@summary  stop audio recording
+@doc
+Stops active audio recording.
+Usage: /rs
+@code
+    return skode_exec_slashrs(ctx, s, args, argc);
+@end

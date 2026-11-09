@@ -1,0 +1,14 @@
+@name     control_event_query
+@alias    ?ce
+@group    seq
+@c_name   skode_clause_control_event_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query control event ring buffer
+@doc
+Prints pending control events from dispatcher ring buffer.
+Usage: ?ce
+@code
+    return skode_exec_qce(ctx, s, args, argc);
+@end

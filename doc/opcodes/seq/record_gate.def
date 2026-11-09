@@ -1,0 +1,44 @@
+@name     record_gate
+@alias    /rg
+@group    seq
+@c_name   skode_clause_record_gate_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  arm audio recording with gate threshold
+@doc
+Arms audio recorder with default gate threshold.
+Usage: /rg
+@code
+    return skode_exec_slashrg(ctx, s, args, argc);
+@end
+
+@name     record_gate
+@alias    /rg
+@group    seq
+@c_name   skode_clause_record_gate_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  arm audio recording with threshold
+@doc
+Arms audio recorder with specified dB gate threshold.
+Usage: /rg threshold
+@code
+    return skode_exec_slashrg(ctx, s, args, argc);
+@end
+
+@name     record_gate
+@alias    /rg
+@group    seq
+@c_name   skode_clause_record_gate_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  arm audio recording with threshold and duration
+@doc
+Arms audio recorder with gate threshold and maximum duration.
+Usage: /rg threshold duration
+@code
+    return skode_exec_slashrg(ctx, s, args, argc);
+@end

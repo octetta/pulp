@@ -1,0 +1,28 @@
+@name     vfs_cat
+@alias    %cat
+@group    sys
+@c_name   skode_clause_vfs_cat_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  print file contents from vfs
+@doc
+Prints contents of file specified in string buffer.
+Usage: [file.txt] %cat
+@code
+    return skode_exec_pctcat(ctx, s, args, argc);
+@end
+
+@name     vfs_cat
+@alias    %cat
+@group    sys
+@c_name   skode_clause_vfs_cat_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  print file contents from vfs with argument
+@doc
+Prints contents of file.
+@code
+    return skode_exec_pctcat(ctx, s, args, argc);
+@end

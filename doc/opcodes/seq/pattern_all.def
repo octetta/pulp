@@ -1,0 +1,40 @@
+@name     pattern_all
+@alias    Z
+@group    seq
+@c_name   skode_clause_pattern_all_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  display all pattern programs and tempo
+@doc
+Prints tempo and step program listings for all non-empty patterns.
+Usage: Z (or pattern_all)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    ctx->printf(ctx, "M%g %g\n", tempo_bpm_get(), tempo_subdivision_get());
+    for (int p = 0; p < PATTERNS_MAX; p++) {
+        if (seq_pattern_length[p] > 0 || seq_text[p][0] != '\0')
+            pattern_show(ctx, p, 0);
+    }
+    return 0;
+@end
+
+@name     pattern_all
+@alias    Z
+@group    seq
+@c_name   skode_clause_pattern_all_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set playback state across all patterns
+@doc
+Sets global playback state for all patterns (0:stop, 1:play).
+Usage: Z state (or pattern_all state)
+@code
+    (void)ctx; (void)s;
+    if (argc) {
+        seq_state_all((int)args[0]);
+    }
+    return 0;
+@end

@@ -1,4 +1,5 @@
 #include "skode-internal.h"
+#include "skode_dict_gen.h"
 
 void skode_envelope_velocity(int voice, float x, uint64_t now) {
   if (voice < 0 || voice >= synth_config.voice_max) return;
@@ -206,10 +207,11 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       
       opcode->argc > SEQ_OPCODE_ARG_MAX || opcode->var_mask != 0) return -1;
   uint8_t default_mask =
-    opcode->code == SKODE_OP_MIDI_NOTE ||
-    opcode->code == SKODE_OP_INST_NOTE ||
-    opcode->code == SKODE_OP_MIDI_DETUNE ? 1U :
-    opcode->code == SKODE_OP_DELAY_PARAMS ? 0x7eU : 0U;
+    (opcode->code >= SKODE_OP_DISCRETE_BASE) ? (uint8_t)opcode->mode :
+    (opcode->code == SKODE_OP_MIDI_NOTE ||
+     opcode->code == SKODE_OP_INST_NOTE ||
+     opcode->code == SKODE_OP_MIDI_DETUNE ? 1U :
+     opcode->code == SKODE_OP_DELAY_PARAMS ? 0x7eU : 0U);
   if (((uint8_t)opcode->mode & ~default_mask) != 0) return -1;
   for (int i = 0; i < opcode->argc; i++) {
     if (!isfinite(opcode->arg[i]) &&
@@ -219,6 +221,11 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
   }
   int x = 0;
   int x_valid = skode_opcode_int(opcode, 0, &x);
+  if (opcode->code >= SKODE_OP_DISCRETE_BASE && opcode->code < SKODE_REALTIME_OPS_CAPACITY) {
+    if (g_skode_realtime_ops[opcode->code]) {
+      return g_skode_realtime_ops[opcode->code](voice, opcode->arg, opcode->argc);
+    }
+  }
   switch ((skode_opcode_t)opcode->code) {
     case SKODE_OP_POLY_NOTE:
       {

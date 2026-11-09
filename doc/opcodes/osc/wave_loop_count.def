@@ -1,0 +1,15 @@
+@name     wave_loop_count
+@alias    BC
+@group    osc
+@c_name   skode_clause_wave_loop_count
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set waveform loop repeat count
+@doc
+Sets maximum loop iterations before stopping.
+Usage: BC count (or wave_loop_count count)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return wave_loop_count(voice, (int)args[0]);
+@end

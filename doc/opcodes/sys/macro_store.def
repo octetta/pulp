@@ -1,0 +1,23 @@
+@name     macro_store
+@alias    e>
+@group    sys
+@c_name   skode_clause_macro_store
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  store bracketed string into external macro slot
+@doc
+Stores bracketed code string into numbered macro memory slot (0..127).
+Usage: [program] e>slot (or [program] macro_store slot)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int slot = (int)args[0];
+    if (skode_extra_valid(slot)) {
+        char *str = ands_string(ctx->parse);
+        simple_mutex_lock(&skode_extra_mutex);
+        skode_copy_string(EXTRA_PTR(slot), STRING_BUF_LEN, str);
+        simple_mutex_unlock(&skode_extra_mutex);
+    }
+    return 0;
+@end

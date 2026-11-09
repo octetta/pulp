@@ -1,0 +1,21 @@
+@name     midi_pool_unroute
+@alias    /mpd
+@group    sys
+@c_name   skode_clause_midi_pool_unroute
+@type     immediate
+@arity    2
+@match    (any, finite)
+@summary  remove MIDI pool route
+@doc
+Removes MIDI pool route matching channel and target pool.
+Usage: /mpd channel pool
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int channel = -1;
+    if (isfinite(args[0])) channel = (int)args[0];
+    int target = (int)args[1];
+    ctx->printf(ctx, "# MIDI routes removed: %d\n",
+                skred_midi_route_remove(channel, SKRED_MIDI_ROUTE_POOL, target));
+    return 0;
+@end

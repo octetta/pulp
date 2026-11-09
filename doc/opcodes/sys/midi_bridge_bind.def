@@ -1,0 +1,26 @@
+@name     midi_bridge_bind
+@alias    /mb
+@group    sys
+@c_name   skode_clause_midi_bridge_bind
+@type     immediate
+@arity    3
+@match    (finite, any, any)
+@summary  bind MIDI event to Skode command
+@doc
+Binds MIDI message (type, channel, data1) to execute Skode code string.
+Usage: [code] /mb type channel data1
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int type = (int)args[0];
+    int channel = -1;
+    if (isfinite(args[1])) channel = (int)args[1];
+    int data1 = -1;
+    if (isfinite(args[2])) data1 = (int)args[2];
+    if (ands_string_len(ctx->parse) > 0 &&
+        skred_midi_binding_set(type, channel, data1, ands_string(ctx->parse)) == 0 &&
+        skred_control_dispatch_start() == 0)
+        ctx->printf(ctx, "# MIDI Skode binding installed\n");
+    else ctx->printf(ctx, "# usage: [skode-command] /mb type channel data1\n");
+    return 0;
+@end

@@ -1,0 +1,14 @@
+@name     control_event_query_detail
+@alias    ?ce!
+@group    seq
+@c_name   skode_clause_control_event_query_detail
+@type     immediate
+@arity    0
+@match    ()
+@summary  drain and print all control events
+@doc
+Drains and displays all pending control events with full parameters.
+Usage: ?ce!
+@code
+    return skode_exec_qce_bang(ctx, s, args, argc);
+@end

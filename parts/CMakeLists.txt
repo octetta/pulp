@@ -57,6 +57,7 @@ set(API_PLAIN_SOURCES
     exp-vfs/skred_vfs.c
     skode-event.c
     skode-dict.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/gen/skred_opcodes_gen.c
     skqueue.c
     udp.c
     udp-events.c
@@ -78,7 +79,6 @@ set(API_PLAIN_SOURCES
         skode-words-seq.c
         skode-words-data.c
         skode-words-system.c
-        skode-words-misc.c
         polyphony.c
         synth-alloc.c
         seq.c
@@ -123,9 +123,11 @@ set_target_properties(api_shared PROPERTIES
 target_include_directories(api PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 target_include_directories(api PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(api PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/exp-vfs")
+target_include_directories(api PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../src/gen")
 target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/exp-vfs")
+target_include_directories(api_shared PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../src/gen")
 
     target_compile_definitions(api PUBLIC SKRED_MIDI_ENABLED=1)
     target_compile_definitions(api_shared PUBLIC SKRED_MIDI_ENABLED=1)
@@ -159,10 +161,6 @@ if(MATH_LIB)
     target_link_libraries(api PUBLIC ${MATH_LIB})
     target_link_libraries(api_shared PUBLIC ${MATH_LIB})
     
-    # Link to the tool (only if kit.c needs it)
-    if(TARGET kit_tool)
-        target_link_libraries(kit_tool PRIVATE ${MATH_LIB})
-    endif()
 endif()
 
 if(WIN32)
@@ -178,23 +176,6 @@ install(TARGETS api api_shared mini-skred
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
-
-add_custom_command(
-  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md" "${CMAKE_CURRENT_BINARY_DIR}/skode-doc.inc"
-  COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/gen_docs.py"
-          "${CMAKE_CURRENT_SOURCE_DIR}/skode-dict.c"
-          "${CMAKE_CURRENT_SOURCE_DIR}/skode.c"
-          "${CMAKE_CURRENT_SOURCE_DIR}/skode.h"
-          "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md"
-          "${CMAKE_CURRENT_BINARY_DIR}/skode-doc.inc"
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/skode-dict.c"
-          "${CMAKE_CURRENT_SOURCE_DIR}/skode.c"
-          "${CMAKE_CURRENT_SOURCE_DIR}/skode.h"
-          "${CMAKE_CURRENT_SOURCE_DIR}/gen_docs.py"
-  COMMENT "Generating SKODE_DOCS.md and skode-doc.inc..."
-)
-add_custom_target(generate_docs ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/SKODE_DOCS.md")
-add_dependencies(api generate_docs)
 
 file(GLOB DRUM_KS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/waves/drums/*.ks")
 add_custom_command(
@@ -365,4 +346,4 @@ if(SKRED_SCOPE)
     COMMAND scope_ipc_tests
   )
 endif()
-set_source_files_properties(skode.c skode-words-misc.c skode-words-dsp.c skode-words-data.c skode-words-seq.c skode-words-system.c PROPERTIES COMPILE_FLAGS "-Wno-multichar")
+set_source_files_properties(skode.c skode-words-dsp.c skode-words-data.c skode-words-seq.c skode-words-system.c PROPERTIES COMPILE_FLAGS "-Wno-multichar")

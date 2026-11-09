@@ -1,0 +1,14 @@
+@name     pattern_state_query
+@alias    z?
+@group    seq
+@c_name   skode_clause_pattern_state_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query active pattern play state
+@doc
+Prints play/stop state and position for active pattern.
+Usage: z?
+@code
+    return skode_exec_z_q(ctx, s, args, argc);
+@end

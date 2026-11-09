@@ -1,0 +1,73 @@
+@name     udp_emit
+@alias    >u
+@group    sys
+@c_name   skode_clause_udp_emit_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  emit formatted udp event
+@doc
+Emits UDP message formatted according to string buffer.
+Usage: [event %g %g] >u
+@code
+    return skode_exec_gt_u(ctx, s, args, argc);
+@end
+
+@name     udp_emit
+@alias    >u
+@group    sys
+@c_name   skode_clause_udp_emit_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  emit formatted udp event with 1 arg
+@doc
+Emits UDP message formatted with 1 argument.
+Usage: [event %g] 123 >u
+@code
+    return skode_exec_gt_u(ctx, s, args, argc);
+@end
+
+@name     udp_emit
+@alias    >u
+@group    sys
+@c_name   skode_clause_udp_emit_2
+@type     immediate
+@arity    2
+@match    (any, any)
+@summary  emit formatted udp event with 2 args
+@doc
+Emits UDP message formatted with 2 arguments.
+Usage: [event %g %g] 1 2 >u
+@code
+    return skode_exec_gt_u(ctx, s, args, argc);
+@end
+
+@name     udp_emit
+@alias    >u
+@group    sys
+@c_name   skode_clause_udp_emit_3
+@type     immediate
+@arity    3
+@match    (any, any, any)
+@summary  emit formatted udp event with 3 args
+@doc
+Emits UDP message formatted with 3 arguments.
+Usage: [event %g %g %g] 1 2 3 >u
+@code
+    return skode_exec_gt_u(ctx, s, args, argc);
+@end
+
+@name     udp_emit
+@alias    >u
+@group    sys
+@c_name   skode_clause_udp_emit_4
+@type     immediate
+@arity    4
+@match    (any, any, any, any)
+@summary  emit formatted udp event with 4 args
+@doc
+Emits UDP message formatted with 4 arguments.
+@code
+    return skode_exec_gt_u(ctx, s, args, argc);
+@end

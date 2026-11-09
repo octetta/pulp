@@ -1,0 +1,32 @@
+@name     hard_sync
+@alias    HS
+@group    osc
+@c_name   skode_clause_hard_sync
+@type     realtime
+@arity    1..6
+@match    (finite, finite, finite, finite, finite, finite)
+@summary  hard-sync voice links
+@doc
+Sets oscillator hard-sync master-slave targets (1 to 6 voices). Pass -1 to clear.
+Usage: HS target [target2 [target3 [target4 [target5 [target6]]]]]
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_sync_0[voice] = -1.0f;
+    sv.link_sync_1[voice] = -1.0f;
+    sv.link_sync_2[voice] = -1.0f;
+    sv.link_sync_3[voice] = -1.0f;
+    sv.link_sync_4[voice] = -1.0f;
+    sv.link_sync_5[voice] = -1.0f;
+    for (int i = 0; i < argc && i < 6; i++) {
+        int t = (int)args[i];
+        float val = (t >= 0 && t < synth_config.voice_max) ? (float)t : -1.0f;
+        if (i == 0) sv.link_sync_0[voice] = val;
+        else if (i == 1) sv.link_sync_1[voice] = val;
+        else if (i == 2) sv.link_sync_2[voice] = val;
+        else if (i == 3) sv.link_sync_3[voice] = val;
+        else if (i == 4) sv.link_sync_4[voice] = val;
+        else if (i == 5) sv.link_sync_5[voice] = val;
+    }
+    osc_hard_sync_sanitize(voice);
+    return 0;
+@end

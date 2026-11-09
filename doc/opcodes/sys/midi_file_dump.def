@@ -1,0 +1,17 @@
+@name     midi_file_dump
+@alias    /mfD
+@group    sys
+@c_name   skode_clause_midi_file_dump
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  dump MIDI file events
+@doc
+Dumps events from MIDI player slot starting at event index up to limit.
+Usage: /mfD slot start limit
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    midi_player_dump((int)args[0], (int)args[1], (int)args[2], ctx);
+    return 0;
+@end

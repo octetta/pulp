@@ -1,0 +1,16 @@
+@name     amp_env_mode
+@alias    tm
+@group    env
+@c_name   skode_clause_amp_env_mode
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set amplitude envelope mode
+@doc
+Configures amplitude envelope generator mode for active voice.
+Usage: tm mode
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.amp_envelope_mode[voice] = (int)args[0];
+    return 0;
+@end

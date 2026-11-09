@@ -1,0 +1,14 @@
+@name     var_from_data
+@alias    =d
+@group    sys
+@c_name   skode_clause_var_from_data
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  copy data array element to variable
+@doc
+Copies value from data buffer at index into variable register $var.
+Usage: =d var index
+@code
+    return skode_exec_eqd(ctx, s, args, argc);
+@end

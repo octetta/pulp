@@ -1,0 +1,29 @@
+@name     rec_to_wave_slot
+@alias    w!
+@group    voice
+@c_name   skode_clause_rec_to_wave_slot_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  save trimmed recording to wavetable slot
+@doc
+Saves trimmed recording buffer into specified wavetable slot.
+Usage: 0 w!
+@code
+    return skode_exec_w_bang(ctx, s, args, argc);
+@end
+
+@name     rec_to_wave_slot
+@alias    w!
+@group    voice
+@c_name   skode_clause_rec_to_wave_slot_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  save trimmed recording to default wavetable slot
+@doc
+Saves trimmed recording buffer into default slot.
+Usage: w!
+@code
+    return skode_exec_w_bang(ctx, s, args, argc);
+@end

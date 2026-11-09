@@ -1,0 +1,28 @@
+@name     session_load
+@alias    GS<
+@group    sys
+@c_name   skode_clause_session_load_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  load global session from zip
+@doc
+Loads global session archive from the filename in parser string buffer.
+Usage: [session.zip] GS<
+@code
+    return skode_exec_GS_lt(ctx, s, args, argc);
+@end
+
+@name     session_load
+@alias    GS<
+@group    sys
+@c_name   skode_clause_session_load_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  load global session from zip with argument
+@doc
+Loads global session archive.
+@code
+    return skode_exec_GS_lt(ctx, s, args, argc);
+@end

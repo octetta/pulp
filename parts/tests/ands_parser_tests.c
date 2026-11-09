@@ -336,15 +336,29 @@ static void test_return_sigil_is_not_an_atom(void) {
 static void test_macro_names_truncate_to_atom_width(void) {
   const char *test = "macro names truncate to atom width";
   recorder_t r;
-  char input[] = "[attack]: t $$0 0 $$1 0 ; atta 0.02 0.5";
+  /* Test 1: macro names up to 31 chars (e.g. 'attack') work without truncation */
+  char input1[] = "[attack]: t $$0 0 $$1 0 ; attack 0.02 0.5";
   ands_macro_clear(NULL);
-  run_parse(test, input, &r);
+  run_parse(test, input1, &r);
 
   expect_len(test, &r, 2);
   expect_event(test, &r, 0, FUNCTION, "t---");
   expect_arg(test, &r, 0, 0, 0.02);
   expect_arg(test, &r, 0, 1, 0);
   expect_arg(test, &r, 0, 2, 0.5);
+  expect_arg(test, &r, 0, 3, 0);
+  expect_event(test, &r, 1, CHUNK_END, "----");
+
+  /* Test 2: macro names > 31 chars truncate to 31 chars */
+  char input2[] = "[abcdefghijklmnopqrstuvwxyzabcdefghij]: t $$0 0 $$1 0 ; abcdefghijklmnopqrstuvwxyzabcde 0.03 0.6";
+  ands_macro_clear(NULL);
+  run_parse(test, input2, &r);
+
+  expect_len(test, &r, 2);
+  expect_event(test, &r, 0, FUNCTION, "t---");
+  expect_arg(test, &r, 0, 0, 0.03);
+  expect_arg(test, &r, 0, 1, 0);
+  expect_arg(test, &r, 0, 2, 0.6);
   expect_arg(test, &r, 0, 3, 0);
   expect_event(test, &r, 1, CHUNK_END, "----");
 }
@@ -447,12 +461,12 @@ static void test_macro_management_api(void) {
   ands_macro_clear(s);
   if (ands_macro_count(s) != 0) fail(test, "clear failed");
 
-  char long_define[] = "[attack]: t $$0 0 ;";
+  char long_define[] = "[abcdefghijklmnopqrstuvwxyzabcdefghij]: t $$0 0 ;";
   ands_consume(s, long_define);
   if (!ands_macro_get(s, 0, name, sizeof(name), body, sizeof(body), &arg_count)) {
     fail(test, "missing long-name macro");
-  } else if (strcmp(name, "atta") != 0) {
-    fail(test, "long-name macro did not truncate");
+  } else if (strcmp(name, "abcdefghijklmnopqrstuvwxyzabcde") != 0) {
+    fail(test, "long-name macro did not truncate to 31 chars");
   }
 
   ands_free(s);

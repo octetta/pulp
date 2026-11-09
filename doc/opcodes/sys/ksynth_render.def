@@ -1,0 +1,14 @@
+@name     ksynth_render
+@alias    k!
+@group    sys
+@c_name   skode_clause_ksynth_render
+@type     immediate
+@arity    0
+@match    ()
+@summary  evaluate and render KSynth expression
+@doc
+Evaluates and renders KSynth expression string into audio or wavetable.
+Usage: [expression] k!
+@code
+    return skode_exec_k_bang(ctx, s, args, argc);
+@end

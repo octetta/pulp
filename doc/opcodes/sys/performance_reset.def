@@ -1,0 +1,28 @@
+@name     performance_reset
+@alias    /th!
+@group    sys
+@c_name   skode_clause_performance_reset_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  reset performance counters
+@doc
+Resets performance monitor counters.
+Usage: /th!
+@code
+    return skode_exec_slashth_bang(ctx, s, args, argc);
+@end
+
+@name     performance_reset
+@alias    /th!
+@group    sys
+@c_name   skode_clause_performance_reset_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  reset performance counters with argument
+@doc
+Resets performance monitor counters.
+@code
+    return skode_exec_slashth_bang(ctx, s, args, argc);
+@end

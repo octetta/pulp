@@ -1,0 +1,15 @@
+@name     stream_mode
+@alias    /SM
+@group    seq
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set stream playback mode
+@doc
+Sets stream playback mode (0=wrap fwd, 1=wrap rev, 2=pingpong, 3=clamp).
+Usage: /SM stream_idx mode
+@code
+    (void)voice;
+    skode_stream_mode(NULL, (int)args[0], (int)args[1]);
+    return 0;
+@end

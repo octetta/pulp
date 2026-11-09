@@ -1,0 +1,28 @@
+@name     delay_send
+@alias    ds
+@group    voice
+@c_name   skode_clause_delay_send_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set voice delay send level
+@doc
+Sets delay send level for the active voice.
+Usage: ds 15
+@code
+    return skode_exec_ds(ctx, s, args, argc);
+@end
+
+@name     delay_send
+@alias    ds
+@group    voice
+@c_name   skode_clause_delay_send_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  delay send no-op
+@doc
+Delay send no-op.
+@code
+    return skode_exec_ds(ctx, s, args, argc);
+@end

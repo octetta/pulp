@@ -1,0 +1,15 @@
+@name     freq_mod_mode
+@alias    FF
+@group    osc
+@c_name   skode_clause_freq_mod_mode
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  frequency modulation routing mode
+@doc
+Sets FM routing mode (0:linear FM, 1:phase modulation style, etc.).
+Usage: FF mode (or freq_mod_mode mode)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return freq_mod_mode_set(voice, (int)args[0]);
+@end

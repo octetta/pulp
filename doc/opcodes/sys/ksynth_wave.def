@@ -1,0 +1,29 @@
+@name     ksynth_wave
+@alias    kw
+@group    sys
+@c_name   skode_clause_ksynth_wave_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  ksynth wave trigger
+@doc
+Triggers KSynth wavetable generation.
+Usage: kw
+@code
+    return skode_exec_kw(ctx, s, args, argc);
+@end
+
+@name     ksynth_wave
+@alias    kw
+@group    sys
+@c_name   skode_clause_ksynth_wave_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  ksynth wave trigger with argument
+@doc
+Triggers KSynth wavetable generation with argument.
+Usage: kw arg
+@code
+    return skode_exec_kw(ctx, s, args, argc);
+@end

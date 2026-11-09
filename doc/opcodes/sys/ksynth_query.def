@@ -1,0 +1,14 @@
+@name     ksynth_query
+@alias    k?
+@group    sys
+@c_name   skode_clause_ksynth_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  dump KSynth expression result
+@doc
+Prints numeric values of the most recent KSynth result vector.
+Usage: k?
+@code
+    return skode_exec_k_q(ctx, s, args, argc);
+@end

@@ -1,0 +1,21 @@
+@name     var_sub
+@alias    s=
+@group    sys
+@c_name   skode_clause_var_sub
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  subtract two values and store in variable
+@doc
+Stores (v1 - v2) into variable register $var.
+Usage: s= var v1 v2
+@code
+    if (!ctx) return -1;
+    (void)argc;
+    int var = (int)args[0];
+    double val = args[1] - args[2];
+    ands_set_local(ctx->parse, var, val);
+    ands_arg_clear(s);
+    ands_arg_push(s, val);
+    return 1;
+@end

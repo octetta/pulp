@@ -1,0 +1,44 @@
+@name     wave_load_file
+@alias    /w
+@group    sys
+@c_name   skode_clause_wave_load_file_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load wave file by index
+@doc
+Loads wave file by index into default slot.
+Usage: 0 /w
+@code
+    return skode_exec_slashw(ctx, s, args, argc);
+@end
+
+@name     wave_load_file
+@alias    /w
+@group    sys
+@c_name   skode_clause_wave_load_file_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  load wave file by index into slot
+@doc
+Loads wave file by index into specified slot.
+Usage: 0 1 /w
+@code
+    return skode_exec_slashw(ctx, s, args, argc);
+@end
+
+@name     wave_load_file
+@alias    /w
+@group    sys
+@c_name   skode_clause_wave_load_file_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  load wave file by index into slot and channel
+@doc
+Loads wave file by index into slot and channel.
+Usage: 0 1 0 /w
+@code
+    return skode_exec_slashw(ctx, s, args, argc);
+@end

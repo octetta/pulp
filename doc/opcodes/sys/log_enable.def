@@ -1,0 +1,28 @@
+@name     log_enable
+@alias    log
+@group    sys
+@c_name   skode_clause_log_enable_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  enable or disable logging
+@doc
+Enables or disables console/buffer logging (1=enable, 0=disable).
+Usage: 1 log
+@code
+    return skode_exec_log(ctx, s, args, argc);
+@end
+
+@name     log_enable
+@alias    log
+@group    sys
+@c_name   skode_clause_log_enable_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  log enable no-op
+@doc
+Log enable no-op when no args provided.
+@code
+    return skode_exec_log(ctx, s, args, argc);
+@end

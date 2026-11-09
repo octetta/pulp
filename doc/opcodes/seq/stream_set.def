@@ -1,0 +1,18 @@
+@name     stream_set
+@alias    /SS
+@group    seq
+@type     immediate
+@needs    data
+@arity    1
+@match    (finite)
+@summary  set stream array from stack data
+@doc
+Populates a stream array with values parsed from stack data.
+Usage: ( 1 2 3 ) /SS stream_idx
+@code
+    int stream_idx = (int)args[0];
+    double *data = s ? ands_data(s) : NULL;
+    int len = s ? ands_data_len(s) : 0;
+    skode_stream_set(ctx, stream_idx, data, len);
+    return 0;
+@end

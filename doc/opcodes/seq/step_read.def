@@ -1,0 +1,20 @@
+@name     step_read
+@alias    <x
+@group    seq
+@c_name   skode_clause_step_read
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  read pattern step source into parser string buffer
+@doc
+Retrieves the step source string from active pattern into the string buffer.
+Usage: <x step (or step_read step)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    seq_edit_lock();
+    char *step_str = seq_step_get(ctx->pattern, (int)args[0]);
+    if (step_str) ands_string_from_external(ctx->parse, step_str, strlen(step_str));
+    seq_edit_unlock();
+    return 0;
+@end

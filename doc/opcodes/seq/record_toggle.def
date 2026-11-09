@@ -1,0 +1,59 @@
+@name     record_toggle
+@alias    /r
+@group    seq
+@c_name   skode_clause_record_toggle_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  load recording into default wave slot
+@doc
+Loads recorded audio buffer into default sample slot.
+Usage: /r
+@code
+    return skode_exec_slashr(ctx, s, args, argc);
+@end
+
+@name     record_toggle
+@alias    /r
+@group    seq
+@c_name   skode_clause_record_toggle_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load recording into slot
+@doc
+Loads recorded audio buffer into wavetable slot.
+Usage: /r slot
+@code
+    return skode_exec_slashr(ctx, s, args, argc);
+@end
+
+@name     record_toggle
+@alias    /r
+@group    seq
+@c_name   skode_clause_record_toggle_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  load recording into slot with mode
+@doc
+Loads recorded audio buffer into slot with mode (0=cycle, 1=one-shot).
+Usage: /r slot mode
+@code
+    return skode_exec_slashr(ctx, s, args, argc);
+@end
+
+@name     record_toggle
+@alias    /r
+@group    seq
+@c_name   skode_clause_record_toggle_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  load recording into slot with mode and channel
+@doc
+Loads recorded audio buffer into slot with mode and channel (-1=stereo avg, 0=left, 1=right).
+Usage: /r slot mode channel
+@code
+    return skode_exec_slashr(ctx, s, args, argc);
+@end

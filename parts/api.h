@@ -381,7 +381,7 @@ typedef struct skred_scheduled_event {
   uint8_t source_valid;
   int pattern;
   int step;
-  uint8_t opcode;
+  uint16_t opcode;
   uint8_t opcode_argc;
   char opcode_mode;
   uint8_t opcode_var_mask;

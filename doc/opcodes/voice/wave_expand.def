@@ -1,0 +1,28 @@
+@name     wave_expand
+@alias    /wex
+@group    voice
+@c_name   skode_clause_wave_expand_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  dynamically expand wavetable capacity
+@doc
+Expands wavetable slot capacity up to 999.
+Usage: 300 /wex
+@code
+    return skode_exec_slashwex(ctx, s, args, argc);
+@end
+
+@name     wave_expand
+@alias    /wex
+@group    voice
+@c_name   skode_clause_wave_expand_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  wave expand no-op
+@doc
+Wave expand no-op.
+@code
+    return skode_exec_slashwex(ctx, s, args, argc);
+@end

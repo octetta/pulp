@@ -1,0 +1,59 @@
+@name     poly_mode
+@alias    /pm
+@group    sys
+@c_name   skode_clause_poly_mode_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  set polyphonic voice pool mode
+@doc
+Sets allocation mode for polyphonic pool (0=poly, 1=mono, 2=legato).
+Usage: /pm pool mode
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int pool = (int)args[0], mode = (int)args[1];
+    if (skred_poly_pool_mode(pool, mode, SKRED_POLY_PRIORITY_LAST, SKRED_POLY_ARTICULATION_RETRIGGER) != 0)
+        ctx->printf(ctx, "# usage: /pm pool,mode[,priority[,articulation]]\n");
+    return 0;
+@end
+
+@name     poly_mode
+@alias    /pm
+@group    sys
+@c_name   skode_clause_poly_mode_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  set polyphonic pool mode and note priority
+@doc
+Sets allocation mode and note priority (0=last, 1=low, 2=high).
+Usage: /pm pool mode priority
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int pool = (int)args[0], mode = (int)args[1], priority = (int)args[2];
+    if (skred_poly_pool_mode(pool, mode, priority, SKRED_POLY_ARTICULATION_RETRIGGER) != 0)
+        ctx->printf(ctx, "# usage: /pm pool,mode[,priority[,articulation]]\n");
+    return 0;
+@end
+
+@name     poly_mode
+@alias    /pm
+@group    sys
+@c_name   skode_clause_poly_mode_4
+@type     immediate
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  set polyphonic pool mode, priority, and articulation
+@doc
+Sets allocation mode, priority, and articulation (0=retrigger, 1=legato).
+Usage: /pm pool mode priority articulation
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int pool = (int)args[0], mode = (int)args[1], priority = (int)args[2], articulation = (int)args[3];
+    if (skred_poly_pool_mode(pool, mode, priority, articulation) != 0)
+        ctx->printf(ctx, "# usage: /pm pool,mode[,priority[,articulation]]\n");
+    return 0;
+@end

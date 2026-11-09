@@ -1,0 +1,63 @@
+@name     delay_time_sync
+@alias    DS
+@group    mod
+@c_name   skode_clause_delay_time_sync_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  set tempo-synced delay time
+@doc
+Sets tempo-synced delay time with beats and division.
+Usage: DS bus beats division
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    return delay_time_sync_set(&skred_global_engine, bus, (float)args[1], (float)args[2]);
+@end
+
+@name     delay_time_sync
+@alias    DS
+@group    mod
+@c_name   skode_clause_delay_time_sync_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  delay time sync no-op
+@doc
+Delay time sync no-op.
+@code
+    return 0;
+@end
+
+@name     delay_time_sync
+@alias    DS
+@group    mod
+@c_name   skode_clause_delay_time_sync_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  delay time sync bus
+@doc
+Delay time sync bus only.
+@code
+    (void)voice;
+    (void)args;
+    return 0;
+@end
+
+@name     delay_time_sync
+@alias    DS
+@group    mod
+@c_name   skode_clause_delay_time_sync_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  delay time sync bus and beats
+@doc
+Delay time sync bus and beats.
+Usage: DS bus beats
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    return delay_time_sync_set(&skred_global_engine, bus, (float)args[1], 1.0f);
+@end

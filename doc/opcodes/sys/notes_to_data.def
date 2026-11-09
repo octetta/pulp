@@ -1,0 +1,14 @@
+@name     notes_to_data
+@alias    n>d
+@group    sys
+@c_name   skode_clause_notes_to_data
+@type     immediate
+@arity    0
+@match    ()
+@summary  parse musical note string into data array
+@doc
+Parses note name string (e.g. [C4 E4 G4]) and writes MIDI note numbers to data buffer.
+Usage: [notes] n>d
+@code
+    return skode_exec_n_gtd(ctx, s, args, argc);
+@end

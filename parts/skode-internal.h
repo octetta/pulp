@@ -283,7 +283,207 @@ void skode_register_words_dsp(skode_vocab_t *vocab);
 void skode_register_words_seq(skode_vocab_t *vocab);
 void skode_register_words_data(skode_vocab_t *vocab);
 void skode_register_words_system(skode_vocab_t *vocab);
-void skode_register_words_misc(skode_vocab_t *vocab);
+
+int skode_dict_show_words(skode_t *ctx, int mode);
+int skode_stream_show_helper(skode_t *ctx, int target_idx);
+
+void skode_stream_set(void *ctx, int n, const double *data, int len);
+void skode_stream_copy(void *ctx, int dst, int src);
+void skode_stream_mode(void *ctx, int n, int mode);
+void skode_stream_pos(void *ctx, int n, int pos);
+
+#define WAVE_DISPLAY_DEFAULT_WIDTH 60
+#define WAVE_DISPLAY_DEFAULT_HEIGHT 12
+#define WAVE_DISPLAY_MIN_WIDTH 8
+#define WAVE_DISPLAY_MAX_WIDTH 160
+#define WAVE_DISPLAY_MIN_HEIGHT 2
+#define WAVE_DISPLAY_MAX_HEIGHT 40
+
+void wave_table_dynamic_expand(int n);
+int skode_sample_go(int frames, int source, int voice);
+
+#define EXTRA_PTR(n) skode_extra_ptr(n)
+#define EXTRA_INIT() { _skode_extra_invalid[0] = '\0'; for (int i=0; i<STRING_BUF_IDX_MAX; i++) EXTRA_PTR(i)[0] = '\0';}
+void skode_show(skode_t *ctx);
+void skode_help(skode_t *ctx, double *arg, int argc);
+float record_frame_mono(int frame);
+
+void skode_double_dump(skode_t *ctx, double *data, int data_len);
+void skode_format_string_args(char *dst, size_t dst_size, const char *src, double *arg, int argc);
+void skode_format_map_value(char *dst, size_t dst_size, const char *fmt, double val);
+char *skode_extra_ptr(int index);
+
+float *mw_get(char *name, int *frames_out, wav_t *w, int ch);
+float *mw_get_mem(const void *data, size_t data_size, const char *label,
+                  int *frames_out, wav_t *w, int ch, char *out, int len);
+int mw_get_smpl_loop_mem(const void *data, size_t data_size, int frames,
+                         mw_smpl_loop_t *loop);
+float *mw_free(float *f);
+
+/* Data and KSynth bridge execution handlers */
+int skode_exec_ksynth_load_name(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_ksynth_load(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_ks(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_k_bang(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_kw(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_kw_gt(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_k_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_k_gtd(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_k_gtw(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_d_gtk(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_w_gtk(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_eqd(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_eq(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_s_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_qm(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashd(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashm(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashm_bang(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_lts(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_s_gt(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_s_pct(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_map_bang(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_v_star(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_n_gtd(skode_t *ctx, ands_t *s, const double *arg, int argc);
+
+/* Sequencer and recording execution handlers */
+int skode_exec_DO_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_DQ(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_xg(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_ys_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_yt(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_z_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_z_q_bs_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_Z_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_qce(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_qce_bang(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_qq(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_qo(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashrg(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashrw(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashrs(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashr_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashr(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashcer(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashce_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashce_bang(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashceb(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashcex(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_gtr(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_hatr(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_ltr(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_y(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_ym(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_zg(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_zq(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_Z_bang(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_pct(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_z(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_Z(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_yp(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_Y(skode_t *ctx, ands_t *s, const double *arg, int argc);
+
+/* System and parser execution handlers */
+int skode_exec_slashmd(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_wait(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_clr(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_drop(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_dup(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_over(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_rot(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_swap(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_I(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_udp(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_puts(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_log(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_GS_gt(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_GS_lt(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_x(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashm_(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashq(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashf(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashff(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slasht(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashv(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashth_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashth_bang(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashs(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashh(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashl(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashls(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_gt_u(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashws(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashw(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_pctz(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_pctzu(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_pctpwd(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_pctcat(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_pctcd(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_pctls(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_qtime(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_qvoice(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_qpattern(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_qstep(skode_t *ctx, ands_t *s, const double *arg, int argc);
+
+/* DSP execution handlers */
+int skode_exec_ds(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_DG(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_DL(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_DL_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_DD(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_DF(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_DP(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_DT(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_DS(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_GS(skode_t *ctx, ands_t *s, const double *arg, int argc);
+
+int skode_exec_cte(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_ft(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_fte(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_fd(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_G(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_h(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_H(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_L(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_J(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_K(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec____l(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_O(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_on(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_off(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_bc(skode_t *ctx, ands_t *s, const double *arg, int argc);
+
+int skode_exec_Q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_r(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_rt(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_rv(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_te(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_vc(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_V(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_vt(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_WL(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_VL(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_VS(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_VW(skode_t *ctx, ands_t *s, const double *arg, int argc);
+
+int skode_exec_w_gtd(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_w_gtr(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_w_gtw(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_w_bang(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_w_star(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_w_gt(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_w_lt(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_w_lt_gt(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_W(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_slashwex(skode_t *ctx, ands_t *s, const double *arg, int argc);
+
+int skode_exec_v_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec__q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec__bs_bs(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec_v_q_bs_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec__q_bs_q(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec__qr(skode_t *ctx, ands_t *s, const double *arg, int argc);
+int skode_exec__slash(skode_t *ctx, ands_t *s, const double *arg, int argc);
 
 #define WAVE_DISPLAY_DEFAULT_WIDTH 60
 #define WAVE_DISPLAY_DEFAULT_HEIGHT 12

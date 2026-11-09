@@ -1,0 +1,18 @@
+@name     scope_stop
+@alias    /ss
+@group    sys
+@c_name   skode_clause_scope_stop
+@type     immediate
+@arity    0
+@match    ()
+@summary  stop scope IPC streaming
+@doc
+Stops scope IPC streaming.
+Usage: /ss
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    scope_ipc_stop();
+    ctx->printf(ctx, "# scope stopped\n");
+    return 0;
+@end

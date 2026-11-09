@@ -1,0 +1,22 @@
+@name     audio_input
+@alias    /ai
+@group    sys
+@c_name   skode_clause_audio_input
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  select audio input device
+@doc
+Selects audio capture device by index (-1 for default, -2 to disable).
+Usage: /ai index
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int x = (int)args[0];
+    int result = 0;
+    if (x >= 0) result = skred_audio_refresh();
+    if (result == 0) result = skred_audio_select(1, x);
+    if (result == 0) ctx->printf(ctx, "# %s\n", skred_audio_status());
+    else ctx->printf(ctx, "# audio selection failed: /ai %d\n", x);
+    return 0;
+@end

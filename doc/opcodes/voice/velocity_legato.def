@@ -1,0 +1,28 @@
+@name     velocity_legato
+@alias    ___l
+@group    voice
+@c_name   skode_clause_velocity_legato_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  trigger voice envelope velocity with legato
+@doc
+Triggers voice envelope velocity with legato mode.
+Usage: ___l 0.8
+@code
+    return skode_exec____l(ctx, s, args, argc);
+@end
+
+@name     velocity_legato
+@alias    ___l
+@group    voice
+@c_name   skode_clause_velocity_legato_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  velocity legato no-op
+@doc
+Velocity legato no-op.
+@code
+    return skode_exec____l(ctx, s, args, argc);
+@end

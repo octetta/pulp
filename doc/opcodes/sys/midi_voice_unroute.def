@@ -1,0 +1,21 @@
+@name     midi_voice_unroute
+@alias    /mvd
+@group    sys
+@c_name   skode_clause_midi_voice_unroute
+@type     immediate
+@arity    2
+@match    (any, finite)
+@summary  remove MIDI voice route
+@doc
+Removes MIDI voice route matching channel and target voice.
+Usage: /mvd channel voice
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int channel = -1;
+    if (isfinite(args[0])) channel = (int)args[0];
+    int target = (int)args[1];
+    ctx->printf(ctx, "# MIDI routes removed: %d\n",
+                skred_midi_route_remove(channel, SKRED_MIDI_ROUTE_VOICE, target));
+    return 0;
+@end

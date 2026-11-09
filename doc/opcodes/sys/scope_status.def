@@ -1,0 +1,26 @@
+@name     scope_status
+@alias    /s?
+@group    sys
+@c_name   skode_clause_scope_status
+@type     immediate
+@arity    0
+@match    ()
+@summary  query scope IPC status
+@doc
+Prints current status of scope IPC ring buffer.
+Usage: /s?
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    skred_scope_status_t status;
+    scope_ipc_status(&status);
+    if (status.active) {
+        ctx->printf(ctx, "# scope state=publishing name=[%s] rate=%d channels=%d mask=%u capacity=%u frames=%llu\n",
+                    status.name, status.sample_rate, status.channel_count,
+                    status.channel_mask, status.capacity_frames,
+                    (unsigned long long)status.write_frame);
+    } else {
+        ctx->printf(ctx, "# scope state=stopped\n");
+    }
+    return 0;
+@end

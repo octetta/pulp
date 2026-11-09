@@ -1,0 +1,14 @@
+@name     pattern_ratchet
+@alias    z*
+@group    seq
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set step ratchet multiplier
+@doc
+Sets sub-step ratchet multiplier for pattern step.
+Usage: z* multiplier (or * multiplier)
+@code
+    (void)voice; (void)args;
+    return 0;
+@end

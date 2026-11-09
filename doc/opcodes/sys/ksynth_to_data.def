@@ -1,0 +1,14 @@
+@name     ksynth_to_data
+@alias    k>d
+@group    sys
+@c_name   skode_clause_ksynth_to_data
+@type     immediate
+@arity    0
+@match    ()
+@summary  copy KSynth result vector to data array
+@doc
+Transfers most recent KSynth vector result into the active data buffer.
+Usage: k>d
+@code
+    return skode_exec_k_gtd(ctx, s, args, argc);
+@end

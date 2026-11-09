@@ -1,0 +1,23 @@
+@name     midi_bridge_unbind
+@alias    /mbd
+@group    sys
+@c_name   skode_clause_midi_bridge_unbind
+@type     immediate
+@arity    3
+@match    (finite, any, any)
+@summary  remove MIDI Skode binding
+@doc
+Removes MIDI Skode binding matching type, channel, and data1.
+Usage: /mbd type channel data1
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int type = (int)args[0];
+    int channel = -1;
+    if (isfinite(args[1])) channel = (int)args[1];
+    int data1 = -1;
+    if (isfinite(args[2])) data1 = (int)args[2];
+    ctx->printf(ctx, "# MIDI Skode bindings removed: %d\n",
+                skred_midi_binding_remove(type, channel, data1));
+    return 0;
+@end

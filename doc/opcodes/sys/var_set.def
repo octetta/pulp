@@ -1,0 +1,44 @@
+@name     var_set
+@alias    =
+@group    sys
+@c_name   skode_clause_var_set_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  print all non-zero variables
+@doc
+Prints all non-zero global variable registers ($0..$127).
+Usage: = (or var_set)
+@code
+    return skode_exec_eq(ctx, s, args, argc);
+@end
+
+@name     var_set
+@alias    =
+@group    sys
+@c_name   skode_clause_var_set_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  query variable value
+@doc
+Prints value of variable $N and pushes onto argument stack.
+Usage: =var (or var_set var)
+@code
+    return skode_exec_eq(ctx, s, args, argc);
+@end
+
+@name     var_set
+@alias    =
+@group    sys
+@c_name   skode_clause_var_set_2
+@type     immediate
+@arity    2
+@match    (finite, any)
+@summary  set variable value
+@doc
+Stores value into variable register $var.
+Usage: =var,val (or var_set var val)
+@code
+    return skode_exec_eq(ctx, s, args, argc);
+@end

@@ -56,7 +56,6 @@ static atomic_uint64_t udp_errors;
 static pthread_t udp_thread_handle;
 static pthread_attr_t udp_attr;
 
-static struct sockaddr_in serve;
 
 static int udp_open(int port) {
 #ifdef _WIN32

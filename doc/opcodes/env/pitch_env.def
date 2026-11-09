@@ -1,0 +1,19 @@
+@name     pitch_env
+@alias    pt
+@group    env
+@c_name   skode_clause_pitch_env
+@type     immediate
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  configure pitch/frequency envelope
+@doc
+Configures the 4-stage ADSR pitch envelope for the selected voice.
+Usage: pt a,d,s,r
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int voice = ctx->voice;
+    envelope_configure_e(&sv.freq_envelope[voice], args[0], args[1], args[2], args[3]);
+    sv.use_freq_envelope[voice] = !(args[0] == 0 && args[1] == 0 && args[2] == 1 && args[3] == 0);
+    return 0;
+@end

@@ -1,0 +1,69 @@
+@name     wave
+@alias    w
+@group    osc
+@c_name   skode_clause_wave_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set voice oscillator wavetable index
+@doc
+Sets the oscillator wavetable index for the selected voice. One-shot mode
+follows the wave's own default (sw.one_shot). Mirrors legacy SKODE_OP_WAVE.
+Usage: w index
+@code
+    int x = (int)args[0];
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    if ((float)x != args[0]) return -1;
+    if (wave_set(voice, x) != 0) return -1;
+    sv.one_shot[voice] = sw.one_shot[x];
+    osc_reclassify(&skred_global_engine, voice);
+    return 0;
+@end
+
+@name     wave
+@alias    w
+@group    osc
+@c_name   skode_clause_wave_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set voice wavetable index and interpolation
+@doc
+Sets the oscillator wavetable index and interpolation flag (0=off, non-zero=on).
+Usage: w index, interpolate
+@code
+    int x = (int)args[0];
+    int interp = (int)args[1];
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    if ((float)x != args[0] || (float)interp != args[1]) return -1;
+    if (wave_set(voice, x) != 0) return -1;
+    sv.interpolate[voice] = interp != 0;
+    sv.one_shot[voice] = sw.one_shot[x];
+    osc_reclassify(&skred_global_engine, voice);
+    return 0;
+@end
+
+@name     wave
+@alias    w
+@group    osc
+@c_name   skode_clause_wave_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  set voice wavetable index, interpolation, and one-shot override
+@doc
+Sets oscillator wavetable index, interpolation, and explicit one-shot override
+(0=loop, non-zero=one-shot).
+Usage: w index, interpolate, one_shot
+@code
+    int x = (int)args[0];
+    int interp = (int)args[1];
+    int shot = (int)args[2];
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    if ((float)x != args[0] || (float)interp != args[1] || (float)shot != args[2]) return -1;
+    if (wave_set(voice, x) != 0) return -1;
+    sv.interpolate[voice] = interp != 0;
+    sv.one_shot[voice] = shot != 0;
+    osc_reclassify(&skred_global_engine, voice);
+    return 0;
+@end

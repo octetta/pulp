@@ -1,0 +1,69 @@
+@name     delay_damping
+@alias    DD
+@group    mod
+@c_name   skode_clause_delay_damping_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  get or set delay damping
+@doc
+Sets delay damping filters.
+Usage: DD
+@code
+    return skode_exec_DD(ctx, s, args, argc);
+@end
+
+@name     delay_damping
+@alias    DD
+@group    mod
+@c_name   skode_clause_delay_damping_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set delay damping bus
+@doc
+Sets delay damping bus.
+Usage: DD bus
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int damping, hp;
+    delay_damping_get(&skred_global_engine, bus, &damping, &hp);
+    return delay_damping_set(&skred_global_engine, bus, damping, hp);
+@end
+
+@name     delay_damping
+@alias    DD
+@group    mod
+@c_name   skode_clause_delay_damping_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set delay damping bus and lp damping
+@doc
+Sets delay damping bus and lowpass damping.
+Usage: DD bus damping
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int damping, hp;
+    delay_damping_get(&skred_global_engine, bus, &damping, &hp);
+    return delay_damping_set(&skred_global_engine, bus, (int)args[1], hp);
+@end
+
+@name     delay_damping
+@alias    DD
+@group    mod
+@c_name   skode_clause_delay_damping_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  set delay damping bus, lp and hp
+@doc
+Sets delay damping bus, lowpass and highpass filter cutoff.
+Usage: DD bus damping hp
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    return delay_damping_set(&skred_global_engine, bus, (int)args[1], (int)args[2]);
+@end

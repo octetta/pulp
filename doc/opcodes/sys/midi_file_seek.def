@@ -1,0 +1,17 @@
+@name     midi_file_seek
+@alias    /mfP
+@group    sys
+@c_name   skode_clause_midi_file_seek
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  seek MIDI file playback position
+@doc
+Seeks playback of MIDI file slot to tick position.
+Usage: /mfP slot tick
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    midi_player_seek((int)args[0], args[1]);
+    return 0;
+@end

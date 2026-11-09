@@ -1,0 +1,17 @@
+@name     voice_reset
+@alias    S
+@group    voice
+@c_name   skode_clause_voice_reset
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  reset voice state to defaults
+@doc
+Resets synthesis parameters for target voice to default state.
+Usage: S voice (or voice_reset voice)
+@code
+    int target = (int)args[0];
+    if (target < 0) return wave_reset(-1);
+    if (target >= synth_config.voice_max) return -1;
+    return wave_reset(target);
+@end

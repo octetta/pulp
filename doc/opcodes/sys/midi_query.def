@@ -1,0 +1,17 @@
+@name     midi_query
+@alias    /m?
+@group    sys
+@c_name   skode_clause_midi_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query MIDI device status
+@doc
+Prints status of open MIDI input and output ports.
+Usage: /m?
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    ctx->printf(ctx, "# %s\n", skred_midi_status());
+    return 0;
+@end

@@ -1,0 +1,21 @@
+@name     macro_query
+@alias    e?
+@group    sys
+@c_name   skode_clause_macro_query
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  print contents of external macro slot
+@doc
+Prints the program string stored in external macro slot N.
+Usage: e? slot (or macro_query slot)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int slot = (int)args[0];
+    char macro[STRING_BUF_LEN] = "";
+    if (skode_extra_copy(slot, macro, sizeof(macro)) == 0) {
+        ctx->printf(ctx, "# e!%d [%s]\n", slot, macro);
+    }
+    return 0;
+@end

@@ -1,6 +1,9 @@
 CMAKE ?= cmake
 # A simple "Top-Level" Makefile to manage the CMake complexity
-.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows dist-api-wasm
+.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows dist-api-wasm gen
+
+gen:
+	$(MAKE) -C .. gen
 
 ZIG_LOCAL_CACHE_DIR ?= /tmp/pulp-zig-local-cache
 ZIG_GLOBAL_CACHE_DIR ?= /tmp/pulp-zig-global-cache
@@ -31,18 +34,18 @@ CMAKE_PLATFORM_ARGS ?= $(if $(filter 1 true yes,$(MACOS_UNIVERSAL)),-DCMAKE_OSX_
 BUILD_TYPE ?= Release
 all: native # pi
 
-maxed:
+maxed: gen
 	$(CMAKE) -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
 	$(CMAKE) --build build_maxed
 
 libs: native-libs
 
-native-libs:
+native-libs: gen
 	$(CMAKE) -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
 	$(CMAKE) --build build_native --target api api_shared mini-skred
 	$(CMAKE) --install build_native --prefix $(DIST_NATIVE_PREFIX)
 
-maxed-libs:
+maxed-libs: gen
 	$(CMAKE) -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
 	$(CMAKE) --build build_maxed --target api api_shared mini-skred
 	$(CMAKE) --install build_maxed --prefix $(DIST_MAXED_PREFIX)
@@ -70,7 +73,7 @@ mini-skred-windows: cross-windows-zig-maxed
 	$(CMAKE) -E make_directory $(WINDOWS_ARTIFACT_DIR)
 	$(CMAKE) -E copy_if_different build_cross_windows_zig_maxed/mini-skred.exe $(WINDOWS_ARTIFACT_DIR)/mini-skred.exe
 
-windows-cross-libs:
+windows-cross-libs: gen
 	$(ZIG_ENV) $(CMAKE) --preset cross-windows-zig-maxed
 	$(ZIG_ENV) $(CMAKE) --build --preset cross-windows-zig-maxed --target api api_shared mini-skred
 	$(CMAKE) --install build_cross_windows_zig_maxed --prefix $(DIST_WINDOWS_PREFIX)
@@ -87,7 +90,7 @@ dist-api-wasm: wasm
 
 
 
-wasm:
+wasm: gen
 	$(CMAKE) -B build_wasm -S . 
 	bash -c "$(CMAKE) --build build_wasm"
 	cp wasm-assets/mkwasm build_wasm/mkwasm
@@ -100,7 +103,7 @@ wasm:
 wasm-test:
 	node wasm-assets/test-control-dispatch.js build_wasm/skred_api.js
 
-native:
+native: gen
 	$(CMAKE) -B build_native -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
 	$(CMAKE) --build build_native
 
@@ -121,9 +124,7 @@ warn-maxed:
 pi: native
 	$(ZIG_ENV) $(CMAKE) -B build_pi -S . \
 		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
-		-DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf" \
-		-DUSE_EXTERNAL_KIT=ON \
-		-DKIT_TOOL_PATH=$(shell pwd)/build_native/kit_tool
+		-DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf"
 	$(ZIG_ENV) $(CMAKE) --build build_pi
 
 clean:
@@ -133,13 +134,13 @@ very-all:
 	make clean maxed dist-api wasm
 
 
-dist-api-linux-armhf:
+dist-api-linux-armhf: gen
 	$(CMAKE) -B build_linux_armhf -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_C_COMPILER="arm-linux-gnueabihf-gcc"
 	$(CMAKE) --build build_linux_armhf --target api api_shared mini-skred
 	$(CMAKE) --install build_linux_armhf --prefix $(DIST_ROOT)/linux-armhf/skred-$(VERSION)-maxed
 	$(CMAKE) -E chdir $(DIST_ROOT)/linux-armhf $(CMAKE) -E tar czf skred-$(VERSION)-maxed-linux-armhf.tar.gz --format=gnutar skred-$(VERSION)-maxed
 
-dist-api-linux-aarch64:
+dist-api-linux-aarch64: gen
 	$(CMAKE) -B build_linux_aarch64 -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_C_COMPILER="aarch64-linux-gnu-gcc"
 	$(CMAKE) --build build_linux_aarch64 --target api api_shared mini-skred
 	$(CMAKE) --install build_linux_aarch64 --prefix $(DIST_ROOT)/linux-aarch64/skred-$(VERSION)-maxed

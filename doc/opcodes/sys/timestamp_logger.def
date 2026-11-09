@@ -1,0 +1,27 @@
+@name     timestamp_logger
+@alias    I
+@group    sys
+@c_name   skode_clause_timestamp_logger_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  timestamp logger
+@doc
+Timestamp logger toggle.
+@code
+    return skode_exec_I(ctx, s, args, argc);
+@end
+
+@name     timestamp_logger
+@alias    I
+@group    sys
+@c_name   skode_clause_timestamp_logger_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  timestamp logger with argument
+@doc
+Timestamp logger toggle with argument.
+@code
+    return skode_exec_I(ctx, s, args, argc);
+@end

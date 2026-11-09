@@ -1,0 +1,29 @@
+@name     wave_range
+@alias    VS
+@group    osc
+@c_name   skode_clause_wave_range_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  reset waveform sample playback range
+@doc
+Resets sample playback window to start and end of buffer.
+Usage: VS (or wave_range)
+@code
+    return skode_exec_VS(ctx, s, args, argc);
+@end
+
+@name     wave_range
+@alias    VS
+@group    osc
+@c_name   skode_clause_wave_range_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  set waveform sample playback range
+@doc
+Sets start and end points for sample playback window.
+Usage: VS start end (or wave_range start end)
+@code
+    return skode_exec_VS(ctx, s, args, argc);
+@end

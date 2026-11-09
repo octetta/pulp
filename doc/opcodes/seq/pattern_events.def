@@ -1,0 +1,16 @@
+@name     pattern_events
+@alias    yc
+@group    seq
+@c_name   skode_clause_pattern_events
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  enable or disable control events on active pattern
+@doc
+Sets control event generation for active pattern (0:disable, 1:enable).
+Usage: yc state (or pattern_events state)
+@code
+    if (!ctx) return -1;
+    seq_control_events_set(ctx->pattern, (int)args[0]);
+    return 0;
+@end

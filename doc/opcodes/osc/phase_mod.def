@@ -1,0 +1,32 @@
+@name     phase_mod
+@alias    C
+@group    osc
+@c_name   skode_clause_phase_mod_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  phase modulation source or disable
+@doc
+Disables PM if source < 0, or sets source voice with 0 depth.
+Usage: C source (or phase_mod source)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    int src = (int)args[0];
+    return (src < 0) ? cmod_set(voice, -1, 0.0f) : cmod_set(voice, src, 0.0f);
+@end
+
+@name     phase_mod
+@alias    C
+@group    osc
+@c_name   skode_clause_phase_mod_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  phase modulation source and depth
+@doc
+Sets phase modulation source voice and depth.
+Usage: C source depth
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return cmod_set(voice, (int)args[0], args[1]);
+@end

@@ -1,0 +1,48 @@
+@name     midi_pool_route
+@alias    /mp
+@group    sys
+@c_name   skode_clause_midi_pool_route_2
+@type     immediate
+@arity    2
+@match    (any, finite)
+@summary  route MIDI channel to polyphony pool
+@doc
+Routes MIDI channel (-1 or nan for any) to a polyphony voice pool.
+Usage: /mp channel pool
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int channel = -1;
+    if (isfinite(args[0])) channel = (int)args[0];
+    int target = (int)args[1];
+    if (skred_midi_route_set(channel, SKRED_MIDI_ROUTE_POOL, target, 2.0f) == 0 &&
+        skred_control_dispatch_start() == 0)
+        ctx->printf(ctx, "# MIDI route installed\n");
+    else ctx->printf(ctx, "# MIDI route failed\n");
+    return 0;
+@end
+
+@name     midi_pool_route
+@alias    /mp
+@group    sys
+@c_name   skode_clause_midi_pool_route_3
+@type     immediate
+@arity    3
+@match    (any, finite, finite)
+@summary  route MIDI channel to polyphony pool with pitch bend range
+@doc
+Routes MIDI channel (-1 or nan for any) to a polyphony voice pool with semitone bend range.
+Usage: /mp channel pool bend
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int channel = -1;
+    if (isfinite(args[0])) channel = (int)args[0];
+    int target = (int)args[1];
+    float bend = (float)args[2];
+    if (skred_midi_route_set(channel, SKRED_MIDI_ROUTE_POOL, target, bend) == 0 &&
+        skred_control_dispatch_start() == 0)
+        ctx->printf(ctx, "# MIDI route installed\n");
+    else ctx->printf(ctx, "# MIDI route failed\n");
+    return 0;
+@end

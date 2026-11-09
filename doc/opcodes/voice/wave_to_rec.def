@@ -1,0 +1,28 @@
+@name     wave_to_rec
+@alias    w>r
+@group    voice
+@c_name   skode_clause_wave_to_rec_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  copy wavetable slot into recording buffer
+@doc
+Copies samples from wavetable slot into the live recording buffer.
+Usage: 0 w>r
+@code
+    return skode_exec_w_gtr(ctx, s, args, argc);
+@end
+
+@name     wave_to_rec
+@alias    w>r
+@group    voice
+@c_name   skode_clause_wave_to_rec_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  wave to recording buffer no-op
+@doc
+Wave to recording buffer no-op.
+@code
+    return skode_exec_w_gtr(ctx, s, args, argc);
+@end

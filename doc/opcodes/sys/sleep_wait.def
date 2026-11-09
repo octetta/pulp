@@ -1,0 +1,29 @@
+@name     sleep_wait
+@alias    wait
+@group    sys
+@c_name   skode_clause_sleep_wait_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  sleep for ms
+@doc
+Sleeps execution for specified milliseconds.
+Usage: wait 100
+@code
+    return skode_exec_wait(ctx, s, args, argc);
+@end
+
+@name     sleep_wait
+@alias    wait
+@group    sys
+@c_name   skode_clause_sleep_wait_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  sleep wait no-op
+@doc
+Sleep wait no-op.
+Usage: wait
+@code
+    return skode_exec_wait(ctx, s, args, argc);
+@end

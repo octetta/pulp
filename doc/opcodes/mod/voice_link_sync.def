@@ -1,0 +1,106 @@
+@name     voice_link_sync
+@alias    H
+@group    mod
+@c_name   skode_clause_voice_link_sync_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  link velocity to target voice
+@doc
+Links velocity of active voice to follow target voice.
+Usage: H 0
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_velo_1[voice] = -1.0f;
+    sv.link_velo_2[voice] = -1.0f;
+    sv.link_velo_3[voice] = -1.0f;
+    sv.link_velo_4[voice] = -1.0f;
+    sv.link_velo_5[voice] = -1.0f;
+    return 0;
+@end
+
+@name     voice_link_sync
+@alias    H
+@group    mod
+@c_name   skode_clause_voice_link_sync_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  voice link velocity clear
+@doc
+Clears velocity links for active voice.
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_velo_0[voice] = -1.0f;
+    sv.link_velo_1[voice] = -1.0f;
+    sv.link_velo_2[voice] = -1.0f;
+    sv.link_velo_3[voice] = -1.0f;
+    sv.link_velo_4[voice] = -1.0f;
+    sv.link_velo_5[voice] = -1.0f;
+    return 0;
+@end
+
+@name     voice_link_sync
+@alias    H
+@group    mod
+@c_name   skode_clause_voice_link_sync_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  link velocity to 2 target voices
+@doc
+Links velocity to two target voices.
+Usage: H v1 v2
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_velo_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_velo_2[voice] = -1.0f;
+    sv.link_velo_3[voice] = -1.0f;
+    sv.link_velo_4[voice] = -1.0f;
+    sv.link_velo_5[voice] = -1.0f;
+    return 0;
+@end
+
+@name     voice_link_sync
+@alias    H
+@group    mod
+@c_name   skode_clause_voice_link_sync_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  link velocity to 3 target voices
+@doc
+Links velocity to 3 target voices.
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_velo_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_velo_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
+    sv.link_velo_3[voice] = -1.0f;
+    sv.link_velo_4[voice] = -1.0f;
+    sv.link_velo_5[voice] = -1.0f;
+    return 0;
+@end
+
+@name     voice_link_sync
+@alias    H
+@group    mod
+@c_name   skode_clause_voice_link_sync_4
+@type     realtime
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  link velocity to 4 target voices
+@doc
+Links velocity to 4 target voices.
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_velo_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_velo_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
+    sv.link_velo_3[voice] = (args[3] >= 0 && args[3] < synth_config.voice_max) ? args[3] : -1.0f;
+    sv.link_velo_4[voice] = -1.0f;
+    sv.link_velo_5[voice] = -1.0f;
+    return 0;
+@end

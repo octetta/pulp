@@ -1,0 +1,46 @@
+@name     delay_time_ms
+@alias    DT
+@group    mod
+@c_name   skode_clause_delay_time_ms_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set delay time in milliseconds
+@doc
+Sets delay time directly in milliseconds.
+Usage: DT bus ms
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    return delay_time_ms_set(&skred_global_engine, bus, (float)args[1]);
+@end
+
+@name     delay_time_ms
+@alias    DT
+@group    mod
+@c_name   skode_clause_delay_time_ms_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  delay time ms no-op
+@doc
+Delay time ms no-op.
+@code
+    return 0;
+@end
+
+@name     delay_time_ms
+@alias    DT
+@group    mod
+@c_name   skode_clause_delay_time_ms_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  delay time ms bus
+@doc
+Delay time ms bus only.
+@code
+    (void)voice;
+    (void)args;
+    return 0;
+@end

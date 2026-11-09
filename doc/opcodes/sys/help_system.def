@@ -1,0 +1,43 @@
+@name     help_system
+@alias    /h
+@group    sys
+@c_name   skode_clause_help_system_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  display help
+@doc
+Displays help summary or command documentation.
+Usage: /h
+@code
+    return skode_exec_slashh(ctx, s, args, argc);
+@end
+
+@name     help_system
+@alias    /h
+@group    sys
+@c_name   skode_clause_help_system_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  display help for topic
+@doc
+Displays help for specified command or topic.
+Usage: /h topic
+@code
+    return skode_exec_slashh(ctx, s, args, argc);
+@end
+
+@name     help_system
+@alias    /h
+@group    sys
+@c_name   skode_clause_help_system_2
+@type     immediate
+@arity    2
+@match    (any, any)
+@summary  display help with arguments
+@doc
+Displays help with arguments.
+@code
+    return skode_exec_slashh(ctx, s, args, argc);
+@end

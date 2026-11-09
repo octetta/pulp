@@ -1,0 +1,14 @@
+@name     control_event_bind
+@alias    /ceb
+@group    seq
+@c_name   skode_clause_control_event_bind
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  bind control event to Skode command
+@doc
+Binds control event (type, id) to execute Skode code string.
+Usage: [command] /ceb type id
+@code
+    return skode_exec_slashceb(ctx, s, args, argc);
+@end

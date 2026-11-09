@@ -1,0 +1,30 @@
+@name     wave_default
+@alias    /
+@group    voice
+@c_name   skode_clause_wave_default_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  reset voice waveform to default sine
+@doc
+Resets the active voice oscillator waveform to default sine wave.
+Usage: /
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return wave_default(voice);
+@end
+
+@name     wave_default
+@alias    /
+@group    voice
+@c_name   skode_clause_wave_default_1
+@type     realtime
+@arity    1
+@match    (any)
+@summary  reset voice waveform to default sine with argument
+@doc
+Resets the active voice oscillator waveform to default sine wave.
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return wave_default(voice);
+@end

@@ -79,7 +79,7 @@ static int ands_var_parse(char **ptr, char *end) {
 }
 
 #define ARG_MAX (8)
-#define ATOM_MAX (4)
+#define ATOM_MAX (31)
 #define ATOM_NIL (0x2d2d2d2d)
 #define VAR_MAX (ANDS_VAR_MAX)
 
@@ -175,6 +175,7 @@ typedef struct ands_s {
     
     // Atom state
     atom_t atom_num;
+    char atom_name[ATOM_MAX + 1];
     
     // Parser state
     int state;
@@ -310,6 +311,12 @@ static int ands_macro_slot_from_index(int index) {
         if (seen++ == index) return i;
     }
     return -1;
+}
+
+int ands_macro_find(ands_t *s, const char *name) {
+    (void)s;
+    if (!name) return -1;
+    return ands_find_macro(name);
 }
 
 int ands_last_macro_index(ands_t *s) {
@@ -627,15 +634,23 @@ static int ands_preprocess_macros(ands_t *s, const char *input, buffer_t *out, i
 static void atom_finish(ands_t *s) {
     uint32_t i = ATOM_NIL;  // Start with '----' (0x2d2d2d2d)
     char *p = (char *)&i;
-    int len = s->atom.len < ATOM_MAX ? s->atom.len : ATOM_MAX;
+    int len = s->atom.len < 4 ? s->atom.len : 4;
     for (int n = 0; n < len; n++) {
         p[n] = s->atom.data[n];
     }
     s->atom_num = ntohl(i);
+    if (s->atom.len > 0) {
+        int n = s->atom.len < ATOM_MAX ? s->atom.len : ATOM_MAX;
+        memcpy(s->atom_name, s->atom.data, n);
+        s->atom_name[n] = '\0';
+    } else {
+        s->atom_name[0] = '\0';
+    }
 }
 
 static void atom_reset(ands_t *s) {
     s->atom_num = ATOM_NIL;
+    s->atom_name[0] = '\0';
 }
 
 char* atom_string(int i) {
@@ -1137,6 +1152,11 @@ int ands_defer_var(ands_t *s) { return s->defer_var; }
 char *ands_defer_string(ands_t *s) { return buffer_str(&s->defer); }
 char ands_defer_mode(ands_t *s) { return s->defer_mode; }
 char *ands_atom_string(ands_t *s) { return atom_string(s->atom_num); }
+const char *ands_atom_name(ands_t *s) {
+    if (!s) return "";
+    if (s->atom_name[0] != '\0') return s->atom_name;
+    return atom_string(s->atom_num);
+}
 double *ands_data(ands_t *s) { return s->data; }
 void ands_data_len_set(ands_t *s, int n) {
   if (n >= 0 && n <= s->data_cap) s->data_len = n;

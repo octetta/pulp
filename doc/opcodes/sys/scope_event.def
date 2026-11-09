@@ -1,0 +1,25 @@
+@name     scope_event
+@alias    /sm
+@group    sys
+@c_name   skode_clause_scope_event
+@type     immediate
+@arity    0
+@match    ()
+@summary  publish scope message event
+@doc
+Publishes a text event marker into the scope IPC stream.
+Usage: [string] /sm
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    if (ands_string_fresh(ctx->parse)) {
+        const char *text = ands_string(ctx->parse);
+        if (text) {
+            scope_ipc_publish_event(text);
+            ctx->printf(ctx, "# scope event published: %s\n", text);
+        }
+    } else {
+        ctx->printf(ctx, "# /sm requires a string argument, e.g. /sm \"hello\"\n");
+    }
+    return 0;
+@end

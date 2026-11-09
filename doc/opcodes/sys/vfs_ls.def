@@ -1,0 +1,44 @@
+@name     vfs_ls
+@alias    %ls
+@group    sys
+@c_name   skode_clause_vfs_ls_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  list vfs directory
+@doc
+Lists files in current working directory.
+Usage: %ls
+@code
+    return skode_exec_pctls(ctx, s, args, argc);
+@end
+
+@name     vfs_ls
+@alias    %ls
+@group    sys
+@c_name   skode_clause_vfs_ls_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  list vfs directory filtered by file type
+@doc
+Lists files filtered by file type code (0=.sk, 1=.wav, 2=.mp3, 3=.ks, 4=.flac, 5=.zip, 6=.pnl).
+Usage: 1 %ls
+@code
+    return skode_exec_pctls(ctx, s, args, argc);
+@end
+
+@name     vfs_ls
+@alias    %ls
+@group    sys
+@c_name   skode_clause_vfs_ls_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  list vfs directory filtered by file type and index
+@doc
+Selects file by index into string buffer.
+Usage: 1 0 %ls
+@code
+    return skode_exec_pctls(ctx, s, args, argc);
+@end

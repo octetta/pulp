@@ -184,16 +184,17 @@ static int word_exec_xa(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
         } else if (result == SKODE_COMPILE_IMMEDIATE_ONLY) {
           if (hint[0])
             ctx->printf(ctx,
-              "# '%s' is immediate-only and cannot be compiled into a pattern step\n"
-              "# use 'ce N' in the step and bind N with '/ceb 4 N'\n", hint);
+              "# pattern %d step %d: '%s' is immediate-only and cannot be compiled into step [%s]\n"
+              "# use 'ce N' in the step and bind N with '/ceb 4 N'\n", ctx->pattern, ctx->step, hint, source);
           else
             ctx->printf(ctx,
-              "# step contains an immediate-only word (e.g. a string bracket or "
-              "word like >u, e>, /ceb)\n"
-              "# use 'ce N' in the step and bind N with '/ceb 4 N'\n");
+              "# pattern %d step %d: step [%s] contains an immediate-only word\n"
+              "# use 'ce N' in the step and bind N with '/ceb 4 N'\n", ctx->pattern, ctx->step, source);
+          return -1;
         } else {
-          ctx->printf(ctx, "# step could not be compiled (%d): [%s]\n",
-            result, source);
+          ctx->printf(ctx, "# pattern %d step %d: step could not be compiled (%d): [%s]\n",
+            ctx->pattern, ctx->step, result, source);
+          return -1;
         }
       }
       return 0;
@@ -832,104 +833,113 @@ static int word_exec__pct(const skode_word_t *self, skode_t *ctx, ands_t *s, dou
       return 0;
 }
 
-
-// Word declarations
-static skode_word_t word_ce = { WID("ce"), .execute = word_exec_ce, .safety = WORD_IMMEDIATE_ONLY , .category = "events" };
-static skode_word_t word_R_bang = { WID("R!"), .execute = word_exec_R_bang, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_R_bang_bang = { WID("R!!"), .execute = word_exec_R_bang_bang, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_RR = { WID("RR"), .execute = word_exec_RR, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_eRR = { WID("eRR"), .execute = word_exec_eRR, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_eR = { WID("eR"), .execute = word_exec_eR, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_DO_q = { WID("DO?"), .execute = word_exec_DO_q, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_R = { WID("R"), .execute = word_exec_R, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_DQ = { WID("DQ"), .execute = word_exec_DQ, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_xg = { WID("xg"), .execute = word_exec_xg, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word__gtx = { WID(">x"), .execute = word_exec__gtx, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_xa = { WID("xa"), .execute = word_exec_xa, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word__ltx = { WID("<x"), .execute = word_exec__ltx, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_y = { WID("y"), .execute = word_exec_y, .opcode_id = SKODE_OP_PATTERN_SET, .safety = 0, .max_args = 1 , .category = "sequencer" };
-static skode_word_t word_ys_q = { WID("ys?"), .execute = word_exec_ys_q, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_yt = { WID("yt"), .execute = word_exec_yt, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_ym = { WID("ym"), .execute = word_exec_ym, .opcode_id = SKODE_OP_PATTERN_MUTE, .safety = 0, .max_args = 1 , .category = "sequencer" };
-static skode_word_t word_yc = { WID("yc"), .execute = word_exec_yc, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_yp = { WID("yp"), .execute = word_exec_yp, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_Y = { WID("Y"), .execute = word_exec_Y, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_z = { WID("z"), .execute = word_exec_z, .opcode_id = SKODE_OP_PATTERN_STATE, .safety = 0, .max_args = 1 , .category = "sequencer" };
-static skode_word_t word_zg = { WID("zg"), .execute = word_exec_zg, .opcode_id = SKODE_OP_PATTERN_GOTO, .safety = 0, .max_args = 1 , .category = "sequencer" };
-static skode_word_t word__minusj = { WID("-j"), .execute = word_exec_zg, .opcode_id = SKODE_OP_PATTERN_GOTO, .safety = 0, .max_args = 1 , .category = "sequencer" };
-static skode_word_t word_zq = { WID("zq"), .execute = word_exec_zq, .opcode_id = SKODE_OP_PATTERN_QUEUE, .safety = 0, .max_args = 1 , .category = "sequencer" };
-static skode_word_t word_z_q = { WID("z?"), .execute = word_exec_z_q, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_Z = { WID("Z"), .execute = word_exec_Z, .opcode_id = SKODE_OP_PATTERN_STATE_ALL, .safety = 0, .max_args = 1 , .category = "sequencer" };
-static skode_word_t word_Z_bang = { WID("Z!"), .execute = word_exec_Z_bang, .opcode_id = SKODE_OP_PATTERN_REWIND, .safety = 0, .max_args = 0 , .category = "sequencer" };
-static skode_word_t word_z_q_bs_q = { WID("z?\?"), .execute = word_exec_z_q_bs_q, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word_Z_q = { WID("Z?"), .execute = word_exec_Z_q, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word__qce = { WID("?ce"), .execute = word_exec__qce, .safety = WORD_IMMEDIATE_ONLY , .category = "events" };
-static skode_word_t word__qce_bang = { WID("?ce!"), .execute = word_exec__qce_bang, .safety = WORD_IMMEDIATE_ONLY , .category = "events" };
-static skode_word_t word__qq = { WID("?q"), .execute = word_exec__qq, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word__qo = { WID("?o"), .execute = word_exec__qo, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-static skode_word_t word__slashrg = { WID("/rg"), .execute = word_exec__slashrg, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
-static skode_word_t word__slashrw = { WID("/rw"), .execute = word_exec__slashrw, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
-static skode_word_t word__slashrs = { WID("/rs"), .execute = word_exec__slashrs, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
-static skode_word_t word__slashr_q = { WID("/r?"), .execute = word_exec__slashr_q, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
-static skode_word_t word__slashr = { WID("/r"), .execute = word_exec__slashr, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
-static skode_word_t word__slashcer = { WID("/cer"), .execute = word_exec__slashcer, .safety = WORD_IMMEDIATE_ONLY , .category = "events" };
-static skode_word_t word__slashce_q = { WID("/ce?"), .execute = word_exec__slashce_q, .safety = WORD_IMMEDIATE_ONLY , .category = "events" };
-static skode_word_t word__slashce_bang = { WID("/ce!"), .execute = word_exec__slashce_bang, .safety = WORD_IMMEDIATE_ONLY , .category = "events" };
-static skode_word_t word__slashceb = { WID("/ceb"), .execute = word_exec__slashceb, .safety = WORD_IMMEDIATE_ONLY , .category = "events" };
-static skode_word_t word__slashcex = { WID("/cex"), .execute = word_exec__slashcex, .safety = WORD_IMMEDIATE_ONLY , .category = "events" };
-static skode_word_t word__gtr = { WID(">r"), .execute = word_exec__gtr, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
-static skode_word_t word__hatr = { WID("^r"), .execute = word_exec__hatr, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
-static skode_word_t word__ltr = { WID("<r"), .execute = word_exec__ltr, .safety = WORD_IMMEDIATE_ONLY , .category = "recording" };
-static skode_word_t word__pct = { WID("%"), .execute = word_exec__pct, .safety = WORD_IMMEDIATE_ONLY , .category = "sequencer" };
-
-static skode_word_t word_ys = { WID("ys"), .execute = word_exec_ys_q, .safety = WORD_IMMEDIATE_ONLY };
+int skode_exec_DO_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_DO_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_DQ(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_DQ(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_xg(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_xg(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_ys_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_ys_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_yt(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_yt(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_z_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_z_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_z_q_bs_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_z_q_bs_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_Z_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_Z_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_qce(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__qce(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_qce_bang(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__qce_bang(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_qq(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__qq(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_qo(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__qo(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashrg(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashrg(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashrw(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashrw(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashrs(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashrs(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashr_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashr_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashr(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashr(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashcer(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashcer(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashce_q(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashce_q(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashce_bang(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashce_bang(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashceb(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashceb(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_slashcex(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__slashcex(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_gtr(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__gtr(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_hatr(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__hatr(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_ltr(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__ltr(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_y(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_y(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_ym(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_ym(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_zg(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_zg(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_zq(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_zq(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_Z_bang(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_Z_bang(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_pct(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec__pct(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_z(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_z(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_Z(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_Z(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_yp(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_yp(NULL, ctx, s, (double*)arg, argc);
+}
+int skode_exec_Y(skode_t *ctx, ands_t *s, const double *arg, int argc) {
+  return word_exec_Y(NULL, ctx, s, (double*)arg, argc);
+}
 
 void skode_register_words_seq(skode_vocab_t *vocab) {
-  skode_dict_register(vocab, &word_ys);
-  skode_dict_register(vocab, &word_ce);
-  skode_dict_register(vocab, &word_R_bang);
-  skode_dict_register(vocab, &word_R_bang_bang);
-  skode_dict_register(vocab, &word_RR);
-  skode_dict_register(vocab, &word_eRR);
-  skode_dict_register(vocab, &word_eR);
-  skode_dict_register(vocab, &word_DO_q);
-  skode_dict_register(vocab, &word_R);
-  skode_dict_register(vocab, &word_DQ);
-  skode_dict_register(vocab, &word_xg);
-  skode_dict_register(vocab, &word__gtx);
-  skode_dict_register(vocab, &word_xa);
-  skode_dict_register(vocab, &word__ltx);
-  skode_dict_register(vocab, &word_y);
-  skode_dict_register(vocab, &word_ys_q);
-  skode_dict_register(vocab, &word_yt);
-  skode_dict_register(vocab, &word_ym);
-  skode_dict_register(vocab, &word_yc);
-  skode_dict_register(vocab, &word_yp);
-  skode_dict_register(vocab, &word_Y);
-  skode_dict_register(vocab, &word_z);
-  skode_dict_register(vocab, &word_zg);
-  skode_dict_register(vocab, &word_zq);
-  skode_dict_register(vocab, &word_z_q);
-  skode_dict_register(vocab, &word_Z);
-  skode_dict_register(vocab, &word_Z_bang);
-  skode_dict_register(vocab, &word_z_q_bs_q);
-  skode_dict_register(vocab, &word_Z_q);
-  skode_dict_register(vocab, &word__qce);
-  skode_dict_register(vocab, &word__qce_bang);
-  skode_dict_register(vocab, &word__qq);
-  skode_dict_register(vocab, &word__qo);
-  skode_dict_register(vocab, &word__slashrg);
-  skode_dict_register(vocab, &word__slashrw);
-  skode_dict_register(vocab, &word__slashrs);
-  skode_dict_register(vocab, &word__slashr_q);
-  skode_dict_register(vocab, &word__slashr);
-  skode_dict_register(vocab, &word__slashcer);
-  skode_dict_register(vocab, &word__slashce_q);
-  skode_dict_register(vocab, &word__slashce_bang);
-  skode_dict_register(vocab, &word__slashceb);
-  skode_dict_register(vocab, &word__slashcex);
-  skode_dict_register(vocab, &word__gtr);
-  skode_dict_register(vocab, &word__hatr);
-  skode_dict_register(vocab, &word__ltr);
-  skode_dict_register(vocab, &word__pct);
+  (void)vocab;
+  /* All sequencer/recording words migrated to .def files in doc/opcodes/ */
 }

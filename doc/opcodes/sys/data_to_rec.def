@@ -1,0 +1,36 @@
+@name     data_to_rec
+@alias    d>r
+@group    sys
+@c_name   skode_clause_data_to_rec
+@type     immediate
+@arity    0
+@match    ()
+@summary  copy data array to record buffer
+@doc
+Copies contents of active data buffer into audio recording buffer.
+Usage: d>r (or data_to_rec)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    extern synth_sample_t sampling;
+    double *data = ands_data(ctx->parse);
+    int data_len = ands_data_len(ctx->parse);
+    if (!data || data_len <= 0) return 0;
+    int sample_state = atomic_load_int(&sampling.state);
+    if (sample_state == SAMPLE_STATE_ARMED || sample_state == SAMPLE_STATE_RECORDING) {
+        ctx->printf(ctx, "# recording buffer busy\n");
+        return 0;
+    }
+    if (data_len > sampling.capacity) skode_sample_alloc(data_len);
+    if (!sampling.where || data_len > sampling.capacity) {
+        ctx->printf(ctx, "# recording buffer allocation failed\n");
+        return 0;
+    }
+    for (int i = 0; i < data_len; i++) sampling.where[i] = (float)data[i];
+    sampling.len = data_len;
+    sampling.channels = 1;
+    sampling.offset = 0;
+    sampling.trim = 0;
+    atomic_store_int(&sampling.state, SAMPLE_STATE_COMPLETE);
+    return 0;
+@end

@@ -1,0 +1,30 @@
+@name     seq_dequeue
+@alias    DQ
+@group    seq
+@c_name   skode_clause_seq_dequeue_all
+@type     immediate
+@arity    0
+@match    ()
+@summary  clear all scheduled events
+@doc
+Removes all scheduled events from the queue.
+Usage: DQ
+@code
+    return skode_exec_DQ(ctx, s, args, argc);
+@end
+
+@name     seq_dequeue
+@alias    DQ
+@group    seq
+@c_name   skode_clause_seq_dequeue
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  dequeue scheduled event by tag
+@doc
+Removes scheduled events matching tag from queue.
+Usage: DQ tag
+@code
+    return skode_exec_DQ(ctx, s, args, argc);
+@end
+

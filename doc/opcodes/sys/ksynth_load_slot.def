@@ -1,0 +1,29 @@
+@name     ksynth_load_slot
+@alias    /k
+@group    sys
+@c_name   skode_clause_ksynth_load_slot_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load built-in KSynth instrument slot
+@doc
+Loads built-in KSynth instrument by slot number.
+Usage: /k slot
+@code
+    return skode_exec_ksynth_load(ctx, s, args, argc);
+@end
+
+@name     ksynth_load_slot
+@alias    /k
+@group    sys
+@c_name   skode_clause_ksynth_load_slot_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  load built-in KSynth slot with verbosity
+@doc
+Loads built-in KSynth instrument with verbose flag.
+Usage: /k slot verbose
+@code
+    return skode_exec_ksynth_load(ctx, s, args, argc);
+@end

@@ -1,0 +1,28 @@
+@name     voice_text
+@alias    vt
+@group    voice
+@c_name   skode_clause_voice_text_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  set voice label text
+@doc
+Sets label text for active voice from string buffer.
+Usage: [Lead synth] vt
+@code
+    return skode_exec_vt(ctx, s, args, argc);
+@end
+
+@name     voice_text
+@alias    vt
+@group    voice
+@c_name   skode_clause_voice_text_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  set voice label text with argument
+@doc
+Sets label text for active voice.
+@code
+    return skode_exec_vt(ctx, s, args, argc);
+@end

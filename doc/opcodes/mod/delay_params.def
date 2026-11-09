@@ -1,0 +1,163 @@
+@name     delay_params
+@alias    DL
+@group    mod
+@c_name   skode_clause_delay_params_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  get delay parameters
+@doc
+Shows delay parameters.
+Usage: DL
+@code
+    return skode_exec_DL(ctx, s, args, argc);
+@end
+
+@name     delay_params
+@alias    DL
+@group    mod
+@c_name   skode_clause_delay_params_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set delay bus
+@doc
+Sets delay bus.
+Usage: DL bus
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int coarse, fine, feedback, mod_freq, mod_depth, level;
+    delay_params_get(&skred_global_engine, bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+    return delay_params_set(&skred_global_engine, bus, coarse, fine, feedback, mod_freq, mod_depth, level);
+@end
+
+@name     delay_params
+@alias    DL
+@group    mod
+@c_name   skode_clause_delay_params_2
+@type     realtime
+@arity    2
+@match    (finite, any)
+@summary  set delay bus and coarse time
+@doc
+Sets delay bus and coarse time.
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int coarse, fine, feedback, mod_freq, mod_depth, level;
+    delay_params_get(&skred_global_engine, bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+    if (isfinite(args[1])) coarse = (int)args[1];
+    return delay_params_set(&skred_global_engine, bus, coarse, fine, feedback, mod_freq, mod_depth, level);
+@end
+
+@name     delay_params
+@alias    DL
+@group    mod
+@c_name   skode_clause_delay_params_3
+@type     realtime
+@arity    3
+@match    (finite, any, any)
+@summary  set delay bus, coarse, fine
+@doc
+Sets delay bus, coarse, fine.
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int coarse, fine, feedback, mod_freq, mod_depth, level;
+    delay_params_get(&skred_global_engine, bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+    if (isfinite(args[1])) coarse = (int)args[1];
+    if (isfinite(args[2])) fine = (int)args[2];
+    return delay_params_set(&skred_global_engine, bus, coarse, fine, feedback, mod_freq, mod_depth, level);
+@end
+
+@name     delay_params
+@alias    DL
+@group    mod
+@c_name   skode_clause_delay_params_4
+@type     realtime
+@arity    4
+@match    (finite, any, any, any)
+@summary  set delay bus, coarse, fine, feedback
+@doc
+Sets delay bus, coarse, fine, feedback.
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int coarse, fine, feedback, mod_freq, mod_depth, level;
+    delay_params_get(&skred_global_engine, bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+    if (isfinite(args[1])) coarse = (int)args[1];
+    if (isfinite(args[2])) fine = (int)args[2];
+    if (isfinite(args[3])) feedback = (int)args[3];
+    return delay_params_set(&skred_global_engine, bus, coarse, fine, feedback, mod_freq, mod_depth, level);
+@end
+
+@name     delay_params
+@alias    DL
+@group    mod
+@c_name   skode_clause_delay_params_5
+@type     realtime
+@arity    5
+@match    (finite, any, any, any, any)
+@summary  set delay bus, coarse, fine, feedback, mod_freq
+@doc
+Sets delay parameters with mod_freq.
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int coarse, fine, feedback, mod_freq, mod_depth, level;
+    delay_params_get(&skred_global_engine, bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+    if (isfinite(args[1])) coarse = (int)args[1];
+    if (isfinite(args[2])) fine = (int)args[2];
+    if (isfinite(args[3])) feedback = (int)args[3];
+    if (isfinite(args[4])) mod_freq = (int)args[4];
+    return delay_params_set(&skred_global_engine, bus, coarse, fine, feedback, mod_freq, mod_depth, level);
+@end
+
+@name     delay_params
+@alias    DL
+@group    mod
+@c_name   skode_clause_delay_params_6
+@type     realtime
+@arity    6
+@match    (finite, any, any, any, any, any)
+@summary  set delay bus, coarse, fine, feedback, mod_freq, mod_depth
+@doc
+Sets delay parameters with mod_depth.
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int coarse, fine, feedback, mod_freq, mod_depth, level;
+    delay_params_get(&skred_global_engine, bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+    if (isfinite(args[1])) coarse = (int)args[1];
+    if (isfinite(args[2])) fine = (int)args[2];
+    if (isfinite(args[3])) feedback = (int)args[3];
+    if (isfinite(args[4])) mod_freq = (int)args[4];
+    if (isfinite(args[5])) mod_depth = (int)args[5];
+    return delay_params_set(&skred_global_engine, bus, coarse, fine, feedback, mod_freq, mod_depth, level);
+@end
+
+@name     delay_params
+@alias    DL
+@group    mod
+@c_name   skode_clause_delay_params_7
+@type     realtime
+@arity    7
+@match    (finite, any, any, any, any, any, any)
+@summary  set all delay parameters
+@doc
+Sets all delay parameters: bus, coarse, fine, feedback, mod_freq, mod_depth, level.
+Usage: DL bus,coarse,fine,feedback,mod_freq,mod_depth,level
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int coarse, fine, feedback, mod_freq, mod_depth, level;
+    delay_params_get(&skred_global_engine, bus, &coarse, &fine, &feedback, &mod_freq, &mod_depth, &level);
+    if (isfinite(args[1])) coarse = (int)args[1];
+    if (isfinite(args[2])) fine = (int)args[2];
+    if (isfinite(args[3])) feedback = (int)args[3];
+    if (isfinite(args[4])) mod_freq = (int)args[4];
+    if (isfinite(args[5])) mod_depth = (int)args[5];
+    if (isfinite(args[6])) level = (int)args[6];
+    return delay_params_set(&skred_global_engine, bus, coarse, fine, feedback, mod_freq, mod_depth, level);
+@end

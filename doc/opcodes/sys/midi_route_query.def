@@ -1,0 +1,17 @@
+@name     midi_route_query
+@alias    /mR
+@group    sys
+@c_name   skode_clause_midi_route_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query active MIDI routes
+@doc
+Prints all currently installed MIDI channel routes.
+Usage: /mR
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    ctx->printf(ctx, "%s", skred_midi_route_status());
+    return 0;
+@end

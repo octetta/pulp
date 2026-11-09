@@ -1,0 +1,36 @@
+@name     pattern_master
+@alias    yp
+@group    seq
+@c_name   skode_clause_pattern_master_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query master pattern
+@doc
+Prints the current master pattern index.
+Usage: yp (or pattern_master)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    int mp = seq_master_pattern_get();
+    if (mp < 0) ctx->printf(ctx, "# master pattern: disabled\n");
+    else ctx->printf(ctx, "# master pattern: %d\n", mp);
+    return 0;
+@end
+
+@name     pattern_master
+@alias    yp
+@group    seq
+@c_name   skode_clause_pattern_master_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set master pattern for pattern synchronization
+@doc
+Sets master sync pattern. Pass -1 to disable.
+Usage: yp pattern (or pattern_master pattern)
+@code
+    (void)ctx; (void)s; (void)argc;
+    seq_master_pattern_set((int)args[0]);
+    return 0;
+@end

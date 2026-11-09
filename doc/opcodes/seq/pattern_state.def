@@ -1,0 +1,37 @@
+@name     pattern_state
+@alias    z
+@group    seq
+@c_name   skode_clause_pattern_state_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  show active pattern state
+@doc
+Prints step program listings for active pattern.
+Usage: z (or pattern_state)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    pattern_show(ctx, ctx->pattern, 1);
+    return 0;
+@end
+
+@name     pattern_state
+@alias    z
+@group    seq
+@c_name   skode_clause_pattern_state_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set active pattern playback state
+@doc
+Sets pattern playback state (0:stop, 1:play, 2:solo).
+Usage: z state (or pattern_state state)
+@code
+    (void)s;
+    if (ctx && argc) {
+        int state = (int)args[0];
+        seq_state_set(ctx->pattern, state);
+    }
+    return 0;
+@end

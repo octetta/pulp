@@ -1,0 +1,29 @@
+@name     ksynth_wave_export
+@alias    kw>
+@group    sys
+@c_name   skode_clause_ksynth_wave_export_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  export KSynth result to data buffer
+@doc
+Copies active KSynth expression result into the data buffer.
+Usage: kw>
+@code
+    return skode_exec_kw_gt(ctx, s, args, argc);
+@end
+
+@name     ksynth_wave_export
+@alias    kw>
+@group    sys
+@c_name   skode_clause_ksynth_wave_export_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  export KSynth result to data buffer
+@doc
+Copies active KSynth expression result into data buffer with argument.
+Usage: kw> arg
+@code
+    return skode_exec_kw_gt(ctx, s, args, argc);
+@end

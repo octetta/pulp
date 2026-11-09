@@ -1,0 +1,16 @@
+@name     repeat_kill
+@alias    R!
+@group    seq
+@c_name   skode_clause_repeat_kill
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  kill scheduled events by tag
+@doc
+Removes all scheduled events from the queue matching the given tag number.
+Usage: R! tag (or repeat_kill tag)
+@code
+    (void)ctx; (void)s; (void)argc;
+    seq_kill_by_tag((int)args[0]);
+    return 0;
+@end

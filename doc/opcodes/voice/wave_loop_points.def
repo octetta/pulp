@@ -1,0 +1,56 @@
+@name     wave_loop_points
+@alias    WL
+@group    voice
+@c_name   skode_clause_wave_loop_points_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  set wavetable slot loop points
+@doc
+Sets loop start and end sample positions for specified wavetable slot.
+Usage: WL slot start end
+@code
+    return skode_exec_WL(ctx, s, args, argc);
+@end
+
+@name     wave_loop_points
+@alias    WL
+@group    voice
+@c_name   skode_clause_wave_loop_points_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  wave loop points no-op
+@doc
+Wave loop points no-op.
+@code
+    return skode_exec_WL(ctx, s, args, argc);
+@end
+
+@name     wave_loop_points
+@alias    WL
+@group    voice
+@c_name   skode_clause_wave_loop_points_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  wave loop points with 1 arg
+@doc
+Wave loop points with 1 arg.
+@code
+    return skode_exec_WL(ctx, s, args, argc);
+@end
+
+@name     wave_loop_points
+@alias    WL
+@group    voice
+@c_name   skode_clause_wave_loop_points_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  wave loop points with 2 args
+@doc
+Wave loop points with 2 args.
+@code
+    return skode_exec_WL(ctx, s, args, argc);
+@end

@@ -1,0 +1,44 @@
+@name     map_exec
+@alias    map!
+@group    sys
+@c_name   skode_clause_map_exec_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  map iteration over range 0..count-1
+@doc
+Executes template command string iterating from 0 to count-1.
+Usage: [template] count map!
+@code
+    return skode_exec_map_bang(ctx, s, args, argc);
+@end
+
+@name     map_exec
+@alias    map!
+@group    sys
+@c_name   skode_clause_map_exec_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  map iteration over range start..end
+@doc
+Executes template command string iterating from start to end (step +/-1).
+Usage: [template] start end map!
+@code
+    return skode_exec_map_bang(ctx, s, args, argc);
+@end
+
+@name     map_exec
+@alias    map!
+@group    sys
+@c_name   skode_clause_map_exec_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  map iteration with custom step
+@doc
+Executes template command string iterating from start to end with step size.
+Usage: [template] start end step map!
+@code
+    return skode_exec_map_bang(ctx, s, args, argc);
+@end

@@ -1,0 +1,14 @@
+@name     seq_do_query
+@alias    DO?
+@group    seq
+@c_name   skode_clause_seq_do_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query deferred execution queue
+@doc
+Prints status of deferred do-queue entries.
+Usage: DO?
+@code
+    return skode_exec_DO_q(ctx, s, args, argc);
+@end

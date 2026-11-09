@@ -1,0 +1,14 @@
+@name     pattern_all_query
+@alias    Z?
+@group    seq
+@c_name   skode_clause_pattern_all_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query all patterns summary
+@doc
+Prints comprehensive summary of all defined patterns.
+Usage: Z?
+@code
+    return skode_exec_Z_q(ctx, s, args, argc);
+@end

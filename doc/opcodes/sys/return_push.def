@@ -1,0 +1,135 @@
+@name     return_push
+@alias    *R
+@group    sys
+@type     immediate
+@arity    0
+@match    ()
+@summary  reset or clear return registers
+@doc
+Pushes arguments into parser return registers @0 through @7.
+Usage: *R [arg0] [arg1] ...
+@code
+    (void)ctx; (void)s; (void)args; (void)argc;
+    return 0;
+@end
+
+@name     return_push
+@alias    *R
+@group    sys
+@type     immediate
+@arity    1
+@match    (any)
+@summary  push 1 argument into return registers
+@doc
+Pushes 1 argument into return register @0.
+@code
+    (void)ctx; (void)argc;
+    ands_return_push(s, args[0]);
+    return 0;
+@end
+
+@name     return_push
+@alias    *R
+@group    sys
+@type     immediate
+@arity    2
+@match    (any, any)
+@summary  push 2 arguments into return registers
+@doc
+Pushes 2 arguments into return registers @0 and @1.
+@code
+    (void)ctx; (void)argc;
+    ands_return_push(s, args[0]);
+    ands_return_push(s, args[1]);
+    return 0;
+@end
+
+@name     return_push
+@alias    *R
+@group    sys
+@type     immediate
+@arity    3
+@match    (any, any, any)
+@summary  push 3 arguments into return registers
+@doc
+Pushes 3 arguments into return registers @0 through @2.
+@code
+    (void)ctx; (void)argc;
+    for (int i = 0; i < 3; i++) ands_return_push(s, args[i]);
+    return 0;
+@end
+
+@name     return_push
+@alias    *R
+@group    sys
+@type     immediate
+@arity    4
+@match    (any, any, any, any)
+@summary  push 4 arguments into return registers
+@doc
+Pushes 4 arguments into return registers @0 through @3.
+@code
+    (void)ctx; (void)argc;
+    for (int i = 0; i < 4; i++) ands_return_push(s, args[i]);
+    return 0;
+@end
+
+@name     return_push
+@alias    *R
+@group    sys
+@type     immediate
+@arity    5
+@match    (any, any, any, any, any)
+@summary  push 5 arguments into return registers
+@doc
+Pushes 5 arguments into return registers @0 through @4.
+@code
+    (void)ctx; (void)argc;
+    for (int i = 0; i < 5; i++) ands_return_push(s, args[i]);
+    return 0;
+@end
+
+@name     return_push
+@alias    *R
+@group    sys
+@type     immediate
+@arity    6
+@match    (any, any, any, any, any, any)
+@summary  push 6 arguments into return registers
+@doc
+Pushes 6 arguments into return registers @0 through @5.
+@code
+    (void)ctx; (void)argc;
+    for (int i = 0; i < 6; i++) ands_return_push(s, args[i]);
+    return 0;
+@end
+
+@name     return_push
+@alias    *R
+@group    sys
+@type     immediate
+@arity    7
+@match    (any, any, any, any, any, any, any)
+@summary  push 7 arguments into return registers
+@doc
+Pushes 7 arguments into return registers @0 through @6.
+@code
+    (void)ctx; (void)argc;
+    for (int i = 0; i < 7; i++) ands_return_push(s, args[i]);
+    return 0;
+@end
+
+@name     return_push
+@alias    *R
+@group    sys
+@type     immediate
+@arity    8
+@match    (any, any, any, any, any, any, any, any)
+@summary  push 8 arguments into return registers
+@doc
+Pushes 8 arguments into return registers @0 through @7.
+@code
+    (void)ctx; (void)argc;
+    for (int i = 0; i < 8; i++) ands_return_push(s, args[i]);
+    return 0;
+@end

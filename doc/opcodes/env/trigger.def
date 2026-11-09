@@ -1,0 +1,22 @@
+@name     trigger
+@alias    T
+@group    env
+@c_name   skode_clause_trigger_full
+@type     realtime
+@arity    0
+@match    ()
+@summary  trigger voice envelope at full velocity (1.0)
+@doc
+Triggers the voice amplitude envelope and linked voices at velocity 1.0.
+Usage: T (or trigger)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    envelope_velocity(voice, 1.0f);
+    if (sv.link_velo_0[voice] >= 0) envelope_velocity(sv.link_velo_0[voice], 1.0f);
+    if (sv.link_velo_1[voice] >= 0) envelope_velocity(sv.link_velo_1[voice], 1.0f);
+    if (sv.link_velo_2[voice] >= 0) envelope_velocity(sv.link_velo_2[voice], 1.0f);
+    if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1.0f);
+    if (sv.link_velo_4[voice] >= 0) envelope_velocity(sv.link_velo_4[voice], 1.0f);
+    if (sv.link_velo_5[voice] >= 0) envelope_velocity(sv.link_velo_5[voice], 1.0f);
+    return 0;
+@end

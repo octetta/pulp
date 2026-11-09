@@ -1,0 +1,64 @@
+@name     pattern_all_data
+@alias    Z>
+@group    seq
+@c_name   skode_clause_pattern_all_data_0
+@type     immediate
+@arity    0
+@match    ()
+@needs    data
+@summary  apply playback state to patterns in data array
+@doc
+Starts playback for all patterns listed in the active data array atomically under lock.
+Usage: (p1 p2 ...) Z>
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    double *data = ands_data(ctx->parse);
+    int data_len = ands_data_len(ctx->parse);
+    if (!data || data_len <= 0) return 0;
+    int patterns[PATTERNS_MAX];
+    int count = 0;
+    for (int i = 0; i < data_len && count < PATTERNS_MAX; i++) {
+        int p = (int)data[i];
+        if (p >= 0 && p < PATTERNS_MAX) {
+            patterns[count++] = p;
+        }
+    }
+    if (count > 0) {
+        seq_state_multi(1, patterns, count);
+    }
+    return 0;
+@end
+
+@name     pattern_all_data
+@alias    Z>
+@group    seq
+@c_name   skode_clause_pattern_all_data_1
+@type     immediate
+@arity    1
+@match    (finite)
+@needs    data
+@summary  apply explicit playback state to patterns in data array
+@doc
+Sets playback state (0:stop, 1:play, 2:pause, 3:resume) for all patterns listed in the active data array atomically under lock.
+Usage: (p1 p2 ...) Z> state
+@code
+    if (!ctx) return -1;
+    (void)s;
+    int state = (argc > 0) ? (int)args[0] : 1;
+    double *data = ands_data(ctx->parse);
+    int data_len = ands_data_len(ctx->parse);
+    if (!data || data_len <= 0) return 0;
+    int patterns[PATTERNS_MAX];
+    int count = 0;
+    for (int i = 0; i < data_len && count < PATTERNS_MAX; i++) {
+        int p = (int)data[i];
+        if (p >= 0 && p < PATTERNS_MAX) {
+            patterns[count++] = p;
+        }
+    }
+    if (count > 0) {
+        seq_state_multi(state, patterns, count);
+    }
+    return 0;
+@end

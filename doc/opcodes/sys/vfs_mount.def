@@ -1,0 +1,28 @@
+@name     vfs_mount
+@alias    %z
+@group    sys
+@c_name   skode_clause_vfs_mount_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  mount vfs directory or zip
+@doc
+Mounts zip archive or host directory from string buffer.
+Usage: [bundle.zip] %z
+@code
+    return skode_exec_pctz(ctx, s, args, argc);
+@end
+
+@name     vfs_mount
+@alias    %z
+@group    sys
+@c_name   skode_clause_vfs_mount_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  mount vfs directory or zip with argument
+@doc
+Mounts zip archive or host directory.
+@code
+    return skode_exec_pctz(ctx, s, args, argc);
+@end

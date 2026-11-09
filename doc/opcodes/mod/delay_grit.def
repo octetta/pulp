@@ -1,0 +1,69 @@
+@name     delay_grit
+@alias    DG
+@group    mod
+@c_name   skode_clause_delay_grit_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  get or set delay grit
+@doc
+Sets delay grit bitcrusher parameters.
+Usage: DG
+@code
+    return skode_exec_DG(ctx, s, args, argc);
+@end
+
+@name     delay_grit
+@alias    DG
+@group    mod
+@c_name   skode_clause_delay_grit_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set delay grit bus
+@doc
+Sets delay grit bus.
+Usage: DG bus
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int bits, native;
+    delay_grit_get(&skred_global_engine, bus, &bits, &native);
+    return delay_grit_set(&skred_global_engine, bus, bits, native);
+@end
+
+@name     delay_grit
+@alias    DG
+@group    mod
+@c_name   skode_clause_delay_grit_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set delay grit bus and bits
+@doc
+Sets delay grit bus and bit depth.
+Usage: DG bus bits
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int bits, native;
+    delay_grit_get(&skred_global_engine, bus, &bits, &native);
+    return delay_grit_set(&skred_global_engine, bus, (int)args[1], native);
+@end
+
+@name     delay_grit
+@alias    DG
+@group    mod
+@c_name   skode_clause_delay_grit_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  set delay grit bus, bits and native mode
+@doc
+Sets delay grit bus, bit depth and native sample rate mode.
+Usage: DG bus bits native
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    return delay_grit_set(&skred_global_engine, bus, (int)args[1], (int)args[2]);
+@end

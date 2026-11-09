@@ -1,0 +1,47 @@
+@name     track_route
+@alias    r
+@group    voice
+@c_name   skode_clause_track_route_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  route voice to track
+@doc
+Routes active voice output to specified record stem/track.
+Usage: r 2
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return synth_record_track_set(voice, (int)args[0]);
+@end
+
+@name     track_route
+@alias    r
+@group    voice
+@c_name   skode_clause_track_route_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  track route no-op
+@doc
+Track route no-op.
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return synth_record_track_set(voice, 0);
+@end
+
+@name     track_route
+@alias    r
+@group    voice
+@c_name   skode_clause_track_route_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  route specific voice to track
+@doc
+Routes specific voice to track.
+Usage: r track voice
+@code
+    int target_voice = (int)args[1];
+    if (target_voice < 0 || target_voice >= synth_config.voice_max) return -1;
+    return synth_record_track_set(target_voice, (int)args[0]);
+@end

@@ -1,0 +1,50 @@
+@name     delay_freeze
+@alias    DF
+@group    mod
+@c_name   skode_clause_delay_freeze_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  get or toggle delay freeze
+@doc
+Sets or toggles delay line buffer freeze.
+Usage: DF
+@code
+    return skode_exec_DF(ctx, s, args, argc);
+@end
+
+@name     delay_freeze
+@alias    DF
+@group    mod
+@c_name   skode_clause_delay_freeze_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set delay freeze bus
+@doc
+Sets delay freeze bus.
+Usage: DF bus
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int on = delay_freeze_get(&skred_global_engine, bus);
+    return delay_freeze_set(&skred_global_engine, bus, !on);
+@end
+
+@name     delay_freeze
+@alias    DF
+@group    mod
+@c_name   skode_clause_delay_freeze_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set delay freeze bus and state
+@doc
+Sets delay freeze bus and state (1=freeze, 0=unfreeze).
+Usage: DF bus state
+@code
+    (void)voice;
+    int bus = (int)args[0];
+    int state = (int)args[1];
+    return delay_freeze_set(&skred_global_engine, bus, state);
+@end

@@ -1,0 +1,113 @@
+@name     step_program_set
+@alias    x
+@group    sys
+@c_name   skode_clause_step_program_set_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set pattern step program
+@doc
+Sets program for specified pattern step from string buffer.
+Usage: [v0 n60] 0 x
+@code
+    return skode_exec_x(ctx, s, args, argc);
+@end
+
+@name     step_program_set
+@alias    x
+@group    sys
+@c_name   skode_clause_step_program_set_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  set pattern step program for two steps
+@doc
+Sets program for specified pattern steps from string buffer.
+Usage: [v0 n60] 0 4 x
+@code
+    return skode_exec_x(ctx, s, args, argc);
+@end
+
+@name     step_program_set
+@alias    x
+@group    sys
+@c_name   skode_clause_step_program_set_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  set pattern step program for three steps
+@doc
+Sets program for specified pattern steps from string buffer.
+@code
+    return skode_exec_x(ctx, s, args, argc);
+@end
+
+@name     step_program_set
+@alias    x
+@group    sys
+@c_name   skode_clause_step_program_set_4
+@type     immediate
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  set pattern step program for four steps
+@doc
+Sets program for specified pattern steps from string buffer.
+@code
+    return skode_exec_x(ctx, s, args, argc);
+@end
+
+@name     step_program_set
+@alias    x
+@group    sys
+@c_name   skode_clause_step_program_set_5
+@type     immediate
+@arity    5
+@match    (finite, finite, finite, finite, finite)
+@summary  set pattern step program for five steps
+@doc
+Sets program for specified pattern steps from string buffer.
+@code
+    return skode_exec_x(ctx, s, args, argc);
+@end
+
+@name     step_program_set
+@alias    x
+@group    sys
+@c_name   skode_clause_step_program_set_6
+@type     immediate
+@arity    6
+@match    (finite, finite, finite, finite, finite, finite)
+@summary  set pattern step program for six steps
+@doc
+Sets program for specified pattern steps from string buffer.
+@code
+    return skode_exec_x(ctx, s, args, argc);
+@end
+
+@name     step_program_set
+@alias    x
+@group    sys
+@c_name   skode_clause_step_program_set_7
+@type     immediate
+@arity    7
+@match    (finite, finite, finite, finite, finite, finite, finite)
+@summary  set pattern step program for seven steps
+@doc
+Sets program for specified pattern steps from string buffer.
+@code
+    return skode_exec_x(ctx, s, args, argc);
+@end
+
+@name     step_program_set
+@alias    x
+@group    sys
+@c_name   skode_clause_step_program_set_8
+@type     immediate
+@arity    8
+@match    (finite, finite, finite, finite, finite, finite, finite, finite)
+@summary  set pattern step program for eight steps
+@doc
+Sets program for specified pattern steps from string buffer.
+@code
+    return skode_exec_x(ctx, s, args, argc);
+@end

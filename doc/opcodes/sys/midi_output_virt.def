@@ -1,0 +1,20 @@
+@name     midi_output_virt
+@alias    /moV
+@group    sys
+@c_name   skode_clause_midi_output_virt
+@type     immediate
+@arity    0
+@match    ()
+@summary  open virtual MIDI output port
+@doc
+Opens a virtual MIDI output port with name from string bracket.
+Usage: [name] /moV
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    const char *name = ands_string(ctx->parse);
+    int result = skred_midi_init(name[0] ? name : "pulp");
+    if (result == 0) result = skred_midi_output_open_virtual(name);
+    if (result != 0) ctx->printf(ctx, "# MIDI virtual open failed (%d)\n", result);
+    return 0;
+@end

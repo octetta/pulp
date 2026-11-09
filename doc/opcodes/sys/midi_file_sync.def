@@ -1,0 +1,17 @@
+@name     midi_file_sync
+@alias    /mfS
+@group    sys
+@c_name   skode_clause_midi_file_sync
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  set MIDI file sync mode
+@doc
+Sets tempo synchronization mode for player slot (0=free, 1=sync to sequencer BPM).
+Usage: /mfS slot mode
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    midi_player_sync((int)args[0], (int)args[1]);
+    return 0;
+@end

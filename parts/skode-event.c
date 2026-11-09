@@ -10,16 +10,12 @@
 #include "control-events.h"
 #include "skode-dict.h"
 
-#define SKODE_ATOM(a, b, c, d) \
-  (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(b) << 16) | \
-   ((uint32_t)(uint8_t)(c) << 8) | (uint32_t)(uint8_t)(d))
-
-_Static_assert(SKODE_OP_FREQ_FEEDBACK <= UINT8_MAX,
+_Static_assert(SKODE_OP_FREQ_FEEDBACK <= UINT16_MAX,
   "Skode opcodes must fit in opcode_event_t.code");
 _Static_assert(SEQ_PROGRAM_OP_MAX <= UINT8_MAX,
   "Compiled program length must fit in event_program_t.count");
 
-const char *skode_opcode_name(uint8_t opcode) {
+const char *skode_opcode_name(uint16_t opcode) {
   static const char *const names[] = {
     "NONE", "DELAY", "VOICE", "AMP", "FREQ", "MIDI_NOTE", "PAN",
     "VELOCITY", "ENVELOPE_VELOCITY", "AMP_MOD", "WAVE_DIRECTION",
@@ -29,17 +25,23 @@ const char *skode_opcode_name(uint8_t opcode) {
     "FILTER_MODE", "FILTER_FREQ", "ENVELOPE_MODE", "MUTE",
     "MIDI_DETUNE", "PAN_MOD", "QUANTIZE", "FILTER_RESONANCE",
     "RECORD_TRACK", "SMOOTHER", "VOICE_RESET", "ENVELOPE", "TRIGGER",
-    "WAVE", "VOICE_COPY", "WAVE_DEFAULT", "VARIABLE_SET", "RING_MOD",
-    "WAVE_LOOP_COUNT", "CONTROL_EVENT", "DELAY_PARAMS",
+    "LINK_SYNC", "WAVE", "VOICE_COPY", "WAVE_DEFAULT", "VARIABLE_SET",
+    "RING_MOD", "WAVE_LOOP_COUNT", "CONTROL_EVENT", "DELAY_PARAMS",
     "WAVE_RANGE_SET", "WAVE_LOOP_SET", "POLY_NOTE", "POLY_RELEASE",
     "POLY_BEND", "PHASE_ENVELOPE", "PHASE_ENVELOPE_DEPTH",
     "FREQ_FEEDBACK", "FREQ_BEND", "FREQ_BEND_PARAM",
-    "AMP_BEND", "AMP_BEND_PARAM", "PATTERN_MODULO", "RATCHET",
+    "AMP_BEND", "AMP_BEND_PARAM", "PATTERN_MODULO",
+    "PATTERN_STATE", "PATTERN_LOOP", "PATTERN_SET",
+    "PATTERN_MUTE", "PATTERN_QUEUE", "PATTERN_GOTO",
+    "PATTERN_STATE_ALL", "PATTERN_REWIND",
+    "STREAM_COPY", "STREAM_MODE", "STREAM_POS", "RATCHET",
     "DELAY_DAMPING", "DELAY_FREEZE", "DELAY_PINGPONG", "DELAY_TIME",
     "DELAY_SYNC", "DELAY_GRIT", "TEMPO", "INST_NOTE",
   };
-  if (opcode >= sizeof(names) / sizeof(names[0])) return NULL;
-  return names[opcode];
+  _Static_assert(sizeof(names) / sizeof(names[0]) == SKODE_OP_INST_NOTE + 1,
+    "skode_opcode_name array size must match opcode enum count");
+  if (opcode < sizeof(names) / sizeof(names[0])) return names[opcode];
+  return skode_discrete_opcode_name(opcode);
 }
 
 typedef struct {
@@ -49,7 +51,7 @@ typedef struct {
   uint64_t *macro_active;
   int accepts_empty;
   skode_vocab_t *private_vocab;
-  uint32_t offending_atom; // atom that caused SKODE_COMPILE_IMMEDIATE_ONLY
+  char offending_name[32];
 } skode_compile_t;
 
 static int event_voice_valid(int voice) {
@@ -63,7 +65,7 @@ int skode_program_push_ex(event_program_t *program, skode_opcode_t code,
   if (!skode_opcode_is_realtime(code)) return -1;
   program_op_t *op = &program->op[program->count];
   memset(op, 0, sizeof(*op));
-  op->opcode.code = (uint8_t)code;
+  op->opcode.code = code;
   op->opcode.argc = (uint8_t)argc;
   op->opcode.mode = mode;
   for (int i = 0; i < argc; i++) {
@@ -97,7 +99,7 @@ int skode_program_push(event_program_t *program, skode_opcode_t code,
 
 static skode_compile_result_t compile_program_inner(const char *text,
   event_program_t *program, int depth, uint64_t *macro_active,
-  skode_vocab_t *vocab, uint32_t *offending_atom_out);
+  skode_vocab_t *vocab, char *offending_name_out, size_t offending_name_size);
 
 static int program_append(event_program_t *program,
     const event_program_t *nested) {
@@ -116,7 +118,8 @@ static int skode_compile_callback(ands_t *s, int info) {
 
   if (info == GOT_STRING || info == GOT_ARRAY || info == GOT_RETURN_REF) {
     compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
-    compile->offending_atom = ands_atom_num(s);
+    const char *name = ands_atom_name(s);
+    if (name) snprintf(compile->offending_name, sizeof(compile->offending_name), "%s", name);
     return 0;
   }
   if (info == DEFER) {
@@ -146,7 +149,7 @@ static int skode_compile_callback(ands_t *s, int info) {
     event_program_t nested = {0};
     compile->result = compile_program_inner(ands_defer_string(s), &nested,
       compile->depth + 1, compile->macro_active, compile->private_vocab,
-      &compile->offending_atom);
+      compile->offending_name, sizeof(compile->offending_name));
     if (compile->result != SKODE_COMPILE_OK) return 0;
     if (program_append(compile->program, &nested) != 0)
       compile->result = SKODE_COMPILE_TOO_LARGE;
@@ -155,17 +158,14 @@ static int skode_compile_callback(ands_t *s, int info) {
   if (info != FUNCTION) return 0;
 
   uint32_t atom = ands_atom_num(s);
+  const char *name = ands_atom_name(s);
   int argc = ands_arg_len(s);
   double *arg = ands_arg(s);
-  skode_opcode_t opcode = SKODE_OP_NONE;
-  int min_argc = -1;
-  int max_argc = -1;
-  uint8_t default_mask = 0;
 
-  if (atom == SKODE_ATOM('e', '!', '-', '-')) {
+  if (name && strcmp(name, "e!") == 0) {
     if (argc != 1 || ands_arg_var(s, 0) >= 0) {
       compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
-      compile->offending_atom = atom;
+      snprintf(compile->offending_name, sizeof(compile->offending_name), "e!");
       return 0;
     }
     if (!isfinite(arg[0]) || floor(arg[0]) != arg[0] || arg[0] < 0 ||
@@ -190,7 +190,7 @@ static int skode_compile_callback(ands_t *s, int info) {
     event_program_t nested = {0};
     compile->result = compile_program_inner(macro, &nested,
       compile->depth + 1, compile->macro_active, compile->private_vocab,
-      &compile->offending_atom);
+      compile->offending_name, sizeof(compile->offending_name));
     *active &= ~bit;
     if (compile->result == SKODE_COMPILE_OK &&
         program_append(compile->program, &nested) != 0) {
@@ -201,202 +201,24 @@ static int skode_compile_callback(ands_t *s, int info) {
     return 0;
   }
 
-  int dict_compile_result;
+  int dict_compile_result = 0;
   if (skode_compile_word(s, atom, arg, argc, compile->program,
       compile->private_vocab, &dict_compile_result)) {
     compile->result = (skode_compile_result_t)dict_compile_result;
+    if (compile->result == SKODE_COMPILE_IMMEDIATE_ONLY) {
+      if (name) snprintf(compile->offending_name, sizeof(compile->offending_name), "%s", name);
+    }
     return 0;
   }
 
-  switch (atom) {
-    case SKODE_ATOM('o', 'n', '-', '-'): {
-      /* 'on' = l1: gate open, no parser argument needed */
-      double gate_arg = 1.0;
-      if (skode_program_push(compile->program, SKODE_OP_VELOCITY, NULL,
-          &gate_arg, 1, 0, 0) != 0)
-        compile->result = SKODE_COMPILE_TOO_LARGE;
-      return 0;
-    }
-    case SKODE_ATOM('o', 'f', 'f', '-'): {
-      /* 'off' = l0: gate closed, no parser argument needed */
-      double gate_arg = 0.0;
-      if (skode_program_push(compile->program, SKODE_OP_VELOCITY, NULL,
-          &gate_arg, 1, 0, 0) != 0)
-        compile->result = SKODE_COMPILE_TOO_LARGE;
-      return 0;
-    }
-    case SKODE_ATOM('l', '-', '-', '-'):
-      opcode = SKODE_OP_VELOCITY;
-      min_argc = max_argc = 1;
-      break;
-    case SKODE_ATOM('_', '_', '_', 'l'):
-      opcode = SKODE_OP_ENVELOPE_VELOCITY;
-      min_argc = max_argc = 1;
-      break;
-    case SKODE_ATOM('A', '-', '-', '-'):
-      opcode = SKODE_OP_AMP_MOD; min_argc = 0; max_argc = 3; break;
-    case SKODE_ATOM('b', '-', '-', '-'):
-      opcode = SKODE_OP_WAVE_DIRECTION; min_argc = 0; max_argc = 1; break;
-    case SKODE_ATOM('B', '-', '-', '-'):
-      opcode = SKODE_OP_WAVE_LOOP; min_argc = 0; max_argc = 1; break;
-    case SKODE_ATOM('B', 'C', '-', '-'):
-      opcode = SKODE_OP_WAVE_LOOP_COUNT; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('c', '-', '-', '-'):
-      opcode = SKODE_OP_PHASE_DISTORTION; min_argc = 0; max_argc = 2; break;
-    case SKODE_ATOM('C', '-', '-', '-'):
-      opcode = SKODE_OP_PHASE_MOD; min_argc = 0; max_argc = 2; break;
-    case SKODE_ATOM('c', 't', '-', '-'):
-      opcode = SKODE_OP_PHASE_ENVELOPE; min_argc = max_argc = 4; break;
-    case SKODE_ATOM('c', 'd', '-', '-'):
-      opcode = SKODE_OP_PHASE_ENVELOPE_DEPTH; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('a', 'b', '-', '-'):
-      opcode = SKODE_OP_AMP_BEND; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('a', 'b', 'p', '-'):
-      opcode = SKODE_OP_AMP_BEND_PARAM; min_argc = 1; max_argc = 2; break;
-    case SKODE_ATOM('f', 'b', '-', '-'):
-      opcode = SKODE_OP_FREQ_BEND; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('f', 'b', 'p', '-'):
-      opcode = SKODE_OP_FREQ_BEND_PARAM; min_argc = 1; max_argc = 2; break;
-    case SKODE_ATOM('k', 't', '-', '-'):
-      opcode = SKODE_OP_FILTER_ENVELOPE; min_argc = max_argc = 4; break;
-    case SKODE_ATOM('k', 'd', '-', '-'):
-      opcode = SKODE_OP_FILTER_ENVELOPE_DEPTH; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('F', '-', '-', '-'):
-      opcode = SKODE_OP_FREQ_MOD; min_argc = 0; max_argc = 3; break;
-    case SKODE_ATOM('F', 'F', '-', '-'):
-      opcode = SKODE_OP_FREQ_MOD_MODE; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('F', 'B', '-', '-'):
-      opcode = SKODE_OP_FREQ_FEEDBACK; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('g', '-', '-', '-'):
-      opcode = SKODE_OP_GLISSANDO; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('G', '-', '-', '-'):
-      opcode = SKODE_OP_LINK_MIDI; min_argc = 1; max_argc = 4; break;
-    case SKODE_ATOM('h', '-', '-', '-'):
-      opcode = SKODE_OP_SAMPLE_HOLD; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('H', '-', '-', '-'):
-      opcode = SKODE_OP_LINK_VELOCITY; min_argc = 1; max_argc = 4; break;
-    case SKODE_ATOM('L', '-', '-', '-'):
-      opcode = SKODE_OP_TRIGGER_DELAY; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('j', '-', '-', '-'):
-      opcode = SKODE_OP_FILTER_MODE; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('k', '-', '-', '-'):
-      opcode = SKODE_OP_FILTER_FREQ; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('t', 'm', '-', '-'):
-      opcode = SKODE_OP_ENVELOPE_MODE; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('N', '-', '-', '-'):
-      opcode = SKODE_OP_MIDI_DETUNE; min_argc = 1; max_argc = 2;
-      default_mask = 1; break;
-    case SKODE_ATOM('P', '-', '-', '-'):
-      opcode = SKODE_OP_PAN_MOD; min_argc = 0; max_argc = 3; break;
-    case SKODE_ATOM('b', 'c', '-', '-'):
-      opcode = SKODE_OP_QUANTIZE; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('q', '-', '-', '-'):
-      opcode = SKODE_OP_FILTER_RESONANCE; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('r', '-', '-', '-'):
-      opcode = SKODE_OP_RECORD_TRACK; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('s', '-', '-', '-'):
-      opcode = SKODE_OP_SMOOTHER; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('S', '-', '-', '-'):
-      opcode = SKODE_OP_VOICE_RESET; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('t', '-', '-', '-'):
-      opcode = SKODE_OP_ENVELOPE; min_argc = max_argc = 4; break;
-    case SKODE_ATOM('T', '-', '-', '-'):
-      opcode = SKODE_OP_TRIGGER; min_argc = max_argc = 0; break;
-    case SKODE_ATOM('H', 'S', '-', '-'):
-      opcode = SKODE_OP_LINK_SYNC; min_argc = 1; max_argc = 6; break;
-    case SKODE_ATOM('w', '-', '-', '-'):
-      opcode = SKODE_OP_WAVE; min_argc = 1; max_argc = 3; break;
-    case SKODE_ATOM('>', '-', '-', '-'):
-      opcode = SKODE_OP_VOICE_COPY; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('/', '-', '-', '-'):
-      opcode = SKODE_OP_WAVE_DEFAULT; min_argc = max_argc = 0; break;
-    case SKODE_ATOM('=', '-', '-', '-'):
-      opcode = SKODE_OP_VARIABLE_SET; min_argc = max_argc = 2;
-      break;
-    case SKODE_ATOM('X', 'M', '-', '-'):
-      opcode = SKODE_OP_RING_MOD; min_argc = 1; max_argc = 2;
-      break;
-    case SKODE_ATOM('c', 'e', '-', '-'):
-      opcode = SKODE_OP_CONTROL_EVENT; min_argc = 1; max_argc = 4;
-      break;
-    case SKODE_ATOM('D', 'L', '-', '-'):
-      opcode = SKODE_OP_DELAY_PARAMS; min_argc = 1; max_argc = 7;
-      default_mask = 0x7e;
-      break;
-    case SKODE_ATOM('D', 'D', '-', '-'):
-      opcode = SKODE_OP_DELAY_DAMPING; min_argc = 1; max_argc = 3;
-      default_mask = 0x6;   // bits 1,2 (damping, hp) may default to current value
-      break;
-    case SKODE_ATOM('D', 'F', '-', '-'):
-      opcode = SKODE_OP_DELAY_FREEZE; min_argc = 1; max_argc = 2;
-      default_mask = 0x2;
-      break;
-    case SKODE_ATOM('D', 'P', '-', '-'):
-      opcode = SKODE_OP_DELAY_PINGPONG; min_argc = 1; max_argc = 2;
-      default_mask = 0x2;
-      break;
-    case SKODE_ATOM('D', 'T', '-', '-'):
-      opcode = SKODE_OP_DELAY_TIME; min_argc = max_argc = 2;
-      break;
-    case SKODE_ATOM('D', 'S', '-', '-'):
-      opcode = SKODE_OP_DELAY_SYNC; min_argc = max_argc = 3;
-      break;
-    case SKODE_ATOM('D', 'G', '-', '-'):
-      opcode = SKODE_OP_DELAY_GRIT; min_argc = 1; max_argc = 3;
-      default_mask = 0x6;
-      break;
-    case SKODE_ATOM('V', 'S', '-', '-'):
-      opcode = SKODE_OP_WAVE_RANGE_SET; min_argc = 0; max_argc = 2;
-      break;
-    case SKODE_ATOM('V', 'L', '-', '-'):
-      opcode = SKODE_OP_WAVE_LOOP_SET; min_argc = 0; max_argc = 2;
-      break;
-    case SKODE_ATOM('p', 'n', '-', '-'):
-      opcode = SKODE_OP_POLY_NOTE; min_argc = 4; max_argc = 5;
-      break;
-    case SKODE_ATOM('p', 'r', '-', '-'):
-      opcode = SKODE_OP_POLY_RELEASE; min_argc = 2; max_argc = 3;
-      break;
-    case SKODE_ATOM('p', 'b', '-', '-'):
-      opcode = SKODE_OP_POLY_BEND; min_argc = 3; max_argc = 4;
-      break;
-    case SKODE_ATOM('z', '%', '-', '-'):
-    case SKODE_ATOM('%', '-', '-', '-'):
-      opcode = SKODE_OP_PATTERN_MODULO; min_argc = max_argc = 1; break;
-    case SKODE_ATOM('z', '*', '-', '-'):
-    case SKODE_ATOM('*', '-', '-', '-'):
-      opcode = SKODE_OP_RATCHET; min_argc = max_argc = 1; break;
-    default:
-      compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
-      compile->offending_atom = atom;
-      return 0;
-  }
-
-  if (!skode_opcode_supported(opcode)) {
-    compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
-    compile->offending_atom = atom;
-    return 0;
-  }
-  if (argc < min_argc || argc > max_argc || argc > SEQ_OPCODE_ARG_MAX) {
-    compile->result = SKODE_COMPILE_INVALID;
-    return 0;
-  }
-  for (int i = 0; i < argc; i++) {
-    if (ands_arg_var(s, i) < 0 && !isfinite(arg[i]) &&
-        !(isnan(arg[i]) && (default_mask & (1U << i)))) {
-      compile->result = SKODE_COMPILE_INVALID;
-      return 0;
-    }
-  }
-  if (skode_program_push(compile->program, opcode, s, arg, argc, 0,
-      default_mask) != 0)
-    compile->result = SKODE_COMPILE_TOO_LARGE;
+  compile->result = SKODE_COMPILE_IMMEDIATE_ONLY;
+  if (name) snprintf(compile->offending_name, sizeof(compile->offending_name), "%s", name);
   return 0;
 }
 
 static skode_compile_result_t compile_program_inner(const char *text,
     event_program_t *program, int depth, uint64_t *macro_active,
-    skode_vocab_t *vocab, uint32_t *offending_atom_out) {
+    skode_vocab_t *vocab, char *offending_name_out, size_t offending_name_size) {
   if (!text || !program || depth > SKODE_COMPILE_DEPTH_MAX)
     return SKODE_COMPILE_INVALID;
   size_t len = strnlen(text, STEP_MAX);
@@ -422,7 +244,12 @@ static skode_compile_result_t compile_program_inner(const char *text,
   if (compile.result == SKODE_COMPILE_OK && program->count == 0 &&
       strchr(text, '#') == NULL && !compile.accepts_empty)
     return SKODE_COMPILE_INVALID;
-  if (offending_atom_out) *offending_atom_out = compile.offending_atom;
+  if (offending_name_out && offending_name_size > 0) {
+    offending_name_out[0] = '\0';
+    if (compile.offending_name[0]) {
+      snprintf(offending_name_out, offending_name_size, "%s", compile.offending_name);
+    }
+  }
   return compile.result;
 }
 
@@ -436,7 +263,7 @@ skode_compile_result_t skode_compile_program_ex(const char *text,
   if (!program) return SKODE_COMPILE_INVALID;
   memset(program, 0, sizeof(*program));
   uint64_t macro_active[(SKODE_EXTRA_MAX + 63) / 64] = {0};
-  return compile_program_inner(text, program, 0, macro_active, vocab, NULL);
+  return compile_program_inner(text, program, 0, macro_active, vocab, NULL, 0);
 }
 
 /* Like skode_compile_program but, on SKODE_COMPILE_IMMEDIATE_ONLY, writes the
@@ -448,206 +275,7 @@ skode_compile_result_t skode_compile_program_describe(const char *text,
   memset(program, 0, sizeof(*program));
   if (hint_buf && hint_size > 0) hint_buf[0] = '\0';
   uint64_t macro_active[(SKODE_EXTRA_MAX + 63) / 64] = {0};
-  uint32_t offending = 0;
-  skode_compile_result_t result =
-    compile_program_inner(text, program, 0, macro_active, NULL, &offending);
-  if (result == SKODE_COMPILE_IMMEDIATE_ONLY && hint_buf && hint_size > 0 &&
-      offending != 0) {
-    /* Unpack the 4-char atom back to a printable string */
-    char atom_str[5];
-    atom_str[0] = (char)((offending >> 24) & 0xff);
-    atom_str[1] = (char)((offending >> 16) & 0xff);
-    atom_str[2] = (char)((offending >>  8) & 0xff);
-    atom_str[3] = (char)( offending        & 0xff);
-    atom_str[4] = '\0';
-    /* Trim trailing '-' padding chars used by SKODE_ATOM macro */
-    int end = 3;
-    while (end > 0 && atom_str[end] == '-') end--;
-    atom_str[end + 1] = '\0';
-    snprintf(hint_buf, hint_size, "%s", atom_str);
-  }
-  return result;
-}
-
-
-int skode_is_legacy_realtime_opcode(uint32_t atom) {
-  switch (atom) {
-    case SKODE_ATOM('o', 'n', '-', '-'):
-    case SKODE_ATOM('o', 'f', 'f', '-'):
-    case SKODE_ATOM('l', '-', '-', '-'):
-    case SKODE_ATOM('_', '_', '_', 'l'):
-    case SKODE_ATOM('A', '-', '-', '-'):
-    case SKODE_ATOM('b', '-', '-', '-'):
-    case SKODE_ATOM('B', '-', '-', '-'):
-    case SKODE_ATOM('B', 'C', '-', '-'):
-    case SKODE_ATOM('c', '-', '-', '-'):
-    case SKODE_ATOM('C', '-', '-', '-'):
-    case SKODE_ATOM('c', 't', '-', '-'):
-    case SKODE_ATOM('c', 'd', '-', '-'):
-    case SKODE_ATOM('a', 'b', '-', '-'):
-    case SKODE_ATOM('a', 'b', 'p', '-'):
-    case SKODE_ATOM('f', 'b', '-', '-'):
-    case SKODE_ATOM('f', 'b', 'p', '-'):
-    case SKODE_ATOM('p', '-', '-', '-'):
-    case SKODE_ATOM('m', '-', '-', '-'):
-    case SKODE_ATOM('L', '-', '-', '-'):
-    case SKODE_ATOM('F', '-', '-', '-'):
-    case SKODE_ATOM('F', 'F', '-', '-'):
-    case SKODE_ATOM('F', 'B', '-', '-'):
-    case SKODE_ATOM('g', '-', '-', '-'):
-    case SKODE_ATOM('G', '-', '-', '-'):
-    case SKODE_ATOM('h', '-', '-', '-'):
-    case SKODE_ATOM('H', '-', '-', '-'):
-    case SKODE_ATOM('H', 'S', '-', '-'):
-    case SKODE_ATOM('/', 'D', '-', '-'):
-    case SKODE_ATOM('I', '-', '-', '-'):
-    case SKODE_ATOM('j', '-', '-', '-'):
-    case SKODE_ATOM('k', '-', '-', '-'):
-    case SKODE_ATOM('/', 'k', 's', '-'):
-    case SKODE_ATOM('/', 'k', '-', '-'):
-    case SKODE_ATOM('k', 's', '-', '-'):
-    case SKODE_ATOM('k', '!', '-', '-'):
-    case SKODE_ATOM('k', 'w', '-', '-'):
-    case SKODE_ATOM('k', 'w', '>', '-'):
-    case SKODE_ATOM('k', '?', '-', '-'):
-    case SKODE_ATOM('k', '>', 'd', '-'):
-    case SKODE_ATOM('k', '>', 'w', '-'):
-    case SKODE_ATOM('t', 'm', '-', '-'):
-    case SKODE_ATOM('l', 'o', 'g', '-'):
-    case SKODE_ATOM('M', '-', '-', '-'):
-    case SKODE_ATOM('N', '-', '-', '-'):
-    case SKODE_ATOM('d', 's', '-', '-'):
-    case SKODE_ATOM('D', 'G', '-', '-'):
-    case SKODE_ATOM('D', 'L', '-', '-'):
-    case SKODE_ATOM('D', 'L', '?', '-'):
-    case SKODE_ATOM('D', 'D', '-', '-'):
-    case SKODE_ATOM('D', 'F', '-', '-'):
-    case SKODE_ATOM('D', 'P', '-', '-'):
-    case SKODE_ATOM('D', 'T', '-', '-'):
-    case SKODE_ATOM('D', 'S', '-', '-'):
-    case SKODE_ATOM('G', 'S', '-', '-'):
-    case SKODE_ATOM('G', 'S', '>', '-'):
-    case SKODE_ATOM('G', 'S', '<', '-'):
-    case SKODE_ATOM('P', '-', '-', '-'):
-    case SKODE_ATOM('b', 'c', '-', '-'):
-    case SKODE_ATOM('q', '-', '-', '-'):
-    case SKODE_ATOM('r', '-', '-', '-'):
-    case SKODE_ATOM('r', 't', '-', '-'):
-    case SKODE_ATOM('r', 'v', '-', '-'):
-    case SKODE_ATOM('s', '-', '-', '-'):
-    case SKODE_ATOM('S', '-', '-', '-'):
-    case SKODE_ATOM('t', '-', '-', '-'):
-    case SKODE_ATOM('T', '-', '-', '-'):
-    case SKODE_ATOM('v', 'c', '-', '-'):
-    case SKODE_ATOM('V', '-', '-', '-'):
-    case SKODE_ATOM('v', 't', '-', '-'):
-    case SKODE_ATOM('w', 't', '-', '-'):
-    case SKODE_ATOM('W', 'L', '-', '-'):
-    case SKODE_ATOM('V', 'S', '-', '-'):
-    case SKODE_ATOM('V', 'L', '-', '-'):
-    case SKODE_ATOM('V', 'W', '-', '-'):
-    case SKODE_ATOM('w', '-', '-', '-'):
-    case SKODE_ATOM('d', '*', '-', '-'):
-    case SKODE_ATOM('d', '>', 'r', '-'):
-    case SKODE_ATOM('r', '>', 'd', '-'):
-    case SKODE_ATOM('d', '>', 'M', 'O'):
-    case SKODE_ATOM('d', '>', 'k', '-'):
-    case SKODE_ATOM('w', '>', 'k', '-'):
-    case SKODE_ATOM('w', '>', 'd', '-'):
-    case SKODE_ATOM('w', '>', 'r', '-'):
-    case SKODE_ATOM('w', '>', 'w', '-'):
-    case SKODE_ATOM('w', '!', '-', '-'):
-    case SKODE_ATOM('w', '*', '-', '-'):
-    case SKODE_ATOM('w', '>', '-', '-'):
-    case SKODE_ATOM('w', '<', '-', '-'):
-    case SKODE_ATOM('w', '<', '>', '-'):
-    case SKODE_ATOM('W', 'S', '-', '-'):
-    case SKODE_ATOM('W', '-', '-', '-'):
-    case SKODE_ATOM('x', 'g', '-', '-'):
-    case SKODE_ATOM('>', 'x', '-', '-'):
-    case SKODE_ATOM('x', 'a', '-', '-'):
-    case SKODE_ATOM('<', 'x', '-', '-'):
-    case SKODE_ATOM('x', '-', '-', '-'):
-    case SKODE_ATOM('y', '-', '-', '-'):
-    case SKODE_ATOM('y', 's', '?', '-'):
-    case SKODE_ATOM('y', 's', '-', '-'):
-    case SKODE_ATOM('y', 't', '-', '-'):
-    case SKODE_ATOM('y', 'm', '-', '-'):
-    case SKODE_ATOM('y', 'c', '-', '-'):
-    case SKODE_ATOM('Y', '-', '-', '-'):
-    case SKODE_ATOM('z', '-', '-', '-'):
-    case SKODE_ATOM('z', 'g', '-', '-'):
-    case SKODE_ATOM('z', 'q', '-', '-'):
-    case SKODE_ATOM('z', '?', '-', '-'):
-    case SKODE_ATOM('Z', '-', '-', '-'):
-    case SKODE_ATOM('z', '?', '?', '-'):
-    case SKODE_ATOM('Z', '?', '-', '-'):
-    case SKODE_ATOM('X', 'M', '-', '-'):
-    case SKODE_ATOM('v', '?', '-', '-'):
-    case SKODE_ATOM('?', '-', '-', '-'):
-    case SKODE_ATOM('\\', '\\', '-', '-'):
-    case SKODE_ATOM('v', '?', '?', '-'):
-    case SKODE_ATOM('?', '?', '-', '-'):
-    case SKODE_ATOM('D', 'O', '?', '-'):
-    case SKODE_ATOM('M', 'O', '-', '-'):
-    case SKODE_ATOM('?', 'r', '-', '-'):
-    case SKODE_ATOM('?', 's', '-', '-'):
-    case SKODE_ATOM('s', '?', '-', '-'):
-    case SKODE_ATOM('?', 'm', '-', '-'):
-    case SKODE_ATOM('?', 'c', 'e', '-'):
-    case SKODE_ATOM('?', 'c', 'e', '!'):
-    case SKODE_ATOM('?', 'q', '-', '-'):
-    case SKODE_ATOM('?', 'o', '-', '-'):
-    case SKODE_ATOM('/', 's', 'g', '-'):
-    case SKODE_ATOM('/', 's', 's', '-'):
-    case SKODE_ATOM('/', 's', '?', '-'):
-    case SKODE_ATOM('/', 'r', 'g', '-'):
-    case SKODE_ATOM('/', 'r', 's', '-'):
-    case SKODE_ATOM('/', 'r', '?', '-'):
-    case SKODE_ATOM('/', 'r', '-', '-'):
-    case SKODE_ATOM('^', 'r', '-', '-'):
-    case SKODE_ATOM('/', 'd', '-', '-'):
-    case SKODE_ATOM('/', 'f', '-', '-'):
-    case SKODE_ATOM('/', 'f', 'f', '-'):
-    case SKODE_ATOM('/', 'c', 'e', 'r'):
-    case SKODE_ATOM('/', 'c', 'e', '?'):
-    case SKODE_ATOM('/', 't', 'h', '?'):
-    case SKODE_ATOM('/', 't', 'h', '!'):
-    case SKODE_ATOM('/', 'c', 'e', '!'):
-    case SKODE_ATOM('/', 'c', 'e', 'b'):
-    case SKODE_ATOM('/', 'c', 'e', 'x'):
-    case SKODE_ATOM('<', 's', '-', '-'):
-    case SKODE_ATOM('s', '>', '-', '-'):
-    case SKODE_ATOM('s', '%', '-', '-'):
-    case SKODE_ATOM('<', 'e', '-', '-'):
-    case SKODE_ATOM('e', '>', '-', '-'):
-    case SKODE_ATOM('e', '!', '-', '-'):
-    case SKODE_ATOM('e', '?', '-', '-'):
-    case SKODE_ATOM('e', 'R', '-', '-'):
-    case SKODE_ATOM('e', 'R', 'R', '-'):
-    case SKODE_ATOM('p', 'b', '-', '-'):
-    case SKODE_ATOM('p', 'n', '-', '-'):
-    case SKODE_ATOM('/', 'p', 'p', '-'):
-    case SKODE_ATOM('/', 'p', 'm', '-'):
-    case SKODE_ATOM('p', 'r', '-', '-'):
-    case SKODE_ATOM('/', 'p', 'g', '!'):
-    case SKODE_ATOM('?', 'p', 'p', '-'):
-    case SKODE_ATOM('/', 'v', 'g', '-'):
-    case SKODE_ATOM('/', 'p', 'g', '-'):
-    case SKODE_ATOM('?', 'p', 'g', '-'):
-    case SKODE_ATOM('>', 'r', '-', '-'):
-    case SKODE_ATOM('<', 'r', '-', '-'):
-    case SKODE_ATOM('W', '*', '-', '-'):
-    case SKODE_ATOM('v', '*', '-', '-'):
-    case SKODE_ATOM('*', '=', '-', '-'):
-    case SKODE_ATOM('/', '=', '-', '-'):
-    case SKODE_ATOM('a', '=', '-', '-'):
-    case SKODE_ATOM('s', '=', '-', '-'):
-    case SKODE_ATOM('=', '-', '-', '-'):
-    case SKODE_ATOM('=', 'd', '-', '-'):
-      return 1;
-  }
-  return 0;
+  return compile_program_inner(text, program, 0, macro_active, NULL, hint_buf, hint_size);
 }
 
 static uint8_t voice_is_rest[VOICE_MAX];

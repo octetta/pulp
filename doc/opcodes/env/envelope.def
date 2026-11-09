@@ -1,0 +1,15 @@
+@name     envelope
+@alias    t
+@group    env
+@c_name   skode_clause_env_set
+@type     realtime
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  configure ADSR envelope parameters (attack, decay, sustain, release)
+@doc
+Sets the attack time, decay time, sustain level, and release time for the active voice envelope.
+Usage: t a d s r (or envelope a d s r)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return envelope_set(voice, args[0], args[1], args[2], args[3]);
+@end

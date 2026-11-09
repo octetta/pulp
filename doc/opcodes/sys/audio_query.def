@@ -1,0 +1,17 @@
+@name     audio_query
+@alias    /a?
+@group    sys
+@c_name   skode_clause_audio_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query audio device status
+@doc
+Prints active audio input/output configuration and status.
+Usage: /a?
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    ctx->printf(ctx, "# %s\n", skred_audio_status());
+    return 0;
+@end

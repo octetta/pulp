@@ -1,0 +1,19 @@
+@name     poly_pool_reset
+@alias    /pp!
+@group    sys
+@c_name   skode_clause_poly_pool_reset
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  refresh polyphony pool
+@doc
+Refreshes polyphonic voice pool members and state.
+Usage: /pp! pool
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int pool = (int)args[0];
+    if (skred_poly_pool_refresh(pool) != 0)
+        ctx->printf(ctx, "# usage: /pp! pool\n");
+    return 0;
+@end

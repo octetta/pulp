@@ -289,7 +289,6 @@ If you want to invoke Zig directly with CMake, the equivalent compiler flag look
 
 ```sh
 cmake -B build_pi -S . \
-  -DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf" \
-  -DUSE_EXTERNAL_KIT=ON \
+  -DCMAKE_C_COMPILER="zig;cc;-target;arm-linux-gnueabihf"
 cmake --build build_pi
 ```

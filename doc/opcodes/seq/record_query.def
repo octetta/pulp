@@ -1,0 +1,14 @@
+@name     record_query
+@alias    /r?
+@group    seq
+@c_name   skode_clause_record_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query audio recorder status
+@doc
+Prints audio recording state, capacity, and captured length.
+Usage: /r?
+@code
+    return skode_exec_slashr_q(ctx, s, args, argc);
+@end

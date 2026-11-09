@@ -1,0 +1,51 @@
+@name     query_string
+@alias    ?s
+@group    sys
+@c_name   skode_clause_query_string_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  print current string argument
+@doc
+Prints the string token currently stored in the parser buffer.
+Usage: ?s
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
+    return 0;
+@end
+
+@name     query_string
+@alias    ?s
+@group    sys
+@c_name   skode_clause_query_string_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  print current string argument
+@doc
+Prints current string argument, ignoring argument stack.
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
+    return 0;
+@end
+
+@name     query_string
+@alias    ?s
+@group    sys
+@c_name   skode_clause_query_string_2
+@type     immediate
+@arity    2
+@match    (any, any)
+@summary  print current string argument
+@doc
+Prints current string argument, ignoring argument stack.
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    ctx->printf(ctx, "# [%s]\n", ands_string(ctx->parse));
+    return 0;
+@end

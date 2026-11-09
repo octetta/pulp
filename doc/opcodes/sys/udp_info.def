@@ -1,0 +1,28 @@
+@name     udp_info
+@alias    udp
+@group    sys
+@c_name   skode_clause_udp_info_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  show udp status
+@doc
+Shows UDP network endpoint status.
+Usage: udp
+@code
+    return skode_exec_udp(ctx, s, args, argc);
+@end
+
+@name     udp_info
+@alias    udp
+@group    sys
+@c_name   skode_clause_udp_info_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  show udp status with argument
+@doc
+Shows UDP network endpoint status with argument.
+@code
+    return skode_exec_udp(ctx, s, args, argc);
+@end

@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "synth-types.h"
 
@@ -74,6 +75,7 @@ typedef struct {
   char name[SKRED_SCOPE_NAME_MAX];
 } skred_scope_status_t;
 
+#ifdef SCOPE
 int scope_ipc_init(int max_block_frames, int sample_rate);
 void scope_ipc_uninit(void);
 int scope_ipc_start(const char *name, uint32_t channel_mask,
@@ -96,5 +98,25 @@ int scope_ipc_reader_latest(const skred_scope_reader_t *reader, float *output,
                             uint32_t requested_frames,
                             uint64_t *first_frame_out);
 int scope_ipc_reader_latest_events(const skred_scope_reader_t *reader, uint64_t *last_event_sequence, skred_scope_event_t *out_events, uint32_t max_events);
+#else
+static inline int scope_ipc_init(int max_block_frames, int sample_rate) { (void)max_block_frames; (void)sample_rate; return 0; }
+static inline void scope_ipc_uninit(void) {}
+static inline int scope_ipc_start(const char *name, uint32_t channel_mask, double buffer_seconds) { (void)name; (void)channel_mask; (void)buffer_seconds; return -1; }
+static inline int scope_ipc_stop(void) { return 0; }
+static inline int scope_ipc_active(void) { return 0; }
+static inline const char *scope_ipc_name(void) { return ""; }
+static inline uint32_t scope_ipc_channel_mask(void) { return 0; }
+static inline uint32_t scope_ipc_capacity_frames(void) { return 0; }
+static inline uint64_t scope_ipc_write_frame(void) { return 0; }
+static inline void scope_ipc_status(skred_scope_status_t *status) { if (status) memset(status, 0, sizeof(*status)); }
+static inline int scope_ipc_track_metadata_set(int track, const char *name, float volume_db) { (void)track; (void)name; (void)volume_db; return 0; }
+static inline synth_record_bus_t *scope_ipc_begin_block(int frame_count) { (void)frame_count; return NULL; }
+static inline void scope_ipc_publish(const float *frames, int frame_count) { (void)frames; (void)frame_count; }
+static inline void scope_ipc_publish_event(const char *text) { (void)text; }
+static inline int scope_ipc_reader_open(skred_scope_reader_t *reader, const char *name) { (void)reader; (void)name; return -1; }
+static inline void scope_ipc_reader_close(skred_scope_reader_t *reader) { (void)reader; }
+static inline int scope_ipc_reader_latest(const skred_scope_reader_t *reader, float *output, uint32_t requested_frames, uint64_t *first_frame_out) { (void)reader; (void)output; (void)requested_frames; (void)first_frame_out; return 0; }
+static inline int scope_ipc_reader_latest_events(const skred_scope_reader_t *reader, uint64_t *last_event_sequence, skred_scope_event_t *out_events, uint32_t max_events) { (void)reader; (void)last_event_sequence; (void)out_events; (void)max_events; return 0; }
+#endif
 
 #endif

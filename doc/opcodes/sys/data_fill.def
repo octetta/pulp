@@ -1,0 +1,27 @@
+@name     data_fill
+@alias    d!
+@group    sys
+@c_name   skode_clause_data_fill
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  store value at data buffer index
+@doc
+Sets data[index] = value in the internal data array.
+Usage: d! val index (or data_fill val index)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    double val = args[0];
+    int index = (int)args[1];
+    if (index >= 0 && index < ands_data_cap(ctx->parse)) {
+        double *data = ands_data(ctx->parse);
+        int data_len = ands_data_len(ctx->parse);
+        if (index >= data_len) {
+            for (int i = data_len; i <= index; i++) data[i] = 0.0;
+            ands_data_len_set(ctx->parse, index + 1);
+        }
+        data[index] = val;
+    }
+    return 0;
+@end

@@ -1,0 +1,59 @@
+@name     rec_auto_trim
+@alias    w<>
+@group    voice
+@c_name   skode_clause_rec_auto_trim_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  auto-detect recording buffer trim points
+@doc
+Automatically detects recording buffer silence threshold and sets trim points.
+Usage: w<>
+@code
+    return skode_exec_w_lt_gt(ctx, s, args, argc);
+@end
+
+@name     rec_auto_trim
+@alias    w<>
+@group    voice
+@c_name   skode_clause_rec_auto_trim_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  auto-detect trim with threshold
+@doc
+Automatically detects recording buffer trim points with threshold.
+Usage: -40 w<>
+@code
+    return skode_exec_w_lt_gt(ctx, s, args, argc);
+@end
+
+@name     rec_auto_trim
+@alias    w<>
+@group    voice
+@c_name   skode_clause_rec_auto_trim_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  auto-detect trim with start and end threshold
+@doc
+Automatically detects recording buffer trim points with start and end threshold.
+Usage: -40 -50 w<>
+@code
+    return skode_exec_w_lt_gt(ctx, s, args, argc);
+@end
+
+@name     rec_auto_trim
+@alias    w<>
+@group    voice
+@c_name   skode_clause_rec_auto_trim_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  auto-detect trim with margin
+@doc
+Automatically detects recording buffer trim points with thresholds and margin.
+Usage: -40 -50 10 w<>
+@code
+    return skode_exec_w_lt_gt(ctx, s, args, argc);
+@end

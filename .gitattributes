@@ -1,3 +1,1 @@
-*.c.kit linguist-language=C
-*.h.kit linguist-language=C
-parts/analysis-src/** linguist-generated=false
+src/gen/** linguist-generated=true

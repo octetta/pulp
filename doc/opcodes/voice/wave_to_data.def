@@ -1,0 +1,28 @@
+@name     wave_to_data
+@alias    w>d
+@group    voice
+@c_name   skode_clause_wave_to_data_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  copy wavetable slot samples to data array
+@doc
+Copies samples from wavetable slot into the parser data buffer.
+Usage: 0 w>d
+@code
+    return skode_exec_w_gtd(ctx, s, args, argc);
+@end
+
+@name     wave_to_data
+@alias    w>d
+@group    voice
+@c_name   skode_clause_wave_to_data_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  wave to data no-op
+@doc
+Wave to data no-op.
+@code
+    return skode_exec_w_gtd(ctx, s, args, argc);
+@end

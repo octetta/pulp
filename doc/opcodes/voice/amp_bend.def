@@ -1,0 +1,15 @@
+@name     amp_bend
+@alias    ab
+@group    voice
+@c_name   skode_clause_amp_bend
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  amplitude bend (-1..1)
+@doc
+Sets amplitude bend.
+Usage: ab amount (or amp_bend amount)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return amp_bend_set(voice, args[0]);
+@end

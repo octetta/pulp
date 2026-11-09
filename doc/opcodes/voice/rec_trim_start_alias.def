@@ -1,0 +1,29 @@
+@name     rec_trim_start_alias
+@alias    rs
+@group    voice
+@c_name   skode_clause_rec_trim_start_alias_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  advance recording start offset by 1 (alias)
+@doc
+Advances recording buffer start offset by 1 sample.
+Usage: rs
+@code
+    return skode_exec_w_gt(ctx, s, args, argc);
+@end
+
+@name     rec_trim_start_alias
+@alias    rs
+@group    voice
+@c_name   skode_clause_rec_trim_start_alias_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  advance recording start offset by samples (alias)
+@doc
+Advances recording buffer start offset by specified sample count.
+Usage: 100 rs
+@code
+    return skode_exec_w_gt(ctx, s, args, argc);
+@end

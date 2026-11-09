@@ -1,0 +1,15 @@
+@name     freq_feedback
+@alias    FB
+@group    osc
+@c_name   skode_clause_freq_feedback
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  oscillator frequency feedback amount
+@doc
+Sets oscillator frequency self-feedback amount.
+Usage: FB amount (or freq_feedback amount)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return freq_feedback_set(voice, args[0]);
+@end

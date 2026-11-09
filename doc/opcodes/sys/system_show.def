@@ -1,0 +1,29 @@
+@name     system_show
+@alias    /s
+@group    sys
+@c_name   skode_clause_system_show_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  show system status
+@doc
+Displays system status overview.
+Usage: /s
+@code
+    return skode_exec_slashs(ctx, s, args, argc);
+@end
+
+@name     system_show
+@alias    /s
+@group    sys
+@c_name   skode_clause_system_show_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  show subsystem status
+@doc
+Displays specific subsystem status (0=system, 1=threads, 2=audio, 3=synth, 4=stats, 5=skode, 6=seq, 7=strings).
+Usage: /s 2
+@code
+    return skode_exec_slashs(ctx, s, args, argc);
+@end

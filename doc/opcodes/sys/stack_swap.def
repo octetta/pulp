@@ -1,0 +1,70 @@
+@name     stack_swap
+@alias    swap
+@group    sys
+@c_name   skode_clause_stack_swap_2
+@type     immediate
+@arity    2
+@match    (any, any)
+@summary  swap top two stack arguments
+@doc
+Swaps the top two arguments on the parser stack.
+Usage: 1 2 swap
+@code
+    return skode_exec_swap(ctx, s, args, argc);
+@end
+
+@name     stack_swap
+@alias    swap
+@group    sys
+@c_name   skode_clause_stack_swap_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  swap top two stack arguments
+@doc
+Swaps top two arguments on parser stack.
+@code
+    return skode_exec_swap(ctx, s, args, argc);
+@end
+
+@name     stack_swap
+@alias    swap
+@group    sys
+@c_name   skode_clause_stack_swap_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  swap top two stack arguments
+@doc
+Swaps top two arguments on parser stack.
+@code
+    return skode_exec_swap(ctx, s, args, argc);
+@end
+
+@name     stack_swap
+@alias    swap
+@group    sys
+@c_name   skode_clause_stack_swap_3
+@type     immediate
+@arity    3
+@match    (any, any, any)
+@summary  swap top two stack arguments
+@doc
+Swaps top two arguments on parser stack.
+@code
+    return skode_exec_swap(ctx, s, args, argc);
+@end
+
+@name     stack_swap
+@alias    swap
+@group    sys
+@c_name   skode_clause_stack_swap_4
+@type     immediate
+@arity    4
+@match    (any, any, any, any)
+@summary  swap top two stack arguments
+@doc
+Swaps top two arguments on parser stack.
+@code
+    return skode_exec_swap(ctx, s, args, argc);
+@end

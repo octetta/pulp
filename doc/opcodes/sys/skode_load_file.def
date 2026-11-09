@@ -1,0 +1,29 @@
+@name     skode_load_file
+@alias    /l
+@group    sys
+@c_name   skode_clause_skode_load_file_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load script file by index
+@doc
+Loads script file by numeric index into active voice.
+Usage: /l 0
+@code
+    return skode_exec_slashl(ctx, s, args, argc);
+@end
+
+@name     skode_load_file
+@alias    /l
+@group    sys
+@c_name   skode_clause_skode_load_file_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  load script file by index with verbosity
+@doc
+Loads script file by numeric index with verbosity flag.
+Usage: /l 0 1
+@code
+    return skode_exec_slashl(ctx, s, args, argc);
+@end

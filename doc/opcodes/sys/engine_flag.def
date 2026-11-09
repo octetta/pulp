@@ -1,0 +1,29 @@
+@name     engine_flag
+@alias    /f
+@group    sys
+@c_name   skode_clause_engine_flag_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query engine flag
+@doc
+Displays current engine flag value.
+Usage: /f
+@code
+    return skode_exec_slashf(ctx, s, args, argc);
+@end
+
+@name     engine_flag
+@alias    /f
+@group    sys
+@c_name   skode_clause_engine_flag_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  set engine flag
+@doc
+Sets engine flag value.
+Usage: /f 1
+@code
+    return skode_exec_slashf(ctx, s, args, argc);
+@end

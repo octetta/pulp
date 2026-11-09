@@ -1,0 +1,18 @@
+@name     audio_list
+@alias    /als
+@group    sys
+@c_name   skode_clause_audio_list
+@type     immediate
+@arity    0
+@match    ()
+@summary  list audio devices
+@doc
+Lists available audio host devices.
+Usage: /als
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    skred_audio_command("/als");
+    ctx->printf(ctx, "%s\n", skred_audio_message());
+    return 0;
+@end

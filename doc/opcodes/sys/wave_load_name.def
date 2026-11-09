@@ -1,0 +1,44 @@
+@name     wave_load_name
+@alias    /ws
+@group    sys
+@c_name   skode_clause_wave_load_name_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  load wave file by name into default slot
+@doc
+Loads wave file named in string buffer into default slot.
+Usage: [sample.wav] /ws
+@code
+    return skode_exec_slashws(ctx, s, args, argc);
+@end
+
+@name     wave_load_name
+@alias    /ws
+@group    sys
+@c_name   skode_clause_wave_load_name_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load wave file by name into slot
+@doc
+Loads wave file named in string buffer into specified slot.
+Usage: [sample.wav] 0 /ws
+@code
+    return skode_exec_slashws(ctx, s, args, argc);
+@end
+
+@name     wave_load_name
+@alias    /ws
+@group    sys
+@c_name   skode_clause_wave_load_name_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  load wave file by name into slot and channel
+@doc
+Loads wave file named in string buffer into specified slot and channel.
+Usage: [sample.wav] 0 1 /ws
+@code
+    return skode_exec_slashws(ctx, s, args, argc);
+@end

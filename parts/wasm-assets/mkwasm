@@ -14,7 +14,7 @@ cp ../stream.sk ../sk-out
 cp ../../examples/qm_grok_guitar.sk ../sk-out
 cp ../../examples/ifl-gemini-learn.sk ../sk-out
 
-emcc -I. -I.. -I../exp-vfs \
+emcc -I. -I.. -I../exp-vfs -I../../src/gen \
     -DSKRED_MIDI_ENABLED=1 \
     -DKSYNTH=1 \
     -pthread \
@@ -32,6 +32,7 @@ emcc -I. -I.. -I../exp-vfs \
     ../exp-vfs/skred_vfs.c \
     ../skode-event.c \
     ../skode-dict.c \
+    ../../src/gen/skred_opcodes_gen.c \
     ../skqueue.c \
     ../seq.c \
     ../api.c \
@@ -55,7 +56,6 @@ emcc -I. -I.. -I../exp-vfs \
     ../skode-words-seq.c \
     ../skode-words-data.c \
     ../skode-words-system.c \
-    ../skode-words-misc.c \
     ../polyphony.c \
     ../synth-alloc.c \
     ../recorder.c \

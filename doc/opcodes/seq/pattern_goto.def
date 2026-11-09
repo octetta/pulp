@@ -1,0 +1,14 @@
+@name     pattern_goto
+@alias    zg
+@group    seq
+@c_name   skode_clause_pattern_goto
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  jump active pattern playback step
+@doc
+Sets the next playback step position for the active pattern.
+Usage: zg step (or pattern_goto step)
+@code
+    return skode_exec_zg(ctx, s, args, argc);
+@end

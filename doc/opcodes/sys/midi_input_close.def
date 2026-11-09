@@ -1,0 +1,17 @@
+@name     midi_input_close
+@alias    /mic
+@group    sys
+@c_name   skode_clause_midi_input_close
+@type     immediate
+@arity    0
+@match    ()
+@summary  close MIDI input port
+@doc
+Closes active MIDI input port.
+Usage: /mic
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    if (skred_midi_input_close() != 0) ctx->printf(ctx, "# MIDI input close failed\n");
+    return 0;
+@end

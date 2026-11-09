@@ -1,0 +1,28 @@
+@name     vfs_cd
+@alias    %cd
+@group    sys
+@c_name   skode_clause_vfs_cd_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  change vfs directory
+@doc
+Changes current working directory to path in string buffer.
+Usage: [subdir] %cd
+@code
+    return skode_exec_pctcd(ctx, s, args, argc);
+@end
+
+@name     vfs_cd
+@alias    %cd
+@group    sys
+@c_name   skode_clause_vfs_cd_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  change vfs directory with argument
+@doc
+Changes current working directory.
+@code
+    return skode_exec_pctcd(ctx, s, args, argc);
+@end

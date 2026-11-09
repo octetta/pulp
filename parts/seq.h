@@ -23,7 +23,7 @@ enum {
 #define SEQ_MAX_CATCHUP_TICKS (64)
 
 typedef struct {
-  uint8_t code;
+  uint16_t code;
   uint8_t argc;
   char mode;
   uint8_t var_mask;
@@ -91,6 +91,7 @@ void seq_state_set(int p, int state);
 void seq_state_set_locked(int p, int state);
 void seq_state_queue(int p, int state);
 void seq_state_all(int state);
+void seq_state_multi(int state, const int *patterns, int count);
 extern int seq_current_pattern;
 int seq_pattern_generation(int pattern);
 void seq_edit_lock(void);

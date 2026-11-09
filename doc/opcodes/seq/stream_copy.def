@@ -1,0 +1,15 @@
+@name     stream_copy
+@alias    /SC
+@group    seq
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  copy stream contents
+@doc
+Copies contents from source stream to destination stream.
+Usage: /SC dst src
+@code
+    (void)voice;
+    skode_stream_copy(NULL, (int)args[0], (int)args[1]);
+    return 0;
+@end

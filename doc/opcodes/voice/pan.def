@@ -1,0 +1,31 @@
+@name     pan
+@alias    p
+@group    voice
+@c_name   skode_clause_pan_set
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set voice stereo pan position (-1.0 left to +1.0 right)
+@doc
+Sets the stereo panning position for the selected voice.
+Usage: p pan (or pan pan)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return pan_set(voice, args[0]);
+@end
+
+@name     pan
+@alias    p
+@group    voice
+@c_name   skode_clause_pan_center
+@type     realtime
+@arity    1
+@match    (nan)
+@summary  center voice stereo pan (0.0)
+@doc
+Resets voice stereo panning to dead center (0.0).
+Usage: p - (or pan -)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return pan_set(voice, 0.0f);
+@end

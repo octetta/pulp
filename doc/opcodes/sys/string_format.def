@@ -1,0 +1,74 @@
+@name     string_format
+@alias    s%
+@group    sys
+@c_name   skode_clause_string_format_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  format string template with arguments
+@doc
+Substitutes format placeholders (@0, @1...) in string with stack arguments.
+Usage: [template] s%
+@code
+    return skode_exec_s_pct(ctx, s, args, argc);
+@end
+
+@name     string_format
+@alias    s%
+@group    sys
+@c_name   skode_clause_string_format_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  format string template with 1 argument
+@doc
+Substitutes @0 in template string with stack argument.
+Usage: [template] arg0 s%
+@code
+    return skode_exec_s_pct(ctx, s, args, argc);
+@end
+
+@name     string_format
+@alias    s%
+@group    sys
+@c_name   skode_clause_string_format_2
+@type     immediate
+@arity    2
+@match    (any, any)
+@summary  format string template with 2 arguments
+@doc
+Substitutes @0, @1 in template string with stack arguments.
+Usage: [template] arg0 arg1 s%
+@code
+    return skode_exec_s_pct(ctx, s, args, argc);
+@end
+
+@name     string_format
+@alias    s%
+@group    sys
+@c_name   skode_clause_string_format_3
+@type     immediate
+@arity    3
+@match    (any, any, any)
+@summary  format string template with 3 arguments
+@doc
+Substitutes @0, @1, @2 in template string with stack arguments.
+Usage: [template] arg0 arg1 arg2 s%
+@code
+    return skode_exec_s_pct(ctx, s, args, argc);
+@end
+
+@name     string_format
+@alias    s%
+@group    sys
+@c_name   skode_clause_string_format_4
+@type     immediate
+@arity    4
+@match    (any, any, any, any)
+@summary  format string template with 4 arguments
+@doc
+Substitutes @0, @1, @2, @3 in template string with stack arguments.
+Usage: [template] arg0 arg1 arg2 arg3 s%
+@code
+    return skode_exec_s_pct(ctx, s, args, argc);
+@end

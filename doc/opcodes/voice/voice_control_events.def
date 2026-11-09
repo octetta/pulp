@@ -1,0 +1,28 @@
+@name     voice_control_events
+@alias    vc
+@group    voice
+@c_name   skode_clause_voice_control_events_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  enable or disable voice control events
+@doc
+Enables or disables voice event publication to the control queue (1=on, 0=off).
+Usage: vc 1
+@code
+    return skode_exec_vc(ctx, s, args, argc);
+@end
+
+@name     voice_control_events
+@alias    vc
+@group    voice
+@c_name   skode_clause_voice_control_events_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  voice control events no-op
+@doc
+Voice control events no-op.
+@code
+    return skode_exec_vc(ctx, s, args, argc);
+@end

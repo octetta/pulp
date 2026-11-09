@@ -1,0 +1,14 @@
+@name     pattern_rewind
+@alias    Z!
+@group    seq
+@c_name   skode_clause_pattern_rewind
+@type     immediate
+@arity    0
+@match    ()
+@summary  rewind all patterns to step 0
+@doc
+Resets playheads of all active patterns back to step 0.
+Usage: Z! (or pattern_rewind)
+@code
+    return skode_exec_Z_bang(ctx, s, args, argc);
+@end

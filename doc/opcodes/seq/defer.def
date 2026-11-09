@@ -1,0 +1,15 @@
+@name     defer
+@alias    +
+@group    seq
+@c_name   skode_clause_defer_seconds
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  defer execution by relative seconds
+@doc
+Defers execution of the trailing command sequence by relative seconds.
+Usage: +seconds [command]
+@code
+    (void)ctx; (void)s; (void)args; (void)argc;
+    return 0;
+@end

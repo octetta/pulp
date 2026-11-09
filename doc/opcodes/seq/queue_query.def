@@ -1,0 +1,14 @@
+@name     queue_query
+@alias    ?q
+@group    seq
+@c_name   skode_clause_queue_query
+@type     immediate
+@arity    0
+@match    ()
+@summary  query scheduler event queue
+@doc
+Displays contents of realtime event scheduler queue.
+Usage: ?q
+@code
+    return skode_exec_qq(ctx, s, args, argc);
+@end

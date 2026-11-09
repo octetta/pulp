@@ -1,0 +1,20 @@
+@name     data_clear
+@alias    /D
+@group    sys
+@c_name   skode_clause_data_clear
+@type     immediate
+@arity    0
+@match    ()
+@summary  clear or print data buffer allocation
+@doc
+Prints data pointer, capacity and length.
+Usage: /D (or data_clear)
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    ctx->printf(ctx, "# /D data %p cap %d |%d|\n",
+        ands_data(ctx->parse),
+        ands_data_cap(ctx->parse),
+        ands_data_len(ctx->parse));
+    return 0;
+@end

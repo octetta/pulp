@@ -1,0 +1,47 @@
+@name     midi_note
+@alias    n
+@group    osc
+@c_name   skode_clause_midi_note_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set voice frequency from MIDI note number
+@doc
+Sets the oscillator frequency from a MIDI note number (0..127).
+Usage: n note (or midi_note note)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return skode_midi_note(voice, args[0], 0.0f);
+@end
+
+@name     midi_note
+@alias    n
+@group    osc
+@c_name   skode_clause_midi_note_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set voice frequency from MIDI note number with microtonal detune in cents
+@doc
+Sets the oscillator frequency from a MIDI note number plus fine detune in cents.
+Usage: n note cents (or midi_note note cents)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return skode_midi_note(voice, args[0], args[1]);
+@end
+
+@name     midi_note
+@alias    n
+@group    osc
+@c_name   skode_clause_midi_note_nan
+@type     realtime
+@arity    1
+@match    (nan)
+@summary  retrigger or hold default MIDI note
+@doc
+Triggers or holds default MIDI note using sentinel value.
+Usage: n - (or midi_note -)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return skode_midi_note(voice, NAN, 0.0f);
+@end

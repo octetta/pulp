@@ -1,0 +1,16 @@
+@name     pattern_modulo_alt
+@alias    z%
+@group    seq
+@c_name   skode_clause_pattern_modulo_alt
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set active pattern step loop modulo (z% alias)
+@doc
+Sets loop length modulo for the active pattern (z% alias).
+Usage: z% count
+@code
+    (void)voice;
+    (void)args;
+    return 0;
+@end

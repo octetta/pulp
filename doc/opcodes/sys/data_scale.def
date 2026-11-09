@@ -1,0 +1,26 @@
+@name     data_scale
+@alias    d*
+@group    sys
+@c_name   skode_clause_data_scale
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  get value at data buffer index
+@doc
+Reads data[index] and pushes value onto argument stack.
+Usage: d* index (or data_scale index)
+@code
+    if (!ctx) return -1;
+    (void)argc;
+    int index = (int)args[0];
+    double *data = ands_data(ctx->parse);
+    int data_len = ands_data_len(ctx->parse);
+    if (index >= 0 && index < data_len) {
+        double val = data[index];
+        ctx->printf(ctx, "# %g\n", val);
+        ands_arg_clear(s);
+        ands_arg_push(s, val);
+        return 1;
+    }
+    return 0;
+@end

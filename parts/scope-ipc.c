@@ -1,5 +1,7 @@
 #include "scope-ipc.h"
 
+#ifdef SCOPE
+
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
@@ -577,3 +579,5 @@ int scope_ipc_reader_latest_events(const skred_scope_reader_t *reader, uint64_t 
   *last_event_sequence = seq;
   return count;
 }
+#endif
+

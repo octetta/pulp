@@ -1,0 +1,74 @@
+@name     data_to_sample
+@alias    /d
+@group    sys
+@c_name   skode_clause_data_to_sample_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  load data array into default sample slot
+@doc
+Loads active data array samples into sample slot.
+Usage: /d
+@code
+    return skode_exec_slashd(ctx, s, args, argc);
+@end
+
+@name     data_to_sample
+@alias    /d
+@group    sys
+@c_name   skode_clause_data_to_sample_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load data array into specified sample slot
+@doc
+Loads active data array into specified sample slot.
+Usage: /d slot
+@code
+    return skode_exec_slashd(ctx, s, args, argc);
+@end
+
+@name     data_to_sample
+@alias    /d
+@group    sys
+@c_name   skode_clause_data_to_sample_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  load data array with sample rate
+@doc
+Loads active data array into slot with custom sample rate.
+Usage: /d slot rate
+@code
+    return skode_exec_slashd(ctx, s, args, argc);
+@end
+
+@name     data_to_sample
+@alias    /d
+@group    sys
+@c_name   skode_clause_data_to_sample_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  load data array with one-shot flag
+@doc
+Loads data array with slot, rate, and one-shot playback flag.
+Usage: /d slot rate one_shot
+@code
+    return skode_exec_slashd(ctx, s, args, argc);
+@end
+
+@name     data_to_sample
+@alias    /d
+@group    sys
+@c_name   skode_clause_data_to_sample_4
+@type     immediate
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  load data array with offset
+@doc
+Loads data array with slot, rate, one-shot flag, and loop offset.
+Usage: /d slot rate one_shot offset
+@code
+    return skode_exec_slashd(ctx, s, args, argc);
+@end

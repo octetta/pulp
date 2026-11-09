@@ -1,0 +1,29 @@
+@name     global_status
+@alias    GS
+@group    voice
+@c_name   skode_clause_global_status_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  show global engine status
+@doc
+Displays global engine status overview.
+Usage: GS
+@code
+    return skode_exec_GS(ctx, s, args, argc);
+@end
+
+@name     global_status
+@alias    GS
+@group    voice
+@c_name   skode_clause_global_status_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  show global engine status with verbosity
+@doc
+Displays global engine status with verbosity flag.
+Usage: GS 1
+@code
+    return skode_exec_GS(ctx, s, args, argc);
+@end

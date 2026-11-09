@@ -1,0 +1,28 @@
+@name     thread_status
+@alias    /th?
+@group    sys
+@c_name   skode_clause_thread_status_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query thread status
+@doc
+Queries thread status and diagnostics.
+Usage: /th?
+@code
+    return skode_exec_slashth_q(ctx, s, args, argc);
+@end
+
+@name     thread_status
+@alias    /th?
+@group    sys
+@c_name   skode_clause_thread_status_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  query thread status with argument
+@doc
+Queries thread status and diagnostics.
+@code
+    return skode_exec_slashth_q(ctx, s, args, argc);
+@end

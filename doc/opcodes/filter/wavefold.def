@@ -1,0 +1,67 @@
+@name     wavefold
+@alias    wf
+@group    filter
+@c_name   skode_clause_wavefold_drive
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  set voice wavefold / filter drive amount
+@doc
+Sets the filter overdrive/wavefolding amount for the selected voice.
+Usage: wf amount
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.filter[voice].drive = args[0] >= 0.0f ? args[0] : 0.0f;
+    return 0;
+@end
+
+@name     wavefold
+@alias    wf
+@group    filter
+@c_name   skode_clause_wavefold_drive_bias
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  set voice wavefold drive and bias
+@doc
+Sets the filter overdrive and symmetry bias for the selected voice.
+Usage: wf amount, bias
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.filter[voice].drive = args[0] >= 0.0f ? args[0] : 0.0f;
+    return 0;
+@end
+
+@name     wavefold
+@alias    wf
+@group    filter
+@c_name   skode_clause_wavefold_reset_nan
+@type     realtime
+@arity    1
+@match    (nan)
+@summary  reset voice wavefold drive to default using sentinel NaN
+@doc
+Resets wavefold drive to 0 (disabled) when passed a NaN sentinel (e.g. wf -).
+Usage: wf -
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.filter[voice].drive = 0.0f;
+    return 0;
+@end
+
+@name     wavefold
+@alias    wf
+@group    filter
+@c_name   skode_clause_wavefold_max_inf
+@type     realtime
+@arity    1
+@match    (+inf)
+@summary  set voice wavefold drive to maximum limit using +Inf
+@doc
+Clamps wavefold drive to maximum saturation ceiling (+Inf).
+Usage: wf inf
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.filter[voice].drive = 10.0f;
+    return 0;
+@end

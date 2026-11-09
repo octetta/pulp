@@ -1,0 +1,23 @@
+@name     smoother
+@alias    s
+@group    voice
+@c_name   skode_clause_smoother
+@type     realtime
+@arity    1..2
+@match    (finite, finite)
+@summary  parameter smoothing time and optional mode
+@doc
+Sets parameter smoothing filter time. Pass 0 to disable.
+Optional second argument sets smoother mode (0=exponential, 1=linear).
+Usage: s time[, mode] (or smoother time[, mode])
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    if (args[0] <= 0.0f) {
+        sv.smoother_enable[voice] = 0;
+    } else {
+        sv.smoother_enable[voice] = 1;
+        sv.smoother_smoothing[voice] = args[0];
+        sv.smoother_mode[voice] = (argc > 1) ? (int)args[1] : 0;
+    }
+    return 0;
+@end

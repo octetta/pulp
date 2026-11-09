@@ -1,0 +1,29 @@
+@name     skode_load_name
+@alias    /ls
+@group    sys
+@c_name   skode_clause_skode_load_name_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  load script file by name
+@doc
+Loads script file specified in string buffer.
+Usage: [script.sk] /ls
+@code
+    return skode_exec_slashls(ctx, s, args, argc);
+@end
+
+@name     skode_load_name
+@alias    /ls
+@group    sys
+@c_name   skode_clause_skode_load_name_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load script file by name with verbosity
+@doc
+Loads script file specified in string buffer with verbosity flag.
+Usage: [script.sk] /ls 1
+@code
+    return skode_exec_slashls(ctx, s, args, argc);
+@end

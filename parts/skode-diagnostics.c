@@ -280,8 +280,8 @@ void control_event_show(skode_t *ctx, int consume) {
       event->step,
       event->tag,
       (int)event->opcode,
-      skode_opcode_name((uint8_t)event->opcode) ? " " : "",
-      skode_opcode_name((uint8_t)event->opcode) ? skode_opcode_name((uint8_t)event->opcode) : "");
+      skode_opcode_name(event->opcode) ? " " : "",
+      skode_opcode_name(event->opcode) ? skode_opcode_name(event->opcode) : "");
     if (event->type == SKRED_CONTROL_EVENT_USER) {
       ctx->printf(ctx, "#   id:%d", event->id);
       for (uint32_t a = 0; a < event->value_count && a < 3; a++)

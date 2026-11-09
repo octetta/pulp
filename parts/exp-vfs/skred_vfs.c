@@ -168,7 +168,7 @@ bool skred_vfs_init(const char *path) {
 bool skred_vfs_mount(const char *path) {
     char root[1024];
     char resolved_path[2048];
-    char full_path[2048];
+    char full_path[4096];
     
     if (!path || path[0] == '\0') path = ".";
 

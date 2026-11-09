@@ -1,0 +1,16 @@
+@name     phase_env_depth
+@alias    cd
+@group    env
+@c_name   skode_clause_phase_env_depth
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  phase distortion envelope depth
+@doc
+Sets phase distortion envelope modulation depth (-1.0 to 1.0).
+Usage: cd depth (or phase_env_depth depth)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    sv.cz_env_depth[voice] = args[0];
+    return 0;
+@end

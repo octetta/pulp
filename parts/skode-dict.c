@@ -1,32 +1,7 @@
 #include "skode-dict.h"
+#include "skode_dict_gen.h"
 
 #include "midi_player.h"
-
-static int word_exec__mf(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  if (argc == 1 && ands_string_len(ctx->parse) > 0) {
-    int slot = arg[0];
-    midi_player_load(slot, ands_string(ctx->parse));
-    ctx->printf(ctx, "# Loaded MIDI file into slot %d\n", slot);
-  } else {
-    ctx->printf(ctx, "# usage: [filename.mid] /mf slot\n");
-  }
-  return 0;
-}
-
-static int word_exec__mf_play(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  if (argc == 1) {
-    midi_player_play((int)arg[0]);
-  }
-  return 0;
-}
-
-static int word_exec__mf_stop(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  if (argc == 1) {
-    midi_player_stop((int)arg[0]);
-  }
-  return 0;
-}
-
 #include "synth.h"
 
 #include <ctype.h>
@@ -40,13 +15,11 @@ static int word_exec__mf_stop(const skode_word_t *self, skode_t *ctx, ands_t *s,
  * ---------------------------------------------------------------------
  * REQUIRED PRE-REQUISITE EXPORTS
  * ---------------------------------------------------------------------
- * The words below call a few helpers that are currently `static` inside
- * skode.c.kit, or not declared in any shared header. See
- * SKODE_DICT_INTEGRATION.md for the exact one-line diffs. Summary:
+ * The words below call a few helpers that were previously `static` inside
+ * skode.c, or not declared in any shared header:
  *
- *   skode.c.kit   : skode_double_to_int  -> drop `static`, declare in skode.h
- *   skode.c.kit   : sk_sleep             -> already non-static, just declare
- *                                            in skode.h
+ *   skode.c       : skode_double_to_int  -> non-static, declared in skode.h
+ *   skode.c       : sk_sleep             -> non-static, declared in skode.h
  *   skode-event.c : program_push         -> rename to skode_program_push,
  *                                            drop `static`, declare here
  *
@@ -108,7 +81,7 @@ static unsigned dict_hash(uint32_t atom) {
 
 int skode_dict_register(skode_vocab_t *vocab, skode_word_t *word) {
   if (!vocab || !word) return -1;
-  if (skode_dict_find(vocab, word->atom)) return -1;
+  if (skode_vocab_find(vocab, word->atom)) return -1;
   unsigned b = dict_hash(word->atom);
   word->next = vocab->buckets[b];
   word->shadow = NULL;
@@ -161,7 +134,7 @@ skode_word_t *skode_dict_override(skode_vocab_t *vocab, skode_word_t *word) {
 }
 
 const skode_word_t *skode_dict_shadow(skode_vocab_t *vocab, uint32_t atom) {
-  const skode_word_t *w = skode_dict_find(vocab, atom);
+  const skode_word_t *w = skode_vocab_find(vocab, atom);
   return w ? w->shadow : NULL;
 }
 
@@ -198,7 +171,7 @@ skode_word_t *skode_dict_remove(skode_vocab_t *vocab, uint32_t atom) {
   return current;
 }
 
-const skode_word_t *skode_dict_find(skode_vocab_t *vocab, uint32_t atom) {
+const skode_word_t *skode_vocab_find(skode_vocab_t *vocab, uint32_t atom) {
   if (!vocab) return NULL;
   unsigned b = dict_hash(atom);
   for (skode_word_t *w = vocab->buckets[b]; w; w = w->next) {
@@ -210,10 +183,35 @@ const skode_word_t *skode_dict_find(skode_vocab_t *vocab, uint32_t atom) {
 const skode_word_t *skode_dict_lookup(skode_vocab_t *private_vocab,
     uint32_t atom) {
   if (private_vocab) {
-    const skode_word_t *w = skode_dict_find(private_vocab, atom);
+    const skode_word_t *w = skode_vocab_find(private_vocab, atom);
     if (w) return w;
   }
-  return skode_dict_find(&global_vocab, atom);
+  const skode_word_t *w = skode_vocab_find(&global_vocab, atom);
+  if (w) return w;
+
+  /* Check static .def dictionary if not found in dynamic vocabularies */
+  static skode_word_t s_def_word_shim;
+  char name[5];
+  int len = 0;
+  for (int i = 0; i < 4; i++) {
+    char ch = (char)((atom >> ((3 - i) * 8)) & 0xFF);
+    if (ch == '-' || ch == '\0') break;
+    name[len++] = ch;
+  }
+  name[len] = '\0';
+  if (len > 0) {
+    const skode_def_word_t *gw = skode_dict_find(name);
+    if (gw) {
+      memset(&s_def_word_shim, 0, sizeof(s_def_word_shim));
+      s_def_word_shim.atom = atom;
+      s_def_word_shim.name = gw->name;
+      s_def_word_shim.summary = (gw->clauses && gw->clause_count > 0) ? gw->clauses[0].summary : NULL;
+      s_def_word_shim.safety = (gw->clauses && (gw->clauses[0].flags & SKODE_CLAUSE_RT_SAFE))
+                               ? WORD_REAL_TIME_SAFE : WORD_IMMEDIATE_ONLY;
+      return &s_def_word_shim;
+    }
+  }
+  return NULL;
 }
 
 void skode_dict_vocab_destroy(skode_vocab_t *vocab) {
@@ -245,52 +243,496 @@ void skode_dict_vocab_destroy(skode_vocab_t *vocab) {
 int skode_execute_word(skode_t *ctx, ands_t *s, uint32_t atom, double *arg,
     int argc, int *out_result) {
   const skode_word_t *w = skode_dict_lookup(ctx->vocab, atom);
-  if (!w || !w->execute) return 0;
-  if (ctx->trace) {
-    ctx->printf(ctx, "# SKODE_DICT %s", w->name);
-    for (int i = 0; i < argc; i++) ctx->printf(ctx, " %g", arg[i]);
-    ctx->puts(ctx, "");
+  if (w && w->execute) {
+    if (ctx->trace) {
+      ctx->printf(ctx, "# SKODE_DICT %s", w->name);
+      for (int i = 0; i < argc; i++) ctx->printf(ctx, " %g", arg[i]);
+      ctx->puts(ctx, "");
+    }
+    int r = w->execute(w, ctx, s, arg, argc);
+    if (out_result) *out_result = r;
+    return 1;
   }
-  int r = w->execute(w, ctx, s, arg, argc);
-  if (out_result) *out_result = r;
-  return 1;
+  const char *name = (w && w->name) ? w->name : ands_atom_name(s);
+  char clean_name[32];
+  if (name && name[0]) {
+    size_t nl = strlen(name);
+    while (nl > 0 && name[nl - 1] == '-') nl--;
+    if (nl < sizeof(clean_name)) {
+      memcpy(clean_name, name, nl);
+      clean_name[nl] = '\0';
+      name = clean_name;
+    }
+  }
+  if (strcmp(name, "EXEC") == 0) {
+    if (argc == 0) {
+      if (out_result) *out_result = -1;
+      return 1;
+    }
+    int opcode_num = (int)arg[0];
+    if (opcode_num < 0 || opcode_num > 255 ||
+        !skode_opcode_is_realtime((skode_opcode_t)opcode_num) ||
+        !skode_opcode_supported((skode_opcode_t)opcode_num)) {
+      if (out_result) *out_result = -1;
+      return 1;
+    }
+    int inner_argc = argc - 1;
+    opcode_event_t op;
+    memset(&op, 0, sizeof(op));
+    op.code = (uint16_t)opcode_num;
+    op.argc = (uint8_t)inner_argc;
+    for (int i = 0; i < inner_argc && i < SEQ_OPCODE_ARG_MAX; i++) op.arg[i] = (float)arg[i+1];
+    int r = skode_execute_voice_opcode(&op, ctx ? ctx->voice : 0);
+    if (out_result) *out_result = r;
+    return 1;
+  }
+  const skode_def_word_t *gw = skode_dict_find(name);
+  if (gw) {
+    unsigned var_mask = 0;
+    if (s) {
+      for (int i = 0; i < argc && i < SEQ_OPCODE_ARG_MAX; i++) {
+        if (ands_arg_var(s, i) >= 0) var_mask |= (1U << i);
+      }
+    }
+    const skode_clause_t *c = skode_clause_match_ex(gw, argc, arg, var_mask);
+    if (c) {
+      if (ctx && ctx->trace) {
+        ctx->printf(ctx, "# SKODE_DEF %s", gw->name);
+        for (int i = 0; i < argc; i++) ctx->printf(ctx, " %g", arg[i]);
+        ctx->puts(ctx, "");
+      }
+      if (c->imm_handler) {
+        int r = c->imm_handler(ctx, s, arg, argc);
+        if (out_result) *out_result = r;
+        return 1;
+      } else if (c->opcode_id != 0) {
+        opcode_event_t op;
+        memset(&op, 0, sizeof(op));
+        op.code = c->opcode_id;
+        op.argc = argc;
+        for (int i = 0; i < argc && i < SEQ_OPCODE_ARG_MAX; i++) {
+          op.arg[i] = (float)arg[i];
+        }
+        int r = skode_execute_voice_opcode(&op, ctx ? ctx->voice : 0);
+        if (out_result) *out_result = r;
+        return 1;
+      }
+    } else {
+      char reason[128];
+      skode_clause_explain_mismatch(gw, argc, arg, reason, sizeof(reason));
+      if (ctx) ctx->printf(ctx, "# SKODE_NO_MATCHING_CLAUSE %s (argc=%d: %s)\n", name, argc, reason);
+      if (out_result) *out_result = -1;
+      return 1;
+    }
+  }
+  return 0;
 }
 
 int skode_compile_word(ands_t *parser, uint32_t atom, double *arg, int argc,
     event_program_t *program, skode_vocab_t *private_vocab,
     int *out_compile_result) {
-  const skode_word_t *w = skode_dict_lookup(private_vocab, atom);
-  if (!w) return 0;
-
-  if (w->safety == WORD_IMMEDIATE_ONLY) {
-    // If it's in the dictionary but immediate-only, it MIGHT be a legacy opcode
-    // that we haven't fully migrated yet. Return 0 to let skode-event.c handle it.
-    return 0;
+  const skode_word_t *w = NULL;
+  if (private_vocab) {
+    w = skode_vocab_find(private_vocab, atom);
   }
+  if (!w) {
+    w = skode_vocab_find(&global_vocab, atom);
+  }
+  if (w) {
+    if (w->safety == WORD_IMMEDIATE_ONLY) {
+      return 0;
+    }
 
-  if (w->compile) {
-    int rc = w->compile(w, parser, arg, argc, program);
-    if (out_compile_result) *out_compile_result = rc;
+    if (w->compile) {
+      int rc = w->compile(w, parser, arg, argc, program);
+      if (out_compile_result) *out_compile_result = rc;
+      return 1;
+    }
+
+    if (w->opcode_id == SKODE_OP_NONE) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_IMMEDIATE_ONLY;
+      return 1;
+    }
+
+    if (argc < w->min_args || argc > w->max_args) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+
+    int rc = skode_program_push(program, (skode_opcode_t)w->opcode_id, parser,
+      arg, argc, 0, w->default_mask);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
     return 1;
   }
 
-  if (w->opcode_id == SKODE_OP_NONE) {
-    /* Declared safe but supplies no compile path -- treat as
-       immediate-only rather than silently dropping the command. */
-    if (out_compile_result) *out_compile_result = SKODE_COMPILE_IMMEDIATE_ONLY;
+  char clean_name[32];
+  const char *name = ands_atom_name(parser);
+  if (name && name[0]) {
+    size_t nl = strlen(name);
+    while (nl > 0 && name[nl - 1] == '-') nl--;
+    if (nl < sizeof(clean_name)) {
+      memcpy(clean_name, name, nl);
+      clean_name[nl] = '\0';
+      name = clean_name;
+    }
+  }
+
+  if (strcmp(name, "EXEC") == 0) {
+    if (argc == 0) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int opcode_num = (int)arg[0];
+    if (opcode_num < 0 || opcode_num > 255 ||
+        !skode_opcode_is_realtime((skode_opcode_t)opcode_num) ||
+        !skode_opcode_supported((skode_opcode_t)opcode_num)) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int inner_argc = argc - 1;
+    double inner_args[SEQ_OPCODE_ARG_MAX] = {0};
+    for (int i = 0; i < inner_argc; i++) inner_args[i] = arg[i+1];
+    int rc = skode_program_push(program, (skode_opcode_t)opcode_num, parser,
+      inner_args, inner_argc, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
     return 1;
   }
 
-  if (argc < w->min_args || argc > w->max_args) {
-    if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+  if (strcmp(name, "v") == 0 || strcmp(name, "voice") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_VOICE, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "a") == 0 || strcmp(name, "amp") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_AMP, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "f") == 0 || strcmp(name, "freq") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_FREQ, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "m") == 0 || strcmp(name, "mute") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_MUTE, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "n") == 0) {
+    if (argc < 1 || argc > 2) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_MIDI_NOTE, parser, arg, argc, 0, 1);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "i") == 0) {
+    if (argc < 1 || argc > 3) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_INST_NOTE, parser, arg, argc, 0, 1);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "p") == 0 || strcmp(name, "pan") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_PAN, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "l") == 0 || strcmp(name, "velocity") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_VELOCITY, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "on") == 0) {
+    if (argc > 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    double val = (argc >= 1) ? arg[0] : 1.0;
+    int rc = skode_program_push(program, SKODE_OP_VELOCITY, parser, &val, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "off") == 0) {
+    if (argc > 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    double val = 0.0;
+    int rc = skode_program_push(program, SKODE_OP_VELOCITY, parser, &val, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "___l") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_ENVELOPE_VELOCITY, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "=") == 0) {
+    if (argc != 2) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_VARIABLE_SET, parser, arg, 2, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "ce") == 0) {
+    if (argc < 1 || argc > 4) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_CONTROL_EVENT, parser, arg, argc, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "VS") == 0) {
+    if (argc < 0 || argc > 2) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_WAVE_RANGE_SET, parser, arg, argc, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "VL") == 0) {
+    if (argc < 0 || argc > 2) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_WAVE_LOOP_SET, parser, arg, argc, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "pn") == 0) {
+    if (argc < 4 || argc > 5) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_POLY_NOTE, parser, arg, argc, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "pr") == 0) {
+    if (argc < 2 || argc > 3) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_POLY_RELEASE, parser, arg, argc, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "pb") == 0) {
+    if (argc < 3 || argc > 4) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_POLY_BEND, parser, arg, argc, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "y") == 0 || strcmp(name, "pattern_select") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_PATTERN_SET, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "z") == 0 || strcmp(name, "pattern_state") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_PATTERN_STATE, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "zm") == 0 || strcmp(name, "ym") == 0 || strcmp(name, "pattern_mute") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_PATTERN_MUTE, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "zq") == 0 || strcmp(name, "pattern_queue") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_PATTERN_QUEUE, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "zg") == 0 || strcmp(name, "-j") == 0 || strcmp(name, "pattern_goto") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_PATTERN_GOTO, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "Z") == 0 || strcmp(name, "pattern_state_all") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_PATTERN_STATE_ALL, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "Z!") == 0 || strcmp(name, "pattern_rewind") == 0) {
+    if (argc != 0) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_PATTERN_REWIND, parser, NULL, 0, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "z%") == 0 || strcmp(name, "%") == 0 || strcmp(name, "pattern_modulo") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_PATTERN_MODULO, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "z*") == 0 || strcmp(name, "*") == 0 || strcmp(name, "pattern_ratchet") == 0) {
+    if (argc != 1) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_RATCHET, parser, arg, 1, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "/SP") == 0 || strcmp(name, "SP") == 0 || strcmp(name, "stream_pos") == 0) {
+    if (argc != 2) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_STREAM_POS, parser, arg, 2, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "/SC") == 0 || strcmp(name, "SC") == 0 || strcmp(name, "stream_copy") == 0) {
+    if (argc != 2) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_STREAM_COPY, parser, arg, 2, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  if (strcmp(name, "/SM") == 0 || strcmp(name, "SM") == 0 || strcmp(name, "stream_mode") == 0) {
+    if (argc != 2) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    int rc = skode_program_push(program, SKODE_OP_STREAM_MODE, parser, arg, 2, 0, 0);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
     return 1;
   }
 
-  int rc = skode_program_push(program, (skode_opcode_t)w->opcode_id, parser,
-    arg, argc, 0, w->default_mask);
-  if (out_compile_result)
-    *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
-  return 1;
+  const skode_def_word_t *gw = skode_dict_find(name);
+  if (gw) {
+    unsigned var_mask = 0;
+    if (parser) {
+      for (int i = 0; i < argc && i < SEQ_OPCODE_ARG_MAX; i++) {
+        if (ands_arg_var(parser, i) >= 0) var_mask |= (1U << i);
+      }
+    }
+    const skode_clause_t *c = skode_clause_match_ex(gw, argc, arg, var_mask);
+    if (!c) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_INVALID;
+      return 1;
+    }
+    if (!(c->flags & SKODE_CLAUSE_RT_SAFE)) {
+      if (out_compile_result) *out_compile_result = SKODE_COMPILE_IMMEDIATE_ONLY;
+      return 1;
+    }
+    uint8_t default_mask = 0;
+    for (int i = 0; i < argc && i < SEQ_OPCODE_ARG_MAX; i++) {
+      if (isnan(arg[i])) {
+        default_mask |= (uint8_t)(1U << i);
+      }
+    }
+    int rc = skode_program_push(program, (skode_opcode_t)c->opcode_id, parser,
+      arg, argc, (char)default_mask, default_mask);
+    if (out_compile_result)
+      *out_compile_result = (rc == 0) ? SKODE_COMPILE_OK : SKODE_COMPILE_TOO_LARGE;
+    return 1;
+  }
+  return 0;
 }
 
 /* ===================================================================
@@ -386,77 +828,51 @@ extern void seq_step_goto(int pattern, int step);
 extern void skode_stream_mode(void *ctx, int n, int mode);
 extern void skode_stream_pos(void *ctx, int n, int pos);
 
-    /* @doc(command.?S)
-    name: ?S
-    category: sequencer
-    summary: show stream state and data
-    @enddoc */
-static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  skode_vocab_t *vocab = skode_dict_global_vocab();
-  
-  if (argc > 0) {
+int skode_dict_show_words(skode_t *ctx, int mode) {
+  if (mode != 0) {
     char categories[32][96];
     int cat_count = skode_help_categories(categories, 32);
     
     // Second pass: print words by category
     for (int c = 0; c < cat_count; c++) {
       int has_words = 0;
-      for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
-        for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
-          const char *cat = w->category ? w->category : skode_help_category_for_word(w->name);
-          if (!cat) cat = "uncategorized";
-          if (strcmp(cat, categories[c]) != 0) continue;
-          
-          int mode = (int)arg[0];
-          int show = 1;
-          int is_realtime = (w->safety == WORD_REAL_TIME_SAFE) || skode_is_legacy_realtime_opcode(w->atom);
-          if (mode == 1 && !is_realtime) show = 0;
-          if (mode == 2 && is_realtime) show = 0;
-          if (show) { has_words = 1; break; }
-        }
-        if (has_words) break;
+      for (size_t i = 0; i < g_skode_words_count; i++) {
+        const skode_def_word_t *w = &g_skode_words[i];
+        const char *cat = skode_group_name(w->group);
+        if (!cat) cat = "uncategorized";
+        if (strcmp(cat, categories[c]) != 0) continue;
+        
+        int show = 1;
+        int is_realtime = (w->clauses && (w->clauses[0].flags & SKODE_CLAUSE_RT_SAFE));
+        if (mode == 1 && !is_realtime) show = 0;
+        if (mode == 2 && is_realtime) show = 0;
+        if (show) { has_words = 1; break; }
       }
       
       if (!has_words) continue;
       
       ctx->printf(ctx, "# %d %s\n", c + 1, categories[c]);
-      for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
-        for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
-          const char *cat = w->category ? w->category : skode_help_category_for_word(w->name);
-          if (!cat) cat = "uncategorized";
-          
-          int mode = (int)arg[0];
-          int show = 1;
-          int is_realtime = (w->safety == WORD_REAL_TIME_SAFE) || skode_is_legacy_realtime_opcode(w->atom);
-          if (mode == 1 && !is_realtime) show = 0;
-          if (mode == 2 && is_realtime) show = 0;
-          if (show && w->name && strcmp(cat, categories[c]) == 0) {
-            ctx->printf(ctx, "%s ", w->name);
-          }
-        }
-      }
-      ctx->printf(ctx, "\n");
-    }
-    
-    // Print macros
-    if (ctx->parse && (int)arg[0] == 0) {
-      ctx->printf(ctx, "# user defined macros\n");
-      int mcount = ands_macro_count(ctx->parse);
-      for (int i = 0; i < mcount; i++) {
-        char mname[16];
-        if (ands_macro_get(ctx->parse, i, mname, sizeof(mname), NULL, 0, NULL)) {
-          ctx->printf(ctx, "[%s] ", mname);
+      for (size_t i = 0; i < g_skode_words_count; i++) {
+        const skode_def_word_t *w = &g_skode_words[i];
+        const char *cat = skode_group_name(w->group);
+        if (!cat) cat = "uncategorized";
+        
+        int show = 1;
+        int is_realtime = (w->clauses && (w->clauses[0].flags & SKODE_CLAUSE_RT_SAFE));
+        if (mode == 1 && !is_realtime) show = 0;
+        if (mode == 2 && is_realtime) show = 0;
+        if (show && w->name && strcmp(cat, categories[c]) == 0) {
+          ctx->printf(ctx, "%s ", w->name);
         }
       }
       ctx->printf(ctx, "\n");
     }
   } else {
     // Flat print
-    for (int i = 0; i < SKODE_DICT_BUCKETS; i++) {
-      for (const skode_word_t *w = vocab->buckets[i]; w; w = w->next) {
-        if (w->name) {
-          ctx->printf(ctx, "%s ", w->name);
-        }
+    for (size_t i = 0; i < g_skode_words_count; i++) {
+      const skode_def_word_t *w = &g_skode_words[i];
+      if (w->name) {
+        ctx->printf(ctx, "%s ", w->name);
       }
     }
     
@@ -474,413 +890,37 @@ static int word_exec_dict_show(const skode_word_t *self, skode_t *ctx, ands_t *s
   return 0;
 }
 
-static int word_exec_stream_show(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
+int skode_stream_show_helper(skode_t *ctx, int stream_idx) {
   int start_idx = 0;
   int end_idx = 127;
   
-  if (argc >= 1) {
-    start_idx = (int)arg[0];
-    end_idx = start_idx;
+  if (stream_idx >= 0) {
+    start_idx = stream_idx;
+    end_idx = stream_idx;
   }
   
-  for (int stream_idx = start_idx; stream_idx <= end_idx; stream_idx++) {
-    if (stream_idx >= 0 && stream_idx < 128) {
-      skode_stream_t *stream = &global_stream[stream_idx];
+  for (int i = start_idx; i <= end_idx; i++) {
+    if (i >= 0 && i < 128) {
+      skode_stream_t *stream = &global_stream[i];
       if (stream->len > 0) {
         ctx->printf(ctx, "( ");
-        for (int i = 0; i < stream->len; i++) {
-          if (ands_is_tie(stream->data[i])) ctx->printf(ctx, ". "); else if (isnan(stream->data[i])) ctx->printf(ctx, "- "); else ctx->printf(ctx, "%g ", stream->data[i]);
+        for (int j = 0; j < stream->len; j++) {
+          if (ands_is_tie(stream->data[j])) ctx->printf(ctx, ". "); else if (isnan(stream->data[j])) ctx->printf(ctx, "- "); else ctx->printf(ctx, "%g ", stream->data[j]);
         }
-        ctx->printf(ctx, ") /SS %d ", stream_idx);
+        ctx->printf(ctx, ") /SS %d ", i);
         if (stream->mode != 0) {
-          ctx->printf(ctx, "/SM %d %d ", stream_idx, stream->mode);
+          ctx->printf(ctx, "/SM %d %d ", i, stream->mode);
         }
         if (stream->pos != 0) {
-          ctx->printf(ctx, "/SP %d %d ", stream_idx, stream->pos);
+          ctx->printf(ctx, "/SP %d %d ", i, stream->pos);
         }
         ctx->printf(ctx, "# len=%d\n", stream->len);
-      } else if (argc >= 1) {
-         ctx->printf(ctx, "# stream %d is empty\n", stream_idx);
+      } else if (stream_idx >= 0) {
+         ctx->printf(ctx, "# stream %d is empty\n", i);
       }
     }
   }
   return 0;
-}
-
-    /* @doc(command./SS)
-    name: /SS
-    category: sequencer
-    summary: set stream array from stack data
-    @enddoc */
-    /* @doc
-`/SS`
-Populates a stream array with values parsed from the current stack context.
-The maximum number of items that can be assigned to a stream is dictated by
-`SKODE_STREAM_MAX_LEN` (default: 1024). Any elements beyond this limit will
-be truncated to avoid realtime allocation faults.
-    @enddoc */
-static int word_exec_stream_set(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  if (argc >= 1) {
-    int stream_idx = (int)arg[0];
-    double *data = s ? ands_data(s) : NULL;
-    int len = s ? ands_data_len(s) : 0;
-    skode_stream_set(ctx, stream_idx, data, len); 
-  }
-  return 0;
-}
-
-    /* @doc(command./SC)
-    name: /SC
-    category: sequencer
-    summary: copy stream contents (dst, src)
-    @enddoc */
-static int word_exec_stream_copy(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  if (argc >= 2) {
-    skode_stream_copy(ctx, (int)arg[0], (int)arg[1]);
-  }
-  return 0;
-}
-
-    /* @doc(command./z)
-    name: /z
-    category: sequencer
-    summary: set pattern state (pattern, state)
-    @enddoc */
-static int word_exec_pattern_state(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  if (argc >= 2) {
-    seq_state_set((int)arg[0], (int)arg[1]);
-  }
-  return 0;
-}
-
-    /* @doc(command./zl)
-    name: /zl
-    category: sequencer
-    summary: pattern loop (var_id, limit, dest_step)
-    @enddoc */
-static int word_exec_pattern_loop(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  if (argc >= 3) {
-    // Only meaningful inside a pattern where seq_current_pattern is valid,
-    // but we can provide an immediate fallback if needed.
-    // For immediate execution, we just execute it on ctx->pattern.
-    int var_id = (int)arg[0];
-    int limit = (int)arg[1];
-    int dest_step = (int)arg[2];
-    if (var_id >= 0 && var_id < ANDS_VAR_MAX) {
-      if (global_var[var_id] < limit - 1) {
-        global_var[var_id] += 1.0;
-        seq_step_goto(ctx->pattern, dest_step);
-      } else {
-        global_var[var_id] = 0.0;
-      }
-    }
-  }
-  return 0;
-}
-
-    /* @doc(command./SM)
-    name: /SM
-    category: sequencer
-    summary: set stream mode (0=wrap fwd, 1=wrap rev, 2=pingpong, 3=clamp)
-    @enddoc */
-static int word_exec_stream_mode(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  if (argc >= 2) {
-    skode_stream_mode(ctx, (int)arg[0], (int)arg[1]);
-  }
-  return 0;
-}
-
-    /* @doc(command./SP)
-    name: /SP
-    category: sequencer
-    summary: set stream position
-    @enddoc */
-static int word_exec_stream_pos(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
-  if (argc >= 2) {
-    skode_stream_pos(ctx, (int)arg[0], (int)arg[1]);
-  }
-  return 0;
-}
-
-static int word_exec_v(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  int x;
-  if (argc && skode_double_to_int(arg[0], &x)) voice_set(x, &ctx->voice);
-  return 0;
-}
-static int word_exec_a(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  if (argc) amp_set(ctx->voice, arg[0]);
-  return 0;
-}
-static int word_exec_f(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  if (argc) freq_set(ctx->voice, arg[0]);
-  return 0;
-}
-static int word_exec_n(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  if (argc) {
-    float note = skode_double_to_float_note(arg[0]);
-    float cents = argc > 1 ? (float)arg[1] : 0.0f;
-    skode_midi_note(ctx->voice, note, cents);
-  }
-  return 0;
-}
-static int word_exec_i(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  if (argc) {
-    float note = skode_double_to_float_note(arg[0]);
-    float vel = argc > 1 ? (float)arg[1] : 1.0f;
-    float cents = argc > 2 ? (float)arg[2] : 0.0f;
-    skode_inst_note(ctx->voice, note, vel, cents);
-  }
-  return 0;
-}
-static int word_exec_p(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  if (argc) pan_set(ctx->voice, arg[0]);
-  return 0;
-}
-static int word_exec_m(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  int x;
-  if (argc && skode_double_to_int(arg[0], &x)) wave_mute(ctx->voice, x);
-  return 0;
-}
-static int word_exec_fb(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  if (argc) freq_bend_set(ctx->voice, (float)arg[0]);
-  return 0;
-}
-static int word_exec_fbp(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  if (argc) {
-    float range = (float)arg[0];
-    float offset = argc > 1 ? (float)arg[1] : 0.0f;
-    freq_bend_param_set(ctx->voice, range, offset);
-  }
-  return 0;
-}
-static int word_exec_ab(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  if (argc) amp_bend_set(ctx->voice, (float)arg[0]);
-  return 0;
-}
-static int word_exec_abp(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)s;
-  if (argc) {
-    float range = (float)arg[0];
-    float offset = argc > 1 ? (float)arg[1] : 0.0f;
-    amp_bend_param_set(ctx->voice, range, offset);
-  }
-  return 0;
-}
-
-/*
- * *R : push each argument into the return registers in order. Normal atom
- * dispatch clears the previous return set immediately before this function,
- * so one invocation defines the complete result: `*R .1 .2` produces
- * @0=.1 and @1=.2. This is intended primarily as the final command in a
- * macro body. It is deliberately IMMEDIATE_ONLY because return registers
- * are parser-local control-flow state with no scheduled-opcode equivalent.
- */
-static int word_exec_R_push(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)ctx;
-  for (int i = 0; i < argc; i++) ands_return_push(s, arg[i]);
-  return 0;
-}
-
-static int word_exec_R_show(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self; (void)arg; (void)argc;
-  int count = ands_return_saved_count(s);
-  int error = ands_return_saved_error(s);
-  if (count == 0 && error == 0) {
-    ctx->printf(ctx, "# returns empty\n");
-  } else {
-    ctx->printf(ctx, "# returns");
-    for (int i = 0; i < count; i++)
-      ctx->printf(ctx, " @%d=%g", i, ands_return_saved_get(s, i));
-    if (error != 0) ctx->printf(ctx, " error=%d", error);
-    ctx->puts(ctx, "");
-  }
-  ands_return_restore_saved(s);
-  return 0;
-}
-
-static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc);
-static int word_compile_x(const struct skode_word *self, ands_t *parser, double *arg, int argc, event_program_t *program);
-
-/* Auto-sized: no manually-maintained count to drift out of sync with the
-   actual entry count (see WORD_COUNT below, derived from this array's
-   real size rather than hand-tracked). Designated initializers throughout
-   -- every field is named, not positional, so adding/removing/reordering
-   a field in skode_word_t can't silently shift what a bare value in some
-   other entry means, and every field not mentioned here (.compile,
-   .default_mask, .next, .shadow, .data) zero-initializes automatically. */
-static skode_word_t word_table[] = {
-  { WID("*R"), .execute = word_exec_R_push,
-    .min_args = 0, .max_args = ANDS_RETURN_MAX,
-    .safety = WORD_IMMEDIATE_ONLY, .category = "parser",
-    .summary = "return arguments as @0 through @9" },
-  { WID("?R"), .execute = word_exec_R_show,
-    .safety = WORD_IMMEDIATE_ONLY, .category = "parser",
-    .summary = "show return registers without consuming them" },
-
-  { WID("EXEC"), .execute = word_exec_x, .compile = word_compile_x,
-    .min_args = 1, .max_args = 1 + SEQ_OPCODE_ARG_MAX,
-    .safety = WORD_REAL_TIME_SAFE, .category = "parser",
-    .summary = "numeric opcode escape",
-    .help_detail = "Usage: EXEC <opcode_id> [args...]\n"
-                   "Directly executes a numeric opcode.\n"
-                   "Useful for CLAP host automation bridging." },
-
-
-  { WID("?M"), .execute = word_exec_dict_show,
-    .min_args = 0, .max_args = 1,
-    .safety = WORD_IMMEDIATE_ONLY, .category = "dictionary",
-    .summary = "show all dictionary names" },
-  { WID("?S"), .execute = word_exec_stream_show,
-    .min_args = 0, .max_args = 1,
-    .safety = WORD_IMMEDIATE_ONLY, .category = "sequencer",
-    .summary = "show stream state and data" },
-  { WID("/SS"), .execute = word_exec_stream_set,
-    .min_args = 1, .max_args = 1,
-    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
-    .summary = "set stream array from stack data" },
-  { WID("/SC"), .execute = word_exec_stream_copy, .opcode_id = SKODE_OP_STREAM_COPY,
-    .min_args = 2, .max_args = 2,
-    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
-    .summary = "copy stream contents (dst, src)" },
-  { WID("/z"), .execute = word_exec_pattern_state, .opcode_id = SKODE_OP_PATTERN_STATE,
-    .min_args = 2, .max_args = 2,
-    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
-    .summary = "set pattern state (pattern, state)" },
-  { WID("/zl"), .execute = word_exec_pattern_loop, .opcode_id = SKODE_OP_PATTERN_LOOP,
-    .min_args = 3, .max_args = 3,
-    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
-    .summary = "pattern loop (var_id, limit, dest_step)" },
-  { WID("/SM"), .execute = word_exec_stream_mode, .opcode_id = SKODE_OP_STREAM_MODE,
-    .min_args = 2, .max_args = 2,
-    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
-    .summary = "set stream mode (0=wrap fwd, 1=wrap rev, 2=pingpong, 3=clamp)" },
-  { WID("/SP"), .execute = word_exec_stream_pos, .opcode_id = SKODE_OP_STREAM_POS,
-    .min_args = 2, .max_args = 2,
-    .safety = WORD_REAL_TIME_SAFE, .category = "sequencer",
-    .summary = "set stream position" },
-
-  { WID("v"), .execute = word_exec_v, .opcode_id = SKODE_OP_VOICE,
-    .min_args = 1, .max_args = 1,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "voice-select voice" },
-  { WID("a"), .execute = word_exec_a, .opcode_id = SKODE_OP_AMP,
-    .min_args = 1, .max_args = 1,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "amp loudness" },
-  { WID("f"), .execute = word_exec_f, .opcode_id = SKODE_OP_FREQ,
-    .min_args = 1, .max_args = 1,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "freq hz" },
-  { WID("n"), .execute = word_exec_n, .opcode_id = SKODE_OP_MIDI_NOTE,
-    .min_args = 1, .max_args = 2, .default_mask = 1,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "midi-freq note-number (cents)" },
-  { WID("i"), .execute = word_exec_i, .opcode_id = SKODE_OP_INST_NOTE,
-    .min_args = 1, .max_args = 3, .default_mask = 1,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "instrument note-number (velocity) (cents)" },
-  { WID("p"), .execute = word_exec_p, .opcode_id = SKODE_OP_PAN,
-    .min_args = 1, .max_args = 1,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "pan value" },
-  { WID("m"), .execute = word_exec_m, .opcode_id = SKODE_OP_MUTE,
-    .min_args = 1, .max_args = 1,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "mute-audio bool" },
-  { WID("fb"), .execute = word_exec_fb, .opcode_id = SKODE_OP_FREQ_BEND,
-    .min_args = 1, .max_args = 1,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "freq bend (-1..1)" },
-  { WID("fbp"), .execute = word_exec_fbp, .opcode_id = SKODE_OP_FREQ_BEND_PARAM,
-    .min_args = 1, .max_args = 2,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "freq bend range (semitones) [offset]" },
-  { WID("ab"), .execute = word_exec_ab, .opcode_id = SKODE_OP_AMP_BEND,
-    .min_args = 1, .max_args = 1,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "amp bend (-1..1)" },
-  { WID("abp"), .execute = word_exec_abp, .opcode_id = SKODE_OP_AMP_BEND_PARAM,
-    .min_args = 1, .max_args = 2,
-    .safety = WORD_REAL_TIME_SAFE, .category = "voice",
-    .summary = "amp bend range (dB) [offset]" },
-};
-#define WORD_COUNT ((int)(sizeof(word_table) / sizeof(word_table[0])))
-
-static int word_exec_x(const skode_word_t *self, skode_t *ctx, ands_t *s,
-    double *arg, int argc) {
-  (void)self;
-  if (argc == 0) return -1;
-  int opcode_num = (int)arg[0];
-  if (!skode_opcode_is_realtime((skode_opcode_t)opcode_num) ||
-      !skode_opcode_supported((skode_opcode_t)opcode_num)) {
-    return -1;
-  }
-  
-  const skode_word_t *target = NULL;
-  for (int i = 0; i < WORD_COUNT; i++) {
-    if (word_table[i].opcode_id == opcode_num) {
-      target = &word_table[i];
-      break;
-    }
-  }
-  if (!target || !target->execute) return -1;
-  
-  int inner_argc = argc - 1;
-  if (inner_argc < target->min_args || inner_argc > target->max_args) return -1;
-  
-  double inner_args[SEQ_OPCODE_ARG_MAX] = {0};
-  for (int i = 0; i < inner_argc; i++) inner_args[i] = arg[i+1];
-  
-  return target->execute(target, ctx, s, inner_args, inner_argc);
-}
-
-static int word_compile_x(const struct skode_word *self,
-    ands_t *parser, double *arg, int argc, event_program_t *program) {
-  (void)self;
-  if (argc == 0) return -1;
-  int opcode_num = (int)arg[0];
-  if (!skode_opcode_is_realtime((skode_opcode_t)opcode_num) ||
-      !skode_opcode_supported((skode_opcode_t)opcode_num)) {
-    return -1;
-  }
-  
-  const skode_word_t *target = NULL;
-  for (int i = 0; i < WORD_COUNT; i++) {
-    if (word_table[i].opcode_id == opcode_num) {
-      target = &word_table[i];
-      break;
-    }
-  }
-  if (!target) return -1;
-  
-  int inner_argc = argc - 1;
-  if (inner_argc < target->min_args || inner_argc > target->max_args) return -1;
-  
-  return skode_program_push_ex(program, (skode_opcode_t)opcode_num, parser,
-    arg + 1, inner_argc, 1, 0, target->default_mask);
 }
 
 /* Forward declaration -- defined in the macro-promotion section below;
@@ -896,39 +936,17 @@ void skode_dict_init(void) {
 
   /* pack_atom_runtime() (used by skode_dict_promote_macro() to turn a
      runtime macro-name string into the same 32-bit encoding ATOM4()
-     produces for compile-time literals) and SKODE_DICT_ATOM() (used by every
-     word_table[] entry via WID(), see skode-dict.h) both depend on
+     produces for compile-time literals) and SKODE_DICT_ATOM() both depend on
      multichar-literal byte order, which is implementation-defined.
      Verified empirically on the reference toolchain (MSB-first) rather
-     than assumed -- this three-way check catches a different compiler/
-     platform disagreeing, loudly, at startup, instead of silently
-     mis-packing every word_table[] entry AND every promoted macro's atom.
-     No compile-time equivalent is available: both SKODE_DICT_ATOM("wait") ==
-     ATOM4('wait') as a _Static_assert and as a case-label constant were
-     tried and both failed ("expression is not constant") -- string-
-     literal indexing constant-folds fine for ordinary expressions and
-     static initializers, but doesn't qualify as a genuine integer-
-     constant-expression the way a multichar literal does, so a runtime
-     check is the strongest verification available here. */
+     than assumed. */
   if (pack_atom_runtime("wait", 4) != UINT32_C(0x77616974) ||
       SKODE_DICT_ATOM("wait") != UINT32_C(0x77616974)) {
     fprintf(stderr, "skode-dict: atom-packing mismatch on this build -- "
       "pack_atom_runtime()=%08x SKODE_DICT_ATOM()=%08x ATOM4()=%08x (all three "
-      "should be equal). word_table[] entries and/or promoted macros "
-      "would silently register wrong atoms. Fix pack_atom_runtime()/"
-      "SKODE_DICT_ATOM() before relying on this build.\n",
+      "should be equal).\n",
       (unsigned)pack_atom_runtime("wait", 4), (unsigned)SKODE_DICT_ATOM("wait"),
       (unsigned)UINT32_C(0x77616974));
-  }
-
-  for (int i = 0; i < WORD_COUNT; i++) {
-    if (skode_dict_register(&global_vocab, &word_table[i]) != 0) {
-      /* Duplicate atom -- a programming error in word_table, not a runtime
-         condition. Fail loudly during development rather than silently
-         dropping a word. */
-      fprintf(stderr, "skode-dict: duplicate atom registering '%s'\n",
-        word_table[i].name);
-    }
   }
 }
 
@@ -957,7 +975,7 @@ static int word_exec_m_logging(const skode_word_t *self, skode_t *ctx,
 }
 
 static skode_word_t word_m_logging_override = {
-  WID("m"), .execute = word_exec_m_logging, .opcode_id = SKODE_OP_MUTE,
+  .atom = SKODE_DICT_ATOM("m"), .name = "m", .execute = word_exec_m_logging, .opcode_id = SKODE_OP_MUTE,
   .min_args = 1, .max_args = 1,
   .safety = WORD_REAL_TIME_SAFE, .category = "voice",
   .summary = "mute-audio bool (logging override example)"
@@ -1147,7 +1165,7 @@ const skode_word_t *skode_dict_find_by_name(skode_vocab_t *vocab, const char *na
 int skode_dict_unpromote_macro(skode_vocab_t *vocab, const char *name) {
   if (!vocab || !name || !name[0]) return 0;
   uint32_t atom = pack_atom_runtime(name, (int)strlen(name));
-  skode_word_t *current = (skode_word_t *)skode_dict_find(vocab, atom);
+  skode_word_t *current = (skode_word_t *)skode_vocab_find(vocab, atom);
   if (!skode_dict_word_is_promoted_macro(current)) return 0;
   skode_word_t *removed = current->shadow ?
     skode_dict_revert(vocab, atom) : skode_dict_remove(vocab, atom);

@@ -1,0 +1,26 @@
+@name     return_query
+@alias    ?R
+@group    sys
+@type     immediate
+@arity    0
+@match    ()
+@summary  show return registers without consuming them
+@doc
+Displays current saved return registers (@0 through @9).
+Usage: ?R
+@code
+    (void)args; (void)argc;
+    int count = ands_return_saved_count(s);
+    int error = ands_return_saved_error(s);
+    if (count == 0 && error == 0) {
+        ctx->printf(ctx, "# returns empty\n");
+    } else {
+        ctx->printf(ctx, "# returns");
+        for (int i = 0; i < count; i++)
+            ctx->printf(ctx, " @%d=%g", i, ands_return_saved_get(s, i));
+        if (error != 0) ctx->printf(ctx, " error=%d", error);
+        ctx->puts(ctx, "");
+    }
+    ands_return_restore_saved(s);
+    return 0;
+@end

@@ -1,0 +1,35 @@
+@name     midi_file_status
+@alias    /mf?
+@group    sys
+@c_name   skode_clause_midi_file_status_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query MIDI player slots status
+@doc
+Prints playback status of all MIDI player slots (0..3).
+Usage: /mf?
+@code
+    if (!ctx) return -1;
+    (void)s; (void)args; (void)argc;
+    for (int i = 0; i < 4; i++) midi_player_status(i, ctx);
+    return 0;
+@end
+
+@name     midi_file_status
+@alias    /mf?
+@group    sys
+@c_name   skode_clause_midi_file_status_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  query single MIDI player slot status
+@doc
+Prints playback status of specified MIDI player slot.
+Usage: /mf? slot
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    midi_player_status((int)args[0], ctx);
+    return 0;
+@end

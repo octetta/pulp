@@ -1,0 +1,28 @@
+@name     gate_on
+@alias    on
+@group    voice
+@c_name   skode_clause_gate_on_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  turn active voice gate on
+@doc
+Triggers voice gate on (velocity 1.0) with linked voices.
+Usage: on
+@code
+    return skode_exec_on(ctx, s, args, argc);
+@end
+
+@name     gate_on
+@alias    on
+@group    voice
+@c_name   skode_clause_gate_on_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  turn active voice gate on with argument
+@doc
+Triggers voice gate on.
+@code
+    return skode_exec_on(ctx, s, args, argc);
+@end

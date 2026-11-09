@@ -1,0 +1,28 @@
+@name     query_voice
+@alias    ?v
+@group    sys
+@c_name   skode_clause_query_voice_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  query active voice index
+@doc
+Pushes active voice index to return register.
+Usage: ?v
+@code
+    return skode_exec_qvoice(ctx, s, args, argc);
+@end
+
+@name     query_voice
+@alias    ?v
+@group    sys
+@c_name   skode_clause_query_voice_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  query active voice index with argument
+@doc
+Pushes active voice index to return register.
+@code
+    return skode_exec_qvoice(ctx, s, args, argc);
+@end

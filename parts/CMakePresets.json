@@ -48,7 +48,7 @@
     {
       "name": "cross-windows-zig-ninja",
       "displayName": "Cross Windows Zig Ninja",
-      "description": "Linux-hosted Windows cross-build using Ninja, Zig, and a native kit_tool from build_ninja.",
+      "description": "Linux-hosted Windows cross-build using Ninja and Zig.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build_cross_windows_zig",
       "toolchainFile": "${sourceDir}/cmake/zig-cc.cmake",

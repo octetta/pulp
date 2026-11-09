@@ -1,0 +1,28 @@
+@name     cz_env_multi
+@alias    cte
+@group    mod
+@c_name   skode_clause_cz_env_multi_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  configure multistage cz envelope from data buffer
+@doc
+Configures Casio CZ style envelope stages from data array.
+Usage: (0 0 100 1 50 .5) cte
+@code
+    return skode_exec_cte(ctx, s, args, argc);
+@end
+
+@name     cz_env_multi
+@alias    cte
+@group    mod
+@c_name   skode_clause_cz_env_multi_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  configure multistage cz envelope with argument
+@doc
+Configures CZ envelope with argument.
+@code
+    return skode_exec_cte(ctx, s, args, argc);
+@end

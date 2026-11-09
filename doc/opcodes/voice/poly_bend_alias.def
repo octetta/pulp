@@ -1,0 +1,33 @@
+@name     poly_bend_gb
+@alias    gb
+@group    voice
+@c_name   skode_clause_poly_bend_gb_3
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  apply polyphonic pitch bend (gb alias)
+@doc
+Bends pitch of active note in pool (gb alias).
+Usage: gb pool key semitones
+@code
+    (void)voice;
+    int pool = (int)args[0], key = (int)args[1];
+    return skred_poly_bend(pool, key, args[2], 0);
+@end
+
+@name     poly_bend_gb
+@alias    gb
+@group    voice
+@c_name   skode_clause_poly_bend_gb_4
+@type     realtime
+@arity    4
+@match    (finite, finite, finite, finite)
+@summary  apply polyphonic pitch bend with cents (gb alias)
+@doc
+Bends pitch of active note in pool with cents (gb alias).
+Usage: gb pool key semitones cents
+@code
+    (void)voice;
+    int pool = (int)args[0], key = (int)args[1];
+    return skred_poly_bend(pool, key, args[2], args[3]);
+@end

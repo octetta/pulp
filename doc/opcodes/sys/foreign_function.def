@@ -1,0 +1,59 @@
+@name     foreign_function
+@alias    /ff
+@group    sys
+@c_name   skode_clause_foreign_function_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  invoke foreign function
+@doc
+Calls registered foreign function by index.
+Usage: /ff index
+@code
+    return skode_exec_slashff(ctx, s, args, argc);
+@end
+
+@name     foreign_function
+@alias    /ff
+@group    sys
+@c_name   skode_clause_foreign_function_2
+@type     immediate
+@arity    2
+@match    (finite, any)
+@summary  invoke foreign function with 1 arg
+@doc
+Calls registered foreign function with argument.
+Usage: /ff index arg1
+@code
+    return skode_exec_slashff(ctx, s, args, argc);
+@end
+
+@name     foreign_function
+@alias    /ff
+@group    sys
+@c_name   skode_clause_foreign_function_3
+@type     immediate
+@arity    3
+@match    (finite, any, any)
+@summary  invoke foreign function with 2 args
+@doc
+Calls registered foreign function with arguments.
+Usage: /ff index arg1 arg2
+@code
+    return skode_exec_slashff(ctx, s, args, argc);
+@end
+
+@name     foreign_function
+@alias    /ff
+@group    sys
+@c_name   skode_clause_foreign_function_4
+@type     immediate
+@arity    4
+@match    (finite, any, any, any)
+@summary  invoke foreign function with 3 args
+@doc
+Calls registered foreign function with arguments.
+Usage: /ff index arg1 arg2 arg3
+@code
+    return skode_exec_slashff(ctx, s, args, argc);
+@end

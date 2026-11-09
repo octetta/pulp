@@ -1,0 +1,31 @@
+@name     amp_bend_param
+@alias    abp
+@group    voice
+@c_name   skode_clause_amp_bend_param_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  amplitude bend range in dB
+@doc
+Sets amplitude bend range in dB with default offset 0.
+Usage: abp range (or amp_bend_param range)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return amp_bend_param_set(voice, args[0], 0.0f);
+@end
+
+@name     amp_bend_param
+@alias    abp
+@group    voice
+@c_name   skode_clause_amp_bend_param_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  amplitude bend range and offset
+@doc
+Sets amplitude bend range in dB and fine offset.
+Usage: abp range offset (or amp_bend_param range offset)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return amp_bend_param_set(voice, args[0], args[1]);
+@end

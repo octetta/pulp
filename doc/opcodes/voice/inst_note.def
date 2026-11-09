@@ -1,0 +1,41 @@
+@name     inst_note
+@alias    i
+@group    voice
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  trigger instrument note
+@doc
+Triggers instrument note with default velocity 1.0.
+Usage: i note
+@code
+    return skode_inst_note(voice, args[0], 1.0f, 0.0f);
+@end
+
+@name     inst_note
+@alias    i
+@group    voice
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  trigger instrument note with velocity
+@doc
+Triggers instrument note with velocity.
+Usage: i note velocity
+@code
+    return skode_inst_note(voice, args[0], args[1], 0.0f);
+@end
+
+@name     inst_note
+@alias    i
+@group    voice
+@type     realtime
+@arity    3
+@match    (finite, finite, finite)
+@summary  trigger instrument note with velocity and cents
+@doc
+Triggers instrument note with velocity and fine cents offset.
+Usage: i note velocity cents
+@code
+    return skode_inst_note(voice, args[0], args[1], args[2]);
+@end

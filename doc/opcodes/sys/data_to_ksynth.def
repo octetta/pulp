@@ -1,0 +1,14 @@
+@name     data_to_ksynth
+@alias    d>k
+@group    sys
+@c_name   skode_clause_data_to_ksynth
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  bind data array to KSynth variable
+@doc
+Binds active data buffer array to KSynth global variable index.
+Usage: d>k var
+@code
+    return skode_exec_d_gtk(ctx, s, args, argc);
+@end

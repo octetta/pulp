@@ -1,0 +1,14 @@
+@name     pattern_mute
+@alias    ym
+@group    seq
+@c_name   skode_clause_pattern_mute
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  mute or unmute pattern
+@doc
+Sets pattern mute state (0:unmute, 1:mute).
+Usage: ym state (or pattern_mute state)
+@code
+    return skode_exec_ym(ctx, s, args, argc);
+@end

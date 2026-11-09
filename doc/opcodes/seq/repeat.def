@@ -1,0 +1,45 @@
+@name     repeat
+@alias    R
+@group    seq
+@c_name   skode_clause_repeat_2
+@type     immediate
+@arity    2
+@match    (finite, finite)
+@summary  repeat scheduled program at seconds interval
+@doc
+Repeats currently bracketed program N times at seconds interval.
+Usage: [program] count interval R
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int count = (int)args[0];
+    if (count > 0 && count <= QUEUE_SIZE && isfinite(args[1]) && args[1] >= 0.0) {
+        event_program_t program;
+        if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program)) return 0;
+        skode_queue_repeated(&program, ctx->voice, count, args[1], 0);
+    }
+    return 0;
+@end
+
+@name     repeat
+@alias    R
+@group    seq
+@c_name   skode_clause_repeat_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  repeat scheduled program at seconds interval with tag
+@doc
+Repeats currently bracketed program N times at seconds interval with event tag.
+Usage: [program] count interval tag R
+@code
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int count = (int)args[0];
+    if (count > 0 && count <= QUEUE_SIZE && isfinite(args[1]) && args[1] >= 0.0) {
+        event_program_t program;
+        if (!skode_compile_scheduled(ctx, ands_string(ctx->parse), &program)) return 0;
+        skode_queue_repeated(&program, ctx->voice, count, args[1], (int)args[2]);
+    }
+    return 0;
+@end

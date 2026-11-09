@@ -1,0 +1,28 @@
+@name     filter_env_multi
+@alias    fte
+@group    env
+@c_name   skode_clause_filter_env_multi_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  configure multistage filter envelope from data
+@doc
+Configures multistage filter envelope from data buffer.
+Usage: (0 0 100 1 50 .5) fte
+@code
+    return skode_exec_fte(ctx, s, args, argc);
+@end
+
+@name     filter_env_multi
+@alias    fte
+@group    env
+@c_name   skode_clause_filter_env_multi_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  configure multistage filter envelope with argument
+@doc
+Configures multistage filter envelope with argument.
+@code
+    return skode_exec_fte(ctx, s, args, argc);
+@end

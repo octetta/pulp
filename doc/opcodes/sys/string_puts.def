@@ -1,0 +1,28 @@
+@name     string_puts
+@alias    puts
+@group    sys
+@c_name   skode_clause_string_puts_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  print parser string buffer
+@doc
+Prints the current string buffer to log/stdout.
+Usage: [hello] puts
+@code
+    return skode_exec_puts(ctx, s, args, argc);
+@end
+
+@name     string_puts
+@alias    puts
+@group    sys
+@c_name   skode_clause_string_puts_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  print parser string buffer with argument
+@doc
+Prints the current string buffer to log/stdout.
+@code
+    return skode_exec_puts(ctx, s, args, argc);
+@end

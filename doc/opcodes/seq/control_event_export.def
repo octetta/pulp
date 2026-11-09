@@ -1,0 +1,29 @@
+@name     control_event_bind_external
+@alias    /cex
+@group    seq
+@c_name   skode_clause_control_event_bind_external_3
+@type     immediate
+@arity    3
+@match    (finite, finite, finite)
+@summary  bind external string slot to control event responder
+@doc
+Binds external string buffer slot to control event type and key.
+Usage: /cex slot,type,key
+@code
+    return skode_exec_slashcex(ctx, s, args, argc);
+@end
+
+@name     control_event_bind_external
+@alias    /cex
+@group    seq
+@c_name   skode_clause_control_event_bind_external_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  control event bind external usage
+@doc
+Prints usage for /cex.
+Usage: /cex
+@code
+    return skode_exec_slashcex(ctx, s, args, argc);
+@end

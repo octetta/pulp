@@ -1,0 +1,29 @@
+@name     ksynth_load_file
+@alias    /ks
+@group    sys
+@c_name   skode_clause_ksynth_load_file_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  load KSynth script from file
+@doc
+Loads and evaluates a KSynth script from file path in bracket string.
+Usage: [file.k] /ks
+@code
+    return skode_exec_ksynth_load_name(ctx, s, args, argc);
+@end
+
+@name     ksynth_load_file
+@alias    /ks
+@group    sys
+@c_name   skode_clause_ksynth_load_file_1
+@type     immediate
+@arity    1
+@match    (finite)
+@summary  load KSynth script with verbosity
+@doc
+Loads KSynth script from file with verbosity level (0 or 1).
+Usage: [file.k] /ks verbose
+@code
+    return skode_exec_ksynth_load_name(ctx, s, args, argc);
+@end

@@ -1,0 +1,14 @@
+@name     pattern_state_query_all
+@alias    z??
+@group    seq
+@c_name   skode_clause_pattern_state_query_all
+@type     immediate
+@arity    0
+@match    ()
+@summary  query play state of all patterns
+@doc
+Prints play state of all pattern slots.
+Usage: z??
+@code
+    return skode_exec_z_q_bs_q(ctx, s, args, argc);
+@end

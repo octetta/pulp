@@ -1,0 +1,28 @@
+@name     voice_show
+@alias    ?
+@group    voice
+@c_name   skode_clause_voice_show_0
+@type     immediate
+@arity    0
+@match    ()
+@summary  display active voice summary
+@doc
+Displays active voice parameters and settings.
+Usage: ?
+@code
+    return skode_exec__q(ctx, s, args, argc);
+@end
+
+@name     voice_show
+@alias    ?
+@group    voice
+@c_name   skode_clause_voice_show_1
+@type     immediate
+@arity    1
+@match    (any)
+@summary  display active voice summary with argument
+@doc
+Displays active voice summary with argument.
+@code
+    return skode_exec__q(ctx, s, args, argc);
+@end

@@ -631,8 +631,7 @@ MIDI management, route, binding, and output atoms are present even without
 `MIDI=1` so scripts receive a stable unavailable-backend result. The actual
 backend, device access, and `MIDI` feature report require `MIDI=1`.
 
-The normal WASM build enables the voice and sequence features listed in
-`WASM_KIT_OPTS` in `Makefile`, but does not enable every optional command.
+The normal WASM build enables the core voice and sequence features, but does not enable every optional command.
 
 ## Source Map
 

@@ -1,0 +1,14 @@
+@name     macro_delete
+@alias    /m
+@group    sys
+@c_name   skode_clause_macro_delete
+@type     immediate
+@arity    0
+@match    ()
+@summary  delete defined user macro
+@doc
+Removes user macro definition specified by string bracket.
+Usage: [name] /m
+@code
+    return skode_exec_slashm(ctx, s, args, argc);
+@end

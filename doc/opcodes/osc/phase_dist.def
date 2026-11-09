@@ -1,0 +1,47 @@
+@name     phase_dist
+@alias    c
+@group    osc
+@c_name   skode_clause_phase_dist_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  reset phase distortion
+@doc
+Resets Casio CZ-style phase distortion on active voice.
+Usage: c (or phase_dist)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return cz_set(voice, 0, 0.0f);
+@end
+
+@name     phase_dist
+@alias    c
+@group    osc
+@c_name   skode_clause_phase_dist_1
+@type     realtime
+@arity    1
+@match    (finite)
+@summary  phase distortion waveform
+@doc
+Sets phase distortion waveform line (1..8) with 0 depth.
+Usage: c line
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return cz_set(voice, (int)args[0], 0.0f);
+@end
+
+@name     phase_dist
+@alias    c
+@group    osc
+@c_name   skode_clause_phase_dist_2
+@type     realtime
+@arity    2
+@match    (finite, finite)
+@summary  phase distortion waveform and depth
+@doc
+Sets phase distortion waveform line and modulation depth.
+Usage: c line depth
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return cz_set(voice, (int)args[0], args[1]);
+@end

@@ -1,0 +1,14 @@
+@name     macro_clear_all
+@alias    /m!
+@group    sys
+@c_name   skode_clause_macro_clear_all
+@type     immediate
+@arity    0
+@match    ()
+@summary  clear all defined user macros
+@doc
+Deletes all registered user macros from memory.
+Usage: /m!
+@code
+    return skode_exec_slashm_bang(ctx, s, args, argc);
+@end

@@ -33,9 +33,10 @@ jobs:
       - name: Install build and benchmark dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libasound2-dev alsa-utils ninja-build cmake time python3
-          # Load ALSA dummy soundcard so miniaudio has an audio output device in headless CI
-          sudo modprobe snd-dummy || (sudo apt-get install -y linux-modules-extra-$(uname -r) && sudo modprobe snd-dummy) || true
+          sudo apt-get install -y libasound2-dev libpulse-dev pulseaudio alsa-utils ninja-build cmake time python3
+          # Enable PulseAudio daemon and/or ALSA dummy module so miniaudio has an active audio clock in headless CI
+          pulseaudio -D --exit-idle-time=-1 || true
+          (sudo apt-get install -y linux-modules-extra-azure linux-modules-extra-$(uname -r) && sudo modprobe snd-dummy) || true
           aplay -l || true
 
       - name: Build native mini-skred

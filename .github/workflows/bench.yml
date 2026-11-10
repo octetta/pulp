@@ -1,0 +1,60 @@
+name: Performance Benchmark
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'parts/**'
+      - 'src/**'
+      - 'doc/opcodes/**'
+      - '.github/workflows/bench.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'parts/**'
+      - 'src/**'
+      - 'doc/opcodes/**'
+      - '.github/workflows/bench.yml'
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    name: CPU & Memory Benchmark
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install build and benchmark dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev ninja-build cmake time python3
+
+      - name: Build native mini-skred
+        run: make -C parts native
+
+      - name: Run benchmark (Pull Request comparison)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "## 📊 Pull Request Performance Benchmark" >> $GITHUB_STEP_SUMMARY
+          echo "Comparing PR against \`origin/${{ github.base_ref }}\` using \`hammer_the_signal.sk\`..." >> $GITHUB_STEP_SUMMARY
+          python3 parts/tools/benchmark.py \
+            --compare-git "origin/${{ github.base_ref }}" \
+            --duration 5000 \
+            --runs 2 \
+            --markdown \
+            --fail-on-regression 10.0 | tee -a $GITHUB_STEP_SUMMARY
+
+      - name: Run benchmark (Main branch baseline)
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "## 📊 Main Branch Performance Benchmark" >> $GITHUB_STEP_SUMMARY
+          python3 parts/tools/benchmark.py \
+            --duration 5000 \
+            --runs 2 \
+            --markdown | tee -a $GITHUB_STEP_SUMMARY

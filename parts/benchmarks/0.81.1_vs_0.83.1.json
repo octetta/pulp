@@ -1,0 +1,387 @@
+{
+  "timestamp": "2026-11-10T07:05:05Z",
+  "reference_file": "/tmp/pulp-0.81.1/parts/skred-music-guide/hammer_the_signal.sk",
+  "duration_ms": 5000,
+  "warmup_ms": 500,
+  "runs": 2,
+  "aggregated": {
+    "0.81.1": {
+      "user_sec": {
+        "mean": 0.605,
+        "stdev": 0.021213203435596444,
+        "min": 0.59,
+        "max": 0.62,
+        "raw": [
+          0.59,
+          0.62
+        ]
+      },
+      "sys_sec": {
+        "mean": 0.11499999999999999,
+        "stdev": 0.007071067811865472,
+        "min": 0.11,
+        "max": 0.12,
+        "raw": [
+          0.12,
+          0.11
+        ]
+      },
+      "total_cpu_sec": {
+        "mean": 0.72,
+        "stdev": 0.014142135623730963,
+        "min": 0.71,
+        "max": 0.73,
+        "raw": [
+          0.71,
+          0.73
+        ]
+      },
+      "cpu_pct": {
+        "mean": 12.5,
+        "stdev": 0.7071067811865476,
+        "min": 12.0,
+        "max": 13.0,
+        "raw": [
+          12.0,
+          13.0
+        ]
+      },
+      "max_rss_kb": {
+        "mean": 94200,
+        "stdev": 503.4600282048218,
+        "min": 93844,
+        "max": 94556,
+        "raw": [
+          93844,
+          94556
+        ]
+      },
+      "wall_sec": {
+        "mean": 5.642463500029407,
+        "stdev": 0.0006730920854363115,
+        "min": 5.641987552051432,
+        "max": 5.6429394480073825,
+        "raw": [
+          5.641987552051432,
+          5.6429394480073825
+        ]
+      },
+      "cb_avg_ms": {
+        "mean": 0.2355,
+        "stdev": 0.004949747468305818,
+        "min": 0.232,
+        "max": 0.239,
+        "raw": [
+          0.232,
+          0.239
+        ]
+      },
+      "cb_worst_ms": {
+        "mean": 0.681,
+        "stdev": 0.03111269837220804,
+        "min": 0.659,
+        "max": 0.703,
+        "raw": [
+          0.659,
+          0.703
+        ]
+      },
+      "cb_budget_ms": {
+        "mean": 2.667,
+        "stdev": 0.0,
+        "min": 2.667,
+        "max": 2.667,
+        "raw": [
+          2.667,
+          2.667
+        ]
+      },
+      "load_avg_pct": {
+        "mean": 8.85,
+        "stdev": 0.21213203435596475,
+        "min": 8.7,
+        "max": 9.0,
+        "raw": [
+          8.7,
+          9.0
+        ]
+      },
+      "load_worst_pct": {
+        "mean": 25.5,
+        "stdev": 1.1313708498984771,
+        "min": 24.7,
+        "max": 26.3,
+        "raw": [
+          24.7,
+          26.3
+        ]
+      },
+      "callbacks": {
+        "mean": 1875,
+        "stdev": 0.0,
+        "min": 1875,
+        "max": 1875,
+        "raw": [
+          1875,
+          1875
+        ]
+      },
+      "frames": {
+        "mean": 240000,
+        "stdev": 0.0,
+        "min": 240000,
+        "max": 240000,
+        "raw": [
+          240000,
+          240000
+        ]
+      },
+      "overruns": {
+        "mean": 0,
+        "stdev": 0.0,
+        "min": 0,
+        "max": 0,
+        "raw": [
+          0,
+          0
+        ]
+      },
+      "late_starts": {
+        "mean": 1,
+        "stdev": 1.4142135623730951,
+        "min": 0,
+        "max": 2,
+        "raw": [
+          0,
+          2
+        ]
+      }
+    },
+    "0.83.1": {
+      "user_sec": {
+        "mean": 0.45,
+        "stdev": 0.0,
+        "min": 0.45,
+        "max": 0.45,
+        "raw": [
+          0.45,
+          0.45
+        ]
+      },
+      "sys_sec": {
+        "mean": 0.10500000000000001,
+        "stdev": 0.007071067811865472,
+        "min": 0.1,
+        "max": 0.11,
+        "raw": [
+          0.1,
+          0.11
+        ]
+      },
+      "total_cpu_sec": {
+        "mean": 0.555,
+        "stdev": 0.007071067811865481,
+        "min": 0.55,
+        "max": 0.56,
+        "raw": [
+          0.55,
+          0.56
+        ]
+      },
+      "cpu_pct": {
+        "mean": 9.5,
+        "stdev": 0.7071067811865476,
+        "min": 9.0,
+        "max": 10.0,
+        "raw": [
+          9.0,
+          10.0
+        ]
+      },
+      "max_rss_kb": {
+        "mean": 94760,
+        "stdev": 197.9898987322333,
+        "min": 94620,
+        "max": 94900,
+        "raw": [
+          94620,
+          94900
+        ]
+      },
+      "wall_sec": {
+        "mean": 5.649675111984834,
+        "stdev": 0.00050505243578725,
+        "min": 5.649317985982634,
+        "max": 5.650032237987034,
+        "raw": [
+          5.650032237987034,
+          5.649317985982634
+        ]
+      },
+      "cb_avg_ms": {
+        "mean": 0.14,
+        "stdev": 0.0014142135623730766,
+        "min": 0.139,
+        "max": 0.141,
+        "raw": [
+          0.139,
+          0.141
+        ]
+      },
+      "cb_worst_ms": {
+        "mean": 0.38649999999999995,
+        "stdev": 0.044547727214752496,
+        "min": 0.355,
+        "max": 0.418,
+        "raw": [
+          0.355,
+          0.418
+        ]
+      },
+      "cb_budget_ms": {
+        "mean": 2.667,
+        "stdev": 0.0,
+        "min": 2.667,
+        "max": 2.667,
+        "raw": [
+          2.667,
+          2.667
+        ]
+      },
+      "load_avg_pct": {
+        "mean": 5.25,
+        "stdev": 0.0707106781186545,
+        "min": 5.2,
+        "max": 5.3,
+        "raw": [
+          5.2,
+          5.3
+        ]
+      },
+      "load_worst_pct": {
+        "mean": 14.5,
+        "stdev": 1.6970562748477132,
+        "min": 13.3,
+        "max": 15.7,
+        "raw": [
+          13.3,
+          15.7
+        ]
+      },
+      "callbacks": {
+        "mean": 1875,
+        "stdev": 0.0,
+        "min": 1875,
+        "max": 1875,
+        "raw": [
+          1875,
+          1875
+        ]
+      },
+      "frames": {
+        "mean": 240000,
+        "stdev": 0.0,
+        "min": 240000,
+        "max": 240000,
+        "raw": [
+          240000,
+          240000
+        ]
+      },
+      "overruns": {
+        "mean": 0,
+        "stdev": 0.0,
+        "min": 0,
+        "max": 0,
+        "raw": [
+          0,
+          0
+        ]
+      },
+      "late_starts": {
+        "mean": 0,
+        "stdev": 0.0,
+        "min": 0,
+        "max": 0,
+        "raw": [
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "raw_trials": {
+    "0.81.1": [
+      {
+        "user_sec": 0.59,
+        "sys_sec": 0.12,
+        "total_cpu_sec": 0.71,
+        "cpu_pct": 12.0,
+        "max_rss_kb": 93844,
+        "wall_sec": 5.641987552051432,
+        "cb_avg_ms": 0.232,
+        "cb_worst_ms": 0.659,
+        "cb_budget_ms": 2.667,
+        "load_avg_pct": 8.7,
+        "load_worst_pct": 24.7,
+        "callbacks": 1875,
+        "frames": 240000,
+        "overruns": 0,
+        "late_starts": 0
+      },
+      {
+        "user_sec": 0.62,
+        "sys_sec": 0.11,
+        "total_cpu_sec": 0.73,
+        "cpu_pct": 13.0,
+        "max_rss_kb": 94556,
+        "wall_sec": 5.6429394480073825,
+        "cb_avg_ms": 0.239,
+        "cb_worst_ms": 0.703,
+        "cb_budget_ms": 2.667,
+        "load_avg_pct": 9.0,
+        "load_worst_pct": 26.3,
+        "callbacks": 1875,
+        "frames": 240000,
+        "overruns": 0,
+        "late_starts": 2
+      }
+    ],
+    "0.83.1": [
+      {
+        "user_sec": 0.45,
+        "sys_sec": 0.1,
+        "total_cpu_sec": 0.55,
+        "cpu_pct": 9.0,
+        "max_rss_kb": 94620,
+        "wall_sec": 5.650032237987034,
+        "cb_avg_ms": 0.139,
+        "cb_worst_ms": 0.355,
+        "cb_budget_ms": 2.667,
+        "load_avg_pct": 5.2,
+        "load_worst_pct": 13.3,
+        "callbacks": 1875,
+        "frames": 240000,
+        "overruns": 0,
+        "late_starts": 0
+      },
+      {
+        "user_sec": 0.45,
+        "sys_sec": 0.11,
+        "total_cpu_sec": 0.56,
+        "cpu_pct": 10.0,
+        "max_rss_kb": 94900,
+        "wall_sec": 5.649317985982634,
+        "cb_avg_ms": 0.141,
+        "cb_worst_ms": 0.418,
+        "cb_budget_ms": 2.667,
+        "load_avg_pct": 5.3,
+        "load_worst_pct": 15.7,
+        "callbacks": 1875,
+        "frames": 240000,
+        "overruns": 0,
+        "late_starts": 0
+      }
+    ]
+  }
+}

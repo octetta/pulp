@@ -1,6 +1,6 @@
 CMAKE ?= cmake
 # A simple "Top-Level" Makefile to manage the CMake complexity
-.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows dist-api-wasm gen
+.PHONY: all clean native pi test warn warn-maxed maxed wasm wasm-test libs native-libs maxed-libs dist-api generated-sources clean-generated cross-windows-zig-maxed cross-windows-zig-maxed-refresh mini-skred-windows windows-cross-libs dist-api-windows dist-api-wasm gen bench bench-compare
 
 gen:
 	$(MAKE) -C .. gen
@@ -109,6 +109,12 @@ native: gen
 
 test: native
 	ctest --test-dir build_native --output-on-failure
+
+bench: native
+	python3 tools/benchmark.py $(ARGS)
+
+bench-compare: native
+	python3 tools/benchmark.py --compare-git $(if $(REF),$(REF),v0.81.1) $(ARGS)
 
 warn:
 	$(CMAKE) -B build_warn -S . -DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter'

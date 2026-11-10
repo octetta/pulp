@@ -33,7 +33,10 @@ jobs:
       - name: Install build and benchmark dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libasound2-dev ninja-build cmake time python3
+          sudo apt-get install -y libasound2-dev alsa-utils ninja-build cmake time python3
+          # Load ALSA dummy soundcard so miniaudio has an audio output device in headless CI
+          sudo modprobe snd-dummy || (sudo apt-get install -y linux-modules-extra-$(uname -r) && sudo modprobe snd-dummy) || true
+          aplay -l || true
 
       - name: Build native mini-skred
         run: make -C parts native

@@ -490,6 +490,96 @@ static void test_tie_and_rest_sentinels(void) {
   expect_event(test, &r, 2, CHUNK_END, "----");
 }
 
+static void test_defer_space(void) {
+  const char *test = "defer space";
+  recorder_t r;
+
+  char a[] = "+ 4 v0;";                      /* guide: "+ 4 /SS ..." */
+  run_parse(test, a, &r);
+  expect_event(test, &r, 1, DEFER, "----");
+  if (r.len > 1 && !(r.events[1].defer_mode == '+' && near_double(r.events[1].defer_num, 4)))
+    fail(test, "\"+ 4 v0\" should defer 4 beats");
+
+  char b[] = "~ 1.5 f 440;";                 /* guide: "~ 1.5 f 440" */
+  run_parse(test, b, &r);
+  expect_event(test, &r, 1, DEFER, "----");
+  if (r.len > 1 && !(r.events[1].defer_mode == '~' && near_double(r.events[1].defer_num, 1.5)))
+    fail(test, "\"~ 1.5 f 440\" should defer 1.5 seconds");
+  if (r.len > 1 && strcmp(r.events[1].text, " f 440") != 0)
+    fail(test, "\"~ 1.5 f 440\" body should be \" f 440\"");
+
+  char c[] = "+ -3 n57;";                    /* negative = ticks */
+  run_parse(test, c, &r);
+  if (r.len > 1 && !near_double(r.events[1].defer_num, -3)) fail(test, "\"+ -3\" should be -3");
+
+  char d[] = "+   $1 v0;";                   /* several blanks, then a variable */
+  run_parse(test, d, &r);
+  if (r.len > 1 && r.events[1].defer_var != 1) fail(test, "\"+ $1\" lost its variable");
+
+  char e[] = "+ v0 a10;";                     /* unchanged: zero delay, body kept as-is */
+  run_parse(test, e, &r);
+  if (r.len > 1 && !(near_double(r.events[1].defer_num, 0) && strcmp(r.events[1].text, " v0 a10") == 0))
+    fail(test, "\"+ v0 a10\" must stay a zero delay with body \" v0 a10\"");
+
+  char f[] = "+;";                            /* sigil then chunk end: unchanged */
+  run_parse(test, f, &r);
+  if (r.len > 1 && !near_double(r.events[1].defer_num, 0)) fail(test, "\"+;\" should be a zero delay");
+
+  char g[] = "+4 v0;";                        /* attached form still works */
+  run_parse(test, g, &r);
+  if (r.len > 1 && !near_double(r.events[1].defer_num, 4)) fail(test, "attached form broke");
+}
+
+static void test_defer_space_streams(void) {
+  const char *test = "defer space streams";
+  recorder_t r;
+  char a[] = "+ &3 v0; ~   &5 v1;";
+  run_parse(test, a, &r);
+  expect_len(test, &r, 5);
+  if (r.len > 1 && r.events[1].defer_var != (3 | ANDS_STREAM_FLAG)) fail(test, "+ &3 lost stream provenance");
+  if (r.len > 3 && r.events[3].defer_var != (5 | ANDS_STREAM_FLAG)) fail(test, "~   &5 lost stream provenance");
+  if (r.len > 1 && r.events[1].defer_mode != '+') fail(test, "mode lost");
+  char b[] = "+ $2 v0; ~ $4 v1;";
+  run_parse(test, b, &r);
+  expect_len(test, &r, 5);
+  if (r.len > 1 && r.events[1].defer_var != 2) fail(test, "+ $2 lost variable provenance");
+  if (r.len > 3 && r.events[3].defer_var != 4) fail(test, "~ $4 lost variable provenance");
+}
+
+static void test_stream_variable_sigil_edges(void) {
+  const char *test = "bare $ / & sigils";
+  recorder_t r;
+
+  /* '&' needs digits (ands_var_parse only reads digits); a letter is not a stream */
+  char a[] = "f &x;";
+  run_parse(test, a, &r);
+  expect_event(test, &r, 0, FUNCTION, "f---");
+  if (r.len > 0 && r.events[0].argc != 0) fail(test, "\"f &x\" must not gain a phantom argument");
+  expect_event(test, &r, 1, FUNCTION, "x---");
+
+  /* a bare sigil in an array must not swallow the next character */
+  char b[] = "( 1 &a 3 ) vt;";
+  run_parse(test, b, &r);
+  expect_event(test, &r, 0, GOT_ARRAY, "----");
+  if (r.len > 0 && r.events[0].argc != 3) fail(test, "\"( 1 &a 3 )\" should hold 3 values");
+
+  char c[] = "( 1 $xy 3 ) vt;";
+  run_parse(test, c, &r);
+  expect_event(test, &r, 0, GOT_ARRAY, "----");
+  if (r.len > 0 && r.events[0].argc != 3) fail(test, "\"( 1 $xy 3 )\" should hold 3 values");
+
+  /* a bare sigil in a defer must not swallow the first body character */
+  char d[] = "+&x v0;";
+  run_parse(test, d, &r);
+  expect_event(test, &r, 1, DEFER, "----");
+  if (r.len > 1 && strcmp(r.events[1].text, "x v0") != 0) fail(test, "\"+&x v0\" body should be \"x v0\"");
+
+  char e[] = "+$v0 a10;";
+  run_parse(test, e, &r);
+  expect_event(test, &r, 1, DEFER, "----");
+  if (r.len > 1 && strcmp(r.events[1].text, "v0 a10") != 0) fail(test, "\"+$v0 a10\" body should be \"v0 a10\"");
+}
+
 int main(void) {
   test_compact_commands();
   test_strings_and_arrays();
@@ -497,6 +587,9 @@ int main(void) {
   test_tie_and_rest_sentinels();
   test_comments_and_chunks();
   test_defer();
+  test_defer_space();
+  test_defer_space_streams();
+  test_stream_variable_sigil_edges();
   test_variable_provenance();
   test_stream_defer();
   test_arrays_with_variables_and_streams();

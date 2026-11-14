@@ -33,7 +33,7 @@ Macros are purely text-substitution replacements handled by the preprocessor bef
 [mac] : [Hello world] ( 10 20 30 ) ;
 ```
 - **Syntax**: `[name] : body ;`
-- **Naming Rule**: Macro names are **strictly limited to 4 characters**. They can only consist of valid "atom" characters. See the ASCII Symbol Reference section below for exactly which characters are allowed. Numbers are forbidden.
+- **Naming Rule**: Macro names are limited to **31 characters** (`ANDS_MACRO_NAME_LEN - 1`). They can only consist of valid "atom" characters. See the ASCII Symbol Reference section below for exactly which characters are allowed. Numbers are forbidden.
 
 ### Macro Arguments (`$$N`)
 Macros can accept arguments by placing `$$0`, `$$1`, etc., in the body. The preprocessor will look at the highest number to determine how many arguments the macro requires.
@@ -113,6 +113,8 @@ Skode provides two special sigils that let you defer the execution of a line of 
 ~ 1.5 f 440         # Executes "f 440" exactly 1.5 seconds from now
 ```
 
+Blanks (spaces, tabs, commas) are allowed between `+` or `~` and the amount when a number, variable (`$N`), or stream (`&N`) follows (e.g., `+ 4 v0`, `~ 1.5 f 440`, `+ $1 v0`, `~ &3 v0`). If a defer sigil is followed by blanks and anything else (e.g., `+ v0 a10`), it is treated as a zero-delay defer with the body beginning after the sigil. Attached forms (`+4 v0`, `~1.5`) remain supported.
+
 > [!WARNING]
 > You **cannot** defer just anything! Because deferred code is sent to the background audio compiler, it can **only contain Real-Time Safe commands**. If you try to defer an Immediate-Only command (like `?S`, `d!`, or `s%`), it will be rejected. See **Section 9** for more details.
 
@@ -127,7 +129,7 @@ When the parser sees a defer sigil, it immediately forces any pending atom to ex
 
 ## 8. State Sigils: Variables (`$`) and Streams (`&`)
 
-There are two other major sigils integrated directly into the `ands` token loop: variables (`$1`, `$2`) and streams (`&1`, `&2`). 
+There are two other major sigils integrated directly into the `ands` token loop: variables (`$1`, `$2`) and streams (`&1`, `&2`). Both take digits only (e.g., `$1`, `&2`; a letter following `&` is not parsed as a stream).
 
 When the parser sees one of these, it doesn't treat it as a standalone command (atom). Instead, it attaches metadata to the numeric argument stack.
 - `$N` reads the value of variable N and pushes it to the stack, but also records the variable ID in `arg_var`. This allows commands like `=` (assignment) to know *which* variable you meant to overwrite.
@@ -199,8 +201,8 @@ The following symbols are structurally reserved by the parser. **They cannot be 
 | `;` | Chunk Terminator (forces execution, ends macro definitions, ends defer blocks). |
 | `[ ]` | String buffer / Macro definition block. |
 | `( )` | Array buffer. |
-| `$` | Variable read sigil (e.g., `$1`). |
-| `&` | Stream read sigil (e.g., `&1`). |
+| `$` | Variable read sigil (digits only, e.g., `$1`). |
+| `&` | Stream read sigil (digits only, e.g., `&1`). |
 | `@` | Return register read sigil (e.g., `@1`). |
 | `+` | Defer execution by beats. |
 | `~` | Defer execution by seconds. |

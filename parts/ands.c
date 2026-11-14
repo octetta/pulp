@@ -854,6 +854,8 @@ int ands_consume(ands_t *s, char *line) {
                         if (s->data && s->data_len < s->data_cap)
                             s->data[s->data_len++] = val;
                         ptr--;
+                    } else {
+                        ptr--;   /* bare '$': reprocess the next character */
                     }
                 } else if (IS_STREAM(*ptr)) {
                     if (s->num.len > 0) {
@@ -862,12 +864,14 @@ int ands_consume(ands_t *s, char *line) {
                         buffer_clear(&s->num);
                     }
                     ptr++;
-                    if (ptr < end && (isdigit((unsigned char)*ptr) || isalpha((unsigned char)*ptr))) {
+                    if (ptr < end && isdigit((unsigned char)*ptr)) {
                         int stream = ands_var_parse(&ptr, end);
                         double val = ands_stream_pull(s, stream);
                         if (s->data && s->data_len < s->data_cap)
                             s->data[s->data_len++] = val;
                         ptr--;
+                    } else {
+                        ptr--;   /* bare '&': reprocess the next character */
                     }
                 } else if (IS_SEPARATOR(*ptr)) {
                     if (s->num.len > 0) {
@@ -895,7 +899,7 @@ int ands_consume(ands_t *s, char *line) {
 
             
             case GET_STREAM:
-                if (isdigit(*ptr) || isalpha(*ptr)) {
+                if (isdigit(*ptr)) {
                     int stream = ands_var_parse(&ptr, end);
                     if (s->arg_len < s->arg_cap) {
                         s->arg[s->arg_len] = 0.0;
@@ -972,6 +976,18 @@ int ands_consume(ands_t *s, char *line) {
                 break;
 
             case GET_DEFER_NUMBER:
+                /* Tolerate blanks between the sigil and its amount ("+ 4 ...",
+                 * "~ 1.5 f 440", as the guide documents). Only skip when a
+                 * number, $var or &stream follows, so "+ v0 a10" still means
+                 * a zero delay with body " v0 a10". Never cross a chunk end. */
+                if (s->num.len == 0 && IS_SEPARATOR(*ptr) && !IS_CHUNK_END(*ptr)) {
+                    char *q = ptr;
+                    while (q < end && IS_SEPARATOR(*q) && !IS_CHUNK_END(*q)) q++;
+                    if (q < end && (IS_NUMBER(*q) || IS_VARIABLE(*q) || IS_STREAM(*q))) {
+                        ptr = q - 1;
+                        break;
+                    }
+                }
                 if (IS_NUMBER(*ptr)) {
                     buffer_push(&s->num, *ptr);
                 } else if (IS_VARIABLE(*ptr)) {
@@ -984,12 +1000,13 @@ int ands_consume(ands_t *s, char *line) {
                     } else {
                         s->defer_num = 0.0;
                         s->defer_var = -1;
+                        ptr--;   /* bare sigil: reprocess the next character */
                     }
                     buffer_clear(&s->num);
                     s->state = GET_DEFER_STRING;
                 } else if (IS_STREAM(*ptr)) {
                     ptr++;
-                    if (ptr < end && (isdigit((unsigned char)*ptr) || isalpha((unsigned char)*ptr))) {
+                    if (ptr < end && isdigit((unsigned char)*ptr)) {
                         int stream = ands_var_parse(&ptr, end);
                         s->defer_num = ands_defer_time_clamp(ands_stream_pull(s, stream));
                         s->defer_var = stream | ANDS_STREAM_FLAG;
@@ -997,6 +1014,7 @@ int ands_consume(ands_t *s, char *line) {
                     } else {
                         s->defer_num = 0.0;
                         s->defer_var = -1;
+                        ptr--;   /* bare sigil: reprocess the next character */
                     }
                     buffer_clear(&s->num);
                     s->state = GET_DEFER_STRING;

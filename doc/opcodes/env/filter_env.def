@@ -1,17 +1,40 @@
 @name     filter_env
 @alias    kt
 @group    env
+@c_name   skode_clause_filter_env_0
+@type     realtime
+@arity    0
+@match    ()
+@summary  reset filter cutoff envelope to flat (bypass)
+@doc
+Resets filter cutoff envelope to flat (a=0, d=0, s=1, r=0), disabling it.
+Usage: kt (or filter_env)
+@code
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    envelope_configure_e(&sv.filter_envelope[voice], 0.0f, 0.0f, 1.0f, 0.0f);
+    sv.use_filter_envelope[voice] = 0;
+    return 0;
+@end
+
+@name     filter_env
+@alias    kt
+@group    env
 @c_name   skode_clause_filter_env
 @type     realtime
-@arity    4
+@arity    2..4
 @match    (finite, finite, finite, finite)
 @summary  filter cutoff envelope parameters (ADSR)
 @doc
 Configures filter cutoff envelope (attack, decay, sustain, release).
-Usage: kt a d s r (or filter_env a d s r)
+If only two elements are specified, sustain and release are assumed to be 0.
+Usage: kt a d [s r] (or filter_env a d [s r])
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    envelope_configure_e(&sv.filter_envelope[voice], args[0], args[1], args[2], args[3]);
-    sv.use_filter_envelope[voice] = !(args[0] == 0 && args[1] == 0 && args[2] == 1 && args[3] == 0);
+    float a = args[0];
+    float d = (argc > 1) ? args[1] : 0.0f;
+    float s = (argc > 2) ? args[2] : 0.0f;
+    float r = (argc > 3) ? args[3] : 0.0f;
+    envelope_configure_e(&sv.filter_envelope[voice], a, d, s, r);
+    sv.use_filter_envelope[voice] = !(a == 0 && d == 0 && s == 1 && r == 0);
     return 0;
 @end

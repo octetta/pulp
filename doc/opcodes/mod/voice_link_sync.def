@@ -11,12 +11,8 @@ Links velocity of active voice to follow target voice.
 Usage: H 0
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_velo_1[voice] = -1.0f;
-    sv.link_velo_2[voice] = -1.0f;
-    sv.link_velo_3[voice] = -1.0f;
-    sv.link_velo_4[voice] = -1.0f;
-    sv.link_velo_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_velo[i][voice] = -1.0f;
+    sv.link_velo[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
     return 0;
 @end
 
@@ -32,12 +28,7 @@ Usage: H 0
 Clears velocity links for active voice.
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_velo_0[voice] = -1.0f;
-    sv.link_velo_1[voice] = -1.0f;
-    sv.link_velo_2[voice] = -1.0f;
-    sv.link_velo_3[voice] = -1.0f;
-    sv.link_velo_4[voice] = -1.0f;
-    sv.link_velo_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_velo[i][voice] = -1.0f;
     return 0;
 @end
 
@@ -54,12 +45,9 @@ Links velocity to two target voices.
 Usage: H v1 v2
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_velo_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_velo_2[voice] = -1.0f;
-    sv.link_velo_3[voice] = -1.0f;
-    sv.link_velo_4[voice] = -1.0f;
-    sv.link_velo_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_velo[i][voice] = -1.0f;
+    sv.link_velo[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_velo[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
     return 0;
 @end
 
@@ -75,12 +63,10 @@ Usage: H v1 v2
 Links velocity to 3 target voices.
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_velo_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_velo_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
-    sv.link_velo_3[voice] = -1.0f;
-    sv.link_velo_4[voice] = -1.0f;
-    sv.link_velo_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_velo[i][voice] = -1.0f;
+    sv.link_velo[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_velo[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_velo[2][voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
     return 0;
 @end
 
@@ -96,11 +82,10 @@ Links velocity to 3 target voices.
 Links velocity to 4 target voices.
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_velo_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_velo_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
-    sv.link_velo_3[voice] = (args[3] >= 0 && args[3] < synth_config.voice_max) ? args[3] : -1.0f;
-    sv.link_velo_4[voice] = -1.0f;
-    sv.link_velo_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_velo[i][voice] = -1.0f;
+    sv.link_velo[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_velo[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_velo[2][voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
+    sv.link_velo[3][voice] = (args[3] >= 0 && args[3] < synth_config.voice_max) ? args[3] : -1.0f;
     return 0;
 @end

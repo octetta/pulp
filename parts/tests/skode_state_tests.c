@@ -432,10 +432,21 @@ static void test_command_help(void) {
   reset_log(&ctx);
   consume(test, &ctx, "[w] /h");
   expect_substr(test, ctx.log, "# help w [osc]", "w command help");
-  expect_substr(test, ctx.log, "# other matches for [w]:", "w other matches header");
-  expect_substr(test, ctx.log, "wavefold", "w other matches contains wavefold");
+  expect_substr(test, ctx.log, "3 clauses", "w clauses count");
+  expect_substr(test, ctx.log, "clause 1", "w clause 1");
+  if (strstr(ctx.log, "other matches") != NULL) {
+    fail(test, "unwanted other matches found when exact match exists");
+  }
   if (strstr(ctx.log, ".def:0") != NULL) {
     fail(test, "unwanted :0 line number found in doc output");
+  }
+
+  reset_log(&ctx);
+  consume(test, &ctx, "[s] /h");
+  expect_substr(test, ctx.log, "# help s [voice]", "s command help");
+  expect_substr(test, ctx.log, "parameter smoothing", "s summary");
+  if (strstr(ctx.log, "other matches") != NULL) {
+    fail(test, "unwanted other matches found for [s]");
   }
 
   reset_log(&ctx);
@@ -470,8 +481,8 @@ static void test_midi_and_links(void) {
   skode_t ctx = new_ctx();
   consume(test, &ctx, "v0 G1 H2 L0.25 N12 5 n60");
 
-  expect_int(test, (int)sv.link_midi_0[0], 1, "link_midi_0");
-  expect_int(test, (int)sv.link_velo_0[0], 2, "link_velo_0");
+  expect_int(test, (int)sv.link_midi[0][0], 1, "link_midi_0");
+  expect_int(test, (int)sv.link_velo[0][0], 2, "link_velo_0");
   expect_float(test, sv.link_trig[0], 0.25f, 0.0001f, "link_trig");
   expect_u64(test, sv.link_trig_samp[0], MAIN_SAMPLE_RATE / 4, "link_trig_samp");
   expect_float(test, sv.midi_transpose[0], 12.0f, 0.0001f, "midi_transpose");
@@ -2147,7 +2158,7 @@ static void test_parameter_and_buffer_safety(void) {
   consume(test, &ctx, "wait");
   consume(test, &ctx, "100000000 >");
   consume(test, &ctx, "v0 G100000000 n60");
-  expect_int(test, (int)sv.link_midi_0[0], -1, "invalid MIDI link");
+  expect_int(test, (int)sv.link_midi[0][0], -1, "invalid MIDI link");
   consume(test, &ctx, "100000000 0 W*");
   consume(test, &ctx, "100000000 W");
 
@@ -3642,6 +3653,40 @@ static void test_inst_note_and_stream_ties(void) {
   expect_int(test, skode_inst_note(0, NAN, 1.0f, 0.0f), 0, "inst_note rest succeeds");
 
   event_program_t program;
+  expect_int(test, skode_compile_program("v0 i-", &program), 0, "compile v0 i- succeeds");
+  expect_int(test, program.count, 2, "v0 i- produces 2 opcodes");
+  expect_int(test, program.op[1].opcode.code, SKODE_OP_INST_NOTE, "opcode 1 is SKODE_OP_INST_NOTE");
+  expect_int(test, isnan(program.op[1].opcode.arg[0]), 1, "arg[0] is NaN rest");
+  consume(test, &ctx, "v0 i-");
+
+  expect_int(test, skode_compile_program("v0 i -", &program), 0, "compile v0 i - succeeds");
+  expect_int(test, program.count, 2, "v0 i - produces 2 opcodes");
+  expect_int(test, program.op[1].opcode.code, SKODE_OP_INST_NOTE, "opcode 1 is SKODE_OP_INST_NOTE");
+  ctx.log_enable = 1;
+  reset_log(&ctx);
+  consume(test, &ctx, "v0 i60");
+  expect_float(test, sv.last_midi_note[0], 60.0f, 1e-4f, "v0 i60 plays 60");
+  expect_int(test, ctx.log_len, 0, "v0 i60 has no log errors");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "v0 i -52");
+  expect_float(test, sv.last_midi_note[0], 52.0f, 1e-4f, "v0 i -52 slurs to 52");
+  expect_int(test, ctx.log_len, 0, "v0 i -52 has no log errors");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "v0 i .");
+  expect_float(test, sv.last_midi_note[0], 52.0f, 1e-4f, "v0 i . ties 52");
+  expect_int(test, ctx.log_len, 0, "v0 i . has no log errors");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "v0 i -");
+  expect_int(test, ctx.log_len, 0, "v0 i - has no log errors");
+
+  expect_int(test, skode_compile_program("v0 i -52", &program), 0, "compile v0 i -52 succeeds");
+  expect_int(test, program.count, 2, "v0 i -52 produces 2 opcodes");
+  expect_int(test, program.op[1].opcode.code, SKODE_OP_INST_NOTE, "opcode 1 is SKODE_OP_INST_NOTE");
+  consume(test, &ctx, "v0 i -52");
+  expect_float(test, sv.last_midi_note[0], 52.0f, 1e-4f, "voice 0 note is 52 after slur");
   expect_int(test, skode_compile_program("v0 i60", &program), 0, "compile v0 i60 succeeds");
   expect_int(test, program.count, 2, "v0 i60 produces 2 opcodes");
   expect_int(test, program.op[1].opcode.code, SKODE_OP_INST_NOTE, "opcode 1 is SKODE_OP_INST_NOTE");
@@ -3677,6 +3722,223 @@ static void test_voice_show_names(void) {
   consume(test, &ctx, "v???");
   expect_substr(test, ctx.log, "v0 [Kick] vt # *", "voice 0 name in v???");
   expect_substr(test, ctx.log, "v1\n", "voice 1 in v???");
+}
+
+static void test_voice_show_connected(void) {
+  const char *test = "voice show connected - ?";
+  skode_t ctx = new_ctx();
+  ctx.log_enable = 1;
+
+  voice_init();
+
+  /* 1. Isolated voice: only v0 printed */
+  consume(test, &ctx, "v0");
+  reset_log(&ctx);
+  consume(test, &ctx, "?");
+  expect_substr(test, ctx.log, "v0 w0", "v0 in isolated query");
+  if (strstr(ctx.log, "v1") != NULL) fail(test, "unconnected voice v1 should not appear");
+
+  /* 2. Voice 1 links to Voice 2 via G and H */
+  consume(test, &ctx, "v1 G2 H2");
+  consume(test, &ctx, "v1");
+  reset_log(&ctx);
+  consume(test, &ctx, "?");
+  expect_substr(test, ctx.log, "v1 w0", "v1 in linked query");
+  expect_substr(test, ctx.log, "v2 w0", "v2 connected via G/H in query");
+
+  /* 3. Voice 3 has FM modulator Voice 4, and Voice 4 has FM modulator Voice 5 */
+  consume(test, &ctx, "v3 F4,2.0");
+  consume(test, &ctx, "v4 F5,1.5");
+  consume(test, &ctx, "v3");
+  reset_log(&ctx);
+  consume(test, &ctx, "?");
+  expect_substr(test, ctx.log, "v3 w0", "v3 root in FM query");
+  expect_substr(test, ctx.log, "v4 w0", "v4 modulator in FM query");
+  expect_substr(test, ctx.log, "v5 w0", "v5 secondary modulator in FM query");
+
+  /* 4. Hard sync link: Voice 6 syncs Voice 7 */
+  consume(test, &ctx, "v6 HS7");
+  consume(test, &ctx, "v6");
+  reset_log(&ctx);
+  consume(test, &ctx, "?");
+  expect_substr(test, ctx.log, "v6 w0", "v6 root in HS query");
+  expect_substr(test, ctx.log, "v7 w0", "v7 sync target in query");
+
+  /* 5. Cyclic modulators: Voice 4 modulates Voice 5, Voice 5 modulates Voice 4 */
+  consume(test, &ctx, "v4 F5,1.0");
+  consume(test, &ctx, "v5 F4,1.0");
+  consume(test, &ctx, "v4");
+  reset_log(&ctx);
+  consume(test, &ctx, "?");
+  expect_substr(test, ctx.log, "v4 w0", "v4 in cyclic query");
+  expect_substr(test, ctx.log, "v5 w0", "v5 in cyclic query");
+  /* Ensure v4 only appears once */
+  char *first_v4 = strstr(ctx.log, "v4");
+  if (first_v4 && strstr(first_v4 + 2, "v4") != NULL) {
+    fail(test, "v4 should not appear multiple times despite cyclic modulation");
+  }
+}
+
+static void test_voice_format_links(void) {
+  const char *test = "voice format links pasteable";
+  skode_t ctx = new_ctx();
+  voice_init();
+
+  consume(test, &ctx, "v0 G1,3 H2 HS4,5");
+  char out[2048];
+  voice_format(0, out, sizeof(out), 0);
+
+  expect_substr(test, out, " G1,3", "voice_format formats active G links without unused slots");
+  expect_substr(test, out, " H2", "voice_format formats active H link without unused slots");
+  expect_substr(test, out, " HS4,5", "voice_format formats active HS links without unused slots");
+
+  /* Ensure no '-' sentinels appear in link outputs */
+  if (strstr(out, "G-") || strstr(out, "H-") || strstr(out, "HS-") ||
+      strstr(out, ",-") || strstr(out, "-,")) {
+    fail(test, "voice_format should not output '-' in link lists");
+  }
+
+  /* Test pasteability: executing the formatted string back in must succeed */
+  skode_t ctx2 = new_ctx();
+  consume(test, &ctx2, out);
+  expect_int(test, (int)sv.link_midi[0][0], 1, "pasted voice restored link_midi 0");
+  expect_int(test, (int)sv.link_midi[1][0], 3, "pasted voice restored link_midi 1");
+  expect_int(test, (int)sv.link_velo[0][0], 2, "pasted voice restored link_velo 0");
+  expect_int(test, (int)sv.link_sync[0][0], 4, "pasted voice restored link_sync 0");
+  expect_int(test, (int)sv.link_sync[1][0], 5, "pasted voice restored link_sync 1");
+}
+
+static void test_voice_format_pitch_mode(void) {
+  const char *test = "voice format pitch mode";
+  skode_t ctx = new_ctx();
+  char out[1024];
+
+  /* 1. Default after reset: shows frequency f440, no note n */
+  voice_init();
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, " f440 ", "default voice shows frequency");
+  if (strstr(out, " n") != NULL) {
+    fail(test, "default voice should not show note 'n' when freq was set");
+  }
+
+  /* 2. Setting note via 'n60': shows 'n60', suppresses 'f' */
+  consume(test, &ctx, "v0 n60");
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, " n60 ", "voice shows n60 when note was last set");
+  if (strstr(out, " f") != NULL) {
+    fail(test, "voice should not show frequency 'f' when note was last set");
+  }
+
+  /* 3. Setting note with cents: shows 'n60,15' */
+  consume(test, &ctx, "v0 n60 15");
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, " n60,15 ", "voice shows n60,15 when note with cents was set");
+
+  /* 4. Switching back to frequency: shows 'f220', suppresses 'n' */
+  consume(test, &ctx, "v0 f220");
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, " f220 ", "voice shows f220 after switching back to f");
+  if (strstr(out, " n") != NULL) {
+    fail(test, "voice should not show note 'n' after switching to frequency");
+  }
+
+  /* 5. Voice copy: copying voice preserves pitch mode */
+  consume(test, &ctx, "v0 n55");
+  consume(test, &ctx, "v0 >1");
+  voice_format(1, out, sizeof(out), 0);
+  expect_substr(test, out, " n55 ", "copied voice preserved note pitch mode");
+  if (strstr(out, " f") != NULL) {
+    fail(test, "copied voice should not show frequency 'f'");
+  }
+
+  /* 6. Glide with and without mode */
+  consume(test, &ctx, "v0 g0.05");
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, " g0.05", "voice shows g0.05 with default mode");
+
+  consume(test, &ctx, "v0 g0.05 1");
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, " g0.05,1", "voice shows g0.05,1 with non-default mode");
+
+  /* Test pasteability of g with mode */
+  skode_t ctx2 = new_ctx();
+  consume(test, &ctx2, out);
+  expect_float(test, sv.glissando_time[0], 0.05f, 0.0001f, "pasted voice restored glissando time");
+  expect_int(test, sv.glissando_mode[0], 1, "pasted voice restored glissando mode");
+
+  /* 7. Glide with 0 arguments clears glide */
+  consume(test, &ctx, "v0 g");
+  expect_float(test, sv.glissando_time[0], 0.0f, 0.0001f, "v0 g cleared glissando time");
+  expect_int(test, sv.glissando_enable[0], 0, "v0 g cleared glissando enable");
+  expect_int(test, sv.glissando_mode[0], 0, "v0 g cleared glissando mode");
+  voice_format(0, out, sizeof(out), 0);
+  if (strstr(out, " g") != NULL) {
+    fail(test, "voice format should not show g after g with no args");
+  }
+}
+
+static void test_voice_format_envelopes(void) {
+  const char *test = "voice format envelopes";
+  skode_t ctx = new_ctx();
+  char out[1024];
+
+  /* 1. Amp envelope: 2 elements assumes s=0, r=0 and formats as t%g,%g */
+  voice_init();
+  consume(test, &ctx, "v0 t0.01,0.25");
+  expect_float(test, sv.amp_envelope[0].a, 0.01f, 0.0001f, "amp env a");
+  expect_float(test, sv.amp_envelope[0].d, 0.25f, 0.0001f, "amp env d");
+  expect_float(test, sv.amp_envelope[0].s, 0.0f, 0.0001f, "amp env s");
+  expect_float(test, sv.amp_envelope[0].r, 0.0f, 0.0001f, "amp env r");
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, "t0.01,0.25", "amp envelope 2-arg formatting");
+
+  /* 2. Amp envelope: 0 elements makes it flat (suppressed in non-verbose display) */
+  consume(test, &ctx, "v0 t");
+  expect_float(test, sv.amp_envelope[0].a, 0.0f, 0.0001f, "flat amp env a");
+  expect_float(test, sv.amp_envelope[0].d, 0.0f, 0.0001f, "flat amp env d");
+  expect_float(test, sv.amp_envelope[0].s, 1.0f, 0.0001f, "flat amp env s");
+  expect_float(test, sv.amp_envelope[0].r, 0.0f, 0.0001f, "flat amp env r");
+  voice_format(0, out, sizeof(out), 0);
+  if (strstr(out, " t") != NULL) {
+    fail(test, "flat amp envelope should be suppressed in voice format");
+  }
+
+  /* 3. Multistage amp envelope via te */
+  consume(test, &ctx, "v0 (0.01 1 0.2 0) te");
+  expect_int(test, sv.amp_envelope[0].mode, 1, "amp env mode multistage");
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, "(0.01 1 0.2 0) te", "te multistage formatting");
+
+  /* 4. Filter envelope: 2 elements assumes s=0, r=0 and formats kt a d kd */
+  consume(test, &ctx, "v0 kt 0.02 0.3 kd 1");
+  expect_float(test, sv.filter_envelope[0].a, 0.02f, 0.0001f, "filter env a");
+  expect_float(test, sv.filter_envelope[0].d, 0.3f, 0.0001f, "filter env d");
+  expect_float(test, sv.filter_envelope[0].s, 0.0f, 0.0001f, "filter env s");
+  expect_float(test, sv.filter_envelope[0].r, 0.0f, 0.0001f, "filter env r");
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, "kt 0.02 0.3 kd 1", "filter envelope 2-arg formatting");
+
+  /* Filter envelope: 0 elements makes it flat */
+  consume(test, &ctx, "v0 kt");
+  expect_int(test, sv.use_filter_envelope[0], 0, "flat filter env disabled");
+  voice_format(0, out, sizeof(out), 0);
+  if (strstr(out, "kt") != NULL) {
+    fail(test, "flat filter envelope should be suppressed in voice format");
+  }
+
+  /* 5. Phase envelope: 2 elements and 0 elements */
+  consume(test, &ctx, "v0 ct 0.03 0.4 cd 0.5");
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, "ct 0.03 0.4 cd 0.5", "phase envelope 2-arg formatting");
+  consume(test, &ctx, "v0 ct");
+  expect_int(test, sv.use_cz_envelope[0], 0, "flat phase env disabled");
+
+  /* 6. Pitch envelope: 2 elements and 0 elements */
+  consume(test, &ctx, "v0 pt 0.04 0.5 pd 2");
+  voice_format(0, out, sizeof(out), 0);
+  expect_substr(test, out, "pt 0.04 0.5 pd 2", "pitch envelope 2-arg formatting");
+  consume(test, &ctx, "v0 pt");
+  expect_int(test, sv.use_freq_envelope[0], 0, "flat pitch env disabled");
 }
 
 int main(int argc, char **argv) {
@@ -3756,6 +4018,10 @@ int main(int argc, char **argv) {
   test_step_all_data();
   test_inst_note_and_stream_ties();
   test_voice_show_names();
+  test_voice_show_connected();
+  test_voice_format_links();
+  test_voice_format_pitch_mode();
+  test_voice_format_envelopes();
 
   synth_free();
 

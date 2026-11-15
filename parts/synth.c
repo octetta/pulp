@@ -302,11 +302,9 @@ void synth_capture(skred_engine_t *engine, float *buffer, float *input, int num_
   /* A hard-sync master must keep running while any of its targets sounds,
      even if the master's own note has ended (it is the clock for them). */
   for (int n = 0; n < nvoices; n++) {
-    const float sync[6] = {sv.link_sync_0[n], sv.link_sync_1[n], sv.link_sync_2[n],
-                           sv.link_sync_3[n], sv.link_sync_4[n], sv.link_sync_5[n]};
-    for (int k = 0; k < 6; k++) {
-      int t = (int)sync[k];
-      if (sync[k] >= 0.0f && t < nvoices && voice_active[t]) { voice_active[n] = 1; break; }
+    for (int k = 0; k < SYNTH_VOICE_LINKS_MAX; k++) {
+      int t = (int)sv.link_sync[k][n];
+      if (sv.link_sync[k][n] >= 0.0f && t < nvoices && voice_active[t]) { voice_active[n] = 1; break; }
     }
   }
 

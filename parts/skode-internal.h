@@ -252,6 +252,7 @@ int spectro_row_worst_case_bytes(int mode, int width, int use_braille);
 int spectro_fit_color_mode(skode_t *ctx, int color_mode, int width, int use_braille);
 void wavetable_spectrogram_show(skode_t *ctx, int wave, int width, int height, int loop_start, int loop_end, const char *label);
 void voice_show(skode_t *ctx, int v, char c, int verbose);
+void voice_show_connected(skode_t *ctx, int voice, int verbose);
 int voice_show_all(skode_t *ctx, int voice, int verbose);
 int voice_show_names(skode_t *ctx, int voice);
 void record_tracks_show(skode_t *ctx);

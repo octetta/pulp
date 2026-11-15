@@ -208,6 +208,10 @@ const skode_word_t *skode_dict_lookup(skode_vocab_t *private_vocab,
       s_def_word_shim.summary = (gw->clauses && gw->clause_count > 0) ? gw->clauses[0].summary : NULL;
       s_def_word_shim.safety = (gw->clauses && (gw->clauses[0].flags & SKODE_CLAUSE_RT_SAFE))
                                ? WORD_REAL_TIME_SAFE : WORD_IMMEDIATE_ONLY;
+      if (gw->clauses && gw->clause_count > 0) {
+        s_def_word_shim.min_args = gw->clauses[0].min_arity;
+        s_def_word_shim.max_args = gw->clauses[0].max_arity;
+      }
       return &s_def_word_shim;
     }
   }

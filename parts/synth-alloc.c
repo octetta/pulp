@@ -152,28 +152,17 @@ void synth_alloc_voices(int voice_max) {
     VALLOC(note,             float);
     VALLOC(midi_note,        float);
     VALLOC(last_midi_note,   float);
+    VALLOC(last_midi_cents,  float);
+    VALLOC(pitch_mode,       int);
     VALLOC(midi_transpose,   float);
     VALLOC(midi_cents,       float);
     VALLOC(offset_hz,        float);
     VALLOC(freq_scale,       float);
-    VALLOC(link_midi_0,      float);
-    VALLOC(link_midi_1,      float);
-    VALLOC(link_midi_2,      float);
-    VALLOC(link_midi_3,      float);
-    VALLOC(link_midi_4,      float);
-    VALLOC(link_midi_5,      float);
-    VALLOC(link_velo_0,      float);
-    VALLOC(link_velo_1,      float);
-    VALLOC(link_velo_2,      float);
-    VALLOC(link_velo_3,      float);
-    VALLOC(link_velo_4,      float);
-    VALLOC(link_velo_5,      float);
-    VALLOC(link_sync_0,      float);
-    VALLOC(link_sync_1,      float);
-    VALLOC(link_sync_2,      float);
-    VALLOC(link_sync_3,      float);
-    VALLOC(link_sync_4,      float);
-    VALLOC(link_sync_5,      float);
+    for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+        VALLOC(link_midi[i], float);
+        VALLOC(link_velo[i], float);
+        VALLOC(link_sync[i], float);
+    }
     VALLOC(sync_blep,        float);
     VALLOC(link_trig,        float);
     VALLOC(link_trig_samp,   uint64_t);
@@ -289,18 +278,14 @@ void synth_free_voices(void) {
     VFREE(pan_left);         VFREE(pan_right);       VFREE(delay_send);
     VFREE(sample);
     VFREE(freq);             VFREE(note);            VFREE(midi_note);
-    VFREE(last_midi_note);   VFREE(midi_transpose);  VFREE(midi_cents);
+    VFREE(last_midi_note);   VFREE(last_midi_cents); VFREE(pitch_mode);
+    VFREE(midi_transpose);   VFREE(midi_cents);
     VFREE(offset_hz);        VFREE(freq_scale);
-    VFREE(link_midi_0);
-    VFREE(link_midi_1);
-    VFREE(link_midi_2);
-    VFREE(link_midi_3); VFREE(link_midi_4); VFREE(link_midi_5);
-    VFREE(link_velo_0);
-    VFREE(link_velo_1);
-    VFREE(link_velo_2);
-    VFREE(link_velo_3); VFREE(link_velo_4); VFREE(link_velo_5);
-    VFREE(link_sync_0); VFREE(link_sync_1); VFREE(link_sync_2);
-    VFREE(link_sync_3); VFREE(link_sync_4); VFREE(link_sync_5);
+    for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+        VFREE(link_midi[i]);
+        VFREE(link_velo[i]);
+        VFREE(link_sync[i]);
+    }
     VFREE(sync_blep);
     VFREE(link_trig);
     VFREE(link_trig_samp);

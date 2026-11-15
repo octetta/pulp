@@ -3,10 +3,10 @@
 @group    voice
 @type     realtime
 @arity    1
-@match    (finite)
+@match    (num)
 @summary  trigger instrument note
 @doc
-Triggers instrument note with default velocity 1.0.
+Triggers instrument note with default velocity 1.0. Supports Note-On, Rest (-), Tie (.), and Slur (-note).
 Usage: i note
 @code
     return skode_inst_note(voice, args[0], 1.0f, 0.0f);
@@ -17,10 +17,10 @@ Usage: i note
 @group    voice
 @type     realtime
 @arity    2
-@match    (finite, finite)
+@match    (num, finite)
 @summary  trigger instrument note with velocity
 @doc
-Triggers instrument note with velocity.
+Triggers instrument note with velocity. Supports Note-On, Rest (-), Tie (.), and Slur (-note).
 Usage: i note velocity
 @code
     return skode_inst_note(voice, args[0], args[1], 0.0f);
@@ -31,10 +31,10 @@ Usage: i note velocity
 @group    voice
 @type     realtime
 @arity    3
-@match    (finite, finite, finite)
+@match    (num, finite, finite)
 @summary  trigger instrument note with velocity and cents
 @doc
-Triggers instrument note with velocity and fine cents offset.
+Triggers instrument note with velocity and fine cents offset. Supports Note-On, Rest (-), Tie (.), and Slur (-note).
 Usage: i note velocity cents
 @code
     return skode_inst_note(voice, args[0], args[1], args[2]);

@@ -10,9 +10,9 @@ Generated automatically by [`tools/mkopcodes`](file:///home/stewartj/book/pulp/t
 ## Architecture & System Overview
 
 - **Total Command Words**: 307
-- **Total Dispatch Clauses**: 607
-- **Real-Time Audio Opcode Handlers**: 145 (audio-thread safe, zero allocation, zero string lookup)
-- **Immediate / Control Plane Clauses**: 462 (REPL / parser / file system / diagnostics)
+- **Total Dispatch Clauses**: 611
+- **Real-Time Audio Opcode Handlers**: 148 (audio-thread safe, zero allocation, zero string lookup)
+- **Immediate / Control Plane Clauses**: 463 (REPL / parser / file system / diagnostics)
 
 ### Functional Command Groups
 
@@ -1078,16 +1078,16 @@ Usage: wf inf
 |:---|:---|:---:|:---:|:---:|:---|
 | [`amp_env_mode`](#amp_env_mode) | `tm` | 1 | 1 | Real-Time | set amplitude envelope mode |
 | [`amp_envelope_multi`](#amp_envelope_multi) | `te` | 2 | 0..1 | Immediate | configure multistage amp envelope from data buffer |
-| [`envelope`](#envelope) | `t` | 1 | 4 | Real-Time | configure ADSR envelope parameters (attack, decay, sustain, release) |
-| [`filter_env`](#filter_env) | `kt` | 1 | 4 | Real-Time | filter cutoff envelope parameters (ADSR) |
+| [`envelope`](#envelope) | `t` | 2 | 0..4 | Real-Time | reset ADSR envelope to flat (bypass) |
+| [`filter_env`](#filter_env) | `kt` | 2 | 0..4 | Real-Time | reset filter cutoff envelope to flat (bypass) |
 | [`filter_env_depth`](#filter_env_depth) | `kd` | 1 | 1 | Real-Time | filter cutoff envelope depth |
 | [`filter_env_depth_alt`](#filter_env_depth_alt) | `fd` | 2 | 0..1 | Immediate | set filter envelope modulation depth |
 | [`filter_env_multi`](#filter_env_multi) | `fte` | 2 | 0..1 | Immediate | configure multistage filter envelope from data |
 | [`filter_env_multi_alt`](#filter_env_multi_alt) | `kte` | 2 | 0..1 | Immediate | configure multistage filter envelope from data (alt) |
 | [`filter_env_time`](#filter_env_time) | `ft` | 3 | 0..4 | Immediate | set filter envelope adzr times |
-| [`phase_env`](#phase_env) | `ct` | 1 | 4 | Real-Time | phase distortion envelope parameters (ADSR) |
+| [`phase_env`](#phase_env) | `ct` | 2 | 0..4 | Real-Time | reset phase distortion envelope to flat (bypass) |
 | [`phase_env_depth`](#phase_env_depth) | `cd` | 1 | 1 | Real-Time | phase distortion envelope depth |
-| [`pitch_env`](#pitch_env) | `pt` | 1 | 4 | Immediate | configure pitch/frequency envelope |
+| [`pitch_env`](#pitch_env) | `pt` | 2 | 0..4 | Immediate | reset pitch envelope to flat (bypass) |
 | [`pitch_env_depth`](#pitch_env_depth) | `pd` | 1 | 1 | Immediate | set pitch envelope depth |
 | [`pitch_env_multi`](#pitch_env_multi) | `pte` | 1 | 0 | Immediate | configure multistage pitch envelope |
 | [`trigger`](#trigger) | `T` | 1 | 0 | Real-Time | trigger voice envelope at full velocity (1.0) |
@@ -1102,7 +1102,7 @@ Usage: wf inf
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `176` (`skode_clause_amp_env_mode`)
+- **Discrete Opcode ID**: `179` (`skode_clause_amp_env_mode`)
 - **Summary**: set amplitude envelope mode
 
 **Description & Details**:
@@ -1151,20 +1151,35 @@ Configures multistage amplitude envelope with argument.
 
 - **Alias**: `t`
 - **Group**: `env`
-- **Clause Count**: 1
+- **Clause Count**: 2
 
-#### Clause 1: `envelope(finite, finite, finite, finite)`
+#### Clause 1: `envelope()`
 
-- **Arity**: `4`
+- **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `170` (`skode_clause_env_set`)
+- **Discrete Opcode ID**: `170` (`skode_clause_env_set_0`)
+- **Summary**: reset ADSR envelope to flat (bypass)
+
+**Description & Details**:
+
+```text
+Resets active voice amplitude envelope to flat (a=0, d=0, s=1, r=0).
+Usage: t (or envelope)
+```
+
+#### Clause 2: `envelope(finite, finite, finite, finite)`
+
+- **Arity**: `2..4`
+- **Execution Model**: `realtime (audio thread safe)`
+- **Discrete Opcode ID**: `171` (`skode_clause_env_set`)
 - **Summary**: configure ADSR envelope parameters (attack, decay, sustain, release)
 
 **Description & Details**:
 
 ```text
 Sets the attack time, decay time, sustain level, and release time for the active voice envelope.
-Usage: t a d s r (or envelope a d s r)
+If only two elements are specified, sustain and release are assumed to be 0.
+Usage: t a d [s r] (or envelope a d [s r])
 ```
 
 ---
@@ -1173,20 +1188,35 @@ Usage: t a d s r (or envelope a d s r)
 
 - **Alias**: `kt`
 - **Group**: `env`
-- **Clause Count**: 1
+- **Clause Count**: 2
 
-#### Clause 1: `filter_env(finite, finite, finite, finite)`
+#### Clause 1: `filter_env()`
 
-- **Arity**: `4`
+- **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `174` (`skode_clause_filter_env`)
+- **Discrete Opcode ID**: `176` (`skode_clause_filter_env_0`)
+- **Summary**: reset filter cutoff envelope to flat (bypass)
+
+**Description & Details**:
+
+```text
+Resets filter cutoff envelope to flat (a=0, d=0, s=1, r=0), disabling it.
+Usage: kt (or filter_env)
+```
+
+#### Clause 2: `filter_env(finite, finite, finite, finite)`
+
+- **Arity**: `2..4`
+- **Execution Model**: `realtime (audio thread safe)`
+- **Discrete Opcode ID**: `177` (`skode_clause_filter_env`)
 - **Summary**: filter cutoff envelope parameters (ADSR)
 
 **Description & Details**:
 
 ```text
 Configures filter cutoff envelope (attack, decay, sustain, release).
-Usage: kt a d s r (or filter_env a d s r)
+If only two elements are specified, sustain and release are assumed to be 0.
+Usage: kt a d [s r] (or filter_env a d [s r])
 ```
 
 ---
@@ -1201,7 +1231,7 @@ Usage: kt a d s r (or filter_env a d s r)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `175` (`skode_clause_filter_env_depth`)
+- **Discrete Opcode ID**: `178` (`skode_clause_filter_env_depth`)
 - **Summary**: filter cutoff envelope depth
 
 **Description & Details**:
@@ -1361,20 +1391,35 @@ Filter envelope time with single argument.
 
 - **Alias**: `ct`
 - **Group**: `env`
-- **Clause Count**: 1
+- **Clause Count**: 2
 
-#### Clause 1: `phase_env(finite, finite, finite, finite)`
+#### Clause 1: `phase_env()`
 
-- **Arity**: `4`
+- **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `172` (`skode_clause_phase_env`)
+- **Discrete Opcode ID**: `173` (`skode_clause_phase_env_0`)
+- **Summary**: reset phase distortion envelope to flat (bypass)
+
+**Description & Details**:
+
+```text
+Resets phase distortion envelope to flat (a=0, d=0, s=1, r=0), disabling it.
+Usage: ct (or phase_env)
+```
+
+#### Clause 2: `phase_env(finite, finite, finite, finite)`
+
+- **Arity**: `2..4`
+- **Execution Model**: `realtime (audio thread safe)`
+- **Discrete Opcode ID**: `174` (`skode_clause_phase_env`)
 - **Summary**: phase distortion envelope parameters (ADSR)
 
 **Description & Details**:
 
 ```text
 Configures Casio CZ phase envelope (attack, decay, sustain, release).
-Usage: ct a d s r (or phase_env a d s r)
+If only two elements are specified, sustain and release are assumed to be 0.
+Usage: ct a d [s r] (or phase_env a d [s r])
 ```
 
 ---
@@ -1389,7 +1434,7 @@ Usage: ct a d s r (or phase_env a d s r)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `173` (`skode_clause_phase_env_depth`)
+- **Discrete Opcode ID**: `175` (`skode_clause_phase_env_depth`)
 - **Summary**: phase distortion envelope depth
 
 **Description & Details**:
@@ -1405,19 +1450,33 @@ Usage: cd depth (or phase_env_depth depth)
 
 - **Alias**: `pt`
 - **Group**: `env`
-- **Clause Count**: 1
+- **Clause Count**: 2
 
-#### Clause 1: `pitch_env(finite, finite, finite, finite)`
+#### Clause 1: `pitch_env()`
 
-- **Arity**: `4`
+- **Arity**: `0`
+- **Execution Model**: `immediate (control plane)`
+- **Summary**: reset pitch envelope to flat (bypass)
+
+**Description & Details**:
+
+```text
+Resets pitch/frequency envelope to flat (a=0, d=0, s=1, r=0), disabling it.
+Usage: pt (or pitch_env)
+```
+
+#### Clause 2: `pitch_env(finite, finite, finite, finite)`
+
+- **Arity**: `2..4`
 - **Execution Model**: `immediate (control plane)`
 - **Summary**: configure pitch/frequency envelope
 
 **Description & Details**:
 
 ```text
-Configures the 4-stage ADSR pitch envelope for the selected voice.
-Usage: pt a,d,s,r
+Configures the ADSR pitch envelope for the selected voice.
+If only two elements are specified, sustain and release are assumed to be 0.
+Usage: pt a,d[,s,r]
 ```
 
 ---
@@ -1475,7 +1534,7 @@ Usage: pte
 
 - **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `171` (`skode_clause_trigger_full`)
+- **Discrete Opcode ID**: `172` (`skode_clause_trigger_full`)
 - **Summary**: trigger voice envelope at full velocity (1.0)
 
 **Description & Details**:
@@ -1563,7 +1622,7 @@ Usage: T (or trigger)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `177` (`skode_clause_tempo_bpm`)
+- **Discrete Opcode ID**: `180` (`skode_clause_tempo_bpm`)
 - **Summary**: set sequencer tempo in beats per minute
 
 **Description & Details**:
@@ -1577,7 +1636,7 @@ Usage: M bpm (or bpm bpm)
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `178` (`skode_clause_tempo_bpm_sub`)
+- **Discrete Opcode ID**: `181` (`skode_clause_tempo_bpm_sub`)
 - **Summary**: set sequencer tempo in BPM with step subdivision
 
 **Description & Details**:
@@ -1599,7 +1658,7 @@ Usage: M bpm sub (or bpm bpm sub)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `179` (`skode_clause_control_event_1`)
+- **Discrete Opcode ID**: `182` (`skode_clause_control_event_1`)
 - **Summary**: emit control event with 1 argument
 
 **Description & Details**:
@@ -1613,7 +1672,7 @@ Usage: ce id (or control_event id)
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `180` (`skode_clause_control_event_2`)
+- **Discrete Opcode ID**: `183` (`skode_clause_control_event_2`)
 - **Summary**: emit control event with 2 arguments
 
 **Description & Details**:
@@ -1627,7 +1686,7 @@ Usage: ce id p1
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `181` (`skode_clause_control_event_3`)
+- **Discrete Opcode ID**: `184` (`skode_clause_control_event_3`)
 - **Summary**: emit control event with 3 arguments
 
 **Description & Details**:
@@ -1641,7 +1700,7 @@ Usage: ce id p1 p2
 
 - **Arity**: `4`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `182` (`skode_clause_control_event_4`)
+- **Discrete Opcode ID**: `185` (`skode_clause_control_event_4`)
 - **Summary**: emit control event with 4 arguments
 
 **Description & Details**:
@@ -2050,7 +2109,7 @@ Usage: zg step (or pattern_goto step)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `183` (`skode_clause_pattern_goto_alt`)
+- **Discrete Opcode ID**: `186` (`skode_clause_pattern_goto_alt`)
 - **Summary**: jump active pattern playback step (-j alias)
 
 **Description & Details**:
@@ -2072,7 +2131,7 @@ Usage: -j step
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `189` (`skode_clause_pattern_loop_c164`)
+- **Discrete Opcode ID**: `192` (`skode_clause_pattern_loop_c168`)
 - **Summary**: pattern step loop counter and branch
 
 **Description & Details**:
@@ -2149,7 +2208,7 @@ Usage: % count (or pattern_modulo count)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `184` (`skode_clause_pattern_modulo_alt`)
+- **Discrete Opcode ID**: `187` (`skode_clause_pattern_modulo_alt`)
 - **Summary**: set active pattern step loop modulo (z% alias)
 
 **Description & Details**:
@@ -2213,7 +2272,7 @@ Usage: zq mode (or pattern_queue mode)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `190` (`skode_clause_pattern_ratchet_c165`)
+- **Discrete Opcode ID**: `193` (`skode_clause_pattern_ratchet_c169`)
 - **Summary**: set step ratchet multiplier
 
 **Description & Details**:
@@ -2420,7 +2479,7 @@ Usage: z??
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `188` (`skode_clause_pattern_state_set_c163`)
+- **Discrete Opcode ID**: `191` (`skode_clause_pattern_state_set_c167`)
 - **Summary**: set pattern state by explicit index
 
 **Description & Details**:
@@ -3139,7 +3198,7 @@ Usage: <x step (or step_read step)
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `185` (`skode_clause_stream_copy_c160`)
+- **Discrete Opcode ID**: `188` (`skode_clause_stream_copy_c164`)
 - **Summary**: copy stream contents
 
 **Description & Details**:
@@ -3161,7 +3220,7 @@ Usage: /SC dst src
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `186` (`skode_clause_stream_mode_c161`)
+- **Discrete Opcode ID**: `189` (`skode_clause_stream_mode_c165`)
 - **Summary**: set stream playback mode
 
 **Description & Details**:
@@ -3183,7 +3242,7 @@ Usage: /SM stream_idx mode
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `187` (`skode_clause_stream_pos_c162`)
+- **Discrete Opcode ID**: `190` (`skode_clause_stream_pos_c166`)
 - **Summary**: set stream read position
 
 **Description & Details**:
@@ -3264,7 +3323,7 @@ Usage: stream_id ?S
 | [`delay_send`](#delay_send) | `ds` | 2 | 0..1 | Immediate | set voice delay send level |
 | [`gate_off`](#gate_off) | `off` | 2 | 0..1 | Immediate | turn active voice gate off |
 | [`gate_on`](#gate_on) | `on` | 2 | 0..1 | Immediate | turn active voice gate on |
-| [`glissando`](#glissando) | `g` | 1 | 1..2 | Real-Time | voice glissando portamento rate and optional mode |
+| [`glissando`](#glissando) | `g` | 1 | 0..2 | Real-Time | voice glissando portamento rate and optional mode |
 | [`global_status`](#global_status) | `GS` | 2 | 0..1 | Immediate | show global engine status |
 | [`inst_note`](#inst_note) | `i` | 3 | 1..3 | Real-Time | trigger instrument note |
 | [`master_volume`](#master_volume) | `V` | 2 | 0..1 | Immediate | set master output volume |
@@ -3361,7 +3420,7 @@ Turns gate off for all voices.
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `191` (`skode_clause_amp_set`)
+- **Discrete Opcode ID**: `194` (`skode_clause_amp_set`)
 - **Summary**: set voice output amplitude / gain
 
 **Description & Details**:
@@ -3375,7 +3434,7 @@ Usage: a level (or amp level)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `192` (`skode_clause_amp_reset`)
+- **Discrete Opcode ID**: `195` (`skode_clause_amp_reset`)
 - **Summary**: reset voice output amplitude to default 0.5
 
 **Description & Details**:
@@ -3397,7 +3456,7 @@ Usage: a - (or amp -)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `197` (`skode_clause_amp_bend`)
+- **Discrete Opcode ID**: `200` (`skode_clause_amp_bend`)
 - **Summary**: amplitude bend (-1..1)
 
 **Description & Details**:
@@ -3419,7 +3478,7 @@ Usage: ab amount (or amp_bend amount)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `198` (`skode_clause_amp_bend_param_1`)
+- **Discrete Opcode ID**: `201` (`skode_clause_amp_bend_param_1`)
 - **Summary**: amplitude bend range in dB
 
 **Description & Details**:
@@ -3433,7 +3492,7 @@ Usage: abp range (or amp_bend_param range)
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `199` (`skode_clause_amp_bend_param_2`)
+- **Discrete Opcode ID**: `202` (`skode_clause_amp_bend_param_2`)
 - **Summary**: amplitude bend range and offset
 
 **Description & Details**:
@@ -3455,7 +3514,7 @@ Usage: abp range offset (or amp_bend_param range offset)
 
 - **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `205` (`skode_clause_amp_mod_0`)
+- **Discrete Opcode ID**: `208` (`skode_clause_amp_mod_0`)
 - **Summary**: disable amplitude modulation
 
 **Description & Details**:
@@ -3469,7 +3528,7 @@ Usage: A (or amp_mod)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `206` (`skode_clause_amp_mod_1`)
+- **Discrete Opcode ID**: `209` (`skode_clause_amp_mod_1`)
 - **Summary**: amplitude modulation source or disable
 
 **Description & Details**:
@@ -3483,7 +3542,7 @@ Usage: A source
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `207` (`skode_clause_amp_mod_2`)
+- **Discrete Opcode ID**: `210` (`skode_clause_amp_mod_2`)
 - **Summary**: amplitude modulation source and depth
 
 **Description & Details**:
@@ -3497,7 +3556,7 @@ Usage: A source depth
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `208` (`skode_clause_amp_mod_3`)
+- **Discrete Opcode ID**: `211` (`skode_clause_amp_mod_3`)
 - **Summary**: amplitude modulation source, depth and scale
 
 **Description & Details**:
@@ -3519,7 +3578,7 @@ Usage: A source depth scale
 
 - **Arity**: `0..2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `238` (`skode_clause_crush`)
+- **Discrete Opcode ID**: `241` (`skode_clause_crush`)
 - **Summary**: voice waveform bit-crush and quantization
 
 **Description & Details**:
@@ -3639,17 +3698,17 @@ Triggers voice gate on.
 
 #### Clause 1: `glissando(finite, finite)`
 
-- **Arity**: `1..2`
+- **Arity**: `0..2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `201` (`skode_clause_glissando`)
+- **Discrete Opcode ID**: `204` (`skode_clause_glissando`)
 - **Summary**: voice glissando portamento rate and optional mode
 
 **Description & Details**:
 
 ```text
-Sets pitch slide / portamento time in seconds. Pass 0 to disable.
+Sets pitch slide / portamento time in seconds. Passing 0 or no arguments disables glide.
 Optional second argument sets glide mode (0=constant time, 1=constant rate, 2=exponential).
-Usage: g time[, mode] (or glissando time[, mode])
+Usage: g [time[, mode]] (or glissando [time[, mode]])
 ```
 
 ---
@@ -3694,45 +3753,45 @@ Usage: GS 1
 - **Group**: `voice`
 - **Clause Count**: 3
 
-#### Clause 1: `inst_note(finite)`
+#### Clause 1: `inst_note(num)`
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `235` (`skode_clause_inst_note_c299`)
+- **Discrete Opcode ID**: `238` (`skode_clause_inst_note_c303`)
 - **Summary**: trigger instrument note
 
 **Description & Details**:
 
 ```text
-Triggers instrument note with default velocity 1.0.
+Triggers instrument note with default velocity 1.0. Supports Note-On, Rest (-), Tie (.), and Slur (-note).
 Usage: i note
 ```
 
-#### Clause 2: `inst_note(finite, finite)`
+#### Clause 2: `inst_note(num, finite)`
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `236` (`skode_clause_inst_note_c300`)
+- **Discrete Opcode ID**: `239` (`skode_clause_inst_note_c304`)
 - **Summary**: trigger instrument note with velocity
 
 **Description & Details**:
 
 ```text
-Triggers instrument note with velocity.
+Triggers instrument note with velocity. Supports Note-On, Rest (-), Tie (.), and Slur (-note).
 Usage: i note velocity
 ```
 
-#### Clause 3: `inst_note(finite, finite, finite)`
+#### Clause 3: `inst_note(num, finite, finite)`
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `237` (`skode_clause_inst_note_c301`)
+- **Discrete Opcode ID**: `240` (`skode_clause_inst_note_c305`)
 - **Summary**: trigger instrument note with velocity and cents
 
 **Description & Details**:
 
 ```text
-Triggers instrument note with velocity and fine cents offset.
+Triggers instrument note with velocity and fine cents offset. Supports Note-On, Rest (-), Tie (.), and Slur (-note).
 Usage: i note velocity cents
 ```
 
@@ -3781,7 +3840,7 @@ Master volume no-op.
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `195` (`skode_clause_mute_set`)
+- **Discrete Opcode ID**: `198` (`skode_clause_mute_set`)
 - **Summary**: mute or unmute voice audio output (0 = unmute, 1 = mute)
 
 **Description & Details**:
@@ -3795,7 +3854,7 @@ Usage: m 1 (mute) or m 0 (unmute)
 
 - **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `196` (`skode_clause_mute_toggle`)
+- **Discrete Opcode ID**: `199` (`skode_clause_mute_toggle`)
 - **Summary**: toggle voice mute state
 
 **Description & Details**:
@@ -3817,7 +3876,7 @@ Usage: m (or mute)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `193` (`skode_clause_pan_set`)
+- **Discrete Opcode ID**: `196` (`skode_clause_pan_set`)
 - **Summary**: set voice stereo pan position (-1.0 left to +1.0 right)
 
 **Description & Details**:
@@ -3831,7 +3890,7 @@ Usage: p pan (or pan pan)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `194` (`skode_clause_pan_center`)
+- **Discrete Opcode ID**: `197` (`skode_clause_pan_center`)
 - **Summary**: center voice stereo pan (0.0)
 
 **Description & Details**:
@@ -3853,7 +3912,7 @@ Usage: p - (or pan -)
 
 - **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `209` (`skode_clause_pan_mod_0`)
+- **Discrete Opcode ID**: `212` (`skode_clause_pan_mod_0`)
 - **Summary**: disable pan modulation
 
 **Description & Details**:
@@ -3867,7 +3926,7 @@ Usage: P (or pan_mod)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `210` (`skode_clause_pan_mod_1`)
+- **Discrete Opcode ID**: `213` (`skode_clause_pan_mod_1`)
 - **Summary**: pan modulation source or disable
 
 **Description & Details**:
@@ -3881,7 +3940,7 @@ Usage: P source
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `211` (`skode_clause_pan_mod_2`)
+- **Discrete Opcode ID**: `214` (`skode_clause_pan_mod_2`)
 - **Summary**: pan modulation source and depth
 
 **Description & Details**:
@@ -3895,7 +3954,7 @@ Usage: P source depth
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `212` (`skode_clause_pan_mod_3`)
+- **Discrete Opcode ID**: `215` (`skode_clause_pan_mod_3`)
 - **Summary**: pan modulation source, depth and scale
 
 **Description & Details**:
@@ -3917,7 +3976,7 @@ Usage: P source depth scale
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `223` (`skode_clause_poly_bend_3`)
+- **Discrete Opcode ID**: `226` (`skode_clause_poly_bend_3`)
 - **Summary**: apply polyphonic pitch bend
 
 **Description & Details**:
@@ -3931,7 +3990,7 @@ Usage: pb pool key semitones
 
 - **Arity**: `4`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `224` (`skode_clause_poly_bend_4`)
+- **Discrete Opcode ID**: `227` (`skode_clause_poly_bend_4`)
 - **Summary**: apply polyphonic pitch bend with cents
 
 **Description & Details**:
@@ -3953,7 +4012,7 @@ Usage: pb pool key semitones cents
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `225` (`skode_clause_poly_bend_gb_3`)
+- **Discrete Opcode ID**: `228` (`skode_clause_poly_bend_gb_3`)
 - **Summary**: apply polyphonic pitch bend (gb alias)
 
 **Description & Details**:
@@ -3967,7 +4026,7 @@ Usage: gb pool key semitones
 
 - **Arity**: `4`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `226` (`skode_clause_poly_bend_gb_4`)
+- **Discrete Opcode ID**: `229` (`skode_clause_poly_bend_gb_4`)
 - **Summary**: apply polyphonic pitch bend with cents (gb alias)
 
 **Description & Details**:
@@ -3989,7 +4048,7 @@ Usage: gb pool key semitones cents
 
 - **Arity**: `4`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `215` (`skode_clause_poly_note_4`)
+- **Discrete Opcode ID**: `218` (`skode_clause_poly_note_4`)
 - **Summary**: trigger polyphonic note
 
 **Description & Details**:
@@ -4003,7 +4062,7 @@ Usage: pn pool,key,note,velocity
 
 - **Arity**: `5`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `216` (`skode_clause_poly_note_5`)
+- **Discrete Opcode ID**: `219` (`skode_clause_poly_note_5`)
 - **Summary**: trigger polyphonic note with cents
 
 **Description & Details**:
@@ -4025,7 +4084,7 @@ Usage: pn pool,key,note,velocity,cents
 
 - **Arity**: `4`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `217` (`skode_clause_poly_note_gn_4`)
+- **Discrete Opcode ID**: `220` (`skode_clause_poly_note_gn_4`)
 - **Summary**: trigger polyphonic note (gn alias)
 
 **Description & Details**:
@@ -4039,7 +4098,7 @@ Usage: gn pool,key,note,velocity
 
 - **Arity**: `5`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `218` (`skode_clause_poly_note_gn_5`)
+- **Discrete Opcode ID**: `221` (`skode_clause_poly_note_gn_5`)
 - **Summary**: trigger polyphonic note with cents (gn alias)
 
 **Description & Details**:
@@ -4061,7 +4120,7 @@ Usage: gn pool,key,note,velocity,cents
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `219` (`skode_clause_poly_release_2`)
+- **Discrete Opcode ID**: `222` (`skode_clause_poly_release_2`)
 - **Summary**: release polyphonic note
 
 **Description & Details**:
@@ -4075,7 +4134,7 @@ Usage: pr pool key
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `220` (`skode_clause_poly_release_3`)
+- **Discrete Opcode ID**: `223` (`skode_clause_poly_release_3`)
 - **Summary**: release polyphonic note with release velocity
 
 **Description & Details**:
@@ -4097,7 +4156,7 @@ Usage: pr pool key velocity
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `221` (`skode_clause_poly_release_gr_2`)
+- **Discrete Opcode ID**: `224` (`skode_clause_poly_release_gr_2`)
 - **Summary**: release polyphonic note (gr alias)
 
 **Description & Details**:
@@ -4111,7 +4170,7 @@ Usage: gr pool key
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `222` (`skode_clause_poly_release_gr_3`)
+- **Discrete Opcode ID**: `225` (`skode_clause_poly_release_gr_3`)
 - **Summary**: release polyphonic note with velocity (gr alias)
 
 **Description & Details**:
@@ -4655,7 +4714,7 @@ Displays active recording stems and voice routing.
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `203` (`skode_clause_ring_mod_1`)
+- **Discrete Opcode ID**: `206` (`skode_clause_ring_mod_1`)
 - **Summary**: ring modulation source
 
 **Description & Details**:
@@ -4669,7 +4728,7 @@ Usage: XM source (or ring_mod source)
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `204` (`skode_clause_ring_mod_2`)
+- **Discrete Opcode ID**: `207` (`skode_clause_ring_mod_2`)
 - **Summary**: ring modulation source and amount
 
 **Description & Details**:
@@ -4691,7 +4750,7 @@ Usage: XM source amount (or ring_mod source amount)
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `227` (`skode_clause_sample_hold_1`)
+- **Discrete Opcode ID**: `230` (`skode_clause_sample_hold_1`)
 - **Summary**: set sample and hold ratio
 
 **Description & Details**:
@@ -4705,7 +4764,7 @@ Usage: h 4
 
 - **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `228` (`skode_clause_sample_hold_0`)
+- **Discrete Opcode ID**: `231` (`skode_clause_sample_hold_0`)
 - **Summary**: sample and hold no-op
 
 **Description & Details**:
@@ -4718,7 +4777,7 @@ Sample and hold no-op.
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `229` (`skode_clause_sample_hold_2`)
+- **Discrete Opcode ID**: `232` (`skode_clause_sample_hold_2`)
 - **Summary**: set sample and hold ratio and mode
 
 **Description & Details**:
@@ -4740,7 +4799,7 @@ Usage: h 4 1
 
 - **Arity**: `1..2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `202` (`skode_clause_smoother`)
+- **Discrete Opcode ID**: `205` (`skode_clause_smoother`)
 - **Summary**: parameter smoothing time and optional mode
 
 **Description & Details**:
@@ -4763,7 +4822,7 @@ Usage: s time[, mode] (or smoother time[, mode])
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `230` (`skode_clause_track_route_1`)
+- **Discrete Opcode ID**: `233` (`skode_clause_track_route_1`)
 - **Summary**: route voice to track
 
 **Description & Details**:
@@ -4777,7 +4836,7 @@ Usage: r 2
 
 - **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `231` (`skode_clause_track_route_0`)
+- **Discrete Opcode ID**: `234` (`skode_clause_track_route_0`)
 - **Summary**: track route no-op
 
 **Description & Details**:
@@ -4790,7 +4849,7 @@ Track route no-op.
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `232` (`skode_clause_track_route_2`)
+- **Discrete Opcode ID**: `235` (`skode_clause_track_route_2`)
 - **Summary**: route specific voice to track
 
 **Description & Details**:
@@ -4891,7 +4950,7 @@ Track route voice no-op.
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `200` (`skode_clause_velocity`)
+- **Discrete Opcode ID**: `203` (`skode_clause_velocity`)
 - **Summary**: set voice note velocity
 
 **Description & Details**:
@@ -5036,7 +5095,7 @@ Voice control events no-op.
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `214` (`skode_clause_voice_copy`)
+- **Discrete Opcode ID**: `217` (`skode_clause_voice_copy`)
 - **Summary**: copy voice state to target voice
 
 **Description & Details**:
@@ -5092,7 +5151,7 @@ Usage: v* param var
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `213` (`skode_clause_voice_reset`)
+- **Discrete Opcode ID**: `216` (`skode_clause_voice_reset`)
 - **Summary**: reset voice state to defaults
 
 **Description & Details**:
@@ -5339,7 +5398,7 @@ Usage: VW voice width height
 
 - **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `233` (`skode_clause_wave_default_0`)
+- **Discrete Opcode ID**: `236` (`skode_clause_wave_default_0`)
 - **Summary**: reset voice waveform to default sine
 
 **Description & Details**:
@@ -5353,7 +5412,7 @@ Usage: /
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `234` (`skode_clause_wave_default_1`)
+- **Discrete Opcode ID**: `237` (`skode_clause_wave_default_1`)
 - **Summary**: reset voice waveform to default sine with argument
 
 **Description & Details**:
@@ -6162,7 +6221,7 @@ Usage: DD
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `249` (`skode_clause_delay_damping_1`)
+- **Discrete Opcode ID**: `252` (`skode_clause_delay_damping_1`)
 - **Summary**: set delay damping bus
 
 **Description & Details**:
@@ -6176,7 +6235,7 @@ Usage: DD bus
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `250` (`skode_clause_delay_damping_2`)
+- **Discrete Opcode ID**: `253` (`skode_clause_delay_damping_2`)
 - **Summary**: set delay damping bus and lp damping
 
 **Description & Details**:
@@ -6190,7 +6249,7 @@ Usage: DD bus damping
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `251` (`skode_clause_delay_damping_3`)
+- **Discrete Opcode ID**: `254` (`skode_clause_delay_damping_3`)
 - **Summary**: set delay damping bus, lp and hp
 
 **Description & Details**:
@@ -6225,7 +6284,7 @@ Usage: DF
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `252` (`skode_clause_delay_freeze_1`)
+- **Discrete Opcode ID**: `255` (`skode_clause_delay_freeze_1`)
 - **Summary**: set delay freeze bus
 
 **Description & Details**:
@@ -6239,7 +6298,7 @@ Usage: DF bus
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `253` (`skode_clause_delay_freeze_2`)
+- **Discrete Opcode ID**: `256` (`skode_clause_delay_freeze_2`)
 - **Summary**: set delay freeze bus and state
 
 **Description & Details**:
@@ -6274,7 +6333,7 @@ Usage: DG
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `239` (`skode_clause_delay_grit_1`)
+- **Discrete Opcode ID**: `242` (`skode_clause_delay_grit_1`)
 - **Summary**: set delay grit bus
 
 **Description & Details**:
@@ -6288,7 +6347,7 @@ Usage: DG bus
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `240` (`skode_clause_delay_grit_2`)
+- **Discrete Opcode ID**: `243` (`skode_clause_delay_grit_2`)
 - **Summary**: set delay grit bus and bits
 
 **Description & Details**:
@@ -6302,7 +6361,7 @@ Usage: DG bus bits
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `241` (`skode_clause_delay_grit_3`)
+- **Discrete Opcode ID**: `244` (`skode_clause_delay_grit_3`)
 - **Summary**: set delay grit bus, bits and native mode
 
 **Description & Details**:
@@ -6337,7 +6396,7 @@ Usage: DL
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `242` (`skode_clause_delay_params_1`)
+- **Discrete Opcode ID**: `245` (`skode_clause_delay_params_1`)
 - **Summary**: set delay bus
 
 **Description & Details**:
@@ -6351,7 +6410,7 @@ Usage: DL bus
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `243` (`skode_clause_delay_params_2`)
+- **Discrete Opcode ID**: `246` (`skode_clause_delay_params_2`)
 - **Summary**: set delay bus and coarse time
 
 **Description & Details**:
@@ -6364,7 +6423,7 @@ Sets delay bus and coarse time.
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `244` (`skode_clause_delay_params_3`)
+- **Discrete Opcode ID**: `247` (`skode_clause_delay_params_3`)
 - **Summary**: set delay bus, coarse, fine
 
 **Description & Details**:
@@ -6377,7 +6436,7 @@ Sets delay bus, coarse, fine.
 
 - **Arity**: `4`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `245` (`skode_clause_delay_params_4`)
+- **Discrete Opcode ID**: `248` (`skode_clause_delay_params_4`)
 - **Summary**: set delay bus, coarse, fine, feedback
 
 **Description & Details**:
@@ -6390,7 +6449,7 @@ Sets delay bus, coarse, fine, feedback.
 
 - **Arity**: `5`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `246` (`skode_clause_delay_params_5`)
+- **Discrete Opcode ID**: `249` (`skode_clause_delay_params_5`)
 - **Summary**: set delay bus, coarse, fine, feedback, mod_freq
 
 **Description & Details**:
@@ -6403,7 +6462,7 @@ Sets delay parameters with mod_freq.
 
 - **Arity**: `6`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `247` (`skode_clause_delay_params_6`)
+- **Discrete Opcode ID**: `250` (`skode_clause_delay_params_6`)
 - **Summary**: set delay bus, coarse, fine, feedback, mod_freq, mod_depth
 
 **Description & Details**:
@@ -6416,7 +6475,7 @@ Sets delay parameters with mod_depth.
 
 - **Arity**: `7`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `248` (`skode_clause_delay_params_7`)
+- **Discrete Opcode ID**: `251` (`skode_clause_delay_params_7`)
 - **Summary**: set all delay parameters
 
 **Description & Details**:
@@ -6451,7 +6510,7 @@ Usage: DP
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `254` (`skode_clause_delay_pingpong_1`)
+- **Discrete Opcode ID**: `257` (`skode_clause_delay_pingpong_1`)
 - **Summary**: set delay pingpong bus
 
 **Description & Details**:
@@ -6465,7 +6524,7 @@ Usage: DP bus
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `255` (`skode_clause_delay_pingpong_2`)
+- **Discrete Opcode ID**: `258` (`skode_clause_delay_pingpong_2`)
 - **Summary**: set delay pingpong bus and state
 
 **Description & Details**:
@@ -6521,7 +6580,7 @@ Usage: DL? 1
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `256` (`skode_clause_delay_time_ms_2`)
+- **Discrete Opcode ID**: `259` (`skode_clause_delay_time_ms_2`)
 - **Summary**: set delay time in milliseconds
 
 **Description & Details**:
@@ -6547,7 +6606,7 @@ Delay time ms no-op.
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `257` (`skode_clause_delay_time_ms_1`)
+- **Discrete Opcode ID**: `260` (`skode_clause_delay_time_ms_1`)
 - **Summary**: delay time ms bus
 
 **Description & Details**:
@@ -6568,7 +6627,7 @@ Delay time ms bus only.
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `258` (`skode_clause_delay_time_sync_3`)
+- **Discrete Opcode ID**: `261` (`skode_clause_delay_time_sync_3`)
 - **Summary**: set tempo-synced delay time
 
 **Description & Details**:
@@ -6594,7 +6653,7 @@ Delay time sync no-op.
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `259` (`skode_clause_delay_time_sync_1`)
+- **Discrete Opcode ID**: `262` (`skode_clause_delay_time_sync_1`)
 - **Summary**: delay time sync bus
 
 **Description & Details**:
@@ -6607,7 +6666,7 @@ Delay time sync bus only.
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `260` (`skode_clause_delay_time_sync_2`)
+- **Discrete Opcode ID**: `263` (`skode_clause_delay_time_sync_2`)
 - **Summary**: delay time sync bus and beats
 
 **Description & Details**:
@@ -10565,7 +10624,7 @@ Usage: /vg voice format depth
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `261` (`skode_clause_voice_link_gate_1`)
+- **Discrete Opcode ID**: `264` (`skode_clause_voice_link_gate_1`)
 - **Summary**: link gate to target voice
 
 **Description & Details**:
@@ -10579,7 +10638,7 @@ Usage: G 0
 
 - **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `262` (`skode_clause_voice_link_gate_0`)
+- **Discrete Opcode ID**: `265` (`skode_clause_voice_link_gate_0`)
 - **Summary**: voice link gate clear
 
 **Description & Details**:
@@ -10592,7 +10651,7 @@ Clears gate links for active voice.
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `263` (`skode_clause_voice_link_gate_2`)
+- **Discrete Opcode ID**: `266` (`skode_clause_voice_link_gate_2`)
 - **Summary**: link gate to 2 target voices
 
 **Description & Details**:
@@ -10606,7 +10665,7 @@ Usage: G v1 v2
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `264` (`skode_clause_voice_link_gate_3`)
+- **Discrete Opcode ID**: `267` (`skode_clause_voice_link_gate_3`)
 - **Summary**: link gate to 3 target voices
 
 **Description & Details**:
@@ -10619,7 +10678,7 @@ Links gate to 3 target voices.
 
 - **Arity**: `4`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `265` (`skode_clause_voice_link_gate_4`)
+- **Discrete Opcode ID**: `268` (`skode_clause_voice_link_gate_4`)
 - **Summary**: link gate to 4 target voices
 
 **Description & Details**:
@@ -10640,7 +10699,7 @@ Links gate to 4 target voices.
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `266` (`skode_clause_voice_link_sync_1`)
+- **Discrete Opcode ID**: `269` (`skode_clause_voice_link_sync_1`)
 - **Summary**: link velocity to target voice
 
 **Description & Details**:
@@ -10654,7 +10713,7 @@ Usage: H 0
 
 - **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `267` (`skode_clause_voice_link_sync_0`)
+- **Discrete Opcode ID**: `270` (`skode_clause_voice_link_sync_0`)
 - **Summary**: voice link velocity clear
 
 **Description & Details**:
@@ -10667,7 +10726,7 @@ Clears velocity links for active voice.
 
 - **Arity**: `2`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `268` (`skode_clause_voice_link_sync_2`)
+- **Discrete Opcode ID**: `271` (`skode_clause_voice_link_sync_2`)
 - **Summary**: link velocity to 2 target voices
 
 **Description & Details**:
@@ -10681,7 +10740,7 @@ Usage: H v1 v2
 
 - **Arity**: `3`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `269` (`skode_clause_voice_link_sync_3`)
+- **Discrete Opcode ID**: `272` (`skode_clause_voice_link_sync_3`)
 - **Summary**: link velocity to 3 target voices
 
 **Description & Details**:
@@ -10694,7 +10753,7 @@ Links velocity to 3 target voices.
 
 - **Arity**: `4`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `270` (`skode_clause_voice_link_sync_4`)
+- **Discrete Opcode ID**: `273` (`skode_clause_voice_link_sync_4`)
 - **Summary**: link velocity to 4 target voices
 
 **Description & Details**:
@@ -10715,7 +10774,7 @@ Links velocity to 4 target voices.
 
 - **Arity**: `1`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `271` (`skode_clause_voice_link_trig_1`)
+- **Discrete Opcode ID**: `274` (`skode_clause_voice_link_trig_1`)
 - **Summary**: set voice link trigger duration
 
 **Description & Details**:
@@ -10729,7 +10788,7 @@ Usage: L 0.25
 
 - **Arity**: `0`
 - **Execution Model**: `realtime (audio thread safe)`
-- **Discrete Opcode ID**: `272` (`skode_clause_voice_link_trig_0`)
+- **Discrete Opcode ID**: `275` (`skode_clause_voice_link_trig_0`)
 - **Summary**: voice link trigger duration reset
 
 **Description & Details**:

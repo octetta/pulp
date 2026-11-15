@@ -842,7 +842,7 @@ static void emit_c_source(const char *out_path) {
             fprintf(f, "    float fargs[SKODE_CLAUSE_MAX_ARGS];\n");
             fprintf(f, "    int i;\n");
             fprintf(f, "    (void)s;\n");
-            fprintf(f, "    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];\n");
+            fprintf(f, "    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);\n");
             fprintf(f, "    return %s(ctx ? ctx->voice : 0, fargs, argc);\n", c->c_name);
             fprintf(f, "}\n\n");
         } else {

@@ -31,10 +31,10 @@ int main(void) {
   voice_init();
   skred_poly_reset();
 
-  sv.link_midi_0[0] = 1;
-  sv.link_velo_0[0] = 1;
+  sv.link_midi[0][0] = 1;
+  sv.link_velo[0][0] = 1;
   sv.midi_transpose[1] = 12;
-  sv.link_midi_1[0] = 5;
+  sv.link_midi[1][0] = 5;
   sv.one_shot[0] = 1;
   sv.interpolate[0] = 0;
   sv.disconnect[0] = 1;
@@ -53,13 +53,13 @@ int main(void) {
   expect(skred_poly_pool_set(0, 0, 8, 2,
            SKRED_POLY_STEAL_RELEASE_OLDEST) == 0,
          "pool definition failed");
-  expect((int)sv.link_midi_0[8] == 9,
+  expect((int)sv.link_midi[0][8] == 9,
          "internal pitch dependency was not remapped");
-  expect((int)sv.link_velo_0[8] == 9,
+  expect((int)sv.link_velo[0][8] == 9,
          "internal gate dependency was not remapped");
-  expect((int)sv.link_midi_0[10] == 11,
+  expect((int)sv.link_midi[0][10] == 11,
          "second instance dependency was not remapped");
-  expect((int)sv.link_midi_1[8] == 5,
+  expect((int)sv.link_midi[1][8] == 5,
          "external pitch dependency was incorrectly remapped");
   expect(near(sv.delay_send[8], 0.75f),
          "group clone overwrote destination delay send");
@@ -174,7 +174,7 @@ int main(void) {
          strstr(skred_poly_pool_status(4), "instance 1 root v30 state held key 5103"),
          "quietest stealing failed");
 
-  sv.link_midi_0[9] = 8;
+  sv.link_midi[0][9] = 8;
 
   const char *ascii = skred_voice_graph(8, 0, 8);
   expect(strstr(ascii, "voice v8") && strstr(ascii, "pitch -> v9") &&

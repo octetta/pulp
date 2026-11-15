@@ -1,5 +1,6 @@
 double skode_stream_pull(void *ctx, int n);
 #include "skode-internal.h"
+#include "skode_dict_gen.h"
 
 char *skred_performance_status(void);
 
@@ -362,28 +363,68 @@ static void skode_help_show_doc(skode_t *ctx, const skode_doc_entry_t *doc) {
   skode_help_field(doc, "name", name, sizeof(name));
   skode_help_field(doc, "category", category, sizeof(category));
   skode_help_field(doc, "summary", summary, sizeof(summary));
-  ctx->printf(ctx, "# help %s", name[0] ? name : doc->key);
-  if (category[0]) ctx->printf(ctx, " [%s]", category);
-  
-  // Check skode_dict for arity
+
   const char *lookup_name = name[0] ? name : doc->key;
-  const skode_word_t *word = skode_dict_find_by_name(ctx->vocab, lookup_name);
-  if (word) {
-    if (word->min_args == word->max_args) {
-      if (word->min_args == 0) {
-        ctx->printf(ctx, " [arity: 0 args]");
-      } else if (word->min_args == 1) {
-        ctx->printf(ctx, " [arity: 1 arg]");
+  if (strncmp(lookup_name, "command.", 8) == 0) lookup_name += 8;
+  const skode_def_word_t *gw = skode_dict_find(lookup_name);
+  if (!gw && name[0]) gw = skode_dict_find(name);
+
+  if (gw && gw->clause_count > 1) {
+    ctx->printf(ctx, "# help %s", name[0] ? name : doc->key);
+    if (category[0]) ctx->printf(ctx, " [%s]", category);
+    ctx->printf(ctx, " [%d clauses]:\n", gw->clause_count);
+    for (int c = 0; c < gw->clause_count; c++) {
+      const skode_clause_t *cl = &gw->clauses[c];
+      if (cl->min_arity == cl->max_arity) {
+        if (cl->min_arity == 0) ctx->printf(ctx, "#   clause %d [arity: 0 args]", c + 1);
+        else if (cl->min_arity == 1) ctx->printf(ctx, "#   clause %d [arity: 1 arg]", c + 1);
+        else ctx->printf(ctx, "#   clause %d [arity: %d args]", c + 1, cl->min_arity);
       } else {
-        ctx->printf(ctx, " [arity: %d args]", word->min_args);
+        ctx->printf(ctx, "#   clause %d [arity: %d..%d args]", c + 1, cl->min_arity, cl->max_arity);
+      }
+      if (cl->summary && cl->summary[0]) ctx->printf(ctx, " - %s", cl->summary);
+      ctx->puts(ctx, "");
+    }
+  } else {
+    ctx->printf(ctx, "# help %s", name[0] ? name : doc->key);
+    if (category[0]) ctx->printf(ctx, " [%s]", category);
+
+    if (gw && gw->clause_count == 1) {
+      const skode_clause_t *cl = &gw->clauses[0];
+      if (cl->min_arity == cl->max_arity) {
+        if (cl->min_arity == 0) ctx->printf(ctx, " [arity: 0 args]");
+        else if (cl->min_arity == 1) ctx->printf(ctx, " [arity: 1 arg]");
+        else ctx->printf(ctx, " [arity: %d args]", cl->min_arity);
+      } else {
+        ctx->printf(ctx, " [arity: %d..%d args]", cl->min_arity, cl->max_arity);
       }
     } else {
-      ctx->printf(ctx, " [arity: %d-%d args]", word->min_args, word->max_args);
+      const skode_word_t *word = skode_dict_find_by_name(ctx->vocab, lookup_name);
+      if (word) {
+        if (word->min_args == word->max_args) {
+          if (word->min_args == 0) {
+            ctx->printf(ctx, " [arity: 0 args]");
+          } else if (word->min_args == 1) {
+            ctx->printf(ctx, " [arity: 1 arg]");
+          } else {
+            ctx->printf(ctx, " [arity: %d args]", word->min_args);
+          }
+        } else {
+          ctx->printf(ctx, " [arity: %d-%d args]", word->min_args, word->max_args);
+        }
+      }
+    }
+    ctx->puts(ctx, "");
+    const char *sum = (gw && gw->clause_count == 1 && gw->clauses[0].summary && gw->clauses[0].summary[0])
+                      ? gw->clauses[0].summary : summary;
+    if (sum[0]) ctx->printf(ctx, "#   %s\n", sum);
+    if (gw && gw->clause_count == 1 && gw->clauses[0].doc && gw->clauses[0].doc[0] &&
+        strcmp(gw->clauses[0].doc, sum) != 0) {
+      ctx->printf(ctx, "#   %s\n", gw->clauses[0].doc);
     }
   }
-  
-  ctx->puts(ctx, "");
-  if (summary[0]) ctx->printf(ctx, "#   %s\n", summary);
+
+  const skode_word_t *word = skode_dict_find_by_name(ctx->vocab, lookup_name);
   if (word && word->help_detail) {
     ctx->printf(ctx, "#\n");
     const char *p = word->help_detail;
@@ -550,37 +591,10 @@ static void skode_help_lookup_string(skode_t *ctx, const char *query) {
     return;
   }
 
-  /* Case B: One or more exact matches, plus additional prefix/sub matches */
+  /* Case B: One or more exact matches, suppress unrelated prefix matches */
   if (exact_count > 0) {
     for (int i = 0; i < exact_count; i++) {
       skode_help_show_doc(ctx, exact_matches[i]);
-    }
-    if (prefix_count > 0 || sub_count > 0) {
-      ctx->printf(ctx, "# other matches for [%s]:\n", query);
-      for (int i = 0; i < prefix_count; i++) {
-        char name[SKODE_HELP_FIELD_MAX] = "";
-        char category[SKODE_HELP_FIELD_MAX] = "";
-        char summary[SKODE_HELP_FIELD_MAX] = "";
-        skode_help_field(prefix_matches[i], "name", name, sizeof(name));
-        skode_help_field(prefix_matches[i], "category", category, sizeof(category));
-        skode_help_field(prefix_matches[i], "summary", summary, sizeof(summary));
-        ctx->printf(ctx, "#   %s", name[0] ? name : prefix_matches[i]->key);
-        if (category[0]) ctx->printf(ctx, " [%s]", category);
-        if (summary[0]) ctx->printf(ctx, " - %s", summary);
-        ctx->puts(ctx, "");
-      }
-      for (int i = 0; i < sub_count; i++) {
-        char name[SKODE_HELP_FIELD_MAX] = "";
-        char category[SKODE_HELP_FIELD_MAX] = "";
-        char summary[SKODE_HELP_FIELD_MAX] = "";
-        skode_help_field(sub_matches[i], "name", name, sizeof(name));
-        skode_help_field(sub_matches[i], "category", category, sizeof(category));
-        skode_help_field(sub_matches[i], "summary", summary, sizeof(summary));
-        ctx->printf(ctx, "#   %s", name[0] ? name : sub_matches[i]->key);
-        if (category[0]) ctx->printf(ctx, " [%s]", category);
-        if (summary[0]) ctx->printf(ctx, " - %s", summary);
-        ctx->puts(ctx, "");
-      }
     }
     return;
   }

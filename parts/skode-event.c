@@ -293,12 +293,9 @@ int skode_midi_note(int voice, float note, float cents) {
   voice_is_rest[voice] = 0;
   float pitch = note < 0.0f ? -note : note;
   int result = freq_midi(voice, pitch, cents);
-  if (sv.link_midi_0[voice] >= 0) freq_midi(sv.link_midi_0[voice], pitch, cents);
-  if (sv.link_midi_1[voice] >= 0) freq_midi(sv.link_midi_1[voice], pitch, cents);
-  if (sv.link_midi_2[voice] >= 0) freq_midi(sv.link_midi_2[voice], pitch, cents);
-  if (sv.link_midi_3[voice] >= 0) freq_midi(sv.link_midi_3[voice], pitch, cents);
-  if (sv.link_midi_4[voice] >= 0) freq_midi(sv.link_midi_4[voice], pitch, cents);
-  if (sv.link_midi_5[voice] >= 0) freq_midi(sv.link_midi_5[voice], pitch, cents);
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+    if (sv.link_midi[i][voice] >= 0) freq_midi(sv.link_midi[i][voice], pitch, cents);
+  }
   return result;
 }
 
@@ -315,12 +312,9 @@ int skode_inst_note(int voice, float note, float velocity, float cents) {
   voice_is_rest[voice] = 0;
   float pitch = note < 0.0f ? -note : note;
   freq_midi(voice, pitch, cents);
-  if (sv.link_midi_0[voice] >= 0) freq_midi(sv.link_midi_0[voice], pitch, cents);
-  if (sv.link_midi_1[voice] >= 0) freq_midi(sv.link_midi_1[voice], pitch, cents);
-  if (sv.link_midi_2[voice] >= 0) freq_midi(sv.link_midi_2[voice], pitch, cents);
-  if (sv.link_midi_3[voice] >= 0) freq_midi(sv.link_midi_3[voice], pitch, cents);
-  if (sv.link_midi_4[voice] >= 0) freq_midi(sv.link_midi_4[voice], pitch, cents);
-  if (sv.link_midi_5[voice] >= 0) freq_midi(sv.link_midi_5[voice], pitch, cents);
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+    if (sv.link_midi[i][voice] >= 0) freq_midi(sv.link_midi[i][voice], pitch, cents);
+  }
 
   if (note >= 0.0f) {
     float vel = velocity > 0.0f ? velocity : 1.0f;
@@ -335,12 +329,9 @@ int skode_linked_velocity(int voice, float velocity, uint64_t sample) {
     velocity = 0.0f;
   }
   skode_envelope_velocity(voice, velocity, sample);
-  if (sv.link_velo_0[voice] >= 0) skode_envelope_velocity(sv.link_velo_0[voice], velocity, sample);
-  if (sv.link_velo_1[voice] >= 0) skode_envelope_velocity(sv.link_velo_1[voice], velocity, sample);
-  if (sv.link_velo_2[voice] >= 0) skode_envelope_velocity(sv.link_velo_2[voice], velocity, sample);
-  if (sv.link_velo_3[voice] >= 0) skode_envelope_velocity(sv.link_velo_3[voice], velocity, sample);
-  if (sv.link_velo_4[voice] >= 0) skode_envelope_velocity(sv.link_velo_4[voice], velocity, sample);
-  if (sv.link_velo_5[voice] >= 0) skode_envelope_velocity(sv.link_velo_5[voice], velocity, sample);
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+    if (sv.link_velo[i][voice] >= 0) skode_envelope_velocity(sv.link_velo[i][voice], velocity, sample);
+  }
   return 0;
 }
 

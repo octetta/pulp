@@ -11,12 +11,8 @@ Links gate of active voice to follow target voice.
 Usage: G 0
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_midi_1[voice] = -1.0f;
-    sv.link_midi_2[voice] = -1.0f;
-    sv.link_midi_3[voice] = -1.0f;
-    sv.link_midi_4[voice] = -1.0f;
-    sv.link_midi_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_midi[i][voice] = -1.0f;
+    sv.link_midi[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
     return 0;
 @end
 
@@ -32,12 +28,7 @@ Usage: G 0
 Clears gate links for active voice.
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_midi_0[voice] = -1.0f;
-    sv.link_midi_1[voice] = -1.0f;
-    sv.link_midi_2[voice] = -1.0f;
-    sv.link_midi_3[voice] = -1.0f;
-    sv.link_midi_4[voice] = -1.0f;
-    sv.link_midi_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_midi[i][voice] = -1.0f;
     return 0;
 @end
 
@@ -54,12 +45,9 @@ Links gate to two target voices.
 Usage: G v1 v2
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_midi_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_midi_2[voice] = -1.0f;
-    sv.link_midi_3[voice] = -1.0f;
-    sv.link_midi_4[voice] = -1.0f;
-    sv.link_midi_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_midi[i][voice] = -1.0f;
+    sv.link_midi[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_midi[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
     return 0;
 @end
 
@@ -75,12 +63,10 @@ Usage: G v1 v2
 Links gate to 3 target voices.
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_midi_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_midi_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
-    sv.link_midi_3[voice] = -1.0f;
-    sv.link_midi_4[voice] = -1.0f;
-    sv.link_midi_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_midi[i][voice] = -1.0f;
+    sv.link_midi[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_midi[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_midi[2][voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
     return 0;
 @end
 
@@ -96,11 +82,10 @@ Links gate to 3 target voices.
 Links gate to 4 target voices.
 @code
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_midi_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_midi_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
-    sv.link_midi_3[voice] = (args[3] >= 0 && args[3] < synth_config.voice_max) ? args[3] : -1.0f;
-    sv.link_midi_4[voice] = -1.0f;
-    sv.link_midi_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_midi[i][voice] = -1.0f;
+    sv.link_midi[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_midi[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_midi[2][voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
+    sv.link_midi[3][voice] = (args[3] >= 0 && args[3] < synth_config.voice_max) ? args[3] : -1.0f;
     return 0;
 @end

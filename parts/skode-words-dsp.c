@@ -174,11 +174,14 @@ static int word_exec_ct(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
 neutral `ct 0 0 1 0` disables it.
 
 @enddoc */
-      if (argc == 4) {
-        float a = arg[0];
-        float d = arg[1];
-        float s = arg[2];
-        float r = arg[3];
+      if (argc == 0) {
+        envelope_configure_e(&sv.cz_envelope[voice], 0.0f, 0.0f, 1.0f, 0.0f);
+        sv.use_cz_envelope[voice] = 0;
+      } else if (argc >= 2) {
+        float a = (float)arg[0];
+        float d = (float)arg[1];
+        float s = (argc > 2) ? (float)arg[2] : 0.0f;
+        float r = (argc > 3) ? (float)arg[3] : 0.0f;
         envelope_configure_e(&sv.cz_envelope[voice], a, d, s, r);
         sv.use_cz_envelope[voice] = !(a == 0 && d == 0 && s == 1 && r == 0);
       }
@@ -261,11 +264,14 @@ static int word_exec_ft(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      if (argc == 4) {
-        float a = arg[0];
-        float d = arg[1];
-        float s = arg[2];
-        float r = arg[3];
+      if (argc == 0) {
+        envelope_configure_e(&sv.filter_envelope[voice], 0.0f, 0.0f, 1.0f, 0.0f);
+        sv.use_filter_envelope[voice] = 0;
+      } else if (argc >= 2) {
+        float a = (float)arg[0];
+        float d = (float)arg[1];
+        float s = (argc > 2) ? (float)arg[2] : 0.0f;
+        float r = (argc > 3) ? (float)arg[3] : 0.0f;
         envelope_configure_e(&sv.filter_envelope[voice], a, d, s, r);
         sv.use_filter_envelope[voice] = !(a==0 && d==0 && s==1 && r==0);
       }
@@ -347,15 +353,14 @@ static int word_exec_g(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      if (argc) {
-        if (arg[0] <= 0) {
-          sv.glissando_enable[voice] = 0;
-          sv.glissando_time[voice] = 0.0;
-        } else {
-          sv.glissando_enable[voice] = 1;
-          sv.glissando_time[voice] = arg[0];
-          sv.glissando_mode[voice] = (argc > 1) ? (int)arg[1] : 0;
-        }
+      if (argc == 0 || arg[0] <= 0) {
+        sv.glissando_enable[voice] = 0;
+        sv.glissando_time[voice] = 0.0;
+        sv.glissando_mode[voice] = 0;
+      } else {
+        sv.glissando_enable[voice] = 1;
+        sv.glissando_time[voice] = arg[0];
+        sv.glissando_mode[voice] = (argc > 1) ? (int)arg[1] : 0;
       }
       return 0;
 }
@@ -369,18 +374,13 @@ static int word_exec_G(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
-        int links[6] = {-1, -1, -1, -1, -1, -1};
-        for (int i = 0; i < argc && i < 6; i++) {
+        for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
           int link;
-          if (skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
-            links[i] = link;
+          if (i < argc && skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
+            sv.link_midi[i][voice] = (float)link;
+          else
+            sv.link_midi[i][voice] = -1.0f;
         }
-        sv.link_midi_0[voice] = links[0];
-        sv.link_midi_1[voice] = links[1];
-        sv.link_midi_2[voice] = links[2];
-        sv.link_midi_3[voice] = links[3];
-        sv.link_midi_4[voice] = links[4];
-        sv.link_midi_5[voice] = links[5];
       }
       return 0;
 }
@@ -412,18 +412,13 @@ static int word_exec_H(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
       if (argc) {
-        int links[6] = {-1, -1, -1, -1, -1, -1};
-        for (int i = 0; i < argc && i < 6; i++) {
+        for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
           int link;
-          if (skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
-            links[i] = link;
+          if (i < argc && skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
+            sv.link_velo[i][voice] = (float)link;
+          else
+            sv.link_velo[i][voice] = -1.0f;
         }
-        sv.link_velo_0[voice] = links[0];
-        sv.link_velo_1[voice] = links[1];
-        sv.link_velo_2[voice] = links[2];
-        sv.link_velo_3[voice] = links[3];
-        sv.link_velo_4[voice] = links[4];
-        sv.link_velo_5[voice] = links[5];
       }
       return 0;
     // TODO re-allocate the data/array buffer with the arg
@@ -518,16 +513,12 @@ static int word_exec_l(const skode_word_t *self, skode_t *ctx, ands_t *s, double
     #else
       if (argc) {
         uint64_t now = SAMPLE_COUNT_GET();
-        int a = sv.link_velo_0[voice];
-        int b = sv.link_velo_1[voice];
-        int c = sv.link_velo_2[voice];
-        int d = sv.link_velo_3[voice];
         double vel = arg[0];
         skode_envelope_velocity(voice, vel, now);
-        if (a >= 0) skode_envelope_velocity(a, vel, now);
-        if (b >= 0) skode_envelope_velocity(b, vel, now);
-        if (c >= 0) skode_envelope_velocity(c, vel, now);
-        if (d >= 0) skode_envelope_velocity(d, vel, now);
+        for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+          if (sv.link_velo[i][voice] >= 0)
+            skode_envelope_velocity((int)sv.link_velo[i][voice], vel, now);
+        }
       }
     #endif
       return 0;
@@ -883,7 +874,15 @@ static int word_exec_t(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      if (argc > 3) envelope_set(voice, arg[0], arg[1], arg[2], arg[3]);
+      if (argc == 0) {
+        envelope_set(voice, 0.0f, 0.0f, 1.0f, 0.0f);
+      } else if (argc >= 2) {
+        float a = (float)arg[0];
+        float d = (float)arg[1];
+        float s_val = (argc > 2) ? (float)arg[2] : 0.0f;
+        float r = (argc > 3) ? (float)arg[3] : 0.0f;
+        envelope_set(voice, a, d, s_val, r);
+      }
       return 0;
 }
 
@@ -906,12 +905,9 @@ static int word_exec_T(const skode_word_t *self, skode_t *ctx, ands_t *s, double
   if (argc != 0) return -1;
   int voice = ctx->voice;
   envelope_velocity(voice, 1);
-  if (sv.link_velo_0[voice] >= 0) envelope_velocity(sv.link_velo_0[voice], 1);
-  if (sv.link_velo_1[voice] >= 0) envelope_velocity(sv.link_velo_1[voice], 1);
-  if (sv.link_velo_2[voice] >= 0) envelope_velocity(sv.link_velo_2[voice], 1);
-  if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1);
-  if (sv.link_velo_4[voice] >= 0) envelope_velocity(sv.link_velo_4[voice], 1);
-  if (sv.link_velo_5[voice] >= 0) envelope_velocity(sv.link_velo_5[voice], 1);
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+    if (sv.link_velo[i][voice] >= 0) envelope_velocity(sv.link_velo[i][voice], 1);
+  }
   return 0;
 }
 
@@ -919,18 +915,13 @@ static int word_exec_HS(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   (void)self; (void)s;
   int voice = ctx->voice;
   if (argc < 1) return -1;
-  int links[6] = {-1, -1, -1, -1, -1, -1};
-  for (int i = 0; i < argc && i < 6; i++) {
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
     int link;
-    if (skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
-      links[i] = link;
+    if (i < argc && skode_double_to_int(arg[i], &link) && skode_voice_valid(link))
+      sv.link_sync[i][voice] = (float)link;
+    else
+      sv.link_sync[i][voice] = -1.0f;
   }
-  sv.link_sync_0[voice] = links[0];
-  sv.link_sync_1[voice] = links[1];
-  sv.link_sync_2[voice] = links[2];
-  sv.link_sync_3[voice] = links[3];
-  sv.link_sync_4[voice] = links[4];
-  sv.link_sync_5[voice] = links[5];
   osc_hard_sync_sanitize(voice);
   return 0;
 }
@@ -1404,10 +1395,11 @@ static int word_exec_v_q(const skode_word_t *self, skode_t *ctx, ands_t *s, doub
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  if (x_valid && skode_voice_valid(x)) voice = x;
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-
+  voice_show_connected(ctx, voice, ctx->verbose);
   return 0;
 }
 
@@ -1416,10 +1408,12 @@ static int word_exec__q(const skode_word_t *self, skode_t *ctx, ands_t *s, doubl
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  if (x_valid && skode_voice_valid(x)) voice = x;
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      voice_show(ctx, voice, ' ', ctx->verbose); return 0;
+  voice_show_connected(ctx, voice, ctx->verbose);
+  return 0;
 }
 
 static int word_exec__bs_bs(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {
@@ -1427,10 +1421,12 @@ static int word_exec__bs_bs(const skode_word_t *self, skode_t *ctx, ands_t *s, d
   int voice = ctx->voice;
   int x = 0;
   int x_valid = argc > 0 && skode_double_to_int(arg[0], &x);
+  if (x_valid && skode_voice_valid(x)) voice = x;
   (void)x_valid;
   (void)voice;
   (void)self; (void)atom; (void)voice; (void)x; (void)x_valid;
-      voice_show(ctx, voice, ' ', 1); return 0;
+  voice_show_connected(ctx, voice, 1);
+  return 0;
 }
 
 static int word_exec_v_q_bs_q(const skode_word_t *self, skode_t *ctx, ands_t *s, double *arg, int argc) {

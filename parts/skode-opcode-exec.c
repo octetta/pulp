@@ -183,19 +183,15 @@ int skode_foreign_function(skode_t *ctx, int index,
 }
 
 static void skode_opcode_links(const opcode_event_t *opcode,
-    float *link0, float *link1, float *link2, float *link3, float *link4, float *link5) {
-  int links[6] = {-1, -1, -1, -1, -1, -1};
-  for (int i = 0; i < opcode->argc && i < 6; i++) {
+    float * restrict links[SYNTH_VOICE_LINKS_MAX], int voice) {
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
     int link;
-    if (skode_opcode_int(opcode, i, &link) && skode_voice_valid(link))
-      links[i] = link;
+    if (i < opcode->argc && skode_opcode_int(opcode, i, &link) && skode_voice_valid(link)) {
+      links[i][voice] = (float)link;
+    } else {
+      links[i][voice] = -1.0f;
+    }
   }
-  *link0 = links[0];
-  *link1 = links[1];
-  *link2 = links[2];
-  *link3 = links[3];
-  *link4 = links[4];
-  *link5 = links[5];
 }
 
 void skode_stream_copy(void *ctx, int dst, int src);
@@ -317,13 +313,21 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       if (opcode->argc < 2) return cmod_set(voice, -1, 0);
       return x_valid ? cmod_set(voice, x, opcode->arg[1]) : -1;
     case SKODE_OP_PHASE_ENVELOPE:
-      if (opcode->argc != 4) return -1;
-      envelope_configure_e(&sv.cz_envelope[voice], opcode->arg[0],
-        opcode->arg[1], opcode->arg[2], opcode->arg[3]);
-      sv.use_cz_envelope[voice] = !(opcode->arg[0] == 0 &&
-        opcode->arg[1] == 0 && opcode->arg[2] == 1 &&
-        opcode->arg[3] == 0);
-      return 0;
+      if (opcode->argc == 0) {
+        envelope_configure_e(&sv.cz_envelope[voice], 0.0f, 0.0f, 1.0f, 0.0f);
+        sv.use_cz_envelope[voice] = 0;
+        return 0;
+      }
+      if (opcode->argc >= 2) {
+        float a = opcode->arg[0];
+        float d = opcode->arg[1];
+        float s = (opcode->argc > 2) ? opcode->arg[2] : 0.0f;
+        float r = (opcode->argc > 3) ? opcode->arg[3] : 0.0f;
+        envelope_configure_e(&sv.cz_envelope[voice], a, d, s, r);
+        sv.use_cz_envelope[voice] = !(a == 0 && d == 0 && s == 1 && r == 0);
+        return 0;
+      }
+      return -1;
     case SKODE_OP_PHASE_ENVELOPE_DEPTH:
       if (opcode->argc != 1) return -1;
       sv.cz_env_depth[voice] = opcode->arg[0];
@@ -331,13 +335,21 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
     case SKODE_OP_FREQ:
       return opcode->argc == 1 ? freq_set(voice, opcode->arg[0]) : -1;
     case SKODE_OP_FILTER_ENVELOPE:
-      if (opcode->argc != 4) return -1;
-      envelope_configure_e(&sv.filter_envelope[voice], opcode->arg[0],
-        opcode->arg[1], opcode->arg[2], opcode->arg[3]);
-      sv.use_filter_envelope[voice] = !(opcode->arg[0] == 0 &&
-        opcode->arg[1] == 0 && opcode->arg[2] == 1 &&
-        opcode->arg[3] == 0);
-      return 0;
+      if (opcode->argc == 0) {
+        envelope_configure_e(&sv.filter_envelope[voice], 0.0f, 0.0f, 1.0f, 0.0f);
+        sv.use_filter_envelope[voice] = 0;
+        return 0;
+      }
+      if (opcode->argc >= 2) {
+        float a = opcode->arg[0];
+        float d = opcode->arg[1];
+        float s = (opcode->argc > 2) ? opcode->arg[2] : 0.0f;
+        float r = (opcode->argc > 3) ? opcode->arg[3] : 0.0f;
+        envelope_configure_e(&sv.filter_envelope[voice], a, d, s, r);
+        sv.use_filter_envelope[voice] = !(a == 0 && d == 0 && s == 1 && r == 0);
+        return 0;
+      }
+      return -1;
     case SKODE_OP_FILTER_ENVELOPE_DEPTH:
       if (opcode->argc != 1) return -1;
       sv.filter_env_depth[voice] = opcode->arg[0];
@@ -353,18 +365,20 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       if (opcode->argc != 1) return -1;
       return freq_feedback_set(voice, opcode->arg[0]);
     case SKODE_OP_GLISSANDO:
-      if (opcode->argc != 1) return -1;
-      if (opcode->arg[0] <= 0) {
+      if (opcode->argc > 2) return -1;
+      if (opcode->argc == 0 || opcode->arg[0] <= 0) {
         sv.glissando_enable[voice] = 0;
         sv.glissando_time[voice] = 0;
+        sv.glissando_mode[voice] = 0;
       } else {
         sv.glissando_enable[voice] = 1;
         sv.glissando_time[voice] = opcode->arg[0];
+        sv.glissando_mode[voice] = (opcode->argc > 1) ? (int)opcode->arg[1] : 0;
       }
       return 0;
     case SKODE_OP_LINK_MIDI:
       if (opcode->argc < 1) return -1;
-      skode_opcode_links(opcode, &sv.link_midi_0[voice], &sv.link_midi_1[voice], &sv.link_midi_2[voice], &sv.link_midi_3[voice], &sv.link_midi_4[voice], &sv.link_midi_5[voice]);
+      skode_opcode_links(opcode, sv.link_midi, voice);
       return 0;
     case SKODE_OP_SAMPLE_HOLD:
       if (!x_valid) return -1;
@@ -376,7 +390,7 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       return 0;
     case SKODE_OP_LINK_VELOCITY:
       if (opcode->argc < 1) return -1;
-      skode_opcode_links(opcode, &sv.link_velo_0[voice], &sv.link_velo_1[voice], &sv.link_velo_2[voice], &sv.link_velo_3[voice], &sv.link_velo_4[voice], &sv.link_velo_5[voice]);
+      skode_opcode_links(opcode, sv.link_velo, voice);
       return 0;
     case SKODE_OP_TRIGGER_DELAY:
       if (opcode->argc != 1) return -1;
@@ -422,14 +436,10 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
       {
         uint64_t now = SAMPLE_COUNT_GET();
         skode_envelope_velocity(voice, opcode->arg[0], now);
-        if (sv.link_velo_0[voice] >= 0)
-          skode_envelope_velocity(sv.link_velo_0[voice], opcode->arg[0], now);
-        if (sv.link_velo_1[voice] >= 0)
-          skode_envelope_velocity(sv.link_velo_1[voice], opcode->arg[0], now);
-        if (sv.link_velo_2[voice] >= 0)
-          skode_envelope_velocity(sv.link_velo_2[voice], opcode->arg[0], now);
-        if (sv.link_velo_3[voice] >= 0)
-          skode_envelope_velocity(sv.link_velo_3[voice], opcode->arg[0], now);
+        for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+          if (sv.link_velo[i][voice] >= 0)
+            skode_envelope_velocity(sv.link_velo[i][voice], opcode->arg[0], now);
+        }
         return 0;
       }
     #endif
@@ -487,21 +497,27 @@ int skode_execute_voice_opcode(const opcode_event_t *opcode, int voice) {
     case SKODE_OP_VOICE_RESET:
       return x_valid ? wave_reset(x) : -1;
     case SKODE_OP_ENVELOPE:
-      return opcode->argc == 4 ? envelope_set(voice, opcode->arg[0],
-        opcode->arg[1], opcode->arg[2], opcode->arg[3]) : -1;
+      if (opcode->argc == 0) {
+        return envelope_set(voice, 0.0f, 0.0f, 1.0f, 0.0f);
+      }
+      if (opcode->argc >= 2) {
+        float a = opcode->arg[0];
+        float d = opcode->arg[1];
+        float s = (opcode->argc > 2) ? opcode->arg[2] : 0.0f;
+        float r = (opcode->argc > 3) ? opcode->arg[3] : 0.0f;
+        return envelope_set(voice, a, d, s, r);
+      }
+      return -1;
     case SKODE_OP_TRIGGER:
       if (opcode->argc != 0) return -1;
       envelope_velocity(voice, 1);
-      if (sv.link_velo_0[voice] >= 0) envelope_velocity(sv.link_velo_0[voice], 1);
-      if (sv.link_velo_1[voice] >= 0) envelope_velocity(sv.link_velo_1[voice], 1);
-      if (sv.link_velo_2[voice] >= 0) envelope_velocity(sv.link_velo_2[voice], 1);
-      if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1);
-      if (sv.link_velo_4[voice] >= 0) envelope_velocity(sv.link_velo_4[voice], 1);
-      if (sv.link_velo_5[voice] >= 0) envelope_velocity(sv.link_velo_5[voice], 1);
+      for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+        if (sv.link_velo[i][voice] >= 0) envelope_velocity(sv.link_velo[i][voice], 1);
+      }
       return 0;
     case SKODE_OP_LINK_SYNC:
       if (opcode->argc < 1) return -1;
-      skode_opcode_links(opcode, &sv.link_sync_0[voice], &sv.link_sync_1[voice], &sv.link_sync_2[voice], &sv.link_sync_3[voice], &sv.link_sync_4[voice], &sv.link_sync_5[voice]);
+      skode_opcode_links(opcode, sv.link_sync, voice);
       osc_hard_sync_sanitize(voice);
       return 0;
     case SKODE_OP_WAVE:

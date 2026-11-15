@@ -80,12 +80,16 @@ int skode_clause_filter_freq_alt_1(skode_t *ctx, ands_t *s, const double *args, 
 int skode_clause_filter_freq_alt_0(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_filter_res_alt_1(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_filter_res_alt_0(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_env_set_0(int voice, const float *args, int argc);
 int skode_clause_env_set(int voice, const float *args, int argc);
 int skode_clause_trigger_full(int voice, const float *args, int argc);
+int skode_clause_phase_env_0(int voice, const float *args, int argc);
 int skode_clause_phase_env(int voice, const float *args, int argc);
 int skode_clause_phase_env_depth(int voice, const float *args, int argc);
+int skode_clause_filter_env_0(int voice, const float *args, int argc);
 int skode_clause_filter_env(int voice, const float *args, int argc);
 int skode_clause_filter_env_depth(int voice, const float *args, int argc);
+int skode_clause_pitch_env_0(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_pitch_env(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_pitch_env_depth(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_pitch_env_multi(skode_t *ctx, ands_t *s, const double *args, int argc);
@@ -179,15 +183,15 @@ int skode_clause_pattern_text_0(skode_t *ctx, ands_t *s, const double *args, int
 int skode_clause_pattern_text_1(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_pattern_goto_alt(int voice, const float *args, int argc);
 int skode_clause_pattern_modulo_alt(int voice, const float *args, int argc);
-int skode_clause_stream_show_c157(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_stream_show_c158(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_stream_set_c159(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_stream_copy_c160(int voice, const float *args, int argc);
-int skode_clause_stream_mode_c161(int voice, const float *args, int argc);
-int skode_clause_stream_pos_c162(int voice, const float *args, int argc);
-int skode_clause_pattern_state_set_c163(int voice, const float *args, int argc);
-int skode_clause_pattern_loop_c164(int voice, const float *args, int argc);
-int skode_clause_pattern_ratchet_c165(int voice, const float *args, int argc);
+int skode_clause_stream_show_c161(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_stream_show_c162(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_stream_set_c163(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_stream_copy_c164(int voice, const float *args, int argc);
+int skode_clause_stream_mode_c165(int voice, const float *args, int argc);
+int skode_clause_stream_pos_c166(int voice, const float *args, int argc);
+int skode_clause_pattern_state_set_c167(int voice, const float *args, int argc);
+int skode_clause_pattern_loop_c168(int voice, const float *args, int argc);
+int skode_clause_pattern_ratchet_c169(int voice, const float *args, int argc);
 int skode_clause_pattern_all_data_0(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_pattern_all_data_1(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_step_all_data_0(skode_t *ctx, ands_t *s, const double *args, int argc);
@@ -321,9 +325,9 @@ int skode_clause_record_tracks_show_0(skode_t *ctx, ands_t *s, const double *arg
 int skode_clause_record_tracks_show_1(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_wave_default_0(int voice, const float *args, int argc);
 int skode_clause_wave_default_1(int voice, const float *args, int argc);
-int skode_clause_inst_note_c299(int voice, const float *args, int argc);
-int skode_clause_inst_note_c300(int voice, const float *args, int argc);
-int skode_clause_inst_note_c301(int voice, const float *args, int argc);
+int skode_clause_inst_note_c303(int voice, const float *args, int argc);
+int skode_clause_inst_note_c304(int voice, const float *args, int argc);
+int skode_clause_inst_note_c305(int voice, const float *args, int argc);
 int skode_clause_crush(int voice, const float *args, int argc);
 int skode_clause_voice_show_names_0(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_voice_show_names_1(skode_t *ctx, ands_t *s, const double *args, int argc);
@@ -568,23 +572,23 @@ int skode_clause_query_pattern_0(skode_t *ctx, ands_t *s, const double *args, in
 int skode_clause_query_pattern_1(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_query_step_0(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_query_step_1(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_return_push_c546(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_return_push_c547(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_return_push_c548(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_return_push_c549(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_return_push_c550(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_return_push_c551(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_return_push_c552(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_return_push_c553(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_return_push_c554(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_return_query_c555(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_opcode_exec_c556(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_opcode_exec_c557(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_opcode_exec_c558(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_opcode_exec_c559(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_return_push_c555(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_return_push_c556(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_return_push_c557(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_return_push_c558(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_return_query_c559(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_opcode_exec_c560(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_dictionary_show_c561(skode_t *ctx, ands_t *s, const double *args, int argc);
-int skode_clause_dictionary_show_c562(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_opcode_exec_c561(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_opcode_exec_c562(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_opcode_exec_c563(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_opcode_exec_c564(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_dictionary_show_c565(skode_t *ctx, ands_t *s, const double *args, int argc);
+int skode_clause_dictionary_show_c566(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_delay_grit_0(skode_t *ctx, ands_t *s, const double *args, int argc);
 int skode_clause_delay_grit_1(int voice, const float *args, int argc);
 int skode_clause_delay_grit_2(int voice, const float *args, int argc);
@@ -648,7 +652,7 @@ static int skode_clause_wave_1_imm_bridge(skode_t *ctx, ands_t *s, const double 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wave_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -670,7 +674,7 @@ static int skode_clause_wave_2_imm_bridge(skode_t *ctx, ands_t *s, const double 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wave_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -693,7 +697,7 @@ static int skode_clause_wave_3_imm_bridge(skode_t *ctx, ands_t *s, const double 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wave_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -708,7 +712,7 @@ static int skode_clause_freq_set_imm_bridge(skode_t *ctx, ands_t *s, const doubl
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_set(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -723,7 +727,7 @@ static int skode_clause_freq_reset_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_reset(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -738,7 +742,7 @@ static int skode_clause_midi_note_1_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_midi_note_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -753,7 +757,7 @@ static int skode_clause_midi_note_2_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_midi_note_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -768,7 +772,7 @@ static int skode_clause_midi_note_nan_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_midi_note_nan(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -783,7 +787,7 @@ static int skode_clause_freq_bend_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_bend(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -798,7 +802,7 @@ static int skode_clause_freq_bend_param_1_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_bend_param_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -813,28 +817,19 @@ static int skode_clause_freq_bend_param_2_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_bend_param_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_hard_sync(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_sync_0[voice] = -1.0f;
-    sv.link_sync_1[voice] = -1.0f;
-    sv.link_sync_2[voice] = -1.0f;
-    sv.link_sync_3[voice] = -1.0f;
-    sv.link_sync_4[voice] = -1.0f;
-    sv.link_sync_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) {
+        sv.link_sync[i][voice] = -1.0f;
+    }
     for (int i = 0; i < argc && i < 6; i++) {
         int t = (int)args[i];
-        float val = (t >= 0 && t < synth_config.voice_max) ? (float)t : -1.0f;
-        if (i == 0) sv.link_sync_0[voice] = val;
-        else if (i == 1) sv.link_sync_1[voice] = val;
-        else if (i == 2) sv.link_sync_2[voice] = val;
-        else if (i == 3) sv.link_sync_3[voice] = val;
-        else if (i == 4) sv.link_sync_4[voice] = val;
-        else if (i == 5) sv.link_sync_5[voice] = val;
+        sv.link_sync[i][voice] = (t >= 0 && t < synth_config.voice_max) ? (float)t : -1.0f;
     }
     osc_hard_sync_sanitize(voice);
     return 0;
@@ -845,7 +840,7 @@ static int skode_clause_hard_sync_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_hard_sync(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -860,7 +855,7 @@ static int skode_clause_freq_mod_0_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_mod_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -876,7 +871,7 @@ static int skode_clause_freq_mod_1_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_mod_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -891,7 +886,7 @@ static int skode_clause_freq_mod_2_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_mod_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -906,7 +901,7 @@ static int skode_clause_freq_mod_3_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_mod_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -921,7 +916,7 @@ static int skode_clause_freq_mod_mode_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_mod_mode(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -936,7 +931,7 @@ static int skode_clause_freq_feedback_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_freq_feedback(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -951,7 +946,7 @@ static int skode_clause_phase_dist_0_imm_bridge(skode_t *ctx, ands_t *s, const d
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_phase_dist_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -966,7 +961,7 @@ static int skode_clause_phase_dist_1_imm_bridge(skode_t *ctx, ands_t *s, const d
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_phase_dist_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -981,7 +976,7 @@ static int skode_clause_phase_dist_2_imm_bridge(skode_t *ctx, ands_t *s, const d
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_phase_dist_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -997,7 +992,7 @@ static int skode_clause_phase_mod_1_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_phase_mod_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1012,7 +1007,7 @@ static int skode_clause_phase_mod_2_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_phase_mod_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1027,7 +1022,7 @@ static int skode_clause_wave_dir_0_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wave_dir_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1042,7 +1037,7 @@ static int skode_clause_wave_dir_1_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wave_dir_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1057,7 +1052,7 @@ static int skode_clause_wave_loop_0_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wave_loop_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1072,7 +1067,7 @@ static int skode_clause_wave_loop_1_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wave_loop_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1087,7 +1082,7 @@ static int skode_clause_wave_loop_count_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wave_loop_count(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1123,7 +1118,7 @@ static int skode_clause_midi_detune_1_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_midi_detune_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1140,7 +1135,7 @@ static int skode_clause_midi_detune_nan_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_midi_detune_nan(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1157,7 +1152,7 @@ static int skode_clause_midi_detune_2_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_midi_detune_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1173,7 +1168,7 @@ static int skode_clause_midi_detune_nan_cents_imm_bridge(skode_t *ctx, ands_t *s
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_midi_detune_nan_cents(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1244,7 +1239,7 @@ static int skode_clause_wavefold_drive_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wavefold_drive(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1260,7 +1255,7 @@ static int skode_clause_wavefold_drive_bias_imm_bridge(skode_t *ctx, ands_t *s, 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wavefold_drive_bias(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1276,7 +1271,7 @@ static int skode_clause_wavefold_reset_nan_imm_bridge(skode_t *ctx, ands_t *s, c
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wavefold_reset_nan(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1292,7 +1287,7 @@ static int skode_clause_wavefold_max_inf_imm_bridge(skode_t *ctx, ands_t *s, con
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wavefold_max_inf(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1307,7 +1302,7 @@ static int skode_clause_filter_freq_set_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_filter_freq_set(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1322,7 +1317,7 @@ static int skode_clause_filter_freq_reset_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_filter_freq_reset(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1337,7 +1332,7 @@ static int skode_clause_filter_res_set_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_filter_res_set(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1352,7 +1347,7 @@ static int skode_clause_filter_res_reset_imm_bridge(skode_t *ctx, ands_t *s, con
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_filter_res_reset(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1371,7 +1366,7 @@ static int skode_clause_filter_mode_1_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_filter_mode_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1390,7 +1385,7 @@ static int skode_clause_filter_mode_2_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_filter_mode_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1429,10 +1424,29 @@ int skode_clause_filter_res_alt_0(skode_t *ctx, ands_t *s, const double *args, i
 
 }
 
+int skode_clause_env_set_0(int voice, const float *args, int argc) {
+    (void)argc;
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    return envelope_set(voice, 0.0f, 0.0f, 1.0f, 0.0f);
+
+}
+
+static int skode_clause_env_set_0_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+    float fargs[SKODE_CLAUSE_MAX_ARGS];
+    int i;
+    (void)s;
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_env_set_0(ctx ? ctx->voice : 0, fargs, argc);
+}
+
 int skode_clause_env_set(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    return envelope_set(voice, args[0], args[1], args[2], args[3]);
+    float a = args[0];
+    float d = (argc > 1) ? args[1] : 0.0f;
+    float s = (argc > 2) ? args[2] : 0.0f;
+    float r = (argc > 3) ? args[3] : 0.0f;
+    return envelope_set(voice, a, d, s, r);
 
 }
 
@@ -1440,7 +1454,7 @@ static int skode_clause_env_set_imm_bridge(skode_t *ctx, ands_t *s, const double
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_env_set(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1448,12 +1462,9 @@ int skode_clause_trigger_full(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
     envelope_velocity(voice, 1.0f);
-    if (sv.link_velo_0[voice] >= 0) envelope_velocity(sv.link_velo_0[voice], 1.0f);
-    if (sv.link_velo_1[voice] >= 0) envelope_velocity(sv.link_velo_1[voice], 1.0f);
-    if (sv.link_velo_2[voice] >= 0) envelope_velocity(sv.link_velo_2[voice], 1.0f);
-    if (sv.link_velo_3[voice] >= 0) envelope_velocity(sv.link_velo_3[voice], 1.0f);
-    if (sv.link_velo_4[voice] >= 0) envelope_velocity(sv.link_velo_4[voice], 1.0f);
-    if (sv.link_velo_5[voice] >= 0) envelope_velocity(sv.link_velo_5[voice], 1.0f);
+    for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+        if (sv.link_velo[i][voice] >= 0) envelope_velocity(sv.link_velo[i][voice], 1.0f);
+    }
     return 0;
 
 }
@@ -1462,15 +1473,36 @@ static int skode_clause_trigger_full_imm_bridge(skode_t *ctx, ands_t *s, const d
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_trigger_full(ctx ? ctx->voice : 0, fargs, argc);
+}
+
+int skode_clause_phase_env_0(int voice, const float *args, int argc) {
+    (void)argc;
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    envelope_configure_e(&sv.cz_envelope[voice], 0.0f, 0.0f, 1.0f, 0.0f);
+    sv.use_cz_envelope[voice] = 0;
+    return 0;
+
+}
+
+static int skode_clause_phase_env_0_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+    float fargs[SKODE_CLAUSE_MAX_ARGS];
+    int i;
+    (void)s;
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_phase_env_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_phase_env(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    envelope_configure_e(&sv.cz_envelope[voice], args[0], args[1], args[2], args[3]);
-    sv.use_cz_envelope[voice] = !(args[0] == 0 && args[1] == 0 && args[2] == 1 && args[3] == 0);
+    float a = args[0];
+    float d = (argc > 1) ? args[1] : 0.0f;
+    float s = (argc > 2) ? args[2] : 0.0f;
+    float r = (argc > 3) ? args[3] : 0.0f;
+    envelope_configure_e(&sv.cz_envelope[voice], a, d, s, r);
+    sv.use_cz_envelope[voice] = !(a == 0 && d == 0 && s == 1 && r == 0);
     return 0;
 
 }
@@ -1479,7 +1511,7 @@ static int skode_clause_phase_env_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_phase_env(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1495,15 +1527,36 @@ static int skode_clause_phase_env_depth_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_phase_env_depth(ctx ? ctx->voice : 0, fargs, argc);
+}
+
+int skode_clause_filter_env_0(int voice, const float *args, int argc) {
+    (void)argc;
+    if (voice < 0 || voice >= synth_config.voice_max) return -1;
+    envelope_configure_e(&sv.filter_envelope[voice], 0.0f, 0.0f, 1.0f, 0.0f);
+    sv.use_filter_envelope[voice] = 0;
+    return 0;
+
+}
+
+static int skode_clause_filter_env_0_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+    float fargs[SKODE_CLAUSE_MAX_ARGS];
+    int i;
+    (void)s;
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_filter_env_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_filter_env(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    envelope_configure_e(&sv.filter_envelope[voice], args[0], args[1], args[2], args[3]);
-    sv.use_filter_envelope[voice] = !(args[0] == 0 && args[1] == 0 && args[2] == 1 && args[3] == 0);
+    float a = args[0];
+    float d = (argc > 1) ? args[1] : 0.0f;
+    float s = (argc > 2) ? args[2] : 0.0f;
+    float r = (argc > 3) ? args[3] : 0.0f;
+    envelope_configure_e(&sv.filter_envelope[voice], a, d, s, r);
+    sv.use_filter_envelope[voice] = !(a == 0 && d == 0 && s == 1 && r == 0);
     return 0;
 
 }
@@ -1512,7 +1565,7 @@ static int skode_clause_filter_env_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_filter_env(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1528,16 +1581,30 @@ static int skode_clause_filter_env_depth_imm_bridge(skode_t *ctx, ands_t *s, con
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_filter_env_depth(ctx ? ctx->voice : 0, fargs, argc);
+}
+
+int skode_clause_pitch_env_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
+    if (!ctx) return -1;
+    (void)s; (void)argc;
+    int voice = ctx->voice;
+    envelope_configure_e(&sv.freq_envelope[voice], 0.0f, 0.0f, 1.0f, 0.0f);
+    sv.use_freq_envelope[voice] = 0;
+    return 0;
+
 }
 
 int skode_clause_pitch_env(skode_t *ctx, ands_t *s, const double *args, int argc) {
     if (!ctx) return -1;
-    (void)s; (void)argc;
+    (void)s;
     int voice = ctx->voice;
-    envelope_configure_e(&sv.freq_envelope[voice], args[0], args[1], args[2], args[3]);
-    sv.use_freq_envelope[voice] = !(args[0] == 0 && args[1] == 0 && args[2] == 1 && args[3] == 0);
+    float a = args[0];
+    float d = (argc > 1) ? args[1] : 0.0f;
+    float s_val = (argc > 2) ? args[2] : 0.0f;
+    float r = (argc > 3) ? args[3] : 0.0f;
+    envelope_configure_e(&sv.freq_envelope[voice], a, d, s_val, r);
+    sv.use_freq_envelope[voice] = !(a == 0 && d == 0 && s_val == 1 && r == 0);
     return 0;
 
 }
@@ -1576,7 +1643,7 @@ static int skode_clause_amp_env_mode_imm_bridge(skode_t *ctx, ands_t *s, const d
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_amp_env_mode(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1652,7 +1719,7 @@ static int skode_clause_tempo_bpm_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_tempo_bpm(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1667,7 +1734,7 @@ static int skode_clause_tempo_bpm_sub_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_tempo_bpm_sub(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1937,7 +2004,7 @@ static int skode_clause_control_event_1_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_control_event_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1954,7 +2021,7 @@ static int skode_clause_control_event_2_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_control_event_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1972,7 +2039,7 @@ static int skode_clause_control_event_3_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_control_event_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -1991,7 +2058,7 @@ static int skode_clause_control_event_4_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_control_event_4(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2212,7 +2279,7 @@ static int skode_clause_pattern_goto_alt_imm_bridge(skode_t *ctx, ands_t *s, con
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_pattern_goto_alt(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2228,25 +2295,25 @@ static int skode_clause_pattern_modulo_alt_imm_bridge(skode_t *ctx, ands_t *s, c
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_pattern_modulo_alt(ctx ? ctx->voice : 0, fargs, argc);
 }
 
-int skode_clause_stream_show_c157(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_stream_show_c161(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)s; (void)args; (void)argc;
     skode_stream_show_helper(ctx, -1);
     return 0;
 
 }
 
-int skode_clause_stream_show_c158(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_stream_show_c162(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)s;
     skode_stream_show_helper(ctx, (int)args[0]);
     return 0;
 
 }
 
-int skode_clause_stream_set_c159(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_stream_set_c163(skode_t *ctx, ands_t *s, const double *args, int argc) {
     int stream_idx = (int)args[0];
     double *data = s ? ands_data(s) : NULL;
     int len = s ? ands_data_len(s) : 0;
@@ -2255,7 +2322,7 @@ int skode_clause_stream_set_c159(skode_t *ctx, ands_t *s, const double *args, in
 
 }
 
-int skode_clause_stream_copy_c160(int voice, const float *args, int argc) {
+int skode_clause_stream_copy_c164(int voice, const float *args, int argc) {
     (void)argc;
     (void)voice;
     skode_stream_copy(NULL, (int)args[0], (int)args[1]);
@@ -2263,15 +2330,15 @@ int skode_clause_stream_copy_c160(int voice, const float *args, int argc) {
 
 }
 
-static int skode_clause_stream_copy_c160_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+static int skode_clause_stream_copy_c164_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
-    return skode_clause_stream_copy_c160(ctx ? ctx->voice : 0, fargs, argc);
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_stream_copy_c164(ctx ? ctx->voice : 0, fargs, argc);
 }
 
-int skode_clause_stream_mode_c161(int voice, const float *args, int argc) {
+int skode_clause_stream_mode_c165(int voice, const float *args, int argc) {
     (void)argc;
     (void)voice;
     skode_stream_mode(NULL, (int)args[0], (int)args[1]);
@@ -2279,15 +2346,15 @@ int skode_clause_stream_mode_c161(int voice, const float *args, int argc) {
 
 }
 
-static int skode_clause_stream_mode_c161_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+static int skode_clause_stream_mode_c165_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
-    return skode_clause_stream_mode_c161(ctx ? ctx->voice : 0, fargs, argc);
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_stream_mode_c165(ctx ? ctx->voice : 0, fargs, argc);
 }
 
-int skode_clause_stream_pos_c162(int voice, const float *args, int argc) {
+int skode_clause_stream_pos_c166(int voice, const float *args, int argc) {
     (void)argc;
     (void)voice;
     skode_stream_pos(NULL, (int)args[0], (int)args[1]);
@@ -2295,15 +2362,15 @@ int skode_clause_stream_pos_c162(int voice, const float *args, int argc) {
 
 }
 
-static int skode_clause_stream_pos_c162_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+static int skode_clause_stream_pos_c166_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
-    return skode_clause_stream_pos_c162(ctx ? ctx->voice : 0, fargs, argc);
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_stream_pos_c166(ctx ? ctx->voice : 0, fargs, argc);
 }
 
-int skode_clause_pattern_state_set_c163(int voice, const float *args, int argc) {
+int skode_clause_pattern_state_set_c167(int voice, const float *args, int argc) {
     (void)argc;
     (void)voice;
     seq_state_set((int)args[0], (int)args[1]);
@@ -2311,15 +2378,15 @@ int skode_clause_pattern_state_set_c163(int voice, const float *args, int argc) 
 
 }
 
-static int skode_clause_pattern_state_set_c163_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+static int skode_clause_pattern_state_set_c167_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
-    return skode_clause_pattern_state_set_c163(ctx ? ctx->voice : 0, fargs, argc);
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_pattern_state_set_c167(ctx ? ctx->voice : 0, fargs, argc);
 }
 
-int skode_clause_pattern_loop_c164(int voice, const float *args, int argc) {
+int skode_clause_pattern_loop_c168(int voice, const float *args, int argc) {
     (void)argc;
     (void)voice;
     int var_id = (int)args[0];
@@ -2337,27 +2404,27 @@ int skode_clause_pattern_loop_c164(int voice, const float *args, int argc) {
 
 }
 
-static int skode_clause_pattern_loop_c164_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+static int skode_clause_pattern_loop_c168_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
-    return skode_clause_pattern_loop_c164(ctx ? ctx->voice : 0, fargs, argc);
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_pattern_loop_c168(ctx ? ctx->voice : 0, fargs, argc);
 }
 
-int skode_clause_pattern_ratchet_c165(int voice, const float *args, int argc) {
+int skode_clause_pattern_ratchet_c169(int voice, const float *args, int argc) {
     (void)argc;
     (void)voice; (void)args;
     return 0;
 
 }
 
-static int skode_clause_pattern_ratchet_c165_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+static int skode_clause_pattern_ratchet_c169_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
-    return skode_clause_pattern_ratchet_c165(ctx ? ctx->voice : 0, fargs, argc);
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_pattern_ratchet_c169(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_pattern_all_data_0(skode_t *ctx, ands_t *s, const double *args, int argc) {
@@ -2424,7 +2491,7 @@ static int skode_clause_amp_set_imm_bridge(skode_t *ctx, ands_t *s, const double
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_amp_set(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2439,7 +2506,7 @@ static int skode_clause_amp_reset_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_amp_reset(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2454,7 +2521,7 @@ static int skode_clause_pan_set_imm_bridge(skode_t *ctx, ands_t *s, const double
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_pan_set(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2469,7 +2536,7 @@ static int skode_clause_pan_center_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_pan_center(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2484,7 +2551,7 @@ static int skode_clause_mute_set_imm_bridge(skode_t *ctx, ands_t *s, const doubl
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_mute_set(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2499,7 +2566,7 @@ static int skode_clause_mute_toggle_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_mute_toggle(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2553,7 +2620,7 @@ static int skode_clause_amp_bend_imm_bridge(skode_t *ctx, ands_t *s, const doubl
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_amp_bend(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2568,7 +2635,7 @@ static int skode_clause_amp_bend_param_1_imm_bridge(skode_t *ctx, ands_t *s, con
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_amp_bend_param_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2583,7 +2650,7 @@ static int skode_clause_amp_bend_param_2_imm_bridge(skode_t *ctx, ands_t *s, con
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_amp_bend_param_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2598,16 +2665,17 @@ static int skode_clause_velocity_imm_bridge(skode_t *ctx, ands_t *s, const doubl
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_velocity(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_glissando(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    if (args[0] <= 0.0f) {
+    if (argc == 0 || args[0] <= 0.0f) {
         sv.glissando_enable[voice] = 0;
         sv.glissando_time[voice] = 0.0f;
+        sv.glissando_mode[voice] = 0;
     } else {
         sv.glissando_enable[voice] = 1;
         sv.glissando_time[voice] = args[0];
@@ -2621,7 +2689,7 @@ static int skode_clause_glissando_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_glissando(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2643,7 +2711,7 @@ static int skode_clause_smoother_imm_bridge(skode_t *ctx, ands_t *s, const doubl
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_smoother(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2661,7 +2729,7 @@ static int skode_clause_ring_mod_1_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_ring_mod_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2679,7 +2747,7 @@ static int skode_clause_ring_mod_2_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_ring_mod_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2694,7 +2762,7 @@ static int skode_clause_amp_mod_0_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_amp_mod_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2710,7 +2778,7 @@ static int skode_clause_amp_mod_1_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_amp_mod_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2725,7 +2793,7 @@ static int skode_clause_amp_mod_2_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_amp_mod_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2740,7 +2808,7 @@ static int skode_clause_amp_mod_3_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_amp_mod_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2755,7 +2823,7 @@ static int skode_clause_pan_mod_0_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_pan_mod_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2771,7 +2839,7 @@ static int skode_clause_pan_mod_1_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_pan_mod_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2786,7 +2854,7 @@ static int skode_clause_pan_mod_2_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_pan_mod_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2801,7 +2869,7 @@ static int skode_clause_pan_mod_3_imm_bridge(skode_t *ctx, ands_t *s, const doub
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_pan_mod_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2818,7 +2886,7 @@ static int skode_clause_voice_reset_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_reset(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2835,7 +2903,7 @@ static int skode_clause_voice_copy_imm_bridge(skode_t *ctx, ands_t *s, const dou
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_copy(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2851,7 +2919,7 @@ static int skode_clause_poly_note_4_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_note_4(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2867,7 +2935,7 @@ static int skode_clause_poly_note_5_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_note_5(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2883,7 +2951,7 @@ static int skode_clause_poly_note_gn_4_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_note_gn_4(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2899,7 +2967,7 @@ static int skode_clause_poly_note_gn_5_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_note_gn_5(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2915,7 +2983,7 @@ static int skode_clause_poly_release_2_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_release_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2931,7 +2999,7 @@ static int skode_clause_poly_release_3_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_release_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2947,7 +3015,7 @@ static int skode_clause_poly_release_gr_2_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_release_gr_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2963,7 +3031,7 @@ static int skode_clause_poly_release_gr_3_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_release_gr_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2979,7 +3047,7 @@ static int skode_clause_poly_bend_3_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_bend_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -2995,7 +3063,7 @@ static int skode_clause_poly_bend_4_imm_bridge(skode_t *ctx, ands_t *s, const do
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_bend_4(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -3011,7 +3079,7 @@ static int skode_clause_poly_bend_gb_3_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_bend_gb_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -3027,7 +3095,7 @@ static int skode_clause_poly_bend_gb_4_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_poly_bend_gb_4(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -3073,7 +3141,7 @@ static int skode_clause_sample_hold_1_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_sample_hold_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -3089,7 +3157,7 @@ static int skode_clause_sample_hold_0_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_sample_hold_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -3106,7 +3174,7 @@ static int skode_clause_sample_hold_2_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_sample_hold_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -3161,7 +3229,7 @@ static int skode_clause_track_route_1_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_track_route_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -3176,7 +3244,7 @@ static int skode_clause_track_route_0_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_track_route_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -3192,7 +3260,7 @@ static int skode_clause_track_route_2_imm_bridge(skode_t *ctx, ands_t *s, const 
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_track_route_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -3542,7 +3610,7 @@ static int skode_clause_wave_default_0_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wave_default_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -3557,50 +3625,50 @@ static int skode_clause_wave_default_1_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_wave_default_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
-int skode_clause_inst_note_c299(int voice, const float *args, int argc) {
+int skode_clause_inst_note_c303(int voice, const float *args, int argc) {
     (void)argc;
     return skode_inst_note(voice, args[0], 1.0f, 0.0f);
 
 }
 
-static int skode_clause_inst_note_c299_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+static int skode_clause_inst_note_c303_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
-    return skode_clause_inst_note_c299(ctx ? ctx->voice : 0, fargs, argc);
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_inst_note_c303(ctx ? ctx->voice : 0, fargs, argc);
 }
 
-int skode_clause_inst_note_c300(int voice, const float *args, int argc) {
+int skode_clause_inst_note_c304(int voice, const float *args, int argc) {
     (void)argc;
     return skode_inst_note(voice, args[0], args[1], 0.0f);
 
 }
 
-static int skode_clause_inst_note_c300_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+static int skode_clause_inst_note_c304_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
-    return skode_clause_inst_note_c300(ctx ? ctx->voice : 0, fargs, argc);
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_inst_note_c304(ctx ? ctx->voice : 0, fargs, argc);
 }
 
-int skode_clause_inst_note_c301(int voice, const float *args, int argc) {
+int skode_clause_inst_note_c305(int voice, const float *args, int argc) {
     (void)argc;
     return skode_inst_note(voice, args[0], args[1], args[2]);
 
 }
 
-static int skode_clause_inst_note_c301_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
+static int skode_clause_inst_note_c305_imm_bridge(skode_t *ctx, ands_t *s, const double *args, int argc) {
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
-    return skode_clause_inst_note_c301(ctx ? ctx->voice : 0, fargs, argc);
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
+    return skode_clause_inst_note_c305(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_crush(int voice, const float *args, int argc) {
@@ -3622,7 +3690,7 @@ static int skode_clause_crush_imm_bridge(skode_t *ctx, ands_t *s, const double *
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_crush(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6091,20 +6159,20 @@ int skode_clause_query_step_1(skode_t *ctx, ands_t *s, const double *args, int a
 
 }
 
-int skode_clause_return_push_c546(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_return_push_c550(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)ctx; (void)s; (void)args; (void)argc;
     return 0;
 
 }
 
-int skode_clause_return_push_c547(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_return_push_c551(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)ctx; (void)argc;
     ands_return_push(s, args[0]);
     return 0;
 
 }
 
-int skode_clause_return_push_c548(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_return_push_c552(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)ctx; (void)argc;
     ands_return_push(s, args[0]);
     ands_return_push(s, args[1]);
@@ -6112,49 +6180,49 @@ int skode_clause_return_push_c548(skode_t *ctx, ands_t *s, const double *args, i
 
 }
 
-int skode_clause_return_push_c549(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_return_push_c553(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)ctx; (void)argc;
     for (int i = 0; i < 3; i++) ands_return_push(s, args[i]);
     return 0;
 
 }
 
-int skode_clause_return_push_c550(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_return_push_c554(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)ctx; (void)argc;
     for (int i = 0; i < 4; i++) ands_return_push(s, args[i]);
     return 0;
 
 }
 
-int skode_clause_return_push_c551(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_return_push_c555(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)ctx; (void)argc;
     for (int i = 0; i < 5; i++) ands_return_push(s, args[i]);
     return 0;
 
 }
 
-int skode_clause_return_push_c552(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_return_push_c556(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)ctx; (void)argc;
     for (int i = 0; i < 6; i++) ands_return_push(s, args[i]);
     return 0;
 
 }
 
-int skode_clause_return_push_c553(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_return_push_c557(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)ctx; (void)argc;
     for (int i = 0; i < 7; i++) ands_return_push(s, args[i]);
     return 0;
 
 }
 
-int skode_clause_return_push_c554(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_return_push_c558(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)ctx; (void)argc;
     for (int i = 0; i < 8; i++) ands_return_push(s, args[i]);
     return 0;
 
 }
 
-int skode_clause_return_query_c555(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_return_query_c559(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)args; (void)argc;
     int count = ands_return_saved_count(s);
     int error = ands_return_saved_error(s);
@@ -6172,14 +6240,14 @@ int skode_clause_return_query_c555(skode_t *ctx, ands_t *s, const double *args, 
 
 }
 
-int skode_clause_opcode_exec_c556(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_opcode_exec_c560(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)s;
     opcode_event_t op = { .code = (uint16_t)args[0], .argc = 0 };
     return skode_execute_voice_opcode(&op, ctx->voice);
 
 }
 
-int skode_clause_opcode_exec_c557(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_opcode_exec_c561(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)s;
     opcode_event_t op = { .code = (uint16_t)args[0], .argc = 1 };
     op.arg[0] = (float)args[1];
@@ -6187,7 +6255,7 @@ int skode_clause_opcode_exec_c557(skode_t *ctx, ands_t *s, const double *args, i
 
 }
 
-int skode_clause_opcode_exec_c558(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_opcode_exec_c562(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)s;
     opcode_event_t op = { .code = (uint16_t)args[0], .argc = 2 };
     op.arg[0] = (float)args[1];
@@ -6196,7 +6264,7 @@ int skode_clause_opcode_exec_c558(skode_t *ctx, ands_t *s, const double *args, i
 
 }
 
-int skode_clause_opcode_exec_c559(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_opcode_exec_c563(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)s;
     opcode_event_t op = { .code = (uint16_t)args[0], .argc = 3 };
     op.arg[0] = (float)args[1];
@@ -6206,7 +6274,7 @@ int skode_clause_opcode_exec_c559(skode_t *ctx, ands_t *s, const double *args, i
 
 }
 
-int skode_clause_opcode_exec_c560(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_opcode_exec_c564(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)s;
     opcode_event_t op = { .code = (uint16_t)args[0], .argc = 4 };
     for (int i = 0; i < 4; i++) op.arg[i] = (float)args[i + 1];
@@ -6214,14 +6282,14 @@ int skode_clause_opcode_exec_c560(skode_t *ctx, ands_t *s, const double *args, i
 
 }
 
-int skode_clause_dictionary_show_c561(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_dictionary_show_c565(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)s; (void)args; (void)argc;
     skode_dict_show_words(ctx, 0);
     return 0;
 
 }
 
-int skode_clause_dictionary_show_c562(skode_t *ctx, ands_t *s, const double *args, int argc) {
+int skode_clause_dictionary_show_c566(skode_t *ctx, ands_t *s, const double *args, int argc) {
     (void)s;
     skode_dict_show_words(ctx, (int)args[0]);
     return 0;
@@ -6247,7 +6315,7 @@ static int skode_clause_delay_grit_1_imm_bridge(skode_t *ctx, ands_t *s, const d
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_grit_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6265,7 +6333,7 @@ static int skode_clause_delay_grit_2_imm_bridge(skode_t *ctx, ands_t *s, const d
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_grit_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6281,7 +6349,7 @@ static int skode_clause_delay_grit_3_imm_bridge(skode_t *ctx, ands_t *s, const d
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_grit_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6304,7 +6372,7 @@ static int skode_clause_delay_params_1_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_params_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6323,7 +6391,7 @@ static int skode_clause_delay_params_2_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_params_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6343,7 +6411,7 @@ static int skode_clause_delay_params_3_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_params_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6364,7 +6432,7 @@ static int skode_clause_delay_params_4_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_params_4(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6386,7 +6454,7 @@ static int skode_clause_delay_params_5_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_params_5(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6409,7 +6477,7 @@ static int skode_clause_delay_params_6_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_params_6(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6433,7 +6501,7 @@ static int skode_clause_delay_params_7_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_params_7(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6466,7 +6534,7 @@ static int skode_clause_delay_damping_1_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_damping_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6484,7 +6552,7 @@ static int skode_clause_delay_damping_2_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_damping_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6500,7 +6568,7 @@ static int skode_clause_delay_damping_3_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_damping_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6522,7 +6590,7 @@ static int skode_clause_delay_freeze_1_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_freeze_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6539,7 +6607,7 @@ static int skode_clause_delay_freeze_2_imm_bridge(skode_t *ctx, ands_t *s, const
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_freeze_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6561,7 +6629,7 @@ static int skode_clause_delay_pingpong_1_imm_bridge(skode_t *ctx, ands_t *s, con
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_pingpong_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6577,7 +6645,7 @@ static int skode_clause_delay_pingpong_2_imm_bridge(skode_t *ctx, ands_t *s, con
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_pingpong_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6593,7 +6661,7 @@ static int skode_clause_delay_time_ms_2_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_time_ms_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6614,7 +6682,7 @@ static int skode_clause_delay_time_ms_1_imm_bridge(skode_t *ctx, ands_t *s, cons
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_time_ms_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6630,7 +6698,7 @@ static int skode_clause_delay_time_sync_3_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_time_sync_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6651,7 +6719,7 @@ static int skode_clause_delay_time_sync_1_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_time_sync_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6667,7 +6735,7 @@ static int skode_clause_delay_time_sync_2_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_delay_time_sync_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6684,12 +6752,8 @@ int skode_clause_cz_env_multi_1(skode_t *ctx, ands_t *s, const double *args, int
 int skode_clause_voice_link_gate_1(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_midi_1[voice] = -1.0f;
-    sv.link_midi_2[voice] = -1.0f;
-    sv.link_midi_3[voice] = -1.0f;
-    sv.link_midi_4[voice] = -1.0f;
-    sv.link_midi_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_midi[i][voice] = -1.0f;
+    sv.link_midi[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
     return 0;
 
 }
@@ -6698,19 +6762,14 @@ static int skode_clause_voice_link_gate_1_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_gate_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_voice_link_gate_0(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_midi_0[voice] = -1.0f;
-    sv.link_midi_1[voice] = -1.0f;
-    sv.link_midi_2[voice] = -1.0f;
-    sv.link_midi_3[voice] = -1.0f;
-    sv.link_midi_4[voice] = -1.0f;
-    sv.link_midi_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_midi[i][voice] = -1.0f;
     return 0;
 
 }
@@ -6719,19 +6778,16 @@ static int skode_clause_voice_link_gate_0_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_gate_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_voice_link_gate_2(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_midi_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_midi_2[voice] = -1.0f;
-    sv.link_midi_3[voice] = -1.0f;
-    sv.link_midi_4[voice] = -1.0f;
-    sv.link_midi_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_midi[i][voice] = -1.0f;
+    sv.link_midi[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_midi[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
     return 0;
 
 }
@@ -6740,19 +6796,17 @@ static int skode_clause_voice_link_gate_2_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_gate_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_voice_link_gate_3(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_midi_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_midi_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
-    sv.link_midi_3[voice] = -1.0f;
-    sv.link_midi_4[voice] = -1.0f;
-    sv.link_midi_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_midi[i][voice] = -1.0f;
+    sv.link_midi[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_midi[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_midi[2][voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
     return 0;
 
 }
@@ -6761,19 +6815,18 @@ static int skode_clause_voice_link_gate_3_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_gate_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_voice_link_gate_4(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_midi_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_midi_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_midi_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
-    sv.link_midi_3[voice] = (args[3] >= 0 && args[3] < synth_config.voice_max) ? args[3] : -1.0f;
-    sv.link_midi_4[voice] = -1.0f;
-    sv.link_midi_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_midi[i][voice] = -1.0f;
+    sv.link_midi[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_midi[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_midi[2][voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
+    sv.link_midi[3][voice] = (args[3] >= 0 && args[3] < synth_config.voice_max) ? args[3] : -1.0f;
     return 0;
 
 }
@@ -6782,19 +6835,15 @@ static int skode_clause_voice_link_gate_4_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_gate_4(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_voice_link_sync_1(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_velo_1[voice] = -1.0f;
-    sv.link_velo_2[voice] = -1.0f;
-    sv.link_velo_3[voice] = -1.0f;
-    sv.link_velo_4[voice] = -1.0f;
-    sv.link_velo_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_velo[i][voice] = -1.0f;
+    sv.link_velo[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
     return 0;
 
 }
@@ -6803,19 +6852,14 @@ static int skode_clause_voice_link_sync_1_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_sync_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_voice_link_sync_0(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_velo_0[voice] = -1.0f;
-    sv.link_velo_1[voice] = -1.0f;
-    sv.link_velo_2[voice] = -1.0f;
-    sv.link_velo_3[voice] = -1.0f;
-    sv.link_velo_4[voice] = -1.0f;
-    sv.link_velo_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_velo[i][voice] = -1.0f;
     return 0;
 
 }
@@ -6824,19 +6868,16 @@ static int skode_clause_voice_link_sync_0_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_sync_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_voice_link_sync_2(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_velo_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_velo_2[voice] = -1.0f;
-    sv.link_velo_3[voice] = -1.0f;
-    sv.link_velo_4[voice] = -1.0f;
-    sv.link_velo_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_velo[i][voice] = -1.0f;
+    sv.link_velo[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_velo[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
     return 0;
 
 }
@@ -6845,19 +6886,17 @@ static int skode_clause_voice_link_sync_2_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_sync_2(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_voice_link_sync_3(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_velo_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_velo_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
-    sv.link_velo_3[voice] = -1.0f;
-    sv.link_velo_4[voice] = -1.0f;
-    sv.link_velo_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_velo[i][voice] = -1.0f;
+    sv.link_velo[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_velo[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_velo[2][voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
     return 0;
 
 }
@@ -6866,19 +6905,18 @@ static int skode_clause_voice_link_sync_3_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_sync_3(ctx ? ctx->voice : 0, fargs, argc);
 }
 
 int skode_clause_voice_link_sync_4(int voice, const float *args, int argc) {
     (void)argc;
     if (voice < 0 || voice >= synth_config.voice_max) return -1;
-    sv.link_velo_0[voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
-    sv.link_velo_1[voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
-    sv.link_velo_2[voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
-    sv.link_velo_3[voice] = (args[3] >= 0 && args[3] < synth_config.voice_max) ? args[3] : -1.0f;
-    sv.link_velo_4[voice] = -1.0f;
-    sv.link_velo_5[voice] = -1.0f;
+    for (int i = 0; i < 6; i++) sv.link_velo[i][voice] = -1.0f;
+    sv.link_velo[0][voice] = (args[0] >= 0 && args[0] < synth_config.voice_max) ? args[0] : -1.0f;
+    sv.link_velo[1][voice] = (args[1] >= 0 && args[1] < synth_config.voice_max) ? args[1] : -1.0f;
+    sv.link_velo[2][voice] = (args[2] >= 0 && args[2] < synth_config.voice_max) ? args[2] : -1.0f;
+    sv.link_velo[3][voice] = (args[3] >= 0 && args[3] < synth_config.voice_max) ? args[3] : -1.0f;
     return 0;
 
 }
@@ -6887,7 +6925,7 @@ static int skode_clause_voice_link_sync_4_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_sync_4(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6911,7 +6949,7 @@ static int skode_clause_voice_link_trig_1_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_trig_1(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6928,7 +6966,7 @@ static int skode_clause_voice_link_trig_0_imm_bridge(skode_t *ctx, ands_t *s, co
     float fargs[SKODE_CLAUSE_MAX_ARGS];
     int i;
     (void)s;
-    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = (float)args[i];
+    for (i = 0; i < argc && i < SKODE_CLAUSE_MAX_ARGS; i++) fargs[i] = skode_double_to_float_note(args[i]);
     return skode_clause_voice_link_trig_0(ctx ? ctx->voice : 0, fargs, argc);
 }
 
@@ -6972,7 +7010,7 @@ static const skode_clause_t s_clauses_amp[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 191,
+        .opcode_id = 194,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_amp_set,
@@ -6987,7 +7025,7 @@ static const skode_clause_t s_clauses_amp[] = {
         .arity = 1,
         .match = {MATCH_NAN, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 192,
+        .opcode_id = 195,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_amp_reset,
@@ -7005,7 +7043,7 @@ static const skode_clause_t s_clauses_amp_bend[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 197,
+        .opcode_id = 200,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_amp_bend,
@@ -7023,7 +7061,7 @@ static const skode_clause_t s_clauses_amp_bend_param[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 198,
+        .opcode_id = 201,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_amp_bend_param_1,
@@ -7038,7 +7076,7 @@ static const skode_clause_t s_clauses_amp_bend_param[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 199,
+        .opcode_id = 202,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_amp_bend_param_2,
@@ -7056,7 +7094,7 @@ static const skode_clause_t s_clauses_amp_env_mode[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 176,
+        .opcode_id = 179,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_amp_env_mode,
@@ -7107,7 +7145,7 @@ static const skode_clause_t s_clauses_amp_mod[] = {
         .arity = 0,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 205,
+        .opcode_id = 208,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_amp_mod_0,
@@ -7122,7 +7160,7 @@ static const skode_clause_t s_clauses_amp_mod[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 206,
+        .opcode_id = 209,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_amp_mod_1,
@@ -7137,7 +7175,7 @@ static const skode_clause_t s_clauses_amp_mod[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 207,
+        .opcode_id = 210,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_amp_mod_2,
@@ -7152,7 +7190,7 @@ static const skode_clause_t s_clauses_amp_mod[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 208,
+        .opcode_id = 211,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_amp_mod_3,
@@ -7242,7 +7280,7 @@ static const skode_clause_t s_clauses_bpm[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 177,
+        .opcode_id = 180,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_tempo_bpm,
@@ -7257,7 +7295,7 @@ static const skode_clause_t s_clauses_bpm[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 178,
+        .opcode_id = 181,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_tempo_bpm_sub,
@@ -7275,7 +7313,7 @@ static const skode_clause_t s_clauses_control_event[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 179,
+        .opcode_id = 182,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_control_event_1,
@@ -7290,7 +7328,7 @@ static const skode_clause_t s_clauses_control_event[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 180,
+        .opcode_id = 183,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_control_event_2,
@@ -7305,7 +7343,7 @@ static const skode_clause_t s_clauses_control_event[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 181,
+        .opcode_id = 184,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_control_event_3,
@@ -7320,7 +7358,7 @@ static const skode_clause_t s_clauses_control_event[] = {
         .arity = 4,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 182,
+        .opcode_id = 185,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_control_event_4,
@@ -7509,7 +7547,7 @@ static const skode_clause_t s_clauses_crush[] = {
         .arity = 0,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 238,
+        .opcode_id = 241,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_crush,
@@ -7830,7 +7868,7 @@ static const skode_clause_t s_clauses_delay_damping[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 249,
+        .opcode_id = 252,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_damping_1,
@@ -7845,7 +7883,7 @@ static const skode_clause_t s_clauses_delay_damping[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 250,
+        .opcode_id = 253,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_damping_2,
@@ -7860,7 +7898,7 @@ static const skode_clause_t s_clauses_delay_damping[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 251,
+        .opcode_id = 254,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_damping_3,
@@ -7893,7 +7931,7 @@ static const skode_clause_t s_clauses_delay_freeze[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 252,
+        .opcode_id = 255,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_freeze_1,
@@ -7908,7 +7946,7 @@ static const skode_clause_t s_clauses_delay_freeze[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 253,
+        .opcode_id = 256,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_freeze_2,
@@ -7941,7 +7979,7 @@ static const skode_clause_t s_clauses_delay_grit[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 239,
+        .opcode_id = 242,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_grit_1,
@@ -7956,7 +7994,7 @@ static const skode_clause_t s_clauses_delay_grit[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 240,
+        .opcode_id = 243,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_grit_2,
@@ -7971,7 +8009,7 @@ static const skode_clause_t s_clauses_delay_grit[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 241,
+        .opcode_id = 244,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_grit_3,
@@ -8004,7 +8042,7 @@ static const skode_clause_t s_clauses_delay_params[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 242,
+        .opcode_id = 245,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_params_1,
@@ -8019,7 +8057,7 @@ static const skode_clause_t s_clauses_delay_params[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 243,
+        .opcode_id = 246,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_params_2,
@@ -8034,7 +8072,7 @@ static const skode_clause_t s_clauses_delay_params[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 244,
+        .opcode_id = 247,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_params_3,
@@ -8049,7 +8087,7 @@ static const skode_clause_t s_clauses_delay_params[] = {
         .arity = 4,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 245,
+        .opcode_id = 248,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_params_4,
@@ -8064,7 +8102,7 @@ static const skode_clause_t s_clauses_delay_params[] = {
         .arity = 5,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 246,
+        .opcode_id = 249,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_params_5,
@@ -8079,7 +8117,7 @@ static const skode_clause_t s_clauses_delay_params[] = {
         .arity = 6,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 247,
+        .opcode_id = 250,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_params_6,
@@ -8094,7 +8132,7 @@ static const skode_clause_t s_clauses_delay_params[] = {
         .arity = 7,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 248,
+        .opcode_id = 251,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_params_7,
@@ -8127,7 +8165,7 @@ static const skode_clause_t s_clauses_delay_pingpong[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 254,
+        .opcode_id = 257,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_pingpong_1,
@@ -8142,7 +8180,7 @@ static const skode_clause_t s_clauses_delay_pingpong[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 255,
+        .opcode_id = 258,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_pingpong_2,
@@ -8226,7 +8264,7 @@ static const skode_clause_t s_clauses_delay_time_ms[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 256,
+        .opcode_id = 259,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_time_ms_2,
@@ -8256,7 +8294,7 @@ static const skode_clause_t s_clauses_delay_time_ms[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 257,
+        .opcode_id = 260,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_time_ms_1,
@@ -8274,7 +8312,7 @@ static const skode_clause_t s_clauses_delay_time_sync[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 258,
+        .opcode_id = 261,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_time_sync_3,
@@ -8304,7 +8342,7 @@ static const skode_clause_t s_clauses_delay_time_sync[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 259,
+        .opcode_id = 262,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_time_sync_1,
@@ -8319,7 +8357,7 @@ static const skode_clause_t s_clauses_delay_time_sync[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 260,
+        .opcode_id = 263,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_delay_time_sync_2,
@@ -8341,8 +8379,8 @@ static const skode_clause_t s_clauses_dictionary_show[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_dictionary_show_c561,
-        .c_name = "skode_clause_dictionary_show_c561",
+        .imm_handler = skode_clause_dictionary_show_c565,
+        .c_name = "skode_clause_dictionary_show_c565",
         .summary = "show all dictionary words",
         .doc = "show all dictionary words"
     },
@@ -8356,8 +8394,8 @@ static const skode_clause_t s_clauses_dictionary_show[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_dictionary_show_c562,
-        .c_name = "skode_clause_dictionary_show_c562",
+        .imm_handler = skode_clause_dictionary_show_c566,
+        .c_name = "skode_clause_dictionary_show_c566",
         .summary = "show dictionary words by filter mode",
         .doc = "show dictionary words by filter mode"
     }
@@ -8431,12 +8469,27 @@ static const skode_clause_t s_clauses_engine_quit[] = {
 
 static const skode_clause_t s_clauses_envelope[] = {
     {
-        .min_arity = 4,
-        .max_arity = 4,
-        .arity = 4,
-        .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
+        .min_arity = 0,
+        .max_arity = 0,
+        .arity = 0,
+        .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
         .opcode_id = 170,
+        .flags = SKODE_CLAUSE_RT_SAFE,
+        .guard = NULL,
+        .rt_handler = skode_clause_env_set_0,
+        .imm_handler = skode_clause_env_set_0_imm_bridge,
+        .c_name = "skode_clause_env_set_0",
+        .summary = "reset ADSR envelope to flat (bypass)",
+        .doc = "reset ADSR envelope to flat (bypass)"
+    },
+    {
+        .min_arity = 2,
+        .max_arity = 4,
+        .arity = 2,
+        .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
+        .atom_values = {0},
+        .opcode_id = 171,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_env_set,
@@ -8449,12 +8502,27 @@ static const skode_clause_t s_clauses_envelope[] = {
 
 static const skode_clause_t s_clauses_filter_env[] = {
     {
-        .min_arity = 4,
+        .min_arity = 0,
+        .max_arity = 0,
+        .arity = 0,
+        .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
+        .atom_values = {0},
+        .opcode_id = 176,
+        .flags = SKODE_CLAUSE_RT_SAFE,
+        .guard = NULL,
+        .rt_handler = skode_clause_filter_env_0,
+        .imm_handler = skode_clause_filter_env_0_imm_bridge,
+        .c_name = "skode_clause_filter_env_0",
+        .summary = "reset filter cutoff envelope to flat (bypass)",
+        .doc = "reset filter cutoff envelope to flat (bypass)"
+    },
+    {
+        .min_arity = 2,
         .max_arity = 4,
-        .arity = 4,
+        .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 174,
+        .opcode_id = 177,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_filter_env,
@@ -8472,7 +8540,7 @@ static const skode_clause_t s_clauses_filter_env_depth[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 175,
+        .opcode_id = 178,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_filter_env_depth,
@@ -9157,12 +9225,12 @@ static const skode_clause_t s_clauses_gate_on[] = {
 
 static const skode_clause_t s_clauses_glissando[] = {
     {
-        .min_arity = 1,
+        .min_arity = 0,
         .max_arity = 2,
-        .arity = 1,
+        .arity = 0,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 201,
+        .opcode_id = 204,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_glissando,
@@ -9277,14 +9345,14 @@ static const skode_clause_t s_clauses_inst_note[] = {
         .min_arity = 1,
         .max_arity = 1,
         .arity = 1,
-        .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
+        .match = {MATCH_NUM, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 235,
+        .opcode_id = 238,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
-        .rt_handler = skode_clause_inst_note_c299,
-        .imm_handler = skode_clause_inst_note_c299_imm_bridge,
-        .c_name = "skode_clause_inst_note_c299",
+        .rt_handler = skode_clause_inst_note_c303,
+        .imm_handler = skode_clause_inst_note_c303_imm_bridge,
+        .c_name = "skode_clause_inst_note_c303",
         .summary = "trigger instrument note",
         .doc = "trigger instrument note"
     },
@@ -9292,14 +9360,14 @@ static const skode_clause_t s_clauses_inst_note[] = {
         .min_arity = 2,
         .max_arity = 2,
         .arity = 2,
-        .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
+        .match = {MATCH_NUM, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 236,
+        .opcode_id = 239,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
-        .rt_handler = skode_clause_inst_note_c300,
-        .imm_handler = skode_clause_inst_note_c300_imm_bridge,
-        .c_name = "skode_clause_inst_note_c300",
+        .rt_handler = skode_clause_inst_note_c304,
+        .imm_handler = skode_clause_inst_note_c304_imm_bridge,
+        .c_name = "skode_clause_inst_note_c304",
         .summary = "trigger instrument note with velocity",
         .doc = "trigger instrument note with velocity"
     },
@@ -9307,14 +9375,14 @@ static const skode_clause_t s_clauses_inst_note[] = {
         .min_arity = 3,
         .max_arity = 3,
         .arity = 3,
-        .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
+        .match = {MATCH_NUM, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 237,
+        .opcode_id = 240,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
-        .rt_handler = skode_clause_inst_note_c301,
-        .imm_handler = skode_clause_inst_note_c301_imm_bridge,
-        .c_name = "skode_clause_inst_note_c301",
+        .rt_handler = skode_clause_inst_note_c305,
+        .imm_handler = skode_clause_inst_note_c305_imm_bridge,
+        .c_name = "skode_clause_inst_note_c305",
         .summary = "trigger instrument note with velocity and cents",
         .doc = "trigger instrument note with velocity and cents"
     }
@@ -10587,7 +10655,7 @@ static const skode_clause_t s_clauses_mute[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 195,
+        .opcode_id = 198,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_mute_set,
@@ -10602,7 +10670,7 @@ static const skode_clause_t s_clauses_mute[] = {
         .arity = 0,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 196,
+        .opcode_id = 199,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_mute_toggle,
@@ -10642,8 +10710,8 @@ static const skode_clause_t s_clauses_opcode_exec[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_opcode_exec_c556,
-        .c_name = "skode_clause_opcode_exec_c556",
+        .imm_handler = skode_clause_opcode_exec_c560,
+        .c_name = "skode_clause_opcode_exec_c560",
         .summary = "numeric opcode escape",
         .doc = "numeric opcode escape"
     },
@@ -10657,8 +10725,8 @@ static const skode_clause_t s_clauses_opcode_exec[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_opcode_exec_c557,
-        .c_name = "skode_clause_opcode_exec_c557",
+        .imm_handler = skode_clause_opcode_exec_c561,
+        .c_name = "skode_clause_opcode_exec_c561",
         .summary = "opcode_exec (EXEC)",
         .doc = "opcode_exec (EXEC)"
     },
@@ -10672,8 +10740,8 @@ static const skode_clause_t s_clauses_opcode_exec[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_opcode_exec_c558,
-        .c_name = "skode_clause_opcode_exec_c558",
+        .imm_handler = skode_clause_opcode_exec_c562,
+        .c_name = "skode_clause_opcode_exec_c562",
         .summary = "opcode_exec (EXEC)",
         .doc = "opcode_exec (EXEC)"
     },
@@ -10687,8 +10755,8 @@ static const skode_clause_t s_clauses_opcode_exec[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_opcode_exec_c559,
-        .c_name = "skode_clause_opcode_exec_c559",
+        .imm_handler = skode_clause_opcode_exec_c563,
+        .c_name = "skode_clause_opcode_exec_c563",
         .summary = "opcode_exec (EXEC)",
         .doc = "opcode_exec (EXEC)"
     },
@@ -10702,8 +10770,8 @@ static const skode_clause_t s_clauses_opcode_exec[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_opcode_exec_c560,
-        .c_name = "skode_clause_opcode_exec_c560",
+        .imm_handler = skode_clause_opcode_exec_c564,
+        .c_name = "skode_clause_opcode_exec_c564",
         .summary = "opcode_exec (EXEC)",
         .doc = "opcode_exec (EXEC)"
     }
@@ -10764,7 +10832,7 @@ static const skode_clause_t s_clauses_pan[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 193,
+        .opcode_id = 196,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_pan_set,
@@ -10779,7 +10847,7 @@ static const skode_clause_t s_clauses_pan[] = {
         .arity = 1,
         .match = {MATCH_NAN, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 194,
+        .opcode_id = 197,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_pan_center,
@@ -10797,7 +10865,7 @@ static const skode_clause_t s_clauses_pan_mod[] = {
         .arity = 0,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 209,
+        .opcode_id = 212,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_pan_mod_0,
@@ -10812,7 +10880,7 @@ static const skode_clause_t s_clauses_pan_mod[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 210,
+        .opcode_id = 213,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_pan_mod_1,
@@ -10827,7 +10895,7 @@ static const skode_clause_t s_clauses_pan_mod[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 211,
+        .opcode_id = 214,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_pan_mod_2,
@@ -10842,7 +10910,7 @@ static const skode_clause_t s_clauses_pan_mod[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 212,
+        .opcode_id = 215,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_pan_mod_3,
@@ -10980,7 +11048,7 @@ static const skode_clause_t s_clauses_pattern_goto_alt[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 183,
+        .opcode_id = 186,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_pattern_goto_alt,
@@ -10998,12 +11066,12 @@ static const skode_clause_t s_clauses_pattern_loop[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 189,
+        .opcode_id = 192,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
-        .rt_handler = skode_clause_pattern_loop_c164,
-        .imm_handler = skode_clause_pattern_loop_c164_imm_bridge,
-        .c_name = "skode_clause_pattern_loop_c164",
+        .rt_handler = skode_clause_pattern_loop_c168,
+        .imm_handler = skode_clause_pattern_loop_c168_imm_bridge,
+        .c_name = "skode_clause_pattern_loop_c168",
         .summary = "pattern step loop counter and branch",
         .doc = "pattern step loop counter and branch"
     }
@@ -11067,7 +11135,7 @@ static const skode_clause_t s_clauses_pattern_modulo_alt[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 184,
+        .opcode_id = 187,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_pattern_modulo_alt,
@@ -11121,12 +11189,12 @@ static const skode_clause_t s_clauses_pattern_ratchet[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 190,
+        .opcode_id = 193,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
-        .rt_handler = skode_clause_pattern_ratchet_c165,
-        .imm_handler = skode_clause_pattern_ratchet_c165_imm_bridge,
-        .c_name = "skode_clause_pattern_ratchet_c165",
+        .rt_handler = skode_clause_pattern_ratchet_c169,
+        .imm_handler = skode_clause_pattern_ratchet_c169_imm_bridge,
+        .c_name = "skode_clause_pattern_ratchet_c169",
         .summary = "set step ratchet multiplier",
         .doc = "set step ratchet multiplier"
     }
@@ -11310,12 +11378,12 @@ static const skode_clause_t s_clauses_pattern_state_set[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 188,
+        .opcode_id = 191,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
-        .rt_handler = skode_clause_pattern_state_set_c163,
-        .imm_handler = skode_clause_pattern_state_set_c163_imm_bridge,
-        .c_name = "skode_clause_pattern_state_set_c163",
+        .rt_handler = skode_clause_pattern_state_set_c167,
+        .imm_handler = skode_clause_pattern_state_set_c167_imm_bridge,
+        .c_name = "skode_clause_pattern_state_set_c167",
         .summary = "set pattern state by explicit index",
         .doc = "set pattern state by explicit index"
     }
@@ -11455,12 +11523,27 @@ static const skode_clause_t s_clauses_phase_dist[] = {
 
 static const skode_clause_t s_clauses_phase_env[] = {
     {
-        .min_arity = 4,
+        .min_arity = 0,
+        .max_arity = 0,
+        .arity = 0,
+        .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
+        .atom_values = {0},
+        .opcode_id = 173,
+        .flags = SKODE_CLAUSE_RT_SAFE,
+        .guard = NULL,
+        .rt_handler = skode_clause_phase_env_0,
+        .imm_handler = skode_clause_phase_env_0_imm_bridge,
+        .c_name = "skode_clause_phase_env_0",
+        .summary = "reset phase distortion envelope to flat (bypass)",
+        .doc = "reset phase distortion envelope to flat (bypass)"
+    },
+    {
+        .min_arity = 2,
         .max_arity = 4,
-        .arity = 4,
+        .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 172,
+        .opcode_id = 174,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_phase_env,
@@ -11478,7 +11561,7 @@ static const skode_clause_t s_clauses_phase_env_depth[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 173,
+        .opcode_id = 175,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_phase_env_depth,
@@ -11524,9 +11607,24 @@ static const skode_clause_t s_clauses_phase_mod[] = {
 
 static const skode_clause_t s_clauses_pitch_env[] = {
     {
-        .min_arity = 4,
+        .min_arity = 0,
+        .max_arity = 0,
+        .arity = 0,
+        .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
+        .atom_values = {0},
+        .opcode_id = 0,
+        .flags = SKODE_CLAUSE_IMMEDIATE,
+        .guard = NULL,
+        .rt_handler = NULL,
+        .imm_handler = skode_clause_pitch_env_0,
+        .c_name = "skode_clause_pitch_env_0",
+        .summary = "reset pitch envelope to flat (bypass)",
+        .doc = "reset pitch envelope to flat (bypass)"
+    },
+    {
+        .min_arity = 2,
         .max_arity = 4,
-        .arity = 4,
+        .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
         .opcode_id = 0,
@@ -11583,7 +11681,7 @@ static const skode_clause_t s_clauses_poly_bend[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 223,
+        .opcode_id = 226,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_bend_3,
@@ -11598,7 +11696,7 @@ static const skode_clause_t s_clauses_poly_bend[] = {
         .arity = 4,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 224,
+        .opcode_id = 227,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_bend_4,
@@ -11616,7 +11714,7 @@ static const skode_clause_t s_clauses_poly_bend_gb[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 225,
+        .opcode_id = 228,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_bend_gb_3,
@@ -11631,7 +11729,7 @@ static const skode_clause_t s_clauses_poly_bend_gb[] = {
         .arity = 4,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 226,
+        .opcode_id = 229,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_bend_gb_4,
@@ -11781,7 +11879,7 @@ static const skode_clause_t s_clauses_poly_note[] = {
         .arity = 4,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 215,
+        .opcode_id = 218,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_note_4,
@@ -11796,7 +11894,7 @@ static const skode_clause_t s_clauses_poly_note[] = {
         .arity = 5,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 216,
+        .opcode_id = 219,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_note_5,
@@ -11814,7 +11912,7 @@ static const skode_clause_t s_clauses_poly_note_gn[] = {
         .arity = 4,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 217,
+        .opcode_id = 220,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_note_gn_4,
@@ -11829,7 +11927,7 @@ static const skode_clause_t s_clauses_poly_note_gn[] = {
         .arity = 5,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 218,
+        .opcode_id = 221,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_note_gn_5,
@@ -11931,7 +12029,7 @@ static const skode_clause_t s_clauses_poly_release[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 219,
+        .opcode_id = 222,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_release_2,
@@ -11946,7 +12044,7 @@ static const skode_clause_t s_clauses_poly_release[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 220,
+        .opcode_id = 223,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_release_3,
@@ -11964,7 +12062,7 @@ static const skode_clause_t s_clauses_poly_release_gr[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 221,
+        .opcode_id = 224,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_release_gr_2,
@@ -11979,7 +12077,7 @@ static const skode_clause_t s_clauses_poly_release_gr[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 222,
+        .opcode_id = 225,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_poly_release_gr_3,
@@ -13189,8 +13287,8 @@ static const skode_clause_t s_clauses_return_push[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_return_push_c546,
-        .c_name = "skode_clause_return_push_c546",
+        .imm_handler = skode_clause_return_push_c550,
+        .c_name = "skode_clause_return_push_c550",
         .summary = "reset or clear return registers",
         .doc = "reset or clear return registers"
     },
@@ -13204,8 +13302,8 @@ static const skode_clause_t s_clauses_return_push[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_return_push_c547,
-        .c_name = "skode_clause_return_push_c547",
+        .imm_handler = skode_clause_return_push_c551,
+        .c_name = "skode_clause_return_push_c551",
         .summary = "push 1 argument into return registers",
         .doc = "push 1 argument into return registers"
     },
@@ -13219,8 +13317,8 @@ static const skode_clause_t s_clauses_return_push[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_return_push_c548,
-        .c_name = "skode_clause_return_push_c548",
+        .imm_handler = skode_clause_return_push_c552,
+        .c_name = "skode_clause_return_push_c552",
         .summary = "push 2 arguments into return registers",
         .doc = "push 2 arguments into return registers"
     },
@@ -13234,8 +13332,8 @@ static const skode_clause_t s_clauses_return_push[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_return_push_c549,
-        .c_name = "skode_clause_return_push_c549",
+        .imm_handler = skode_clause_return_push_c553,
+        .c_name = "skode_clause_return_push_c553",
         .summary = "push 3 arguments into return registers",
         .doc = "push 3 arguments into return registers"
     },
@@ -13249,8 +13347,8 @@ static const skode_clause_t s_clauses_return_push[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_return_push_c550,
-        .c_name = "skode_clause_return_push_c550",
+        .imm_handler = skode_clause_return_push_c554,
+        .c_name = "skode_clause_return_push_c554",
         .summary = "push 4 arguments into return registers",
         .doc = "push 4 arguments into return registers"
     },
@@ -13264,8 +13362,8 @@ static const skode_clause_t s_clauses_return_push[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_return_push_c551,
-        .c_name = "skode_clause_return_push_c551",
+        .imm_handler = skode_clause_return_push_c555,
+        .c_name = "skode_clause_return_push_c555",
         .summary = "push 5 arguments into return registers",
         .doc = "push 5 arguments into return registers"
     },
@@ -13279,8 +13377,8 @@ static const skode_clause_t s_clauses_return_push[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_return_push_c552,
-        .c_name = "skode_clause_return_push_c552",
+        .imm_handler = skode_clause_return_push_c556,
+        .c_name = "skode_clause_return_push_c556",
         .summary = "push 6 arguments into return registers",
         .doc = "push 6 arguments into return registers"
     },
@@ -13294,8 +13392,8 @@ static const skode_clause_t s_clauses_return_push[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_return_push_c553,
-        .c_name = "skode_clause_return_push_c553",
+        .imm_handler = skode_clause_return_push_c557,
+        .c_name = "skode_clause_return_push_c557",
         .summary = "push 7 arguments into return registers",
         .doc = "push 7 arguments into return registers"
     },
@@ -13309,8 +13407,8 @@ static const skode_clause_t s_clauses_return_push[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_return_push_c554,
-        .c_name = "skode_clause_return_push_c554",
+        .imm_handler = skode_clause_return_push_c558,
+        .c_name = "skode_clause_return_push_c558",
         .summary = "push 8 arguments into return registers",
         .doc = "push 8 arguments into return registers"
     }
@@ -13327,8 +13425,8 @@ static const skode_clause_t s_clauses_return_query[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_return_query_c555,
-        .c_name = "skode_clause_return_query_c555",
+        .imm_handler = skode_clause_return_query_c559,
+        .c_name = "skode_clause_return_query_c559",
         .summary = "show return registers without consuming them",
         .doc = "show return registers without consuming them"
     }
@@ -13341,7 +13439,7 @@ static const skode_clause_t s_clauses_ring_mod[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 203,
+        .opcode_id = 206,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_ring_mod_1,
@@ -13356,7 +13454,7 @@ static const skode_clause_t s_clauses_ring_mod[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 204,
+        .opcode_id = 207,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_ring_mod_2,
@@ -13374,7 +13472,7 @@ static const skode_clause_t s_clauses_sample_hold[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 227,
+        .opcode_id = 230,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_sample_hold_1,
@@ -13389,7 +13487,7 @@ static const skode_clause_t s_clauses_sample_hold[] = {
         .arity = 0,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 228,
+        .opcode_id = 231,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_sample_hold_0,
@@ -13404,7 +13502,7 @@ static const skode_clause_t s_clauses_sample_hold[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 229,
+        .opcode_id = 232,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_sample_hold_2,
@@ -13740,7 +13838,7 @@ static const skode_clause_t s_clauses_smoother[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 202,
+        .opcode_id = 205,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_smoother,
@@ -14472,12 +14570,12 @@ static const skode_clause_t s_clauses_stream_copy[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 185,
+        .opcode_id = 188,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
-        .rt_handler = skode_clause_stream_copy_c160,
-        .imm_handler = skode_clause_stream_copy_c160_imm_bridge,
-        .c_name = "skode_clause_stream_copy_c160",
+        .rt_handler = skode_clause_stream_copy_c164,
+        .imm_handler = skode_clause_stream_copy_c164_imm_bridge,
+        .c_name = "skode_clause_stream_copy_c164",
         .summary = "copy stream contents",
         .doc = "copy stream contents"
     }
@@ -14490,12 +14588,12 @@ static const skode_clause_t s_clauses_stream_mode[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 186,
+        .opcode_id = 189,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
-        .rt_handler = skode_clause_stream_mode_c161,
-        .imm_handler = skode_clause_stream_mode_c161_imm_bridge,
-        .c_name = "skode_clause_stream_mode_c161",
+        .rt_handler = skode_clause_stream_mode_c165,
+        .imm_handler = skode_clause_stream_mode_c165_imm_bridge,
+        .c_name = "skode_clause_stream_mode_c165",
         .summary = "set stream playback mode",
         .doc = "set stream playback mode"
     }
@@ -14508,12 +14606,12 @@ static const skode_clause_t s_clauses_stream_pos[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 187,
+        .opcode_id = 190,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
-        .rt_handler = skode_clause_stream_pos_c162,
-        .imm_handler = skode_clause_stream_pos_c162_imm_bridge,
-        .c_name = "skode_clause_stream_pos_c162",
+        .rt_handler = skode_clause_stream_pos_c166,
+        .imm_handler = skode_clause_stream_pos_c166_imm_bridge,
+        .c_name = "skode_clause_stream_pos_c166",
         .summary = "set stream read position",
         .doc = "set stream read position"
     }
@@ -14530,8 +14628,8 @@ static const skode_clause_t s_clauses_stream_set[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE | SKODE_CLAUSE_NEEDS_DATA,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_stream_set_c159,
-        .c_name = "skode_clause_stream_set_c159",
+        .imm_handler = skode_clause_stream_set_c163,
+        .c_name = "skode_clause_stream_set_c163",
         .summary = "set stream array from stack data",
         .doc = "set stream array from stack data"
     }
@@ -14548,8 +14646,8 @@ static const skode_clause_t s_clauses_stream_show[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_stream_show_c157,
-        .c_name = "skode_clause_stream_show_c157",
+        .imm_handler = skode_clause_stream_show_c161,
+        .c_name = "skode_clause_stream_show_c161",
         .summary = "show stream state and data",
         .doc = "show stream state and data"
     },
@@ -14563,8 +14661,8 @@ static const skode_clause_t s_clauses_stream_show[] = {
         .flags = SKODE_CLAUSE_IMMEDIATE,
         .guard = NULL,
         .rt_handler = NULL,
-        .imm_handler = skode_clause_stream_show_c158,
-        .c_name = "skode_clause_stream_show_c158",
+        .imm_handler = skode_clause_stream_show_c162,
+        .c_name = "skode_clause_stream_show_c162",
         .summary = "show specific stream state and data",
         .doc = "show specific stream state and data"
     }
@@ -14889,7 +14987,7 @@ static const skode_clause_t s_clauses_track_route[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 230,
+        .opcode_id = 233,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_track_route_1,
@@ -14904,7 +15002,7 @@ static const skode_clause_t s_clauses_track_route[] = {
         .arity = 0,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 231,
+        .opcode_id = 234,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_track_route_0,
@@ -14919,7 +15017,7 @@ static const skode_clause_t s_clauses_track_route[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 232,
+        .opcode_id = 235,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_track_route_2,
@@ -15018,7 +15116,7 @@ static const skode_clause_t s_clauses_trigger[] = {
         .arity = 0,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 171,
+        .opcode_id = 172,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_trigger_full,
@@ -15285,7 +15383,7 @@ static const skode_clause_t s_clauses_velocity[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 200,
+        .opcode_id = 203,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_velocity,
@@ -15711,7 +15809,7 @@ static const skode_clause_t s_clauses_voice_copy[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 214,
+        .opcode_id = 217,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_copy,
@@ -15777,7 +15875,7 @@ static const skode_clause_t s_clauses_voice_link_gate[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 261,
+        .opcode_id = 264,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_gate_1,
@@ -15792,7 +15890,7 @@ static const skode_clause_t s_clauses_voice_link_gate[] = {
         .arity = 0,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 262,
+        .opcode_id = 265,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_gate_0,
@@ -15807,7 +15905,7 @@ static const skode_clause_t s_clauses_voice_link_gate[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 263,
+        .opcode_id = 266,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_gate_2,
@@ -15822,7 +15920,7 @@ static const skode_clause_t s_clauses_voice_link_gate[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 264,
+        .opcode_id = 267,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_gate_3,
@@ -15837,7 +15935,7 @@ static const skode_clause_t s_clauses_voice_link_gate[] = {
         .arity = 4,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 265,
+        .opcode_id = 268,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_gate_4,
@@ -15855,7 +15953,7 @@ static const skode_clause_t s_clauses_voice_link_sync[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 266,
+        .opcode_id = 269,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_sync_1,
@@ -15870,7 +15968,7 @@ static const skode_clause_t s_clauses_voice_link_sync[] = {
         .arity = 0,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 267,
+        .opcode_id = 270,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_sync_0,
@@ -15885,7 +15983,7 @@ static const skode_clause_t s_clauses_voice_link_sync[] = {
         .arity = 2,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 268,
+        .opcode_id = 271,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_sync_2,
@@ -15900,7 +15998,7 @@ static const skode_clause_t s_clauses_voice_link_sync[] = {
         .arity = 3,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 269,
+        .opcode_id = 272,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_sync_3,
@@ -15915,7 +16013,7 @@ static const skode_clause_t s_clauses_voice_link_sync[] = {
         .arity = 4,
         .match = {MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 270,
+        .opcode_id = 273,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_sync_4,
@@ -15933,7 +16031,7 @@ static const skode_clause_t s_clauses_voice_link_trig[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 271,
+        .opcode_id = 274,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_trig_1,
@@ -15948,7 +16046,7 @@ static const skode_clause_t s_clauses_voice_link_trig[] = {
         .arity = 0,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 272,
+        .opcode_id = 275,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_link_trig_0,
@@ -15999,7 +16097,7 @@ static const skode_clause_t s_clauses_voice_reset[] = {
         .arity = 1,
         .match = {MATCH_FINITE, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 213,
+        .opcode_id = 216,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_voice_reset,
@@ -16293,7 +16391,7 @@ static const skode_clause_t s_clauses_wave_default[] = {
         .arity = 0,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 233,
+        .opcode_id = 236,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_wave_default_0,
@@ -16308,7 +16406,7 @@ static const skode_clause_t s_clauses_wave_default[] = {
         .arity = 1,
         .match = {MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY, MATCH_ANY},
         .atom_values = {0},
-        .opcode_id = 234,
+        .opcode_id = 237,
         .flags = SKODE_CLAUSE_RT_SAFE,
         .guard = NULL,
         .rt_handler = skode_clause_wave_default_1,
@@ -17315,7 +17413,7 @@ const skode_def_word_t g_skode_words[] = {
         .name = "envelope",
         .alias = "t",
         .group = SKODE_GRP_ENV,
-        .clause_count = 1,
+        .clause_count = 2,
         .clauses = s_clauses_envelope,
         .next = NULL
     },
@@ -17323,7 +17421,7 @@ const skode_def_word_t g_skode_words[] = {
         .name = "filter_env",
         .alias = "kt",
         .group = SKODE_GRP_ENV,
-        .clause_count = 1,
+        .clause_count = 2,
         .clauses = s_clauses_filter_env,
         .next = NULL
     },
@@ -18179,7 +18277,7 @@ const skode_def_word_t g_skode_words[] = {
         .name = "phase_env",
         .alias = "ct",
         .group = SKODE_GRP_ENV,
-        .clause_count = 1,
+        .clause_count = 2,
         .clauses = s_clauses_phase_env,
         .next = NULL
     },
@@ -18203,7 +18301,7 @@ const skode_def_word_t g_skode_words[] = {
         .name = "pitch_env",
         .alias = "pt",
         .group = SKODE_GRP_ENV,
-        .clause_count = 1,
+        .clause_count = 2,
         .clauses = s_clauses_pitch_env,
         .next = NULL
     },
@@ -19463,109 +19561,112 @@ const skode_realtime_fn_t g_skode_realtime_ops[SKODE_REALTIME_OPS_CAPACITY] = {
     [167] = skode_clause_filter_res_reset,
     [168] = skode_clause_filter_mode_1,
     [169] = skode_clause_filter_mode_2,
-    [170] = skode_clause_env_set,
-    [171] = skode_clause_trigger_full,
-    [172] = skode_clause_phase_env,
-    [173] = skode_clause_phase_env_depth,
-    [174] = skode_clause_filter_env,
-    [175] = skode_clause_filter_env_depth,
-    [176] = skode_clause_amp_env_mode,
-    [177] = skode_clause_tempo_bpm,
-    [178] = skode_clause_tempo_bpm_sub,
-    [179] = skode_clause_control_event_1,
-    [180] = skode_clause_control_event_2,
-    [181] = skode_clause_control_event_3,
-    [182] = skode_clause_control_event_4,
-    [183] = skode_clause_pattern_goto_alt,
-    [184] = skode_clause_pattern_modulo_alt,
-    [185] = skode_clause_stream_copy_c160,
-    [186] = skode_clause_stream_mode_c161,
-    [187] = skode_clause_stream_pos_c162,
-    [188] = skode_clause_pattern_state_set_c163,
-    [189] = skode_clause_pattern_loop_c164,
-    [190] = skode_clause_pattern_ratchet_c165,
-    [191] = skode_clause_amp_set,
-    [192] = skode_clause_amp_reset,
-    [193] = skode_clause_pan_set,
-    [194] = skode_clause_pan_center,
-    [195] = skode_clause_mute_set,
-    [196] = skode_clause_mute_toggle,
-    [197] = skode_clause_amp_bend,
-    [198] = skode_clause_amp_bend_param_1,
-    [199] = skode_clause_amp_bend_param_2,
-    [200] = skode_clause_velocity,
-    [201] = skode_clause_glissando,
-    [202] = skode_clause_smoother,
-    [203] = skode_clause_ring_mod_1,
-    [204] = skode_clause_ring_mod_2,
-    [205] = skode_clause_amp_mod_0,
-    [206] = skode_clause_amp_mod_1,
-    [207] = skode_clause_amp_mod_2,
-    [208] = skode_clause_amp_mod_3,
-    [209] = skode_clause_pan_mod_0,
-    [210] = skode_clause_pan_mod_1,
-    [211] = skode_clause_pan_mod_2,
-    [212] = skode_clause_pan_mod_3,
-    [213] = skode_clause_voice_reset,
-    [214] = skode_clause_voice_copy,
-    [215] = skode_clause_poly_note_4,
-    [216] = skode_clause_poly_note_5,
-    [217] = skode_clause_poly_note_gn_4,
-    [218] = skode_clause_poly_note_gn_5,
-    [219] = skode_clause_poly_release_2,
-    [220] = skode_clause_poly_release_3,
-    [221] = skode_clause_poly_release_gr_2,
-    [222] = skode_clause_poly_release_gr_3,
-    [223] = skode_clause_poly_bend_3,
-    [224] = skode_clause_poly_bend_4,
-    [225] = skode_clause_poly_bend_gb_3,
-    [226] = skode_clause_poly_bend_gb_4,
-    [227] = skode_clause_sample_hold_1,
-    [228] = skode_clause_sample_hold_0,
-    [229] = skode_clause_sample_hold_2,
-    [230] = skode_clause_track_route_1,
-    [231] = skode_clause_track_route_0,
-    [232] = skode_clause_track_route_2,
-    [233] = skode_clause_wave_default_0,
-    [234] = skode_clause_wave_default_1,
-    [235] = skode_clause_inst_note_c299,
-    [236] = skode_clause_inst_note_c300,
-    [237] = skode_clause_inst_note_c301,
-    [238] = skode_clause_crush,
-    [239] = skode_clause_delay_grit_1,
-    [240] = skode_clause_delay_grit_2,
-    [241] = skode_clause_delay_grit_3,
-    [242] = skode_clause_delay_params_1,
-    [243] = skode_clause_delay_params_2,
-    [244] = skode_clause_delay_params_3,
-    [245] = skode_clause_delay_params_4,
-    [246] = skode_clause_delay_params_5,
-    [247] = skode_clause_delay_params_6,
-    [248] = skode_clause_delay_params_7,
-    [249] = skode_clause_delay_damping_1,
-    [250] = skode_clause_delay_damping_2,
-    [251] = skode_clause_delay_damping_3,
-    [252] = skode_clause_delay_freeze_1,
-    [253] = skode_clause_delay_freeze_2,
-    [254] = skode_clause_delay_pingpong_1,
-    [255] = skode_clause_delay_pingpong_2,
-    [256] = skode_clause_delay_time_ms_2,
-    [257] = skode_clause_delay_time_ms_1,
-    [258] = skode_clause_delay_time_sync_3,
-    [259] = skode_clause_delay_time_sync_1,
-    [260] = skode_clause_delay_time_sync_2,
-    [261] = skode_clause_voice_link_gate_1,
-    [262] = skode_clause_voice_link_gate_0,
-    [263] = skode_clause_voice_link_gate_2,
-    [264] = skode_clause_voice_link_gate_3,
-    [265] = skode_clause_voice_link_gate_4,
-    [266] = skode_clause_voice_link_sync_1,
-    [267] = skode_clause_voice_link_sync_0,
-    [268] = skode_clause_voice_link_sync_2,
-    [269] = skode_clause_voice_link_sync_3,
-    [270] = skode_clause_voice_link_sync_4,
-    [271] = skode_clause_voice_link_trig_1,
-    [272] = skode_clause_voice_link_trig_0,
+    [170] = skode_clause_env_set_0,
+    [171] = skode_clause_env_set,
+    [172] = skode_clause_trigger_full,
+    [173] = skode_clause_phase_env_0,
+    [174] = skode_clause_phase_env,
+    [175] = skode_clause_phase_env_depth,
+    [176] = skode_clause_filter_env_0,
+    [177] = skode_clause_filter_env,
+    [178] = skode_clause_filter_env_depth,
+    [179] = skode_clause_amp_env_mode,
+    [180] = skode_clause_tempo_bpm,
+    [181] = skode_clause_tempo_bpm_sub,
+    [182] = skode_clause_control_event_1,
+    [183] = skode_clause_control_event_2,
+    [184] = skode_clause_control_event_3,
+    [185] = skode_clause_control_event_4,
+    [186] = skode_clause_pattern_goto_alt,
+    [187] = skode_clause_pattern_modulo_alt,
+    [188] = skode_clause_stream_copy_c164,
+    [189] = skode_clause_stream_mode_c165,
+    [190] = skode_clause_stream_pos_c166,
+    [191] = skode_clause_pattern_state_set_c167,
+    [192] = skode_clause_pattern_loop_c168,
+    [193] = skode_clause_pattern_ratchet_c169,
+    [194] = skode_clause_amp_set,
+    [195] = skode_clause_amp_reset,
+    [196] = skode_clause_pan_set,
+    [197] = skode_clause_pan_center,
+    [198] = skode_clause_mute_set,
+    [199] = skode_clause_mute_toggle,
+    [200] = skode_clause_amp_bend,
+    [201] = skode_clause_amp_bend_param_1,
+    [202] = skode_clause_amp_bend_param_2,
+    [203] = skode_clause_velocity,
+    [204] = skode_clause_glissando,
+    [205] = skode_clause_smoother,
+    [206] = skode_clause_ring_mod_1,
+    [207] = skode_clause_ring_mod_2,
+    [208] = skode_clause_amp_mod_0,
+    [209] = skode_clause_amp_mod_1,
+    [210] = skode_clause_amp_mod_2,
+    [211] = skode_clause_amp_mod_3,
+    [212] = skode_clause_pan_mod_0,
+    [213] = skode_clause_pan_mod_1,
+    [214] = skode_clause_pan_mod_2,
+    [215] = skode_clause_pan_mod_3,
+    [216] = skode_clause_voice_reset,
+    [217] = skode_clause_voice_copy,
+    [218] = skode_clause_poly_note_4,
+    [219] = skode_clause_poly_note_5,
+    [220] = skode_clause_poly_note_gn_4,
+    [221] = skode_clause_poly_note_gn_5,
+    [222] = skode_clause_poly_release_2,
+    [223] = skode_clause_poly_release_3,
+    [224] = skode_clause_poly_release_gr_2,
+    [225] = skode_clause_poly_release_gr_3,
+    [226] = skode_clause_poly_bend_3,
+    [227] = skode_clause_poly_bend_4,
+    [228] = skode_clause_poly_bend_gb_3,
+    [229] = skode_clause_poly_bend_gb_4,
+    [230] = skode_clause_sample_hold_1,
+    [231] = skode_clause_sample_hold_0,
+    [232] = skode_clause_sample_hold_2,
+    [233] = skode_clause_track_route_1,
+    [234] = skode_clause_track_route_0,
+    [235] = skode_clause_track_route_2,
+    [236] = skode_clause_wave_default_0,
+    [237] = skode_clause_wave_default_1,
+    [238] = skode_clause_inst_note_c303,
+    [239] = skode_clause_inst_note_c304,
+    [240] = skode_clause_inst_note_c305,
+    [241] = skode_clause_crush,
+    [242] = skode_clause_delay_grit_1,
+    [243] = skode_clause_delay_grit_2,
+    [244] = skode_clause_delay_grit_3,
+    [245] = skode_clause_delay_params_1,
+    [246] = skode_clause_delay_params_2,
+    [247] = skode_clause_delay_params_3,
+    [248] = skode_clause_delay_params_4,
+    [249] = skode_clause_delay_params_5,
+    [250] = skode_clause_delay_params_6,
+    [251] = skode_clause_delay_params_7,
+    [252] = skode_clause_delay_damping_1,
+    [253] = skode_clause_delay_damping_2,
+    [254] = skode_clause_delay_damping_3,
+    [255] = skode_clause_delay_freeze_1,
+    [256] = skode_clause_delay_freeze_2,
+    [257] = skode_clause_delay_pingpong_1,
+    [258] = skode_clause_delay_pingpong_2,
+    [259] = skode_clause_delay_time_ms_2,
+    [260] = skode_clause_delay_time_ms_1,
+    [261] = skode_clause_delay_time_sync_3,
+    [262] = skode_clause_delay_time_sync_1,
+    [263] = skode_clause_delay_time_sync_2,
+    [264] = skode_clause_voice_link_gate_1,
+    [265] = skode_clause_voice_link_gate_0,
+    [266] = skode_clause_voice_link_gate_2,
+    [267] = skode_clause_voice_link_gate_3,
+    [268] = skode_clause_voice_link_gate_4,
+    [269] = skode_clause_voice_link_sync_1,
+    [270] = skode_clause_voice_link_sync_0,
+    [271] = skode_clause_voice_link_sync_2,
+    [272] = skode_clause_voice_link_sync_3,
+    [273] = skode_clause_voice_link_sync_4,
+    [274] = skode_clause_voice_link_trig_1,
+    [275] = skode_clause_voice_link_trig_0,
 };
 
 static const char *s_discrete_opcode_names[SKODE_REALTIME_OPS_CAPACITY] = {
@@ -19612,108 +19713,111 @@ static const char *s_discrete_opcode_names[SKODE_REALTIME_OPS_CAPACITY] = {
     [168] = "FILTER_MODE",
     [169] = "FILTER_MODE",
     [170] = "ENVELOPE",
-    [171] = "TRIGGER",
-    [172] = "PHASE_ENV",
-    [173] = "PHASE_ENV_DEPTH",
-    [174] = "FILTER_ENV",
-    [175] = "FILTER_ENV_DEPTH",
-    [176] = "AMP_ENV_MODE",
-    [177] = "BPM",
-    [178] = "BPM",
-    [179] = "CONTROL_EVENT",
-    [180] = "CONTROL_EVENT",
-    [181] = "CONTROL_EVENT",
+    [171] = "ENVELOPE",
+    [172] = "TRIGGER",
+    [173] = "PHASE_ENV",
+    [174] = "PHASE_ENV",
+    [175] = "PHASE_ENV_DEPTH",
+    [176] = "FILTER_ENV",
+    [177] = "FILTER_ENV",
+    [178] = "FILTER_ENV_DEPTH",
+    [179] = "AMP_ENV_MODE",
+    [180] = "BPM",
+    [181] = "BPM",
     [182] = "CONTROL_EVENT",
-    [183] = "PATTERN_GOTO_ALT",
-    [184] = "PATTERN_MODULO_ALT",
-    [185] = "STREAM_COPY",
-    [186] = "STREAM_MODE",
-    [187] = "STREAM_POS",
-    [188] = "PATTERN_STATE_SET",
-    [189] = "PATTERN_LOOP",
-    [190] = "PATTERN_RATCHET",
-    [191] = "AMP",
-    [192] = "AMP",
-    [193] = "PAN",
-    [194] = "PAN",
-    [195] = "MUTE",
-    [196] = "MUTE",
-    [197] = "AMP_BEND",
-    [198] = "AMP_BEND_PARAM",
-    [199] = "AMP_BEND_PARAM",
-    [200] = "VELOCITY",
-    [201] = "GLISSANDO",
-    [202] = "SMOOTHER",
-    [203] = "RING_MOD",
-    [204] = "RING_MOD",
-    [205] = "AMP_MOD",
-    [206] = "AMP_MOD",
-    [207] = "AMP_MOD",
+    [183] = "CONTROL_EVENT",
+    [184] = "CONTROL_EVENT",
+    [185] = "CONTROL_EVENT",
+    [186] = "PATTERN_GOTO_ALT",
+    [187] = "PATTERN_MODULO_ALT",
+    [188] = "STREAM_COPY",
+    [189] = "STREAM_MODE",
+    [190] = "STREAM_POS",
+    [191] = "PATTERN_STATE_SET",
+    [192] = "PATTERN_LOOP",
+    [193] = "PATTERN_RATCHET",
+    [194] = "AMP",
+    [195] = "AMP",
+    [196] = "PAN",
+    [197] = "PAN",
+    [198] = "MUTE",
+    [199] = "MUTE",
+    [200] = "AMP_BEND",
+    [201] = "AMP_BEND_PARAM",
+    [202] = "AMP_BEND_PARAM",
+    [203] = "VELOCITY",
+    [204] = "GLISSANDO",
+    [205] = "SMOOTHER",
+    [206] = "RING_MOD",
+    [207] = "RING_MOD",
     [208] = "AMP_MOD",
-    [209] = "PAN_MOD",
-    [210] = "PAN_MOD",
-    [211] = "PAN_MOD",
+    [209] = "AMP_MOD",
+    [210] = "AMP_MOD",
+    [211] = "AMP_MOD",
     [212] = "PAN_MOD",
-    [213] = "VOICE_RESET",
-    [214] = "VOICE_COPY",
-    [215] = "POLY_NOTE",
-    [216] = "POLY_NOTE",
-    [217] = "POLY_NOTE_GN",
-    [218] = "POLY_NOTE_GN",
-    [219] = "POLY_RELEASE",
-    [220] = "POLY_RELEASE",
-    [221] = "POLY_RELEASE_GR",
-    [222] = "POLY_RELEASE_GR",
-    [223] = "POLY_BEND",
-    [224] = "POLY_BEND",
-    [225] = "POLY_BEND_GB",
-    [226] = "POLY_BEND_GB",
-    [227] = "SAMPLE_HOLD",
-    [228] = "SAMPLE_HOLD",
-    [229] = "SAMPLE_HOLD",
-    [230] = "TRACK_ROUTE",
-    [231] = "TRACK_ROUTE",
-    [232] = "TRACK_ROUTE",
-    [233] = "WAVE_DEFAULT",
-    [234] = "WAVE_DEFAULT",
-    [235] = "INST_NOTE",
-    [236] = "INST_NOTE",
-    [237] = "INST_NOTE",
-    [238] = "CRUSH",
-    [239] = "DELAY_GRIT",
-    [240] = "DELAY_GRIT",
-    [241] = "DELAY_GRIT",
-    [242] = "DELAY_PARAMS",
-    [243] = "DELAY_PARAMS",
-    [244] = "DELAY_PARAMS",
+    [213] = "PAN_MOD",
+    [214] = "PAN_MOD",
+    [215] = "PAN_MOD",
+    [216] = "VOICE_RESET",
+    [217] = "VOICE_COPY",
+    [218] = "POLY_NOTE",
+    [219] = "POLY_NOTE",
+    [220] = "POLY_NOTE_GN",
+    [221] = "POLY_NOTE_GN",
+    [222] = "POLY_RELEASE",
+    [223] = "POLY_RELEASE",
+    [224] = "POLY_RELEASE_GR",
+    [225] = "POLY_RELEASE_GR",
+    [226] = "POLY_BEND",
+    [227] = "POLY_BEND",
+    [228] = "POLY_BEND_GB",
+    [229] = "POLY_BEND_GB",
+    [230] = "SAMPLE_HOLD",
+    [231] = "SAMPLE_HOLD",
+    [232] = "SAMPLE_HOLD",
+    [233] = "TRACK_ROUTE",
+    [234] = "TRACK_ROUTE",
+    [235] = "TRACK_ROUTE",
+    [236] = "WAVE_DEFAULT",
+    [237] = "WAVE_DEFAULT",
+    [238] = "INST_NOTE",
+    [239] = "INST_NOTE",
+    [240] = "INST_NOTE",
+    [241] = "CRUSH",
+    [242] = "DELAY_GRIT",
+    [243] = "DELAY_GRIT",
+    [244] = "DELAY_GRIT",
     [245] = "DELAY_PARAMS",
     [246] = "DELAY_PARAMS",
     [247] = "DELAY_PARAMS",
     [248] = "DELAY_PARAMS",
-    [249] = "DELAY_DAMPING",
-    [250] = "DELAY_DAMPING",
-    [251] = "DELAY_DAMPING",
-    [252] = "DELAY_FREEZE",
-    [253] = "DELAY_FREEZE",
-    [254] = "DELAY_PINGPONG",
-    [255] = "DELAY_PINGPONG",
-    [256] = "DELAY_TIME_MS",
-    [257] = "DELAY_TIME_MS",
-    [258] = "DELAY_TIME_SYNC",
-    [259] = "DELAY_TIME_SYNC",
-    [260] = "DELAY_TIME_SYNC",
-    [261] = "VOICE_LINK_GATE",
-    [262] = "VOICE_LINK_GATE",
-    [263] = "VOICE_LINK_GATE",
+    [249] = "DELAY_PARAMS",
+    [250] = "DELAY_PARAMS",
+    [251] = "DELAY_PARAMS",
+    [252] = "DELAY_DAMPING",
+    [253] = "DELAY_DAMPING",
+    [254] = "DELAY_DAMPING",
+    [255] = "DELAY_FREEZE",
+    [256] = "DELAY_FREEZE",
+    [257] = "DELAY_PINGPONG",
+    [258] = "DELAY_PINGPONG",
+    [259] = "DELAY_TIME_MS",
+    [260] = "DELAY_TIME_MS",
+    [261] = "DELAY_TIME_SYNC",
+    [262] = "DELAY_TIME_SYNC",
+    [263] = "DELAY_TIME_SYNC",
     [264] = "VOICE_LINK_GATE",
     [265] = "VOICE_LINK_GATE",
-    [266] = "VOICE_LINK_SYNC",
-    [267] = "VOICE_LINK_SYNC",
-    [268] = "VOICE_LINK_SYNC",
+    [266] = "VOICE_LINK_GATE",
+    [267] = "VOICE_LINK_GATE",
+    [268] = "VOICE_LINK_GATE",
     [269] = "VOICE_LINK_SYNC",
     [270] = "VOICE_LINK_SYNC",
-    [271] = "VOICE_LINK_TRIG",
-    [272] = "VOICE_LINK_TRIG",
+    [271] = "VOICE_LINK_SYNC",
+    [272] = "VOICE_LINK_SYNC",
+    [273] = "VOICE_LINK_SYNC",
+    [274] = "VOICE_LINK_TRIG",
+    [275] = "VOICE_LINK_TRIG",
 };
 
 const char *skode_discrete_opcode_name(uint16_t opcode) {

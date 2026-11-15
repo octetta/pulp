@@ -77,24 +77,11 @@ static float remap_link(float link, const poly_group_t *group, int dest_base) {
 
 static void remap_dependencies(int voice, const poly_group_t *group,
     int dest_base) {
-  sv.link_midi_0[voice] = remap_link(sv.link_midi_0[voice], group, dest_base);
-  sv.link_midi_1[voice] = remap_link(sv.link_midi_1[voice], group, dest_base);
-  sv.link_midi_2[voice] = remap_link(sv.link_midi_2[voice], group, dest_base);
-  sv.link_midi_3[voice] = remap_link(sv.link_midi_3[voice], group, dest_base);
-  sv.link_midi_4[voice] = remap_link(sv.link_midi_4[voice], group, dest_base);
-  sv.link_midi_5[voice] = remap_link(sv.link_midi_5[voice], group, dest_base);
-  sv.link_velo_0[voice] = remap_link(sv.link_velo_0[voice], group, dest_base);
-  sv.link_velo_1[voice] = remap_link(sv.link_velo_1[voice], group, dest_base);
-  sv.link_velo_2[voice] = remap_link(sv.link_velo_2[voice], group, dest_base);
-  sv.link_velo_3[voice] = remap_link(sv.link_velo_3[voice], group, dest_base);
-  sv.link_velo_4[voice] = remap_link(sv.link_velo_4[voice], group, dest_base);
-  sv.link_velo_5[voice] = remap_link(sv.link_velo_5[voice], group, dest_base);
-  sv.link_sync_0[voice] = remap_link(sv.link_sync_0[voice], group, dest_base);
-  sv.link_sync_1[voice] = remap_link(sv.link_sync_1[voice], group, dest_base);
-  sv.link_sync_2[voice] = remap_link(sv.link_sync_2[voice], group, dest_base);
-  sv.link_sync_3[voice] = remap_link(sv.link_sync_3[voice], group, dest_base);
-  sv.link_sync_4[voice] = remap_link(sv.link_sync_4[voice], group, dest_base);
-  sv.link_sync_5[voice] = remap_link(sv.link_sync_5[voice], group, dest_base);
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+    sv.link_midi[i][voice] = remap_link(sv.link_midi[i][voice], group, dest_base);
+    sv.link_velo[i][voice] = remap_link(sv.link_velo[i][voice], group, dest_base);
+    sv.link_sync[i][voice] = remap_link(sv.link_sync[i][voice], group, dest_base);
+  }
   if (sv.amp_mod_osc[voice] >= 0)
     sv.amp_mod_osc[voice] = remap_voice(sv.amp_mod_osc[voice], group, dest_base);
   if (sv.freq_mod_osc[voice] >= 0)
@@ -301,10 +288,9 @@ static void release_instance(poly_pool_t *pool, int index, uint64_t now) {
   poly_group_t *group = &poly_group[pool->group];
   int root = pool->base + index * group->width + group->root_offset;
   skode_envelope_velocity(root, 0, now);
-  if (sv.link_velo_0[root] >= 0) skode_envelope_velocity(sv.link_velo_0[root], 0, now);
-  if (sv.link_velo_1[root] >= 0) skode_envelope_velocity(sv.link_velo_1[root], 0, now);
-  if (sv.link_velo_2[root] >= 0) skode_envelope_velocity(sv.link_velo_2[root], 0, now);
-  if (sv.link_velo_3[root] >= 0) skode_envelope_velocity(sv.link_velo_3[root], 0, now);
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+    if (sv.link_velo[i][root] >= 0) skode_envelope_velocity(sv.link_velo[i][root], 0, now);
+  }
   pool->instance[index].state = POLY_INSTANCE_RELEASING;
   pool->instance[index].released = now;
 }
@@ -321,10 +307,9 @@ static void gate_instance(poly_pool_t *pool, int index, float velocity,
   poly_group_t *group = &poly_group[pool->group];
   int root = pool->base + index * group->width + group->root_offset;
   skode_envelope_velocity(root, velocity, now);
-  if (sv.link_velo_0[root] >= 0) skode_envelope_velocity(sv.link_velo_0[root], velocity, now);
-  if (sv.link_velo_1[root] >= 0) skode_envelope_velocity(sv.link_velo_1[root], velocity, now);
-  if (sv.link_velo_2[root] >= 0) skode_envelope_velocity(sv.link_velo_2[root], velocity, now);
-  if (sv.link_velo_3[root] >= 0) skode_envelope_velocity(sv.link_velo_3[root], velocity, now);
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+    if (sv.link_velo[i][root] >= 0) skode_envelope_velocity(sv.link_velo[i][root], velocity, now);
+  }
 }
 
 static int find_instance_key(poly_pool_t *pool, int key) {
@@ -645,15 +630,11 @@ static int graph_add(graph_edge_t *edge, int count, int max, int to,
 
 static int graph_edges(int voice, graph_edge_t *edge, int max) {
   int count = 0;
-  float pitch[] = {sv.link_midi_0[voice], sv.link_midi_1[voice],
-    sv.link_midi_2[voice], sv.link_midi_3[voice], sv.link_midi_4[voice], sv.link_midi_5[voice]};
-  float gate[] = {sv.link_velo_0[voice], sv.link_velo_1[voice],
-    sv.link_velo_2[voice], sv.link_velo_3[voice], sv.link_velo_4[voice], sv.link_velo_5[voice]};
-  for (int i = 0; i < 4; i++)
-    count = graph_add(edge, count, max, (int)pitch[i],
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++)
+    count = graph_add(edge, count, max, (int)sv.link_midi[i][voice],
       SKRED_VOICE_EDGE_PITCH, "pitch");
-  for (int i = 0; i < 4; i++)
-    count = graph_add(edge, count, max, (int)gate[i],
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++)
+    count = graph_add(edge, count, max, (int)sv.link_velo[i][voice],
       SKRED_VOICE_EDGE_GATE, "gate");
   count = graph_add(edge, count, max, sv.amp_mod_osc[voice],
     SKRED_VOICE_EDGE_AMP_MOD, "amp-mod");
@@ -665,10 +646,8 @@ static int graph_edges(int voice, graph_edge_t *edge, int max) {
     SKRED_VOICE_EDGE_PHASE_MOD, "phase-mod");
   count = graph_add(edge, count, max, sv.ring_osc[voice],
     SKRED_VOICE_EDGE_RING_MOD, "ring-mod");
-  float sync[] = {sv.link_sync_0[voice], sv.link_sync_1[voice],
-    sv.link_sync_2[voice], sv.link_sync_3[voice], sv.link_sync_4[voice], sv.link_sync_5[voice]};
-  for (int i = 0; i < 6; i++)
-    count = graph_add(edge, count, max, (int)sync[i],
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++)
+    count = graph_add(edge, count, max, (int)sv.link_sync[i][voice],
       SKRED_VOICE_EDGE_HARD_SYNC, "hard-sync");
   return count;
 }

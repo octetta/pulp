@@ -45,9 +45,7 @@ static void render1(void) {
 }
 
 static int sync_slot(int v, int slot) {
-  float *p[6] = {sv.link_sync_0, sv.link_sync_1, sv.link_sync_2,
-                 sv.link_sync_3, sv.link_sync_4, sv.link_sync_5};
-  return (int)p[slot][v];
+  return (int)sv.link_sync[slot][v];
 }
 
 static void test_configuration(void) {
@@ -89,7 +87,7 @@ static void test_configuration(void) {
   cmd("v0 HS 1,2");
   char out[2048];
   voice_format(0, out, sizeof(out), 0);
-  expect(strstr(out, " HS1,2,") != NULL, "voice dump contains HS targets");
+  expect(strstr(out, " HS1,2") != NULL, "voice dump contains HS targets");
   teardown();
 }
 

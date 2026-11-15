@@ -17,6 +17,55 @@ void voice_show(skode_t *ctx, int v, char c, int verbose) {
   if (strlen(s)) ctx->printf(ctx, "%s%s\n", s, e);
 }
 
+void voice_show_connected(skode_t *ctx, int root_voice, int verbose) {
+  if (!ctx || !skode_voice_valid(root_voice)) return;
+
+  uint8_t visited[VOICE_MAX] = {0};
+  int queue[VOICE_MAX];
+  int q_head = 0, q_tail = 0;
+
+  voice_show(ctx, root_voice, ' ', verbose);
+  visited[root_voice] = 1;
+  queue[q_tail++] = root_voice;
+
+  while (q_head < q_tail) {
+    int v = queue[q_head++];
+
+    int candidates[32];
+    int cand_count = 0;
+
+    // Modulators:
+    if (sv.freq_mod_osc[v] >= 0) candidates[cand_count++] = sv.freq_mod_osc[v];
+    if (sv.amp_mod_osc[v] >= 0)  candidates[cand_count++] = sv.amp_mod_osc[v];
+    if (sv.ring_osc[v] >= 0)     candidates[cand_count++] = sv.ring_osc[v];
+    if (sv.pan_mod_osc[v] >= 0)  candidates[cand_count++] = sv.pan_mod_osc[v];
+    if (sv.cz_mod_osc[v] >= 0)   candidates[cand_count++] = sv.cz_mod_osc[v];
+
+    // Forward links (MIDI, Velocity, Hard Sync, Trigger):
+    for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+      if (!isnan(sv.link_midi[i][v]) && (int)sv.link_midi[i][v] >= 0)
+        candidates[cand_count++] = (int)sv.link_midi[i][v];
+      if (!isnan(sv.link_velo[i][v]) && (int)sv.link_velo[i][v] >= 0)
+        candidates[cand_count++] = (int)sv.link_velo[i][v];
+      if (!isnan(sv.link_sync[i][v]) && (int)sv.link_sync[i][v] >= 0)
+        candidates[cand_count++] = (int)sv.link_sync[i][v];
+    }
+
+    if (!isnan(sv.link_trig[v]) && (int)sv.link_trig[v] >= 0) {
+      candidates[cand_count++] = (int)sv.link_trig[v];
+    }
+
+    for (int i = 0; i < cand_count; i++) {
+      int next_v = candidates[i];
+      if (skode_voice_valid(next_v) && !visited[next_v]) {
+        visited[next_v] = 1;
+        voice_show(ctx, next_v, ' ', verbose);
+        queue[q_tail++] = next_v;
+      }
+    }
+  }
+}
+
 int voice_show_all(skode_t *ctx, int voice, int verbose) {
   for (int i=0; i<synth_config.voice_max; i++) {
     int active = (sv.amp_envelope[i].is_active || sv.mark_go[i] || (!sv.finished[i] && sv.one_shot[i]));

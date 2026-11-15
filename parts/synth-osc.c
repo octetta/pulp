@@ -214,12 +214,9 @@ static void osc_hard_sync_fire(int master, double d) {
     if (d < 0.0) d = 0.0;
     else if (d >= 1.0) d = 1.0 - 1e-6;
 
-    const float t[6] = {
-        sv.link_sync_0[master], sv.link_sync_1[master], sv.link_sync_2[master],
-        sv.link_sync_3[master], sv.link_sync_4[master], sv.link_sync_5[master]};
-    for (int i = 0; i < 6; i++) {
-        if (t[i] < 0.0f) continue;
-        int v = (int)t[i];
+    for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+        if (sv.link_sync[i][master] < 0.0f) continue;
+        int v = (int)sv.link_sync[i][master];
         if (v == master || voice_invalid(v) || sv.finished[v] || !sv.table[v]) continue;
 
         double start = osc_sync_start_phase(v);
@@ -244,10 +241,9 @@ static void osc_hard_sync_fire(int master, double d) {
 /* drop self-links so a voice can never sync itself */
 void osc_hard_sync_sanitize(int voice) {
     if (voice_invalid(voice)) return;
-    float *s[6] = {&sv.link_sync_0[voice], &sv.link_sync_1[voice], &sv.link_sync_2[voice],
-                   &sv.link_sync_3[voice], &sv.link_sync_4[voice], &sv.link_sync_5[voice]};
-    for (int i = 0; i < 6; i++)
-        if ((int)*s[i] == voice) *s[i] = -1;
+    for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+        if ((int)sv.link_sync[i][voice] == voice) sv.link_sync[i][voice] = -1.0f;
+    }
 }
 
 static inline double osc_cycle_phase_next(int voice, float phase_inc) {

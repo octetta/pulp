@@ -12,6 +12,8 @@ extern int synth_sample_rate;
 #define RECORD_TRACK_COUNT (RECORD_TRACK_MAX + 1)
 #define RECORD_CHANNELS (RECORD_TRACK_COUNT * AUDIO_CHANNELS)
 #define SYNTH_FRAMES_PER_CALLBACK (128)
+#define SYNTH_VOICE_LINKS_MAX (6)
+#define VOICE_LINKS_MAX SYNTH_VOICE_LINKS_MAX
 
 #define NEG_60_DB (-60.0f)
 #define NEG_60_DB_AS_LINEAR (0.001)
@@ -33,6 +35,11 @@ typedef enum {
   OSC_PLAYBACK_GENERAL = 0,
   OSC_PLAYBACK_CYCLE_SIMPLE = 1
 } osc_playback_class_t;
+
+typedef enum {
+  PITCH_MODE_FREQ = 0,
+  PITCH_MODE_NOTE = 1
+} pitch_mode_t;
 
 enum {
   WAVE_TABLE_SINE,     // 0

@@ -1,19 +1,44 @@
 @name     pitch_env
 @alias    pt
 @group    env
-@c_name   skode_clause_pitch_env
+@c_name   skode_clause_pitch_env_0
 @type     immediate
-@arity    4
-@match    (finite, finite, finite, finite)
-@summary  configure pitch/frequency envelope
+@arity    0
+@match    ()
+@summary  reset pitch envelope to flat (bypass)
 @doc
-Configures the 4-stage ADSR pitch envelope for the selected voice.
-Usage: pt a,d,s,r
+Resets pitch/frequency envelope to flat (a=0, d=0, s=1, r=0), disabling it.
+Usage: pt (or pitch_env)
 @code
     if (!ctx) return -1;
     (void)s; (void)argc;
     int voice = ctx->voice;
-    envelope_configure_e(&sv.freq_envelope[voice], args[0], args[1], args[2], args[3]);
-    sv.use_freq_envelope[voice] = !(args[0] == 0 && args[1] == 0 && args[2] == 1 && args[3] == 0);
+    envelope_configure_e(&sv.freq_envelope[voice], 0.0f, 0.0f, 1.0f, 0.0f);
+    sv.use_freq_envelope[voice] = 0;
+    return 0;
+@end
+
+@name     pitch_env
+@alias    pt
+@group    env
+@c_name   skode_clause_pitch_env
+@type     immediate
+@arity    2..4
+@match    (finite, finite, finite, finite)
+@summary  configure pitch/frequency envelope
+@doc
+Configures the ADSR pitch envelope for the selected voice.
+If only two elements are specified, sustain and release are assumed to be 0.
+Usage: pt a,d[,s,r]
+@code
+    if (!ctx) return -1;
+    (void)s;
+    int voice = ctx->voice;
+    float a = args[0];
+    float d = (argc > 1) ? args[1] : 0.0f;
+    float s_val = (argc > 2) ? args[2] : 0.0f;
+    float r = (argc > 3) ? args[3] : 0.0f;
+    envelope_configure_e(&sv.freq_envelope[voice], a, d, s_val, r);
+    sv.use_freq_envelope[voice] = !(a == 0 && d == 0 && s_val == 1 && r == 0);
     return 0;
 @end

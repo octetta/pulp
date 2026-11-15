@@ -8,6 +8,7 @@
 #include "control-events.h"
 
 int envelope_is_flat(int v) {
+  if (sv.amp_envelope[v].mode == 1) return 0;
   if (sv.amp_envelope[v].a == 0.0f &&
     sv.amp_envelope[v].d == 0.0f &&
     sv.amp_envelope[v].s == 1.0f &&
@@ -78,18 +79,29 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     else { ptr += remaining - 1; *ptr = '\0'; remaining = 0; return out; } \
 } while (0)
 
-    /* --- always: voice number, waveform, frequency, amplitude --- */
-    float note, cents;
-    freq_to_note_cents(sv.freq[v], &note, &cents);
-    if (note < 0.0001) note = 0;
-    if (cents < 0.0001) cents = 0;
-    APPEND("v%d w%d f%g n%g,%g a%g",
-      v,
-      sv.wave_table_index[v],
-      sv.freq[v],
-      note,
-      cents,
-      sv.user_amp[v]);
+    /* --- always: voice number, waveform, pitch (f or n), amplitude --- */
+    if (sv.pitch_mode[v] == PITCH_MODE_NOTE) {
+        if (fabsf(sv.last_midi_cents[v]) > 0.0001f) {
+            APPEND("v%d w%d n%g,%g a%g",
+              v,
+              sv.wave_table_index[v],
+              sv.last_midi_note[v],
+              sv.last_midi_cents[v],
+              sv.user_amp[v]);
+        } else {
+            APPEND("v%d w%d n%g a%g",
+              v,
+              sv.wave_table_index[v],
+              sv.last_midi_note[v],
+              sv.user_amp[v]);
+        }
+    } else {
+        APPEND("v%d w%d f%g a%g",
+          v,
+          sv.wave_table_index[v],
+          sv.freq[v],
+          sv.user_amp[v]);
+    }
     if (sv.control_events[v]) APPEND(" vc1");
 
     /* --- frequency bend (suppress if default) --- */
@@ -123,57 +135,52 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         APPEND(" N%g,%g", sv.midi_transpose[v], sv.midi_cents[v]);
 
     /* --- midi note forward (suppress if all unset) --- */
-    if (verbose
-        || (int)sv.link_midi_0[v] >= 0
-        || (int)sv.link_midi_1[v] >= 0
-        || (int)sv.link_midi_2[v] >= 0
-        || (int)sv.link_midi_3[v] >= 0
-        || (int)sv.link_midi_4[v] >= 0
-        || (int)sv.link_midi_5[v] >= 0) {
-          APPEND(" G%s,%s,%s,%s,%s,%s",
-            d_to_s_or_nan(sv.link_midi_0[v]),
-            d_to_s_or_nan(sv.link_midi_1[v]),
-            d_to_s_or_nan(sv.link_midi_2[v]),
-            d_to_s_or_nan(sv.link_midi_3[v]),
-            d_to_s_or_nan(sv.link_midi_4[v]),
-            d_to_s_or_nan(sv.link_midi_5[v]));
-        }
+    {
+      int active[SYNTH_VOICE_LINKS_MAX];
+      int count = 0;
+      for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+        if ((int)sv.link_midi[i][v] >= 0)
+          active[count++] = (int)sv.link_midi[i][v];
+      }
+      if (count > 0) {
+        APPEND(" G%d", active[0]);
+        for (int i = 1; i < count; i++)
+          APPEND(",%d", active[i]);
+      }
+    }
     if (verbose
         || sv.ring_osc[v] >= 0)
         APPEND(" XM%d,%g",
           sv.ring_osc[v], sv.ring_amount[v]);
 
-    if (verbose
-        || (int)sv.link_velo_0[v] >= 0
-        || (int)sv.link_velo_1[v] >= 0
-        || (int)sv.link_velo_2[v] >= 0
-        || (int)sv.link_velo_3[v] >= 0
-        || (int)sv.link_velo_4[v] >= 0
-        || (int)sv.link_velo_5[v] >= 0) {
-          APPEND(" H%s,%s,%s,%s,%s,%s",
-            d_to_s_or_nan(sv.link_velo_0[v]),
-            d_to_s_or_nan(sv.link_velo_1[v]),
-            d_to_s_or_nan(sv.link_velo_2[v]),
-            d_to_s_or_nan(sv.link_velo_3[v]),
-            d_to_s_or_nan(sv.link_velo_4[v]),
-            d_to_s_or_nan(sv.link_velo_5[v]));
-        }
+    /* --- velocity link (suppress if all unset) --- */
+    {
+      int active[SYNTH_VOICE_LINKS_MAX];
+      int count = 0;
+      for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+        if ((int)sv.link_velo[i][v] >= 0)
+          active[count++] = (int)sv.link_velo[i][v];
+      }
+      if (count > 0) {
+        APPEND(" H%d", active[0]);
+        for (int i = 1; i < count; i++)
+          APPEND(",%d", active[i]);
+      }
+    }
     /* --- hard-sync targets (suppress if all unset) --- */
-    if (verbose
-        || (int)sv.link_sync_0[v] >= 0
-        || (int)sv.link_sync_1[v] >= 0
-        || (int)sv.link_sync_2[v] >= 0
-        || (int)sv.link_sync_3[v] >= 0
-        || (int)sv.link_sync_4[v] >= 0
-        || (int)sv.link_sync_5[v] >= 0) {
-          APPEND(" HS%s,%s,%s,%s,%s,%s",
-            d_to_s_or_nan(sv.link_sync_0[v]),
-            d_to_s_or_nan(sv.link_sync_1[v]),
-            d_to_s_or_nan(sv.link_sync_2[v]),
-            d_to_s_or_nan(sv.link_sync_3[v]),
-            d_to_s_or_nan(sv.link_sync_4[v]),
-            d_to_s_or_nan(sv.link_sync_5[v]));
-        }
+    {
+      int active[SYNTH_VOICE_LINKS_MAX];
+      int count = 0;
+      for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+        if ((int)sv.link_sync[i][v] >= 0)
+          active[count++] = (int)sv.link_sync[i][v];
+      }
+      if (count > 0) {
+        APPEND(" HS%d", active[0]);
+        for (int i = 1; i < count; i++)
+          APPEND(",%d", active[i]);
+      }
+    }
     /* --- trigger link (suppress if unset) --- */
     if (verbose || (int)sv.link_trig[v] >= 0)
         APPEND(" L%g", sv.link_trig[v]);
@@ -215,12 +222,19 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         }
         APPEND(") kte kd %g", sv.filter_env_depth[v]);
     } else if (verbose || sv.use_filter_envelope[v]) {
-        APPEND(" kt %g %g %g %g kd %g",
-            sv.filter_envelope[v].a,
-            sv.filter_envelope[v].d,
-            sv.filter_envelope[v].s,
-            sv.filter_envelope[v].r,
-            sv.filter_env_depth[v]);
+        if (sv.filter_envelope[v].s == 0.0f && sv.filter_envelope[v].r == 0.0f) {
+            APPEND(" kt %g %g kd %g",
+                sv.filter_envelope[v].a,
+                sv.filter_envelope[v].d,
+                sv.filter_env_depth[v]);
+        } else {
+            APPEND(" kt %g %g %g %g kd %g",
+                sv.filter_envelope[v].a,
+                sv.filter_envelope[v].d,
+                sv.filter_envelope[v].s,
+                sv.filter_envelope[v].r,
+                sv.filter_env_depth[v]);
+        }
     }
 
     /* --- phase distortion (suppress if mode 0) --- */
@@ -240,12 +254,19 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         }
         APPEND(") pte pd %g", sv.freq_env_depth[v]);
     } else if (verbose || sv.use_freq_envelope[v]) {
-        APPEND(" pt %g %g %g %g pd %g",
-            sv.freq_envelope[v].a,
-            sv.freq_envelope[v].d,
-            sv.freq_envelope[v].s,
-            sv.freq_envelope[v].r,
-            sv.freq_env_depth[v]);
+        if (sv.freq_envelope[v].s == 0.0f && sv.freq_envelope[v].r == 0.0f) {
+            APPEND(" pt %g %g pd %g",
+                sv.freq_envelope[v].a,
+                sv.freq_envelope[v].d,
+                sv.freq_env_depth[v]);
+        } else {
+            APPEND(" pt %g %g %g %g pd %g",
+                sv.freq_envelope[v].a,
+                sv.freq_envelope[v].d,
+                sv.freq_envelope[v].s,
+                sv.freq_envelope[v].r,
+                sv.freq_env_depth[v]);
+        }
     }
 
     if (sv.cz_envelope[v].mode == 1) {
@@ -258,12 +279,19 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
         }
         APPEND(") cte cd %g", sv.cz_env_depth[v]);
     } else if (verbose || sv.use_cz_envelope[v]) {
-        APPEND(" ct %g %g %g %g cd %g",
-            sv.cz_envelope[v].a,
-            sv.cz_envelope[v].d,
-            sv.cz_envelope[v].s,
-            sv.cz_envelope[v].r,
-            sv.cz_env_depth[v]);
+        if (sv.cz_envelope[v].s == 0.0f && sv.cz_envelope[v].r == 0.0f) {
+            APPEND(" ct %g %g cd %g",
+                sv.cz_envelope[v].a,
+                sv.cz_envelope[v].d,
+                sv.cz_env_depth[v]);
+        } else {
+            APPEND(" ct %g %g %g %g cd %g",
+                sv.cz_envelope[v].a,
+                sv.cz_envelope[v].d,
+                sv.cz_envelope[v].s,
+                sv.cz_envelope[v].r,
+                sv.cz_env_depth[v]);
+        }
     }
 
     if (verbose || sv.sample_hold_ratio[v] > 0.0f) APPEND(" h%g %d", sv.sample_hold_ratio[v], sv.sample_hold_mode[v]);
@@ -291,24 +319,38 @@ char *voice_format(int v, char *out, size_t out_size, int verbose) {
     if (verbose || (sv.smoother_enable[v] && sv.smoother_smoothing[v] != SMOOTH_DEFAULT))
         APPEND(" s%g", sv.smoother_smoothing[v]);
 
-    // Show the time (e.g., g0.05), not the multiplier (e.g., g1.00014)
-    if (verbose || sv.glissando_time[v] > 0.0f) 
-        APPEND(" g%g", sv.glissando_time[v]);
+    // Show the time (e.g., g0.05), and curve mode if non-default (e.g., g0.05,1)
+    if (verbose || sv.glissando_time[v] > 0.0f) {
+        if (sv.glissando_mode[v] != 0)
+            APPEND(" g%g,%d", sv.glissando_time[v], sv.glissando_mode[v]);
+        else
+            APPEND(" g%g", sv.glissando_time[v]);
+    }
 
-    if (verbose || !envelope_is_flat(v)) {
-        if (sv.amp_envelope_mode[v] == 0) {
+    if (sv.amp_envelope[v].mode == 1) {
+        APPEND(" (");
+        for (int stage = 0; stage < sv.amp_envelope[v].num_stages; stage++) {
+            float time_val = sv.amp_envelope[v].times[stage] / (float)MAIN_SAMPLE_RATE;
+            if (stage == sv.amp_envelope[v].sustain_stage) time_val = -time_val;
+            APPEND("%g %g", time_val, sv.amp_envelope[v].levels[stage]);
+            if (stage < sv.amp_envelope[v].num_stages - 1) APPEND(" ");
+        }
+        APPEND(") te");
+        if (sv.amp_envelope_mode[v] != 0) {
+            APPEND(" tm%d", sv.amp_envelope_mode[v]);
+        }
+    } else if (verbose || !envelope_is_flat(v)) {
+        if (sv.amp_envelope[v].s == 0.0f && sv.amp_envelope[v].r == 0.0f) {
+            APPEND(" t%g,%g", sv.amp_envelope[v].a, sv.amp_envelope[v].d);
+        } else {
             APPEND(" t%g,%g,%g,%g",
                 sv.amp_envelope[v].a,
                 sv.amp_envelope[v].d,
                 sv.amp_envelope[v].s,
                 sv.amp_envelope[v].r);
-        } else {
-            APPEND(" t%g,%g,%g,%g tm%d",
-                sv.amp_envelope[v].a,
-                sv.amp_envelope[v].d,
-                sv.amp_envelope[v].s,
-                sv.amp_envelope[v].r,
-                sv.amp_envelope_mode[v]);
+        }
+        if (sv.amp_envelope_mode[v] != 0) {
+            APPEND(" tm%d", sv.amp_envelope_mode[v]);
         }
     }
 
@@ -442,6 +484,7 @@ int wave_quant(int voice, int n) {
 int freq_set(int voice, float f) {
   if (voice_invalid(voice) || !isfinite(f)) return SYNTH_INVALID_VOICE;
   if (f < 0 || f >= (double)MAIN_SAMPLE_RATE) return 101;
+  sv.pitch_mode[voice] = PITCH_MODE_FREQ;
 
   float target_inc = osc_get_phase_inc(&skred_global_engine, voice, f);
 
@@ -717,6 +760,9 @@ int voice_copy(int v, int n) {
   sv.one_shot[n] = sv.one_shot[v];
   amp_set(n, sv.user_amp[v]);
   freq_set(n, sv.freq[v]);
+  sv.pitch_mode[n] = sv.pitch_mode[v];
+  sv.last_midi_note[n] = sv.last_midi_note[v];
+  sv.last_midi_cents[n] = sv.last_midi_cents[v];
   voice_control_events_set(n, sv.control_events[v]);
   if (sv.wave_range_override[v])
     voice_wave_range_set(n, sv.wave_range_start[v], sv.wave_range_end[v]);
@@ -727,27 +773,16 @@ int voice_copy(int v, int n) {
   if (sv.loop_override[v])
     voice_loop_points_set(n, sv.loop_start[v], sv.loop_end[v]);
   osc_reclassify(&skred_global_engine, n);
-  sv.link_midi_0[n] = sv.link_midi_0[v];
-  sv.link_midi_1[n] = sv.link_midi_1[v];
-  sv.link_midi_2[n] = sv.link_midi_2[v];
-  sv.link_midi_3[n] = sv.link_midi_3[v];
-  sv.link_midi_4[n] = sv.link_midi_4[v];
-  sv.link_midi_5[n] = sv.link_midi_5[v];
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+    sv.link_midi[i][n] = sv.link_midi[i][v];
+  }
   sv.midi_transpose[n] = sv.midi_transpose[v];
   sv.midi_cents[n] = sv.midi_cents[v];
   envelope_copy_e(&sv.amp_envelope[n], &sv.amp_envelope[v]);
-  sv.link_velo_0[n] = sv.link_velo_0[v];
-  sv.link_velo_1[n] = sv.link_velo_1[v];
-  sv.link_velo_2[n] = sv.link_velo_2[v];
-  sv.link_velo_3[n] = sv.link_velo_3[v];
-  sv.link_velo_4[n] = sv.link_velo_4[v];
-  sv.link_velo_5[n] = sv.link_velo_5[v];
-  sv.link_sync_0[n] = sv.link_sync_0[v];
-  sv.link_sync_1[n] = sv.link_sync_1[v];
-  sv.link_sync_2[n] = sv.link_sync_2[v];
-  sv.link_sync_3[n] = sv.link_sync_3[v];
-  sv.link_sync_4[n] = sv.link_sync_4[v];
-  sv.link_sync_5[n] = sv.link_sync_5[v];
+  for (int i = 0; i < SYNTH_VOICE_LINKS_MAX; i++) {
+    sv.link_velo[i][n] = sv.link_velo[i][v];
+    sv.link_sync[i][n] = sv.link_sync[i][v];
+  }
   sv.link_trig[n] = sv.link_trig[v];
   sv.link_trig_samp[n] = sv.link_trig_samp[v];
   //
@@ -845,14 +880,18 @@ int wave_default(int voice) {
 int freq_midi(int voice, float note, float cents) {
   if (voice_invalid(voice) || !isfinite(note) || !isfinite(cents))
     return SYNTH_INVALID_VOICE;
+  sv.last_midi_note[voice] = note;
+  sv.last_midi_cents[voice] = cents;
   if (note >= 0.0 && note <= 127.0) {
-    sv.last_midi_note[voice] = note;
     if (sv.midi_transpose[voice]) note += sv.midi_transpose[voice];
     float g = midi2hz(note, sv.midi_cents[voice] + cents);
-    return freq_set(voice, g);
+    int rc = freq_set(voice, g);
+    sv.pitch_mode[voice] = PITCH_MODE_NOTE;
+    return rc;
   } else if (note < 0.0) {
-    sv.last_midi_note[voice] = note;
-    return freq_set(voice, 0.0f);
+    int rc = freq_set(voice, 0.0f);
+    sv.pitch_mode[voice] = PITCH_MODE_NOTE;
+    return rc;
   }
   return 100; // <-- LAZY  ERR_INVALID_MIDI_NOTE;
 }
@@ -887,26 +926,15 @@ void voice_reset(int i) {
   sv.freq[i] = 440.0f;
   sv.midi_note[i] = 69.0f;
   sv.last_midi_note[i] = 69.0f;
+  sv.last_midi_cents[i] = 0.0f;
+  sv.pitch_mode[i] = PITCH_MODE_FREQ;
   sv.midi_transpose[i] = 0;
   sv.midi_cents[i] = 0;
-  sv.link_midi_0[i] = -1;
-  sv.link_midi_1[i] = -1;
-  sv.link_midi_2[i] = -1;
-  sv.link_midi_3[i] = -1;
-  sv.link_midi_4[i] = -1;
-  sv.link_midi_5[i] = -1;
-  sv.link_velo_0[i] = -1;
-  sv.link_velo_1[i] = -1;
-  sv.link_velo_2[i] = -1;
-  sv.link_velo_3[i] = -1;
-  sv.link_velo_4[i] = -1;
-  sv.link_velo_5[i] = -1;
-  sv.link_sync_0[i] = -1;
-  sv.link_sync_1[i] = -1;
-  sv.link_sync_2[i] = -1;
-  sv.link_sync_3[i] = -1;
-  sv.link_sync_4[i] = -1;
-  sv.link_sync_5[i] = -1;
+  for (int j = 0; j < SYNTH_VOICE_LINKS_MAX; j++) {
+    sv.link_midi[j][i] = -1;
+    sv.link_velo[j][i] = -1;
+    sv.link_sync[j][i] = -1;
+  }
   sv.sync_blep[i] = 0.0f;
   sv.link_trig[i] = -1;
   sv.link_trig_samp[i] = 0;

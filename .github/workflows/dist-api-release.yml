@@ -392,3 +392,18 @@ jobs:
           fi
           gh release create "$TAG" release-assets/* \
             "${release_args[@]}"
+
+      - name: Dispatch downstream web builds
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.DISPATCH_TOKEN || secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.metadata.outputs.version }}
+        run: |
+          for repo in "octetta/skode-repl" "octetta/skred-web"; do
+            echo "Attempting to dispatch pulp_release event to $repo for v$VERSION..."
+            gh api "repos/$repo/dispatches" \
+              -X POST \
+              -F "event_type=pulp_release" \
+              -F "client_payload[version]=$VERSION" 2>/dev/null || echo "Dispatch to $repo skipped (requires DISPATCH_TOKEN secret)"
+          done

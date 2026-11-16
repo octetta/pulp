@@ -21,3 +21,5 @@ tools/mksynth
 src/gen/test_schema_bounds
 Testing/
 parts/Testing/
+parts/wasm-assets/skred_api.*
+parts/wasm-assets/*.wasm

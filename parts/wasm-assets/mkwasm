@@ -14,7 +14,7 @@ cp ../stream.sk ../sk-out
 cp ../../examples/qm_grok_guitar.sk ../sk-out
 cp ../../examples/ifl-gemini-learn.sk ../sk-out
 
-emcc -I. -I.. -I../exp-vfs -I../../src/gen \
+emcc -I. -I.. -I../build_native -I../exp-vfs -I../../src/gen \
     -DSKRED_MIDI_ENABLED=1 \
     -DKSYNTH=1 \
     -pthread \

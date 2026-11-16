@@ -107,7 +107,7 @@ typedef uint16_t skode_realtime_opcode_t;
 #define SKODE_OPCODE_REALTIME_MAX 65535
 
 static inline int skode_opcode_is_realtime(skode_opcode_t code) {
-  return code <= SKODE_OPCODE_REALTIME_MAX;
+  return (uint32_t)code <= SKODE_OPCODE_REALTIME_MAX;
 }
 
 typedef enum {

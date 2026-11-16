@@ -302,6 +302,15 @@ add_test(
   COMMAND polyphony_tests
 )
 
+add_executable(mksynth_equivalence_tests ${CMAKE_CURRENT_SOURCE_DIR}/../src/gen/test_synth_equivalence_gen.c)
+target_link_libraries(mksynth_equivalence_tests PRIVATE api)
+target_include_directories(mksynth_equivalence_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src/gen)
+
+add_test(
+  NAME synth.mksynth-equivalence
+  COMMAND mksynth_equivalence_tests
+)
+
 add_executable(ksynth_bridge_tests tests/ksynth_bridge_tests.c)
 target_link_libraries(ksynth_bridge_tests PRIVATE api)
 if(SKRED_KSYNTH)

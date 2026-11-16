@@ -2,7 +2,7 @@
 #include "synth-state.h"
 #include "synth-alloc.h"
 
-void synth_alloc_voices_gen(int n) {
+void synth_alloc_voices_gen(int v) {
     VALLOC(wave_table_index, int);
     VALLOC(freq, float);
     VALLOC(midi_note, float);

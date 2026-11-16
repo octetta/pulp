@@ -103,5 +103,5 @@
 @default    0.0
 @opcode     abp
 @copy       true
-@reset      0.0
+@reset      12.0
 @doc        Amplitude bend wheel maximum range in dB

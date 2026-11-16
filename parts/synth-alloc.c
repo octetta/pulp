@@ -355,3 +355,5 @@ void synth_free_waves(void) {
     WFREE(direction);    WFREE(is_heap);      WFREE(refcount);
     WFREE(readonly);     WFREE(name);
 }
+
+#include "../src/gen/synth_alloc_gen.c"

@@ -756,6 +756,9 @@ int voice_control_events_set(int voice, int enabled);
 
 int voice_copy(int v, int n) {
   if (voice_invalid(v) || voice_invalid(n)) return SYNTH_INVALID_VOICE;
+#if defined(PULP_USE_MKSYNTH_GEN)
+  voice_copy_gen(n, v);
+#endif
   wave_set(n, sv.wave_table_index[v]);
   sv.one_shot[n] = sv.one_shot[v];
   amp_set(n, sv.user_amp[v]);
@@ -899,6 +902,9 @@ int freq_midi(int voice, float note, float cents) {
 int envelope_velocity(int voice, float f);
 
 void voice_reset(int i) {
+#if defined(PULP_USE_MKSYNTH_GEN)
+  wave_reset_gen(i);
+#endif
   sv.table_rate[i] = 0;
   sv.table_size[i] = 0;
   sv.sample[i] = 0;
@@ -1112,3 +1118,5 @@ void normalize_preserve_zero(float *data, int length) {
 int mod_voice_invalid(int voice) {
   return voice < -1 || voice >= synth_config.voice_max;
 }
+
+#include "../src/gen/synth_voice_ops_gen.c"

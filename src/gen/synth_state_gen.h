@@ -76,4 +76,10 @@ typedef struct {
     float  * restrict amp_bend_range;
 } synth_voices_gen_t;
 
+void synth_alloc_voices_gen(int v);
+void synth_free_voices_gen(void);
+void wave_reset_gen(int v);
+void voice_copy_gen(int dst, int src);
+char *voice_format_gen(int v, char *out, size_t out_size, int verbose);
+
 #endif /* SYNTH_STATE_GEN_H */

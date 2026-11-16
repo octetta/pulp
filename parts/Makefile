@@ -34,9 +34,7 @@ CMAKE_PLATFORM_ARGS ?= $(if $(filter 1 true yes,$(MACOS_UNIVERSAL)),-DCMAKE_OSX_
 BUILD_TYPE ?= Release
 all: native # pi
 
-maxed: gen
-	$(CMAKE) -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
-	$(CMAKE) --build build_maxed
+maxed: native
 
 libs: native-libs
 
@@ -45,10 +43,8 @@ native-libs: gen
 	$(CMAKE) --build build_native --target api api_shared mini-skred
 	$(CMAKE) --install build_native --prefix $(DIST_NATIVE_PREFIX)
 
-maxed-libs: gen
-	$(CMAKE) -B build_maxed -S . -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_PLATFORM_ARGS)
-	$(CMAKE) --build build_maxed --target api api_shared mini-skred
-	$(CMAKE) --install build_maxed --prefix $(DIST_MAXED_PREFIX)
+maxed-libs: native-libs
+	$(CMAKE) --install build_native --prefix $(DIST_MAXED_PREFIX)
 
 dist-api: maxed-libs
 	$(CMAKE) -E chdir $(DIST_PLATFORM_ROOT) $(CMAKE) -E tar czf $(DIST_MAXED_ARCHIVE) \
@@ -121,11 +117,7 @@ warn:
 	$(CMAKE) --build build_warn
 	ctest --test-dir build_warn --output-on-failure
 
-warn-maxed:
-	$(CMAKE) -B build_warn_maxed -S . \
-		-DCMAKE_C_FLAGS='-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter'
-	$(CMAKE) --build build_warn_maxed
-	ctest --test-dir build_warn_maxed --output-on-failure
+warn-maxed: warn
 
 pi: native
 	$(ZIG_ENV) $(CMAKE) -B build_pi -S . \

@@ -34,8 +34,8 @@
 @default    60.0
 @range      0.0 .. 127.0
 @opcode     n
-@copy       true
-@reset      60.0
+@copy       false
+@reset      69.0
 @doc        Oscillator pitch as MIDI note number (60.0 = Middle C)
 
 @field      midi_cents
@@ -62,7 +62,7 @@
 @default    1
 @range      0 .. 1
 @copy       true
-@reset      1
+@reset      0
 @doc        0 = frequency mode, 1 = MIDI note mode
 
 @field      phase
@@ -93,7 +93,7 @@
 @default    1
 @range      0 .. 1
 @copy       true
-@reset      1
+@reset      0
 @doc        Linear interpolation flag for wavetable playback
 
 @field      direction
@@ -111,7 +111,7 @@
 @range      0 .. 1
 @opcode     B
 @copy       true
-@reset      1
+@reset      0
 @doc        Wave looping toggle (1 = enabled, 0 = one-shot)
 
 @field      loop_count
@@ -141,7 +141,7 @@
 @range      0 .. 50
 @opcode     j
 @copy       true
-@reset      1
+@reset      0
 @doc        Filter mode: (character * 10) + (mode % 10). 0:off, 1:LP, 2:BP, 3:HP, 4:Notch, 5:AllPass
 
 @field      filter_freq
@@ -151,7 +151,7 @@
 @unit       hz
 @opcode     k
 @copy       true
-@reset      5000.0
+@reset      8000.0
 @doc        Filter cutoff frequency in Hertz
 
 @field      filter_res
@@ -189,7 +189,7 @@
 @type       int
 @default    1
 @range      0 .. 1
-@copy       true
+@copy       false
 @reset      1
 @doc        Enable amplitude envelope
 
@@ -213,7 +213,7 @@
 @unit       db
 @opcode     a
 @copy       true
-@reset      -6.0
+@reset      1.0
 @doc        Voice amplitude in decibels (-60 dB is silent)
 
 @field      user_amp
@@ -222,7 +222,7 @@
 @range      -60.0 .. 12.0
 @unit       db
 @copy       true
-@reset      -6.0
+@reset      0.0
 @doc        Base user-configured voice amplitude in dB
 
 @field      pan

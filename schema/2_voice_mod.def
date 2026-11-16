@@ -269,8 +269,8 @@
 @default    0
 @range      0 .. 1
 @opcode     sm
-@copy       true
-@reset      0
+@copy       false
+@reset      1
 @doc        One-pole parameter smoother enable
 
 @field      smoother_smoothing
@@ -278,8 +278,8 @@
 @default    0.0
 @range      0.0 .. 1.0
 @opcode     sm
-@copy       true
-@reset      0.0
+@copy       false
+@reset      0.02
 @doc        One-pole smoothing time constant
 
 # ------------------------------------------------------------------------------

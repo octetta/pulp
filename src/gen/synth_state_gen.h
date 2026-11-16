@@ -81,5 +81,7 @@ void synth_free_voices_gen(void);
 void wave_reset_gen(int v);
 void voice_copy_gen(int dst, int src);
 char *voice_format_gen(int v, char *out, size_t out_size, int verbose);
+int voice_is_configured_gen(int v);
+int voice_graph_edges_gen(int voice, int *out_to, int *out_type, const char **out_name, int max_edges);
 
 #endif /* SYNTH_STATE_GEN_H */

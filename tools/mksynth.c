@@ -50,6 +50,8 @@ typedef struct {
     char opcode[STR_MAX];
     int vectorize;
     int copy;
+    char link_type[STR_MAX];
+    char link_kind[STR_MAX];
     char doc[DOC_MAX];
 } schema_field_t;
 
@@ -166,6 +168,14 @@ static void parse_schema_file(const char *filepath) {
             char *val = trimmed + 10;
             trim(val);
             cur.vectorize = (strcmp(val, "true") == 0 || strcmp(val, "1") == 0);
+        } else if (strncmp(trimmed, "@link_kind", 10) == 0) {
+            char *val = trimmed + 10;
+            trim(val);
+            safe_strcpy(cur.link_kind, val, sizeof(cur.link_kind));
+        } else if (strncmp(trimmed, "@link", 5) == 0) {
+            char *val = trimmed + 5;
+            trim(val);
+            safe_strcpy(cur.link_type, val, sizeof(cur.link_type));
         } else if (strncmp(trimmed, "@copy", 5) == 0) {
             char *val = trimmed + 5;
             trim(val);
@@ -258,7 +268,9 @@ static void emit_c_state_header(const char *filepath) {
     fprintf(f, "void synth_free_voices_gen(void);\n");
     fprintf(f, "void wave_reset_gen(int v);\n");
     fprintf(f, "void voice_copy_gen(int dst, int src);\n");
-    fprintf(f, "char *voice_format_gen(int v, char *out, size_t out_size, int verbose);\n\n");
+    fprintf(f, "char *voice_format_gen(int v, char *out, size_t out_size, int verbose);\n");
+    fprintf(f, "int voice_is_configured_gen(int v);\n");
+    fprintf(f, "int voice_graph_edges_gen(int voice, int *out_to, int *out_type, const char **out_name, int max_edges);\n\n");
     fprintf(f, "#endif /* SYNTH_STATE_GEN_H */\n");
     fclose(f);
 }
@@ -386,6 +398,68 @@ static void emit_c_voice_ops(const char *filepath) {
 
     fprintf(f, "\n#undef APPEND_GEN\n");
     fprintf(f, "    return out;\n");
+    fprintf(f, "}\n\n");
+
+    /* voice_is_configured_gen: derived from schema defaults */
+    fprintf(f, "int voice_is_configured_gen(int v) {\n");
+    fprintf(f, "    if (v < 0 || v >= synth_config.voice_max) return 0;\n");
+    for (i = 0; i < g_field_count; i++) {
+        const schema_field_t *fld = &g_fields[i];
+        if (strcmp(fld->group, "voice") != 0) continue;
+        const char *val = fld->default_val[0] ? fld->default_val : "0";
+
+        if (fld->type == TYPE_FLOAT_ARRAY) {
+            int sz = fld->array_size > 0 ? fld->array_size : 6;
+            fprintf(f, "    for (int _k = 0; _k < %d; _k++) {\n", sz);
+            fprintf(f, "        if (fabs((double)sv.%s[_k][v] - (%s)) > 1e-4) return 1;\n", fld->name, val);
+            fprintf(f, "    }\n");
+        } else if (fld->type == TYPE_INT) {
+            fprintf(f, "    if (sv.%s[v] != %d) return 1;\n", fld->name, atoi(val));
+        } else {
+            fprintf(f, "    if (fabs((double)sv.%s[v] - (%s)) > 1e-4) return 1;\n", fld->name, val);
+        }
+    }
+    fprintf(f, "    return 0;\n");
+    fprintf(f, "}\n\n");
+
+    /* voice_graph_edges_gen: dynamic traversal of schema-declared link relationships */
+    fprintf(f, "int voice_graph_edges_gen(int voice, int *out_to, int *out_type, const char **out_name, int max_edges) {\n");
+    fprintf(f, "    int count = 0;\n");
+    fprintf(f, "    if (voice < 0 || voice >= synth_config.voice_max) return 0;\n");
+
+    for (i = 0; i < g_field_count; i++) {
+        const schema_field_t *fld = &g_fields[i];
+        if (strcmp(fld->group, "voice") != 0 || strcmp(fld->link_type, "voice") != 0) continue;
+
+        if (fld->type == TYPE_FLOAT_ARRAY) {
+            int sz = fld->array_size > 0 ? fld->array_size : 6;
+            fprintf(f, "    for (int _k = 0; _k < %d; _k++) {\n", sz);
+            fprintf(f, "        int _tgt = (int)sv.%s[_k][voice];\n", fld->name);
+            fprintf(f, "        if (_tgt >= 0 && _tgt < synth_config.voice_max && _tgt != voice) {\n");
+            fprintf(f, "            if (count < max_edges) {\n");
+            fprintf(f, "                out_to[count] = _tgt;\n");
+            fprintf(f, "                out_type[count] = 0;\n");
+            fprintf(f, "                out_name[count] = \"%s\";\n", fld->link_kind[0] ? fld->link_kind : fld->name);
+            fprintf(f, "                count++;\n");
+            fprintf(f, "            }\n");
+            fprintf(f, "        }\n");
+            fprintf(f, "    }\n");
+        } else {
+            fprintf(f, "    {\n");
+            fprintf(f, "        int _tgt = (int)sv.%s[voice];\n", fld->name);
+            fprintf(f, "        if (_tgt >= 0 && _tgt < synth_config.voice_max && _tgt != voice) {\n");
+            fprintf(f, "            if (count < max_edges) {\n");
+            fprintf(f, "                out_to[count] = _tgt;\n");
+            fprintf(f, "                out_type[count] = 0;\n");
+            fprintf(f, "                out_name[count] = \"%s\";\n", fld->link_kind[0] ? fld->link_kind : fld->name);
+            fprintf(f, "                count++;\n");
+            fprintf(f, "            }\n");
+            fprintf(f, "        }\n");
+            fprintf(f, "    }\n");
+        }
+    }
+
+    fprintf(f, "    return count;\n");
     fprintf(f, "}\n");
     fclose(f);
 }
@@ -544,7 +618,7 @@ static void emit_gleam_voice(const char *filepath) {
     if (!f) return;
 
     fprintf(f, "//// Auto-generated by tools/mksynth. Do not edit directly.\n\n");
-    fprintf(f, "import gleam/int\nimport gleam/list\nimport gleam/string\nimport skode/param\n\n");
+    fprintf(f, "import gleam/float\nimport gleam/int\nimport gleam/list\nimport gleam/string\nimport skode/param\n\n");
     fprintf(f, "pub type Voice {\n  Voice(\n    id: Int,\n");
     for (i = 0; i < g_field_count; i++) {
         const schema_field_t *fld = &g_fields[i];
@@ -633,7 +707,62 @@ static void emit_gleam_voice(const char *filepath) {
             fprintf(f, "  let cmds = list.append(cmds, [\"%s\" <> param.format_float(voice.%s)])\n", fld->opcode, fld->name);
         }
     }
-    fprintf(f, "  string.join(cmds, \" \")\n}\n");
+    fprintf(f, "  string.join(cmds, \" \")\n}\n\n");
+
+    /* is_configured */
+    fprintf(f, "pub fn is_configured(voice: Voice) -> Bool {\n");
+    fprintf(f, "  voice != default(voice.id)\n}\n\n");
+
+    /* VoiceLink and get_links */
+    fprintf(f, "pub type VoiceLinkKind {\n");
+    fprintf(f, "  LinkHardSync\n");
+    fprintf(f, "  LinkFreqMod\n");
+    fprintf(f, "  LinkAmpMod\n");
+    fprintf(f, "  LinkPanMod\n");
+    fprintf(f, "  LinkPhaseMod\n");
+    fprintf(f, "  LinkRingMod\n");
+    fprintf(f, "  LinkMidiFollow\n");
+    fprintf(f, "  LinkVeloFollow\n");
+    fprintf(f, "}\n\n");
+
+    fprintf(f, "pub type VoiceLink {\n");
+    fprintf(f, "  VoiceLink(from_voice: Int, to_voice: Int, kind: VoiceLinkKind)\n");
+    fprintf(f, "}\n\n");
+
+    fprintf(f, "pub fn get_links(voice: Voice) -> List(VoiceLink) {\n");
+    fprintf(f, "  let links = []\n");
+
+    for (i = 0; i < g_field_count; i++) {
+        const schema_field_t *fld = &g_fields[i];
+        if (strcmp(fld->group, "voice") != 0 || strcmp(fld->link_type, "voice") != 0) continue;
+
+        const char *kind_ctor = "LinkHardSync";
+        if (strcmp(fld->link_kind, "freq_mod") == 0) kind_ctor = "LinkFreqMod";
+        else if (strcmp(fld->link_kind, "amp_mod") == 0) kind_ctor = "LinkAmpMod";
+        else if (strcmp(fld->link_kind, "pan_mod") == 0) kind_ctor = "LinkPanMod";
+        else if (strcmp(fld->link_kind, "cz_mod") == 0) kind_ctor = "LinkPhaseMod";
+        else if (strcmp(fld->link_kind, "ring_mod") == 0) kind_ctor = "LinkRingMod";
+        else if (strcmp(fld->link_kind, "midi_follow") == 0) kind_ctor = "LinkMidiFollow";
+        else if (strcmp(fld->link_kind, "velo_follow") == 0) kind_ctor = "LinkVeloFollow";
+        else if (strcmp(fld->link_kind, "hard_sync") == 0) kind_ctor = "LinkHardSync";
+
+        if (fld->type == TYPE_FLOAT_ARRAY) {
+            fprintf(f, "  let links = list.fold(voice.%s, links, fn(acc, raw) {\n", fld->name);
+            fprintf(f, "    let tgt = float.round(raw)\n");
+            fprintf(f, "    case tgt >= 0 && tgt != voice.id {\n");
+            fprintf(f, "      True -> [VoiceLink(voice.id, tgt, %s), ..acc]\n", kind_ctor);
+            fprintf(f, "      False -> acc\n");
+            fprintf(f, "    }\n");
+            fprintf(f, "  })\n");
+        } else {
+            fprintf(f, "  let links = case voice.%s >= 0 && voice.%s != voice.id {\n", fld->name, fld->name);
+            fprintf(f, "    True -> [VoiceLink(voice.id, voice.%s, %s), ..links]\n", fld->name, kind_ctor);
+            fprintf(f, "    False -> links\n");
+            fprintf(f, "  }\n");
+        }
+    }
+
+    fprintf(f, "  list.reverse(links)\n}\n");
 
     fclose(f);
 }

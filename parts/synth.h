@@ -114,6 +114,11 @@ int freq_feedback_set(int voice, float amount);
 int pan_mod_set(int voice, int o, float f, float a);
 
 char *voice_format(int v, char *out, size_t out_size, int verbose);
+char *voice_format_gen(int v, char *out, size_t out_size, int verbose);
+int voice_is_configured_gen(int v);
+int voice_graph_edges_gen(int voice, int *out_to, int *out_type, const char **out_name, int max_edges);
+void wave_reset_gen(int v);
+void voice_copy_gen(int dst, int src);
 int voice_trigger(int voice);
 int wave_default(int voice);
 int wave_loop(int voice, int state);

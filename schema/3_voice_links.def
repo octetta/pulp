@@ -22,6 +22,8 @@
 @size       6
 @default    -1.0
 @opcode     HS
+@link       voice
+@link_kind  hard_sync
 @copy       true
 @reset      -1.0
 @doc        Hard-sync slave targets (reset when master wraps phase). Up to 6 voices.
@@ -35,6 +37,8 @@
 @size       6
 @default    -1.0
 @opcode     G
+@link       voice
+@link_kind  midi_follow
 @copy       true
 @reset      -1.0
 @doc        Gate / pitch follower targets. Up to 6 linked voices.
@@ -44,6 +48,8 @@
 @size       6
 @default    -1.0
 @opcode     H
+@link       voice
+@link_kind  velo_follow
 @copy       true
 @reset      -1.0
 @doc        Velocity follower targets. Up to 6 linked voices.

@@ -101,6 +101,7 @@
 @field      amp_bend_range
 @type       float
 @default    0.0
+@range      0.0 .. 48.0
 @opcode     abp
 @copy       true
 @reset      12.0

@@ -109,6 +109,8 @@ int main(void) {
     assert(-48 <= 48);
     /* Check range for freq_bend_range (0 .. 48) */
     assert(0 <= 48);
+    /* Check range for amp_bend_range (0 .. 48) */
+    assert(0 <= 48);
     /* Check range for coarse (0 .. 7) */
     assert(0 <= 7);
     /* Check range for fine (0 .. 15) */

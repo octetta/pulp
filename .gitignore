@@ -17,5 +17,7 @@ mini-skred
 .ai-scratch/
 dist/
 tools/mkopcodes
+tools/mksynth
+src/gen/test_schema_bounds
 Testing/
 parts/Testing/

@@ -1,0 +1,262 @@
+# ==============================================================================
+# Pulp Synthesizer State Schema: 1_voice_core.def
+# Core Voice DSP: Oscillator, Filter, Envelopes, Mix, and Output Routing
+# ==============================================================================
+
+@schema voice_core
+@group  voice
+
+# ------------------------------------------------------------------------------
+# Oscillator & Pitch
+# ------------------------------------------------------------------------------
+
+@field      wave_table_index
+@type       int
+@default    0
+@range      0 .. 1299
+@opcode     w
+@copy       true
+@reset      0
+@doc        Wavetable index (0..6 basic/noise, 7..14 live capture, 15..46 korg, 50..81 esq1, 82..99 drums, 300+ sample)
+
+@field      freq
+@type       float
+@default    440.0
+@range      20.0 .. 20000.0
+@unit       hz
+@opcode     f
+@copy       true
+@reset      440.0
+@doc        Oscillator frequency in Hertz
+
+@field      midi_note
+@type       float
+@default    60.0
+@range      0.0 .. 127.0
+@opcode     n
+@copy       true
+@reset      60.0
+@doc        Oscillator pitch as MIDI note number (60.0 = Middle C)
+
+@field      midi_cents
+@type       float
+@default    0.0
+@range      -100.0 .. 100.0
+@unit       cents
+@opcode     c
+@copy       true
+@reset      0.0
+@doc        Fine pitch detune in cents
+
+@field      midi_transpose
+@type       float
+@default    0.0
+@range      -48.0 .. 48.0
+@unit       semitones
+@copy       true
+@reset      0.0
+@doc        Coarse pitch transpose in semitones
+
+@field      pitch_mode
+@type       int
+@default    1
+@range      0 .. 1
+@copy       true
+@reset      1
+@doc        0 = frequency mode, 1 = MIDI note mode
+
+@field      phase
+@type       double
+@default    0.0
+@copy       false
+@reset      0.0
+@doc        Running oscillator phase accumulator
+
+@field      phase_inc
+@type       float
+@default    0.0
+@vectorize  true
+@copy       false
+@reset      0.0
+@doc        Phase increment per audio sample frame
+
+@field      one_shot
+@type       int
+@default    0
+@range      0 .. 1
+@copy       true
+@reset      0
+@doc        1 = stop playback at end of wave, 0 = loop
+
+@field      interpolate
+@type       int
+@default    1
+@range      0 .. 1
+@copy       true
+@reset      1
+@doc        Linear interpolation flag for wavetable playback
+
+@field      direction
+@type       int
+@default    0
+@range      0 .. 2
+@opcode     w
+@copy       true
+@reset      0
+@doc        Playback direction: 0 = forward, 1 = backward, 2 = ping-pong
+
+@field      loop_enabled
+@type       int
+@default    1
+@range      0 .. 1
+@opcode     B
+@copy       true
+@reset      1
+@doc        Wave looping toggle (1 = enabled, 0 = one-shot)
+
+@field      loop_count
+@type       int
+@default    0
+@range      0 .. 65535
+@opcode     lc
+@copy       true
+@reset      0
+@doc        Configured loop wrap limit (0 = unlimited / infinite)
+
+@field      phase_reset
+@type       int
+@default    0
+@range      0 .. 1
+@copy       true
+@reset      0
+@doc        1 = reset oscillator phase to 0 on note trigger
+
+# ------------------------------------------------------------------------------
+# Filter (Biquad Multimode)
+# ------------------------------------------------------------------------------
+
+@field      filter_mode
+@type       int
+@default    1
+@range      0 .. 50
+@opcode     j
+@copy       true
+@reset      1
+@doc        Filter mode: (character * 10) + (mode % 10). 0:off, 1:LP, 2:BP, 3:HP, 4:Notch, 5:AllPass
+
+@field      filter_freq
+@type       float
+@default    5000.0
+@range      20.0 .. 20000.0
+@unit       hz
+@opcode     k
+@copy       true
+@reset      5000.0
+@doc        Filter cutoff frequency in Hertz
+
+@field      filter_res
+@type       float
+@default    0.707
+@range      0.1 .. 20.0
+@opcode     q
+@copy       true
+@reset      0.707
+@doc        Filter resonance Q factor
+
+@field      use_filter_envelope
+@type       int
+@default    0
+@range      0 .. 1
+@copy       true
+@reset      0
+@doc        Enable filter envelope modulation
+
+@field      filter_env_depth
+@type       float
+@default    0.0
+@range      -10000.0 .. 10000.0
+@unit       hz
+@opcode     kd
+@copy       true
+@reset      0.0
+@doc        Filter envelope cutoff sweep depth in Hertz
+
+# ------------------------------------------------------------------------------
+# Envelopes
+# ------------------------------------------------------------------------------
+
+@field      use_amp_envelope
+@type       int
+@default    1
+@range      0 .. 1
+@copy       true
+@reset      1
+@doc        Enable amplitude envelope
+
+@field      amp_envelope_mode
+@type       int
+@default    0
+@range      0 .. 1
+@opcode     em
+@copy       true
+@reset      0
+@doc        0 = standard ADSR, 1 = multistage linear
+
+# ------------------------------------------------------------------------------
+# Mix, Pan & Stem Routing
+# ------------------------------------------------------------------------------
+
+@field      amp
+@type       float
+@default    -6.0
+@range      -60.0 .. 12.0
+@unit       db
+@opcode     a
+@copy       true
+@reset      -6.0
+@doc        Voice amplitude in decibels (-60 dB is silent)
+
+@field      user_amp
+@type       float
+@default    -6.0
+@range      -60.0 .. 12.0
+@unit       db
+@copy       true
+@reset      -6.0
+@doc        Base user-configured voice amplitude in dB
+
+@field      pan
+@type       float
+@default    0.0
+@range      -1.0 .. 1.0
+@opcode     p
+@copy       true
+@reset      0.0
+@doc        Stereo pan (-1.0 hard left, 0.0 center, +1.0 hard right)
+
+@field      disconnect
+@type       int
+@default    0
+@range      0 .. 1
+@opcode     mu
+@copy       true
+@reset      0
+@doc        Voice mute toggle (1 = muted, 0 = active)
+
+@field      record
+@type       int
+@default    0
+@range      0 .. 4
+@opcode     rec
+@copy       true
+@reset      0
+@doc        Multi-track recording stem (0 = master mix, 1..4 = isolated stem)
+
+@field      delay_send
+@type       float
+@default    0.0
+@range      0.0 .. 1.0
+@opcode     ds
+@copy       true
+@reset      0.0
+@doc        Delay bus send amount (0.0 dry to 1.0 full send)

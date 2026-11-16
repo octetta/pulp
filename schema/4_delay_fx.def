@@ -1,0 +1,92 @@
+# ==============================================================================
+# Pulp Synthesizer State Schema: 4_delay_fx.def
+# Global FX Rack: 4 Stereo Delay Lines with Modulation, Damping, and Quantizer
+# ==============================================================================
+
+@schema delay_fx
+@group  global
+@instances 4
+
+@field      coarse
+@type       int
+@default    4
+@range      0 .. 7
+@opcode     DL
+@doc        Coarse delay time exponent: base_ms = 8ms * 2^coarse (8ms to 1024ms)
+
+@field      fine
+@type       int
+@default    15
+@range      0 .. 15
+@opcode     DL
+@doc        Fine delay time factor: fine_factor = 0.5 + (fine / 15.0) * 0.5
+
+@field      feedback
+@type       int
+@default    8
+@range      0 .. 15
+@opcode     DL
+@doc        Feedback gain: gain = (feedback / 15.0) * 0.82
+
+@field      mod_freq
+@type       int
+@default    0
+@range      0 .. 31
+@opcode     DL
+@doc        Delay LFO modulation frequency: hz = (mod_freq / 31.0) * 10.0 Hz
+
+@field      mod_depth
+@type       int
+@default    0
+@range      0 .. 31
+@opcode     DL
+@doc        Delay LFO chorus/flange modulation depth
+
+@field      level
+@type       int
+@default    10
+@range      0 .. 15
+@opcode     DL
+@doc        Wet delay output mix level (0 = silent, 15 = full)
+
+@field      damping
+@type       int
+@default    2
+@range      0 .. 15
+@opcode     DD
+@doc        Feedback lowpass damping amount (0 = open, 15 = maximum damping)
+
+@field      highpass
+@type       int
+@default    0
+@range      0 .. 15
+@opcode     DD
+@doc        Feedback highpass filter cutoff
+
+@field      freeze
+@type       int
+@default    0
+@range      0 .. 1
+@opcode     DF
+@doc        Infinite recirculation freeze toggle (1 = frozen, 0 = normal decay)
+
+@field      pingpong
+@type       int
+@default    0
+@range      0 .. 1
+@opcode     DP
+@doc        Cross-channel stereo ping-pong feedback (1 = stereo bounce, 0 = mono)
+
+@field      bits
+@type       int
+@default    12
+@range      1 .. 16
+@opcode     DG
+@doc        Lo-fi delay bit depth reduction (default: 12-bit vintage character)
+
+@field      native
+@type       int
+@default    0
+@range      0 .. 1
+@opcode     DG
+@doc        1 = bypass bit-depth quantization entirely (full 32-bit float), 0 = quantize

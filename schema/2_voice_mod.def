@@ -1,0 +1,305 @@
+# ==============================================================================
+# Pulp Synthesizer State Schema: 2_voice_mod.def
+# Cross-Modulation: Casio CZ Phase Distortion, FM/PM, Ring Mod, AM, S&H, Glissando
+# ==============================================================================
+
+@schema voice_mod
+@group  voice
+
+# ------------------------------------------------------------------------------
+# Casio CZ Phase Distortion
+# ------------------------------------------------------------------------------
+
+@field      cz_mode
+@type       int
+@default    0
+@range      0 .. 8
+@opcode     c1
+@copy       true
+@reset      0
+@doc        Casio CZ phase distortion waveform mode (0: none/sine, 1: saw, 2: square, etc.)
+
+@field      cz_distortion
+@type       float
+@default    0.0
+@range      0.0 .. 1.0
+@opcode     c1
+@copy       true
+@reset      0.0
+@doc        CZ phase distortion factor (0.0 to 1.0)
+
+@field      cz_mod_osc
+@type       int
+@default    -1
+@range      -1 .. 255
+@opcode     cmod
+@copy       true
+@reset      -1
+@doc        Modulator voice for dynamic CZ phase distortion
+
+@field      cz_mod_depth
+@type       float
+@default    0.0
+@range      0.0 .. 10.0
+@opcode     cmod
+@copy       true
+@reset      0.0
+@doc        Dynamic CZ modulation depth
+
+@field      use_cz_envelope
+@type       int
+@default    0
+@range      0 .. 1
+@copy       true
+@reset      0
+@doc        Enable CZ envelope sweep
+
+@field      cz_env_depth
+@type       float
+@default    0.0
+@range      -10.0 .. 10.0
+@opcode     cd
+@copy       true
+@reset      0.0
+@doc        CZ envelope modulation depth
+
+# ------------------------------------------------------------------------------
+# Frequency & Phase Modulation (FM / PM)
+# ------------------------------------------------------------------------------
+
+@field      freq_mod_osc
+@type       int
+@default    -1
+@range      -1 .. 255
+@opcode     F
+@copy       true
+@reset      -1
+@doc        Modulator voice ID for frequency modulation (-1 = none)
+
+@field      freq_mod_depth
+@type       float
+@default    0.0
+@range      0.0 .. 10000.0
+@opcode     F
+@copy       true
+@reset      0.0
+@doc        Frequency modulation depth multiplier
+
+@field      freq_mod_adder
+@type       float
+@default    0.0
+@opcode     F
+@copy       true
+@reset      0.0
+@doc        Frequency modulation constant offset adder
+
+@field      freq_mod_mode
+@type       int
+@default    0
+@range      0 .. 2
+@opcode     FM
+@copy       true
+@reset      0
+@doc        0 = linear FM, 1 = exponential FM, 2 = True Phase Modulation (Yamaha DX7 style)
+
+@field      freq_mod_feedback
+@type       float
+@default    0.0
+@range      0.0 .. 10.0
+@opcode     FB
+@copy       true
+@reset      0.0
+@doc        2-pole FM recursion feedback amount
+
+@field      freq_mod_feedback_z1
+@type       float
+@default    0.0
+@copy       false
+@reset      0.0
+@doc        FM feedback unit delay state z^-1
+
+@field      freq_mod_feedback_z2
+@type       float
+@default    0.0
+@copy       false
+@reset      0.0
+@doc        FM feedback unit delay state z^-2
+
+# ------------------------------------------------------------------------------
+# Amplitude & Pan Modulation
+# ------------------------------------------------------------------------------
+
+@field      amp_mod_osc
+@type       int
+@default    -1
+@range      -1 .. 255
+@opcode     am
+@copy       true
+@reset      -1
+@doc        Modulator voice for Amplitude Modulation (-1 = disabled)
+
+@field      amp_mod_depth
+@type       float
+@default    0.0
+@opcode     am
+@copy       true
+@reset      0.0
+@doc        Amplitude modulation depth
+
+@field      amp_mod_adder
+@type       float
+@default    0.0
+@opcode     am
+@copy       true
+@reset      0.0
+@doc        Amplitude modulation DC adder
+
+@field      pan_mod_osc
+@type       int
+@default    -1
+@range      -1 .. 255
+@opcode     pm
+@copy       true
+@reset      -1
+@doc        Modulator voice for stereo pan auto-panning (-1 = disabled)
+
+@field      pan_mod_depth
+@type       float
+@default    0.0
+@opcode     pm
+@copy       true
+@reset      0.0
+@doc        Pan modulation depth
+
+@field      pan_mod_adder
+@type       float
+@default    0.0
+@opcode     pm
+@copy       true
+@reset      0.0
+@doc        Pan modulation DC adder
+
+# ------------------------------------------------------------------------------
+# Ring Modulation
+# ------------------------------------------------------------------------------
+
+@field      ring_osc
+@type       int
+@default    -1
+@range      -1 .. 255
+@opcode     XM
+@copy       true
+@reset      -1
+@doc        Carrier voice for ring modulation (-1 = disabled)
+
+@field      ring_amount
+@type       float
+@default    0.0
+@range      0.0 .. 1.0
+@opcode     XM
+@copy       true
+@reset      0.0
+@doc        Ring modulation wet/dry amount (0.0 to 1.0)
+
+# ------------------------------------------------------------------------------
+# Sample & Hold / Bitcrusher
+# ------------------------------------------------------------------------------
+
+@field      sample_hold_ratio
+@type       float
+@default    0.0
+@range      0.0 .. 1.0
+@opcode     sh
+@copy       true
+@reset      0.0
+@doc        Sample & hold downsampling ratio
+
+@field      sample_hold_mode
+@type       int
+@default    0
+@range      0 .. 3
+@opcode     sh
+@copy       true
+@reset      0
+@doc        Sample & hold algorithm mode
+
+@field      quantize
+@type       int
+@default    0
+@range      0 .. 1600
+@opcode     q
+@copy       true
+@reset      0
+@doc        Bit-depth quantizer & lo-fi reduction curve: (curve * 100) + bits
+
+# ------------------------------------------------------------------------------
+# Glissando & Smoothing
+# ------------------------------------------------------------------------------
+
+@field      glissando_enable
+@type       int
+@default    0
+@range      0 .. 1
+@opcode     gl
+@copy       true
+@reset      0
+@doc        Glissando / portamento enable toggle
+
+@field      glissando_mode
+@type       int
+@default    0
+@range      0 .. 2
+@opcode     gl
+@copy       true
+@reset      0
+@doc        Portamento curve shape: 0 = linear, 1 = exponential, 2 = logarithmic
+
+@field      glissando_time
+@type       float
+@default    0.0
+@range      0.0 .. 10.0
+@unit       seconds
+@opcode     gl
+@copy       true
+@reset      0.0
+@doc        Portamento glide duration in seconds
+
+@field      smoother_enable
+@type       int
+@default    0
+@range      0 .. 1
+@opcode     sm
+@copy       true
+@reset      0
+@doc        One-pole parameter smoother enable
+
+@field      smoother_smoothing
+@type       float
+@default    0.0
+@range      0.0 .. 1.0
+@opcode     sm
+@copy       true
+@reset      0.0
+@doc        One-pole smoothing time constant
+
+# ------------------------------------------------------------------------------
+# Dedicated Pitch Envelope
+# ------------------------------------------------------------------------------
+
+@field      use_freq_envelope
+@type       int
+@default    0
+@range      0 .. 1
+@copy       true
+@reset      0
+@doc        Enable dedicated pitch ADSR envelope
+
+@field      freq_env_depth
+@type       float
+@default    0.0
+@range      -48.0 .. 48.0
+@unit       semitones
+@opcode     pd
+@copy       true
+@reset      0.0
+@doc        Pitch envelope sweep depth in semitones

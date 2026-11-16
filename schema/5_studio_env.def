@@ -1,0 +1,79 @@
+# ==============================================================================
+# Pulp Synthesizer State Schema: 5_studio_env.def
+# Studio Environment: Master Volume (V), Clock (M), Multi-Track Stems, Scope IPC, Poly Pools
+# ==============================================================================
+
+@schema studio_env
+@group  global
+
+# ------------------------------------------------------------------------------
+# Master Output & Clock
+# ------------------------------------------------------------------------------
+
+@field      volume_user
+@type       float
+@default    -6.0
+@range      -60.0 .. 12.0
+@unit       db
+@opcode     V
+@doc        Master audio output volume in decibels (-6.0 dB default)
+
+@field      tempo_bpm
+@type       float
+@default    120.0
+@range      1.0 .. 960.0
+@unit       bpm
+@opcode     M
+@doc        Master clock tempo in beats per minute
+
+@field      subdivision
+@type       float
+@default    16.0
+@range      1.0 .. 64.0
+@opcode     M
+@doc        Sequencer step subdivision per quarter note (default: 16th notes)
+
+@field      master_pattern
+@type       int
+@default    0
+@range      -1 .. 127
+@opcode     yp
+@doc        Downbeat sync reference pattern (-1 = independent pattern queuing)
+
+# ------------------------------------------------------------------------------
+# Scope Visualizer IPC
+# ------------------------------------------------------------------------------
+
+@field      scope_enabled
+@type       int
+@default    0
+@range      0 .. 1
+@doc        Enable POSIX/Win32 shared memory oscilloscope streaming
+
+@field      scope_width
+@type       int
+@default    512
+@range      64 .. 4096
+@doc        Oscilloscope visual buffer display width
+
+# ------------------------------------------------------------------------------
+# Polyphonic Voice Allocation Pool
+# ------------------------------------------------------------------------------
+
+@field      poly_voice_start
+@type       int
+@default    0
+@range      0 .. 255
+@doc        Starting voice index for the polyphony allocation pool
+
+@field      poly_voice_count
+@type       int
+@default    8
+@range      1 .. 32
+@doc        Total voice capacity in the polyphonic allocation pool
+
+@field      poly_steal_mode
+@type       int
+@default    0
+@range      0 .. 2
+@doc        Voice stealing algorithm: 0 = oldest, 1 = quietest, 2 = lowest pitch

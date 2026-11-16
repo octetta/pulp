@@ -1,0 +1,107 @@
+# ==============================================================================
+# Pulp Synthesizer State Schema: 3_voice_links.def
+# Voice Relationships: Hard Sync (PolyBLEP), Gate Links, Velocity Links, Pitch Bend
+# ==============================================================================
+
+@schema voice_links
+@group  voice
+
+# ------------------------------------------------------------------------------
+# Hard-Sync & PolyBLEP Anti-Aliasing
+# ------------------------------------------------------------------------------
+
+@field      sync_blep
+@type       float
+@default    0.0
+@copy       false
+@reset      0.0
+@doc        Bandlimited step correction factor for oscillator hard-sync wraps
+
+@field      link_sync
+@type       float_array
+@size       6
+@default    -1.0
+@opcode     HS
+@copy       true
+@reset      -1.0
+@doc        Hard-sync slave targets (reset when master wraps phase). Up to 6 voices.
+
+# ------------------------------------------------------------------------------
+# Gate, Velocity & Micro-Delay Trigger Links
+# ------------------------------------------------------------------------------
+
+@field      link_midi
+@type       float_array
+@size       6
+@default    -1.0
+@opcode     G
+@copy       true
+@reset      -1.0
+@doc        Gate / pitch follower targets. Up to 6 linked voices.
+
+@field      link_velo
+@type       float_array
+@size       6
+@default    -1.0
+@opcode     H
+@copy       true
+@reset      -1.0
+@doc        Velocity follower targets. Up to 6 linked voices.
+
+@field      link_trig
+@type       float
+@default    -1.0
+@range      -1.0 .. 10.0
+@unit       seconds
+@opcode     td
+@copy       true
+@reset      -1.0
+@doc        Micro-delay trigger time offset in seconds (-1 = immediate)
+
+# ------------------------------------------------------------------------------
+# Frequency & Amplitude Bends
+# ------------------------------------------------------------------------------
+
+@field      freq_bend
+@type       float
+@default    0.0
+@range      -48.0 .. 48.0
+@unit       semitones
+@opcode     b
+@copy       true
+@reset      0.0
+@doc        Real-time pitch bend offset in semitones
+
+@field      freq_bend_range
+@type       float
+@default    2.0
+@range      0.0 .. 48.0
+@unit       semitones
+@opcode     bp
+@copy       true
+@reset      2.0
+@doc        Pitch bend wheel maximum range
+
+@field      freq_bend_offset
+@type       float
+@default    0.0
+@opcode     bp
+@copy       true
+@reset      0.0
+@doc        Pitch bend baseline center offset
+
+@field      amp_bend
+@type       float
+@default    0.0
+@opcode     ab
+@copy       true
+@reset      0.0
+@doc        Amplitude bend offset in dB
+
+@field      amp_bend_range
+@type       float
+@default    0.0
+@opcode     abp
+@copy       true
+@reset      0.0
+@doc        Amplitude bend wheel maximum range in dB

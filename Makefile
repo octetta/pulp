@@ -12,7 +12,7 @@ SYNTH_GEN_OUTPUTS := src/gen/synth_state_gen.h src/gen/synth_alloc_gen.c src/gen
 default: help
 
 help:
-	@echo "Pulp Audio Engine Build Targets (v0.85.0):"
+	@echo "Pulp Audio Engine Build Targets (v0.85.1):"
 	@echo "  make help        - Show this list of targets (default)"
 	@echo "  make all         - Build native C engine, libraries, and mini-skred CLI"
 	@echo "  make gen         - Run declarative compilers (mksynth and mkopcodes)"

@@ -43,7 +43,6 @@
 @default    0.0
 @range      -100.0 .. 100.0
 @unit       cents
-@opcode     c
 @copy       true
 @reset      0.0
 @doc        Fine pitch detune in cents
@@ -100,7 +99,7 @@
 @type       int
 @default    0
 @range      0 .. 2
-@opcode     w
+@opcode     b
 @copy       true
 @reset      0
 @doc        Playback direction: 0 = forward, 1 = backward, 2 = ping-pong
@@ -118,7 +117,7 @@
 @type       int
 @default    0
 @range      0 .. 65535
-@opcode     lc
+@opcode     BC
 @copy       true
 @reset      0
 @doc        Configured loop wrap limit (0 = unlimited / infinite)
@@ -197,7 +196,7 @@
 @type       int
 @default    0
 @range      0 .. 1
-@opcode     em
+@opcode     tm
 @copy       true
 @reset      0
 @doc        0 = standard ADSR, 1 = multistage linear
@@ -238,7 +237,7 @@
 @type       int
 @default    0
 @range      0 .. 1
-@opcode     mu
+@opcode     m
 @copy       true
 @reset      0
 @doc        Voice mute toggle (1 = muted, 0 = active)
@@ -247,7 +246,7 @@
 @type       int
 @default    0
 @range      0 .. 4
-@opcode     rec
+@opcode     r
 @copy       true
 @reset      0
 @doc        Multi-track recording stem (0 = master mix, 1..4 = isolated stem)

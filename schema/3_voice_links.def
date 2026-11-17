@@ -59,7 +59,7 @@
 @default    -1.0
 @range      -1.0 .. 10.0
 @unit       seconds
-@opcode     td
+@opcode     L
 @copy       true
 @reset      -1.0
 @doc        Micro-delay trigger time offset in seconds (-1 = immediate)
@@ -73,7 +73,7 @@
 @default    0.0
 @range      -48.0 .. 48.0
 @unit       semitones
-@opcode     b
+@opcode     fb
 @copy       true
 @reset      0.0
 @doc        Real-time pitch bend offset in semitones
@@ -83,7 +83,7 @@
 @default    2.0
 @range      0.0 .. 48.0
 @unit       semitones
-@opcode     bp
+@opcode     fbp
 @copy       true
 @reset      2.0
 @doc        Pitch bend wheel maximum range
@@ -91,7 +91,7 @@
 @field      freq_bend_offset
 @type       float
 @default    0.0
-@opcode     bp
+@opcode     fbp
 @copy       true
 @reset      0.0
 @doc        Pitch bend baseline center offset

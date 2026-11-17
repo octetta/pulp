@@ -320,6 +320,35 @@ static void emit_c_alloc_source(const char *filepath) {
     fclose(f);
 }
 
+static int find_first_field_with_opcode(const char *opc) {
+    if (!opc || !opc[0]) return -1;
+    for (int i = 0; i < g_field_count; i++) {
+        if (strcmp(g_fields[i].group, "voice") == 0 && strcmp(g_fields[i].opcode, opc) == 0)
+            return i;
+    }
+    return -1;
+}
+
+static int count_fields_with_opcode(const char *opc) {
+    if (!opc || !opc[0]) return 0;
+    int c = 0;
+    for (int i = 0; i < g_field_count; i++) {
+        if (strcmp(g_fields[i].group, "voice") == 0 && strcmp(g_fields[i].opcode, opc) == 0)
+            c++;
+    }
+    return c;
+}
+
+static int get_fields_for_opcode(const char *opc, int *out_indices, int max_out) {
+    int count = 0;
+    for (int i = 0; i < g_field_count && count < max_out; i++) {
+        if (strcmp(g_fields[i].group, "voice") == 0 && strcmp(g_fields[i].opcode, opc) == 0) {
+            out_indices[count++] = i;
+        }
+    }
+    return count;
+}
+
 static void emit_c_voice_ops(const char *filepath) {
     FILE *f = fopen(filepath, "w");
     int i;
@@ -384,6 +413,37 @@ static void emit_c_voice_ops(const char *filepath) {
             strcmp(fld->name, "user_amp") == 0 ||
             strcmp(fld->name, "amp") == 0) continue;
         if (fld->type == TYPE_FLOAT_ARRAY) continue;
+
+        int opc_count = count_fields_with_opcode(fld->opcode);
+        if (opc_count > 1) {
+            if (find_first_field_with_opcode(fld->opcode) != i) continue;
+            int indices[8];
+            int n = get_fields_for_opcode(fld->opcode, indices, 8);
+            fprintf(f, "    if (verbose");
+            for (int k = 0; k < n; k++) {
+                const schema_field_t *kf = &g_fields[indices[k]];
+                if (kf->type == TYPE_INT) {
+                    int def_v = atoi(kf->default_val[0] ? kf->default_val : "0");
+                    fprintf(f, " || sv.%s[v] != %d", kf->name, def_v);
+                } else {
+                    double def_v = atof(kf->default_val[0] ? kf->default_val : "0");
+                    fprintf(f, " || fabs((double)sv.%s[v] - %f) > 1e-4", kf->name, def_v);
+                }
+            }
+            fprintf(f, ") APPEND_GEN(\" %s", fld->opcode);
+            for (int k = 0; k < n; k++) {
+                const schema_field_t *kf = &g_fields[indices[k]];
+                if (k > 0) fprintf(f, ",");
+                fprintf(f, "%s", kf->type == TYPE_INT ? "%d" : "%g");
+            }
+            fprintf(f, "\"");
+            for (int k = 0; k < n; k++) {
+                const schema_field_t *kf = &g_fields[indices[k]];
+                fprintf(f, ", %ssv.%s[v]", kf->type == TYPE_INT ? "" : "(double)", kf->name);
+            }
+            fprintf(f, ");\n");
+            continue;
+        }
 
         if (fld->type == TYPE_INT) {
             int def_v = atoi(fld->default_val[0] ? fld->default_val : "0");
@@ -702,6 +762,45 @@ static void emit_gleam_voice(const char *filepath) {
             continue;
         }
 
+        int opc_count = count_fields_with_opcode(fld->opcode);
+        if (opc_count > 1) {
+            if (find_first_field_with_opcode(fld->opcode) != i) continue;
+            int indices[8];
+            int n = get_fields_for_opcode(fld->opcode, indices, 8);
+            const schema_field_t *f0 = &g_fields[indices[0]];
+            int def_f0 = atoi(f0->default_val[0] ? f0->default_val : "0");
+
+            if (f0->type == TYPE_INT && def_f0 < 0) {
+                fprintf(f, "  let cmds = case voice.%s >= 0 {\n", f0->name);
+            } else if (f0->type == TYPE_INT && def_f0 == 0) {
+                fprintf(f, "  let cmds = case voice.%s > 0 {\n", f0->name);
+            } else if (f0->type == TYPE_FLOAT && atof(f0->default_val[0] ? f0->default_val : "0") == 0.0) {
+                fprintf(f, "  let cmds = case voice.%s >. 0.0 {\n", f0->name);
+            } else {
+                fprintf(f, "  let cmds = case ");
+                for (int k = 0; k < n; k++) {
+                    const schema_field_t *kf = &g_fields[indices[k]];
+                    if (k > 0) fprintf(f, " || ");
+                    fprintf(f, "voice.%s != d.%s", kf->name, kf->name);
+                }
+                fprintf(f, " {\n");
+            }
+
+            fprintf(f, "    True -> list.append(cmds, [\"%s\"", fld->opcode);
+            for (int k = 0; k < n; k++) {
+                const schema_field_t *kf = &g_fields[indices[k]];
+                if (k > 0) fprintf(f, " <> \",\"");
+                if (kf->type == TYPE_INT) {
+                    fprintf(f, " <> int.to_string(voice.%s)", kf->name);
+                } else {
+                    fprintf(f, " <> param.format_float(voice.%s)", kf->name);
+                }
+            }
+            fprintf(f, "])\n");
+            fprintf(f, "    False -> cmds\n  }\n");
+            continue;
+        }
+
         if (fld->type == TYPE_INT) {
             fprintf(f, "  let cmds = case voice.%s != d.%s {\n", fld->name, fld->name);
             fprintf(f, "    True -> list.append(cmds, [\"%s\" <> int.to_string(voice.%s)])\n", fld->opcode, fld->name);
@@ -736,6 +835,38 @@ static void emit_gleam_voice(const char *filepath) {
             fprintf(f, "    [] -> list.append(cmds, [\"%s-1\"])\n", fld->opcode);
             fprintf(f, "    targets -> list.append(cmds, [\"%s\" <> string.join(list.map(targets, fn(t) { int.to_string(float.round(t)) }), \",\")])\n", fld->opcode);
             fprintf(f, "  }\n");
+            continue;
+        }
+
+        int opc_count = count_fields_with_opcode(fld->opcode);
+        if (opc_count > 1) {
+            if (find_first_field_with_opcode(fld->opcode) != i) continue;
+            int indices[8];
+            int n = get_fields_for_opcode(fld->opcode, indices, 8);
+            const schema_field_t *f0 = &g_fields[indices[0]];
+            int def_f0 = atoi(f0->default_val[0] ? f0->default_val : "0");
+
+            if (f0->type == TYPE_INT && def_f0 < 0) {
+                fprintf(f, "  let cmds = case voice.%s >= 0 {\n", f0->name);
+                fprintf(f, "    True -> list.append(cmds, [\"%s\"", fld->opcode);
+                for (int k = 0; k < n; k++) {
+                    const schema_field_t *kf = &g_fields[indices[k]];
+                    if (k > 0) fprintf(f, " <> \",\"");
+                    if (kf->type == TYPE_INT) fprintf(f, " <> int.to_string(voice.%s)", kf->name);
+                    else fprintf(f, " <> param.format_float(voice.%s)", kf->name);
+                }
+                fprintf(f, "])\n");
+                fprintf(f, "    False -> list.append(cmds, [\"%s-1\"])\n  }\n", fld->opcode);
+            } else {
+                fprintf(f, "  let cmds = list.append(cmds, [\"%s\"", fld->opcode);
+                for (int k = 0; k < n; k++) {
+                    const schema_field_t *kf = &g_fields[indices[k]];
+                    if (k > 0) fprintf(f, " <> \",\"");
+                    if (kf->type == TYPE_INT) fprintf(f, " <> int.to_string(voice.%s)", kf->name);
+                    else fprintf(f, " <> param.format_float(voice.%s)", kf->name);
+                }
+                fprintf(f, "])\n");
+            }
             continue;
         }
 
@@ -863,6 +994,69 @@ static void emit_gleam_diff(const char *filepath) {
             fprintf(f, "      [] -> [\"%s-1\", ..diffs]\n", fld->opcode);
             fprintf(f, "      targets -> [\"%s\" <> string.join(list.map(targets, fn(t) { int.to_string(float.round(t)) }), \",\"), ..diffs]\n", fld->opcode);
             fprintf(f, "    }\n");
+            fprintf(f, "    False -> diffs\n  }\n");
+            continue;
+        }
+
+        int opc_count = count_fields_with_opcode(fld->opcode);
+        if (opc_count > 1) {
+            if (find_first_field_with_opcode(fld->opcode) != i) continue;
+            int indices[8];
+            int n = get_fields_for_opcode(fld->opcode, indices, 8);
+            const schema_field_t *f0 = &g_fields[indices[0]];
+
+            fprintf(f, "  let diffs = case ");
+            for (int k = 0; k < n; k++) {
+                const schema_field_t *kf = &g_fields[indices[k]];
+                if (k > 0) fprintf(f, " || ");
+                fprintf(f, "old.%s != new.%s", kf->name, kf->name);
+            }
+            fprintf(f, " {\n");
+
+            int def_f0 = atoi(f0->default_val[0] ? f0->default_val : "0");
+            if (f0->type == TYPE_INT && def_f0 < 0) {
+                fprintf(f, "    True -> case new.%s >= 0 {\n", f0->name);
+                fprintf(f, "      True -> [\"%s\"", fld->opcode);
+                for (int k = 0; k < n; k++) {
+                    const schema_field_t *kf = &g_fields[indices[k]];
+                    if (k > 0) fprintf(f, " <> \",\"");
+                    if (kf->type == TYPE_INT) fprintf(f, " <> int.to_string(new.%s)", kf->name);
+                    else fprintf(f, " <> param.format_float(new.%s)", kf->name);
+                }
+                fprintf(f, ", ..diffs]\n");
+                fprintf(f, "      False -> [\"%s-1\", ..diffs]\n    }\n", fld->opcode);
+            } else if (f0->type == TYPE_INT && def_f0 == 0) {
+                fprintf(f, "    True -> case new.%s > 0 {\n", f0->name);
+                fprintf(f, "      True -> [\"%s\"", fld->opcode);
+                for (int k = 0; k < n; k++) {
+                    const schema_field_t *kf = &g_fields[indices[k]];
+                    if (k > 0) fprintf(f, " <> \",\"");
+                    if (kf->type == TYPE_INT) fprintf(f, " <> int.to_string(new.%s)", kf->name);
+                    else fprintf(f, " <> param.format_float(new.%s)", kf->name);
+                }
+                fprintf(f, ", ..diffs]\n");
+                fprintf(f, "      False -> [\"%s0\", ..diffs]\n    }\n", fld->opcode);
+            } else if (f0->type == TYPE_FLOAT && atof(f0->default_val[0] ? f0->default_val : "0") == 0.0) {
+                fprintf(f, "    True -> case new.%s >. 0.0 {\n", f0->name);
+                fprintf(f, "      True -> [\"%s\"", fld->opcode);
+                for (int k = 0; k < n; k++) {
+                    const schema_field_t *kf = &g_fields[indices[k]];
+                    if (k > 0) fprintf(f, " <> \",\"");
+                    if (kf->type == TYPE_INT) fprintf(f, " <> int.to_string(new.%s)", kf->name);
+                    else fprintf(f, " <> param.format_float(new.%s)", kf->name);
+                }
+                fprintf(f, ", ..diffs]\n");
+                fprintf(f, "      False -> [\"%s0\", ..diffs]\n    }\n", fld->opcode);
+            } else {
+                fprintf(f, "    True -> [\"%s\"", fld->opcode);
+                for (int k = 0; k < n; k++) {
+                    const schema_field_t *kf = &g_fields[indices[k]];
+                    if (k > 0) fprintf(f, " <> \",\"");
+                    if (kf->type == TYPE_INT) fprintf(f, " <> int.to_string(new.%s)", kf->name);
+                    else fprintf(f, " <> param.format_float(new.%s)", kf->name);
+                }
+                fprintf(f, ", ..diffs]\n");
+            }
             fprintf(f, "    False -> diffs\n  }\n");
             continue;
         }

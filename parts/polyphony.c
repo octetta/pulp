@@ -709,3 +709,36 @@ const char *skred_voice_graph(int voice, int format, int depth) {
   }
   return graph_status;
 }
+
+int skred_poly_voice_pool(int voice, int *out_pool, int *out_instance) {
+  if (!poly_voice_valid(voice)) return -1;
+  for (int p = 0; p < SKRED_POLY_POOL_MAX; p++) {
+    if (!poly_pool[p].valid) continue;
+    int g = poly_pool[p].group;
+    int width = (poly_group[g].valid && poly_group[g].width > 0) ? poly_group[g].width : 1;
+    int base = poly_pool[p].base;
+    int count = poly_pool[p].count;
+    int end = base + count * width;
+    if (voice >= base && voice < end) {
+      if (out_pool) *out_pool = p;
+      if (out_instance) *out_instance = (voice - base) / width;
+      return p;
+    }
+  }
+  return -1;
+}
+
+int skred_poly_voice_group(int voice, int *out_group) {
+  if (!poly_voice_valid(voice)) return -1;
+  for (int g = 0; g < SKRED_POLY_GROUP_MAX; g++) {
+    if (!poly_group[g].valid) continue;
+    int src = poly_group[g].source;
+    int width = poly_group[g].width;
+    if (voice >= src && voice < src + width) {
+      if (out_group) *out_group = g;
+      return g;
+    }
+  }
+  return -1;
+}
+

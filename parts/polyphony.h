@@ -122,6 +122,12 @@ int skred_poly_note(int pool, int key, float note, float velocity, float cents);
 int skred_poly_release(int pool, int key, float release_velocity);
 int skred_poly_bend(int pool, int key, float semitones, float cents);
 
+/* Returns pool index (or -1 if not in a pool). Optionally returns pool index and instance index. */
+int skred_poly_voice_pool(int voice, int *out_pool, int *out_instance);
+
+/* Returns group index (or -1 if not a group prototype). Optionally returns group index. */
+int skred_poly_voice_group(int voice, int *out_group);
+
 /* Returned strings use module-owned storage and are replaced by the next
    status call. A negative selector lists all defined groups or pools. */
 const char *skred_poly_group_status(int group);

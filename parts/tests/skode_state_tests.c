@@ -443,7 +443,7 @@ static void test_command_help(void) {
 
   reset_log(&ctx);
   consume(test, &ctx, "[s] /h");
-  expect_substr(test, ctx.log, "# help s [voice]", "s command help");
+  expect_substr(test, ctx.log, "# help s [mod]", "s command help");
   expect_substr(test, ctx.log, "parameter smoothing", "s summary");
   if (strstr(ctx.log, "other matches") != NULL) {
     fail(test, "unwanted other matches found for [s]");
@@ -457,7 +457,7 @@ static void test_command_help(void) {
 #ifdef SKRED_TEST_FM
   reset_log(&ctx);
   consume(test, &ctx, "[FB] /h");
-  expect_substr(test, ctx.log, "# help FB [osc]", "FM feedback command help");
+  expect_substr(test, ctx.log, "# help FB [mod]", "FM feedback command help");
   expect_substr(test, ctx.log, "oscillator frequency feedback amount", "FM feedback summary");
 #endif
 }
@@ -3700,9 +3700,10 @@ static void test_voice_show_names(void) {
   voice_init();
   reset_log(&ctx);
 
-  /* Set up voice 0 with name Kick, voice 1 with no name, voice 2 inactive and default */
+  /* Set up voice 0 with name Kick, voice 1 with waveform 2 (no name), voice 2 modulator with w15 (no name), voice 3 default */
   consume(test, &ctx, "v0 [Kick] vt");
-  consume(test, &ctx, "v1 a0.5");
+  consume(test, &ctx, "v1 w2 a0.5");
+  consume(test, &ctx, "v2 w15 m1");
   consume(test, &ctx, "v0");
 
   reset_log(&ctx);
@@ -3710,18 +3711,67 @@ static void test_voice_show_names(void) {
 
   /* Voice 0 is current voice and has [Kick] vt */
   expect_substr(test, ctx.log, "v0 [Kick] vt # *", "voice 0 name and current marker in ???");
-  /* Voice 1 has no name but is active/configured with a0.5 */
-  expect_substr(test, ctx.log, "v1\n", "voice 1 number without name in ???");
-  /* Voice 1 should NOT have w, f, a, n parameters printed */
-  if (strstr(ctx.log, "v1 w") != NULL || strstr(ctx.log, "f440") != NULL) {
-    fail(test, "??? should not output frequency or waveform parameters");
+  /* Voice 1 has no name, prints waveform w2 */
+  expect_substr(test, ctx.log, "v1 w2\n", "voice 1 waveform without name in ???");
+  /* Voice 2 has no name, is modulator, prints w15 m1 */
+  expect_substr(test, ctx.log, "v2 w15 m1\n", "voice 2 modulator flag in ???");
+  /* Should NOT output frequency or amplitude parameters */
+  if (strstr(ctx.log, "f440") != NULL || strstr(ctx.log, "a0.5") != NULL) {
+    fail(test, "??? should not output frequency or amplitude parameters");
+  }
+  /* Voice 3 (unconfigured) should NOT be printed */
+  if (strstr(ctx.log, "v3") != NULL) {
+    fail(test, "??? should not output unconfigured voice 3");
   }
 
   /* Test alias v??? */
   reset_log(&ctx);
   consume(test, &ctx, "v???");
   expect_substr(test, ctx.log, "v0 [Kick] vt # *", "voice 0 name in v???");
-  expect_substr(test, ctx.log, "v1\n", "voice 1 in v???");
+  expect_substr(test, ctx.log, "v1 w2\n", "voice 1 in v???");
+  expect_substr(test, ctx.log, "v2 w15 m1\n", "voice 2 in v???");
+  if (strstr(ctx.log, "v3") != NULL) {
+    fail(test, "v??? should not output unconfigured voice 3");
+  }
+
+  /* Test poly pool and group prototype annotation in ??? */
+  reset_log(&ctx);
+  consume(test, &ctx, "/pg 0,4,1,0");
+  consume(test, &ctx, "/pp 0,0,5,2,0");
+  consume(test, &ctx, "v5");
+  reset_log(&ctx);
+  consume(test, &ctx, "???");
+  expect_substr(test, ctx.log, "v4 w0 # pg0\n", "group prototype voice 4 in ???");
+  expect_substr(test, ctx.log, "v5 w0 # * pp0[0]\n", "pool instance 0 current voice in ???");
+  expect_substr(test, ctx.log, "v6 w0 # pp0[1]\n", "pool instance 1 in ???");
+
+  /* Clean up poly state */
+  skred_poly_reset();
+}
+
+static void test_voice_show_all(void) {
+  const char *test = "voice show all - ??";
+  skode_t ctx = new_ctx();
+  ctx.log_enable = 1;
+
+  voice_init();
+  reset_log(&ctx);
+
+  /* Set up voice 0 default, voice 1 configured with w1 */
+  consume(test, &ctx, "v1 w1");
+  consume(test, &ctx, "v0");
+
+  reset_log(&ctx);
+  consume(test, &ctx, "??");
+
+  /* Voice 0 is current voice (v0 w0 f440 a0 # *) */
+  expect_substr(test, ctx.log, "v0 w0 f440 a0 # *", "voice 0 in ??");
+  /* Voice 1 is configured (v1 w1 f440 a0) */
+  expect_substr(test, ctx.log, "v1 w1 f440 a0", "voice 1 in ??");
+  /* Unconfigured voices should NOT appear */
+  if (strstr(ctx.log, "v2") != NULL) {
+    fail(test, "?? should not output unconfigured voice 2");
+  }
 }
 
 static void test_voice_show_connected(void) {
@@ -4018,6 +4068,7 @@ int main(int argc, char **argv) {
   test_step_all_data();
   test_inst_note_and_stream_ties();
   test_voice_show_names();
+  test_voice_show_all();
   test_voice_show_connected();
   test_voice_format_links();
   test_voice_format_pitch_mode();

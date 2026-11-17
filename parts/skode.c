@@ -341,7 +341,9 @@ static const skode_doc_entry_t *skode_help_doc_for_category_command(
   if (!category || command_number <= 0) return NULL;
   for (int i = 0; skode_doc_entries[i].key; i++) {
     char doc_category[SKODE_HELP_FIELD_MAX];
+    char alias_of[SKODE_HELP_FIELD_MAX] = "";
     if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
+    if (skode_help_field(&skode_doc_entries[i], "alias_of", alias_of, sizeof(alias_of))) continue;
     if (!skode_help_field(&skode_doc_entries[i], "category", doc_category,
                           sizeof(doc_category))) continue;
     if (strcmp(doc_category, category) != 0) continue;
@@ -466,12 +468,26 @@ const char *skode_help_category_for_word(const char *name) {
   return NULL;
 }
 
+static int skode_help_category_command_count(const char *category) {
+  int count = 0;
+  for (int i = 0; skode_doc_entries[i].key; i++) {
+    char doc_category[SKODE_HELP_FIELD_MAX];
+    char alias_of[SKODE_HELP_FIELD_MAX] = "";
+    if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
+    if (skode_help_field(&skode_doc_entries[i], "alias_of", alias_of, sizeof(alias_of))) continue;
+    if (!skode_help_field(&skode_doc_entries[i], "category", doc_category, sizeof(doc_category))) continue;
+    if (strcmp(doc_category, category) == 0) count++;
+  }
+  return count;
+}
+
 static void skode_help_show_categories(skode_t *ctx) {
   char categories[SKODE_HELP_CATEGORY_MAX][SKODE_HELP_FIELD_MAX];
   int count = skode_help_categories(categories, SKODE_HELP_CATEGORY_MAX);
   ctx->puts(ctx, "# help categories");
   for (int i = 0; i < count; i++) {
-    ctx->printf(ctx, "# %d %s\n", i + 1, categories[i]);
+    int cmd_count = skode_help_category_command_count(categories[i]);
+    ctx->printf(ctx, "# %d %s (%d commands)\n", i + 1, categories[i], cmd_count);
   }
   if (count == 0) ctx->puts(ctx, "# no embedded command docs");
 }
@@ -490,15 +506,24 @@ static void skode_help_show_category(skode_t *ctx, int category_number) {
   for (int i = 0; skode_doc_entries[i].key; i++) {
     char doc_category[SKODE_HELP_FIELD_MAX];
     char name[SKODE_HELP_FIELD_MAX] = "";
+    char long_name[SKODE_HELP_FIELD_MAX] = "";
+    char alias_of[SKODE_HELP_FIELD_MAX] = "";
     char summary[SKODE_HELP_FIELD_MAX] = "";
     if (!skode_help_is_command_doc(&skode_doc_entries[i])) continue;
+    if (skode_help_field(&skode_doc_entries[i], "alias_of", alias_of, sizeof(alias_of))) continue;
     if (!skode_help_field(&skode_doc_entries[i], "category", doc_category,
                           sizeof(doc_category))) continue;
     if (strcmp(doc_category, category) != 0) continue;
     command_number++;
     skode_help_field(&skode_doc_entries[i], "name", name, sizeof(name));
+    skode_help_field(&skode_doc_entries[i], "long_name", long_name, sizeof(long_name));
     skode_help_field(&skode_doc_entries[i], "summary", summary, sizeof(summary));
-    ctx->printf(ctx, "# %d %s", command_number, name[0] ? name : skode_doc_entries[i].key);
+    const char *disp_name = name[0] ? name : skode_doc_entries[i].key;
+    if (long_name[0]) {
+      ctx->printf(ctx, "# %d %s (%s)", command_number, disp_name, long_name);
+    } else {
+      ctx->printf(ctx, "# %d %s", command_number, disp_name);
+    }
     if (summary[0]) ctx->printf(ctx, " - %s", summary);
     ctx->puts(ctx, "");
   }

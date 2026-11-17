@@ -655,6 +655,27 @@ int main(void) {
         failures++;
     }
 
+    /* Test 3: Verify voice_is_configured_gen behavior */
+    voice_reset(1);
+    if (voice_is_configured_gen(0) != 0) {
+        printf("FAIL: voice_is_configured_gen(0) returned %d for reset voice\n", voice_is_configured_gen(0));
+        failures++;
+    }
+    if (voice_is_configured_gen(1) != 0) {
+        printf("FAIL: voice_is_configured_gen(1) returned %d for reset voice\n", voice_is_configured_gen(1));
+        failures++;
+    }
+    sv.freq[1] = 880.0f;
+    if (voice_is_configured_gen(1) != 1) {
+        printf("FAIL: voice_is_configured_gen(1) returned %d for modified voice (freq=880)\n", voice_is_configured_gen(1));
+        failures++;
+    }
+    wave_reset_gen(1);
+    if (voice_is_configured_gen(1) != 0) {
+        printf("FAIL: voice_is_configured_gen(1) returned %d after wave_reset_gen\n", voice_is_configured_gen(1));
+        failures++;
+    }
+
     synth_free();
 
     if (failures == 0) {

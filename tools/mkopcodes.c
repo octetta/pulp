@@ -36,22 +36,41 @@ typedef enum {
 } arg_class_t;
 
 typedef enum {
-    GRP_OSC = 0,
+    GRP_VOICE = 0,
+    GRP_OSC,
+    GRP_WAVE,
     GRP_FILTER,
     GRP_ENV,
+    GRP_MOD,
+    GRP_DELAY,
+    GRP_POLY,
     GRP_SEQ,
-    GRP_VOICE,
+    GRP_CTRL,
+    GRP_REPEAT,
+    GRP_STREAM,
+    GRP_REC,
+    GRP_MIDI,
+    GRP_SCOPE,
+    GRP_KSYNTH,
+    GRP_MACRO,
+    GRP_DATA,
+    GRP_VFS,
     GRP_SYS,
     GRP_COUNT
 } group_id_t;
 
 static const char *group_names[] = {
-    "osc", "filter", "env", "seq", "voice", "sys"
+    "voice", "osc", "wave", "filter", "env", "mod", "delay",
+    "poly", "seq", "ctrl", "repeat", "stream", "rec", "midi",
+    "scope", "ksynth", "macro", "data", "vfs", "sys"
 };
 
 static const char *group_enum_names[] = {
-    "SKODE_GRP_OSC", "SKODE_GRP_FILTER", "SKODE_GRP_ENV",
-    "SKODE_GRP_SEQ", "SKODE_GRP_VOICE", "SKODE_GRP_SYS"
+    "SKODE_GRP_VOICE", "SKODE_GRP_OSC", "SKODE_GRP_WAVE", "SKODE_GRP_FILTER",
+    "SKODE_GRP_ENV", "SKODE_GRP_MOD", "SKODE_GRP_DELAY", "SKODE_GRP_POLY",
+    "SKODE_GRP_SEQ", "SKODE_GRP_CTRL", "SKODE_GRP_REPEAT", "SKODE_GRP_STREAM",
+    "SKODE_GRP_REC", "SKODE_GRP_MIDI", "SKODE_GRP_SCOPE", "SKODE_GRP_KSYNTH",
+    "SKODE_GRP_MACRO", "SKODE_GRP_DATA", "SKODE_GRP_VFS", "SKODE_GRP_SYS"
 };
 
 #define MAX_GUARDS 8
@@ -60,6 +79,7 @@ typedef struct {
     char name[STR_MAX];
     char alias[STR_MAX];
     group_id_t group;
+    int group_explicit;
     char c_name[STR_MAX];
     int is_realtime; /* 1 = realtime, 0 = immediate */
     int type_explicit;
@@ -165,8 +185,9 @@ static void finalize_clause(def_clause_t *cur, const char *filepath,
         if (cur->alias[0] == '\0' && last_alias[0] != '\0') {
             safe_strcpy(cur->alias, last_alias, sizeof(cur->alias));
         }
-        if (cur->group == GRP_OSC && last_group != GRP_OSC) {
+        if (!cur->group_explicit && last_valid) {
             cur->group = last_group;
+            cur->group_explicit = 1;
         }
         if (!cur->type_explicit && last_type_explicit) {
             cur->is_realtime = last_is_realtime;
@@ -190,13 +211,29 @@ static void finalize_clause(def_clause_t *cur, const char *filepath,
     }
 
     /* Auto-infer group from directory path if not set */
-    if (cur->group == GRP_OSC) {
-        if (strstr(filepath, "/filter/") || strstr(filepath, "\\filter\\")) cur->group = GRP_FILTER;
+    if (!cur->group_explicit) {
+        if (strstr(filepath, "/voice/") || strstr(filepath, "\\voice\\")) cur->group = GRP_VOICE;
+        else if (strstr(filepath, "/osc/") || strstr(filepath, "\\osc\\")) cur->group = GRP_OSC;
+        else if (strstr(filepath, "/wave/") || strstr(filepath, "\\wave\\")) cur->group = GRP_WAVE;
+        else if (strstr(filepath, "/filter/") || strstr(filepath, "\\filter\\")) cur->group = GRP_FILTER;
         else if (strstr(filepath, "/env/") || strstr(filepath, "\\env\\")) cur->group = GRP_ENV;
+        else if (strstr(filepath, "/mod/") || strstr(filepath, "\\mod\\")) cur->group = GRP_MOD;
+        else if (strstr(filepath, "/delay/") || strstr(filepath, "\\delay\\")) cur->group = GRP_DELAY;
+        else if (strstr(filepath, "/poly/") || strstr(filepath, "\\poly\\")) cur->group = GRP_POLY;
         else if (strstr(filepath, "/seq/") || strstr(filepath, "\\seq\\")) cur->group = GRP_SEQ;
-        else if (strstr(filepath, "/voice/") || strstr(filepath, "\\voice\\")) cur->group = GRP_VOICE;
+        else if (strstr(filepath, "/ctrl/") || strstr(filepath, "\\ctrl\\")) cur->group = GRP_CTRL;
+        else if (strstr(filepath, "/repeat/") || strstr(filepath, "\\repeat\\")) cur->group = GRP_REPEAT;
+        else if (strstr(filepath, "/stream/") || strstr(filepath, "\\stream\\")) cur->group = GRP_STREAM;
+        else if (strstr(filepath, "/rec/") || strstr(filepath, "\\rec\\")) cur->group = GRP_REC;
+        else if (strstr(filepath, "/midi/") || strstr(filepath, "\\midi\\")) cur->group = GRP_MIDI;
+        else if (strstr(filepath, "/scope/") || strstr(filepath, "\\scope\\")) cur->group = GRP_SCOPE;
+        else if (strstr(filepath, "/ksynth/") || strstr(filepath, "\\ksynth\\")) cur->group = GRP_KSYNTH;
+        else if (strstr(filepath, "/macro/") || strstr(filepath, "\\macro\\")) cur->group = GRP_MACRO;
+        else if (strstr(filepath, "/data/") || strstr(filepath, "\\data\\")) cur->group = GRP_DATA;
+        else if (strstr(filepath, "/vfs/") || strstr(filepath, "\\vfs\\")) cur->group = GRP_VFS;
         else if (strstr(filepath, "/sys/") || strstr(filepath, "\\sys\\")) cur->group = GRP_SYS;
-        else if (strstr(filepath, "/mod/") || strstr(filepath, "\\mod\\")) cur->group = GRP_SYS;
+        else cur->group = GRP_SYS;
+        cur->group_explicit = 1;
     }
 
     /* Check for parser context references in clause body */
@@ -286,7 +323,7 @@ static void parse_def_file(const char *filepath) {
     char last_name[STR_MAX] = "";
     char last_alias[STR_MAX] = "";
     char last_ifdef[STR_MAX] = "";
-    group_id_t last_group = GRP_OSC;
+    group_id_t last_group = GRP_VOICE;
     int last_is_realtime = 1;
     int last_type_explicit = 0;
     int last_valid = 0;
@@ -360,6 +397,7 @@ static void parse_def_file(const char *filepath) {
             char *val = trimmed + 6;
             trim(val);
             cur.group = parse_group(val);
+            cur.group_explicit = 1;
             cur.defined = 1;
         } else if (strncmp(trimmed, "@c_name", 7) == 0) {
             char *val = trimmed + 7;
@@ -791,7 +829,9 @@ static void emit_c_source(const char *out_path) {
     fprintf(f, "#include <stdio.h>\n\n");
 
     fprintf(f, "static const char *s_group_names[] = {\n");
-    fprintf(f, "    \"osc\", \"filter\", \"env\", \"seq\", \"voice\", \"sys\"\n");
+    for (i = 0; i < GRP_COUNT; i++) {
+        fprintf(f, "    \"%s\"%s\n", group_names[i], (i + 1 < GRP_COUNT) ? "," : "");
+    }
     fprintf(f, "};\n\n");
 
     fprintf(f, "/* Forward declarations of clause implementations */\n");
@@ -1341,7 +1381,7 @@ static void emit_markdown(const char *out_path, int total_rt) {
     }
 
     fprintf(f, "# Pulp / Skred Command & Opcode Reference\n\n");
-    fprintf(f, "Release: **0.83.0**  \n");
+    fprintf(f, "Release: **0.85.0**  \n");
     fprintf(f, "Unified Opcode Dictionary and Execution Engine reference for `pulp` and `skred`.\n\n");
     fprintf(f, "Generated automatically by [`tools/mkopcodes`](file:///home/stewartj/book/pulp/tools/mkopcodes.c) from modular opcode definitions in `doc/opcodes/`.\n\n");
     fprintf(f, "---\n\n");
@@ -1362,12 +1402,26 @@ static void emit_markdown(const char *out_path, int total_rt) {
         }
         const char *desc = "";
         switch (g) {
-            case GRP_OSC:    desc = "Oscillators, waveforms, frequency, tuning, detune"; break;
+            case GRP_VOICE:  desc = "Core voice selection, levels, panning, and voice diagnostics"; break;
+            case GRP_OSC:    desc = "Oscillators, waveforms, frequency, tuning, detune, loops"; break;
+            case GRP_WAVE:   desc = "Wavetable slots, visualizers, WAV import and export"; break;
             case GRP_FILTER: desc = "Filter cutoff frequency, resonance, modes, wavefolding"; break;
             case GRP_ENV:    desc = "Envelopes, ADSR parameters, curve shaping, segment times"; break;
-            case GRP_SEQ:    desc = "Sequencer patterns, steps, repeats, tempo, control events"; break;
-            case GRP_VOICE:  desc = "Voice allocation, polyphony, routing, amplitude, pan"; break;
-            case GRP_SYS:    desc = "System configuration, MIDI, data buffers, macros, hardware"; break;
+            case GRP_MOD:    desc = "Cross-modulation, FM, AM, ring mod, sample & hold, glissando"; break;
+            case GRP_DELAY:  desc = "Stereo delay engine, feedback, pingpong, damping, grit"; break;
+            case GRP_POLY:   desc = "Polyphonic voice pools, voice allocation, prototype groups"; break;
+            case GRP_SEQ:    desc = "Sequencer patterns, steps, tempo, ratchets, loop modulo"; break;
+            case GRP_CTRL:   desc = "Control plane events, event bus, responder bindings"; break;
+            case GRP_REPEAT: desc = "Scheduled repeats, tick loops, and deferred queues"; break;
+            case GRP_STREAM: desc = "Step data streams and stream cursors"; break;
+            case GRP_REC:    desc = "Track stems, buffer recording, auto-trim, track routing"; break;
+            case GRP_MIDI:   desc = "MIDI devices, bindings, routes, file playback"; break;
+            case GRP_SCOPE:  desc = "Oscilloscope shared-memory IPC and events"; break;
+            case GRP_KSYNTH: desc = "KSynth DSL, array bridges, bytebeat eval"; break;
+            case GRP_MACRO:  desc = "User macro definition, storage, and execution"; break;
+            case GRP_DATA:   desc = "Variables, Forth stack words, data arrays, string slots"; break;
+            case GRP_VFS:    desc = "Virtual file system, ZIP archives, script loading"; break;
+            case GRP_SYS:    desc = "Hardware audio I/O, engine lifecycle, system diagnostics"; break;
             default:         desc = "System commands"; break;
         }
         fprintf(f, "| %s | `%s` | %d | %s |\n", group_names[g], group_names[g], cnt, desc);
@@ -1506,9 +1560,23 @@ static void escape_doc_string(const char *in, char *out, size_t out_size) {
     out[o] = '\0';
 }
 
+typedef struct {
+    const def_word_t *w;
+    char short_code[STR_MAX];
+    char long_code[STR_MAX];
+} doc_word_item_t;
+
+static int compare_doc_items(const void *a, const void *b) {
+    const doc_word_item_t *ia = (const doc_word_item_t *)a;
+    const doc_word_item_t *ib = (const doc_word_item_t *)b;
+    int c = strcasecmp(ia->short_code, ib->short_code);
+    if (c != 0) return c;
+    return strcmp(ia->short_code, ib->short_code);
+}
+
 static void emit_doc_inc(const char *filepath) {
     FILE *f = fopen(filepath, "w");
-    int i;
+    int g, i;
     if (!f) {
         fprintf(stderr, "error: cannot open %s for writing\n", filepath);
         exit(1);
@@ -1516,30 +1584,54 @@ static void emit_doc_inc(const char *filepath) {
 
     fprintf(f, "/* Generated by tools/mkopcodes from doc/opcodes. Do not edit. */\n");
 
-    for (i = 0; i < g_word_count; i++) {
-        const def_word_t *w = &g_words[i];
-        const char *grp = group_names[w->group];
-        const char *sum = "";
-        char sum_escaped[STR_MAX * 2];
-        int c;
+    for (g = 0; g < GRP_COUNT; g++) {
+        doc_word_item_t items[MAX_WORDS];
+        int item_count = 0;
 
-        for (c = 0; c < w->clause_count; c++) {
-            if (g_clauses[w->clauses[c]].summary[0]) {
-                sum = g_clauses[w->clauses[c]].summary;
-                break;
+        for (i = 0; i < g_word_count; i++) {
+            const def_word_t *w = &g_words[i];
+            if (w->group != (group_id_t)g) continue;
+            doc_word_item_t *it = &items[item_count++];
+            it->w = w;
+            if (w->alias[0] && strcmp(w->alias, w->name) != 0) {
+                safe_strcpy(it->short_code, w->alias, sizeof(it->short_code));
+                safe_strcpy(it->long_code, w->name, sizeof(it->long_code));
+            } else {
+                safe_strcpy(it->short_code, w->name, sizeof(it->short_code));
+                it->long_code[0] = '\0';
             }
         }
-        if (!sum[0]) sum = w->name;
-        escape_doc_string(sum, sum_escaped, sizeof(sum_escaped));
 
-        /* Canonical word entry */
-        fprintf(f, "  { \"command.%s\", \"%s.def\", 0, \"name: %s\\ncategory: %s\\nsummary: %s\\n\" },\n",
-                w->name, w->name, w->name, grp, sum_escaped);
+        qsort(items, item_count, sizeof(doc_word_item_t), compare_doc_items);
 
-        /* Alias entry if distinct */
-        if (w->alias[0] && strcmp(w->alias, w->name) != 0) {
-            fprintf(f, "  { \"command.%s\", \"%s.def\", 0, \"name: %s\\ncategory: %s\\nsummary: %s\\n\" },\n",
-                    w->alias, w->name, w->alias, grp, sum_escaped);
+        for (i = 0; i < item_count; i++) {
+            const doc_word_item_t *it = &items[i];
+            const def_word_t *w = it->w;
+            const char *grp = group_names[w->group];
+            const char *sum = "";
+            char sum_escaped[STR_MAX * 2];
+            int c;
+
+            for (c = 0; c < w->clause_count; c++) {
+                if (g_clauses[w->clauses[c]].summary[0]) {
+                    sum = g_clauses[w->clauses[c]].summary;
+                    break;
+                }
+            }
+            if (!sum[0]) sum = w->name;
+            escape_doc_string(sum, sum_escaped, sizeof(sum_escaped));
+
+            /* Primary entry (short form) */
+            if (it->long_code[0]) {
+                fprintf(f, "  { \"command.%s\", \"%s.def\", 0, \"name: %s\\nlong_name: %s\\ncategory: %s\\nsummary: %s\\n\" },\n",
+                        it->short_code, w->name, it->short_code, it->long_code, grp, sum_escaped);
+                /* Secondary lookup entry (long form) */
+                fprintf(f, "  { \"command.%s\", \"%s.def\", 0, \"name: %s\\nalias_of: %s\\ncategory: %s\\nsummary: %s\\n\" },\n",
+                        it->long_code, w->name, it->long_code, it->short_code, grp, sum_escaped);
+            } else {
+                fprintf(f, "  { \"command.%s\", \"%s.def\", 0, \"name: %s\\ncategory: %s\\nsummary: %s\\n\" },\n",
+                        it->short_code, w->name, it->short_code, grp, sum_escaped);
+            }
         }
     }
 

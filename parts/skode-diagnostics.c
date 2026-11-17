@@ -82,18 +82,34 @@ int voice_show_all(skode_t *ctx, int voice, int verbose) {
 
 int voice_show_names(skode_t *ctx, int voice) {
   for (int i=0; i<synth_config.voice_max; i++) {
+    int pool_idx = -1, inst_idx = -1, group_idx = -1;
+    int in_pool = (skred_poly_voice_pool(i, &pool_idx, &inst_idx) >= 0);
+    int in_group = (skred_poly_voice_group(i, &group_idx) >= 0);
+
     int active = (sv.amp_envelope[i].is_active || sv.mark_go[i] || (!sv.finished[i] && sv.one_shot[i]));
-    int configured = voice_is_configured_gen(i) || sv.text[i][0] != '\0';
+    int configured = voice_is_configured_gen(i) || sv.text[i][0] != '\0' || in_pool || in_group;
         
     if (!active && !configured && i != voice) continue;
     
-    char e[8] = "";
-    if (i == voice) sprintf(e, " # *");
+    char e[32] = "";
+    int is_cur = (i == voice);
+    if (is_cur && in_pool) {
+      snprintf(e, sizeof(e), " # * pp%d[%d]", pool_idx, inst_idx);
+    } else if (is_cur && in_group) {
+      snprintf(e, sizeof(e), " # * pg%d", group_idx);
+    } else if (is_cur) {
+      snprintf(e, sizeof(e), " # *");
+    } else if (in_pool) {
+      snprintf(e, sizeof(e), " # pp%d[%d]", pool_idx, inst_idx);
+    } else if (in_group) {
+      snprintf(e, sizeof(e), " # pg%d", group_idx);
+    }
     
     if (sv.text[i][0] != '\0') {
       ctx->printf(ctx, "v%d [%s] vt%s\n", i, sv.text[i], e);
     } else {
-      ctx->printf(ctx, "v%d%s\n", i, e);
+      const char *m = sv.disconnect[i] ? " m1" : "";
+      ctx->printf(ctx, "v%d w%d%s%s\n", i, sv.wave_table_index[i], m, e);
     }
   }
   return 0;

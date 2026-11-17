@@ -400,13 +400,13 @@ static void emit_c_voice_ops(const char *filepath) {
     fprintf(f, "    return out;\n");
     fprintf(f, "}\n\n");
 
-    /* voice_is_configured_gen: derived from schema defaults */
+    /* voice_is_configured_gen: derived from schema reset defaults */
     fprintf(f, "int voice_is_configured_gen(int v) {\n");
     fprintf(f, "    if (v < 0 || v >= synth_config.voice_max) return 0;\n");
     for (i = 0; i < g_field_count; i++) {
         const schema_field_t *fld = &g_fields[i];
-        if (strcmp(fld->group, "voice") != 0) continue;
-        const char *val = fld->default_val[0] ? fld->default_val : "0";
+        if (strcmp(fld->group, "voice") != 0 || !fld->copy) continue;
+        const char *val = fld->reset_val[0] ? fld->reset_val : fld->default_val[0] ? fld->default_val : "0";
 
         if (fld->type == TYPE_FLOAT_ARRAY) {
             int sz = fld->array_size > 0 ? fld->array_size : 6;
@@ -419,6 +419,13 @@ static void emit_c_voice_ops(const char *filepath) {
             fprintf(f, "    if (fabs((double)sv.%s[v] - (%s)) > 1e-4) return 1;\n", fld->name, val);
         }
     }
+    fprintf(f, "    if (sv.amp_envelope && (\n");
+    fprintf(f, "        sv.amp_envelope[v].mode != 0 ||\n");
+    fprintf(f, "        sv.amp_envelope[v].attack_time != 0.0f ||\n");
+    fprintf(f, "        sv.amp_envelope[v].decay_time != 0.0f ||\n");
+    fprintf(f, "        fabs((double)sv.amp_envelope[v].sustain_level - 1.0) > 1e-4 ||\n");
+    fprintf(f, "        sv.amp_envelope[v].release_time != 0.0f)) return 1;\n");
+    fprintf(f, "    if (sv.text && sv.text[v][0] != '\\0') return 1;\n");
     fprintf(f, "    return 0;\n");
     fprintf(f, "}\n\n");
 
@@ -558,6 +565,23 @@ static void emit_c_equivalence_test(const char *filepath) {
         }
     }
 
+    fprintf(f, "\n    /* Test 3: Verify voice_is_configured_gen behavior */\n");
+    fprintf(f, "    voice_reset(1);\n");
+    fprintf(f, "    if (voice_is_configured_gen(0) != 0) {\n");
+    fprintf(f, "        printf(\"FAIL: voice_is_configured_gen(0) returned %%d for reset voice\\n\", voice_is_configured_gen(0));\n");
+    fprintf(f, "        failures++;\n    }\n");
+    fprintf(f, "    if (voice_is_configured_gen(1) != 0) {\n");
+    fprintf(f, "        printf(\"FAIL: voice_is_configured_gen(1) returned %%d for reset voice\\n\", voice_is_configured_gen(1));\n");
+    fprintf(f, "        failures++;\n    }\n");
+    fprintf(f, "    sv.freq[1] = 880.0f;\n");
+    fprintf(f, "    if (voice_is_configured_gen(1) != 1) {\n");
+    fprintf(f, "        printf(\"FAIL: voice_is_configured_gen(1) returned %%d for modified voice (freq=880)\\n\", voice_is_configured_gen(1));\n");
+    fprintf(f, "        failures++;\n    }\n");
+    fprintf(f, "    wave_reset_gen(1);\n");
+    fprintf(f, "    if (voice_is_configured_gen(1) != 0) {\n");
+    fprintf(f, "        printf(\"FAIL: voice_is_configured_gen(1) returned %%d after wave_reset_gen\\n\", voice_is_configured_gen(1));\n");
+    fprintf(f, "        failures++;\n    }\n");
+
     fprintf(f, "\n    synth_free();\n\n");
     fprintf(f, "    if (failures == 0) {\n");
     fprintf(f, "        printf(\"All mksynth differential equivalence tests passed!\\n\");\n");
@@ -668,7 +692,15 @@ static void emit_gleam_voice(const char *filepath) {
             strcmp(fld->name, "freq") == 0 ||
             strcmp(fld->name, "user_amp") == 0 ||
             strcmp(fld->name, "amp") == 0) continue;
-        if (fld->type == TYPE_FLOAT_ARRAY) continue;
+        if (fld->type == TYPE_FLOAT_ARRAY) {
+            fprintf(f, "  let cmds = case voice.%s != d.%s {\n", fld->name, fld->name);
+            fprintf(f, "    True -> case voice.%s {\n", fld->name);
+            fprintf(f, "      [] -> cmds\n");
+            fprintf(f, "      targets -> list.append(cmds, [\"%s\" <> string.join(list.map(targets, fn(t) { int.to_string(float.round(t)) }), \",\")])\n", fld->opcode);
+            fprintf(f, "    }\n");
+            fprintf(f, "    False -> cmds\n  }\n");
+            continue;
+        }
 
         if (fld->type == TYPE_INT) {
             fprintf(f, "  let cmds = case voice.%s != d.%s {\n", fld->name, fld->name);
@@ -699,7 +731,13 @@ static void emit_gleam_voice(const char *filepath) {
             strcmp(fld->name, "freq") == 0 ||
             strcmp(fld->name, "user_amp") == 0 ||
             strcmp(fld->name, "amp") == 0) continue;
-        if (fld->type == TYPE_FLOAT_ARRAY) continue;
+        if (fld->type == TYPE_FLOAT_ARRAY) {
+            fprintf(f, "  let cmds = case voice.%s {\n", fld->name);
+            fprintf(f, "    [] -> list.append(cmds, [\"%s-1\"])\n", fld->opcode);
+            fprintf(f, "    targets -> list.append(cmds, [\"%s\" <> string.join(list.map(targets, fn(t) { int.to_string(float.round(t)) }), \",\")])\n", fld->opcode);
+            fprintf(f, "  }\n");
+            continue;
+        }
 
         if (fld->type == TYPE_INT) {
             fprintf(f, "  let cmds = list.append(cmds, [\"%s\" <> int.to_string(voice.%s)])\n", fld->opcode, fld->name);
@@ -808,7 +846,7 @@ static void emit_gleam_diff(const char *filepath) {
     if (!f) return;
 
     fprintf(f, "//// Auto-generated by tools/mksynth. Do not edit directly.\n\n");
-    fprintf(f, "import gleam/int\nimport gleam/list\nimport gleam/string\n");
+    fprintf(f, "import gleam/float\nimport gleam/int\nimport gleam/list\nimport gleam/string\n");
     fprintf(f, "import skode/gen/voice_gen.{type Voice}\n");
     fprintf(f, "import skode/param\n\n");
 
@@ -819,7 +857,15 @@ static void emit_gleam_diff(const char *filepath) {
     for (i = 0; i < g_field_count; i++) {
         const schema_field_t *fld = &g_fields[i];
         if (strcmp(fld->group, "voice") != 0 || !fld->opcode[0]) continue;
-        if (fld->type == TYPE_FLOAT_ARRAY) continue;
+        if (fld->type == TYPE_FLOAT_ARRAY) {
+            fprintf(f, "  let diffs = case old.%s != new.%s {\n", fld->name, fld->name);
+            fprintf(f, "    True -> case new.%s {\n", fld->name);
+            fprintf(f, "      [] -> [\"%s-1\", ..diffs]\n", fld->opcode);
+            fprintf(f, "      targets -> [\"%s\" <> string.join(list.map(targets, fn(t) { int.to_string(float.round(t)) }), \",\"), ..diffs]\n", fld->opcode);
+            fprintf(f, "    }\n");
+            fprintf(f, "    False -> diffs\n  }\n");
+            continue;
+        }
 
         if (fld->type == TYPE_INT) {
             fprintf(f, "  let diffs = case old.%s != new.%s {\n", fld->name, fld->name);
@@ -844,10 +890,41 @@ static void emit_gleam_diff(const char *filepath) {
  * Main CLI Entry Point
  * ------------------------------------------------------------------------- */
 
+static void emit_gleam_version(const char *filepath, const char *version_file) {
+    char version_str[64] = "0.85.0";
+    int major = 0, minor = 85, patch = 0;
+    FILE *vf = fopen(version_file, "r");
+    if (vf) {
+        if (fgets(version_str, sizeof(version_str), vf)) {
+            char *p = version_str + strlen(version_str) - 1;
+            while (p >= version_str && (*p == '\n' || *p == '\r' || *p == ' ' || *p == '\t')) {
+                *p-- = '\0';
+            }
+            sscanf(version_str, "%d.%d.%d", &major, &minor, &patch);
+        }
+        fclose(vf);
+    }
+
+    FILE *f = fopen(filepath, "w");
+    if (!f) {
+        fprintf(stderr, "error: cannot open %s for writing\n", filepath);
+        return;
+    }
+
+    fprintf(f, "//// Generated by mksynth from pulp/VERSION (%s). DO NOT EDIT.\n\n", version_str);
+    fprintf(f, "pub const pulp_version = \"%s\"\n\n", version_str);
+    fprintf(f, "pub const pulp_version_major = %d\n\n", major);
+    fprintf(f, "pub const pulp_version_minor = %d\n\n", minor);
+    fprintf(f, "pub const pulp_version_patch = %d\n", patch);
+
+    fclose(f);
+}
+
 int main(int argc, char **argv) {
     const char *schema_dir = (argc > 1) ? argv[1] : "schema";
     const char *out_c_dir  = (argc > 2) ? argv[2] : "src/gen";
-    const char *gleam_dir  = (argc > 3) ? argv[3] : NULL;
+    const char *gleam_dir    = (argc > 3) ? argv[3] : NULL;
+    const char *version_file = (argc > 4) ? argv[4] : "VERSION";
 
     char path_h[1024], path_alloc[1024], path_ops[1024], path_test[1024], path_equiv[1024];
 
@@ -883,6 +960,9 @@ int main(int argc, char **argv) {
 
         snprintf(path_gleam, sizeof(path_gleam), "%s/diff_gen.gleam", gleam_dir);
         emit_gleam_diff(path_gleam);
+
+        snprintf(path_gleam, sizeof(path_gleam), "%s/version_gen.gleam", gleam_dir);
+        emit_gleam_version(path_gleam, version_file);
 
         printf("mksynth: generated Gleam modules in %s\n", gleam_dir);
     }

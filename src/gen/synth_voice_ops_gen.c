@@ -238,27 +238,23 @@ int voice_is_configured_gen(int v) {
     if (v < 0 || v >= synth_config.voice_max) return 0;
     if (sv.wave_table_index[v] != 0) return 1;
     if (fabs((double)sv.freq[v] - (440.0)) > 1e-4) return 1;
-    if (fabs((double)sv.midi_note[v] - (60.0)) > 1e-4) return 1;
     if (fabs((double)sv.midi_cents[v] - (0.0)) > 1e-4) return 1;
     if (fabs((double)sv.midi_transpose[v] - (0.0)) > 1e-4) return 1;
-    if (sv.pitch_mode[v] != 1) return 1;
-    if (fabs((double)sv.phase[v] - (0.0)) > 1e-4) return 1;
-    if (fabs((double)sv.phase_inc[v] - (0.0)) > 1e-4) return 1;
+    if (sv.pitch_mode[v] != 0) return 1;
     if (sv.one_shot[v] != 0) return 1;
-    if (sv.interpolate[v] != 1) return 1;
+    if (sv.interpolate[v] != 0) return 1;
     if (sv.direction[v] != 0) return 1;
-    if (sv.loop_enabled[v] != 1) return 1;
+    if (sv.loop_enabled[v] != 0) return 1;
     if (sv.loop_count[v] != 0) return 1;
     if (sv.phase_reset[v] != 0) return 1;
-    if (sv.filter_mode[v] != 1) return 1;
-    if (fabs((double)sv.filter_freq[v] - (5000.0)) > 1e-4) return 1;
+    if (sv.filter_mode[v] != 0) return 1;
+    if (fabs((double)sv.filter_freq[v] - (8000.0)) > 1e-4) return 1;
     if (fabs((double)sv.filter_res[v] - (0.707)) > 1e-4) return 1;
     if (sv.use_filter_envelope[v] != 0) return 1;
     if (fabs((double)sv.filter_env_depth[v] - (0.0)) > 1e-4) return 1;
-    if (sv.use_amp_envelope[v] != 1) return 1;
     if (sv.amp_envelope_mode[v] != 0) return 1;
-    if (fabs((double)sv.amp[v] - (-6.0)) > 1e-4) return 1;
-    if (fabs((double)sv.user_amp[v] - (-6.0)) > 1e-4) return 1;
+    if (fabs((double)sv.amp[v] - (1.0)) > 1e-4) return 1;
+    if (fabs((double)sv.user_amp[v] - (0.0)) > 1e-4) return 1;
     if (fabs((double)sv.pan[v] - (0.0)) > 1e-4) return 1;
     if (sv.disconnect[v] != 0) return 1;
     if (sv.record[v] != 0) return 1;
@@ -274,8 +270,6 @@ int voice_is_configured_gen(int v) {
     if (fabs((double)sv.freq_mod_adder[v] - (0.0)) > 1e-4) return 1;
     if (sv.freq_mod_mode[v] != 0) return 1;
     if (fabs((double)sv.freq_mod_feedback[v] - (0.0)) > 1e-4) return 1;
-    if (fabs((double)sv.freq_mod_feedback_z1[v] - (0.0)) > 1e-4) return 1;
-    if (fabs((double)sv.freq_mod_feedback_z2[v] - (0.0)) > 1e-4) return 1;
     if (sv.amp_mod_osc[v] != -1) return 1;
     if (fabs((double)sv.amp_mod_depth[v] - (0.0)) > 1e-4) return 1;
     if (fabs((double)sv.amp_mod_adder[v] - (0.0)) > 1e-4) return 1;
@@ -290,11 +284,8 @@ int voice_is_configured_gen(int v) {
     if (sv.glissando_enable[v] != 0) return 1;
     if (sv.glissando_mode[v] != 0) return 1;
     if (fabs((double)sv.glissando_time[v] - (0.0)) > 1e-4) return 1;
-    if (sv.smoother_enable[v] != 0) return 1;
-    if (fabs((double)sv.smoother_smoothing[v] - (0.0)) > 1e-4) return 1;
     if (sv.use_freq_envelope[v] != 0) return 1;
     if (fabs((double)sv.freq_env_depth[v] - (0.0)) > 1e-4) return 1;
-    if (fabs((double)sv.sync_blep[v] - (0.0)) > 1e-4) return 1;
     for (int _k = 0; _k < 6; _k++) {
         if (fabs((double)sv.link_sync[_k][v] - (-1.0)) > 1e-4) return 1;
     }
@@ -309,7 +300,14 @@ int voice_is_configured_gen(int v) {
     if (fabs((double)sv.freq_bend_range[v] - (2.0)) > 1e-4) return 1;
     if (fabs((double)sv.freq_bend_offset[v] - (0.0)) > 1e-4) return 1;
     if (fabs((double)sv.amp_bend[v] - (0.0)) > 1e-4) return 1;
-    if (fabs((double)sv.amp_bend_range[v] - (0.0)) > 1e-4) return 1;
+    if (fabs((double)sv.amp_bend_range[v] - (12.0)) > 1e-4) return 1;
+    if (sv.amp_envelope && (
+        sv.amp_envelope[v].mode != 0 ||
+        sv.amp_envelope[v].attack_time != 0.0f ||
+        sv.amp_envelope[v].decay_time != 0.0f ||
+        fabs((double)sv.amp_envelope[v].sustain_level - 1.0) > 1e-4 ||
+        sv.amp_envelope[v].release_time != 0.0f)) return 1;
+    if (sv.text && sv.text[v][0] != '\0') return 1;
     return 0;
 }
 

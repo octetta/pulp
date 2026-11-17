@@ -11,11 +11,13 @@ or
 Nobody likes the pulp...
 
 
-## Web Interface
+## Web Interface & Tooling
 
-The official interactive web interface and interactive tutorials for Skred have been moved to their own dedicated repository.
+The official interactive web interface and tooling for Skred & Skode:
 
-- **[Live Web App Demo](https://octetta.github.io/skred-web/)**
+- **[Live Skode Web Editor](https://octetta.github.io/skode/)** — Interactive browser-based sound design editor with real-time WASM synthesis, reactive parameter diffs, and live AST inspection.
+- **[skode Repository](https://github.com/octetta/skode)** — Gleam AST parser, canonical serializer, and web editor application.
+- **[Live Web App Demo](https://octetta.github.io/skred-web/)** (legacy tutorial interface)
 - **[skred-web Repository](https://github.com/octetta/skred-web)**
 
 ## Architecture
@@ -31,6 +33,7 @@ device, recording, and scope APIs.
 
 Skode documentation:
 
+- [Opcode reference](doc/REFERENCE.md) (comprehensive 20-category opcode and alias reference)
 - [User command reference](parts/SKODE_USER_COMMAND_REFERENCE.md)
 - [Command implementation reference](parts/SKODE_COMMANDS.md)
 - [Scheduled opcode model](parts/OPCODES.md)

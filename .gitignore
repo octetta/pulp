@@ -23,3 +23,6 @@ Testing/
 parts/Testing/
 parts/wasm-assets/skred_api.*
 parts/wasm-assets/*.wasm
+.sk3_history
+*.wav
+
